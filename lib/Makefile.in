@@ -97,6 +97,7 @@ host_triplet = @host@
 @LIBMESH_ENABLED_TRUE@  ../src/IB/CIBFEMethod.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFECentroidPostProcessor.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFEMethod.cpp \
+@LIBMESH_ENABLED_TRUE@  ../src/IB/IBFEInstrumentPanel.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFEPostProcessor.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IMPMethod.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IMPInitializer.cpp \
@@ -107,6 +108,7 @@ host_triplet = @host@
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/CIBFEMethod.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFECentroidPostProcessor.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEMethod.h \
+@LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEInstrumentPanel.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEPatchRecoveryPostProcessor.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEPostProcessor.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IMPInitializer.h \
@@ -287,9 +289,9 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
 	../src/IB/CIBFEMethod.cpp \
 	../src/IB/IBFECentroidPostProcessor.cpp \
-	../src/IB/IBFEMethod.cpp ../src/IB/IBFEPostProcessor.cpp \
-	../src/IB/IMPMethod.cpp ../src/IB/IMPInitializer.cpp \
-	../src/IB/MaterialPointSpec.cpp \
+	../src/IB/IBFEMethod.cpp ../src/IB/IBFEInstrumentPanel.cpp \
+	../src/IB/IBFEPostProcessor.cpp ../src/IB/IMPMethod.cpp \
+	../src/IB/IMPInitializer.cpp ../src/IB/MaterialPointSpec.cpp \
 	../src/IB/MaterialPointSpecFactory.cpp \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
@@ -307,6 +309,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 @LIBMESH_ENABLED_TRUE@am__objects_2 = ../src/IB/libIBAMR2d_a-CIBFEMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFEMethod.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFEPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IMPMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IMPInitializer.$(OBJEXT) \
@@ -529,9 +532,9 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
 	../src/IB/CIBFEMethod.cpp \
 	../src/IB/IBFECentroidPostProcessor.cpp \
-	../src/IB/IBFEMethod.cpp ../src/IB/IBFEPostProcessor.cpp \
-	../src/IB/IMPMethod.cpp ../src/IB/IMPInitializer.cpp \
-	../src/IB/MaterialPointSpec.cpp \
+	../src/IB/IBFEMethod.cpp ../src/IB/IBFEInstrumentPanel.cpp \
+	../src/IB/IBFEPostProcessor.cpp ../src/IB/IMPMethod.cpp \
+	../src/IB/IMPInitializer.cpp ../src/IB/MaterialPointSpec.cpp \
 	../src/IB/MaterialPointSpecFactory.cpp \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \
@@ -549,6 +552,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 @LIBMESH_ENABLED_TRUE@am__objects_4 = ../src/IB/libIBAMR3d_a-CIBFEMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFEMethod.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFEPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IMPMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IMPInitializer.$(OBJEXT) \
@@ -705,6 +709,7 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBExplicitHierarchyIntegrator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEInstrumentPanel.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBHierarchyIntegrator.Po \
@@ -764,6 +769,7 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBExplicitHierarchyIntegrator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEInstrumentPanel.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBHierarchyIntegrator.Po \
@@ -1071,6 +1077,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/CIBFEMethod.h \
 	../include/ibamr/IBFECentroidPostProcessor.h \
 	../include/ibamr/IBFEMethod.h \
+	../include/ibamr/IBFEInstrumentPanel.h \
 	../include/ibamr/IBFEPatchRecoveryPostProcessor.h \
 	../include/ibamr/IBFEPostProcessor.h \
 	../include/ibamr/IMPInitializer.h ../include/ibamr/IMPMethod.h \
@@ -2006,6 +2013,8 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBFEMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBFEPostProcessor.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IMPMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
@@ -2336,6 +2345,8 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBFEMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBFEPostProcessor.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IMPMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
@@ -2426,6 +2437,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBExplicitHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEInstrumentPanel.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBHierarchyIntegrator.Po@am__quote@ # am--include-marker
@@ -2485,6 +2497,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBExplicitHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEInstrumentPanel.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBHierarchyIntegrator.Po@am__quote@ # am--include-marker
@@ -4114,6 +4127,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBFEMethod.obj `if test -f '../src/IB/IBFEMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBFEMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFEMethod.cpp'; fi`
 
+../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.o: ../src/IB/IBFEInstrumentPanel.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEInstrumentPanel.Tpo -c -o ../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.o `test -f '../src/IB/IBFEInstrumentPanel.cpp' || echo '$(srcdir)/'`../src/IB/IBFEInstrumentPanel.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEInstrumentPanel.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEInstrumentPanel.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFEInstrumentPanel.cpp' object='../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.o `test -f '../src/IB/IBFEInstrumentPanel.cpp' || echo '$(srcdir)/'`../src/IB/IBFEInstrumentPanel.cpp
+
+../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.obj: ../src/IB/IBFEInstrumentPanel.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEInstrumentPanel.Tpo -c -o ../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.obj `if test -f '../src/IB/IBFEInstrumentPanel.cpp'; then $(CYGPATH_W) '../src/IB/IBFEInstrumentPanel.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFEInstrumentPanel.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEInstrumentPanel.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEInstrumentPanel.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFEInstrumentPanel.cpp' object='../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.obj `if test -f '../src/IB/IBFEInstrumentPanel.cpp'; then $(CYGPATH_W) '../src/IB/IBFEInstrumentPanel.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFEInstrumentPanel.cpp'; fi`
+
 ../src/IB/libIBAMR2d_a-IBFEPostProcessor.o: ../src/IB/IBFEPostProcessor.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBFEPostProcessor.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Tpo -c -o ../src/IB/libIBAMR2d_a-IBFEPostProcessor.o `test -f '../src/IB/IBFEPostProcessor.cpp' || echo '$(srcdir)/'`../src/IB/IBFEPostProcessor.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Po
@@ -5640,6 +5667,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBFEMethod.obj `if test -f '../src/IB/IBFEMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBFEMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFEMethod.cpp'; fi`
 
+../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.o: ../src/IB/IBFEInstrumentPanel.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEInstrumentPanel.Tpo -c -o ../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.o `test -f '../src/IB/IBFEInstrumentPanel.cpp' || echo '$(srcdir)/'`../src/IB/IBFEInstrumentPanel.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEInstrumentPanel.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEInstrumentPanel.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFEInstrumentPanel.cpp' object='../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.o `test -f '../src/IB/IBFEInstrumentPanel.cpp' || echo '$(srcdir)/'`../src/IB/IBFEInstrumentPanel.cpp
+
+../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.obj: ../src/IB/IBFEInstrumentPanel.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEInstrumentPanel.Tpo -c -o ../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.obj `if test -f '../src/IB/IBFEInstrumentPanel.cpp'; then $(CYGPATH_W) '../src/IB/IBFEInstrumentPanel.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFEInstrumentPanel.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEInstrumentPanel.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEInstrumentPanel.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFEInstrumentPanel.cpp' object='../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.obj `if test -f '../src/IB/IBFEInstrumentPanel.cpp'; then $(CYGPATH_W) '../src/IB/IBFEInstrumentPanel.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFEInstrumentPanel.cpp'; fi`
+
 ../src/IB/libIBAMR3d_a-IBFEPostProcessor.o: ../src/IB/IBFEPostProcessor.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBFEPostProcessor.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Tpo -c -o ../src/IB/libIBAMR3d_a-IBFEPostProcessor.o `test -f '../src/IB/IBFEPostProcessor.cpp' || echo '$(srcdir)/'`../src/IB/IBFEPostProcessor.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Po
@@ -5914,6 +5955,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBExplicitHierarchyIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEInstrumentPanel.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBHierarchyIntegrator.Po
@@ -5973,6 +6015,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBExplicitHierarchyIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEInstrumentPanel.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBHierarchyIntegrator.Po
@@ -6179,6 +6222,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBExplicitHierarchyIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEInstrumentPanel.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBHierarchyIntegrator.Po
@@ -6238,6 +6282,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBExplicitHierarchyIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEInstrumentPanel.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBHierarchyIntegrator.Po
