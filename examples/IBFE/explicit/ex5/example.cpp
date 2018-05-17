@@ -644,7 +644,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
             interpolate(U, qp, U_node, phi);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                U_vec[d] = U(d);
+                U_qp_vec[d] = U(d);
             }
             tether_force_function(F, FF, x, q_point[qp], elem, var_data, grad_var_data, loop_time, force_fcn_ctx);
             for (int d = 0; d < NDIM; ++d)
@@ -664,7 +664,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                 interpolate(U, qp, U_node, phi_face);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    U_vec[d] = U(d);
+                    U_qp_vec[d] = U(d);
                 }
                 N = normal_face[qp];
                 tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
