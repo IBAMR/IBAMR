@@ -2080,7 +2080,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-        // Loop over the elements and compute the values to be spread and the
+        // Loop over the elements and compute the values to be spread and the
         // positions of the quadrature points.
         T_bdry.clear();
         x_bdry.clear();
@@ -2285,6 +2285,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     FEDataInterpolation fe(dim, d_fe_data_managers[part]);
     UniquePtr<QBase> qrule_face = QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
     fe.attachQuadratureRuleFace(qrule_face.get());
+    fe.evalQuadraturePointsFace();
     fe.evalNormalsFace();
     const size_t G_sys_idx = fe.registerInterpolatedSystem(G_system, vars, no_vars, &G_ghost_vec);
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_ghost_vec);
@@ -2303,6 +2304,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
         surface_pressure_fcn_system_idxs, d_lag_surface_pressure_fcn_data[part].system_data, equation_systems);
     fe.init(/*use_IB_ghosted_vecs*/ true);
 
+    const std::vector<libMesh::Point>& q_point_face = fe.getQuadraturePointsFace();
     const std::vector<libMesh::Point>& normal_face = fe.getNormalsFace();
 
     const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
@@ -2465,7 +2467,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 {
                     const SideIndex<NDIM>& i_s = intersection_indices[qp];
                     const unsigned int axis = i_s.getAxis();
-                    const libMesh::Point& X = intersection_ref_coords[qp];
+                    const libMesh::Point& X = q_point_face[qp];
                     const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
                     const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
                     get_x_and_FF(x, FF, x_data, grad_x_data);
