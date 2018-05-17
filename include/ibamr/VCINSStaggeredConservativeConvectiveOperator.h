@@ -171,15 +171,15 @@ public:
     //\}
 
     /*!
-     * \brief Set the current interpolated side-centered density patch data index.
+     * \brief Set the current side-centered density patch data index.
      */
-    void setInterpolatedDensityPatchDataIndex(int rho_interp_idx);
+    void setSideCenteredDensityPatchDataIndex(int rho_sc_idx);
 
     /*
-     * \brief Set the boundary condition object for the interpolated side-centered density.
+     * \brief Set the boundary condition object for the side-centered density.
      */
-    void setInterpolatedDensityBoundaryConditions(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& rho_interp_bc_coefs);
+    void setSideCenteredDensityBoundaryConditions(
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& rho_sc_bc_coefs);
 
     /*!
      * \brief Get the newly constructed side-centered density patch data index.
@@ -187,7 +187,7 @@ public:
      * \note This data is produced as a part of the apply() routine and should be used
      * in the linear operator for the VCINS solver.
      */
-    int getUpdatedInterpolatedDensityPatchDataIndex();
+    int getUpdatedSideCenteredDensityPatchDataIndex();
 
 private:
     /*!
@@ -286,14 +286,14 @@ private:
     // Number of RK steps to take.
     int d_num_steps;
 
-    // Boundary condition object for interpolated density field.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_rho_interp_bc_coefs;
+    // Boundary condition object for side-centered density field.
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_rho_sc_bc_coefs;
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
     int d_U_scratch_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_interp_var;
-    int d_rho_interp_current_idx, d_rho_interp_scratch_idx, d_rho_interp_new_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var;
+    int d_rho_sc_current_idx, d_rho_sc_scratch_idx, d_rho_sc_new_idx;
 
     // Hierarchy operation obect.
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;

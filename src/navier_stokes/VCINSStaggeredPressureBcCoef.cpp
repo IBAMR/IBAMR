@@ -82,7 +82,6 @@ VCINSStaggeredPressureBcCoef::VCINSStaggeredPressureBcCoef(const VCINSStaggeredH
     setHomogeneousBc(homogeneous_bc);
 
     // Set some default values.
-    d_mu_idx = -1;
     d_mu_interp_type = VC_HARMONIC_INTERP;
     return;
 } // VCINSStaggeredPressureBcCoef
@@ -276,13 +275,15 @@ VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     // conditions for the pressure.
     const double p_scale = d_fluid_solver->getPressureScalingFactor();
     double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
+    int mu_idx = -1;
     Pointer<CellData<NDIM, double> > mu_data;
     if (!d_fluid_solver->muIsConstant())
     {
+        mu_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 #if !defined(NDEBUG)
-        TBOX_ASSERT(d_mu_idx >= 0);
+        TBOX_ASSERT(mu_idx >= 0);
 #endif
-        mu_data = patch.getPatchData(d_mu_idx);
+        mu_data = patch.getPatchData(mu_idx);
     }
 
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
@@ -420,16 +421,6 @@ VCINSStaggeredPressureBcCoef::numberOfExtensionsFillable() const
     }
     return ret_val;
 } // numberOfExtensionsFillable
-
-void
-VCINSStaggeredPressureBcCoef::setViscosityPatchDataIndex(const int mu_idx)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(mu_idx >= 0);
-#endif
-    d_mu_idx = mu_idx;
-    return;
-} // setViscosityPatchDataIndex
 
 void
 VCINSStaggeredPressureBcCoef::setViscosityInterpolationType(const IBTK::VCInterpType mu_interp_type)

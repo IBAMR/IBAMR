@@ -1021,13 +1021,13 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
       d_finest_ln(-1),
       d_rho_is_set(false),
       d_num_steps(1),
-      d_rho_interp_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_rho_sc_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_U_var(NULL),
       d_U_scratch_idx(-1),
-      d_rho_interp_var(NULL),
-      d_rho_interp_current_idx(-1),
-      d_rho_interp_scratch_idx(-1),
-      d_rho_interp_new_idx(-1),
+      d_rho_sc_var(NULL),
+      d_rho_sc_current_idx(-1),
+      d_rho_sc_scratch_idx(-1),
+      d_rho_sc_new_idx(-1),
       d_velocity_convective_limiter(UPWIND),
       d_density_convective_limiter(UPWIND),
       d_velocity_limiter_gcw(1),
@@ -1153,26 +1153,26 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 #endif
 
-    const std::string rho_interp_name = "VCINSStaggeredConservativeConvectiveOperator::RHO_INTERP";
-    d_rho_interp_var = var_db->getVariable(rho_interp_name);
-    if (d_rho_interp_var)
+    const std::string rho_sc_name = "VCINSStaggeredConservativeConvectiveOperator::RHO_SIDE_CENTERED";
+    d_rho_sc_var = var_db->getVariable(rho_sc_name);
+    if (d_rho_sc_var)
     {
-        d_rho_interp_scratch_idx =
-            var_db->mapVariableAndContextToIndex(d_rho_interp_var, var_db->getContext(rho_interp_name + "::SCRATCH"));
-        d_rho_interp_new_idx =
-            var_db->mapVariableAndContextToIndex(d_rho_interp_var, var_db->getContext(rho_interp_name + "::NEW"));
+        d_rho_sc_scratch_idx =
+            var_db->mapVariableAndContextToIndex(d_rho_sc_var, var_db->getContext(rho_sc_name + "::SCRATCH"));
+        d_rho_sc_new_idx =
+            var_db->mapVariableAndContextToIndex(d_rho_sc_var, var_db->getContext(rho_sc_name + "::NEW"));
     }
     else
     {
-        d_rho_interp_var = new SideVariable<NDIM, double>(rho_interp_name);
-        d_rho_interp_scratch_idx = var_db->registerVariableAndContext(
-            d_rho_interp_var, var_db->getContext(rho_interp_name + "::SCRATCH"), IntVector<NDIM>(d_density_limiter_gcw));
-        d_rho_interp_new_idx = var_db->registerVariableAndContext(
-            d_rho_interp_var, var_db->getContext(rho_interp_name + "::NEW"), IntVector<NDIM>(NOGHOSTS));
+        d_rho_sc_var = new SideVariable<NDIM, double>(rho_sc_name);
+        d_rho_sc_scratch_idx = var_db->registerVariableAndContext(
+            d_rho_sc_var, var_db->getContext(rho_sc_name + "::SCRATCH"), IntVector<NDIM>(d_density_limiter_gcw));
+        d_rho_sc_new_idx = var_db->registerVariableAndContext(
+            d_rho_sc_var, var_db->getContext(rho_sc_name + "::NEW"), IntVector<NDIM>(NOGHOSTS));
     }
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_rho_interp_scratch_idx >= 0);
-    TBOX_ASSERT(d_rho_interp_new_idx >= 0);
+    TBOX_ASSERT(d_rho_sc_scratch_idx >= 0);
+    TBOX_ASSERT(d_rho_sc_new_idx >= 0);
 #endif
 
     // Setup Timers.
@@ -1213,10 +1213,10 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     if (!d_rho_is_set)
     {
         TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                                 << "  a side-centered density field must be set via setInterpolatedDensityPatchDataIndex()\n"
+                                 << "  a side-centered density field must be set via setSideCenteredDensityPatchDataIndex()\n"
                                  << "  prior to call to applyConvectiveOperator\n");
     }
-    TBOX_ASSERT(d_rho_interp_current_idx >= 0);
+    TBOX_ASSERT(d_rho_sc_current_idx >= 0);
 #endif
 
     // Get the time step size
@@ -1249,21 +1249,21 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Fill ghost cells for current density
-    InterpolationTransactionComponent rho_transaction(d_rho_interp_scratch_idx,
-                                                      d_rho_interp_current_idx,
+    InterpolationTransactionComponent rho_transaction(d_rho_sc_scratch_idx,
+                                                      d_rho_sc_current_idx,
                                                       "CONSERVATIVE_LINEAR_REFINE",
                                                       false,
                                                       "CONSERVATIVE_COARSEN",
                                                       d_bdry_extrap_type,
                                                       false,
-                                                      d_rho_interp_bc_coefs);
+                                                      d_rho_sc_bc_coefs);
     Pointer<HierarchyGhostCellInterpolation> hier_rho_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_rho_bdry_fill->initializeOperatorState(rho_transaction, d_hierarchy);
     hier_rho_bdry_fill->fillData(d_solution_time);
 
     // Compute the old mass
     const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
-    const double old_mass = d_hier_sc_data_ops->integral(d_rho_interp_current_idx, wgt_sc_idx);
+    const double old_mass = d_hier_sc_data_ops->integral(d_rho_sc_current_idx, wgt_sc_idx);
     if (d_enable_logging)
     {
         plog << "VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(): old mass in the domain = " << old_mass << "\n";
@@ -1276,14 +1276,14 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
         // Fill ghost cells for new density, if needed
         if (step > 0)
         {
-            InterpolationTransactionComponent update_transaction(d_rho_interp_scratch_idx,
-                                                                 d_rho_interp_new_idx,
+            InterpolationTransactionComponent update_transaction(d_rho_sc_scratch_idx,
+                                                                 d_rho_sc_new_idx,
                                                                  "CONSERVATIVE_LINEAR_REFINE",
                                                                  false,
                                                                  "CONSERVATIVE_COARSEN",
                                                                  d_bdry_extrap_type,
                                                                  false,
-                                                                 d_rho_interp_bc_coefs);
+                                                                 d_rho_sc_bc_coefs);
             Pointer<HierarchyGhostCellInterpolation> hier_update_bdry_fill = new HierarchyGhostCellInterpolation();
             hier_update_bdry_fill->initializeOperatorState(update_transaction, d_hierarchy);
             hier_update_bdry_fill->fillData(d_solution_time + dt);
@@ -1304,9 +1304,9 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
 
                 Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(N_idx);
                 Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
-                Pointer<SideData<NDIM, double> > R_cur_data = patch->getPatchData(d_rho_interp_current_idx);
-                Pointer<SideData<NDIM, double> > R_pre_data = patch->getPatchData(d_rho_interp_scratch_idx);
-                Pointer<SideData<NDIM, double> > R_new_data = patch->getPatchData(d_rho_interp_new_idx);
+                Pointer<SideData<NDIM, double> > R_cur_data = patch->getPatchData(d_rho_sc_current_idx);
+                Pointer<SideData<NDIM, double> > R_pre_data = patch->getPatchData(d_rho_sc_scratch_idx);
+                Pointer<SideData<NDIM, double> > R_new_data = patch->getPatchData(d_rho_sc_new_idx);
 
                 // Define variables that live on the "faces" of control volumes centered about side-centered staggered
                 // velocity components
@@ -1400,7 +1400,7 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     }
 
     // Compute the new mass
-    const double new_mass = d_hier_sc_data_ops->integral(d_rho_interp_new_idx, wgt_sc_idx);
+    const double new_mass = d_hier_sc_data_ops->integral(d_rho_sc_new_idx, wgt_sc_idx);
     if (d_enable_logging)
     {
         plog << "VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(): new mass in the domain = " << new_mass << "\n";
@@ -1408,7 +1408,7 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     }
 
     // Reset select options
-    d_rho_interp_current_idx = -1;
+    d_rho_sc_current_idx = -1;
     d_rho_is_set = false;
 
     IBAMR_TIMER_STOP(t_apply_convective_operator);
@@ -1460,8 +1460,8 @@ VCINSStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMR
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_U_scratch_idx)) level->allocatePatchData(d_U_scratch_idx);
-        if (!level->checkAllocated(d_rho_interp_scratch_idx)) level->allocatePatchData(d_rho_interp_scratch_idx);
-        if (!level->checkAllocated(d_rho_interp_new_idx)) level->allocatePatchData(d_rho_interp_new_idx);
+        if (!level->checkAllocated(d_rho_sc_scratch_idx)) level->allocatePatchData(d_rho_sc_scratch_idx);
+        if (!level->checkAllocated(d_rho_sc_new_idx)) level->allocatePatchData(d_rho_sc_new_idx);
     }
 
     if (!d_hier_math_ops_external)
@@ -1498,8 +1498,8 @@ VCINSStaggeredConservativeConvectiveOperator::deallocateOperatorState()
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_U_scratch_idx)) level->deallocatePatchData(d_U_scratch_idx);
-        if (level->checkAllocated(d_rho_interp_scratch_idx)) level->deallocatePatchData(d_rho_interp_scratch_idx);
-        if (level->checkAllocated(d_rho_interp_new_idx)) level->deallocatePatchData(d_rho_interp_new_idx);
+        if (level->checkAllocated(d_rho_sc_scratch_idx)) level->deallocatePatchData(d_rho_sc_scratch_idx);
+        if (level->checkAllocated(d_rho_sc_new_idx)) level->deallocatePatchData(d_rho_sc_new_idx);
     }
 
     // Deallocate hierarchy math operations object.
@@ -1512,34 +1512,34 @@ VCINSStaggeredConservativeConvectiveOperator::deallocateOperatorState()
 } // deallocateOperatorState
 
 void
-VCINSStaggeredConservativeConvectiveOperator::setInterpolatedDensityPatchDataIndex(int rho_interp_idx)
+VCINSStaggeredConservativeConvectiveOperator::setSideCenteredDensityPatchDataIndex(int rho_sc_idx)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(rho_interp_idx >= 0);
+    TBOX_ASSERT(rho_sc_idx >= 0);
 #endif
     d_rho_is_set = true;
-    d_rho_interp_current_idx = rho_interp_idx;
-} // setInterpolatedDensityPatchDataIndex
+    d_rho_sc_current_idx = rho_sc_idx;
+} // setSideCenteredDensityPatchDataIndex
 
 void
-VCINSStaggeredConservativeConvectiveOperator::setInterpolatedDensityBoundaryConditions(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& rho_interp_bc_coefs)
+VCINSStaggeredConservativeConvectiveOperator::setSideCenteredDensityBoundaryConditions(
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& rho_sc_bc_coefs)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(rho_interp_bc_coefs.size() == NDIM);
+    TBOX_ASSERT(rho_sc_bc_coefs.size() == NDIM);
 #endif
-    d_rho_interp_bc_coefs = rho_interp_bc_coefs;
+    d_rho_sc_bc_coefs = rho_sc_bc_coefs;
     return;
-} // setInterpolatedDensityBoundaryConditions
+} // setSideCenteredDensityBoundaryConditions
 
 int
-VCINSStaggeredConservativeConvectiveOperator::getUpdatedInterpolatedDensityPatchDataIndex()
+VCINSStaggeredConservativeConvectiveOperator::getUpdatedSideCenteredDensityPatchDataIndex()
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_rho_interp_new_idx >= 0);
+    TBOX_ASSERT(d_rho_sc_new_idx >= 0);
 #endif
-    return d_rho_interp_new_idx;
-} // getUpdatedInterpolatedDensityPatchDataIndex
+    return d_rho_sc_new_idx;
+} // getUpdatedSideCenteredDensityPatchDataIndex
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

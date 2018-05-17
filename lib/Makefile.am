@@ -148,6 +148,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/StokesBcCoefStrategy.cpp \
 ../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 ../src/navier_stokes/VCINSStaggeredConservativeConvectiveOperator.cpp \
+../src/navier_stokes/VCINSStaggeredConservativeHierarchyIntegrator.cpp \
 ../src/navier_stokes/VCINSStaggeredHierarchyIntegrator.cpp \
 ../src/navier_stokes/VCINSStaggeredPressureBcCoef.cpp \
 ../src/navier_stokes/VCINSStaggeredVelocityBcCoef.cpp \
@@ -265,6 +266,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/StokesSpecifications.h \
 ../include/ibamr/SurfaceTensionForceFunction.h \
 ../include/ibamr/VCINSStaggeredConservativeConvectiveOperator.h \
+../include/ibamr/VCINSStaggeredConservativeHierarchyIntegrator.h \
 ../include/ibamr/VCINSStaggeredHierarchyIntegrator.h \
 ../include/ibamr/VCINSStaggeredPressureBcCoef.h \
 ../include/ibamr/VCINSStaggeredVelocityBcCoef.h \

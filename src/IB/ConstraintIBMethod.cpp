@@ -583,15 +583,12 @@ ConstraintIBMethod::registerEulerianVariables()
         {
             // Get the density maintained by the integrator
             d_rho_is_const = false;
-            Pointer<SideVariable<NDIM, double> > rho_sc_var = p_vc_ins_hier_integrator->getInterpolatedRhoVariable();
+            const int rho_sc_idx = p_vc_ins_hier_integrator->getLinearOperatorRhoPatchDataIndex();
 #if !defined(NDEBUG)
-            TBOX_ASSERT(rho_sc_var);
+            TBOX_ASSERT(rho_sc_idx >= 0);
 #endif
-            Pointer<VariableContext> rho_interp_new_ctx = p_vc_ins_hier_integrator->getNewContext();
-            d_rho_ins_idx = var_db->mapVariableAndContextToIndex(rho_sc_var, rho_interp_new_ctx);
-#if !defined(NDEBUG)
-            TBOX_ASSERT(d_rho_ins_idx >= 0);
-#endif
+            d_hier_sc_data_ops->copyData(d_rho_ins_idx, rho_sc_idx, /*interior_only*/ true);
+
             d_rho_var = new SideVariable<NDIM, double>(d_object_name + "::rho");
             d_rho_scratch_idx =
                 var_db->registerVariableAndContext(d_rho_var, d_scratch_context, getMinimumGhostCellWidth());
@@ -643,15 +640,11 @@ ConstraintIBMethod::registerEulerianVariables()
             else
             {
                 // Get the density maintained by the integrator
-                Pointer<SideVariable<NDIM, double> > rho_sc_var = p_vc_ins_hier_integrator->getInterpolatedRhoVariable();
+                const int rho_sc_idx = p_vc_ins_hier_integrator->getLinearOperatorRhoPatchDataIndex();
 #if !defined(NDEBUG)
-                TBOX_ASSERT(rho_sc_var);
+                TBOX_ASSERT(rho_sc_idx >= 0);
 #endif
-                Pointer<VariableContext> rho_interp_new_ctx = p_vc_ins_hier_integrator->getNewContext();
-                d_rho_ins_idx = var_db->mapVariableAndContextToIndex(rho_sc_var, rho_interp_new_ctx);
-#if !defined(NDEBUG)
-                TBOX_ASSERT(d_rho_ins_idx >= 0);
-#endif
+                d_hier_sc_data_ops->copyData(d_rho_ins_idx, rho_sc_idx, /*interior_only*/ true);
                 d_rho_var = new SideVariable<NDIM, double>(d_object_name + "::rho");
                 d_rho_scratch_idx =
                     var_db->registerVariableAndContext(d_rho_var, d_scratch_context, getMinimumGhostCellWidth());

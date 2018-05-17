@@ -459,7 +459,6 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
             TBOX_ASSERT(d_mu_is_const >= 0);
 #endif
             p_vc_ins_bc_coef->setTargetVelocityPatchDataIndex(d_u_idx);
-            p_vc_ins_bc_coef->setViscosityPatchDataIndex(d_mu_idx);
             InterpolationTransactionComponent p_transaction_comp(d_p_idx,
                                                                  p_current_idx,
                                                                  /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",

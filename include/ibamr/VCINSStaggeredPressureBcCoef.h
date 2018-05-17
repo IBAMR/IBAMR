@@ -246,14 +246,6 @@ public:
     //\}
 
     /*!
-     * \brief Set the cell centered viscosity patch data index to be used for
-     * traction boundary conditions.
-     *
-     * \note This patch data must contain filled ghost cells
-     */
-    void setViscosityPatchDataIndex(const int mu_idx);
-
-    /*!
      * \brief Set the interpolation type to bring cell centered viscosity
      * to side centers
      */

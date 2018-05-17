@@ -292,7 +292,7 @@ VCINSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
 #endif
     if (!d_fluid_solver->muIsConstant())
     {
-        mu_idx = d_fluid_solver->getInterpolatedMuPatchDataIndex();
+        mu_idx = d_fluid_solver->getInterpolatedLinearOperatorMuPatchDataIndex();
 
 #if !defined(NDEBUG)
         TBOX_ASSERT(mu_idx >= 0);
