@@ -27,8 +27,5 @@ addons:
       - zlib1g-dev
 
 # deploy
-deploy:
-  provider: script
-  script: make -f $TRAVIS_BUILD_DIR/doc/Docs-Makefile docs-deploy
-  on:
-    branch: master
+script:
+  - make -f $TRAVIS_BUILD_DIR/doc/Docs-Makefile docs-deploy
