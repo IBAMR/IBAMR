@@ -26,6 +26,6 @@ addons:
       - graphviz
       - zlib1g-dev
 
-# deploy
+# build the docs
 script:
   - make -f $TRAVIS_BUILD_DIR/doc/Docs-Makefile docs-deploy
