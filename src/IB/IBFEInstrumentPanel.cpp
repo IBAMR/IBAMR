@@ -725,13 +725,15 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     std::fill(d_mean_pressure_values.begin(), d_mean_pressure_values.end(), 0.0);
     std::vector<double> A(d_num_meters, 0.0);
 
-    int count_qp = 0;
+    // local counters for checking whether we have consistent
+    // values for the number of quadrature points.
+    int count_qp_1 = 0;
     int count_qp_2 = 0;
 
     // compute flow and mean pressure on mesh meters
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        count_qp += d_quad_point_map[ln].size();
+        count_qp_1 += d_quad_point_map[ln].size();
 
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -811,7 +813,8 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
 
     // check to make sure we don't double count quadrature points because
     // of overlapping patches or something else.
-    if (count_qp != count_qp_2)
+    const int count_qp_3 = SAMRAI_MPI::sumReduction(count_qp_2);
+    if (count_qp_1 != count_qp_3)
     {
         TBOX_ERROR("IBFEInstrumentPanel::readInstrumentData : "
                    << "the number of quadrature points in the meter meshes are counted"
