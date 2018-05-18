@@ -318,6 +318,14 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
+    // Allocate interpolated density data
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_rho_interp_idx, current_time);
+    }
+       
+
     // Get the current value of viscosity
     if (!d_mu_is_const)
     {
@@ -361,6 +369,14 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
         {
             TBOX_ERROR("this statement should not be reached");
         }
+
+        // Store the viscosities for later use
+        d_hier_cc_data_ops->copyData(d_mu_linear_op_idx, d_mu_scratch_idx, /*interior_only*/ false);
+#if (NDIM == 2)
+        d_hier_nc_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+#elif (NDIM == 3)
+        d_hier_ec_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+#endif
     }
 
     // Allocate solver vectors.
@@ -631,6 +647,9 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
             TBOX_ERROR("this statement should not be reached");
         }
 
+        // Store the density for later use
+        d_hier_sc_data_ops->copyData(d_rho_linear_op_idx, d_rho_interp_idx, /*interior_only*/ true);
+
         // Deallocate temporary patch data
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
@@ -679,6 +698,14 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
         {
             TBOX_ERROR("this statement should not be reached");
         }
+
+        // Store the viscosities for later use
+        d_hier_cc_data_ops->copyData(d_mu_linear_op_idx, d_mu_scratch_idx, /*interior_only*/ false);
+#if (NDIM == 2)
+        d_hier_nc_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+#elif (NDIM == 3)
+        d_hier_ec_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+#endif
     }
 
     // Update the solvers and operators to take into account new state variables
@@ -756,35 +783,38 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
             {
                 d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, adv_diff_cycle_num);
             }
-
-            // Re-update rho and mu if they are maintained by the fluid integrator.
-            if (!d_rho_is_const && d_rho_var)
+        }
+    }
+    // Re-update density and viscosity is they are maintained by the integrator
+    // using the newest available data from INS and advection-diffusion solvers
+    if (d_current_num_cycles == cycle_num)
+    {
+        if (!d_mu_is_const && d_mu_var)
+        {
+            for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
             {
-                for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
-                {
-                    d_reset_rho_fcns[k](d_rho_new_idx,
-                                        d_rho_var,
-                                        d_hier_math_ops,
-                                        cycle_num,
-                                        apply_time,
-                                        current_time,
-                                        new_time,
-                                        d_reset_rho_fcns_ctx[k]);
-                }
+                d_reset_mu_fcns[k](d_mu_new_idx,
+                                   d_mu_var,
+                                   d_hier_math_ops,
+                                   cycle_num,
+                                   apply_time,
+                                   current_time,
+                                   new_time,
+                                   d_reset_mu_fcns_ctx[k]);
             }
-            if (!d_mu_is_const && d_mu_var)
+        }
+        if (d_rho_sc_var)
+        {
+            for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
             {
-                for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
-                {
-                    d_reset_mu_fcns[k](d_mu_new_idx,
-                                       d_mu_var,
-                                       d_hier_math_ops,
-                                       cycle_num,
-                                       apply_time,
-                                       current_time,
-                                       new_time,
-                                       d_reset_mu_fcns_ctx[k]);
-                }
+                d_reset_rho_fcns[k](d_rho_new_idx,
+                                    d_rho_var,
+                                    d_hier_math_ops,
+                                    cycle_num,
+                                    apply_time,
+                                    current_time,
+                                    new_time,
+                                    d_reset_rho_fcns_ctx[k]);
             }
         }
     }
@@ -803,6 +833,16 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::postprocessIntegrateHierarchy(
 {
     VCINSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    // Deallocate interpolated density data
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_rho_interp_idx);
+    }
     return;
 } // postprocessIntegrateHierarchy
 
@@ -971,6 +1011,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
     else
     {
         d_hier_sc_data_ops->scale(d_velocity_C_idx, d_A_scale / dt, d_rho_interp_idx, /*interior_only*/ true);
+        
         if (!MathUtilities<double>::equalEps(lambda, 0.0))
         {
             d_hier_sc_data_ops->addScalar(
@@ -1169,7 +1210,6 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
     const double rho = d_rho_is_const ? d_problem_coefs.getRho() : -1.0;
-    const double mu = d_mu_is_const ? d_problem_coefs.getMu() : -1.0;
 
     if (rhs_vec->getComponentDescriptorIndex(0) != d_U_rhs_vec->getComponentDescriptorIndex(0))
     {

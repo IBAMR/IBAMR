@@ -360,6 +360,14 @@ VCINSStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
         {
             TBOX_ERROR("this statement should not be reached");
         }
+
+        // Store the viscosities for later use
+        d_hier_cc_data_ops->copyData(d_mu_linear_op_idx, d_mu_scratch_idx, /*interior_only*/ false);
+#if (NDIM == 2)
+        d_hier_nc_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+#elif (NDIM == 3)
+        d_hier_ec_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+#endif
     }
 
     // Allocate solver vectors.
@@ -609,6 +617,7 @@ VCINSStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
                                      << " presently requires VC_CONSERVATIVE_OP convective operator\n"
                                      << " this statement should not have been reached");
     }
+
     if (!d_mu_is_const)
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -640,10 +649,21 @@ VCINSStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
         {
             TBOX_ERROR("this statement should not be reached");
         }
+
+        // Store the viscosities for later use
+        d_hier_cc_data_ops->copyData(d_mu_linear_op_idx, d_mu_scratch_idx, /*interior_only*/ false);
+#if (NDIM == 2)
+        d_hier_nc_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+#elif (NDIM == 3)
+        d_hier_ec_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+#endif
     }
 
     // Copy new into scratch
     d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx, d_rho_sc_new_idx);
+
+    // Store the density for later use
+    d_hier_sc_data_ops->copyData(d_rho_linear_op_idx, d_rho_sc_scratch_idx, /*interior_only*/ true);
 
     // Update the solvers and operators to take into account new state variables
     updateOperatorsAndSolvers(current_time, new_time);
@@ -720,35 +740,39 @@ VCINSStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
             {
                 d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, adv_diff_cycle_num);
             }
+        }
+    }
 
-            // Re-update viscosity and density if they are maintained by the fluid integrator.
-            if (!d_mu_is_const && d_mu_var)
+    // Re-update density and viscosity is they are maintained by the integrator
+    // using the newest available data from INS and advection-diffusion solvers
+    if (d_current_num_cycles == cycle_num)
+    {
+        if (!d_mu_is_const && d_mu_var)
+        {
+            for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
             {
-                for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
-                {
-                    d_reset_mu_fcns[k](d_mu_new_idx,
-                                       d_mu_var,
-                                       d_hier_math_ops,
-                                       cycle_num,
-                                       apply_time,
-                                       current_time,
-                                       new_time,
-                                       d_reset_mu_fcns_ctx[k]);
-                }
+                d_reset_mu_fcns[k](d_mu_new_idx,
+                                   d_mu_var,
+                                   d_hier_math_ops,
+                                   cycle_num,
+                                   apply_time,
+                                   current_time,
+                                   new_time,
+                                   d_reset_mu_fcns_ctx[k]);
             }
-            if (d_rho_sc_var)
+        }
+        if (d_rho_sc_var)
+        {
+            for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
             {
-                for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
-                {
-                    d_reset_rho_fcns[k](d_rho_sc_new_idx,
-                                        d_rho_sc_var,
-                                        d_hier_math_ops,
-                                        cycle_num,
-                                        apply_time,
-                                        current_time,
-                                        new_time,
-                                        d_reset_rho_fcns_ctx[k]);
-                }
+                d_reset_rho_fcns[k](d_rho_sc_new_idx,
+                                    d_rho_sc_var,
+                                    d_hier_math_ops,
+                                    cycle_num,
+                                    apply_time,
+                                    current_time,
+                                    new_time,
+                                    d_reset_rho_fcns_ctx[k]);
             }
         }
     }
@@ -936,8 +960,6 @@ VCINSStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     // C_sc = (rho / dt) + K * lambda
     d_hier_sc_data_ops->scale(d_velocity_C_idx, d_A_scale / dt, d_rho_sc_scratch_idx, /*interior_only*/ true);
 
-    // Store the density for later use
-    d_hier_sc_data_ops->copyData(d_rho_linear_op_idx, d_rho_sc_scratch_idx, /*interior_only*/ true);
     if (!MathUtilities<double>::equalEps(lambda, 0.0))
     {
         d_hier_sc_data_ops->addScalar(
@@ -963,14 +985,6 @@ VCINSStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
         d_hier_ec_data_ops->scale(d_velocity_D_idx, d_A_scale * (-K), d_mu_interp_idx, /*interior_only*/ false);
 #endif
         d_hier_cc_data_ops->scale(d_velocity_D_cc_idx, d_A_scale * (-K), d_mu_scratch_idx, /*interior_only*/ false);
-
-        // Store the viscosities for later use
-        d_hier_cc_data_ops->copyData(d_mu_linear_op_idx, d_mu_scratch_idx, /*interior_only*/ false);
-#if (NDIM == 2)
-        d_hier_nc_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
-#elif (NDIM == 3)
-        d_hier_ec_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
-#endif
     }
     U_problem_coefs.setDPatchDataId(d_velocity_D_idx);
 

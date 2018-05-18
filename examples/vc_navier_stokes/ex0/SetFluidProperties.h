@@ -8,6 +8,7 @@
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
 
+#include <Variable.h>
 #include <ibtk/ibtk_utilities.h>
 #include <tbox/Pointer.h>
 
@@ -25,8 +26,10 @@ class CartGridFunction;
  */
 
 void callSetFluidDensityCallbackFunction(int rho_idx,
+                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
                                          SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                          const int cycle_num,
+                                         const double time,
                                          const double current_time,
                                          const double new_time,
                                          void* ctx);
@@ -39,8 +42,10 @@ void callSetFluidDensityCallbackFunction(int rho_idx,
  */
 
 void callSetFluidViscosityCallbackFunction(int mu_idx,
+                                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
                                            SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                            const int cycle_num,
+                                           const double time,
                                            const double current_time,
                                            const double new_time,
                                            void* ctx);
@@ -68,8 +73,10 @@ public:
      * Set the density
      */
     void setDensityPatchData(int rho_idx,
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
                              SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                              const int cycle_num,
+                             const double time,
                              const double current_time,
                              const double new_time);
 
@@ -77,8 +84,10 @@ public:
      * Set the viscosity
      */
     void setViscosityPatchData(int mu_idx,
+                               SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
                                SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                const int cycle_num,
+                               const double time,
                                const double current_time,
                                const double new_time);
 

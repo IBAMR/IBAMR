@@ -67,10 +67,12 @@ namespace IBAMR
  * In other words, this class will NEVER treat the left-hand side of the momentum equation in conservative form
  * i.e. \frac{\partial \rho u}{\partial t} + \nabla \cdot (\rho u u)
  *
- * An optional re-scaling factor c can be specified to minimize the loss of floating point precision for poorly
- * scaling linear systems. The scaling acts on the momentum part of the saddle-point system, yielding
- * \f$c A + G(c x_p) = c b_u\f$
- * in which the viscous block, the pressure degrees of freedom, and the velocity RHS have been scaled.
+ * In this class, both the density and viscosity are required to be cell centered quantities, which are then
+ * interpolated onto the required degrees of freedom (side-centers for rho and node(edge)-centers for mu in 2D(3D))
+ *
+ * Note that this class is suitable for low density ratio flows. At high density ratios, the non-conservative form
+ * can lead to instabilities, and VCINSStaggeredConservativeHierarchyIntegrator should be used instead.
+ *
  */
 class VCINSStaggeredNonConservativeHierarchyIntegrator : public VCINSStaggeredHierarchyIntegrator
 {

@@ -43,6 +43,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/VCINSStaggeredHierarchyIntegrator.h>
+#include <ibamr/VCINSStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -116,9 +117,19 @@ run_example(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<VCINSStaggeredHierarchyIntegrator> time_integrator = new VCINSStaggeredHierarchyIntegrator(
-            "VCINSStaggeredHierarchyIntegrator",
-            app_initializer->getComponentDatabase("VCINSStaggeredHierarchyIntegrator"));
+        Pointer<VCINSStaggeredHierarchyIntegrator> time_integrator;
+        const string discretization_form = 
+            app_initializer->getComponentDatabase("Main")->getStringWithDefault("discretization_form", "NON_CONSERVATIVE");
+        if (discretization_form == "NON_CONSERVATIVE")
+        {
+            time_integrator = new VCINSStaggeredNonConservativeHierarchyIntegrator(
+                "VCINSStaggeredNonConservativeHierarchyIntegrator",
+                app_initializer->getComponentDatabase("VCINSStaggeredNonConservativeHierarchyIntegrator"));
+        }
+        else
+        {
+            TBOX_ERROR("Unknown VCINSStaggeredHierarchyIntegrator type");
+        }
 
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
