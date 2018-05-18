@@ -394,9 +394,11 @@ protected:
     void regridProjection();
 
     /*!
-     * Preprocess the operators and solvers used by the hierarchy integrator.
+     * Copy data from a side-centered variable to a face-centered variable.
      */
-    void preprocessOperatorsAndSolvers(double current_time, double new_time);
+    void copySideToFace(const int U_fc_idx,
+                        const int U_sc_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
      * Hierarchy operations objects.
@@ -507,8 +509,6 @@ protected:
     int d_F_current_idx, d_F_new_idx, d_F_scratch_idx;
     int d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx;
     int d_N_old_current_idx, d_N_old_new_idx, d_N_old_scratch_idx;
-    int d_rho_current_idx, d_rho_new_idx, d_rho_scratch_idx;
-    int d_rho_interp_current_idx, d_rho_interp_new_idx, d_rho_interp_scratch_idx;
     int d_mu_current_idx, d_mu_new_idx, d_mu_scratch_idx;
 
     /*
@@ -596,6 +596,10 @@ private:
      */
     VCINSStaggeredHierarchyIntegrator& operator=(const VCINSStaggeredHierarchyIntegrator& that);
 
+    /*!
+     * Preprocess the operators and solvers used by the hierarchy integrator.
+     */
+    void preprocessOperatorsAndSolvers(double current_time, double new_time);
 };
 } // namespace IBAMR
 

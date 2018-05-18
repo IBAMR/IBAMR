@@ -1,5 +1,5 @@
-// Filename: VCINSStaggeredConservativeHierarchyIntegrator.h
-// Created on 15 May 2018 by Nishant Nangia and Amneet Bhalla
+// Filename: VCINSStaggeredNonConservativeHierarchyIntegrator.h
+// Created on 17 May 2018 by Nishant Nangia and Amneet Bhalla
 //
 // Copyright (c) 2002-2018, Nishant Nangia and Amneet Bhalla
 // All rights reserved.
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBAMR_VCINSStaggeredConservativeHierarchyIntegrator
-#define included_IBAMR_VCINSStaggeredConservativeHierarchyIntegrator
+#ifndef included_IBAMR_VCINSStaggeredNonConservativeHierarchyIntegrator
+#define included_IBAMR_VCINSStaggeredNonConservativeHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -55,43 +55,42 @@ namespace SAMRAI
 namespace IBAMR
 {
 /*!
- * \brief Class VCINSStaggeredConservativeHierarchyIntegrator provides a staggered-grid solver
+ * \brief Class VCINSStaggeredNonConservativeHierarchyIntegrator provides a staggered-grid solver
  * for the incompressible Navier-Stokes equations on an AMR grid hierarchy, with variable
  * coefficients.
  *
- * This class always uses a conservative discretization of the form of the momentum equation
- * \f$(\frac{\partial \rho u}{\partial t} + N(\rho u)) = -\nabla p + \nabla \cdot \mu (\nabla u) + (\nabla u)^T )\f$
- * where \f$ N(u) = \nabla \cdot (\rho u u) \f$.
+ * This class always uses a non-conservative discretization of the form of the momentum equation
+ * \f$\rho(\frac{\partial u}{\partial t} + N(u)) = -\nabla p + \nabla \cdot \mu (\nabla u) + (\nabla u)^T )\f$
+ * where \f$ N(u) = u \cdot \nabla u \f$ for convective_difference_form = ADVECTIVE and
+ * \f$ N(u) = \nabla \cdot (u u) \f$ for convective_difference_form = CONSERVATIVE.
  *
- * In other words, this class will ALWAYS treat the left-hand side of the momentum equation in conservative form.
- * This class is specialized to always use VCINSStaggeredConservativeConvectiveOperator, which will produce an update
- * for the newest density by solving the mass transport equation \f$\frac{D \rho}{Dt} = 0\f$. Therefore, the density
- * variable must be registered and maintained by this class, and not by any other integrator.
- * It is also assumed that this density variable is side-centered. In other words, given a density at the beginning
- * of the time step \f$rho^n\f$, an interpolated face density \f$rho^{n+\frac{1}{2}}\f$ is produced and used in the
- * momentum convection to obtain \f$N(\rho u)\f$ and mass advection to obtain \f$rho^{n+1}\f$. Hence, a consistent
- * momentum and mass transport is carried out, which leads to stable solutions for high-density ratio flows.
+ * In other words, this class will NEVER treat the left-hand side of the momentum equation in conservative form
+ * i.e. \frac{\partial \rho u}{\partial t} + \nabla \cdot (\rho u u)
  *
+ * An optional re-scaling factor c can be specified to minimize the loss of floating point precision for poorly
+ * scaling linear systems. The scaling acts on the momentum part of the saddle-point system, yielding
+ * \f$c A + G(c x_p) = c b_u\f$
+ * in which the viscous block, the pressure degrees of freedom, and the velocity RHS have been scaled.
  */
-class VCINSStaggeredConservativeHierarchyIntegrator : public VCINSStaggeredHierarchyIntegrator
+class VCINSStaggeredNonConservativeHierarchyIntegrator : public VCINSStaggeredHierarchyIntegrator
 {
 public:
     /*!
-     * The constructor for class VCINSStaggeredConservativeHierarchyIntegrator sets some
+     * The constructor for class VCINSStaggeredNonConservativeHierarchyIntegrator sets some
      * default values, reads in configuration information from input and restart
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    VCINSStaggeredConservativeHierarchyIntegrator(const std::string& object_name,
-                                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                                  bool register_for_restart = true);
+    VCINSStaggeredNonConservativeHierarchyIntegrator(const std::string& object_name,
+                                                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                                     bool register_for_restart = true);
 
     /*!
-     * The destructor for class VCINSStaggeredConservativeHierarchyIntegrator unregisters the
+     * The destructor for class VCINSStaggeredNonConservativeHierarchyIntegrator unregisters the
      * integrator object with the restart manager when the object is so
      * registered.
      */
-    ~VCINSStaggeredConservativeHierarchyIntegrator();
+    ~VCINSStaggeredNonConservativeHierarchyIntegrator();
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -151,15 +150,11 @@ public:
     void removeNullSpace(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec);
 
     /*
-     * \brief Supply boundary conditions for the side-centered density field, which is maintained by this integrator
+     * \brief Supply boundary conditions for the density field, if maintained by the fluid integrator.
      *
+     * \note The boundary conditions set here will be overwritten if density if being advected.
      */
     void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* rho_bc_coef);
-
-    /*
-     * \brief Supply boundary conditions for the side-centered density field, which is maintained by this integrator
-     */
-    void registerMassDensityBoundaryConditions(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& rho_sc_bc_coefs);
 
 protected:
     /*!
@@ -209,7 +204,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCINSStaggeredConservativeHierarchyIntegrator();
+    VCINSStaggeredNonConservativeHierarchyIntegrator();
 
     /*!
      * \brief Copy constructor.
@@ -218,7 +213,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCINSStaggeredConservativeHierarchyIntegrator(const VCINSStaggeredConservativeHierarchyIntegrator& from);
+    VCINSStaggeredNonConservativeHierarchyIntegrator(const VCINSStaggeredNonConservativeHierarchyIntegrator& from);
 
     /*!
      * \brief Assignment operator.
@@ -229,7 +224,8 @@ private:
      *
      * \return A reference to this object.
      */
-    VCINSStaggeredConservativeHierarchyIntegrator& operator=(const VCINSStaggeredConservativeHierarchyIntegrator& that);
+    VCINSStaggeredNonConservativeHierarchyIntegrator&
+    operator=(const VCINSStaggeredNonConservativeHierarchyIntegrator& that);
 
     /*!
      * Determine the convective time stepping type for the current time step and
@@ -243,9 +239,9 @@ private:
     void updateOperatorsAndSolvers(double current_time, double new_time);
 
     /*!
-     * Setup solution and RHS vectors using state data maintained by the
-     * integrator.
-     */
+    * Setup solution and RHS vectors using state data maintained by the
+    * integrator.
+    */
     void setupSolverVectors(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec,
                             const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& rhs_vec,
                             double current_time,
@@ -261,10 +257,12 @@ private:
                             double current_time,
                             double new_time,
                             int cycle_num);
+
     /*!
-     * Side-centered density variable required for conservative discretization
+     * Cell-centered and interpolated density variable required for non-conservative discretization
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_sc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_interp_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the
@@ -272,23 +270,24 @@ private:
      *
      * State variables have three contexts: current, scratch, and new.
      */
-    int d_rho_sc_current_idx, d_rho_sc_scratch_idx, d_rho_sc_new_idx;
+    int d_rho_current_idx, d_rho_new_idx, d_rho_scratch_idx;
 
     /*
-     * Boundary condition object for the side-centered density variable maintained
-     * by this integrator.
+     * Patch data descriptor indices for all "scratch" variables managed by the
+     * integrator.
+     *
+     * Scratch variables have only one context: scratch.
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM> *> d_rho_sc_bc_coefs;
+    int d_rho_interp_idx;
 
     /*
-     * Variables for plotting cell-centered density
+     * Boundary condition objects for density, which is provided by an appropriate advection-diffusion
+     * integrator, or set by the fluid integrator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_interp_cc_var;
-    int d_rho_interp_cc_idx;
-
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_bc_coef;
 };
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_VCINSStaggeredConservativeHierarchyIntegrator
+#endif //#ifndef included_IBAMR_VCINSStaggeredNonConservativeHierarchyIntegrator

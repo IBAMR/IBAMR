@@ -147,23 +147,11 @@
 #if (NDIM == 2)
 #define NAVIER_STOKES_SC_STABLEDT_FC IBAMR_FC_FUNC_(navier_stokes_sc_stabledt2d, NAVIER_STOKES_SC_STABLEDT2D)
 #define NAVIER_STOKES_SIDE_TO_FACE_FC IBAMR_FC_FUNC_(navier_stokes_side_to_face2d, NAVIER_STOKES_SIDE_TO_FACE2D)
-#define NAVIER_STOKES_STAGGERED_ADV_SOURCE_FC                                                                          \
-    IBAMR_FC_FUNC_(navier_stokes_staggered_adv_source2d, NAVIER_STOKES_STAGGERED_ADV_SOURCE2D)
-#define NAVIER_STOKES_STAGGERED_CONS_SOURCE_FC                                                                         \
-    IBAMR_FC_FUNC_(navier_stokes_staggered_cons_source2d, NAVIER_STOKES_STAGGERED_CONS_SOURCE2D)
-#define NAVIER_STOKES_STAGGERED_SKEW_SYM_SOURCE_FC                                                                     \
-    IBAMR_FC_FUNC_(navier_stokes_staggered_skew_sym_source2d, NAVIER_STOKES_STAGGERED_SKEW_SYM_SOURCE2D)
 #endif
 
 #if (NDIM == 3)
 #define NAVIER_STOKES_SC_STABLEDT_FC IBAMR_FC_FUNC_(navier_stokes_sc_stabledt3d, NAVIER_STOKES_SC_STABLEDT3D)
 #define NAVIER_STOKES_SIDE_TO_FACE_FC IBAMR_FC_FUNC_(navier_stokes_side_to_face3d, NAVIER_STOKES_SIDE_TO_FACE3D)
-#define NAVIER_STOKES_STAGGERED_ADV_SOURCE_FC                                                                          \
-    IBAMR_FC_FUNC_(navier_stokes_staggered_adv_source3d, NAVIER_STOKES_STAGGERED_ADV_SOURCE3D)
-#define NAVIER_STOKES_STAGGERED_CONS_SOURCE_FC                                                                         \
-    IBAMR_FC_FUNC_(navier_stokes_staggered_cons_source3d, NAVIER_STOKES_STAGGERED_CONS_SOURCE3D)
-#define NAVIER_STOKES_STAGGERED_SKEW_SYM_SOURCE_FC                                                                     \
-    IBAMR_FC_FUNC_(navier_stokes_staggered_skew_sym_source3d, NAVIER_STOKES_STAGGERED_SKEW_SYM_SOURCE3D)
 #endif
 
 extern "C" {
@@ -222,138 +210,6 @@ void NAVIER_STOKES_SIDE_TO_FACE_FC(
     double*,
     double*,
     const int&
-#endif
-    );
-
-void NAVIER_STOKES_STAGGERED_ADV_SOURCE_FC(
-#if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    double*,
-    double*
-#endif
-#if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const double*,
-    double*,
-    double*,
-    double*
-#endif
-    );
-
-void NAVIER_STOKES_STAGGERED_CONS_SOURCE_FC(
-#if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    double*,
-    double*
-#endif
-#if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const double*,
-    double*,
-    double*,
-    double*
-#endif
-    );
-
-void NAVIER_STOKES_STAGGERED_SKEW_SYM_SOURCE_FC(
-#if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    double*,
-    double*
-#endif
-#if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const double*,
-    double*,
-    double*,
-    double*
 #endif
     );
 }
@@ -1279,7 +1135,7 @@ VCINSStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarc
             var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
         if (isAllocatedPatchData(U_adv_diff_current_idx))
         {
-            copy_side_to_face(U_adv_diff_current_idx, d_U_current_idx, d_hierarchy);
+            copySideToFace(U_adv_diff_current_idx, d_U_current_idx, d_hierarchy);
         }
     }
     return;
@@ -2182,6 +2038,15 @@ VCINSStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch
                                  stable_dt);
     return stable_dt;
 } // getStableTimestep
+
+void
+VCINSStaggeredHierarchyIntegrator::copySideToFace(const int U_fc_idx,
+                                                  const int U_sc_idx,
+                                                  Pointer<PatchHierarchy<NDIM> > hierarchy)
+{
+    copy_side_to_face(U_fc_idx, U_sc_idx, hierarchy);
+    return;
+} // copySideToFace
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
