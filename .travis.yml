@@ -1,12 +1,17 @@
 # This will run on Travis' 'new' container-based infrastructure
 sudo: false
 
-# Blacklist
+# blocklist
+branches:
+  except:
+    - /.*/
+
+# safelist
 branches:
   only:
     - master
 
-# Environment variables
+# environment variables
 env:
   global:
     - GH_REPO_NAME: IBAMR
@@ -15,7 +20,7 @@ env:
     - DOCS_REPO_REF: github.com/IBAMR/IBAMR-Docs
 
 
-# Install dependencies
+# dependencies
 addons:
   apt:
     packages:
@@ -26,6 +31,6 @@ addons:
       - graphviz
       - zlib1g-dev
 
-# Build your code e.g. by calling make
+# deploy
 script:
   - make -f $TRAVIS_BUILD_DIR/doc/Docs-Makefile docs-deploy
