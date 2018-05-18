@@ -1,11 +1,6 @@
 # This will run on Travis' 'new' container-based infrastructure
 sudo: false
 
-# blocklist
-branches:
-  except:
-    - /.*/
-
 # safelist
 branches:
   only:
@@ -32,5 +27,8 @@ addons:
       - zlib1g-dev
 
 # deploy
-script:
-  - make -f $TRAVIS_BUILD_DIR/doc/Docs-Makefile docs-deploy
+deploy:
+  provider: script
+  script: make -f $TRAVIS_BUILD_DIR/doc/Docs-Makefile docs-deploy
+  on:
+    branch: master
