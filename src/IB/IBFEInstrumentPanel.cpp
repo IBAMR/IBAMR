@@ -817,8 +817,12 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     if (count_qp_1 != count_qp_3)
     {
         TBOX_ERROR("IBFEInstrumentPanel::readInstrumentData : "
-                   << "the number of quadrature points in the meter meshes are counted"
-                   << " multiple times.  there may be overlapping patches in the AMR grid.");
+                   << "the total number of quadrature points in the meter meshes "
+                   << " is not consistent with the number used in the "
+                   << " calculations, for IBFE part "
+                   << d_part
+                   << "."
+                   << " there may be overlapping patches in the AMR grid.");
     }
 
     // Synchronize the values across all processes.
