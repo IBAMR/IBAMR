@@ -11,13 +11,13 @@ all:
 examples:
 	@(cd IB               && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd IBFE             && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd IMP              && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+##	@(cd IMP              && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd adv_diff         && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd advect           && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd navier_stokes    && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd ConstraintIB     && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd CIB              && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd CIBFE            && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+##	@(cd CIBFE            && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 
 if GTEST_ENABLED
 gtest:
