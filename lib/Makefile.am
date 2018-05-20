@@ -150,9 +150,11 @@ DIM_INDEPENDENT_SOURCES = \
 
 if LIBMESH_ENABLED
   DIM_INDEPENDENT_SOURCES += \
+  ../src/IB/CIBFEMethod.cpp \
   ../src/IB/IBFECentroidPostProcessor.cpp \
   ../src/IB/IBFEInstrumentPanel.cpp \
   ../src/IB/IBFEMethod.cpp \
+  ../src/IB/IBFEPatchRecoveryPostProcessor.cpp \
   ../src/IB/IBFEPostProcessor.cpp \
   ../src/IB/IBFESurfaceMethod.cpp \
   ../src/IB/IMPInitializer.cpp \
@@ -259,6 +261,7 @@ pkg_include_HEADERS += \
 
 if LIBMESH_ENABLED
   pkg_include_HEADERS += \
+  ../include/ibamr/CIBFEMethod.h \
   ../include/ibamr/IBFECentroidPostProcessor.h \
   ../include/ibamr/IBFEInstrumentPanel.h \
   ../include/ibamr/IBFEMethod.h \

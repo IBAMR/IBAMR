@@ -54,6 +54,7 @@
 #include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
+#include <ibamr/IBFESurfaceMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibtk/AppInitializer.h>
@@ -170,7 +171,7 @@ tether_force_function(VectorValue<double>& F,
     }
     return;
 } // tether_force_function
-}
+} // namespace ModelData
 using namespace ModelData;
 
 // Function prototypes
@@ -195,7 +196,8 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *                                                                             *
  *******************************************************************************/
 
-bool run_example(int argc, char** argv)
+bool
+run_example(int argc, char** argv)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -326,15 +328,23 @@ bool run_example(int argc, char** argv)
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        Pointer<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod",
-                           app_initializer->getComponentDatabase("IBFEMethod"),
-                           &mesh,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+        Pointer<IBStrategy> ib_ops;
+        if (use_boundary_mesh)
+            ib_ops = new IBFESurfaceMethod(
+                "IBFEMethod",
+                app_initializer->getComponentDatabase("IBFEMethod"),
+                &mesh,
+                app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+        else
+            ib_ops =
+                new IBFEMethod("IBFEMethod",
+                               app_initializer->getComponentDatabase("IBFEMethod"),
+                               &mesh,
+                               app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
+                                              ib_ops,
                                               navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
@@ -354,34 +364,39 @@ bool run_example(int argc, char** argv)
                                         load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->initializeFEEquationSystems();
+        EquationSystems* equation_systems;
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
         vector<SystemData> sys_data(1, SystemData(IBFEMethod::VELOCITY_SYSTEM_NAME, vars));
         if (use_boundary_mesh)
         {
-            IBFEMethod::LagBodyForceFcnData body_fcn_data(tether_force_function, sys_data);
-            ib_method_ops->registerLagBodyForceFunction(body_fcn_data);
+            Pointer<IBFESurfaceMethod> ibfe_ops = ib_ops;
+            ibfe_ops->initializeFEEquationSystems();
+            equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
+            IBFESurfaceMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function, sys_data);
+            ibfe_ops->registerLagSurfaceForceFunction(surface_fcn_data);
         }
         else
         {
+            Pointer<IBFEMethod> ibfe_ops = ib_ops;
+            ibfe_ops->initializeFEEquationSystems();
+            equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
             IBFEMethod::PK1StressFcnData PK1_stress_data(PK1_stress_function);
             PK1_stress_data.quad_order =
                 Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_QUAD_ORDER", "THIRD"));
-            ib_method_ops->registerPK1StressFunction(PK1_stress_data);
+            ibfe_ops->registerPK1StressFunction(PK1_stress_data);
 
             IBFEMethod::LagBodyForceFcnData body_fcn_data(tether_force_function, sys_data);
-            ib_method_ops->registerLagBodyForceFunction(body_fcn_data);
+            ibfe_ops->registerLagBodyForceFunction(body_fcn_data);
 
             IBFEMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function, sys_data);
-            ib_method_ops->registerLagSurfaceForceFunction(surface_fcn_data);
+            ibfe_ops->registerLagSurfaceForceFunction(surface_fcn_data);
 
             if (input_db->getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
             {
-                ib_method_ops->registerStressNormalizationPart();
+                ibfe_ops->registerStressNormalizationPart();
             }
         }
-        EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -443,7 +458,16 @@ bool run_example(int argc, char** argv)
         libMesh::UniquePtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
-        ib_method_ops->initializeFEData();
+        if (use_boundary_mesh)
+        {
+            Pointer<IBFESurfaceMethod> ibfe_ops = ib_ops;
+            ibfe_ops->initializeFEData();
+        }
+        else
+        {
+            Pointer<IBFEMethod> ibfe_ops = ib_ops;
+            ibfe_ops->initializeFEData();
+        }
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
