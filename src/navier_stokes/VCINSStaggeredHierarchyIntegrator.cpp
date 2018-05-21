@@ -1194,15 +1194,6 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
 } // preprocessIntegrateHierarchy
 
 void
-VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                      const double new_time,
-                                                      const int cycle_num)
-{
-    INSHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
-    return;
-} // integrateHierarchy
-
-void
 VCINSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
                                                                  const double new_time,
                                                                  const bool skip_synchronize_new_state_data,
@@ -1451,14 +1442,6 @@ VCINSStaggeredHierarchyIntegrator::registerViscosityBoundaryConditions(RobinBcCo
     d_mu_bc_coef = mu_bc_coef;
     return;
 } // registerViscosityBoundaryConditions
-
-void
-VCINSStaggeredHierarchyIntegrator::registerMassDensityBoundaryConditions(RobinBcCoefStrategy<NDIM>* rho_bc_coef)
-{
-    // Intentionally left blank
-    return;
-} // registerMassDensityBoundaryConditions
-
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

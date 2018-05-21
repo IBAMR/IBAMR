@@ -170,19 +170,21 @@ public:
     void setStokesSolverNeedsInit();
 
     /*!
-     * Initialize the variables, basic communications algorithms, solvers, and
-     * other data structures used by this time integrator object.
+     * Virtual method to initialize the variables, basic communications
+     * algorithms, solvers, and other data structures used by a concrete time
+     * integrator object.
      *
      * This method is called automatically by initializePatchHierarchy() prior
      * to the construction of the patch hierarchy.  It is also possible for
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    virtual void
+    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
-     * Initialize the AMR patch hierarchy and data defined on the hierarchy at
+     * Virtual method to initialize the AMR patch hierarchy and data defined on the hierarchy at
      * the start of a computation.  If the computation is begun from a restart
      * file, the patch hierarchy and patch data are read from the hierarchy
      * database.  Otherwise, the patch hierarchy and patch data are initialized
@@ -194,32 +196,26 @@ public:
      * such that it is possible to step through time via the advanceHierarchy()
      * function.
      */
-    void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    virtual void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                          SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
-     * Prepare to advance the data from current_time to new_time.
+     * Virtual method to prepare to advance the data from current_time to new_time.
      */
-    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    virtual void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
 
     /*!
-     * Synchronously advance each level in the hierarchy over the given time
-     * increment.
+     * Virtual method to clean up data following call(s) to integrateHierarchy().
      */
-    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0);
+    virtual void postprocessIntegrateHierarchy(double current_time,
+                                               double new_time,
+                                               bool skip_synchronize_new_state_data,
+                                               int num_cycles = 1);
 
     /*!
-     * Clean up data following call(s) to integrateHierarchy().
+     * Virtual method to regrid the patch hierarchy.
      */
-    void postprocessIntegrateHierarchy(double current_time,
-                                       double new_time,
-                                       bool skip_synchronize_new_state_data,
-                                       int num_cycles = 1);
-
-    /*!
-     * Regrid the patch hierarchy.
-     */
-    void regridHierarchy();
+    virtual void regridHierarchy();
 
     /*!
      * Explicitly remove nullspace components from a solution vector.
@@ -270,11 +266,10 @@ public:
     void registerViscosityInitialConditions(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> mu_init_fcn);
 
     /*
-     * \brief Virtual method to supply boundary conditions for the density field, if maintained by the fluid integrator.
-     *
-     * An empty default implementation is provided.
+     * \brief Pure virtual method to supply boundary conditions for the density field, if maintained by the fluid
+     * integrator.
      */
-    virtual void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* rho_bc_coef);
+    virtual void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* rho_bc_coef) = 0;
 
     /*
      * \brief Supply boundary conditions for the density field, if maintained by the fluid integrator.
@@ -353,45 +348,47 @@ protected:
     double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     /*!
-     * Initialize data on a new level after it is inserted into an AMR patch
+     * Virtual method to initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.
      */
-    void initializeLevelDataSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                        int level_number,
-                                        double init_data_time,
-                                        bool can_be_refined,
-                                        bool initial_time,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-                                        bool allocate_data);
+    virtual void
+    initializeLevelDataSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                   int level_number,
+                                   double init_data_time,
+                                   bool can_be_refined,
+                                   bool initial_time,
+                                   SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+                                   bool allocate_data);
 
     /*!
-     * Reset cached hierarchy dependent data.
+     * Virtual method to reset cached hierarchy dependent data.
      */
-    void
+    virtual void
     resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                            int coarsest_level,
                                            int finest_level);
 
     /*!
-     * Set integer tags to "one" in cells where refinement of the given level
+     * Virtual method to set integer tags to "one" in cells where refinement of the given level
      * should occur according to the magnitude of the fluid vorticity.
      */
-    void applyGradientDetectorSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                          int level_number,
-                                          double error_data_time,
-                                          int tag_index,
-                                          bool initial_time,
-                                          bool uses_richardson_extrapolation_too);
+    virtual void
+    applyGradientDetectorSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                     int level_number,
+                                     double error_data_time,
+                                     int tag_index,
+                                     bool initial_time,
+                                     bool uses_richardson_extrapolation_too);
 
     /*!
-     * Prepare variables for plotting.
+     * Virtual method to prepare variables for plotting.
      */
-    void setupPlotDataSpecialized();
+    virtual void setupPlotDataSpecialized();
 
     /*!
-     * Project the velocity field following a regridding operation.
+     * Virtual method to project the velocity field following a regridding operation.
      */
-    void regridProjection();
+    virtual void regridProjection();
 
     /*!
      * Copy data from a side-centered variable to a face-centered variable.
