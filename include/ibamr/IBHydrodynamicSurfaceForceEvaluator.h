@@ -190,7 +190,10 @@ private:
     double d_surface_contour_value;
 
     /*!
-     * File streams associated for the output.
+     * \brief File streams associated for the output.
+     *
+     * \note Columns 1-3 represent sum of -p.n dA. Columns 4-6 represent sum of n.(grad U + grad U^T) dA.
+     *
      */
     std::ofstream* d_hydro_force_stream;
 };

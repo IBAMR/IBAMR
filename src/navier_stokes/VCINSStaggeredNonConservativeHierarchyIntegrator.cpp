@@ -161,7 +161,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::VCINSStaggeredNonConservativeH
     const std::string& object_name,
     Pointer<Database> input_db,
     bool register_for_restart)
-    : VCINSStaggeredHierarchyIntegrator(object_name, input_db, register_for_restart)
+    : VCINSStaggeredHierarchyIntegrator(object_name, input_db, register_for_restart), d_rho_bc_coef(NULL)
 {
     switch (d_convective_time_stepping_type)
     {

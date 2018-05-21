@@ -241,7 +241,7 @@ run_example(int argc, char* argv[])
         double rho_fluid = input_db->getDouble("RHO");
         double mu_fluid = input_db->getDouble("MU");
         Pointer<IBHydrodynamicForceEvaluator> hydro_force =
-            new IBHydrodynamicForceEvaluator("IBHydrodynamicForce", rho_fluid, mu_fluid, true);
+            new IBHydrodynamicForceEvaluator("IBHydrodynamicForce", rho_fluid, mu_fluid, start_time, true);
 
         // Get the initial box position and velocity from input
         const string init_hydro_force_box_db_name = "InitHydroForceBox_0";

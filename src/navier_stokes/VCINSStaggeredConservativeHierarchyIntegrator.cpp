@@ -157,12 +157,11 @@ static const int SIDEG = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-VCINSStaggeredConservativeHierarchyIntegrator::VCINSStaggeredConservativeHierarchyIntegrator(const std::string& object_name,
-                                                                                             Pointer<Database> input_db,
-                                                                                             bool register_for_restart)
-    : VCINSStaggeredHierarchyIntegrator(object_name,
-                                        input_db,
-                                        register_for_restart)
+VCINSStaggeredConservativeHierarchyIntegrator::VCINSStaggeredConservativeHierarchyIntegrator(
+    const std::string& object_name,
+    Pointer<Database> input_db,
+    bool register_for_restart)
+    : VCINSStaggeredHierarchyIntegrator(object_name, input_db, register_for_restart), d_rho_sc_bc_coefs(NDIM, NULL)
 {
     
     if (!(d_convective_difference_form == CONSERVATIVE))

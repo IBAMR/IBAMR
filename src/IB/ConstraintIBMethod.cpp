@@ -606,11 +606,10 @@ ConstraintIBMethod::registerEulerianVariables()
         else
         {
             // Get the density maintained by the integrator
-            const int rho_sc_idx = p_vc_ins_hier_integrator->getLinearOperatorRhoPatchDataIndex();
+            d_rho_ins_idx = p_vc_ins_hier_integrator->getLinearOperatorRhoPatchDataIndex();
 #if !defined(NDEBUG)
-                TBOX_ASSERT(rho_sc_idx >= 0);
+            TBOX_ASSERT(d_rho_ins_idx >= 0);
 #endif
-                d_hier_sc_data_ops->copyData(d_rho_ins_idx, rho_sc_idx, /*interior_only*/ true);
                 d_rho_var = new SideVariable<NDIM, double>(d_object_name + "::rho");
                 d_rho_scratch_idx =
                     var_db->registerVariableAndContext(d_rho_var, d_scratch_context, getMinimumGhostCellWidth());

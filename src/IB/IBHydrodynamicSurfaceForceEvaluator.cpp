@@ -225,7 +225,8 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForce()
     fillPatchData(patch_hierarchy, integrator_time);
 
     // Object to hold net hydrodynamic force
-    IBTK::Vector3d hydro_force = IBTK::Vector3d::Zero();
+    IBTK::Vector3d pressure_force = IBTK::Vector3d::Zero();
+    IBTK::Vector3d viscous_force = IBTK::Vector3d::Zero();
 
     // Loop over side-centered DoFs of the computational domain to compute sum of n.(-pI + mu*(grad U + grad U)^T)
     // Note: n points outward from the solid into the fluid domain, which makes the above expression the force of the
@@ -282,21 +283,21 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForce()
                                         2.0 * (*mu_data)(c_l) * (*mu_data)(c_u) / ((*mu_data)(c_l) + (*mu_data)(c_u));
 
                     // Viscous traction force := n . mu(grad u + grad u ^ T) * dA
-                    IBTK::Vector3d viscous_force = IBTK::Vector3d::Zero();
+                    IBTK::Vector3d viscous_trac = IBTK::Vector3d::Zero();
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (d == axis)
                         {
-                            viscous_force(axis) = (2.0 * mu_side) / (2.0 * patch_dx[axis]) *
-                                                  ((*u_data)(SideIndex<NDIM>(c_u, axis, SideIndex<NDIM>::Upper)) -
-                                                   (*u_data)(SideIndex<NDIM>(c_l, axis, SideIndex<NDIM>::Lower)));
+                            viscous_trac(axis) = (2.0 * mu_side) / (2.0 * patch_dx[axis]) *
+                                                 ((*u_data)(SideIndex<NDIM>(c_u, axis, SideIndex<NDIM>::Upper)) -
+                                                  (*u_data)(SideIndex<NDIM>(c_l, axis, SideIndex<NDIM>::Lower)));
                         }
                         else
                         {
                             CellIndex<NDIM> offset(0);
                             offset(d) = 1;
 
-                            viscous_force(d) =
+                            viscous_trac(d) =
                                 mu_side / (2.0 * patch_dx[d]) *
                                     ((*u_data)(SideIndex<NDIM>(c_u + offset, axis, SideIndex<NDIM>::Lower)) -
                                      (*u_data)(SideIndex<NDIM>(c_u - offset, axis, SideIndex<NDIM>::Lower)))
@@ -313,19 +314,24 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForce()
                         }
                     }
 
-                    // Add up the forces
-                    hydro_force += (-pn + n(axis) * viscous_force) * dS;
+                    // Add up the pressure forces n.(-pI)dS
+                    pressure_force += (-pn * dS);
+
+                    // Add up the viscous forces n.(mu*(grad U + grad U)^T)dS
+                    viscous_force += (n(axis) * viscous_trac * dS);
                 }
             }
         }
     }
     // Print the hydrodynamic force to file.
-    SAMRAI_MPI::sumReduction(hydro_force.data(), 3);
+    SAMRAI_MPI::sumReduction(pressure_force.data(), 3);
+    SAMRAI_MPI::sumReduction(viscous_force.data(), 3);
 
     if (SAMRAI_MPI::getRank() == 0)
     {
-        *d_hydro_force_stream << integrator_time << '\t' << hydro_force[0] << '\t' << hydro_force[1] << '\t'
-                              << hydro_force[2] << std::endl;
+        *d_hydro_force_stream << integrator_time << '\t' << pressure_force[0] << '\t' << pressure_force[1] << '\t'
+                              << pressure_force[2] << '\t' << viscous_force[0] << '\t' << viscous_force[1] << '\t'
+                              << viscous_force[2] << std::endl;
     }
 
     // Deallocate patch data
@@ -454,10 +460,6 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
         }
         else if (p_vc_ins_bc_coef)
         {
-#if !defined(NDEBUG)
-            TBOX_ASSERT(!d_mu_is_const);
-            TBOX_ASSERT(d_mu_is_const >= 0);
-#endif
             p_vc_ins_bc_coef->setTargetVelocityPatchDataIndex(d_u_idx);
             InterpolationTransactionComponent p_transaction_comp(d_p_idx,
                                                                  p_current_idx,
@@ -477,7 +479,8 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
         else
         {
             TBOX_ERROR(d_object_name << "::IBHydrodynamicSurfaceForceEvaluator():\n"
-                                     << " no valid pressure boundary condition object registered with INS integrator");
+                                     << " no valid pressure boundary condition object registered with INS integrator.\n"
+                                     << " This statement should not have been reached");
         }
     }
 
