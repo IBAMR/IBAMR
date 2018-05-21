@@ -341,12 +341,6 @@ private:
     void copyDensityVariable(int copy_from_idx, int copy_to);
 
     /*!
-     * \brief Compute and store the fluid solve momentum rho_ins * u_fluidSolve in cases where momentum
-     * updating is used
-     */
-    void computeFluidSolveMomentum();
-
-    /*!
      * \brief Interpolate fluid solve velocity from Eulerian grid onto the Lagrangian mesh.
      */
     void interpolateFluidSolveVelocity();
@@ -527,12 +521,6 @@ private:
      * Density of the fluid in constant coefficient case.
      */
     double d_rho_fluid;
-
-    /*!
-     * Type of correction to carry out on the fluid velocity.
-     */
-    std::string d_fluid_velocity_correction_type;
-    bool d_use_momentum_correction;
 
     /*!
      * Whether or not the density from the integrator is constant
