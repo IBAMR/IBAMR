@@ -152,7 +152,7 @@ static double kappa_s_surface = 1.0e6;
 static double eta_s_surface = 0.0;
 void
 tether_force_function(VectorValue<double>& F,
-                      const VectorValue<double>& /*n*/,
+                      const VectorValue<double>& n,
                       const VectorValue<double>& /*N*/,
                       const TensorValue<double>& /*FF*/,
                       const libMesh::Point& x,
@@ -164,11 +164,12 @@ tether_force_function(VectorValue<double>& F,
                       double /*time*/,
                       void* /*ctx*/)
 {
-    const std::vector<double>& U = *var_data[0];
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        F(d) = kappa_s_surface * (X(d) - x(d)) - eta_s_surface * U[d];
-    }
+    VectorValue<double> D = X - x;
+    VectorValue<double> D_n = (D*n)*n;
+    VectorValue<double> U;
+    for (unsigned int d = 0; d < NDIM; ++d) U(d) = (*var_data[0])[d];
+    VectorValue<double> U_t = U - (U*n)*n;
+    F = kappa_s_surface * D - eta_s_surface * U;
     return;
 } // tether_force_function
 } // namespace ModelData

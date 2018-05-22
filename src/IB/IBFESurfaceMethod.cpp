@@ -1053,7 +1053,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                 *DP_vec, *DP_rhs_vec, PRESSURE_JUMP_SYSTEM_NAME, d_use_consistent_mass_matrix);
             DP_rhs_integral = SAMRAI_MPI::sumReduction(DP_rhs_integral);
             surface_area = SAMRAI_MPI::sumReduction(surface_area);
-            DP_vec->add(-DP_rhs_integral / surface_area);
+            if (d_normalize_pressure_jump) DP_vec->add(-DP_rhs_integral / surface_area);
             DP_vec->close();
         }
     }
@@ -1837,6 +1837,7 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
         FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density);
     d_ghosts = 0;
     d_use_jump_conditions = false;
+    d_normalize_pressure_jump = false;
     d_use_consistent_mass_matrix = true;
     d_do_log = false;
 
@@ -1988,6 +1989,7 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 
     // Force computation settings.
     if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");
+    if (db->isBool("normalize_pressure_jump")) d_normalize_pressure_jump = db->getBool("normalize_pressure_jump");
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
 
