@@ -237,7 +237,7 @@ public:
      *
      * \param all_dofs Boolean indicating if the rigid body velocity
      * is to be set for all parts. The corresponding size of U_sub would be
-     * \f$ U_{sub} \eq NDIM * (NDIM + 1) / 2 \f$.
+     * \f$ U_{sub} = NDIM * (NDIM + 1) / 2 \f$.
      *
      * \note User is responsible for setting correct number of subvecs in U
      * that corresponds to the particular combination of booleans.

@@ -770,7 +770,7 @@ CIBFEMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rig
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType L_fe_type = L_dof_map.variable_type(0);
     FEType X_fe_type = X_dof_map.variable_type(0);
-    UniquePtr<FEBase> L_fe_autoptr(FEBase::build(dim, L_fe_type)), X_fe_autoptr(NULL);
+    UniquePtr<FEBase> L_fe_autoptr(FEBase::build(dim, L_fe_type)), X_fe_autoptr;
     if (L_fe_type != X_fe_type)
     {
         X_fe_autoptr = UniquePtr<FEBase>(FEBase::build(dim, X_fe_type));

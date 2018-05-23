@@ -107,6 +107,8 @@ typedef void (*TensorMeshFcnPtr)(
 
 typedef void (*ScalarSurfaceFcnPtr)(
     double& F,
+    const libMesh::VectorValue<double>& n,
+    const libMesh::VectorValue<double>& N,
     const libMesh::TensorValue<double>& FF,
     const libMesh::Point& x,
     const libMesh::Point& X,
@@ -119,6 +121,8 @@ typedef void (*ScalarSurfaceFcnPtr)(
 
 typedef void (*VectorSurfaceFcnPtr)(
     libMesh::VectorValue<double>& F,
+    const libMesh::VectorValue<double>& n,
+    const libMesh::VectorValue<double>& N,
     const libMesh::TensorValue<double>& FF,
     const libMesh::Point& x,
     const libMesh::Point& X,
@@ -131,6 +135,8 @@ typedef void (*VectorSurfaceFcnPtr)(
 
 typedef void (*TensorSurfaceFcnPtr)(
     libMesh::TensorValue<double>& F,
+    const libMesh::VectorValue<double>& n,
+    const libMesh::VectorValue<double>& N,
     const libMesh::TensorValue<double>& FF,
     const libMesh::Point& x,
     const libMesh::Point& X,
