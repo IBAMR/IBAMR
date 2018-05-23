@@ -87,6 +87,8 @@
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
+#include "libmesh/fe_compute_data.h"
+#include "libmesh/fe_interface.h"
 #include "libmesh/fe_type.h"
 #include "libmesh/fem_context.h"
 #include "libmesh/linear_implicit_system.h"
@@ -96,6 +98,7 @@
 #include "libmesh/numeric_vector.h"
 #include "libmesh/petsc_vector.h"
 #include "libmesh/point.h"
+#include "libmesh/point_locator_base.h"
 #include "libmesh/quadrature.h"
 #include "libmesh/sparse_matrix.h"
 #include "libmesh/string_to_enum.h"
@@ -305,7 +308,7 @@ libmesh_restart_file_name(const std::string& restart_dump_dirname,
                      << std::setfill('0') << std::right << time_step_number << "." << extension;
     return file_name_prefix.str();
 }
-}
+} // namespace
 
 const std::string IBFEMethod::COORDS_SYSTEM_NAME = "IB coordinates system";
 const std::string IBFEMethod::COORD_MAPPING_SYSTEM_NAME = "IB coordinate mapping system";
@@ -381,9 +384,9 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
 {
     TBOX_ASSERT(d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_num_parts);
-    if (d_stress_normalization_part[part]) return;
+    if (d_is_stress_normalization_part[part]) return;
     d_has_stress_normalization_parts = true;
-    d_stress_normalization_part[part] = true;
+    d_is_stress_normalization_part[part] = true;
     System& Phi_system = d_equation_systems[part]->add_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
     d_equation_systems[part]->parameters.set<Real>("Phi_epsilon") = d_epsilon;
     Phi_system.attach_assemble_function(assemble_poisson);
@@ -459,6 +462,84 @@ IBFEMethod::registerLagBodySourceFunction(const LagBodySourceFcnData& data, cons
     Q_system.add_variable("Q", d_fe_order[part], d_fe_family[part]);
     return;
 } // registerLagBodySourceFunction
+
+void
+IBFEMethod::constrainPartOverlap(const unsigned int part1, const unsigned int part2, const double kappa)
+{
+    TBOX_ASSERT(part1 < d_num_parts);
+    TBOX_ASSERT(part2 < d_num_parts);
+
+    d_has_overlapping_parts = true;
+    d_is_overlapping_part[part1] = true;
+    d_is_overlapping_part[part2] = true;
+
+    // Double-check that this pair of parts hasn't already been registered.
+    unsigned int n_pairs = d_overlapping_part_idxs.size();
+    for (unsigned int k = 0; k < n_pairs; ++k)
+    {
+        if ((d_overlapping_part_idxs[k][0] == part1 && d_overlapping_part_idxs[k][1] == part2) ||
+            (d_overlapping_part_idxs[k][0] == part2 && d_overlapping_part_idxs[k][1] == part1))
+            return;
+    }
+
+    // Set up basic data structures.
+    n_pairs += 1;
+    d_overlapping_part_idxs.resize(n_pairs);
+    boost::array<unsigned int, 2>& part_idx = d_overlapping_part_idxs.back();
+    part_idx[0] = part1;
+    part_idx[1] = part2;
+    d_overlapping_elem_map.resize(n_pairs);
+    boost::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2>& elem_map =
+        d_overlapping_elem_map.back();
+    d_overlapping_part_kappa.push_back(kappa);
+
+    boost::array<EquationSystems*, 2> es;
+    boost::array<MeshBase*, 2> mesh;
+    boost::array<UniquePtr<QBase>, 2> qrule;
+    boost::array<UniquePtr<FEBase>, 2> fe;
+    boost::array<UniquePtr<PointLocatorBase>, 2> ploc;
+    for (int k = 0; k < 2; ++k)
+    {
+        es[k] = d_fe_data_managers[part_idx[k]]->getEquationSystems();
+        System& F_system = es[k]->get_system<System>(FORCE_SYSTEM_NAME);
+        const DofMap& F_dof_map = F_system.get_dof_map();
+        System& X_system = es[k]->get_system<System>(FORCE_SYSTEM_NAME);
+        const DofMap& X_dof_map = X_system.get_dof_map();
+        FEType fe_type = F_dof_map.variable_type(0);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            TBOX_ASSERT(fe_type == F_dof_map.variable_type(d));
+            TBOX_ASSERT(fe_type == X_dof_map.variable_type(d));
+        }
+        mesh[k] = &es[k]->get_mesh();
+        qrule[k] = QBase::build(QGAUSS, mesh[k]->mesh_dimension(), THIRD);
+        fe[k] = FEBase::build(mesh[k]->mesh_dimension(), fe_type);
+        fe[k]->get_xyz();
+        ploc[k] = PointLocatorBase::build(TREE_ELEMENTS, *mesh[k]);
+        ploc[k]->enable_out_of_mesh_mode();
+    }
+
+    // Find quadrature points that overlap with the other part.
+    for (int k = 0; k < 2; ++k)
+    {
+        const std::vector<libMesh::Point>& q_point = fe[k]->get_xyz();
+        MeshBase::const_element_iterator el = mesh[k]->active_local_elements_begin();
+        const MeshBase::const_element_iterator end_el = mesh[k]->active_local_elements_end();
+        for (; el != end_el; ++el)
+        {
+            const Elem* const elem = *el;
+            fe[k]->reinit(elem);
+            for (unsigned int qp = 0; qp < qrule[k]->n_points(); qp++)
+            {
+                const Elem* const other_elem = (*ploc[(k + 1) % 2])(q_point[qp]);
+                if (other_elem)
+                {
+                    elem_map[k][elem->id()][qp] = other_elem->id();
+                }
+            }
+        }
+    }
+}
 
 const IntVector<NDIM>&
 IBFEMethod::getMinimumGhostCellWidth() const
@@ -551,7 +632,7 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
                 d_fe_data_managers[part]->buildGhostedSolutionVector(SOURCE_SYSTEM_NAME, /*localize_data*/ false));
         }
 
-        if (d_stress_normalization_part[part])
+        if (d_is_stress_normalization_part[part])
         {
             d_Phi_systems[part] = &d_equation_systems[part]->get_system(PHI_SYSTEM_NAME);
             d_Phi_half_vecs[part] =
@@ -579,7 +660,7 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
             d_Q_systems[part]->solution->localize(*d_Q_half_vecs[part]);
         }
 
-        if (d_stress_normalization_part[part])
+        if (d_is_stress_normalization_part[part])
         {
             d_Phi_systems[part]->solution->close();
             d_Phi_systems[part]->solution->localize(*d_Phi_half_vecs[part]);
@@ -624,7 +705,7 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
             d_Q_systems[part]->solution->localize(*d_Q_systems[part]->current_local_solution);
         }
 
-        if (d_stress_normalization_part[part])
+        if (d_is_stress_normalization_part[part])
         {
             d_Phi_half_vecs[part]->close();
             *d_Phi_systems[part]->solution = *d_Phi_half_vecs[part];
@@ -761,11 +842,15 @@ IBFEMethod::computeLagrangianForce(const double data_time)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
-        if (d_stress_normalization_part[part])
+        if (d_is_stress_normalization_part[part])
         {
             computeStressNormalization(*d_Phi_half_vecs[part], *d_X_half_vecs[part], data_time, part);
         }
         computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
+    }
+    if (d_has_overlapping_parts)
+    {
+        computeOverlapConstraintForceDensity(d_F_half_vecs, d_X_half_vecs);
     }
     return;
 } // computeLagrangianForce
@@ -1070,7 +1155,7 @@ IBFEMethod::initializeFEData()
         F_system.assemble_before_solve = false;
         F_system.assemble();
 
-        if (d_stress_normalization_part[part])
+        if (d_is_stress_normalization_part[part])
         {
             LinearImplicitSystem& Phi_system = equation_systems->get_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
             Phi_system.assemble_before_solve = false;
@@ -1366,8 +1451,8 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
 
     std::vector<std::vector<const std::vector<double>*> > PK1_var_data(num_PK1_fcns);
     std::vector<std::vector<const std::vector<VectorValue<double> >*> > PK1_grad_var_data(num_PK1_fcns);
-    std::vector<const std::vector<double> *> surface_force_var_data, surface_pressure_var_data;
-    std::vector<const std::vector<VectorValue<double> > *> surface_force_grad_var_data, surface_pressure_grad_var_data;
+    std::vector<const std::vector<double>*> surface_force_var_data, surface_pressure_var_data;
+    std::vector<const std::vector<VectorValue<double> >*> surface_force_grad_var_data, surface_pressure_grad_var_data;
 
     // Setup global and elemental right-hand-side vectors.
     NumericVector<double>* Phi_rhs_vec = Phi_system.rhs;
@@ -1780,8 +1865,8 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
         fe.getGradVarInterpolation();
 
-    std::vector<const std::vector<double> *> body_force_var_data, surface_force_var_data, surface_pressure_var_data;
-    std::vector<const std::vector<VectorValue<double> > *> body_force_grad_var_data, surface_force_grad_var_data,
+    std::vector<const std::vector<double>*> body_force_var_data, surface_force_var_data, surface_pressure_var_data;
+    std::vector<const std::vector<VectorValue<double> >*> body_force_grad_var_data, surface_force_grad_var_data,
         surface_pressure_grad_var_data;
 
     // Loop over the elements to compute the right-hand side vector.
@@ -1969,6 +2054,155 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 } // computeInteriorForceDensity
 
 void
+IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>*>& F_vec,
+                                                 std::vector<PetscVector<double>*>& X_vec)
+{
+    if (!d_has_overlapping_parts) return;
+
+    std::vector<UniquePtr<NumericVector<double> > > F_rhs_vec(d_num_parts);
+    for (unsigned int k = 0; k < d_num_parts; ++k)
+    {
+        if (d_is_overlapping_part[k])
+        {
+            F_rhs_vec[k] = F_vec[k]->zero_clone();
+        }
+    }
+
+    // Add additional forces to constrain overlapping parts.
+    unsigned int n_pairs = d_overlapping_part_idxs.size();
+    for (unsigned int k = 0; k < n_pairs; ++k)
+    {
+        // Setup basic data structures.
+        boost::array<unsigned int, 2>& part_idx = d_overlapping_part_idxs[k];
+        boost::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2>& elem_map =
+            d_overlapping_elem_map[k];
+        const double kappa = d_overlapping_part_kappa[k];
+
+        boost::array<EquationSystems*, 2> es;
+        boost::array<MeshBase*, 2> mesh;
+        boost::array<System*, 2> F_system, X_system;
+        boost::array<const DofMap*, 2> F_dof_map, X_dof_map;
+        boost::array<FEDataManager::SystemDofMapCache*, 2> F_dof_map_cache, X_dof_map_cache;
+        FEType fe_type;
+        boost::array<UniquePtr<QBase>, 2> qrule;
+        boost::array<UniquePtr<FEBase>, 2> fe;
+        for (int k = 0; k < 2; ++k)
+        {
+            es[k] = d_fe_data_managers[part_idx[k]]->getEquationSystems();
+            F_system[k] = &es[k]->get_system<System>(FORCE_SYSTEM_NAME);
+            X_system[k] = &es[k]->get_system<System>(COORDS_SYSTEM_NAME);
+            F_dof_map[k] = &F_system[k]->get_dof_map();
+            X_dof_map[k] = &X_system[k]->get_dof_map();
+            FEType fe_type = F_dof_map[k]->variable_type(0);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                TBOX_ASSERT(fe_type == F_dof_map[k]->variable_type(d));
+                TBOX_ASSERT(fe_type == X_dof_map[k]->variable_type(d));
+            }
+            F_dof_map_cache[k] = d_fe_data_managers[part_idx[k]]->getDofMapCache(FORCE_SYSTEM_NAME);
+            X_dof_map_cache[k] = d_fe_data_managers[part_idx[k]]->getDofMapCache(COORDS_SYSTEM_NAME);
+            mesh[k] = &es[k]->get_mesh();
+            qrule[k] = QBase::build(QGAUSS, mesh[k]->mesh_dimension(), THIRD);
+            fe[k] = FEBase::build(mesh[k]->mesh_dimension(), fe_type);
+            fe[k]->get_xyz();
+            fe[k]->get_JxW();
+            fe[k]->get_phi();
+        }
+
+        // Loop over the elements that overlap elements of the other part.
+        boost::array<std::vector<std::vector<unsigned int> >, 2> F_dof_indices, X_dof_indices;
+        for (int k = 0; k < 2; ++k)
+        {
+            F_dof_indices[k].resize(NDIM);
+            X_dof_indices[k].resize(NDIM);
+        }
+        boost::array<boost::array<DenseVector<double>, NDIM>, 2> F_rhs_e;
+        boost::array<boost::multi_array<double, 2>, 2> x_node;
+        VectorValue<double> F, F_qp, other_x, x;
+        for (int k = 0; k < 2; ++k)
+        {
+            const std::vector<libMesh::Point>& q_point = fe[k]->get_xyz();
+            const std::vector<double>& JxW = fe[k]->get_JxW();
+            const std::vector<std::vector<double> >& phi = fe[k]->get_phi();
+            for (std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >::iterator it =
+                     elem_map[k].begin();
+                 it != elem_map[k].end();
+                 ++it)
+            {
+                const Elem* const elem = mesh[k]->elem_ptr(it->first);
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    F_dof_map_cache[k]->dof_indices(elem, F_dof_indices[k][d], d);
+                    X_dof_map_cache[k]->dof_indices(elem, X_dof_indices[k][d], d);
+                    F_rhs_e[k][d].resize(static_cast<int>(F_dof_indices[k][d].size()));
+                }
+                fe[k]->reinit(elem);
+                get_values_for_interpolation(x_node[k], *X_vec[part_idx[k]], X_dof_indices[k]);
+                const size_t n_basis = phi.size();
+                for (std::map<unsigned int, libMesh::dof_id_type>::iterator qp_it = it->second.begin();
+                     qp_it != it->second.end();
+                     ++qp_it)
+                {
+                    const unsigned int qp = qp_it->first;
+                    const libMesh::Point& X = q_point[qp];
+                    interpolate(x, qp, x_node[k], phi);
+                    const Elem* const other_elem = mesh[(k + 1) % 2]->elem_ptr(qp_it->second);
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        X_dof_map_cache[(k + 1) % 2]->dof_indices(other_elem, X_dof_indices[(k + 1) % 2][d], d);
+                    }
+                    const libMesh::Point xi = FEInterface::inverse_map(other_elem->dim(), fe_type, other_elem, X);
+                    FEComputeData fe_data(*es[(k + 1) % 2], xi);
+                    FEInterface::compute_data(other_elem->dim(), fe_type, other_elem, fe_data);
+                    get_values_for_interpolation(
+                        x_node[(k + 1) % 2], *X_vec[part_idx[(k + 1) % 2]], X_dof_indices[(k + 1) % 2]);
+                    other_x.zero();
+                    for (unsigned int l = 0; l < fe_data.shape.size(); ++l)
+                    {
+                        const double& p = fe_data.shape[l];
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            other_x(d) += x_node[(k + 1) % 2][l][d] * p;
+                        }
+                    }
+                    VectorValue<double> F = kappa * (other_x - x);
+                    for (unsigned int l = 0; l < n_basis; ++l)
+                    {
+                        F_qp = F * phi[l][qp] * JxW[qp];
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            F_rhs_e[k][d](l) += F_qp(d);
+                        }
+                    }
+                }
+
+                // Apply constraints (e.g., enforce periodic boundary
+                // conditions) and add the elemental contributions to the global
+                // vector.
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    F_dof_map[k]->constrain_element_vector(F_rhs_e[k][d], F_dof_indices[k][d]);
+                    F_rhs_vec[k]->add_vector(F_rhs_e[k][d], F_dof_indices[k][d]);
+                }
+            }
+        }
+    }
+
+    // Solve for the constraint force densities.
+    for (unsigned int k = 0; k < d_num_parts; ++k)
+    {
+        if (d_is_overlapping_part[k])
+        {
+            UniquePtr<NumericVector<double> > F_tmp_vec = F_vec[k]->zero_clone();
+            d_fe_data_managers[k]->computeL2Projection(
+                *F_tmp_vec, *F_rhs_vec[k], FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
+            F_vec[k]->add(*F_tmp_vec);
+        }
+    }
+    return;
+} // computeOverlapConstraintForceDensity
+
+void
 IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                                            PetscVector<double>& X_ghost_vec,
                                            RobinPhysBdryPatchStrategy* f_phys_bdry_op,
@@ -1979,7 +2213,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
     // Check to see if we need to integrate the surface forces.
     const bool integrate_normal_force =
-        d_split_normal_force && !d_use_jump_conditions && !d_stress_normalization_part[part];
+        d_split_normal_force && !d_use_jump_conditions && !d_is_stress_normalization_part[part];
     const bool integrate_tangential_force = d_split_tangential_force;
     if (!integrate_normal_force && !integrate_tangential_force) return;
 
@@ -2054,8 +2288,8 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
     std::vector<std::vector<const std::vector<double>*> > PK1_var_data(num_PK1_fcns);
     std::vector<std::vector<const std::vector<VectorValue<double> >*> > PK1_grad_var_data(num_PK1_fcns);
-    std::vector<const std::vector<double> *> surface_force_var_data, surface_pressure_var_data;
-    std::vector<const std::vector<VectorValue<double> > *> surface_force_grad_var_data, surface_pressure_grad_var_data;
+    std::vector<const std::vector<double>*> surface_force_var_data, surface_pressure_var_data;
+    std::vector<const std::vector<VectorValue<double> >*> surface_force_grad_var_data, surface_pressure_grad_var_data;
 
     // Loop over the patches to spread the transmission elastic force density
     // onto the grid.
@@ -2257,7 +2491,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
     // Check to see if we need to integrate the normal surface force.
     const bool integrate_normal_force =
-        d_split_normal_force && d_use_jump_conditions && !d_stress_normalization_part[part];
+        d_split_normal_force && d_use_jump_conditions && !d_is_stress_normalization_part[part];
     if (!integrate_normal_force) return;
 
     // Extract the mesh.
@@ -2313,8 +2547,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
     std::vector<std::vector<const std::vector<double>*> > PK1_var_data(num_PK1_fcns);
     std::vector<std::vector<const std::vector<VectorValue<double> >*> > PK1_grad_var_data(num_PK1_fcns);
-    std::vector<const std::vector<double> *> surface_force_var_data, surface_pressure_var_data;
-    std::vector<const std::vector<VectorValue<double> > *> surface_force_grad_var_data, surface_pressure_grad_var_data;
+    std::vector<const std::vector<double>*> surface_force_var_data, surface_pressure_var_data;
+    std::vector<const std::vector<VectorValue<double> >*> surface_force_grad_var_data, surface_pressure_grad_var_data;
 
     // Loop over the patches to impose jump conditions on the Eulerian grid that
     // are determined from the interior and transmission elastic force
@@ -2425,8 +2659,9 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         libMesh::Point r;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            r(d) = (d == axis ? 0.0 : x_lower[d] +
-                                                          dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]) + 0.5));
+                            r(d) =
+                                (d == axis ? 0.0 :
+                                             x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]) + 0.5));
                         }
 #if (NDIM == 2)
                         intersect_line_with_edge(intersections, static_cast<Edge*>(side_elem.get()), r, q);
@@ -2758,7 +2993,11 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     // and set some default values.
     d_epsilon = 0.0;
     d_has_stress_normalization_parts = false;
-    d_stress_normalization_part.resize(d_num_parts, false);
+    d_is_stress_normalization_part.resize(d_num_parts, false);
+
+    // Indicate that there are no overlapping parts by default.
+    d_has_overlapping_parts = false;
+    d_is_overlapping_part.resize(d_num_parts, false);
 
     // Initialize function data to NULL.
     d_coordinate_mapping_fcn_data.resize(d_num_parts);
@@ -2959,8 +3198,7 @@ IBFEMethod::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
     int ver = db->getInteger("IBFE_METHOD_VERSION");
     if (ver != IBFE_METHOD_VERSION)

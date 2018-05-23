@@ -370,6 +370,11 @@ public:
     void registerLagBodySourceFunction(const LagBodySourceFcnData& data, unsigned int part = 0);
 
     /*!
+     * Use tether forces to constrain the motion of a pair of parts.
+     */
+    void constrainPartOverlap(unsigned int part1, unsigned int part2, double kappa);
+
+    /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian
      * interaction routines.
      */
@@ -586,7 +591,7 @@ public:
     void writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number);
 
 protected:
-    /*
+    /*!
      * \brief Compute the stress normalization field Phi.
      */
     void computeStressNormalization(libMesh::PetscVector<double>& Phi_vec,
@@ -594,7 +599,7 @@ protected:
                                     double data_time,
                                     unsigned int part);
 
-    /*
+    /*!
      * \brief Compute the interior elastic density, possibly splitting off the
      * normal component of the transmission force along the physical boundary of
      * the Lagrangian structure.
@@ -604,6 +609,12 @@ protected:
                                      libMesh::PetscVector<double>* Phi_vec,
                                      double data_time,
                                      unsigned int part);
+
+    /*!
+     * \brief Compute constraint forces between pairs of overlapping bodies.
+     */
+    void computeOverlapConstraintForceDensity(std::vector<libMesh::PetscVector<double>*>& G_vec,
+                                              std::vector<libMesh::PetscVector<double>*>& X_vec);
 
     /*!
      * \brief Spread the transmission force density along the physical boundary
@@ -702,7 +713,16 @@ protected:
      */
     double d_epsilon;
     bool d_has_stress_normalization_parts;
-    std::vector<bool> d_stress_normalization_part;
+    std::vector<bool> d_is_stress_normalization_part;
+
+    /*
+     * Data related to constraining overlaps between pairs of parts.
+     */
+    bool d_has_overlapping_parts;
+    std::vector<bool> d_is_overlapping_part;
+    std::vector<boost::array<unsigned int,2> > d_overlapping_part_idxs;
+    std::vector<boost::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2> > d_overlapping_elem_map;
+    std::vector<double> d_overlapping_part_kappa;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
