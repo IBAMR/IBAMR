@@ -315,6 +315,20 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
 {
     VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
+    // Keep track of the number of cycles to be used for the present integration
+    // step.
+    if (!d_creeping_flow && (d_current_num_cycles == 1) &&
+        (d_convective_time_stepping_type == MIDPOINT_RULE || d_convective_time_stepping_type == TRAPEZOIDAL_RULE))
+    {
+        TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
+                                 << "  time stepping type: "
+                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
+                                 << " requires num_cycles > 1.\n"
+                                 << "  at current time step, num_cycles = "
+                                 << d_current_num_cycles
+                                 << "\n");
+    }
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
@@ -532,6 +546,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
         }
         d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
         d_convective_op->setSolutionTime(current_time);
+        d_convective_op->setTimeInterval(current_time, new_time);
         d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
         d_hier_sc_data_ops->copyData(d_N_old_new_idx, N_idx);
@@ -787,7 +802,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
     }
     // Re-update density and viscosity is they are maintained by the integrator
     // using the newest available data from INS and advection-diffusion solvers
-    if (d_current_num_cycles == cycle_num)
+    if (d_current_num_cycles == cycle_num + 1)
     {
         if (!d_mu_is_const && d_mu_var)
         {

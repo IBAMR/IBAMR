@@ -1,7 +1,7 @@
 // Filename: VCINSStaggeredConservativeConvectiveOperator.cpp
 // Created on 01 April 2018 by Nishant Nangia and Amneet Bhalla
 //
-// Copyright (c) 2002-2017, Nishant Nangia and Amneet Bhalla
+// Copyright (c) 2002-2018, Nishant Nangia and Amneet Bhalla
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -181,7 +181,10 @@ void VC_UPDATE_DENSITY_FC(const double*,
                           const double*,
                           const int&,
                           const int&,
-                          
+                          const double*,
+                          const int&,
+                          const int&,
+
 #endif
 #if (NDIM == 3)
                           const int&,
@@ -213,7 +216,11 @@ void VC_UPDATE_DENSITY_FC(const double*,
                           const int&,
                           const int&,
                           const int&,
-                          
+                          const double*,
+                          const int&,
+                          const int&,
+                          const int&,
+
 #endif
                           double*);
 
@@ -1032,7 +1039,10 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
       d_density_convective_limiter(UPWIND),
       d_velocity_limiter_gcw(1),
       d_density_limiter_gcw(1),
-      d_density_time_stepping_type(SSPRK1)
+      d_density_time_stepping_type(FORWARD_EULER),
+      d_S_var(NULL),
+      d_S_scratch_idx(-1),
+      d_S_fcn(NULL)
 {
     if (d_difference_form != CONSERVATIVE)
     {
@@ -1047,23 +1057,27 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
     {
         if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
         if (input_db->keyExists("convective_limiter"))
-        { 
-            d_velocity_convective_limiter = IBAMR::string_to_enum<ConvectiveLimiter>(input_db->getString("convective_limiter"));
-            d_density_convective_limiter = IBAMR::string_to_enum<ConvectiveLimiter>(input_db->getString("convective_limiter"));
+        {
+            d_velocity_convective_limiter =
+                IBAMR::string_to_enum<LimiterType>(input_db->getString("convective_limiter"));
+            d_density_convective_limiter =
+                IBAMR::string_to_enum<LimiterType>(input_db->getString("convective_limiter"));
         }
         if (input_db->keyExists("velocity_convective_limiter"))
         {
-            d_velocity_convective_limiter = IBAMR::string_to_enum<ConvectiveLimiter>(input_db->getString("velocity_convective_limiter"));
+            d_velocity_convective_limiter =
+                IBAMR::string_to_enum<LimiterType>(input_db->getString("velocity_convective_limiter"));
         }
         if (input_db->keyExists("density_convective_limiter"))
         {
-            d_density_convective_limiter = IBAMR::string_to_enum<ConvectiveLimiter>(input_db->getString("density_convective_limiter"));
+            d_density_convective_limiter =
+                IBAMR::string_to_enum<LimiterType>(input_db->getString("density_convective_limiter"));
         }
 
         if (input_db->keyExists("density_time_stepping_type"))
         {
             d_density_time_stepping_type =
-                IBAMR::string_to_enum<DensityTimeSteppingType>(input_db->getString("density_time_stepping_type"));
+                IBAMR::string_to_enum<TimeSteppingType>(input_db->getString("density_time_stepping_type"));
         }
         if (input_db->keyExists("enable_logging"))
         {
@@ -1087,10 +1101,10 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
         break;
     default:
         TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvectiveOperator():\n"
-                                 << "  unsupported velocity convective limiter: "
-                                 << IBAMR::enum_to_string<ConvectiveLimiter>(d_velocity_convective_limiter)
-                                 << " \n"
-                                 << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA\n");
+                   << "  unsupported velocity convective limiter: "
+                   << IBAMR::enum_to_string<LimiterType>(d_velocity_convective_limiter)
+                   << " \n"
+                   << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA\n");
     }
 
     switch (d_density_convective_limiter)
@@ -1109,15 +1123,15 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
         break;
     default:
         TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvectiveOperator():\n"
-                                 << "  unsupported density convective limiter: "
-                                 << IBAMR::enum_to_string<ConvectiveLimiter>(d_density_convective_limiter)
-                                 << " \n"
-                                 << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA\n");
+                   << "  unsupported density convective limiter: "
+                   << IBAMR::enum_to_string<LimiterType>(d_density_convective_limiter)
+                   << " \n"
+                   << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA\n");
     }
 
     switch (d_density_time_stepping_type)
     {
-    case SSPRK1:
+    case FORWARD_EULER:
         d_num_steps = 1;
         break;
     case SSPRK2:
@@ -1128,10 +1142,10 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
         break;
     default:
         TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvectiveOperator():\n"
-                                 << "  unsupported density time stepping type: "
-                                 << IBAMR::enum_to_string<DensityTimeSteppingType>(d_density_time_stepping_type)
-                                 << " \n"
-                                 << "  valid choices are: SSPRK1, SSPRK2, SSPRK3\n");
+                   << "  unsupported density time stepping type: "
+                   << IBAMR::enum_to_string<TimeSteppingType>(d_density_time_stepping_type)
+                   << " \n"
+                   << "  valid choices are: FORWARD_EULER, SSPRK2, SSPRK3\n");
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -1173,6 +1187,22 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_rho_sc_scratch_idx >= 0);
     TBOX_ASSERT(d_rho_sc_new_idx >= 0);
+#endif
+
+    const std::string S_var_name = "VCINSStaggeredConservativeConvectiveOperator::S";
+    d_S_var = var_db->getVariable(S_var_name);
+    if (d_S_var)
+    {
+        d_S_scratch_idx = var_db->mapVariableAndContextToIndex(d_S_var, context);
+    }
+    else
+    {
+        d_S_var = new SideVariable<NDIM, double>(S_var_name);
+        d_S_scratch_idx = var_db->registerVariableAndContext(d_S_var, context, IntVector<NDIM>(NOGHOSTS));
+    }
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_S_scratch_idx >= 0);
 #endif
 
     // Setup Timers.
@@ -1259,7 +1289,7 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                                       d_rho_sc_bc_coefs);
     Pointer<HierarchyGhostCellInterpolation> hier_rho_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_rho_bdry_fill->initializeOperatorState(rho_transaction, d_hierarchy);
-    hier_rho_bdry_fill->fillData(d_solution_time);
+    hier_rho_bdry_fill->fillData(d_current_time);
 
     // Compute the old mass
     const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
@@ -1273,6 +1303,22 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     bool N_computed = false;
     for (int step = 0; step < d_num_steps; ++step)
     {
+        double eval_time = std::numeric_limits<double>::quiet_NaN();
+        ;
+        switch (step)
+        {
+        case 0:
+            eval_time = d_current_time;
+            break;
+        case 1:
+            eval_time = d_current_time + dt;
+            break;
+        case 2:
+            eval_time = d_current_time + dt / 2.0;
+            break;
+        default:
+            TBOX_ERROR("This statement should not be reached");
+        }
         // Fill ghost cells for new density, if needed
         if (step > 0)
         {
@@ -1286,8 +1332,19 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                                                  d_rho_sc_bc_coefs);
             Pointer<HierarchyGhostCellInterpolation> hier_update_bdry_fill = new HierarchyGhostCellInterpolation();
             hier_update_bdry_fill->initializeOperatorState(update_transaction, d_hierarchy);
-            hier_update_bdry_fill->fillData(d_solution_time + dt);
+            hier_update_bdry_fill->fillData(eval_time);
         }
+
+        // Compute the source term
+        if (d_S_fcn)
+        {
+            d_S_fcn->setDataOnPatchHierarchy(d_S_scratch_idx, d_S_var, d_hierarchy, eval_time);
+        }
+        else
+        {
+            d_hier_sc_data_ops->setToScalar(d_S_scratch_idx, 0.0);
+        }
+
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1307,6 +1364,7 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                 Pointer<SideData<NDIM, double> > R_cur_data = patch->getPatchData(d_rho_sc_current_idx);
                 Pointer<SideData<NDIM, double> > R_pre_data = patch->getPatchData(d_rho_sc_scratch_idx);
                 Pointer<SideData<NDIM, double> > R_new_data = patch->getPatchData(d_rho_sc_new_idx);
+                Pointer<SideData<NDIM, double> > R_src_data = patch->getPatchData(d_S_scratch_idx);
 
                 // Define variables that live on the "faces" of control volumes centered about side-centered staggered
                 // velocity components
@@ -1337,7 +1395,7 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                         d_density_convective_limiter);
 
                 // Compute the convective derivative with this density, if necessary
-                if ((d_density_time_stepping_type == SSPRK1 && step == 0) ||
+                if ((d_density_time_stepping_type == FORWARD_EULER && step == 0) ||
                     (d_density_time_stepping_type == SSPRK2 && step == 1) ||
                     (d_density_time_stepping_type == SSPRK3 && step == 2))
                 {
@@ -1386,8 +1444,18 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                 default:
                     TBOX_ERROR("This statement should not be reached");
                 }
-                computeDensityUpdate(
-                    R_new_data, a0, R_cur_data, a1, R_pre_data, a2, U_adv_data, R_half_data, side_boxes, dt, dx);
+                computeDensityUpdate(R_new_data,
+                                     a0,
+                                     R_cur_data,
+                                     a1,
+                                     R_pre_data,
+                                     a2,
+                                     U_adv_data,
+                                     R_half_data,
+                                     R_src_data,
+                                     side_boxes,
+                                     dt,
+                                     dx);
             }
         }
     }
@@ -1462,6 +1530,7 @@ VCINSStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMR
         if (!level->checkAllocated(d_U_scratch_idx)) level->allocatePatchData(d_U_scratch_idx);
         if (!level->checkAllocated(d_rho_sc_scratch_idx)) level->allocatePatchData(d_rho_sc_scratch_idx);
         if (!level->checkAllocated(d_rho_sc_new_idx)) level->allocatePatchData(d_rho_sc_new_idx);
+        if (!level->checkAllocated(d_S_scratch_idx)) level->allocatePatchData(d_S_scratch_idx);
     }
 
     if (!d_hier_math_ops_external)
@@ -1500,6 +1569,7 @@ VCINSStaggeredConservativeConvectiveOperator::deallocateOperatorState()
         if (level->checkAllocated(d_U_scratch_idx)) level->deallocatePatchData(d_U_scratch_idx);
         if (level->checkAllocated(d_rho_sc_scratch_idx)) level->deallocatePatchData(d_rho_sc_scratch_idx);
         if (level->checkAllocated(d_rho_sc_new_idx)) level->deallocatePatchData(d_rho_sc_new_idx);
+        if (level->checkAllocated(d_S_scratch_idx)) level->deallocatePatchData(d_S_scratch_idx);
     }
 
     // Deallocate hierarchy math operations object.
@@ -1540,6 +1610,16 @@ VCINSStaggeredConservativeConvectiveOperator::getUpdatedSideCenteredDensityPatch
 #endif
     return d_rho_sc_new_idx;
 } // getUpdatedSideCenteredDensityPatchDataIndex
+
+void
+VCINSStaggeredConservativeConvectiveOperator::setMassDensitySourceTerm(const Pointer<CartGridFunction> S_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(S_fcn);
+#endif
+    d_S_fcn = S_fcn;
+    return;
+} // setMassDensitySourceTerm
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -1639,7 +1719,7 @@ VCINSStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
     const IntVector<NDIM>& patch_lower,
     const IntVector<NDIM>& patch_upper,
     const boost::array<Box<NDIM>, NDIM>& side_boxes,
-    const ConvectiveLimiter& convective_limiter)
+    const LimiterType& convective_limiter)
 {
     switch (convective_limiter)
     {
@@ -2036,7 +2116,7 @@ VCINSStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
     default:
         TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
                    << "  unsupported convective limiter: "
-                   << IBAMR::enum_to_string<ConvectiveLimiter>(convective_limiter)
+                   << IBAMR::enum_to_string<LimiterType>(convective_limiter)
                    << " \n"
                    << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA\n");
     }
@@ -2231,6 +2311,7 @@ VCINSStaggeredConservativeConvectiveOperator::computeDensityUpdate(
     const double& a2,
     const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
     const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
+    const Pointer<SideData<NDIM, double> > S_data,
     const boost::array<Box<NDIM>, NDIM>& side_boxes,
     const double& dt,
     const double* const dx)
@@ -2261,6 +2342,9 @@ VCINSStaggeredConservativeConvectiveOperator::computeDensityUpdate(
                              R_half_data[axis]->getGhostCellWidth()(1),
                              R_half_data[axis]->getPointer(0),
                              R_half_data[axis]->getPointer(1),
+                             S_data->getGhostCellWidth()(0),
+                             S_data->getGhostCellWidth()(1),
+                             S_data->getPointer(axis),
                              R_data->getGhostCellWidth()(0),
                              R_data->getGhostCellWidth()(1),
                              R_data->getPointer(axis));
@@ -2297,6 +2381,10 @@ VCINSStaggeredConservativeConvectiveOperator::computeDensityUpdate(
                              R_half_data[axis]->getPointer(0),
                              R_half_data[axis]->getPointer(1),
                              R_half_data[axis]->getPointer(2),
+                             S_data->getGhostCellWidth()(0),
+                             S_data->getGhostCellWidth()(1),
+                             S_data->getGhostCellWidth()(2),
+                             S_data->getPointer(axis),
                              R_data->getGhostCellWidth()(0),
                              R_data->getGhostCellWidth()(1),
                              R_data->getGhostCellWidth()(2),

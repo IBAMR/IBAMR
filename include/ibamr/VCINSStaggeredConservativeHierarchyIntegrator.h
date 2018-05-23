@@ -161,6 +161,13 @@ public:
      */
     void registerMassDensityBoundaryConditions(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& rho_sc_bc_coefs);
 
+    /*!
+     * \brief Supply a source term for the mass update equation.
+     *
+     * \note Current implementation is used only to check order of accuracy via a manufactured solution.
+     */
+    void registerMassDensitySourceTerm(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> S_fcn);
+
 protected:
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -286,6 +293,10 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_interp_cc_var;
     int d_rho_interp_cc_idx;
 
+    /*
+     * Source term function for the mass density update
+     */
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
 };
 } // namespace IBAMR
 

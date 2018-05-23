@@ -161,13 +161,15 @@ VCINSStaggeredConservativeHierarchyIntegrator::VCINSStaggeredConservativeHierarc
     const std::string& object_name,
     Pointer<Database> input_db,
     bool register_for_restart)
-    : VCINSStaggeredHierarchyIntegrator(object_name, input_db, register_for_restart), d_rho_sc_bc_coefs(NDIM, NULL)
+    : VCINSStaggeredHierarchyIntegrator(object_name, input_db, register_for_restart),
+      d_rho_sc_bc_coefs(NDIM, NULL),
+      d_S_fcn(NULL)
 {
     
     if (!(d_convective_difference_form == CONSERVATIVE))
     {
         TBOX_ERROR(d_object_name << "::VCINSStaggeredConservativeHierarchyIntegrator():\n"
-                                 << " variable coefficient discretization form VC_CONSERVATIVE\n"
+                                 << " variable coefficient discretization\n"
                                  << " requires CONSERVATIVE convective difference form\n");
     }
 
@@ -175,39 +177,20 @@ VCINSStaggeredConservativeHierarchyIntegrator::VCINSStaggeredConservativeHierarc
     {
         TBOX_ERROR(d_object_name << "::VCINSStaggeredConservativeHierarchyIntegrator():\n"
                                  << " conservative variable coefficient discretization\n"
-                                 << " requires non-constant density");
+                                 << " requires non-constant density\n");
     }
 
     switch (d_convective_time_stepping_type)
     {
-    case ADAMS_BASHFORTH:
     case FORWARD_EULER:
     case MIDPOINT_RULE:
-    case TRAPEZOIDAL_RULE:
         break;
     default:
         TBOX_ERROR(d_object_name << "::VCINSStaggeredConservativeHierarchyIntegrator():\n"
                                  << "  unsupported convective time stepping type: "
                                  << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
                                  << " \n"
-                                 << "  valid choices are: ADAMS_BASHFORTH, FORWARD_EULER, "
-                                    "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
-    }
-    if (is_multistep_time_stepping_type(d_convective_time_stepping_type))
-    {
-        switch (d_init_convective_time_stepping_type)
-        {
-        case FORWARD_EULER:
-        case MIDPOINT_RULE:
-        case TRAPEZOIDAL_RULE:
-            break;
-        default:
-            TBOX_ERROR(d_object_name << "::VCINSStaggeredConservativeHierarchyIntegrator():\n"
-                                     << "  unsupported initial convective time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type)
-                                     << " \n"
-                                     << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
-        }
+                                 << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE\n");
     }
 
     // Check to see whether the convective operator type has been set.
@@ -292,6 +275,22 @@ VCINSStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(Poi
 
     }
 
+    // Set the optional density source function.
+    VCINSStaggeredConservativeConvectiveOperator* p_vc_convective_op =
+        dynamic_cast<VCINSStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
+    if (p_vc_convective_op)
+    {
+        p_vc_convective_op->setSideCenteredDensityBoundaryConditions(d_rho_sc_bc_coefs);
+        if (d_S_fcn) p_vc_convective_op->setMassDensitySourceTerm(d_S_fcn);
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
+                                 << " variable coefficient conservative discretization form \n"
+                                 << " presently requires VC_CONSERVATIVE_OP convective operator\n"
+                                 << " this statement should not have been reached\n");
+    }
+
     return;
 } // initializeHierarchyIntegrator
 
@@ -310,6 +309,19 @@ VCINSStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
 {
     VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
+    // Keep track of the number of cycles to be used for the present integration
+    // step.
+    if (!d_creeping_flow && (d_current_num_cycles == 1) && (d_convective_time_stepping_type == MIDPOINT_RULE))
+    {
+        TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
+                                 << "  time stepping type: "
+                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
+                                 << " requires num_cycles > 1.\n"
+                                 << "  at current time step, num_cycles = "
+                                 << d_current_num_cycles
+                                 << "\n");
+    }
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
@@ -323,6 +335,24 @@ VCINSStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     TBOX_ASSERT(d_rho_sc_current_idx >= 0);
     TBOX_ASSERT(d_rho_sc_scratch_idx >= 0);
 #endif
+    // After the initial time, we should reset
+    // the current value of density
+    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
+    const double apply_time = current_time;
+    if (!initial_time)
+    {
+        for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
+        {
+            d_reset_rho_fcns[k](d_rho_sc_current_idx,
+                                d_rho_sc_var,
+                                d_hier_math_ops,
+                                -1 /*cycle_num*/,
+                                apply_time,
+                                current_time,
+                                new_time,
+                                d_reset_rho_fcns_ctx[k]);
+        }
+    }
     d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx, d_rho_sc_current_idx, /*interior_only*/ true);
 
 
@@ -458,8 +488,8 @@ VCINSStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     // Add the momentum portion of the RHS in the case of conservative discretization form
     // RHS^n = RHS^n + 1/dt*(rho*U)^n
     d_hier_sc_data_ops->multiply(d_temp_sc_idx, d_rho_sc_scratch_idx, d_U_scratch_idx, /*interior_only*/ true);
-    d_hier_sc_data_ops->scale(d_temp_sc_idx, 1.0/dt, d_temp_sc_idx);
-    d_hier_sc_data_ops->add(U_rhs_idx, d_temp_sc_idx, U_rhs_idx);
+    d_hier_sc_data_ops->scale(d_temp_sc_idx, 1.0 / dt, d_temp_sc_idx, /*interior_only*/ true);
+    d_hier_sc_data_ops->add(U_rhs_idx, d_temp_sc_idx, U_rhs_idx, /*interior_only*/ true);
     d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
 
     // Set the initial guess.
@@ -527,6 +557,7 @@ VCINSStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
         }
         d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
         d_convective_op->setSolutionTime(current_time);
+        d_convective_op->setTimeInterval(current_time, new_time);
 
         // For conservative momentum discretization, an approximation to rho^{n+1}
         // will be computed from rho^{n}, which requires additional options to be set.
@@ -535,14 +566,13 @@ VCINSStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
         if (p_vc_convective_op)
         {
             p_vc_convective_op->setSideCenteredDensityPatchDataIndex(d_rho_sc_scratch_idx);
-            p_vc_convective_op->setSideCenteredDensityBoundaryConditions(d_rho_sc_bc_coefs);
         }
         else
         {
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
                                      << " variable coefficient conservative discretization form \n"
                                      << " presently requires VC_CONSERVATIVE_OP convective operator\n"
-                                     << " this statement should not have been reached");
+                                     << " this statement should not have been reached\n");
         }
 
         d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
@@ -598,9 +628,7 @@ VCINSStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
         }
     }
 
-    // Get the newest density and viscosity if necessary
-        
-    // In the special case of a conservative discretization form, the updated density is previously calculated
+    // In the special case of a conservative discretization form, the updated density is previously calculated by
     // application of the convective operator
     VCINSStaggeredConservativeConvectiveOperator* p_vc_convective_op =
         dynamic_cast<VCINSStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
@@ -612,9 +640,9 @@ VCINSStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
     else
     {
         TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                     << " variable coefficient conservative discretization form \n"
-                                     << " presently requires VC_CONSERVATIVE_OP convective operator\n"
-                                     << " this statement should not have been reached");
+                                 << " variable coefficient conservative discretization form \n"
+                                 << " presently requires VC_CONSERVATIVE_OP convective operator\n"
+                                 << " this statement should not have been reached\n");
     }
 
     if (!d_mu_is_const)
@@ -744,7 +772,7 @@ VCINSStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
 
     // Re-update density and viscosity is they are maintained by the integrator
     // using the newest available data from INS and advection-diffusion solvers
-    if (d_current_num_cycles == cycle_num)
+    if (d_current_num_cycles == cycle_num + 1)
     {
         if (!d_mu_is_const && d_mu_var)
         {
@@ -758,20 +786,6 @@ VCINSStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
                                    current_time,
                                    new_time,
                                    d_reset_mu_fcns_ctx[k]);
-            }
-        }
-        if (d_rho_sc_var)
-        {
-            for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
-            {
-                d_reset_rho_fcns[k](d_rho_sc_new_idx,
-                                    d_rho_sc_var,
-                                    d_hier_math_ops,
-                                    cycle_num,
-                                    apply_time,
-                                    current_time,
-                                    new_time,
-                                    d_reset_rho_fcns_ctx[k]);
             }
         }
     }
@@ -829,6 +843,25 @@ VCINSStaggeredConservativeHierarchyIntegrator::registerMassDensityBoundaryCondit
     d_rho_sc_bc_coefs = rho_sc_bc_coefs;
     return;
 } // registerMassDensityBoundaryConditions
+
+void
+VCINSStaggeredConservativeHierarchyIntegrator::registerMassDensitySourceTerm(Pointer<CartGridFunction> S_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    if (!d_S_fcn)
+    {
+        d_S_fcn = S_fcn;
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << "::VCINSStaggeredConservativeHierarchyIntegrator():\n"
+                                 << " present implementation allows for only one mass density source\n"
+                                 << " term to be set. Consider combining source terms into single CartGridFunction.\n");
+    }
+    return;
+} // registerMassDensitySourceTerm
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -901,31 +934,6 @@ TimeSteppingType
 VCINSStaggeredConservativeHierarchyIntegrator::getConvectiveTimeSteppingType(const int cycle_num)
 {
     TimeSteppingType convective_time_stepping_type = d_convective_time_stepping_type;
-    if (is_multistep_time_stepping_type(convective_time_stepping_type))
-    {
-#if !defined(NDEBUG)
-        TBOX_ASSERT(convective_time_stepping_type == ADAMS_BASHFORTH);
-#endif
-        if (getIntegratorStep() == 0)
-        {
-            convective_time_stepping_type = d_init_convective_time_stepping_type;
-        }
-        else if (cycle_num > 0)
-        {
-            convective_time_stepping_type = MIDPOINT_RULE;
-            IBAMR_DO_ONCE(
-                {
-                    pout << "VCINSStaggeredConservativeHierarchyIntegrator::integrateHierarchy():\n"
-                         << "  WARNING: convective_time_stepping_type = "
-                         << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
-                         << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
-                         << "           using " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
-                         << " only for the first cycle in each time step;\n"
-                         << "           using " << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
-                         << " for subsequent cycles.\n";
-                });
-        }
-    }
     return convective_time_stepping_type;
 } // getConvectiveTimeSteppingType
 
@@ -1163,26 +1171,21 @@ VCINSStaggeredConservativeHierarchyIntegrator::setupSolverVectors(const Pointer<
     {
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
         TimeSteppingType convective_time_stepping_type = getConvectiveTimeSteppingType(cycle_num);
-        if (getIntegratorStep() == 0 && is_multistep_time_stepping_type(d_convective_time_stepping_type))
-        {
-            convective_time_stepping_type = d_init_convective_time_stepping_type;
-        }
 
         // Update N_idx if necessary
         if (cycle_num > 0)
         {
-            TBOX_ERROR("not sure what to do here yet");
             const int U_adv_idx = d_U_adv_vec->getComponentDescriptorIndex(0);
             double apply_time = std::numeric_limits<double>::quiet_NaN();
-            if (convective_time_stepping_type == MIDPOINT_RULE)
+            if (convective_time_stepping_type == FORWARD_EULER)
+            {
+                d_hier_sc_data_ops->copyData(U_adv_idx, d_U_new_idx);
+                apply_time = current_time;
+            }
+            else if (convective_time_stepping_type == MIDPOINT_RULE)
             {
                 d_hier_sc_data_ops->linearSum(U_adv_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
                 apply_time = half_time;
-            }
-            else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
-            {
-                d_hier_sc_data_ops->copyData(U_adv_idx, d_U_new_idx);
-                apply_time = new_time;
             }
             for (int ln = finest_ln; ln > coarsest_ln; --ln)
             {
@@ -1198,32 +1201,26 @@ VCINSStaggeredConservativeHierarchyIntegrator::setupSolverVectors(const Pointer<
             }
             d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
             d_convective_op->setSolutionTime(apply_time);
+
+            VCINSStaggeredConservativeConvectiveOperator* p_vc_convective_op =
+                dynamic_cast<VCINSStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
+            if (p_vc_convective_op)
+            {
+                // Always set to current because we want to update rho^{n} to rho^{n+1}
+                p_vc_convective_op->setSideCenteredDensityPatchDataIndex(d_rho_sc_current_idx);
+            }
+            else
+            {
+                TBOX_ERROR(d_object_name << "::setupSolverVectors():\n"
+                                         << " variable coefficient conservative discretization form \n"
+                                         << " presently requires VC_CONSERVATIVE_OP convective operator\n"
+                                         << " this statement should not have been reached\n");
+            }
             d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
         }
 
         // Set the convective term depending on the time stepping type
-        if (convective_time_stepping_type == FORWARD_EULER)
-        {
-            d_hier_sc_data_ops->copyData(d_N_full_idx, d_N_old_new_idx, /*interior_only*/ true);
-        }
-        else if (convective_time_stepping_type == ADAMS_BASHFORTH)
-        {
-#if !defined(NDEBUG)
-            TBOX_ASSERT(cycle_num == 0);
-#endif
-            const double omega = dt / d_dt_previous[0];
-            d_hier_sc_data_ops->linearSum(d_N_full_idx,
-                                          1.0 + 0.5 * omega,
-                                          d_N_old_new_idx,
-                                          -0.5 * omega,
-                                          d_N_old_current_idx,
-                                          /*interior_only*/ true);
-        }
-        else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
-        {
-            d_hier_sc_data_ops->linearSum(d_N_full_idx, 0.5, d_N_old_new_idx, 0.5, N_idx, /*interior_only*/ true);
-        }
-        else if (convective_time_stepping_type == MIDPOINT_RULE)
+        if (convective_time_stepping_type == FORWARD_EULER || convective_time_stepping_type == MIDPOINT_RULE)
         {
             d_hier_sc_data_ops->copyData(d_N_full_idx, N_idx, /*interior_only*/ true);
         }

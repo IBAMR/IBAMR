@@ -2076,6 +2076,8 @@ c
      &     u0,u1,u2,
      &     nrhalfgc0,nrhalfgc1,nrhalfgc2,
      &     rhalf0,rhalf1,rhalf2,
+     &     nSgc0,nSgc1,nSgc2,
+     &     S,
      &     nRgc0,nRgc1,nRgc2,
      &     R)
 c
@@ -2090,11 +2092,14 @@ c
       INTEGER nugc0,nugc1,nugc2
       INTEGER nrhalfgc0,nrhalfgc1,nrhalfgc2
       INTEGER nRgc0,nRgc1,nRgc2
+      INTEGER nSgc0,nSgc1,nSgc2
+
 
       REAL dx(0:NDIM-1),dt,a0,a1,a2
 
       REAL R0(CELL3dVECG(ifirst,ilast,nR0gc))
       REAL R1(CELL3dVECG(ifirst,ilast,nR1gc))
+      REAL S(CELL3dVECG(ifirst,ilast,nSgc))
       REAL u0(FACE3d0VECG(ifirst,ilast,nugc))
       REAL u1(FACE3d1VECG(ifirst,ilast,nugc))
       REAL u2(FACE3d2VECG(ifirst,ilast,nugc))
@@ -2119,7 +2124,7 @@ c
               Px0 = (rhalf0(ic0+1,ic1,ic2)*u0(ic0+1,ic1,ic2) -
      &               rhalf0(ic0,ic1,ic2)*u0(ic0,ic1,ic2))/dx(0)
               R(ic0,ic1,ic2) = a0*R0(ic0,ic1,ic2) + a1*R1(ic0,ic1,ic2)
-     &                         - a2 * dt * Px0
+     &                         + a2 * dt * (-Px0 + S(ic0,ic1,ic2))
           enddo
         enddo
       enddo

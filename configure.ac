@@ -149,6 +149,7 @@ AC_CONFIG_FILES([
   examples/navier_stokes/ex6/Makefile
   examples/vc_navier_stokes/Makefile
   examples/vc_navier_stokes/ex0/Makefile
+  examples/vc_navier_stokes/ex1/Makefile
   lib/Makefile
   src/Makefile
   src/fortran/Makefile

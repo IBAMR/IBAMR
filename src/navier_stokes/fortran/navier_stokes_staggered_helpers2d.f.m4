@@ -1282,6 +1282,8 @@ c
      &     u0,u1,
      &     nrhalfgc0,nrhalfgc1,
      &     rhalf0,rhalf1,
+     &     nSgc0,nSgc1,
+     &     S,
      &     nRgc0,nRgc1,
      &     R)
 c
@@ -1296,11 +1298,13 @@ c
       INTEGER nugc0,nugc1
       INTEGER nrhalfgc0,nrhalfgc1
       INTEGER nRgc0,nRgc1
+      INTEGER nSgc0,nSgc1
 
       REAL dx(0:NDIM-1),dt,a0,a1,a2
 
       REAL R0(CELL2dVECG(ifirst,ilast,nR0gc))
       REAL R1(CELL2dVECG(ifirst,ilast,nR1gc))
+      REAL S(CELL2dVECG(ifirst,ilast,nSgc))
       REAL u0(FACE2d0VECG(ifirst,ilast,nugc))
       REAL u1(FACE2d1VECG(ifirst,ilast,nugc))
       REAL rhalf0(FACE2d0VECG(ifirst,ilast,nrhalfgc))
@@ -1315,14 +1319,14 @@ c
       INTEGER ic0,ic1
       REAL Px0,Px1
 c
-c     Compute R = a0*R0 + a1*R1 - a2*dt*div[r_fc*u].
+c     Compute R = a0*R0 + a1*R1 - a2*dt*(div[r_fc*u]+S).
 c
       do ic1 = ifirst1,ilast1
          do ic0 = ifirst0,ilast0
             Px0 = (rhalf0(ic0+1,ic1)*u0(ic0+1,ic1) -
      &             rhalf0(ic0,ic1)*u0(ic0,ic1))/dx(0)
             R(ic0,ic1) = a0*R0(ic0,ic1) + a1*R1(ic0,ic1)
-     &                   - a2 * dt * Px0
+     &                   + a2 * dt * (-Px0 + S(ic0,ic1))
          enddo
       enddo
 

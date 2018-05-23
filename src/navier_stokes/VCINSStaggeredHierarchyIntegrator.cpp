@@ -461,21 +461,6 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
                                  << " \n"
                                  << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
-    switch (d_convective_time_stepping_type)
-    {
-    case ADAMS_BASHFORTH:
-    case FORWARD_EULER:
-    case MIDPOINT_RULE:
-    case TRAPEZOIDAL_RULE:
-        break;
-    default:
-        TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
-                                 << "  unsupported convective time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
-                                 << " \n"
-                                 << "  valid choices are: ADAMS_BASHFORTH, FORWARD_EULER, "
-                                    "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
-    }
 
     // Setup Stokes solver options.
     if (input_db->keyExists("stokes_solver_type"))
@@ -1150,20 +1135,6 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    // Keep track of the number of cycles to be used for the present integration
-    // step.
-    if (!d_creeping_flow && (d_current_num_cycles == 1) &&
-        (d_convective_time_stepping_type == MIDPOINT_RULE || d_convective_time_stepping_type == TRAPEZOIDAL_RULE))
-    {
-        TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                 << "  time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
-                                 << " requires num_cycles > 1.\n"
-                                 << "  at current time step, num_cycles = "
-                                 << d_current_num_cycles
-                                 << "\n");
-    }
 
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

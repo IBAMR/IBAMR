@@ -46,6 +46,7 @@
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
+#include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
@@ -73,7 +74,8 @@ namespace IBAMR
  * a side-centered velocity field using various limiters described by Patel and Natarajan.
  *
  * A side-centered density update is provided by this class, which is used in the conservative discretization
- * of the Stokes operator.
+ * of the Stokes operator. There is an optional mass density source term that can be set to easily check order
+ * of accuracy via manufactured solutions.
  *
  * References
  * Patel, JK. and Natarajan, G., <A HREF="https://www.sciencedirect.com/science/article/pii/S0045793014004009">
@@ -189,6 +191,11 @@ public:
      */
     int getUpdatedSideCenteredDensityPatchDataIndex();
 
+    /*!
+     * \brief Set an optional mass density source term.
+     */
+    void setMassDensitySourceTerm(const SAMRAI::tbox::Pointer<IBTK::CartGridFunction> S_fcn);
+
 private:
     /*!
      * \brief Default constructor.
@@ -237,7 +244,7 @@ private:
         const SAMRAI::hier::IntVector<NDIM>& patch_lower,
         const SAMRAI::hier::IntVector<NDIM>& patch_upper,
         const boost::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
-        const ConvectiveLimiter& convective_limiter);
+        const LimiterType& convective_limiter);
 
     /*!
      * \brief Compute div[rho_half*u_half*u_adv]
@@ -252,7 +259,7 @@ private:
         const double* const dx);
 
     /*!
-     * \brief Compute the density update rho = a0*rho^0 + a1*rho^1 + a2*dt*(-div[u_adv*rho_half])
+     * \brief Compute the density update rho = a0*rho^0 + a1*rho^1 + a2*dt*(-div[u_adv*rho_half]) + a2*dt*S
      */
     void computeDensityUpdate(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > R_data,
@@ -263,6 +270,7 @@ private:
         const double& a2,
         const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
         const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> R_half_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > S_data,
         const boost::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
         const double& dt,
         const double* const dx);
@@ -299,14 +307,19 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
 
     // The limiter type for interpolation onto faces.
-    ConvectiveLimiter d_velocity_convective_limiter;
-    ConvectiveLimiter d_density_convective_limiter;
+    LimiterType d_velocity_convective_limiter;
+    LimiterType d_density_convective_limiter;
 
     // The required number of ghost cells for the chosen interpolation
     int d_velocity_limiter_gcw, d_density_limiter_gcw;
 
     // Variable to indicate the density update time-stepping type.
-    DensityTimeSteppingType d_density_time_stepping_type;
+    TimeSteppingType d_density_time_stepping_type;
+
+    // Source term variable and function for the mass density update
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_S_var;
+    int d_S_scratch_idx;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
 };
 } // namespace IBAMR
 
