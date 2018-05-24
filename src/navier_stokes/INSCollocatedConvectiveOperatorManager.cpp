@@ -43,6 +43,7 @@
 #include "ibamr/INSCollocatedCenteredConvectiveOperator.h"
 #include "ibamr/INSCollocatedConvectiveOperatorManager.h"
 #include "ibamr/INSCollocatedPPMConvectiveOperator.h"
+#include "ibamr/INSCollocatedWavePropConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
@@ -69,6 +70,7 @@ namespace IBAMR
 const std::string INSCollocatedConvectiveOperatorManager::DEFAULT = "DEFAULT";
 const std::string INSCollocatedConvectiveOperatorManager::CENTERED = "CENTERED";
 const std::string INSCollocatedConvectiveOperatorManager::PPM = "PPM";
+const std::string INSCollocatedConvectiveOperatorManager::WAVE_PROP = "WAVE_PROP";
 
 INSCollocatedConvectiveOperatorManager* INSCollocatedConvectiveOperatorManager::s_operator_manager_instance = NULL;
 bool INSCollocatedConvectiveOperatorManager::s_registered_callback = false;
@@ -137,6 +139,7 @@ INSCollocatedConvectiveOperatorManager::INSCollocatedConvectiveOperatorManager()
     registerOperatorFactoryFunction(DEFAULT, INSCollocatedPPMConvectiveOperator::allocate_operator);
     registerOperatorFactoryFunction(CENTERED, INSCollocatedCenteredConvectiveOperator::allocate_operator);
     registerOperatorFactoryFunction(PPM, INSCollocatedPPMConvectiveOperator::allocate_operator);
+    registerOperatorFactoryFunction(WAVE_PROP, INSCollocatedWavePropConvectiveOperator::allocate_operator);
     return;
 } // INSCollocatedConvectiveOperatorManager
 
