@@ -470,26 +470,30 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
     }
 
     // build the meshes
-    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
+    for (int ii = 0; ii < d_num_meters; ++ii)
     {
         d_meter_meshes[ii]->set_spatial_dimension(NDIM);
         d_meter_meshes[ii]->set_mesh_dimension(NDIM - 1);
-        d_meter_meshes[ii]->reserve_nodes(d_num_nodes[ii]);
-        d_meter_meshes[ii]->reserve_elem(d_num_nodes[ii] - 2);
+        d_meter_meshes[ii]->reserve_nodes(d_num_nodes[ii] + 1);
+        d_meter_meshes[ii]->reserve_elem(d_num_nodes[ii]);
 
-        for (unsigned int jj = 0; jj < d_num_nodes[ii]; ++jj)
+        // add centroid
+        d_meter_meshes[ii]->add_point(meter_centroids[ii], 0);
+
+        // add nodes
+        for (int jj = 0; jj < d_num_nodes[ii]; ++jj)
         {
-            d_meter_meshes[ii]->add_point(d_nodes[ii][jj], jj);
+            d_meter_meshes[ii]->add_point(d_nodes[ii][jj], jj + 1);
         }
 
-        for (unsigned int jj = 0; jj < d_num_nodes[ii] - 2; ++jj)
+        for (int jj = 0; jj < d_num_nodes[ii]; ++jj)
         {
             Elem* elem = new Tri3;
             elem->set_id(jj);
             elem = d_meter_meshes[ii]->add_elem(elem);
             elem->set_node(0) = d_meter_meshes[ii]->node_ptr(0);
             elem->set_node(1) = d_meter_meshes[ii]->node_ptr(jj + 1);
-            elem->set_node(2) = d_meter_meshes[ii]->node_ptr(jj + 2);
+            elem->set_node(2) = d_meter_meshes[ii]->node_ptr(((jj + 1) % d_num_nodes[ii]) + 1);
         }
         d_meter_meshes[ii]->prepare_for_use();
         d_exodus_io.push_back(new ExodusII_IO(*d_meter_meshes[ii]));
@@ -988,11 +992,15 @@ IBFEInstrumentPanel::updateSystemData(IBAMR::IBFEMethod* ib_method_ops, const in
     NumericVector<double>& displacement_solution = *displacement_sys.solution;
     NumericVector<double>& displacement_coords = displacement_sys.get_vector("serial solution");
 
-    // loop over all nodes in meter mesh
-    for (unsigned int ii = 0; ii < d_num_nodes[meter_mesh_number]; ++ii)
+    // loop over the (perimeter) nodes in the meter mesh
+    std::vector<double> mean_U_dofs;
+    mean_U_dofs.resize(NDIM);
+    std::vector<double> mean_dX_dofs;
+    mean_dX_dofs.resize(NDIM);
+    for (int ii = 0; ii < d_num_nodes[meter_mesh_number]; ++ii)
     {
         // get node on meter mesh
-        const Node* node = &d_meter_meshes[meter_mesh_number]->node_ref(ii);
+        const Node* node = &d_meter_meshes[meter_mesh_number]->node_ref(ii + 1);
 
         // get corresponding dofs on parent mesh
         std::vector<double> U_dofs;
@@ -1000,21 +1008,33 @@ IBFEInstrumentPanel::updateSystemData(IBAMR::IBFEMethod* ib_method_ops, const in
         std::vector<double> dX_dofs;
         dX_dofs.resize(NDIM);
 
-        for (unsigned int d = 0; d < NDIM; ++d)
+        for (int d = 0; d < NDIM; ++d)
         {
             U_dofs[d] = U_coords_parent[d_U_dof_idx[meter_mesh_number][ii][d]];
             dX_dofs[d] = dX_coords_parent[d_dX_dof_idx[meter_mesh_number][ii][d]];
+            mean_U_dofs[d] += U_dofs[d] / static_cast<double>(d_num_nodes[meter_mesh_number]);
+            mean_dX_dofs[d] += dX_dofs[d] / static_cast<double>(d_num_nodes[meter_mesh_number]);
         }
 
         // set dofs in meter mesh to correspond to the same values
         // as in the parent mesh
-        for (unsigned int d = 0; d < NDIM; ++d)
+        for (int d = 0; d < NDIM; ++d)
         {
             const int vel_dof_idx = node->dof_number(velocity_sys_num, d, 0);
             velocity_coords.set(vel_dof_idx, U_dofs[d]);
             const int disp_dof_idx = node->dof_number(displacement_sys_num, d, 0);
             displacement_coords.set(disp_dof_idx, dX_dofs[d]);
         }
+    }
+
+    // set dofs for the centroid node in the meter mesh
+    const Node* centroid_node = &d_meter_meshes[meter_mesh_number]->node_ref(0);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        const int vel_dof_idx = centroid_node->dof_number(velocity_sys_num, d, 0);
+        velocity_coords.set(vel_dof_idx, mean_U_dofs[d]);
+        const int disp_dof_idx = centroid_node->dof_number(displacement_sys_num, d, 0);
+        displacement_coords.set(disp_dof_idx, mean_dX_dofs[d]);
     }
 
     // populate solution vector in system also... why not?
