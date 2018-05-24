@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <limits>
 #include <ostream>
 #include <stddef.h>
 #include <string>
@@ -1304,7 +1305,6 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     for (int step = 0; step < d_num_steps; ++step)
     {
         double eval_time = std::numeric_limits<double>::quiet_NaN();
-        ;
         switch (step)
         {
         case 0:
