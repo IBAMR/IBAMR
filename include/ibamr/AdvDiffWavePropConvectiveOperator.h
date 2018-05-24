@@ -106,7 +106,13 @@ namespace IBAMR
  *
  * Class AdvDiffWavePropConvectiveOperator computes the convective
  * derivative of a cell-centered quantity using the wave propagation
- * method of Ketcheson and LeVeque
+ * method of Ketcheson and LeVeque.
+ *
+ * \note AdvDiffWavePropConvectiveOperator currently only works in
+ * ADVECTIVE form.
+ *
+ * \todo Implement a CONSERVATIVE form for the operator. This will
+ * involve writing a new Riemann solver for the flux.
  */
 class AdvDiffWavePropConvectiveOperator : public ConvectiveOperator
 {

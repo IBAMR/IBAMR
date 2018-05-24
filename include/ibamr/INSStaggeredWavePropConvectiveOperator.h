@@ -72,6 +72,12 @@ namespace IBAMR
  * convective derivative of a cell-centered velocity field using the
  * wave propagation method of Ketcheson and LeVeque.
  *
+ * \note INSStaggeredWavePropConvectiveOperator currently only works
+ * in ADVECTIVE form.
+ *
+ * \todo Implement a CONSERVATIVE form for the operator. This will
+ * involve writing a new Riemann solver for the flux.
+ *
  * \see INSStaggeredHierarchyIntegrator
  */
 class INSStaggeredWavePropConvectiveOperator : public ConvectiveOperator
