@@ -724,6 +724,7 @@ protected:
      */
     bool d_has_overlapping_parts;
     std::vector<bool> d_is_overlapping_part;
+    std::vector<std::set<libMesh::dof_id_type> > d_overlapping_part_ghost_idxs;
     std::vector<boost::array<unsigned int, 2> > d_overlapping_part_idxs;
     std::vector<boost::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2> >
         d_overlapping_elem_map;

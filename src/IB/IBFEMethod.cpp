@@ -503,25 +503,28 @@ IBFEMethod::constrainPartOverlap(const unsigned int part1,
 
     boost::array<EquationSystems*, 2> es;
     boost::array<MeshBase*, 2> mesh;
+    boost::array<const DofMap*, 2> F_dof_map, X_dof_map;
     boost::array<UniquePtr<FEBase>, 2> fe;
     boost::array<UniquePtr<PointLocatorBase>, 2> ploc;
     for (int k = 0; k < 2; ++k)
     {
         es[k] = d_fe_data_managers[part_idx[k]]->getEquationSystems();
         System& F_system = es[k]->get_system<System>(FORCE_SYSTEM_NAME);
-        const DofMap& F_dof_map = F_system.get_dof_map();
+        F_dof_map[k] = &F_system.get_dof_map();
         System& X_system = es[k]->get_system<System>(FORCE_SYSTEM_NAME);
-        const DofMap& X_dof_map = X_system.get_dof_map();
-        FEType fe_type = F_dof_map.variable_type(0);
+        X_dof_map[k] = &X_system.get_dof_map();
+        FEType fe_type = F_dof_map[k]->variable_type(0);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            TBOX_ASSERT(fe_type == F_dof_map.variable_type(d));
-            TBOX_ASSERT(fe_type == X_dof_map.variable_type(d));
+            TBOX_ASSERT(fe_type == F_dof_map[k]->variable_type(d));
+            TBOX_ASSERT(fe_type == X_dof_map[k]->variable_type(d));
         }
         mesh[k] = &es[k]->get_mesh();
         if (!qrule[k])
-            qrule[k] = QBase::build(QGAUSS, mesh[k]->mesh_dimension(), THIRD).release(); // \todo try to fix this when
-                                                                                         // we update to C++11!
+        {
+            // \todo try to fix this when we update to C++11!
+            qrule[k] = QBase::build(QGRID, mesh[k]->mesh_dimension(), FOURTH).release();
+        }
         fe[k] = FEBase::build(mesh[k]->mesh_dimension(), fe_type);
         fe[k]->attach_quadrature_rule(qrule[k]);
         fe[k]->get_xyz();
@@ -530,6 +533,11 @@ IBFEMethod::constrainPartOverlap(const unsigned int part1,
     }
 
     // Find quadrature points that overlap with the other part.
+    boost::array<std::vector<std::vector<unsigned int> >, 2> X_dof_indices;
+    for (int k = 0; k < 2; ++k)
+    {
+        X_dof_indices[k].resize(NDIM);
+    }
     for (int k = 0; k < 2; ++k)
     {
         const std::vector<libMesh::Point>& q_point = fe[k]->get_xyz();
@@ -545,6 +553,16 @@ IBFEMethod::constrainPartOverlap(const unsigned int part1,
                 if (other_elem)
                 {
                     elem_map[k][elem->id()][qp] = other_elem->id();
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        X_dof_map[(k + 1) % 2]->dof_indices(other_elem, X_dof_indices[(k + 1) % 2][d], d);
+                        for (std::vector<unsigned int>::iterator it = X_dof_indices[(k + 1) % 2][d].begin();
+                             it != X_dof_indices[(k + 1) % 2][d].end();
+                             ++it)
+                        {
+                            d_overlapping_part_ghost_idxs[(k + 1) % 2].insert(*it);
+                        }
+                    }
                 }
             }
         }
@@ -860,7 +878,24 @@ IBFEMethod::computeLagrangianForce(const double data_time)
     }
     if (d_has_overlapping_parts)
     {
-        computeOverlapConstraintForceDensity(d_F_half_vecs, d_X_half_vecs);
+        std::vector<libMesh::PetscVector<double>*> X_half_ghost_vecs(d_X_half_vecs.size());
+        for (unsigned int k = 0; k < d_X_half_vecs.size(); ++k)
+        {
+            if (d_is_overlapping_part[k])
+            {
+                PetscVector<double>* X_half_vec = d_X_half_vecs[k];
+                std::vector<numeric_index_type> ghost_idxs(d_overlapping_part_ghost_idxs[k].begin(),
+                                                           d_overlapping_part_ghost_idxs[k].end());
+                X_half_ghost_vecs[k] = new PetscVector<double>(
+                    X_half_vec->comm(), X_half_vec->size(), X_half_vec->local_size(), ghost_idxs);
+                X_half_vec->localize(*X_half_ghost_vecs[k]);
+            }
+        }
+        computeOverlapConstraintForceDensity(d_F_half_vecs, X_half_ghost_vecs);
+        for (unsigned int k = 0; k < d_X_half_vecs.size(); ++k)
+        {
+            if (d_is_overlapping_part[k]) delete X_half_ghost_vecs[k];
+        }
     }
     return;
 } // computeLagrangianForce
@@ -3008,6 +3043,7 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     // Indicate that there are no overlapping parts by default.
     d_has_overlapping_parts = false;
     d_is_overlapping_part.resize(d_num_parts, false);
+    d_overlapping_part_ghost_idxs.resize(d_num_parts);
 
     // Initialize function data to NULL.
     d_coordinate_mapping_fcn_data.resize(d_num_parts);
