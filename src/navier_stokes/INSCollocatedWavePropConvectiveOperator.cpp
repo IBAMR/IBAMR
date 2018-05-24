@@ -69,41 +69,42 @@ class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
 
-extern "C" {
+extern "C"
+{
 #if (NDIM == 2)
-void adv_diff_wp_convective_op2d_(const double*,
-                                  const int&,
-                                  const double*,
-                                  const double*,
-                                  const int&,
-                                  const double*,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const double*,
-                                  const int&);
+    void adv_diff_wp_convective_op2d_(const double*,
+                                      const int&,
+                                      const double*,
+                                      const double*,
+                                      const int&,
+                                      const double*,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const double*,
+                                      const int&);
 #endif
 #if (NDIM == 3)
-void adv_diff_wp_convective_op3d_(const double* q_data,
-                                  const int& q_gcw,
-                                  const double* u_data_0,
-                                  const double* u_data_1,
-                                  const double* u_data_2,
-                                  const int& u_gcw,
-                                  const double* r_data,
-                                  const int& r_gcw,
-                                  const int& depth,
-                                  const int& ilower0,
-                                  const int& ilower1,
-                                  const int& ilower2,
-                                  const int& iupper0,
-                                  const int& iupper1,
-                                  const int& iupper2,
-                                  const double* dx,
-                                  const int& k);
+    void adv_diff_wp_convective_op3d_(const double* q_data,
+                                      const int& q_gcw,
+                                      const double* u_data_0,
+                                      const double* u_data_1,
+                                      const double* u_data_2,
+                                      const int& u_gcw,
+                                      const double* r_data,
+                                      const int& r_gcw,
+                                      const int& depth,
+                                      const int& ilower0,
+                                      const int& ilower1,
+                                      const int& ilower2,
+                                      const int& iupper0,
+                                      const int& iupper1,
+                                      const int& iupper2,
+                                      const double* dx,
+                                      const int& k);
 #endif
 }
 

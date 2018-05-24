@@ -244,6 +244,6 @@ private:
 
     ConvectiveDifferencingType d_difference_form;
 };
-}
+} // namespace IBAMR
 
 #endif

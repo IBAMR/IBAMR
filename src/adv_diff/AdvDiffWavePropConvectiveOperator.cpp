@@ -34,41 +34,42 @@
 
 #include "ibamr/AdvDiffWavePropConvectiveOperator.h"
 
-extern "C" {
+extern "C"
+{
 #if (NDIM == 2)
-void adv_diff_wp_convective_op2d_(const double*,
-                                  const int&,
-                                  const double*,
-                                  const double*,
-                                  const int&,
-                                  const double*,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const double*,
-                                  const int&);
+    void adv_diff_wp_convective_op2d_(const double*,
+                                      const int&,
+                                      const double*,
+                                      const double*,
+                                      const int&,
+                                      const double*,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const double*,
+                                      const int&);
 #endif
 #if (NDIM == 3)
-void adv_diff_wp_convective_op3d_(const double* q_data,
-                                  const int& q_gcw,
-                                  const double* u_data_0,
-                                  const double* u_data_1,
-                                  const double* u_data_2,
-                                  const int& u_gcw,
-                                  const double* r_data,
-                                  const int& r_gcw,
-                                  const int& depth,
-                                  const int& ilower0,
-                                  const int& ilower1,
-                                  const int& ilower2,
-                                  const int& iupper0,
-                                  const int& iupper1,
-                                  const int& iupper2,
-                                  const double* dx,
-                                  const int& k);
+    void adv_diff_wp_convective_op3d_(const double* q_data,
+                                      const int& q_gcw,
+                                      const double* u_data_0,
+                                      const double* u_data_1,
+                                      const double* u_data_2,
+                                      const int& u_gcw,
+                                      const double* r_data,
+                                      const int& r_gcw,
+                                      const int& depth,
+                                      const int& ilower0,
+                                      const int& ilower1,
+                                      const int& ilower2,
+                                      const int& iupper0,
+                                      const int& iupper1,
+                                      const int& iupper2,
+                                      const double* dx,
+                                      const int& k);
 #endif
 }
 
@@ -78,32 +79,30 @@ namespace IBAMR
 AdvDiffWavePropConvectiveOperator::AdvDiffWavePropConvectiveOperator(
     const std::string& object_name,
     Pointer<CellVariable<NDIM, double> > Q_var,
-    Pointer<Database> input_db,
+    Pointer<Database> /*input_db*/,
     const ConvectiveDifferencingType differencing_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& conc_bc_coefs)
     : ConvectiveOperator(object_name, differencing_form),
       d_ghostfill_alg_Q(NULL),
       d_ghostfill_scheds_Q(),
-      d_conc_bc_coefs(conc_bc_coefs),
       d_outflow_bdry_extrap_type("CONSTANT"),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
       d_Q_var(Q_var),
       d_Q_data_depth(0),
+      d_conc_bc_coefs(conc_bc_coefs),
+      d_k(3),
       d_difference_form(differencing_form)
 {
     if (d_difference_form != ADVECTIVE /* && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC*/)
     {
-        TBOX_ERROR(
-            "AdvDiffWavePropConvectiveOperator::"
-            "AdvDiffWavePropConvectiveOperator():\n"
-            << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
-            << " \n"
-            << "  valid choices are: ADVECTIVE\n");
+        TBOX_ERROR("AdvDiffWavePropConvectiveOperator::AdvDiffWavePropConvectiveOperator():\n"
+                   << "  unsupported differencing form: "
+                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                   << "  valid choices are: ADVECTIVE\n");
     }
 
-    d_k = 3;
     // Register some scratch variables
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> context = var_db->getContext(d_object_name + "::CONVEC_CONTEXT");
@@ -315,4 +314,4 @@ AdvDiffWavePropConvectiveOperator::deallocateOperatorState()
     d_is_initialized = false;
     return;
 }
-} // End Namespace
+} // namespace IBAMR
