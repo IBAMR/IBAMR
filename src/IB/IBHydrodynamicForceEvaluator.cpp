@@ -249,7 +249,7 @@ IBHydrodynamicForceEvaluator::registerStructure(IBTK::Vector3d& box_X_lower,
 void
 IBHydrodynamicForceEvaluator::updateStructureDomain(const IBTK::Vector3d& box_vel_new,
                                                     double dt,
-                                                    Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                                                    Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                                                     int strct_id)
 
 {
