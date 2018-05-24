@@ -192,8 +192,6 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
       d_tagged_pt_position(d_no_structures, std::vector<double>(3, 0.0)),
       d_rho_solid(d_no_structures, std::numeric_limits<double>::quiet_NaN()),
       d_rho_fluid(std::numeric_limits<double>::quiet_NaN()),
-      d_fluid_velocity_correction_type("CORRECT_VELOCITY"),
-      d_use_momentum_correction(false),
       d_rho_is_const(true),
       d_calculate_structure_linear_mom(false),
       d_calculate_structure_rotational_mom(false),
@@ -435,11 +433,6 @@ ConstraintIBMethod::postprocessSolveFluidEquations(double current_time, double n
 
     IBTK_TIMER_START(t_interpolateFluidSolveVelocity);
     copyFluidVariable(d_u_fluidSolve_idx, d_u_fluidSolve_cib_idx);
-    if (d_use_momentum_correction)
-    {
-        copyDensityVariable(d_rho_ins_idx, d_rho_scratch_idx);
-        computeFluidSolveMomentum();
-    }
     interpolateFluidSolveVelocity();
     IBTK_TIMER_STOP(t_interpolateFluidSolveVelocity);
 
@@ -577,38 +570,29 @@ ConstraintIBMethod::registerEulerianVariables()
 
     VCINSStaggeredHierarchyIntegrator* p_vc_ins_hier_integrator =
             dynamic_cast<VCINSStaggeredHierarchyIntegrator*>(IBStrategy::getINSHierarchyIntegrator());
-    if (d_use_momentum_correction)
+    // If using constant rho INS solver,
+    // then assert rho_fluid == rho_solid
+    if (!p_vc_ins_hier_integrator)
     {
-        if (p_vc_ins_hier_integrator && !p_vc_ins_hier_integrator->rhoIsConstant())
+        d_rho_is_const = true;
+        INSHierarchyIntegrator* p_ins_hier_integrator = IBStrategy::getINSHierarchyIntegrator();
+        d_rho_fluid = p_ins_hier_integrator->getStokesSpecifications()->getRho();
+        for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
-            // Get the density maintained by the integrator
-            d_rho_is_const = false;
-            d_rho_ins_idx = p_vc_ins_hier_integrator->getInterpolatedRhoPatchDataIndex();
-#if !defined(NDEBUG)
-            TBOX_ASSERT(d_rho_ins_idx >= 0);
-#endif
-            d_rho_var = new SideVariable<NDIM, double>(d_object_name + "::rho");
-            d_rho_scratch_idx =
-                var_db->registerVariableAndContext(d_rho_var, d_scratch_context, getMinimumGhostCellWidth());
-        }
-        else
-        {
-            TBOX_ERROR(d_object_name << "::registerEulerianVariables():\n"
-                                     << "  in order to use fluid_velocity_correction_type = "
-                                     << d_fluid_velocity_correction_type
-                                     << " \n"
-                                     << "  a VCINSStaggeredHierarchyIntegrator object must be registered\n");
+            if (d_rho_solid[struct_no] != d_rho_fluid)
+            {
+                TBOX_ERROR(d_object_name << "::registerEulerianVariables():\n"
+                                         << "  for constant density cases, rho_solid[struct_no]\n"
+                                         << "  must equal rho_fluid");
+            }
         }
     }
     else
     {
-        // If using velocity update and constant rho INS solver, 
-        // then assert rho_fluid == rho_solid 
-        if (!p_vc_ins_hier_integrator)
+        d_rho_is_const = p_vc_ins_hier_integrator->rhoIsConstant();
+        if (d_rho_is_const)
         {
-            d_rho_is_const = true;
-            INSHierarchyIntegrator* p_ins_hier_integrator = IBStrategy::getINSHierarchyIntegrator();
-            d_rho_fluid = p_ins_hier_integrator->getStokesSpecifications()->getRho();
+            d_rho_fluid = p_vc_ins_hier_integrator->getStokesSpecifications()->getRho();
             for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
             {
                 if (d_rho_solid[struct_no] != d_rho_fluid)
@@ -621,33 +605,16 @@ ConstraintIBMethod::registerEulerianVariables()
         }
         else
         {
-            d_rho_is_const = p_vc_ins_hier_integrator->rhoIsConstant();
-            if (d_rho_is_const)
-            {
-                d_rho_fluid = p_vc_ins_hier_integrator->getStokesSpecifications()->getRho();
-                for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
-                {
-                    if (d_rho_solid[struct_no] != d_rho_fluid)
-                    {
-                        TBOX_ERROR(d_object_name << "::registerEulerianVariables():\n"
-                                                 << "  for constant density cases, rho_solid[struct_no]\n"
-                                                 << "  must equal rho_fluid");
-                    }
-                }
-            }
-            else
-            {
-                // Get the density maintained by the integrator
-                d_rho_ins_idx = p_vc_ins_hier_integrator->getInterpolatedRhoPatchDataIndex();
+            // Get the density maintained by the integrator
+            d_rho_ins_idx = p_vc_ins_hier_integrator->getLinearOperatorRhoPatchDataIndex();
 #if !defined(NDEBUG)
-                TBOX_ASSERT(d_rho_ins_idx >= 0);
+            TBOX_ASSERT(d_rho_ins_idx >= 0);
 #endif
                 d_rho_var = new SideVariable<NDIM, double>(d_object_name + "::rho");
                 d_rho_scratch_idx =
                     var_db->registerVariableAndContext(d_rho_var, d_scratch_context, getMinimumGhostCellWidth());
             }
         }
-    }
 
     return;
 } // registerEulerianVariables
@@ -817,8 +784,6 @@ ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool from_res
     // Read in control parameters from input database.
     d_needs_div_free_projection = input_db->getBoolWithDefault("needs_divfree_projection", d_needs_div_free_projection);
     input_db->getDoubleArray("rho_solid", &d_rho_solid[0], d_no_structures);
-    d_fluid_velocity_correction_type =
-        input_db->getStringWithDefault("fluid_velocity_correction_type", d_fluid_velocity_correction_type);
     d_rho_fluid = input_db->getDoubleWithDefault("rho_fluid", d_rho_fluid);
     d_calculate_structure_linear_mom =
         input_db->getBoolWithDefault("calculate_structure_linear_mom", d_calculate_structure_linear_mom);
@@ -846,22 +811,6 @@ ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool from_res
             "WARNING ConstraintIBMethod::getFromInput() Eulerian momentum is calculated but divergence free projection "
             "is not active"
             << std::endl);
-    if (d_fluid_velocity_correction_type == "CORRECT_VELOCITY")
-    {
-        d_use_momentum_correction = false;
-    }
-    else if (d_fluid_velocity_correction_type == "CORRECT_MOMENTUM")
-    {
-        d_use_momentum_correction = true;
-    }
-    else
-    {
-        TBOX_ERROR(d_object_name << "::getFromInput():\n"
-                                 << "  unsupported fluid velocity update type: "
-                                 << d_fluid_velocity_correction_type
-                                 << " \n"
-                                 << "  valid choices are: CORRECT_VELOCITY and  CORRECT_MOMENTUM\n");
-    }
 
     if (!from_restart)
         tbox::Utilities::recursiveMkdir(d_dir_name);
@@ -1604,8 +1553,6 @@ ConstraintIBMethod::calculateRigidTranslationalMomentum()
                     d_rigid_trans_vel_new[struct_no][d] /= struct_param.getTotalNodes();
                 else
                     d_rigid_trans_vel_new[struct_no][d] = 0.0;
-
-                if (d_use_momentum_correction) d_rigid_trans_vel_new[struct_no][d] /= d_rho_solid[struct_no];
             }
         }
     }
@@ -1706,7 +1653,6 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
             SAMRAI_MPI::sumReduction(&d_rigid_rot_vel_new[struct_no][0], 3);
 #if (NDIM == 2)
             d_rigid_rot_vel_new[struct_no][2] /= d_moment_of_inertia_new[struct_no](2, 2);
-            if (d_use_momentum_correction) d_rigid_rot_vel_new[struct_no][2] /= d_rho_solid[struct_no];
 #endif
 
 #if (NDIM == 3)
@@ -1715,7 +1661,6 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
             for (int d = 0; d < NDIM; ++d)
             {
                 if (!calculate_rot_mom[d]) d_rigid_rot_vel_new[struct_no][d] = 0.0;
-                if (d_use_momentum_correction) d_rigid_rot_vel_new[struct_no][d] /= d_rho_solid[struct_no];
             }
 #endif
         }
@@ -1919,16 +1864,7 @@ ConstraintIBMethod::correctVelocityOnLagrangianMesh()
                                 U_new[d] = d_rigid_trans_vel_new[location_struct_handle][d] -
                                            d_vel_com_def_new[location_struct_handle][d] + WxR[d] +
                                            new_vel[d][lag_idx - offset];
-                                if (!d_use_momentum_correction)
-                                {
-                                    U_corr[d] = (U_new[d] - U[d]) * d_vol_element[location_struct_handle];
-                                }
-                                else
-                                {
-                                    // U[d] will already be holding rho*U_interp
-                                    U_corr[d] = (d_rho_solid[struct_no] * U_new[d] - U[d]) *
-                                                d_vol_element[location_struct_handle];
-                                }
+                                U_corr[d] = (U_new[d] - U[d]) * d_vol_element[location_struct_handle];
                             }
                         } // rotating
                         else
@@ -1937,16 +1873,7 @@ ConstraintIBMethod::correctVelocityOnLagrangianMesh()
                             {
                                 U_new[d] = d_rigid_trans_vel_new[location_struct_handle][d] -
                                            d_vel_com_def_new[location_struct_handle][d] + new_vel[d][lag_idx - offset];
-                                if (!d_use_momentum_correction)
-                                {
-                                    U_corr[d] = (U_new[d] - U[d]) * d_vol_element[location_struct_handle];
-                                }
-                                else
-                                {
-                                    // U[d] will already be holding rho*U_interp
-                                    U_corr[d] = (d_rho_solid[struct_no] * U_new[d] - U[d]) *
-                                                d_vol_element[location_struct_handle];
-                                }
+                                U_corr[d] = (U_new[d] - U[d]) * d_vol_element[location_struct_handle];
                             }
 
                         } // not rotating
@@ -1956,16 +1883,7 @@ ConstraintIBMethod::correctVelocityOnLagrangianMesh()
                         for (int d = 0; d < NDIM; ++d)
                         {
                             U_new[d] = new_vel[d][lag_idx - offset];
-                            if (!d_use_momentum_correction)
-                            {
-                                U_corr[d] = (U_new[d] - U[d]) * d_vol_element[location_struct_handle];
-                            }
-                            else
-                            {
-                                // U[d] will already be holding rho*U_interp
-                                U_corr[d] =
-                                    (d_rho_solid[struct_no] * U_new[d] - U[d]) * d_vol_element[location_struct_handle];
-                            }
+                            U_corr[d] = (U_new[d] - U[d]) * d_vol_element[location_struct_handle];
                         }
                     } // imposed momentum
 
@@ -2434,40 +2352,6 @@ ConstraintIBMethod::copyDensityVariable(int copy_from_idx, int copy_to_idx)
 } // copyDensityVariable
 
 void
-ConstraintIBMethod::computeFluidSolveMomentum()
-{
-// If momentum correcting is being used, d_u_fluidSolve_cib_idx will
-// hold rho_ins * u_fluidSolve. This quantity will be used for interpolation
-// onto the Lagrangian mesh
-#if !defined(NDEBUG)
-    TBOX_ASSERT(d_rho_scratch_idx >= 0);
-#endif
-    d_hier_sc_data_ops->multiply(
-        d_u_fluidSolve_cib_idx, d_u_fluidSolve_cib_idx, d_rho_scratch_idx, /*interior_only*/ true);
-
-    // Fill ghost cells
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> transaction_comps;
-    InterpolationTransactionComponent component(d_u_fluidSolve_cib_idx,
-                                                DATA_REFINE_TYPE,
-                                                USE_CF_INTERPOLATION,
-                                                SIDE_DATA_COARSEN_TYPE,
-                                                BDRY_EXTRAP_TYPE,
-                                                CONSISTENT_TYPE_2_BDRY,
-                                                std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM, NULL),
-                                                NULL);
-    transaction_comps.push_back(component);
-
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(transaction_comps, d_hierarchy, coarsest_ln, finest_ln);
-    const bool homogeneous_bc = true;
-    hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    hier_bdry_fill->fillData(0.0);
-} // computeFluidSolveMomentum
-
-void
 ConstraintIBMethod::interpolateFluidSolveVelocity()
 {
     const int coarsest_ln = 0;
@@ -2515,13 +2399,6 @@ ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
 
     u_cib.setToScalar(0.0);
     d_l_data_manager->spread(d_u_fluidSolve_cib_idx, F_data, X_data, d_u_phys_bdry_op);
-
-    if (d_use_momentum_correction)
-    {
-        d_hier_sc_data_ops->reciprocal(d_rho_scratch_idx, d_rho_scratch_idx, /*interior_only*/ true);
-        d_hier_sc_data_ops->multiply(
-            d_u_fluidSolve_cib_idx, d_u_fluidSolve_cib_idx, d_rho_scratch_idx, /*interior_only*/ true);
-    }
 
     u_ins.add(Pointer<SAMRAIVectorReal<NDIM, double> >(&u_ins, false),
               Pointer<SAMRAIVectorReal<NDIM, double> >(&u_cib, false));

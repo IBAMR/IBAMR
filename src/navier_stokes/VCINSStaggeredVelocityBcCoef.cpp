@@ -1,7 +1,7 @@
 // Filename: VCINSStaggeredVelocityBcCoef.cpp
 // Created on 25 Sep 2017 by Nishant Nangia
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2014, Nishant Nangia and Amneet Bhalla
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -292,7 +292,7 @@ VCINSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
 #endif
     if (!d_fluid_solver->muIsConstant())
     {
-        mu_idx = d_fluid_solver->getInterpolatedMuPatchDataIndex();
+        mu_idx = d_fluid_solver->getInterpolatedLinearOperatorMuPatchDataIndex();
 
 #if !defined(NDEBUG)
         TBOX_ASSERT(mu_idx >= 0);

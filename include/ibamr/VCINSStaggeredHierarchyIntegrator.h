@@ -1,7 +1,7 @@
 // Filename: VCINSStaggeredHierarchyIntegrator.h
-// Created on 25 Sep 2017 by Nishant Nangia
+// Created on 25 Sep 2017 by Nishant Nangia and Amneet Bhalla
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2018, Nishant Nangia and Amneet Bhalla
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -97,23 +97,16 @@ class RobinBcCoefStrategy;
 namespace IBAMR
 {
 /*!
- * \brief Class VCINSStaggeredHierarchyIntegrator provides a staggered-grid solver
- * for the incompressible Navier-Stokes equations on an AMR grid hierarchy, with variable
- * coefficients.
- *
- * This class always uses a non-conservative discretization of the form of the momentum equation
- * \f$\rho(\frac{\partial u}{\partial t} + N(u)) = -\nabla p + \nabla \cdot \mu (\nabla u) + (\nabla u)^T )\f$
- * where \f$ N(u) = u \cdot \nabla u \f$ for convective_difference_form = ADVECTIVE and
- * \f$ N(u) = \nabla \cdot (u u) \f$ for convective_difference_form = CONSERVATIVE.
- *
- * In other words, this class will NEVER treat the left-hand side of the momentum equation in conservative form
- * i.e. \frac{\partial \rho u}{\partial t} + \nabla \cdot (\rho u u)
+ * \brief Class VCINSStaggeredHierarchyIntegrator provides an abstract interface for time 
+ * integrator for a staggered-grid, incompressible Navier-Stokes solver on an AMR grid hierarchy
+ * with variable coefficients.
  *
  * An optional re-scaling factor c can be specified to minimize the loss of floating point precision for poorly
  * scaling linear systems. The scaling acts on the momentum part of the saddle-point system, yielding
  * \f$c A + G(c x_p) = c b_u\f$
  * in which the viscous block, the pressure degrees of freedom, and the velocity RHS have been scaled.
  */
+
 class VCINSStaggeredHierarchyIntegrator : public INSHierarchyIntegrator
 {
 public:
@@ -177,19 +170,21 @@ public:
     void setStokesSolverNeedsInit();
 
     /*!
-     * Initialize the variables, basic communications algorithms, solvers, and
-     * other data structures used by this time integrator object.
+     * Virtual method to initialize the variables, basic communications
+     * algorithms, solvers, and other data structures used by a concrete time
+     * integrator object.
      *
      * This method is called automatically by initializePatchHierarchy() prior
      * to the construction of the patch hierarchy.  It is also possible for
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    virtual void
+    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
-     * Initialize the AMR patch hierarchy and data defined on the hierarchy at
+     * Virtual method to initialize the AMR patch hierarchy and data defined on the hierarchy at
      * the start of a computation.  If the computation is begun from a restart
      * file, the patch hierarchy and patch data are read from the hierarchy
      * database.  Otherwise, the patch hierarchy and patch data are initialized
@@ -201,52 +196,26 @@ public:
      * such that it is possible to step through time via the advanceHierarchy()
      * function.
      */
-    void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    virtual void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                          SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
-     * Prepare to advance the data from current_time to new_time.
+     * Virtual method to prepare to advance the data from current_time to new_time.
      */
-    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    virtual void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
 
     /*!
-     * Synchronously advance each level in the hierarchy over the given time
-     * increment.
+     * Virtual method to clean up data following call(s) to integrateHierarchy().
      */
-    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0);
+    virtual void postprocessIntegrateHierarchy(double current_time,
+                                               double new_time,
+                                               bool skip_synchronize_new_state_data,
+                                               int num_cycles = 1);
 
     /*!
-     * Clean up data following call(s) to integrateHierarchy().
+     * Virtual method to regrid the patch hierarchy.
      */
-    void postprocessIntegrateHierarchy(double current_time,
-                                       double new_time,
-                                       bool skip_synchronize_new_state_data,
-                                       int num_cycles = 1);
-
-    /*!
-     * Regrid the patch hierarchy.
-     */
-    void regridHierarchy();
-
-    /*!
-     * Setup solution and RHS vectors using state data maintained by the
-     * integrator.
-     */
-    void setupSolverVectors(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec,
-                            const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& rhs_vec,
-                            double current_time,
-                            double new_time,
-                            int cycle_num);
-
-    /*!
-     * Copy the solution data into the state data maintained by
-     * the integrator.
-     */
-    void resetSolverVectors(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec,
-                            const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& rhs_vec,
-                            double current_time,
-                            double new_time,
-                            int cycle_num);
+    virtual void regridHierarchy();
 
     /*!
      * Explicitly remove nullspace components from a solution vector.
@@ -268,9 +237,11 @@ public:
      * maintained by this integrator.
      */
     typedef void (*ResetFluidPropertiesFcnPtr)(int property_idx,
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > property_var,
                                                SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                int cycle_num,
                                                double time,
+                                               double current_time,
                                                double new_time,
                                                void* ctx);
 
@@ -295,18 +266,28 @@ public:
     void registerViscosityInitialConditions(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> mu_init_fcn);
 
     /*
-     * \brief Supply boundary conditions for the density field, if maintained by the fluid integrator.
-     *
-     * \note The boundary conditions set here will be overwritten if density if being advected.
+     * \brief Pure virtual method to supply boundary conditions for the density field, if maintained by the fluid
+     * integrator.
      */
-    void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* rho_bc_coef);
+    virtual void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* rho_bc_coef) = 0;
 
     /*
      * \brief Supply boundary conditions for the density field, if maintained by the fluid integrator.
      *
      * \note The boundary conditions set here will be overwritten if viscosity if being advected.
      */
-    void registerViscosityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* mu_bc_coef);
+     void registerViscosityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* mu_bc_coef);
+
+    /*!
+     * \brief Get the side-centered density patch data index, which will always be the newest one used in the linear operator
+     * i.e. rho_sc in rho_sc*u^{n+1} term.
+     *
+     * \note These patch data will not be deallocated at the end of the time step, so they can be used for various applications
+     */
+    inline int getLinearOperatorRhoPatchDataIndex() const
+    {
+        return d_rho_linear_op_idx;
+    }
 
     /*!
      * \brief Get whether or not density is constant
@@ -325,27 +306,23 @@ public:
     }
 
     /*!
-     * \brief Get cell centered viscosity patch data index
+     * \brief Get the cell-centered viscosity patch data index, which will always be the newest one used in the linear operator.
+     *
+     * \note These patch data will not be deallocated at the end of the time step, so they can be used for various applications
      */
-    inline int getMuPatchDataIndex() const
+    inline int getLinearOperatorMuPatchDataIndex() const
     {
-        return d_mu_scratch_idx;
+        return d_mu_linear_op_idx;
     }
 
     /*!
-     * \brief Get interpolated node (2D) or edge (3D) centered viscosity patch data index
+     * \brief Get the interpolated viscosity patch data index, which will always be the newest one used in the linear operator.
+     *
+     * \note These patch data will not be deallocated at the end of the time step, so they can be used for various applications
      */
-    inline int getInterpolatedMuPatchDataIndex() const
+    inline int getInterpolatedLinearOperatorMuPatchDataIndex() const
     {
-        return d_mu_interp_idx;
-    }
-
-    /*!
-     * \brief Get the interpolated side centered density patch data index
-     */
-    inline int getInterpolatedRhoPatchDataIndex() const
-    {
-        return d_rho_interp_idx;
+        return d_mu_interp_linear_op_idx;
     }
 
     /*!
@@ -354,14 +331,6 @@ public:
     inline double getPressureScalingFactor() const
     {
         return d_A_scale;
-    }
-
-    /*!
-     * \brief Get the density boundary conditions
-     */
-    inline SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getMassDensityBoundaryConditions() const
-    {
-        return d_rho_bc_coef;
     }
 
     /*!
@@ -379,95 +348,54 @@ protected:
     double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     /*!
-     * Initialize data on a new level after it is inserted into an AMR patch
+     * Virtual method to initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.
      */
-    void initializeLevelDataSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                        int level_number,
-                                        double init_data_time,
-                                        bool can_be_refined,
-                                        bool initial_time,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-                                        bool allocate_data);
+    virtual void
+    initializeLevelDataSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                   int level_number,
+                                   double init_data_time,
+                                   bool can_be_refined,
+                                   bool initial_time,
+                                   SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+                                   bool allocate_data);
 
     /*!
-     * Reset cached hierarchy dependent data.
+     * Virtual method to reset cached hierarchy dependent data.
      */
-    void
+    virtual void
     resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                            int coarsest_level,
                                            int finest_level);
 
     /*!
-     * Set integer tags to "one" in cells where refinement of the given level
+     * Virtual method to set integer tags to "one" in cells where refinement of the given level
      * should occur according to the magnitude of the fluid vorticity.
      */
-    void applyGradientDetectorSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                          int level_number,
-                                          double error_data_time,
-                                          int tag_index,
-                                          bool initial_time,
-                                          bool uses_richardson_extrapolation_too);
+    virtual void
+    applyGradientDetectorSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                     int level_number,
+                                     double error_data_time,
+                                     int tag_index,
+                                     bool initial_time,
+                                     bool uses_richardson_extrapolation_too);
 
     /*!
-     * Prepare variables for plotting.
+     * Virtual method to prepare variables for plotting.
      */
-    void setupPlotDataSpecialized();
-
-private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    VCINSStaggeredHierarchyIntegrator();
+    virtual void setupPlotDataSpecialized();
 
     /*!
-     * \brief Copy constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     *
-     * \param from The value to copy to this object.
+     * Virtual method to project the velocity field following a regridding operation.
      */
-    VCINSStaggeredHierarchyIntegrator(const VCINSStaggeredHierarchyIntegrator& from);
+    virtual void regridProjection();
 
     /*!
-     * \brief Assignment operator.
-     *
-     * \note This operator is not implemented and should not be used.
-     *
-     * \param that The value to assign to this object.
-     *
-     * \return A reference to this object.
+     * Copy data from a side-centered variable to a face-centered variable.
      */
-    VCINSStaggeredHierarchyIntegrator& operator=(const VCINSStaggeredHierarchyIntegrator& that);
-
-    /*!
-     * Compute the appropriate source term that must be added to the momentum
-     * equation when the fluid contains internal sources and sinks.
-     */
-    void computeDivSourceTerm(int F_idx, int Q_idx, int U_idx);
-
-    /*!
-     * Project the velocity field following a regridding operation.
-     */
-    void regridProjection();
-
-    /*!
-     * Determine the convective time stepping type for the current time step and
-     * cycle number.
-     */
-    TimeSteppingType getConvectiveTimeSteppingType(int cycle_num);
-
-    /*!
-     * Preprocess the operators and solvers used by the hierarchy integrator.
-     */
-    void preprocessOperatorsAndSolvers(double current_time, double new_time);
-
-    /*!
-     * Update the operators and solvers to account for changes due to time-dependent coefficients
-     */
-    void updateOperatorsAndSolvers(double current_time, double new_time);
+    void copySideToFace(const int U_fc_idx,
+                        const int U_sc_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
      * Hierarchy operations objects.
@@ -528,7 +456,6 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_EE_var;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_mu_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_pressure_D_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_pressure_rhs_D_var;
@@ -548,7 +475,6 @@ private:
     /*!
      * Interpolated material property variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_interp_var;
 #if (NDIM == 2)
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_mu_interp_var;
 #elif (NDIM == 3)
@@ -580,7 +506,6 @@ private:
     int d_F_current_idx, d_F_new_idx, d_F_scratch_idx;
     int d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx;
     int d_N_old_current_idx, d_N_old_new_idx, d_N_old_scratch_idx;
-    int d_rho_current_idx, d_rho_new_idx, d_rho_scratch_idx;
     int d_mu_current_idx, d_mu_new_idx, d_mu_scratch_idx;
 
     /*
@@ -600,8 +525,13 @@ private:
     int d_Omega_Norm_idx, d_U_regrid_idx, d_U_src_idx, d_indicator_idx, d_F_div_idx;
     int d_velocity_C_idx, d_velocity_D_idx, d_velocity_D_cc_idx, d_pressure_D_idx;
     int d_velocity_rhs_C_idx, d_velocity_rhs_D_idx, d_pressure_rhs_D_idx;
-    int d_rho_interp_idx, d_mu_interp_idx;
+    int d_mu_interp_idx;
     int d_N_full_idx;
+
+    /*
+     * Persistent patch data indices for the density and viscosity used in the linear operators
+     */
+    int d_mu_linear_op_idx, d_mu_interp_linear_op_idx, d_rho_linear_op_idx;
 
     /*
      * Variables to indicate if either rho or mu is constant.
@@ -629,12 +559,44 @@ private:
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_init_fcn, d_mu_init_fcn;
 
     /*
-     * Boundary condition objects for density and viscosity, which are provided by an appropriate advection-diffusion
+     * Boundary condition objects for viscosity, which is provided by an appropriate advection-diffusion
      * integrator
      * or set by the fluid integrator.
      */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_mu_bc_coef;
+
+private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    VCINSStaggeredHierarchyIntegrator();
+
+    /*!
+     * \brief Copy constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     *
+     * \param from The value to copy to this object.
+     */
+    VCINSStaggeredHierarchyIntegrator(const VCINSStaggeredHierarchyIntegrator& from);
+
+    /*!
+     * \brief Assignment operator.
+     *
+     * \note This operator is not implemented and should not be used.
+     *
+     * \param that The value to assign to this object.
+     *
+     * \return A reference to this object.
+     */
+    VCINSStaggeredHierarchyIntegrator& operator=(const VCINSStaggeredHierarchyIntegrator& that);
+
+    /*!
+     * Preprocess the operators and solvers used by the hierarchy integrator.
+     */
+    void preprocessOperatorsAndSolvers(double current_time, double new_time);
 };
 } // namespace IBAMR
 

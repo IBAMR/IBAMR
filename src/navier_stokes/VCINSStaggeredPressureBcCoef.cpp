@@ -1,7 +1,7 @@
 // Filename: VCINSStaggeredPressureBcCoef.cpp
 // Created on 25 Sep 2017 by Nishant Nangia
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2014, Nishant Nangia and Amneet Bhalla
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -81,7 +81,7 @@ VCINSStaggeredPressureBcCoef::VCINSStaggeredPressureBcCoef(const VCINSStaggeredH
     setTractionBcType(traction_bc_type);
     setHomogeneousBc(homogeneous_bc);
 
-    // Set a default interpolation type.
+    // Set some default values.
     d_mu_interp_type = VC_HARMONIC_INTERP;
     return;
 } // VCINSStaggeredPressureBcCoef
@@ -279,7 +279,7 @@ VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     Pointer<CellData<NDIM, double> > mu_data;
     if (!d_fluid_solver->muIsConstant())
     {
-        mu_idx = d_fluid_solver->getMuPatchDataIndex();
+        mu_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 #if !defined(NDEBUG)
         TBOX_ASSERT(mu_idx >= 0);
 #endif

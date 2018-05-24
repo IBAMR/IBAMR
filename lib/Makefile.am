@@ -75,6 +75,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/IBMethodPostProcessStrategy.cpp \
 ../src/IB/IBRodForceSpec.cpp \
 ../src/IB/IBRodForceSpecFactory.cpp \
+../src/IB/IBHydrodynamicSurfaceForceEvaluator.cpp \
 ../src/IB/IBSourceSpec.cpp \
 ../src/IB/IBSourceSpecFactory.cpp \
 ../src/IB/IBSpringForceSpec.cpp \
@@ -95,6 +96,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/Wall.cpp \
 ../src/IB/WallForceEvaluator.cpp \
 ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
+../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
 ../src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp \
 ../src/adv_diff/AdvDiffPredictorCorrectorHyperbolicPatchOps.cpp \
@@ -145,7 +147,10 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/StaggeredStokesSolverManager.cpp \
 ../src/navier_stokes/StokesBcCoefStrategy.cpp \
 ../src/navier_stokes/SurfaceTensionForceFunction.cpp \
+../src/navier_stokes/VCINSStaggeredConservativeConvectiveOperator.cpp \
+../src/navier_stokes/VCINSStaggeredConservativeHierarchyIntegrator.cpp \
 ../src/navier_stokes/VCINSStaggeredHierarchyIntegrator.cpp \
+../src/navier_stokes/VCINSStaggeredNonConservativeHierarchyIntegrator.cpp \
 ../src/navier_stokes/VCINSStaggeredPressureBcCoef.cpp \
 ../src/navier_stokes/VCINSStaggeredVelocityBcCoef.cpp \
 ../src/navier_stokes/VCStaggeredStokesOperator.cpp \
@@ -166,6 +171,7 @@ endif
 
 pkg_include_HEADERS += \
 ../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
+../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 ../include/ibamr/AdvDiffConvectiveOperatorManager.h \
 ../include/ibamr/AdvDiffHierarchyIntegrator.h \
 ../include/ibamr/AdvDiffPPMConvectiveOperator.h \
@@ -204,6 +210,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/IBMethod.h \
 ../include/ibamr/IBMethodPostProcessStrategy.h \
 ../include/ibamr/IBRodForceSpec.h \
+../include/ibamr/IBHydrodynamicSurfaceForceEvaluator.h \
 ../include/ibamr/IBSourceSpec.h \
 ../include/ibamr/IBSpringForceFunctions.h \
 ../include/ibamr/IBSpringForceSpec.h \
@@ -259,7 +266,10 @@ pkg_include_HEADERS += \
 ../include/ibamr/StokesBcCoefStrategy.h \
 ../include/ibamr/StokesSpecifications.h \
 ../include/ibamr/SurfaceTensionForceFunction.h \
+../include/ibamr/VCINSStaggeredConservativeConvectiveOperator.h \
+../include/ibamr/VCINSStaggeredConservativeHierarchyIntegrator.h \
 ../include/ibamr/VCINSStaggeredHierarchyIntegrator.h \
+../include/ibamr/VCINSStaggeredNonConservativeHierarchyIntegrator.h \
 ../include/ibamr/VCINSStaggeredPressureBcCoef.h \
 ../include/ibamr/VCINSStaggeredVelocityBcCoef.h \
 ../include/ibamr/VCStaggeredStokesOperator.h \

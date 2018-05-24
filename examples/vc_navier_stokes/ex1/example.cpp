@@ -42,8 +42,8 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <ibamr/VCINSStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/VCINSStaggeredHierarchyIntegrator.h>
-#include <ibamr/VCINSStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -87,8 +87,10 @@ run_example(int argc, char* argv[])
     // resize u_err and p_err vectors to hold error data
     std::vector<double> u_err;
     std::vector<double> p_err;
+    std::vector<double> r_err;
     u_err.resize(3);
     p_err.resize(3);
+    r_err.resize(3);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -117,18 +119,18 @@ run_example(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<VCINSStaggeredHierarchyIntegrator> time_integrator;
-        const string discretization_form = 
-            app_initializer->getComponentDatabase("Main")->getStringWithDefault("discretization_form", "NON_CONSERVATIVE");
-        if (discretization_form == "NON_CONSERVATIVE")
+        Pointer<VCINSStaggeredConservativeHierarchyIntegrator> time_integrator;
+        const string discretization_form =
+            app_initializer->getComponentDatabase("Main")->getStringWithDefault("discretization_form", "CONSERVATIVE");
+        if (discretization_form == "CONSERVATIVE")
         {
-            time_integrator = new VCINSStaggeredNonConservativeHierarchyIntegrator(
-                "VCINSStaggeredNonConservativeHierarchyIntegrator",
-                app_initializer->getComponentDatabase("VCINSStaggeredNonConservativeHierarchyIntegrator"));
+            time_integrator = new VCINSStaggeredConservativeHierarchyIntegrator(
+                "VCINSStaggeredConservativeHierarchyIntegrator",
+                app_initializer->getComponentDatabase("VCINSStaggeredConservativeHierarchyIntegrator"));
         }
         else
         {
-            TBOX_ERROR("Unknown VCINSStaggeredHierarchyIntegrator type");
+            TBOX_ERROR("NON_CONSERVATIVE discretization form not supported for this example");
         }
 
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
@@ -185,7 +187,7 @@ run_example(int argc, char* argv[])
         }
 
         // Create a density and viscosity field for testing purposes
-        Pointer<CellVariable<NDIM, double> > rho_var = new CellVariable<NDIM, double>("rho_var");
+        Pointer<SideVariable<NDIM, double> > rho_var = new SideVariable<NDIM, double>("rho_var");
         Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu_var");
         time_integrator->registerMassDensityVariable(rho_var);
         time_integrator->registerViscosityVariable(mu_var);
@@ -199,9 +201,62 @@ run_example(int argc, char* argv[])
         time_integrator->registerViscosityInitialConditions(mu_fcn);
         time_integrator->registerMassDensityInitialConditions(rho_fcn);
 
+        // Set the boundary conditions for density and viscosity
+        RobinBcCoefStrategy<NDIM>* rho_bc_coef;
+        if (periodic_shift.min() > 0)
+        {
+            rho_bc_coef = NULL;
+        }
+        else
+        {
+            ostringstream bc_coefs_name_stream;
+            bc_coefs_name_stream << "rho_bc_coef";
+            const string bc_coef_name = bc_coefs_name_stream.str();
+
+            ostringstream bc_coef_db_name_stream;
+            bc_coef_db_name_stream << "DensityBcCoef";
+            const string bc_coef_db_name = bc_coef_db_name_stream.str();
+
+            if (input_db->keyExists(bc_coef_db_name))
+            {
+                rho_bc_coef = new muParserRobinBcCoefs(
+                    bc_coef_name, app_initializer->getComponentDatabase(bc_coef_db_name), grid_geometry);
+                time_integrator->registerMassDensityBoundaryConditions(rho_bc_coef);
+            }
+        }
+
+        RobinBcCoefStrategy<NDIM>* mu_bc_coef;
+        if (periodic_shift.min() > 0)
+        {
+            mu_bc_coef = NULL;
+        }
+        else
+        {
+            ostringstream bc_coefs_name_stream;
+            bc_coefs_name_stream << "mu_bc_coef";
+            const string bc_coef_name = bc_coefs_name_stream.str();
+
+            ostringstream bc_coef_db_name_stream;
+            bc_coef_db_name_stream << "ViscosityBcCoef";
+            const string bc_coef_db_name = bc_coef_db_name_stream.str();
+
+            if (input_db->keyExists(bc_coef_db_name))
+            {
+                mu_bc_coef = new muParserRobinBcCoefs(
+                    bc_coef_name, app_initializer->getComponentDatabase(bc_coef_db_name), grid_geometry);
+                time_integrator->registerViscosityBoundaryConditions(mu_bc_coef);
+            }
+        }
+
         // Reset fluid properties if they are time-dependent.
-        time_integrator->registerResetFluidDensityFcn(&callSetFluidDensityCallbackFunction,
-                                                      static_cast<void*>(ptr_SetFluidProperties));
+        // Note that for density, one can have the fluid solver evolve density from an initial condition if reset_rho is
+        // false
+        const bool reset_rho = app_initializer->getComponentDatabase("Main")->getBoolWithDefault("reset_rho", true);
+        if (reset_rho)
+        {
+            time_integrator->registerResetFluidDensityFcn(&callSetFluidDensityCallbackFunction,
+                                                          static_cast<void*>(ptr_SetFluidProperties));
+        }
         time_integrator->registerResetFluidViscosityFcn(&callSetFluidViscosityCallbackFunction,
                                                         static_cast<void*>(ptr_SetFluidProperties));
 
@@ -211,6 +266,14 @@ run_example(int argc, char* argv[])
             Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
+        }
+
+        // Create mass density source function object for this manufactured solution
+        if (input_db->keyExists("DensitySourceFunction"))
+        {
+            Pointer<CartGridFunction> rho_src = new muParserCartGridFunction(
+                "rho_src", app_initializer->getComponentDatabase("DensitySourceFunction"), grid_geometry);
+            time_integrator->registerMassDensitySourceTerm(rho_src);
         }
 
         // Set up visualization plot file writers.
@@ -309,16 +372,24 @@ run_example(int argc, char* argv[])
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
         const int p_cloned_idx = var_db->registerClonedPatchDataIndex(p_var, p_idx);
 
+        const Pointer<Variable<NDIM> > r_var = time_integrator->getMassDensityVariable();
+        const Pointer<VariableContext> r_ctx = time_integrator->getCurrentContext();
+
+        const int r_idx = var_db->mapVariableAndContextToIndex(r_var, r_ctx);
+        const int r_cloned_idx = var_db->registerClonedPatchDataIndex(r_var, r_idx);
+
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(u_cloned_idx, loop_time);
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(p_cloned_idx, loop_time);
+            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(r_cloned_idx, loop_time);
         }
 
         u_init->setDataOnPatchHierarchy(u_cloned_idx, u_var, patch_hierarchy, loop_time);
         p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time - 0.5 * dt);
+        rho_fcn->setDataOnPatchHierarchy(r_cloned_idx, r_var, patch_hierarchy, loop_time);
 
         HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
         hier_math_ops.setPatchHierarchy(patch_hierarchy);
@@ -362,12 +433,27 @@ run_example(int argc, char* argv[])
         pout << "Error in p at time " << loop_time - 0.5 * dt << ":\n"
              << "  L1-norm:  " << hier_cc_data_ops.L1Norm(p_idx, wgt_cc_idx) << "\n"
              << "  L2-norm:  " << hier_cc_data_ops.L2Norm(p_idx, wgt_cc_idx) << "\n"
-             << "  max-norm: " << hier_cc_data_ops.maxNorm(p_idx, wgt_cc_idx) << "\n"
-             << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+             << "  max-norm: " << hier_cc_data_ops.maxNorm(p_idx, wgt_cc_idx) << "\n";
 
         p_err[0] = hier_cc_data_ops.L1Norm(p_idx, wgt_cc_idx);
         p_err[1] = hier_cc_data_ops.L2Norm(p_idx, wgt_cc_idx);
         p_err[2] = hier_cc_data_ops.maxNorm(p_idx, wgt_cc_idx);
+
+        Pointer<SideVariable<NDIM, double> > r_sc_var = r_var;
+        if (r_sc_var)
+        {
+            HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            hier_sc_data_ops.subtract(r_idx, r_idx, r_cloned_idx);
+            pout << "Error in rho_sc at time " << loop_time << ":\n"
+                 << "  L1-norm:  " << std::setprecision(10) << hier_sc_data_ops.L1Norm(r_idx, wgt_sc_idx) << "\n"
+                 << "  L2-norm:  " << hier_sc_data_ops.L2Norm(r_idx, wgt_sc_idx) << "\n"
+                 << "  max-norm: " << hier_sc_data_ops.maxNorm(r_idx, wgt_sc_idx) << "\n"
+                 << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+
+            r_err[0] = hier_sc_data_ops.L1Norm(r_idx, wgt_sc_idx);
+            r_err[1] = hier_sc_data_ops.L2Norm(r_idx, wgt_sc_idx);
+            r_err[2] = hier_sc_data_ops.maxNorm(r_idx, wgt_sc_idx);
+        }
 
         if (dump_viz_data && uses_visit)
         {

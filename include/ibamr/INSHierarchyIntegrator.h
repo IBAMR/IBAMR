@@ -254,6 +254,11 @@ public:
     void registerMassDensityVariable(SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var);
 
     /*!
+     * Get the mass density variable registered with the hierarchy integrator.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getMassDensityVariable() const;
+
+    /*!
      * Supply an IBTK:CartGridFunction object to specify the value of the mass
      * density variable.
      */
@@ -269,6 +274,11 @@ public:
      * Register a variable viscosity variable with the hierarchy integrator.
      */
     void registerViscosityVariable(SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var);
+
+    /*!
+     * Get the viscosity variable registered with the hierarchy integrator.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getViscosityVariable() const;
 
     /*!
      * Supply an IBTK:CartGridFunction object to specify the value of the

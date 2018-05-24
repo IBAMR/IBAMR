@@ -112,6 +112,10 @@ enum LimiterType
     FOURTH_ORDER = 7,
     PPM = 8,
     XSPPM7 = 9,
+    UPWIND = 10,
+    CUI = 11,
+    FBICS = 12,
+    MGAMMA = 13,
     UNKNOWN_LIMITER_TYPE = -1
 };
 
@@ -132,6 +136,10 @@ string_to_enum<LimiterType>(const std::string& val)
     if (strcasecmp(val.c_str(), "FOURTH_ORDER") == 0) return FOURTH_ORDER;
     if (strcasecmp(val.c_str(), "PPM") == 0) return PPM;
     if (strcasecmp(val.c_str(), "XSPPM7") == 0) return XSPPM7;
+    if (strcasecmp(val.c_str(), "UPWIND") == 0) return UPWIND;
+    if (strcasecmp(val.c_str(), "CUI") == 0) return CUI;
+    if (strcasecmp(val.c_str(), "FBICS") == 0) return FBICS;
+    if (strcasecmp(val.c_str(), "MGAMMA") == 0) return MGAMMA;
     return UNKNOWN_LIMITER_TYPE;
 } // string_to_enum
 
@@ -148,6 +156,10 @@ enum_to_string<LimiterType>(LimiterType val)
     if (val == FOURTH_ORDER) return "FOURTH_ORDER";
     if (val == PPM) return "PPM";
     if (val == XSPPM7) return "XSPPM7";
+    if (val == UPWIND) return "UPWIND";
+    if (val == CUI) return "CUI";
+    if (val == FBICS) return "FBICS";
+    if (val == MGAMMA) return "MGAMMA";
     return "UNKNOWN_LIMITER_TYPE";
 } // enum_to_string
 
@@ -226,6 +238,8 @@ enum TimeSteppingType
     FORWARD_EULER,
     MIDPOINT_RULE,
     TRAPEZOIDAL_RULE,
+    SSPRK2,
+    SSPRK3,
     UNKNOWN_TIME_STEPPING_TYPE = -1
 };
 
@@ -239,6 +253,9 @@ string_to_enum<TimeSteppingType>(const std::string& val)
     if (strcasecmp(val.c_str(), "MIDPOINT_RULE") == 0) return MIDPOINT_RULE;
     if (strcasecmp(val.c_str(), "TRAPEZOIDAL_RULE") == 0) return TRAPEZOIDAL_RULE;
     if (strcasecmp(val.c_str(), "CRANK_NICOLSON") == 0) return TRAPEZOIDAL_RULE;
+    if (strcasecmp(val.c_str(), "SSPRK1") == 0) return FORWARD_EULER;
+    if (strcasecmp(val.c_str(), "SSPRK2") == 0) return SSPRK2;
+    if (strcasecmp(val.c_str(), "SSPRK3") == 0) return SSPRK3;
     return UNKNOWN_TIME_STEPPING_TYPE;
 } // string_to_enum
 
@@ -251,6 +268,8 @@ enum_to_string<TimeSteppingType>(TimeSteppingType val)
     if (val == FORWARD_EULER) return "FORWARD_EULER";
     if (val == MIDPOINT_RULE) return "MIDPOINT_RULE";
     if (val == TRAPEZOIDAL_RULE) return "TRAPEZOIDAL_RULE";
+    if (val == SSPRK2) return "SSPRK2";
+    if (val == SSPRK3) return "SSPRK3";
     return "UNKNOWN_TIME_STEPPING_TYPE";
 } // enum_to_string
 
