@@ -372,7 +372,11 @@ public:
     /*!
      * Use tether forces to constrain the motion of a pair of parts.
      */
-    void constrainPartOverlap(unsigned int part1, unsigned int part2, double kappa);
+    void constrainPartOverlap(unsigned int part1,
+                              unsigned int part2,
+                              double kappa,
+                              libMesh::QBase* qrule1 = NULL,
+                              libMesh::QBase* qrule2 = NULL);
 
     /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian
@@ -720,9 +724,12 @@ protected:
      */
     bool d_has_overlapping_parts;
     std::vector<bool> d_is_overlapping_part;
-    std::vector<boost::array<unsigned int,2> > d_overlapping_part_idxs;
-    std::vector<boost::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2> > d_overlapping_elem_map;
+    std::vector<boost::array<unsigned int, 2> > d_overlapping_part_idxs;
+    std::vector<boost::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2> >
+        d_overlapping_elem_map;
     std::vector<double> d_overlapping_part_kappa;
+    std::vector<boost::array<libMesh::QBase*, 2> > d_overlapping_part_qrule; // \todo let's try to fix this when we
+                                                                             // switch to C++11!
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.

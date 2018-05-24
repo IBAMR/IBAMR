@@ -464,7 +464,11 @@ IBFEMethod::registerLagBodySourceFunction(const LagBodySourceFcnData& data, cons
 } // registerLagBodySourceFunction
 
 void
-IBFEMethod::constrainPartOverlap(const unsigned int part1, const unsigned int part2, const double kappa)
+IBFEMethod::constrainPartOverlap(const unsigned int part1,
+                                 const unsigned int part2,
+                                 const double kappa,
+                                 QBase* qrule1,
+                                 QBase* qrule2)
 {
     TBOX_ASSERT(part1 < d_num_parts);
     TBOX_ASSERT(part2 < d_num_parts);
@@ -492,10 +496,13 @@ IBFEMethod::constrainPartOverlap(const unsigned int part1, const unsigned int pa
     boost::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2>& elem_map =
         d_overlapping_elem_map.back();
     d_overlapping_part_kappa.push_back(kappa);
+    d_overlapping_part_qrule.resize(n_pairs);
+    boost::array<QBase*, 2>& qrule = d_overlapping_part_qrule.back();
+    qrule[0] = qrule1;
+    qrule[1] = qrule2;
 
     boost::array<EquationSystems*, 2> es;
     boost::array<MeshBase*, 2> mesh;
-    boost::array<UniquePtr<QBase>, 2> qrule;
     boost::array<UniquePtr<FEBase>, 2> fe;
     boost::array<UniquePtr<PointLocatorBase>, 2> ploc;
     for (int k = 0; k < 2; ++k)
@@ -512,8 +519,11 @@ IBFEMethod::constrainPartOverlap(const unsigned int part1, const unsigned int pa
             TBOX_ASSERT(fe_type == X_dof_map.variable_type(d));
         }
         mesh[k] = &es[k]->get_mesh();
-        qrule[k] = QBase::build(QGAUSS, mesh[k]->mesh_dimension(), THIRD);
+        if (!qrule[k])
+            qrule[k] = QBase::build(QGAUSS, mesh[k]->mesh_dimension(), THIRD).release(); // \todo try to fix this when
+                                                                                         // we update to C++11!
         fe[k] = FEBase::build(mesh[k]->mesh_dimension(), fe_type);
+        fe[k]->attach_quadrature_rule(qrule[k]);
         fe[k]->get_xyz();
         ploc[k] = PointLocatorBase::build(TREE_ELEMENTS, *mesh[k]);
         ploc[k]->enable_out_of_mesh_mode();
@@ -2077,6 +2087,7 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
         boost::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2>& elem_map =
             d_overlapping_elem_map[k];
         const double kappa = d_overlapping_part_kappa[k];
+        boost::array<QBase*, 2>& qrule = d_overlapping_part_qrule[k];
 
         boost::array<EquationSystems*, 2> es;
         boost::array<MeshBase*, 2> mesh;
@@ -2084,7 +2095,6 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
         boost::array<const DofMap*, 2> F_dof_map, X_dof_map;
         boost::array<FEDataManager::SystemDofMapCache*, 2> F_dof_map_cache, X_dof_map_cache;
         FEType fe_type;
-        boost::array<UniquePtr<QBase>, 2> qrule;
         boost::array<UniquePtr<FEBase>, 2> fe;
         for (int k = 0; k < 2; ++k)
         {
@@ -2102,8 +2112,8 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
             F_dof_map_cache[k] = d_fe_data_managers[part_idx[k]]->getDofMapCache(FORCE_SYSTEM_NAME);
             X_dof_map_cache[k] = d_fe_data_managers[part_idx[k]]->getDofMapCache(COORDS_SYSTEM_NAME);
             mesh[k] = &es[k]->get_mesh();
-            qrule[k] = QBase::build(QGAUSS, mesh[k]->mesh_dimension(), THIRD);
             fe[k] = FEBase::build(mesh[k]->mesh_dimension(), fe_type);
+            fe[k]->attach_quadrature_rule(qrule[k]);
             fe[k]->get_xyz();
             fe[k]->get_JxW();
             fe[k]->get_phi();
