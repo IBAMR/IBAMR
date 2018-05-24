@@ -96,7 +96,14 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
-// static functions
+using namespace libMesh;
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+namespace IBAMR
+{
+/////////////////////////////// STATIC ///////////////////////////////////////
+
 namespace
 {
 double
@@ -290,6 +297,8 @@ linear_interp(const Vector& X,
     return U;
 }
 }
+
+/////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const int part)
     : d_num_meters(0),
@@ -913,39 +922,6 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
 }
 
 void
-IBFEInstrumentPanel::outputExodus(const int timestep, const double loop_time)
-{
-    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
-    {
-        std::ostringstream mesh_output;
-        mesh_output << d_plot_directory_name << "/"
-                    << "" << d_meter_mesh_names[ii] << ".ex2";
-        d_exodus_io[ii]->write_timestep(mesh_output.str(), *d_meter_systems[ii], timestep, loop_time);
-    }
-}
-
-void
-IBFEInstrumentPanel::outputNodes()
-{
-    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
-    {
-        std::ofstream stuff_stream;
-        std::ostringstream node_output;
-        node_output << d_plot_directory_name << "/"
-                    << "" << d_meter_mesh_names[ii] << "_nodes.dat";
-        if (SAMRAI_MPI::getRank() == 0)
-        {
-            stuff_stream.open(node_output.str().c_str());
-            for (unsigned int dd = 0; dd < d_nodes[ii].size(); ++dd)
-            {
-                stuff_stream << d_nodes[ii][dd](0) << " " << d_nodes[ii][dd](1) << " " << d_nodes[ii][dd](2) << "\n";
-            }
-            stuff_stream.close();
-        }
-    }
-}
-
-void
 IBFEInstrumentPanel::getFromInput(Pointer<Database> db)
 {
 #if !defined(NDEBUG)
@@ -960,6 +936,22 @@ IBFEInstrumentPanel::getFromInput(Pointer<Database> db)
         d_quad_order = Utility::string_to_enum<Order>(db->getStringWithDefault("meter_mesh_quad_order", "SECOND"));
     return;
 }
+
+void
+IBFEInstrumentPanel::outputMeterMeshes(const int timestep_num, const double data_time)
+{
+    // things to do at initial timestep
+    if (timestep_num == 1) outputNodes();
+    outputExodus(timestep_num, data_time);
+}
+
+int
+IBFEInstrumentPanel::getInstrumentDumpInterval() const
+{
+    return d_instrument_dump_interval;
+}
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
 IBFEInstrumentPanel::updateSystemData(IBAMR::IBFEMethod* ib_method_ops, const int meter_mesh_number)
@@ -1036,14 +1028,6 @@ IBFEInstrumentPanel::updateSystemData(IBAMR::IBFEMethod* ib_method_ops, const in
 }
 
 void
-IBFEInstrumentPanel::outputMeterMeshes(const int timestep_num, const double data_time)
-{
-    // things to do at initial timestep
-    if (timestep_num == 1) outputNodes();
-    outputExodus(timestep_num, data_time);
-}
-
-void
 IBFEInstrumentPanel::outputData(const double data_time)
 {
     if (SAMRAI_MPI::getRank() == 0)
@@ -1060,8 +1044,41 @@ IBFEInstrumentPanel::outputData(const double data_time)
     }
 }
 
-int
-IBFEInstrumentPanel::getInstrumentDumpInterval() const
+void
+IBFEInstrumentPanel::outputExodus(const int timestep, const double loop_time)
 {
-    return d_instrument_dump_interval;
+    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
+    {
+        std::ostringstream mesh_output;
+        mesh_output << d_plot_directory_name << "/"
+                    << "" << d_meter_mesh_names[ii] << ".ex2";
+        d_exodus_io[ii]->write_timestep(mesh_output.str(), *d_meter_systems[ii], timestep, loop_time);
+    }
 }
+
+void
+IBFEInstrumentPanel::outputNodes()
+{
+    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
+    {
+        std::ofstream stuff_stream;
+        std::ostringstream node_output;
+        node_output << d_plot_directory_name << "/"
+                    << "" << d_meter_mesh_names[ii] << "_nodes.dat";
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            stuff_stream.open(node_output.str().c_str());
+            for (unsigned int dd = 0; dd < d_nodes[ii].size(); ++dd)
+            {
+                stuff_stream << d_nodes[ii][dd](0) << " " << d_nodes[ii][dd](1) << " " << d_nodes[ii][dd](2) << "\n";
+            }
+            stuff_stream.close();
+        }
+    }
+}
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+} // namespace IBAMR
+
+//////////////////////////////////////////////////////////////////////////////

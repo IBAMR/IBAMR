@@ -49,6 +49,10 @@
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
+/////////////////////////////// CLASS DEFINITION /////////////////////////////
+
+namespace IBAMR
+{
 /*!
  * \brief Class IBFEInstrumentPanel provides support for meters to measure flow
  * and pressure.
@@ -248,5 +252,8 @@ private:
     typedef std::multimap<SAMRAI::hier::Index<NDIM>, QuadPointStruct, IndexFortranOrder> QuadPointMap;
     std::vector<QuadPointMap> d_quad_point_map;
 };
+} // namespace IBAMR
+
+//////////////////////////////////////////////////////////////////////////////
 
 #endif //#ifndef included_IBAMR_IBFEInstrumentPanel
