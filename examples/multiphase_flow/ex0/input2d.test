@@ -9,7 +9,7 @@ SIGMA = 0.24
 NUM_INTERFACE_CELLS = 5.0
 LA    = 12000
 RHO_O = 1.0
-RHO_I = 1.0
+RHO_I = 10.0
 MU_O  = sqrt(RHO_O*2*R*SIGMA/LA)
 MU_I  = sqrt(RHO_I*2*R*SIGMA/LA)
 
@@ -23,8 +23,11 @@ N = 120                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 // Level set parameters
-LS_REINIT_INTERVAL = 0
+LS_REINIT_INTERVAL = 1
 MAX_ITERATIONS     = 5
+LS_ORDER           = "THIRD_ORDER_ENO"
+USE_SUBCELL_FIX    = TRUE
+LS_ATOL            = 1e-6
 
 VelocityInitialConditions {
    function_0 = "0.0"
@@ -85,10 +88,11 @@ PhiBcCoefs {
 
 // Simulation Parameters
 SOLVER_TYPE          = "STAGGERED"
+DISCRETIZATION_FORM  = "NON_CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
 END_TIME             =   10.0e0    // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
-MAX_INTEGRATOR_STEPS =   1         // max number of simulation timesteps
+MAX_INTEGRATOR_STEPS =   1  // max number of simulation timesteps
 REGRID_INTERVAL      =   1
 CFL_MAX              =   0.3   
 NUM_INS_CYCLES       =   1
@@ -131,7 +135,7 @@ ADV_DIFF_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE" // convective time stepping type
 ADV_DIFF_CONVECTIVE_OP_TYPE = "PPM"             // convective differencing discretization type
 ADV_DIFF_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
 
-VCINSStaggeredHierarchyIntegrator {
+VCINSStaggeredNonConservativeHierarchyIntegrator {
    start_time                 = START_TIME
    end_time                   = END_TIME
    grow_dt                    = GROW_DT
@@ -227,10 +231,10 @@ AdvDiffSemiImplicitHierarchyIntegrator {
 }
 
 RelaxationLSMethod {
-    order              = "THIRD_ORDER"
-    sweep_abs_tol      = 1e-5
+    order              = LS_ORDER
+    use_subcell_fix    = USE_SUBCELL_FIX
+    sweep_abs_tol      = LS_ATOL
     max_iterations     = MAX_ITERATIONS
-    physical_bdry_wall = FALSE
     enable_logging     = TRUE
     reinit_interval    = LS_REINIT_INTERVAL
 }
@@ -245,6 +249,7 @@ SurfaceTensionForceFunction {
 Main {
    solver_type = SOLVER_TYPE
    adv_diff_solver_type = ADV_DIFF_SOLVER_TYPE
+   discretization_form  = DISCRETIZATION_FORM
 
 // log file parameters
    log_file_name               = "INS2d.log"

@@ -50,7 +50,7 @@ callSetFluidViscosityCallbackFunction(int mu_idx,
 
 SetFluidProperties::SetFluidProperties(const std::string& object_name,
                                        Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                       const std::string& ls_name,
+                                       Pointer<CellVariable<NDIM, double> > ls_var,
                                        const double rho_outside,
                                        const double rho_inside,
                                        const double mu_outside,
@@ -59,7 +59,7 @@ SetFluidProperties::SetFluidProperties(const std::string& object_name,
                                        const double num_interface_cells)
     : d_object_name(object_name),
       d_adv_diff_solver(adv_diff_solver),
-      d_ls_name(ls_name),
+      d_ls_var(ls_var),
       d_rho_outside(rho_outside),
       d_rho_inside(rho_inside),
       d_mu_outside(mu_outside),
@@ -86,10 +86,11 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
                                         const bool initial_time,
                                         const bool /*regrid_time*/)
 {
+    pout << "Resetting density data" << std::endl;
+
     // Get the current level set information
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<CellVariable<NDIM, double> > ls_var = d_adv_diff_solver->getLevelSetVariable(d_ls_name);
-    const int ls_current_idx = var_db->mapVariableAndContextToIndex(ls_var, d_adv_diff_solver->getCurrentContext());
+    const int ls_current_idx = var_db->mapVariableAndContextToIndex(d_ls_var, d_adv_diff_solver->getCurrentContext());
 
     // Set the density based on the level set
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
@@ -135,7 +136,6 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
             }
         }
     }
-
     return;
 } // setDensityPatchData
 
@@ -147,10 +147,11 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
                                           const bool initial_time,
                                           const bool /*regrid_time*/)
 {
+    pout << "Resetting viscosity data" << std::endl;
+
     // Get the current level set information
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<CellVariable<NDIM, double> > ls_var = d_adv_diff_solver->getLevelSetVariable(d_ls_name);
-    const int ls_current_idx = var_db->mapVariableAndContextToIndex(ls_var, d_adv_diff_solver->getCurrentContext());
+    const int ls_current_idx = var_db->mapVariableAndContextToIndex(d_ls_var, d_adv_diff_solver->getCurrentContext());
 
     // Set the density based on the level set
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
@@ -196,7 +197,6 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
             }
         }
     }
-
     return;
 } // setViscosityPatchData
 

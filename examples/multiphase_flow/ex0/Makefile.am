@@ -2,8 +2,8 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-EXAMPLE_DRIVER = ex_main.cpp SetFluidProperties.cpp SetFluidProperties.h LSLocateCircularInterface.cpp LSLocateCircularInterface.h
-GTEST_DRIVER   = test_main.cpp SetFluidProperties.cpp SetFluidProperties.h LSLocateCircularInterface.cpp LSLocateCircularInterface.h
+EXAMPLE_DRIVER = ex_main.cpp SetFluidProperties.cpp SetFluidProperties.h LSLocateCircularInterface.cpp LSLocateCircularInterface.h SetLSProperties.cpp SetLSProperties.h
+GTEST_DRIVER   = test_main.cpp SetFluidProperties.cpp SetFluidProperties.h LSLocateCircularInterface.cpp LSLocateCircularInterface.h SetLSProperties.cpp SetLSProperties.h
 EXTRA_DIST     = input2d input2d.test
 EXTRA_DIST    += input3d input3d.test 
 

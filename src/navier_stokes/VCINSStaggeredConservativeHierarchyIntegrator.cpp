@@ -361,10 +361,10 @@ VCINSStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         int mu_current_idx;
-        if (d_adv_diff_hier_integrator && d_adv_diff_hier_integrator->getFluidViscosityVariable())
+        if (d_adv_diff_hier_integrator && d_mu_adv_diff_var)
         {
             mu_current_idx =
-                var_db->mapVariableAndContextToIndex(d_adv_diff_hier_integrator->getFluidViscosityVariable(),
+                var_db->mapVariableAndContextToIndex(d_mu_adv_diff_var,
                                                      d_adv_diff_hier_integrator->getCurrentContext());
         }
         else
@@ -649,9 +649,9 @@ VCINSStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         int mu_new_idx;
-        if (d_adv_diff_hier_integrator && d_adv_diff_hier_integrator->getFluidViscosityVariable())
+        if (d_adv_diff_hier_integrator && d_mu_adv_diff_var)
         {
-            mu_new_idx = var_db->mapVariableAndContextToIndex(d_adv_diff_hier_integrator->getFluidViscosityVariable(),
+            mu_new_idx = var_db->mapVariableAndContextToIndex(d_mu_adv_diff_var,
                                                               d_adv_diff_hier_integrator->getNewContext());
         }
         else

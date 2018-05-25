@@ -278,6 +278,18 @@ public:
      */
      void registerViscosityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* mu_bc_coef);
 
+     /*
+      * \brief Set the transported viscosity variable if it is being maintained by the advection-diffusion integrator.
+      *
+      * \note The variable set here MUST be registered and maintained by the advection-diffusion integrator.
+      */
+     void setTransportedViscosityVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > mu_adv_diff_var);
+
+     /*!
+     * \brief Get the transported viscosity variable that is being manintained by an advection-diffusion integrator
+     */
+     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getTransportedViscosityVariable() const;
+
     /*!
      * \brief Get the side-centered density patch data index, which will always be the newest one used in the linear operator
      * i.e. rho_sc in rho_sc*u^{n+1} term.
@@ -339,7 +351,7 @@ public:
     inline SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getViscosityBoundaryConditions() const
     {
         return d_mu_bc_coef;
-    }
+    } 
 
 protected:
     /*!
@@ -564,6 +576,11 @@ protected:
      * or set by the fluid integrator.
      */
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_mu_bc_coef;
+
+    /*
+     * Variable to keep track of a transported viscosity variable maintained by an advection-diffusion integrator
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_mu_adv_diff_var;
 
 private:
     /*!

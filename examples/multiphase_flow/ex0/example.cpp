@@ -46,6 +46,7 @@
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/VCINSStaggeredHierarchyIntegrator.h>
+#include <ibamr/VCINSStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -54,6 +55,7 @@
 // Application
 #include "LSLocateCircularInterface.h"
 #include "SetFluidProperties.h"
+#include "SetLSProperties.h"
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
@@ -116,9 +118,19 @@ run_example(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<VCINSStaggeredHierarchyIntegrator> time_integrator = new VCINSStaggeredHierarchyIntegrator(
-            "VCINSStaggeredHierarchyIntegrator",
-            app_initializer->getComponentDatabase("VCINSStaggeredHierarchyIntegrator"));
+        Pointer<VCINSStaggeredNonConservativeHierarchyIntegrator> time_integrator;
+
+        const string discretization_form = app_initializer->getComponentDatabase("Main")->getStringWithDefault(
+            "discretization_form", "NON_CONSERVATIVE");
+        if (discretization_form == "NON_CONSERVATIVE")
+        {
+            time_integrator = new VCINSStaggeredNonConservativeHierarchyIntegrator("VCINSStaggeredNonConservativeHierarchyIntegrator",
+                app_initializer->getComponentDatabase("VCINSStaggeredNonConservativeHierarchyIntegrator"));
+        }
+        else
+        {
+            TBOX_ERROR("This particular example requires non-conservative hierarchy integrator");
+        }
 
         // Set up the advection diffusion hierarchy integrator
         Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator;
@@ -165,25 +177,29 @@ run_example(int argc, char* argv[])
 #endif
 
         const string& ls_name = "level_set";
-        Pointer<RelaxationLSMethod> level_set_ops =
-            new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
-        LSLocateCircularInterface* ptr_LSLocateCircularInterface =
-            new LSLocateCircularInterface("LSLocateCircularInterface", adv_diff_integrator, ls_name, circle);
-        level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateCircularInterfaceCallbackFunction,
-                                                                static_cast<void*>(ptr_LSLocateCircularInterface));
 
         Pointer<CellVariable<NDIM, double> > phi_var = new CellVariable<NDIM, double>(ls_name);
-        adv_diff_integrator->registerTransportedLevelSet(phi_var);
-        adv_diff_integrator->registerLevelSetReinitializationStrategy(phi_var, level_set_ops);
+        adv_diff_integrator->registerTransportedQuantity(phi_var);
         adv_diff_integrator->setDiffusionCoefficient(phi_var, 0.0);
         adv_diff_integrator->setAdvectionVelocity(phi_var, time_integrator->getAdvectionVelocityVariable());
 
+        // Set options for resetting level set data
+         Pointer<RelaxationLSMethod> level_set_ops =
+            new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
+        LSLocateCircularInterface* ptr_LSLocateCircularInterface =
+            new LSLocateCircularInterface("LSLocateCircularInterface", adv_diff_integrator, phi_var, circle);
+        level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateCircularInterfaceCallbackFunction,
+                                                                static_cast<void*>(ptr_LSLocateCircularInterface));
+
+        SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", level_set_ops);
+        adv_diff_integrator->registerResetFunction(phi_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
+
         // Setup the advected and diffused quantities.
         Pointer<CellVariable<NDIM, double> > rho_var = new CellVariable<NDIM, double>("rho");
-        adv_diff_integrator->registerTransportedFluidDensity(rho_var);
+        adv_diff_integrator->registerTransportedQuantity(rho_var);
         adv_diff_integrator->setDiffusionCoefficient(rho_var, 0.0);
         Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
-        adv_diff_integrator->registerTransportedFluidViscosity(mu_var);
+        adv_diff_integrator->registerTransportedQuantity(mu_var);
         adv_diff_integrator->setDiffusionCoefficient(mu_var, 0.0);
 
         // Array for input into callback function
@@ -195,17 +211,27 @@ run_example(int argc, char* argv[])
         const double num_interface_cells = input_db->getDouble("NUM_INTERFACE_CELLS");
         SetFluidProperties* ptr_SetFluidProperties = new SetFluidProperties("SetFluidProperties",
                                                                             adv_diff_integrator,
-                                                                            ls_name,
+                                                                            phi_var,
                                                                             rho_outside,
                                                                             rho_inside,
                                                                             mu_outside,
                                                                             mu_inside,
                                                                             ls_reinit_interval,
                                                                             num_interface_cells);
-        adv_diff_integrator->registerResetFluidDensityFcn(&callSetFluidDensityCallbackFunction,
-                                                          static_cast<void*>(ptr_SetFluidProperties));
-        adv_diff_integrator->registerResetFluidViscosityFcn(&callSetFluidViscosityCallbackFunction,
-                                                            static_cast<void*>(ptr_SetFluidProperties));
+        adv_diff_integrator->registerResetFunction(rho_var,
+                                                   &callSetFluidDensityCallbackFunction,
+                                                   static_cast<void*>(ptr_SetFluidProperties));
+        adv_diff_integrator->registerResetFunction(mu_var,
+                                                   &callSetFluidViscosityCallbackFunction,
+                                                   static_cast<void*>(ptr_SetFluidProperties));
+
+        adv_diff_integrator->setResetPriority(phi_var, 1);
+        adv_diff_integrator->setResetPriority(mu_var, 10);
+        adv_diff_integrator->setResetPriority(rho_var, 10);
+
+        // Set the transported rho and mu with the fluid solver
+        time_integrator->setTransportedMassDensityVariable(rho_var);
+        time_integrator->setTransportedViscosityVariable(mu_var);
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -321,10 +347,8 @@ run_example(int argc, char* argv[])
             pout << "\n";
 
             // Compute the fluid mass in the domain
-            const Pointer<CellVariable<NDIM, double> > rho_postproc_var =
-                adv_diff_integrator->getFluidDensityVariable();
             const Pointer<VariableContext> rho_postproc_ctx = adv_diff_integrator->getCurrentContext();
-            const int rho_postproc_idx = var_db->mapVariableAndContextToIndex(rho_postproc_var, rho_postproc_ctx);
+            const int rho_postproc_idx = var_db->mapVariableAndContextToIndex(rho_var, rho_postproc_ctx);
             const int coarsest_ln = 0;
             const int finest_ln = patch_hierarchy->getFinestLevelNumber();
             HierarchyCellDataOpsReal<NDIM, double> hier_rho_data_ops(patch_hierarchy, coarsest_ln, finest_ln);

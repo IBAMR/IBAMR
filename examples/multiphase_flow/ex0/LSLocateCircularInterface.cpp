@@ -26,9 +26,9 @@ callLSLocateCircularInterfaceCallbackFunction(int D_idx,
 /////////////////////////////// PUBLIC //////////////////////////////////////
 LSLocateCircularInterface::LSLocateCircularInterface(const std::string& object_name,
                                                      Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                                     const std::string& ls_name,
+                                                     Pointer<CellVariable<NDIM, double> > ls_var,
                                                      CircularInterface init_circle)
-    : d_object_name(object_name), d_adv_diff_solver(adv_diff_solver), d_ls_name(ls_name), d_init_circle(init_circle)
+    : d_object_name(object_name), d_adv_diff_solver(adv_diff_solver), d_ls_var(ls_var), d_init_circle(init_circle)
 {
     // intentionally left blank
     return;
@@ -54,8 +54,7 @@ LSLocateCircularInterface::setLevelSetPatchData(int D_idx,
     if (!initial_time)
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<CellVariable<NDIM, double> > ls_var = d_adv_diff_solver->getLevelSetVariable(d_ls_name);
-        const int ls_current_idx = var_db->mapVariableAndContextToIndex(ls_var, d_adv_diff_solver->getCurrentContext());
+        const int ls_current_idx = var_db->mapVariableAndContextToIndex(d_ls_var, d_adv_diff_solver->getCurrentContext());
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
 
         hier_cc_data_ops.copyData(D_idx, ls_current_idx);

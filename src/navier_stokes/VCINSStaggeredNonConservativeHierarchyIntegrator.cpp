@@ -161,7 +161,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::VCINSStaggeredNonConservativeH
     const std::string& object_name,
     Pointer<Database> input_db,
     bool register_for_restart)
-    : VCINSStaggeredHierarchyIntegrator(object_name, input_db, register_for_restart), d_rho_bc_coef(NULL)
+    : VCINSStaggeredHierarchyIntegrator(object_name, input_db, register_for_restart), d_rho_bc_coef(NULL), d_rho_adv_diff_var(NULL)
 {
     switch (d_convective_time_stepping_type)
     {
@@ -234,7 +234,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     // form maintained by the INS integrator
     if (!d_rho_is_const)
     {
-        if (d_adv_diff_hier_integrator && d_adv_diff_hier_integrator->getFluidDensityVariable())
+        if (d_adv_diff_hier_integrator && d_rho_adv_diff_var)
         {
             d_rho_var = Pointer<CellVariable<NDIM, double> >(NULL);
 #if !defined(NDEBUG)
@@ -243,7 +243,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
 #endif
             // Ensure that boundary conditions are provided by the advection-diffusion integrator
             d_rho_bc_coef =
-                (d_adv_diff_hier_integrator->getPhysicalBcCoefs(d_adv_diff_hier_integrator->getFluidDensityVariable()))
+                (d_adv_diff_hier_integrator->getPhysicalBcCoefs(d_rho_adv_diff_var))
                     .front();
         }
         else if (INSHierarchyIntegrator::d_rho_var)
@@ -336,6 +336,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (d_rho_var.isNull()) level->allocatePatchData(d_rho_scratch_idx, current_time);
         level->allocatePatchData(d_rho_interp_idx, current_time);
     }
        
@@ -345,10 +346,10 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         int mu_current_idx;
-        if (d_adv_diff_hier_integrator && d_adv_diff_hier_integrator->getFluidViscosityVariable())
+        if (d_adv_diff_hier_integrator && d_mu_adv_diff_var)
         {
             mu_current_idx =
-                var_db->mapVariableAndContextToIndex(d_adv_diff_hier_integrator->getFluidViscosityVariable(),
+                var_db->mapVariableAndContextToIndex(d_mu_adv_diff_var,
                                                      d_adv_diff_hier_integrator->getCurrentContext());
         }
         else
@@ -622,9 +623,9 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         int rho_new_idx;
-        if (d_adv_diff_hier_integrator && d_adv_diff_hier_integrator->getFluidDensityVariable())
+        if (d_adv_diff_hier_integrator && d_rho_adv_diff_var)
         {
-            rho_new_idx = var_db->mapVariableAndContextToIndex(d_adv_diff_hier_integrator->getFluidDensityVariable(),
+            rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_adv_diff_var,
                                                                d_adv_diff_hier_integrator->getNewContext());
         }
         else
@@ -676,9 +677,9 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         int mu_new_idx;
-        if (d_adv_diff_hier_integrator && d_adv_diff_hier_integrator->getFluidViscosityVariable())
+        if (d_adv_diff_hier_integrator && d_mu_adv_diff_var)
         {
-            mu_new_idx = var_db->mapVariableAndContextToIndex(d_adv_diff_hier_integrator->getFluidViscosityVariable(),
+            mu_new_idx = var_db->mapVariableAndContextToIndex(d_mu_adv_diff_var,
                                                               d_adv_diff_hier_integrator->getNewContext());
         }
         else
@@ -818,7 +819,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
                                    d_reset_mu_fcns_ctx[k]);
             }
         }
-        if (d_rho_sc_var)
+        if (!d_rho_is_const && d_rho_var)
         {
             for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
             {
@@ -856,6 +857,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::postprocessIntegrateHierarchy(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (d_rho_var.isNull()) level->deallocatePatchData(d_rho_scratch_idx);
         level->deallocatePatchData(d_rho_interp_idx);
     }
     return;
@@ -886,6 +888,16 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::registerMassDensityBoundaryCon
     d_rho_bc_coef = rho_bc_coef;
     return;
 } // registerMassDensityBoundaryConditions
+
+void
+VCINSStaggeredNonConservativeHierarchyIntegrator::setTransportedMassDensityVariable(Pointer<CellVariable<NDIM, double> > rho_adv_diff_var)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_adv_diff_hier_integrator);
+#endif
+    d_rho_adv_diff_var = rho_adv_diff_var;
+    return;
+} // setTransportedMassDensityVariable
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

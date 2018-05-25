@@ -158,6 +158,13 @@ public:
      */
     void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* rho_bc_coef);
 
+    /*
+     * \brief Set the transported density variable if it is being maintained by the advection-diffusion integrator.
+     *
+     * \note The variable set here MUST be registered and maintained by the advection-diffusion integrator.
+     */
+     void setTransportedMassDensityVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > rho_adv_diff_var);
+
 protected:
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -261,9 +268,8 @@ private:
                             int cycle_num);
 
     /*!
-     * Cell-centered and interpolated density variable required for non-conservative discretization
+     * Interpolated density variable required for non-conservative discretization
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_sc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_interp_var;
 
     /*
@@ -287,6 +293,11 @@ private:
      * integrator, or set by the fluid integrator.
      */
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_bc_coef;
+
+    /*
+     * Variable to keep track of a transported density variable maintained by an advection-diffusion integrator
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_adv_diff_var;
 };
 } // namespace IBAMR
 

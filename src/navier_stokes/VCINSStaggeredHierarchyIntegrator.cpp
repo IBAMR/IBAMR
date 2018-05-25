@@ -330,7 +330,8 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
                              register_for_restart),
       d_rho_init_fcn(NULL),
       d_mu_init_fcn(NULL),
-      d_mu_bc_coef(NULL)
+      d_mu_bc_coef(NULL),
+      d_mu_adv_diff_var(NULL)
 {
     // Register solver factory functions for variable coefficient Stokes and viscous solvers
     StaggeredStokesSolverManager::getManager()->registerSolverFactoryFunction(DEFAULT_VC_STAGGERED_STOKES_SOLVER,
@@ -825,7 +826,7 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     // form maintained by the INS integrator 
     if (!d_mu_is_const)
     {
-        if (d_adv_diff_hier_integrator && d_adv_diff_hier_integrator->getFluidViscosityVariable())
+        if (d_adv_diff_hier_integrator && d_mu_adv_diff_var)
         {
             d_mu_var = Pointer<CellVariable<NDIM, double> >(NULL);
 #if !defined(NDEBUG)
@@ -833,9 +834,7 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
             TBOX_ASSERT(!d_mu_init_fcn);
 #endif
             // Ensure that boundary conditions are provided by the advection-diffusion integrator
-            d_mu_bc_coef = (d_adv_diff_hier_integrator->getPhysicalBcCoefs(
-                                d_adv_diff_hier_integrator->getFluidViscosityVariable()))
-                               .front();
+            d_mu_bc_coef = (d_adv_diff_hier_integrator->getPhysicalBcCoefs(d_mu_adv_diff_var)).front();
         }
         else if (INSHierarchyIntegrator::d_mu_var)
         {
@@ -1413,6 +1412,22 @@ VCINSStaggeredHierarchyIntegrator::registerViscosityBoundaryConditions(RobinBcCo
     d_mu_bc_coef = mu_bc_coef;
     return;
 } // registerViscosityBoundaryConditions
+
+void
+VCINSStaggeredHierarchyIntegrator::setTransportedViscosityVariable(Pointer<CellVariable<NDIM, double> > mu_adv_diff_var)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_adv_diff_hier_integrator);
+#endif
+    d_mu_adv_diff_var = mu_adv_diff_var;
+    return;
+} // setTransportedViscosityVariable
+
+Pointer<CellVariable<NDIM, double> > 
+VCINSStaggeredHierarchyIntegrator::getTransportedViscosityVariable() const
+{
+    return d_mu_adv_diff_var;
+} // getTransportedViscosityVariable
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -59,7 +59,7 @@ public:
      */
     SetFluidProperties(const std::string& object_name,
                        SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                       const std::string& ls_name,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
                        const double rho_outside,
                        const double rho_inside,
                        const double mu_outside,
@@ -121,9 +121,9 @@ private:
     SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
 
     /*!
-     * Name of the level set.
+     * Cell centered variables reset by the AdvDiffHierarchyIntegrator.
      */
-    std::string d_ls_name;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
 
     /*!
      * Density of the fluid.

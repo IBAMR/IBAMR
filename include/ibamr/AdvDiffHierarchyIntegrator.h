@@ -43,7 +43,6 @@
 #include "HierarchySideDataOpsReal.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "ibamr/LSInitStrategy.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
@@ -446,97 +445,40 @@ public:
     void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
 
     /*!
-     * \brief Function to reset fluid density or viscosity.
+     * \brief Function to reset variables registered by this integrator
      */
-    typedef void (*ResetFluidPropertiesFcnPtr)(int property_idx,
-                                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                               int integrator_step,
-                                               double time,
-                                               bool initial_time,
-                                               bool regrid_time,
-                                               void* ctx);
+    typedef void (*ResetPropertiesFcnPtr)(int property_idx,
+                                          SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                          int integrator_step,
+                                          double time,
+                                          bool initial_time,
+                                          bool regrid_time,
+                                          void* ctx);
 
     /*!
-     * \brief Register interface neighborhood locating functions.
+     * \brief Register a reset callback function for a specified variable.
      */
-    void registerResetFluidDensityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
+    void registerResetFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var, ResetPropertiesFcnPtr callback, void* ctx);
 
-    /*!
-     * \brief Register interface neighborhood locating functions.
-     */
-    void registerResetFluidViscosityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
-
-    /*!
-     * Register a cell-centered density to be advected and diffused by the
-     * hierarchy integrator.
+    /*
+     * \brief Set a reset priority for a particular variable.
      *
-     * Data management for the registered quantity will be handled by the
-     * hierarchy integrator.
-     *
-     * \note This quantity is maintained just like any other advected quantity,
-     * but requires some additional special treatment since it is used by the
-     * variable coefficient INS integrator.
+     * \note Variables will be reset sequentially accordint to their priority, from lowest to highest.
+     * The reset functions registered to each variable will be called according to the order in which they were registered.
+     * If no priority is set for a variable, its reset functions will be called after those with priority, in no particular order.
      */
-    void registerTransportedFluidDensity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > rho_var);
+    void setResetPriority(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var, int priority);
 
     /*!
-     * Register a cell-centered viscosity to be advected and diffused by the
-     * hierarchy integrator.
-     *
-     * Data management for the registered quantity will be handled by the
-     * hierarchy integrator.
-     *
-     * \note This quantity is maintained just like any other advected quantity,
-     * but requires some additional special treatment since it is used by the 
-     * variable coefficient INS integrator.
+     * \brief Get the reset callback functions registered with this variable.
      */
-    void registerTransportedFluidViscosity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > mu_var);
+    std::vector<ResetPropertiesFcnPtr>
+    getResetFunctions(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
 
     /*!
-     * Register a cell-centered level set to be advected and diffused by the
-     * hierarchy integrator.
-     *
-     * Data management for the registered quantity will be handled by the
-     * hierarchy integrator.
-     *
-     * \note This quantity is maintained just like any other advected quantity,
-     * but requires some additional special treatment since it is used by the 
-     * variable coefficient INS integrator.
+     * \brief Get the reset priority for a particular variable.
      */
-    void registerTransportedLevelSet(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
-
-    /*!
-     * Register the level set reinitialization strategy object.
-     */
-    void
-    registerLevelSetReinitializationStrategy(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                                             SAMRAI::tbox::Pointer<LSInitStrategy> reinitializer);
-
-    /*!
-     * Return the density variable to be used by the INS integrator.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getFluidDensityVariable();
-
-    /*!
-     * Return the viscosity variable to be used by the INS integrator.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getFluidViscosityVariable();
-
-    /*!
-     * Return the level set variable registered with the integrator.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getLevelSetVariable(const std::string& var_name);
-
-    /*!
-     * Return the level set reinitialization strategy object registered with the integrator.
-     */
-    SAMRAI::tbox::Pointer<LSInitStrategy> getLevelSetReinitializationStrategy(const std::string& var_name);
-
-    /*!
-     * Return the level set reinitialization strategy object registered with the integrator.
-     */
-    SAMRAI::tbox::Pointer<LSInitStrategy>
-    getLevelSetReinitializationStrategy(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+    int getResetPriority(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
 
 protected:
     /*!
@@ -557,10 +499,7 @@ protected:
     /*!
      * Initialize composite hierarchy data.
      *
-     * The class initailizes level set data in this routine which may
-     * require composite grid to compute it (depending upon level set algorithm).
-     * It also resets fluid density and viscosity based upon newly computed
-     * level set.
+     * The method initializes variables that may require the full grid hierarchy to be already created.
      */
     void initializeCompositeHierarchyDataSpecialized(
         double init_data_time,
@@ -655,14 +594,11 @@ protected:
              std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coef;
 
     /*!
-     * Transported fluid material quantities.
+     * Objects to keep track of the resetting functions.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_fluid_var, d_mu_fluid_var;
-    std::map<std::string, SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_ls_var;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, SAMRAI::tbox::Pointer<LSInitStrategy> >
-        d_ls_reinit_map;
-    std::vector<ResetFluidPropertiesFcnPtr> d_reset_rho_fcns, d_reset_mu_fcns;
-    std::vector<void *> d_reset_rho_fcns_ctx, d_reset_mu_fcns_ctx;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<ResetPropertiesFcnPtr> > d_Q_reset_fcns;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<void *> > d_Q_reset_fcns_ctx;
+    std::vector<int> d_Q_reset_priority;
 
     /*
      * Hierarchy operations objects.

@@ -45,7 +45,7 @@ public:
      */
     LSLocateCircularInterface(const std::string& object_name,
                               SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                              const std::string& ls_name,
+                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
                               CircularInterface init_circle);
 
     /*!
@@ -90,9 +90,9 @@ private:
     SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
 
     /*!
-     * Name of the level set.
+     * Level set variable
      */
-    std::string d_ls_name;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
 
     /*!
      * Initial level set information.
