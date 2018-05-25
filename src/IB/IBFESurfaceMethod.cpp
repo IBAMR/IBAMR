@@ -774,8 +774,17 @@ IBFESurfaceMethod::forwardEulerStep(const double current_time, const double new_
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
+        if (d_use_direct_forcing)
+        {
+            ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+        }
+        else
+        {
+            ierr =
+                VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+        }
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
@@ -792,8 +801,16 @@ IBFESurfaceMethod::midpointStep(const double current_time, const double new_time
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_half_vecs[part]->vec(), d_X_current_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
+        if (d_use_direct_forcing)
+        {
+            ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+        }
+        else
+        {
+            ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_half_vecs[part]->vec(), d_X_current_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+        }
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
@@ -810,11 +827,19 @@ IBFESurfaceMethod::trapezoidalStep(const double current_time, const double new_t
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        ierr = VecWAXPY(
-            d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_new_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
+        if (d_use_direct_forcing)
+        {
+            ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+        }
+        else
+        {
+            ierr = VecWAXPY(
+                d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_new_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+        }
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
@@ -1429,6 +1454,7 @@ IBFESurfaceMethod::putToDatabase(Pointer<Database> db)
     db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
     db->putBool("d_use_jump_conditions", d_use_jump_conditions);
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
+    db->putBool("d_use_direct_forcing", d_use_direct_forcing);
     return;
 } // putToDatabase
 
@@ -1852,6 +1878,7 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     d_use_jump_conditions = false;
     d_normalize_pressure_jump = false;
     d_use_consistent_mass_matrix = true;
+    d_use_direct_forcing = false;
     d_do_log = false;
 
     d_fe_family.resize(d_num_parts, INVALID_FE);
@@ -2006,6 +2033,7 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     if (db->isBool("normalize_pressure_jump")) d_normalize_pressure_jump = db->getBool("normalize_pressure_jump");
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
+    if (db->isBool("use_direct_forcing")) d_use_direct_forcing = db->getBool("use_direct_forcing");
 
     // Restart settings.
     if (db->isString("libmesh_restart_file_extension"))
@@ -2055,6 +2083,7 @@ IBFESurfaceMethod::getFromRestart()
     db->getIntegerArray("d_ghosts", d_ghosts, NDIM);
     d_use_jump_conditions = db->getBool("d_use_jump_conditions");
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
+    d_use_direct_forcing = db->getBool("d_use_direct_forcing");
     return;
 } // getFromRestart
 

@@ -545,6 +545,7 @@ protected:
     std::vector<libMesh::QuadratureType> d_default_quad_type;
     std::vector<libMesh::Order> d_default_quad_order;
     bool d_use_consistent_mass_matrix;
+    bool d_use_direct_forcing;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
