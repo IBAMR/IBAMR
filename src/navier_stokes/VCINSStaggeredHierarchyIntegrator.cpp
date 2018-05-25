@@ -333,6 +333,18 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
       d_mu_bc_coef(NULL),
       d_mu_adv_diff_var(NULL)
 {
+    // Set some default values
+    d_rho_scale = 1.0;
+    d_mu_scale = 1.0;
+    d_output_rho = false;
+    d_output_mu = false;
+
+    // Get plotting options from database
+    if (input_db->keyExists("rho_scale")) d_rho_scale = input_db->getDouble("rho_scale");
+    if (input_db->keyExists("mu_scale")) d_mu_scale = input_db->getDouble("mu_scale");
+    if (input_db->keyExists("output_rho")) d_output_rho = input_db->getBool("output_rho");
+    if (input_db->keyExists("output_mu")) d_output_mu = input_db->getBool("output_mu");
+
     // Register solver factory functions for variable coefficient Stokes and viscous solvers
     StaggeredStokesSolverManager::getManager()->registerSolverFactoryFunction(DEFAULT_VC_STAGGERED_STOKES_SOLVER,
                                                                               allocate_vc_stokes_krylov_solver);
@@ -828,17 +840,23 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     {
         if (d_adv_diff_hier_integrator && d_mu_adv_diff_var)
         {
-            d_mu_var = Pointer<CellVariable<NDIM, double> >(NULL);
 #if !defined(NDEBUG)
-            // AdvDiffHierarchyIntegrator should initialize the viscosity variable.
+            // AdvDiffHierarchyIntegrator should initialize and maintain the viscosity variable.
+            TBOX_ASSERT(!d_mu_var);
             TBOX_ASSERT(!d_mu_init_fcn);
 #endif
+            d_mu_var = Pointer<CellVariable<NDIM, double> >(NULL);
             // Ensure that boundary conditions are provided by the advection-diffusion integrator
             d_mu_bc_coef = (d_adv_diff_hier_integrator->getPhysicalBcCoefs(d_mu_adv_diff_var)).front();
         }
-        else if (INSHierarchyIntegrator::d_mu_var)
+        else if (d_mu_var)
         {
-            d_mu_var = INSHierarchyIntegrator::d_mu_var;
+            Pointer<CellVariable<NDIM, double> > cc_var = d_mu_var;
+            if (!cc_var)
+            {
+                TBOX_ERROR("VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():\n"
+                      << " registered viscosity variable must be cell centered");
+            }
         }
         else
         {
@@ -1352,6 +1370,40 @@ VCINSStaggeredHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorRea
     }
     return;
 } // removeNullSpace
+
+void
+VCINSStaggeredHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable<NDIM> > rho_var)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_rho_var);
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    d_rho_var = rho_var;
+    return;
+} // registerMassDensityVariable
+
+Pointer<Variable<NDIM> >
+VCINSStaggeredHierarchyIntegrator::getMassDensityVariable() const
+{
+    return d_rho_var;
+} // getMassDensityVariable
+
+void
+VCINSStaggeredHierarchyIntegrator::registerViscosityVariable(Pointer<Variable<NDIM> > mu_var)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_mu_var);
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    d_mu_var = mu_var;
+    return;
+} // registerViscosityVariable
+
+Pointer<Variable<NDIM> >
+VCINSStaggeredHierarchyIntegrator::getViscosityVariable() const
+{
+    return d_mu_var;
+} // getViscosityVariable
 
 void
 VCINSStaggeredHierarchyIntegrator::setDensityVCInterpolationType(const IBTK::VCInterpType vc_interp_type)

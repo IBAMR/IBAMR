@@ -289,72 +289,6 @@ INSHierarchyIntegrator::getProjectionBoundaryConditions() const
 } // getProjectionBoundaryConditions
 
 void
-INSHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable<NDIM> > rho_var)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(!d_rho_var);
-    TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
-    d_rho_var = rho_var;
-    return;
-} // registerMassDensityVariable
-
-Pointer<Variable<NDIM> >
-INSHierarchyIntegrator::getMassDensityVariable() const
-{
-    return d_rho_var;
-} // getMassDensityVariable
-
-void
-INSHierarchyIntegrator::setMassDensityFunction(Pointer<CartGridFunction> rho_fcn)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
-    d_rho_fcn = rho_fcn;
-    return;
-} // registerMassDensityFunction
-
-Pointer<CartGridFunction>
-INSHierarchyIntegrator::getMassDensityFunction() const
-{
-    return d_rho_fcn;
-} // getMassDensityFunction
-
-void
-INSHierarchyIntegrator::registerViscosityVariable(Pointer<Variable<NDIM> > mu_var)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(!d_mu_var);
-    TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
-    d_mu_var = mu_var;
-    return;
-} // registerViscosityVariable
-
-Pointer<Variable<NDIM> >
-INSHierarchyIntegrator::getViscosityVariable() const
-{
-    return d_mu_var;
-} // getViscosityVariable
-
-void
-INSHierarchyIntegrator::setViscosityFunction(Pointer<CartGridFunction> mu_fcn)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
-    d_mu_fcn = mu_fcn;
-    return;
-} // setViscosityFunction
-
-Pointer<CartGridFunction>
-INSHierarchyIntegrator::getViscosityFunction() const
-{
-    return d_mu_fcn;
-} // getViscosityFunction
-
-void
 INSHierarchyIntegrator::setCreepingFlow(bool creeping_flow)
 {
 #if !defined(NDEBUG)
@@ -520,8 +454,6 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
     d_Q_scale = 1.0;
     d_Omega_scale = 1.0;
     d_Div_U_scale = 1.0;
-    d_rho_scale = 1.0;
-    d_mu_scale = 1.0;
     d_EE_scale = 1.0;
     d_output_U = true;
     d_output_P = true;
@@ -530,8 +462,6 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
     d_output_Omega = true;
     d_output_Div_U = true;
     d_output_EE = false;
-    d_output_rho = false;
-    d_output_mu = false;
     d_velocity_solver = NULL;
     d_pressure_solver = NULL;
 
@@ -619,8 +549,6 @@ INSHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putDouble("d_Omega_scale", d_Omega_scale);
     db->putDouble("d_Div_U_scale", d_Div_U_scale);
     db->putDouble("d_EE_scale", d_EE_scale);
-    db->putDouble("d_rho_scale", d_rho_scale);
-    db->putDouble("d_mu_scale", d_mu_scale);
     db->putBool("d_output_U", d_output_U);
     db->putBool("d_output_P", d_output_P);
     db->putBool("d_output_F", d_output_F);
@@ -628,8 +556,6 @@ INSHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putBool("d_output_Omega", d_output_Omega);
     db->putBool("d_output_Div_U", d_output_Div_U);
     db->putBool("d_output_EE", d_output_EE);
-    db->putBool("d_output_rho", d_output_rho);
-    db->putBool("d_output_mu", d_output_mu);
     return;
 } // putToDatabaseSpecialized
 
@@ -748,8 +674,6 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
     if (db->keyExists("Omega_scale")) d_Omega_scale = db->getDouble("Omega_scale");
     if (db->keyExists("Div_U_scale")) d_Div_U_scale = db->getDouble("Div_U_scale");
     if (db->keyExists("EE_scale")) d_EE_scale = db->getDouble("EE_scale");
-    if (db->keyExists("rho_scale")) d_rho_scale = db->getDouble("rho_scale");
-    if (db->keyExists("mu_scale")) d_mu_scale = db->getDouble("mu_scale");
     if (db->keyExists("output_U")) d_output_U = db->getBool("output_U");
     if (db->keyExists("output_P")) d_output_P = db->getBool("output_P");
     if (db->keyExists("output_F")) d_output_F = db->getBool("output_F");
@@ -757,8 +681,6 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
     if (db->keyExists("output_Omega")) d_output_Omega = db->getBool("output_Omega");
     if (db->keyExists("output_Div_U")) d_output_Div_U = db->getBool("output_Div_U");
     if (db->keyExists("output_EE")) d_output_EE = db->getBool("output_EE");
-    if (db->keyExists("output_rho")) d_output_rho = db->getBool("output_rho");
-    if (db->keyExists("output_mu")) d_output_mu = db->getBool("output_mu");
     if (db->keyExists("traction_bc_type"))
         d_traction_bc_type = string_to_enum<TractionBcType>(db->getString("traction_bc_type"));
 
@@ -889,8 +811,6 @@ INSHierarchyIntegrator::getFromRestart()
     d_Omega_scale = db->getDouble("d_Omega_scale");
     d_Div_U_scale = db->getDouble("d_Div_U_scale");
     d_EE_scale = db->getDouble("d_EE_scale");
-    d_rho_scale = db->getDouble("d_rho_scale");
-    d_mu_scale = db->getDouble("d_mu_scale");
     d_output_U = db->getBool("d_output_U");
     d_output_P = db->getBool("d_output_P");
     d_output_F = db->getBool("d_output_F");
@@ -898,8 +818,6 @@ INSHierarchyIntegrator::getFromRestart()
     d_output_Omega = db->getBool("d_output_Omega");
     d_output_Div_U = db->getBool("d_output_Div_U");
     d_output_EE = db->getBool("d_output_EE");
-    d_output_rho = db->getBool("d_output_rho");
-    d_output_mu = db->getBool("d_output_mu");
     return;
 } // getFromRestart
 

@@ -223,6 +223,26 @@ public:
     void removeNullSpace(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec);
 
     /*!
+     * Register a variable mass density variable with the hierarchy integrator.
+     */
+    void registerMassDensityVariable(SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var);
+
+    /*!
+     * Get the mass density variable registered with the hierarchy integrator.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getMassDensityVariable() const;
+
+    /*!
+     * Register a variable viscosity variable with the hierarchy integrator.
+     */
+    void registerViscosityVariable(SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var);
+
+    /*!
+     * Get the viscosity variable registered with the hierarchy integrator.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getViscosityVariable() const;
+
+    /*!
      * Set the interpolation type used for material properties rho
      */
     void setDensityVCInterpolationType(const IBTK::VCInterpType vc_interp_type);
@@ -424,6 +444,18 @@ protected:
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
     SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_side_synch_op;
 
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_rho_bdry_bc_fill_op, d_mu_bdry_bc_fill_op;
+
+    /*!
+     * Double precision values are (optional) factors used to rescale the
+     * density and viscosity for plotting.
+     *
+     * Boolean values indicates whether to output various quantities for
+     * visualization.
+     */
+    double d_rho_scale, d_mu_scale;
+    bool d_output_rho, d_output_mu;
+
     /*
      * Hierarchy operators and solvers.
      */
@@ -468,7 +500,8 @@ protected:
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_EE_var;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_mu_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_rho_var, d_mu_var;
+
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_pressure_D_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_pressure_rhs_D_var;
 #if (NDIM == 2)

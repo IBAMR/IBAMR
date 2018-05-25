@@ -236,9 +236,9 @@ VCINSStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(Poi
     // this conservative discretization form.
     const IntVector<NDIM> side_ghosts = SIDEG;
     const IntVector<NDIM> no_ghosts = 0;
-    if (INSHierarchyIntegrator::d_rho_var)
+    if (VCINSStaggeredHierarchyIntegrator::d_rho_var)
     {
-        d_rho_sc_var = INSHierarchyIntegrator::d_rho_var;
+        d_rho_sc_var = VCINSStaggeredHierarchyIntegrator::d_rho_var;
 #if !defined(NDEBUG)
         TBOX_ASSERT(d_rho_sc_var);
         TBOX_ASSERT(d_rho_init_fcn);

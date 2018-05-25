@@ -528,12 +528,6 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
 
-    if (d_rho_var)
-    {
-        TBOX_ERROR("INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator():\n"
-                   << "  variable density solver not presently supported.\n");
-    }
-
     if (d_gridding_alg->getMaxLevels() > 1 && d_projection_method_type == PRESSURE_INCREMENT)
     {
         pout << "\n"

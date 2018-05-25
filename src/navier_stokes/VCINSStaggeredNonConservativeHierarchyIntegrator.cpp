@@ -236,19 +236,25 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         if (d_adv_diff_hier_integrator && d_rho_adv_diff_var)
         {
-            d_rho_var = Pointer<CellVariable<NDIM, double> >(NULL);
 #if !defined(NDEBUG)
-            // AdvDiffHierarchyIntegrator should initialize the density variable.
+            // AdvDiffHierarchyIntegrator should initialize and maintain the density variable.
+            TBOX_ASSERT(!d_rho_var);
             TBOX_ASSERT(!d_rho_init_fcn);
 #endif
+            d_rho_var = Pointer<CellVariable<NDIM, double> >(NULL);
             // Ensure that boundary conditions are provided by the advection-diffusion integrator
             d_rho_bc_coef =
                 (d_adv_diff_hier_integrator->getPhysicalBcCoefs(d_rho_adv_diff_var))
                     .front();
         }
-        else if (INSHierarchyIntegrator::d_rho_var)
+        else if (d_rho_var)
         {
-            d_rho_var = INSHierarchyIntegrator::d_rho_var;
+            Pointer<CellVariable<NDIM, double> > cc_var = d_rho_var;
+            if (!cc_var)
+            {
+                TBOX_ERROR("VCINSStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator():\n"
+                      << " registered density variable must be cell centered");
+            }
         }
         else
         {
