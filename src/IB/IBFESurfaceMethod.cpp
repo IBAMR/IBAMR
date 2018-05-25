@@ -255,6 +255,13 @@ IBFESurfaceMethod::registerLagSurfaceForceFunction(const LagSurfaceForceFcnData&
     return;
 } // registerLagSurfaceForceFunction
 
+const VectorValue<double>&
+IBFESurfaceMethod::getSurfaceForceIntegral(const unsigned int part) const
+{
+    TBOX_ASSERT(part < d_num_parts);
+    return d_lag_surface_force_integral[part];
+}
+
 const IntVector<NDIM>&
 IBFESurfaceMethod::getMinimumGhostCellWidth() const
 {
@@ -835,6 +842,8 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         UniquePtr<NumericVector<double> > DP_rhs_vec =
             (d_use_jump_conditions ? DP_vec->zero_clone() : UniquePtr<NumericVector<double> >());
         DenseVector<double> DP_rhs_e;
+        VectorValue<double>& F_integral = d_lag_surface_force_integral[part];
+        F_integral.zero();
         double DP_rhs_integral = 0.0;
         double surface_area = 0.0;
         NumericVector<double>* X_vec = d_X_half_vecs[part];
@@ -1013,6 +1022,8 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                     F -= (F * n) * n;
                 }
 
+                for (unsigned int d = 0; d < NDIM; ++d) F_integral(d) += F(d) * JxW[qp];
+
                 // Add the boundary forces to the right-hand-side vector.
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
@@ -1043,6 +1054,8 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                 DP_rhs_vec->add_vector(DP_rhs_e, DP_dof_indices);
             }
         }
+
+        SAMRAI_MPI::sumReduction(&F_integral(0), NDIM);
 
         // Solve for F.
         d_fe_data_managers[part]->computeL2Projection(
@@ -1851,6 +1864,7 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     d_initial_velocity_fcn_data.resize(d_num_parts);
     d_lag_surface_pressure_fcn_data.resize(d_num_parts);
     d_lag_surface_force_fcn_data.resize(d_num_parts);
+    d_lag_surface_force_integral.resize(d_num_parts);
 
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.

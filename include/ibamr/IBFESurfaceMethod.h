@@ -265,6 +265,11 @@ public:
     void registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, unsigned int part = 0);
 
     /*!
+     * The current value of the integrated surface force.
+     */
+    const libMesh::VectorValue<double>& getSurfaceForceIntegral(unsigned int part = 0) const;
+
+    /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian
      * interaction routines.
      */
@@ -556,6 +561,7 @@ protected:
      */
     std::vector<LagSurfacePressureFcnData> d_lag_surface_pressure_fcn_data;
     std::vector<LagSurfaceForceFcnData> d_lag_surface_force_fcn_data;
+    std::vector<libMesh::VectorValue<double> > d_lag_surface_force_integral;
 
     /*
      * Nonuniform load balancing data structures.
