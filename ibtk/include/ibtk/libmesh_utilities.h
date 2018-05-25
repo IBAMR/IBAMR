@@ -482,13 +482,14 @@ outer_product(const libMesh::TypeVector<double>& u, const libMesh::TypeVector<do
 
 // WARNING: This code is specialized to the case in which q is a unit vector
 // aligned with the coordinate axes.
-inline void
+inline bool
 intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals,
                          libMesh::Edge* elem,
                          libMesh::Point r,
                          libMesh::VectorValue<double> q,
                          const double tol = 0.0)
 {
+    bool is_interior_intersection = false;
     t_vals.resize(0);
     switch (elem->type())
     {
@@ -528,6 +529,7 @@ intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals
         // Look for intersections within the element interior.
         if (u >= -1.0 - tol && u <= 1.0 + tol)
         {
+            is_interior_intersection = (u >= -1.0 && u <= 1.0);
             double t;
             if (std::abs(q(0)) >= std::abs(q(1)))
             {
@@ -598,6 +600,7 @@ intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals
             double u = u_vals[k];
             if (u >= -1.0 - tol && u <= 1.0 + tol)
             {
+                is_interior_intersection = (u >= -1.0 && u <= 1.0);
                 double t;
                 if (std::abs(q(0)) >= std::abs(q(1)))
                 {
@@ -622,18 +625,19 @@ intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals
                    << " is not supported at this time.\n");
     }
     }
-    return;
+    return is_interior_intersection;
 } // intersect_line_with_edge
 
 // WARNING: This code is specialized to the case in which q is a unit vector
 // aligned with the coordinate axes.
-inline void
+inline bool
 intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals,
                          libMesh::Face* elem,
                          libMesh::Point r,
                          libMesh::VectorValue<double> q,
                          const double tol = 0.0)
 {
+    bool is_interior_intersection = false;
     t_vals.resize(0);
     switch (elem->type())
     {
@@ -688,6 +692,7 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
             // Look for intersections within the element interior.
             if (u >= 0.0 - tol && v >= 0.0 -tol && (u + v) <= 1.0 + tol)
             {
+                is_interior_intersection = (u >= 0.0 && v >= 0.0 && (u + v) <= 1.0);
                 double t;
                 if (std::abs(q(0)) >= std::abs(q(1)) && std::abs(q(0)) >= std::abs(q(2)))
                 {
@@ -795,6 +800,7 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
 
                 if (u >= 0.0 - tol && u <= 1.0 + tol)
                 {
+                    is_interior_intersection = (u >= 0.0 && u <= 1.0 && v >= 0.0 && v <= 0.0);
                     double t;
                     if (std::abs(q(0)) >= std::abs(q(1)) && std::abs(q(0)) >= std::abs(q(2)))
                     {
@@ -828,7 +834,7 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
                    << " is not supported at this time.\n");
     }
     }
-    return;
+    return is_interior_intersection;
 } // intersect_line_with_face
 
 struct DofObjectComp : std::binary_function<const libMesh::DofObject* const, const libMesh::DofObject* const, bool>

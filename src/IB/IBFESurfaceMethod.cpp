@@ -1482,17 +1482,15 @@ struct IndexOrder : std::binary_function<SAMRAI::hier::Index<NDIM>, SAMRAI::hier
     {
         return (lhs(0) < rhs(0)
 #if (NDIM > 1)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM > 2)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
-                    );
+        );
     }
 };
-}
+} // namespace
 
 void
 IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
@@ -1561,9 +1559,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
         const double* const x_lower = patch_geom->getXLower();
         const double* const dx = patch_geom->getDx();
 
-        SideData<NDIM, int> num_intersections(patch_box, 1, IntVector<NDIM>(1));
-        num_intersections.fillAll(0);
-        std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder> intersection_points;
+        boost::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_points;
 
         // Loop over the elements.
         for (size_t e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -1588,9 +1584,32 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
             {
                 X_node_cache[k] = elem->point(k);
                 libMesh::Point& x = x_node_cache[k];
+                for (unsigned int d = 0; d < NDIM; ++d) x(d) = X_ghost_vec(X_dof_indices[d][k]);
+
+                if (d_perturb_fe_mesh_nodes)
+                {
+                    // Perturb the mesh configuration to keep the FE mesh nodes
+                    // away from cell edges, nodes, and centers.
+                    //
+                    // This implies that we only have to deal with multiple
+                    // intersections along element edges, and not at element
+                    // nodes.
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        const int i_s = std::floor((x(d) - x_lower[d]) / dx[d]) + patch_lower[d];
+                        for (int shift = 0; shift <= 2; ++shift)
+                        {
+                            const double x_s =
+                                x_lower[d] + dx[d] * (static_cast<double>(i_s - patch_lower[d]) + 0.5 * shift);
+                            const double tol = 1.0e-4 * dx[d];
+                            if (x(d) <= x_s) x(d) = std::min(x_s - tol, x(d));
+                            if (x(d) >= x_s) x(d) = std::max(x_s + tol, x(d));
+                        }
+                    }
+                }
+
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    x(d) = X_ghost_vec(X_dof_indices[d][k]);
                     x_min[d] = std::min(x_min[d], x(d));
                     x_max[d] = std::max(x_max[d], x(d));
                 }
@@ -1630,7 +1649,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                             x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]) + 0.5));
                     }
                     std::vector<std::pair<double, libMesh::Point> > intersections;
-                    static const double tolerance = 1.0e-6;
+                    static const double tolerance = sqrt(std::numeric_limits<double>::epsilon());
 #if (NDIM == 2)
                     intersect_line_with_edge(intersections, static_cast<Edge*>(elem), r, q, tolerance);
 #endif
@@ -1644,26 +1663,36 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                         i_s(axis) = std::floor((x(axis) - x_lower[axis]) / dx[axis] + 0.5) + patch_lower[axis];
                         if (extended_box.contains(i_s))
                         {
-                            bool found_intersection_point = false;
+                            bool found_old_intersection_point = false;
                             for (int shift = -1; shift <= 1; ++shift)
                             {
                                 SideIndex<NDIM> i_s_shift = i_s;
                                 i_s_shift(axis) += shift;
-                                std::vector<libMesh::Point>& candidates = intersection_points[i_s_shift];
-                                for (std::vector<libMesh::Point>::iterator it = candidates.begin(); it != candidates.end(); ++it)
+                                std::vector<libMesh::Point>& candidates = intersection_points[axis][i_s_shift];
+                                for (std::vector<libMesh::Point>::iterator it = candidates.begin();
+                                     it != candidates.end();
+                                     ++it)
                                 {
-                                    if (it->absolute_fuzzy_equals(x, 1.0e-3*dx[axis]))
+                                    if (it->absolute_fuzzy_equals(x, 1.0e-5 * dx[axis]))
                                     {
-                                        found_intersection_point = true;
+                                        found_old_intersection_point = true;
+                                        plog << "==========\n";
+                                        plog << "multiple intersections detected:\n";
+                                        plog << "  axis = " << axis << "\n";
+                                        plog << "  x  = " << x << "\n";
+                                        plog << "  x' = " << *it << "\n";
+                                        plog << "  |x - x'| = " << (x - *it).norm() << "\n";
+                                        plog << "  |x - x'|/dx = " << (x - *it).norm() / dx[axis] << "\n";
+                                        plog << "  shift = " << shift << "\n";
+                                        plog << "  reference coords = " << intersections[k].second << "\n";
                                     }
                                 }
                             }
-                            if (!found_intersection_point)
+                            if (!found_old_intersection_point)
                             {
                                 intersection_ref_coords.push_back(intersections[k].second);
                                 intersection_indices.push_back(i_s);
-                                num_intersections(i_s) += 1;
-                                intersection_points[i_s].push_back(x);
+                                intersection_points[axis][i_s].push_back(x);
                             }
                         }
                     }
@@ -1688,33 +1717,33 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
             {
                 const SideIndex<NDIM>& i_s = intersection_indices[ip];
                 const unsigned int axis = i_s.getAxis();
-                if (num_intersections(i_s) > 1)
-                {
-
-                }
 #if !defined(NDEBUG)
-                VectorValue<double> x;
-                interpolate(x, ip, x_node, phi);
-                for (unsigned int d = 0; d < NDIM; ++d)
+                if (!d_perturb_fe_mesh_nodes)
                 {
-                    if (d == axis)
+                    VectorValue<double> x;
+                    interpolate(x, ip, x_node, phi);
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        const double x_lower_bound = x_lower[d] +
-                                                     (static_cast<double>(i_s(d) - patch_lower[d]) - 0.5) * dx[d] -
-                                                     sqrt(std::numeric_limits<double>::epsilon());
-                        const double x_upper_bound = x_lower[d] +
-                                                     (static_cast<double>(i_s(d) - patch_lower[d]) + 0.5) * dx[d] +
-                                                     sqrt(std::numeric_limits<double>::epsilon());
-                        TBOX_ASSERT(x_lower_bound <= x(d) && x(d) <= x_upper_bound);
-                    }
-                    else
-                    {
-                        const double x_intersection =
-                            x_lower[d] + (static_cast<double>(i_s(d) - patch_lower[d]) + 0.5) * dx[d];
-                        const double x_interp = x(d);
-                        const double rel_diff = std::abs(x_intersection - x_interp) /
-                                                std::max(1.0, std::max(std::abs(x_intersection), std::abs(x_interp)));
-                        TBOX_ASSERT(rel_diff <= sqrt(std::numeric_limits<double>::epsilon()));
+                        if (d == axis)
+                        {
+                            const double x_lower_bound = x_lower[d] +
+                                                         (static_cast<double>(i_s(d) - patch_lower[d]) - 0.5) * dx[d] -
+                                                         sqrt(std::numeric_limits<double>::epsilon());
+                            const double x_upper_bound = x_lower[d] +
+                                                         (static_cast<double>(i_s(d) - patch_lower[d]) + 0.5) * dx[d] +
+                                                         sqrt(std::numeric_limits<double>::epsilon());
+                            TBOX_ASSERT(x_lower_bound <= x(d) && x(d) <= x_upper_bound);
+                        }
+                        else
+                        {
+                            const double x_intersection =
+                                x_lower[d] + (static_cast<double>(i_s(d) - patch_lower[d]) + 0.5) * dx[d];
+                            const double x_interp = x(d);
+                            const double rel_diff =
+                                std::abs(x_intersection - x_interp) /
+                                std::max(1.0, std::max(std::abs(x_intersection), std::abs(x_interp)));
+                            TBOX_ASSERT(rel_diff <= sqrt(std::numeric_limits<double>::epsilon()));
+                        }
                     }
                 }
 #endif
@@ -1876,6 +1905,7 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
         FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density);
     d_ghosts = 0;
     d_use_jump_conditions = false;
+    d_perturb_fe_mesh_nodes = true;
     d_normalize_pressure_jump = false;
     d_use_consistent_mass_matrix = true;
     d_use_direct_forcing = false;
@@ -2030,7 +2060,11 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 
     // Force computation settings.
     if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");
-    if (db->isBool("normalize_pressure_jump")) d_normalize_pressure_jump = db->getBool("normalize_pressure_jump");
+    if (d_use_jump_conditions)
+    {
+        if (db->isBool("perturb_fe_mesh_nodes")) d_perturb_fe_mesh_nodes = db->getBool("perturb_fe_mesh_nodes");
+        if (db->isBool("normalize_pressure_jump")) d_normalize_pressure_jump = db->getBool("normalize_pressure_jump");
+    }
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
     if (db->isBool("use_direct_forcing")) d_use_direct_forcing = db->getBool("use_direct_forcing");

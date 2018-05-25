@@ -539,6 +539,7 @@ protected:
     std::vector<IBTK::FEDataManager::InterpSpec> d_interp_spec;
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
     bool d_use_jump_conditions;
+    bool d_perturb_fe_mesh_nodes;
     bool d_normalize_pressure_jump;
     std::vector<libMesh::FEFamily> d_fe_family;
     std::vector<libMesh::Order> d_fe_order;
