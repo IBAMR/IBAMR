@@ -121,6 +121,21 @@ IBFEDirectForcingKinematics::IBFEDirectForcingKinematics(const std::string& obje
         d_registered_for_restart = true;
     }
 
+    // Set some default values.
+    d_quaternion_current = Eigen::Quaterniond::Identity();
+    d_quaternion_half = Eigen::Quaterniond::Identity();
+    d_quaternion_new = Eigen::Quaterniond::Identity();
+    d_trans_vel_current = Eigen::Vector3d::Zero();
+    d_trans_vel_half = Eigen::Vector3d::Zero();
+    d_trans_vel_new = Eigen::Vector3d::Zero();
+    d_rot_vel_current = Eigen::Vector3d::Zero();
+    d_rot_vel_half = Eigen::Vector3d::Zero();
+    d_rot_vel_new = Eigen::Vector3d::Zero();
+    d_center_of_mass_initial = Eigen::Vector3d::Zero();
+    d_center_of_mass_current = Eigen::Vector3d::Zero();
+    d_center_of_mass_half = Eigen::Vector3d::Zero();
+    d_center_of_mass_new = Eigen::Vector3d::Zero();
+    d_inertia_tensor_initial = Eigen::Matrix3d::Zero();
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -368,7 +383,7 @@ IBFEDirectForcingKinematics::computeLagrangianForce(PetscVector<double>& F_petsc
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 
     bool all_imposed_dofs = true;
-    for (int k = 0; k <= s_max_free_dofs; ++k)
+    for (int k = 0; k < s_max_free_dofs; ++k)
     {
         all_imposed_dofs = all_imposed_dofs && !d_solve_rigid_vel[k];
     }
@@ -394,7 +409,7 @@ IBFEDirectForcingKinematics::postprocessIntegrateData(double /*current_time*/, d
     d_quaternion_current = d_quaternion_new;
 
     return;
-} // preprocessIntegrateData
+} // postprocessIntegrateData
 
 void
 IBFEDirectForcingKinematics::putToDatabase(Pointer<Database> db)

@@ -125,7 +125,7 @@ public:
     virtual void setSolveRigidBodyVelocity(const IBTK::FreeRigidDOFVector& solve_rigid_dofs);
 
     /*!
-     * Initialize kinematics data.
+     * Initialize kinematics data only initially.
      */
     virtual void initializeKinematicsData(bool initial_time = true);
 
@@ -185,45 +185,7 @@ public:
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
-private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    IBFEDirectForcingKinematics();
-
-    /*!
-     * \brief Copy constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     *
-     * \param from The value to copy to this object.
-     */
-    IBFEDirectForcingKinematics(const IBFEDirectForcingKinematics& from);
-
-    /*!
-     * \brief Assignment operator.
-     *
-     * \note This operator is not implemented and should not be used.
-     *
-     * \param that The value to assign to this object.
-     *
-     * \return A reference to this object.
-     */
-    IBFEDirectForcingKinematics& operator=(const IBFEDirectForcingKinematics& that);
-
-    /*!
-     * Read input values from a given database.
-     */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
-
-    /*!
-     * Read object state from the restart file and initialize class data
-     * members.
-     */
-    void getFromRestart();
-
+protected:
     /*!
      * Compute center of mass of the structure.
      */
@@ -233,24 +195,6 @@ private:
      * Compute moment of inertia tensor for the structure.
      */
     void computeMOIOfStructure(Eigen::Matrix3d& I, const Eigen::Vector3d& X0);
-
-    /*!
-     * Compute the Lagrangian force at the specified time within the current
-     * time interval for structure that has all the imposed DOFs.
-     */
-    void computeImposedLagrangianForceDensity(libMesh::PetscVector<double>& F_vec,
-                                              libMesh::PetscVector<double>& X_vec,
-                                              libMesh::PetscVector<double>& U_vec,
-                                              const double data_time);
-
-    /*!
-     * Compute the Lagrangian force at the specified time within the current
-     * time interval for structure that has both kinds of DOFs (free and imposed).
-     */
-    void computeMixedLagrangianForceDensity(libMesh::PetscVector<double>& F_vec,
-                                            libMesh::PetscVector<double>& X_vec,
-                                            libMesh::PetscVector<double>& U_vec,
-                                            const double data_time);
 
     /*
      * The current time step interval.
@@ -297,6 +241,63 @@ private:
      * restart database.
      */
     bool d_registered_for_restart;
+
+private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    IBFEDirectForcingKinematics();
+
+    /*!
+     * \brief Copy constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     *
+     * \param from The value to copy to this object.
+     */
+    IBFEDirectForcingKinematics(const IBFEDirectForcingKinematics& from);
+
+    /*!
+     * \brief Assignment operator.
+     *
+     * \note This operator is not implemented and should not be used.
+     *
+     * \param that The value to assign to this object.
+     *
+     * \return A reference to this object.
+     */
+    IBFEDirectForcingKinematics& operator=(const IBFEDirectForcingKinematics& that);
+
+    /*!
+     * Read input values from a given database.
+     */
+    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
+
+    /*!
+     * Read object state from the restart file and initialize class data
+     * members.
+     */
+    void getFromRestart();
+
+    /*!
+     * Compute the Lagrangian force at the specified time within the current
+     * time interval for structure that has all the imposed DOFs.
+     */
+    void computeImposedLagrangianForceDensity(libMesh::PetscVector<double>& F_vec,
+                                              libMesh::PetscVector<double>& X_vec,
+                                              libMesh::PetscVector<double>& U_vec,
+                                              const double data_time);
+
+    /*!
+     * Compute the Lagrangian force at the specified time within the current
+     * time interval for structure that has both kinds of DOFs (free and imposed).
+     */
+    void computeMixedLagrangianForceDensity(libMesh::PetscVector<double>& F_vec,
+                                            libMesh::PetscVector<double>& X_vec,
+                                            libMesh::PetscVector<double>& U_vec,
+                                            const double data_time);
 };
 } // namespace IBAMR
 

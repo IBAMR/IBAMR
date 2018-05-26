@@ -45,6 +45,7 @@
 #include "IntVector.h"
 #include "LoadBalancer.h"
 #include "PatchHierarchy.h"
+#include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBStrategy.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/libmesh_utilities.h"
@@ -377,6 +378,13 @@ public:
                               double kappa,
                               libMesh::QBase* qrule1 = NULL,
                               libMesh::QBase* qrule2 = NULL);
+    
+    /*!
+     * Register the (optional) direct forcing kinematics object with the finite
+     * element mesh.
+     */
+    void registerDirectForcingKinematics(SAMRAI::tbox::Pointer<IBAMR::IBFEDirectForcingKinematics> data,
+                                         unsigned int part = 0);
 
     /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian
@@ -746,6 +754,11 @@ protected:
      * Functions used to compute the first Piola-Kirchhoff stress tensor.
      */
     std::vector<std::vector<PK1StressFcnData> > d_PK1_stress_fcn_data;
+
+    /*
+     * Objects used to impose direct forcing kinematics.
+     */
+    std::vector<SAMRAI::tbox::Pointer<IBAMR::IBFEDirectForcingKinematics> > d_direct_forcing_kinematics_data;
 
     /*
      * Functions used to compute additional body and surface forces on the

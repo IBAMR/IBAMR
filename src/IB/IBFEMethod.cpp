@@ -591,6 +591,15 @@ IBFEMethod::constrainPartOverlap(const unsigned int part1,
     }
 }
 
+void
+IBFEMethod::registerDirectForcingKinematics(Pointer<IBFEDirectForcingKinematics> data, unsigned int part)
+{
+    TBOX_ASSERT(part < d_num_parts);
+    d_direct_forcing_kinematics_data[part] = data;
+    return;
+} // registerDirectForcingKinematics
+
+
 const IntVector<NDIM>&
 IBFEMethod::getMinimumGhostCellWidth() const
 {
@@ -622,7 +631,7 @@ IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDI
 } // setupTagBuffer
 
 void
-IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
+IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
     d_current_time = current_time;
     d_new_time = new_time;
@@ -715,6 +724,11 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
             d_Phi_systems[part]->solution->close();
             d_Phi_systems[part]->solution->localize(*d_Phi_half_vecs[part]);
         }
+
+        if (d_direct_forcing_kinematics_data[part])
+        {
+            d_direct_forcing_kinematics_data[part]->preprocessIntegrateData(current_time, new_time, num_cycles);
+        }
     }
 
     // Update the mask data.
@@ -723,7 +737,7 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
 } // preprocessIntegrateData
 
 void
-IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
+IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
@@ -761,6 +775,11 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
             *d_Phi_systems[part]->solution = *d_Phi_half_vecs[part];
             d_Phi_systems[part]->solution->close();
             d_Phi_systems[part]->solution->localize(*d_Phi_systems[part]->current_local_solution);
+        }
+
+        if (d_direct_forcing_kinematics_data[part])
+        {
+            d_direct_forcing_kinematics_data[part]->postprocessIntegrateData(current_time, new_time, num_cycles);
         }
 
         // Update the coordinate mapping dX = X - s.
@@ -888,6 +907,12 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
+
+        if (d_direct_forcing_kinematics_data[part])
+        {
+            d_direct_forcing_kinematics_data[part]->forwardEulerStep(
+                current_time, new_time, *d_X_current_vecs[part], *d_X_half_vecs[part], *d_X_new_vecs[part]);
+        }
     }
     return;
 } // eulerStep
@@ -906,6 +931,11 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
+        if (d_direct_forcing_kinematics_data[part])
+        {
+            d_direct_forcing_kinematics_data[part]->midpointStep(
+                current_time, new_time, *d_X_current_vecs[part], *d_X_half_vecs[part], *d_X_new_vecs[part]);
+        }
     }
     return;
 } // midpointStep
@@ -927,6 +957,11 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
+        if (d_direct_forcing_kinematics_data[part])
+        {
+            d_direct_forcing_kinematics_data[part]->trapezoidalStep(
+                current_time, new_time, *d_X_current_vecs[part], *d_X_half_vecs[part], *d_X_new_vecs[part]);
+        }
     }
     return;
 } // trapezoidalStep
@@ -942,6 +977,11 @@ IBFEMethod::computeLagrangianForce(const double data_time)
             computeStressNormalization(*d_Phi_half_vecs[part], *d_X_half_vecs[part], data_time, part);
         }
         computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
+        if (d_direct_forcing_kinematics_data[part])
+        {
+            d_direct_forcing_kinematics_data[part]->computeLagrangianForce(
+                *d_F_half_vecs[part], *d_X_half_vecs[part], *d_U_half_vecs[part], data_time);
+        }
     }
     if (d_has_overlapping_parts)
     {
@@ -1294,6 +1334,12 @@ IBFEMethod::initializeFEData()
             LinearImplicitSystem& Phi_system = equation_systems->get_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
             Phi_system.assemble_before_solve = false;
             Phi_system.assemble();
+        }
+
+        bool initial_time = !from_restart;
+        if (d_direct_forcing_kinematics_data[part])
+        {
+            d_direct_forcing_kinematics_data[part]->initializeKinematicsData(initial_time);
         }
 
         // Set up boundary conditions.  Specifically, add appropriate boundary
@@ -3153,6 +3199,7 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     d_has_lag_body_source_parts = false;
     d_lag_body_source_part.resize(d_num_parts, false);
     d_lag_body_source_fcn_data.resize(d_num_parts);
+    d_direct_forcing_kinematics_data.resize(d_num_parts, Pointer<IBFEDirectForcingKinematics>(NULL));
 
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.
