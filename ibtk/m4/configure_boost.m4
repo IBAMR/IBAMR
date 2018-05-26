@@ -19,11 +19,11 @@ if test x"$USING_BUNDLED_BOOST" = xyes ; then
   fi
   AC_MSG_NOTICE([configuring bundled Boost library])
   BOOST_CPPFLAGS="-I$CONTRIB_SRCDIR"
-  CPPFLAGS_PREPEND($BOOST_CPPFLAGS)
   AC_DEFINE([HAVE_BOOST], [1], [Defined if the requested minimum BOOST version is satisfied])
 else
   USING_BUNDLED_BOOST=no
 fi
+CPPFLAGS_PREPEND($BOOST_CPPFLAGS)
 AC_CHECK_HEADER([boost/array.hpp],,AC_MSG_ERROR([cannot find working boost/array.hpp]))
 AC_CHECK_HEADER([boost/multi_array.hpp],,AC_MSG_ERROR([cannot find working boost/multi_array.hpp]))
 PACKAGE_CPPFLAGS_PREPEND("$BOOST_CPPFLAGS")
