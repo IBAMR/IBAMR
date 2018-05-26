@@ -43,48 +43,24 @@
 
 #include "Eigen/Core"
 #include "Eigen/Geometry"
-#include "GriddingAlgorithm.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "ibtk/FEDataManager.h"
 #include "ibtk/ibtk_utilities.h"
+#include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+#include "tbox/Serializable.h"
 
-namespace IBTK
-{
-class RobinPhysBdryPatchStrategy;
-} // namespace IBTK
 namespace SAMRAI
 {
-namespace hier
-{
-template <int DIM>
-class BasePatchHierarchy;
-template <int DIM>
-class BasePatchLevel;
-} // namespace hier
 namespace tbox
 {
 class Database;
-template <class TYPE>
-class Array;
 } // namespace tbox
-namespace xfer
-{
-template <int DIM>
-class CoarsenSchedule;
-template <int DIM>
-class RefineSchedule;
-} // namespace xfer
 } // namespace SAMRAI
+namespace IBAMR
+{
+class IBFEMethod;
+} // namespace IBAMR
 namespace libMesh
 {
-class EquationSystems;
-class Mesh;
-class Point;
-class System;
-template <typename T>
-class NumericVector;
 template <typename T>
 class PetscVector;
 } // namespace libMesh
@@ -105,10 +81,8 @@ public:
      */
     IBFEDirectForcingKinematics(const std::string& object_name,
                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                libMesh::Mesh* mesh,
-                                IBTK::FEDataManager* fe_data_manager,
-                                int level_number,
-                                double d_rho,
+                                SAMRAI::tbox::Pointer<IBAMR::IBFEMethod> ibfe_method_ops,
+                                int part,
                                 bool register_for_restart = true);
 
     /*!
@@ -145,99 +119,64 @@ public:
     void registerKinematicsFunction(const KinematicsFcnData& data);
 
     /*!
-     * Return a pointer to the finite element data manager object.
+     * \brief Set what rigid DOFs need to be solved for this
+     * particular structure.
      */
-    IBTK::FEDataManager* getFEDataManager() const;
+    virtual void setSolveRigidBodyVelocity(const IBTK::FreeRigidDOFVector& solve_rigid_dofs);
+
+    /*!
+     * Initialize kinematics data.
+     */
+    virtual void initializeKinematicsData(bool initial_time = true);
+
+    /*!
+     * Preprocess kinematics before hierarchy integrates.
+     */
+    virtual void preprocessIntegrateData(double current_time, double new_time, int num_cycles);
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
-    void forwardEulerStep(double current_time,
-                          double new_time,
-                          PetscVector<double>& X_current_vec,
-                          PetscVector<double>& X_half_vec,
-                          PetscVector<double>& X_new_vec);
+    virtual void forwardEulerStep(double current_time,
+                                  double new_time,
+                                  libMesh::PetscVector<double>& X_current_petsc,
+                                  libMesh::PetscVector<double>& X_half_petsc,
+                                  libMesh::PetscVector<double>& X_new_petsc);
 
     /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
      * midpoint rule.
      */
-    void midpointStep(double current_time,
-                      double new_time,
-                      PetscVector<double>& X_current_vec,
-                      PetscVector<double>& X_half_vec,
-                      PetscVector<double>& X_new_vec);
+    virtual void midpointStep(double current_time,
+                              double new_time,
+                              libMesh::PetscVector<double>& X_current_petsc,
+                              libMesh::PetscVector<double>& X_half_petsc,
+                              libMesh::PetscVector<double>& X_new_petsc);
 
     /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
      * trapezoidal rule.
      */
-    void trapezoidalStep(double current_time,
-                         double new_time,
-                         PetscVector<double>& X_current_vec,
-                         PetscVector<double>& X_half_vec,
-                         PetscVector<double>& X_new_vec);
+    virtual void trapezoidalStep(double current_time,
+                                 double new_time,
+                                 libMesh::PetscVector<double>& X_current_petsc,
+                                 libMesh::PetscVector<double>& X_half_petsc,
+                                 libMesh::PetscVector<double>& X_new_petsc);
 
     /*!
      * Compute the Lagrangian force at the specified time within the current
      * time interval.
      */
-    void computeLagrangianForce(PetscVector<double>& F_vec,
-                                PetscVector<double>& X_vec,
-                                PetscVector<double>& U_vec,
-                                const double data_time);
+    virtual void computeLagrangianForce(libMesh::PetscVector<double>& F_petsc,
+                                        libMesh::PetscVector<double>& X_petsc,
+                                        libMesh::PetscVector<double>& U_petsc,
+                                        const double data_time);
 
-    /*
-     * Pointers to the patch hierarchy and gridding algorithm objects associated
-     * with this object.
+    /*!
+     * Postprocess kinematics after hierarchy integrates.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
-
-    /*
-     * The current time step interval.
-     */
-    double d_current_time, d_new_time, d_half_time;
-
-    /*
-     * FE data associated with this object.
-     */
-    libMesh::Mesh* d_mesh;
-    int d_level_number;
-    libMesh::EquationSystems* d_equation_systems;
-    IBTK::FEDataManager* d_fe_data_manager;
-    SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    libMesh::System *d_X_systems, *d_U_systems, *d_F_systems;
-    libMesh::PetscVector<double>*d_X_current_vec, *d_X_new_vec, *d_X_half_vec, *d_X_IB_ghost_vec;
-    libMesh::PetscVector<double>*d_U_current_vec, *d_U_new_vecs, *d_U_half_vecs;
-    libMesh::PetscVector<double>*d_F_half_vecs, *d_F_IB_ghost_vecs;
-
-    std::string d_object_name;
-
-    /*
-     * Density of the solid.
-     */
-    double d_rho;
-
-    // Center of mass.
-    Eigen::Vector3d d_center_of_mass_initial, d_center_of_mass_current, d_center_of_mass_half, d_center_of_mass_new;
-
-    // Quaternion of the body.
-    Eigen::Quaterniond d_quaternion_current, d_quaternion_half, d_quaternion_new;
-
-    // Indicate which rigid degrees of freedom to solve.
-    IBTK::FRDV d_solve_rigid_vel;
-
-    // Rigid body velocity of the structures.
-    Eigen::Vector3d d_trans_vel_current, d_trans_vel_half, d_trans_vel_new;
-    Eigen::Vector3d d_rot_vel_current, d_rot_vel_half, d_rot_vel_new;
-
-    /*
-     * A boolean value indicating whether the class is registered with the
-     * restart database.
-     */
-    bool d_registered_for_restart;
+    virtual void postprocessIntegrateData(double current_time, double new_time, int num_cycles);
 
     /*!
      * \brief Write out object state to the given database.
@@ -286,22 +225,78 @@ private:
     void getFromRestart();
 
     /*!
+     * Compute center of mass of the structure.
+     */
+    void computeCOMOfStructure(Eigen::Vector3d& X0);
+
+    /*!
+     * Compute moment of inertia tensor for the structure.
+     */
+    void computeMOIOfStructure(Eigen::Matrix3d& I, const Eigen::Vector3d& X0);
+
+    /*!
      * Compute the Lagrangian force at the specified time within the current
      * time interval for structure that has all the imposed DOFs.
      */
-    void computeImposedLagrangianForceDensity(PetscVector<double>& F_vec,
-                                              PetscVector<double>& X_vec,
-                                              PetscVector<double>& U_vec,
+    void computeImposedLagrangianForceDensity(libMesh::PetscVector<double>& F_vec,
+                                              libMesh::PetscVector<double>& X_vec,
+                                              libMesh::PetscVector<double>& U_vec,
                                               const double data_time);
 
     /*!
      * Compute the Lagrangian force at the specified time within the current
-     * time interval for structure that has some free DOFs.
+     * time interval for structure that has both kinds of DOFs (free and imposed).
      */
-    void computeFreeLagrangianForceDensity(PetscVector<double>& F_vec,
-                                           PetscVector<double>& X_vec,
-                                           PetscVector<double>& U_vec,
-                                           const double data_time);
+    void computeMixedLagrangianForceDensity(libMesh::PetscVector<double>& F_vec,
+                                            libMesh::PetscVector<double>& X_vec,
+                                            libMesh::PetscVector<double>& U_vec,
+                                            const double data_time);
+
+    /*
+     * The current time step interval.
+     */
+    double d_current_time, d_new_time, d_half_time;
+
+    /*
+     * IBFE method and the part number registered with IBFE method.
+     */
+    SAMRAI::tbox::Pointer<IBAMR::IBFEMethod> d_ibfe_method_ops;
+    int d_part;
+
+    /*
+     * Book-keeping
+     */
+    std::string d_object_name;
+
+    /*
+     * Rigid body kinematics of the body.
+     */
+    KinematicsFcnData d_kinematics;
+
+    /*
+     * Density of the solid.
+     */
+    double d_rho;
+
+    // Center of mass.
+    Eigen::Vector3d d_center_of_mass_initial, d_center_of_mass_current, d_center_of_mass_half, d_center_of_mass_new;
+
+    // Quaternion of the body.
+    Eigen::Quaterniond d_quaternion_current, d_quaternion_half, d_quaternion_new;
+
+    // Indicate which rigid degrees of freedom to solve.
+    IBTK::FRDV d_solve_rigid_vel;
+
+    // Rigid body velocity of the structure.
+    Eigen::Vector3d d_trans_vel_current, d_trans_vel_half, d_trans_vel_new;
+    Eigen::Vector3d d_rot_vel_current, d_rot_vel_half, d_rot_vel_new;
+    Eigen::Matrix3d d_inertia_tensor_initial;
+
+    /*
+     * A boolean value indicating whether the class is registered with the
+     * restart database.
+     */
+    bool d_registered_for_restart;
 };
 } // namespace IBAMR
 
