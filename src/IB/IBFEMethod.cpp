@@ -2104,12 +2104,12 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
 {
     if (!d_has_overlapping_parts) return;
 
-    std::vector<UniquePtr<NumericVector<double> > > F_rhs_vec(d_num_parts);
+    std::vector<NumericVector<double>*> F_rhs_vec(d_num_parts);
     for (unsigned int k = 0; k < d_num_parts; ++k)
     {
         if (d_is_overlapping_part[k])
         {
-            F_rhs_vec[k] = F_vec[k]->zero_clone();
+            F_rhs_vec[k] = F_vec[k]->zero_clone().release();  // \todo fix this when we update to C++11
         }
     }
 
@@ -2242,6 +2242,15 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
             d_fe_data_managers[k]->computeL2Projection(
                 *F_tmp_vec, *F_rhs_vec[k], FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
             F_vec[k]->add(*F_tmp_vec);
+        }
+    }
+
+    // Cleanup.
+    for (unsigned int k = 0; k < d_num_parts; ++k)
+    {
+        if (d_is_overlapping_part[k])
+        {
+            delete F_rhs_vec[k];
         }
     }
     return;
