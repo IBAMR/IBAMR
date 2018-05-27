@@ -360,8 +360,8 @@ IBFEInstrumentPanel::~IBFEInstrumentPanel()
     for (unsigned int ii = 0; ii < d_num_meters; ++ii)
     {
         delete d_exodus_io[ii];
-        delete d_meter_meshes[ii];
         delete d_meter_systems[ii];
+        delete d_meter_meshes[ii];
     }
 }
 
