@@ -53,7 +53,6 @@ CHECK_BUILTIN_PREFETCH
 # Checks for optional and required third-party libraries.
 ###########################################################################
 PACKAGE_INITIALIZE_ENVIRONMENT
-CONFIGURE_LIBMESH # must configure libMesh first to scope its configuration
 echo
 echo "=================================="
 echo "Configuring required package Boost"
@@ -63,6 +62,7 @@ BOOST_REQUIRE([1.57.0],[
   AC_MSG_WARN([could not find system Boost library, using bundled Boost library])
   USING_BUNDLED_BOOST=yes])
 CONFIGURE_BOOST("$ABSOLUTE_SRCDIR/ibtk/contrib/boost","\$(abs_top_builddir)/ibtk/contrib/boost")
+CONFIGURE_LIBMESH
 CONFIGURE_EIGEN("$ABSOLUTE_SRCDIR/ibtk/contrib/eigen","\$(abs_top_builddir)/ibtk/contrib/eigen")
 CONFIGURE_HDF5
 CONFIGURE_HYPRE
