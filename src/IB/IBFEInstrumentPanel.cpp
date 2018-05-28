@@ -513,6 +513,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
             elem->set_node(1) = d_meter_meshes[ii]->node_ptr(jj + 1);
             elem->set_node(2) = d_meter_meshes[ii]->node_ptr(jj + 2);
         }
+        d_meter_meshes[ii]->allow_renumbering(false);
         d_meter_meshes[ii]->prepare_for_use();
         d_exodus_io.push_back(new ExodusII_IO(*d_meter_meshes[ii]));
     } // loop over meters
