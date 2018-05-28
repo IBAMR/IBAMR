@@ -385,6 +385,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
     std::vector<dof_id_type> nodes;
     std::vector<boundary_id_type> bcs;
     std::vector<std::vector<dof_id_type> > temp_node_dof_IDs;
+    std::vector<std::set<dof_id_type> > temp_node_dof_ID_sets;
     std::vector<std::vector<libMesh::Point> > temp_nodes;
     std::vector<libMesh::Point> meter_centroids;
     boundary_info.build_node_list(nodes, bcs);
@@ -408,6 +409,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
     d_mean_pressure_values.resize(d_num_meters);
     d_flow_values.resize(d_num_meters);
     temp_node_dof_IDs.resize(d_num_meters);
+    temp_node_dof_ID_sets.resize(d_num_meters);
     temp_nodes.resize(d_num_meters);
     meter_centroids.resize(d_num_meters);
 
@@ -418,11 +420,22 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
         {
             if (d_nodeset_IDs_for_meters[jj] == bcs[ii])
             {
-                temp_node_dof_IDs[jj].push_back(nodes[ii]);
-                const Node* node = &mesh->node_ref(nodes[ii]);
-                temp_nodes[jj].push_back(*node);
-                meter_centroids[jj] += *node;
+                temp_node_dof_ID_sets[jj].insert(nodes[ii]);
             }
+        }
+    }
+
+    for (int jj = 0; jj < d_nodeset_IDs_for_meters.size(); ++jj)
+    {
+        for (std::set<dof_id_type>::iterator it = temp_node_dof_ID_sets[jj].begin();
+             it != temp_node_dof_ID_sets[jj].end();
+             ++it)
+        {
+            const dof_id_type node_id = *it;
+            temp_node_dof_IDs[jj].push_back(node_id);
+            const Node* node = &mesh->node_ref(node_id);
+            temp_nodes[jj].push_back(*node);
+            meter_centroids[jj] += *node;
         }
     }
 
