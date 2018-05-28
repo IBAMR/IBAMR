@@ -111,7 +111,7 @@ private:
     /*!
      * \brief update system data.
      */
-    void updateSystemData(IBAMR::IBFEMethod* ib_method_ops, int meter_num);
+    void updateSystemData(double& max_meter_radius, IBAMR::IBFEMethod* ib_method_ops, int meter_num);
 
     /*!
      * \brief write out data to file.
@@ -137,6 +137,13 @@ private:
      * \brief quad order used for the meter meshes.
      */
     libMesh::Order d_quad_order;
+    
+    /*!
+     * \brief whether we use a grid based quadrature rule.
+     * if false, then we default to using a high order Gauss
+     * quadrature.
+     */
+    bool d_use_QGrid;
 
     /*!
      * \brief total number of quadrature points in the meter mesh.
