@@ -506,6 +506,7 @@ IBFEMethod::constrainPartOverlap(const unsigned int part1,
     boost::array<const DofMap*, 2> F_dof_map, X_dof_map;
     boost::array<UniquePtr<FEBase>, 2> fe;
     boost::array<UniquePtr<PointLocatorBase>, 2> ploc;
+    boost::array<numeric_index_type, 2> first_local_idx, last_local_idx;
     for (int k = 0; k < 2; ++k)
     {
         es[k] = d_fe_data_managers[part_idx[k]]->getEquationSystems();
@@ -513,6 +514,9 @@ IBFEMethod::constrainPartOverlap(const unsigned int part1,
         F_dof_map[k] = &F_system.get_dof_map();
         System& X_system = es[k]->get_system<System>(FORCE_SYSTEM_NAME);
         X_dof_map[k] = &X_system.get_dof_map();
+        NumericVector<double>& X_vec = *X_system.solution;
+        first_local_idx[k] = X_vec.first_local_index();
+        last_local_idx[k] = X_vec.last_local_index();
         FEType fe_type = F_dof_map[k]->variable_type(0);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -546,6 +550,20 @@ IBFEMethod::constrainPartOverlap(const unsigned int part1,
         for (; el != end_el; ++el)
         {
             const Elem* const elem = *el;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X_dof_map[k]->dof_indices(elem, X_dof_indices[k][d], d);
+                for (std::vector<unsigned int>::iterator it = X_dof_indices[k][d].begin();
+                     it != X_dof_indices[k][d].end();
+                     ++it)
+                {
+                    const unsigned int idx = *it;
+                    if (idx < first_local_idx[k] || idx >= last_local_idx[k])
+                    {
+                        d_overlapping_part_ghost_idxs[part_idx[k]].insert(idx);
+                    }
+                }
+            }
             fe[k]->reinit(elem);
             for (unsigned int qp = 0; qp < qrule[k]->n_points(); qp++)
             {
@@ -560,7 +578,11 @@ IBFEMethod::constrainPartOverlap(const unsigned int part1,
                              it != X_dof_indices[(k + 1) % 2][d].end();
                              ++it)
                         {
-                            d_overlapping_part_ghost_idxs[(k + 1) % 2].insert(*it);
+                            const unsigned int idx = *it;
+                            if (idx < first_local_idx[(k + 1) % 2] || idx >= last_local_idx[(k + 1) % 2])
+                            {
+                                d_overlapping_part_ghost_idxs[part_idx[(k + 1) % 2]].insert(idx);
+                            }
                         }
                     }
                 }
