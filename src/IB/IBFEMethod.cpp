@@ -802,29 +802,74 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                 const double data_time)
 {
+    // Communicate ghost data.
+    for (unsigned int k = 0; k < u_ghost_fill_scheds.size(); ++k)
+    {
+        if (u_ghost_fill_scheds[k]) u_ghost_fill_scheds[k]->fillData(data_time);
+    }
+    std::vector<Pointer<RefineSchedule<NDIM> > > no_fill(u_ghost_fill_scheds.size(), NULL);
+
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         NumericVector<double>* X_vec = NULL;
         NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        NumericVector<double>* U_vec = NULL;
         if (MathUtilities<double>::equalEps(data_time, d_current_time))
         {
             X_vec = d_X_current_vecs[part];
-            U_vec = d_U_current_vecs[part];
         }
         else if (MathUtilities<double>::equalEps(data_time, d_half_time))
         {
             X_vec = d_X_half_vecs[part];
-            U_vec = d_U_half_vecs[part];
         }
         else if (MathUtilities<double>::equalEps(data_time, d_new_time))
         {
             X_vec = d_X_new_vecs[part];
-            U_vec = d_U_new_vecs[part];
         }
         X_vec->localize(*X_ghost_vec);
-        d_fe_data_managers[part]->interp(
-            u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time);
+    }
+
+    // Build the right-hand-sides to compute the interpolated data.
+    std::vector<NumericVector<double>*> U_rhs_vec(d_num_parts);
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        NumericVector<double>* U_vec = NULL;
+        if (MathUtilities<double>::equalEps(data_time, d_current_time))
+        {
+            U_vec = d_U_current_vecs[part];
+        }
+        else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+        {
+            U_vec = d_U_half_vecs[part];
+        }
+        else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+        {
+            U_vec = d_U_new_vecs[part];
+        }
+        U_rhs_vec[part] = U_vec->zero_clone().release();
+        NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        d_fe_data_managers[part]->interpWeighted(
+            u_data_idx, *U_rhs_vec[part], *X_ghost_vec, VELOCITY_SYSTEM_NAME, no_fill, data_time, /*close_F*/ false, /*close_X*/ false);
+    }
+
+    // Solve for the interpolated data.
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        NumericVector<double>* U_vec = NULL;
+        if (MathUtilities<double>::equalEps(data_time, d_current_time))
+        {
+            U_vec = d_U_current_vecs[part];
+        }
+        else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+        {
+            U_vec = d_U_half_vecs[part];
+        }
+        else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+        {
+            U_vec = d_U_new_vecs[part];
+        }
+        d_fe_data_managers[part]->computeL2Projection(
+            *U_vec, *U_rhs_vec[part], VELOCITY_SYSTEM_NAME, d_interp_spec[part].use_consistent_mass_matrix, /*close_F*/ true);
+        delete U_rhs_vec[part];
     }
     return;
 } // interpolateVelocity
@@ -929,6 +974,8 @@ IBFEMethod::spreadForce(const int f_data_idx,
                         const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+
+    // Communicate ghost data.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         PetscVector<double>* X_vec = d_X_half_vecs[part];
@@ -937,8 +984,28 @@ IBFEMethod::spreadForce(const int f_data_idx,
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         X_vec->localize(*X_ghost_vec);
         F_vec->localize(*F_ghost_vec);
-        d_fe_data_managers[part]->spread(
-            f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op, data_time);
+    }
+
+    // Spread interior force density values.
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
+        d_fe_data_managers[part]->spread(f_data_idx,
+                                         *F_ghost_vec,
+                                         *X_ghost_vec,
+                                         FORCE_SYSTEM_NAME,
+                                         f_phys_bdry_op,
+                                         data_time,
+                                         /*close_F*/ false,
+                                         /*close_X*/ false);
+    }
+
+    // Handle any transmission conditions.
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         if (d_split_normal_force || d_split_tangential_force)
         {
             if (d_use_jump_conditions && d_split_normal_force)

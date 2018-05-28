@@ -381,7 +381,9 @@ public:
                 libMesh::NumericVector<double>& X,
                 const std::string& system_name,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                double fill_data_time);
+                double fill_data_time,
+                bool close_F = true,
+                bool close_X = true);
 
     /*!
      * \brief Spread a density from the FE mesh to the Cartesian grid using a
@@ -393,7 +395,9 @@ public:
                 const std::string& system_name,
                 const SpreadSpec& spread_spec,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                double fill_data_time);
+                double fill_data_time,
+                bool close_F = true,
+                bool close_X = true);
 
     /*!
      * \brief Prolong a value or a density from the FE mesh to the Cartesian
@@ -404,7 +408,9 @@ public:
                      libMesh::NumericVector<double>& X,
                      const std::string& system_name,
                      bool is_density = true,
-                     bool accumulate_on_grid = true);
+                     bool accumulate_on_grid = true,
+                     bool close_F = true,
+                     bool close_X = true);
 
     /*!
      * \brief Interpolate a value from the Cartesian grid to the FE mesh using
@@ -420,7 +426,9 @@ public:
                    const std::string& system_name,
                    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds =
                        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-                   double fill_data_time = 0.0);
+                   double fill_data_time = 0.0,
+                   bool close_F = true,
+                   bool close_X = true);
 
     /*!
      * \brief Interpolate a value from the Cartesian grid to the FE mesh using a
@@ -437,7 +445,9 @@ public:
                    const InterpSpec& interp_spec,
                    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds =
                        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-                   double fill_data_time = 0.0);
+                   double fill_data_time = 0.0,
+                   bool close_F = true,
+                   bool close_X = true);
 
     /*!
      * \brief Interpolate a value from the Cartesian grid to the FE mesh using
@@ -449,7 +459,8 @@ public:
                 const std::string& system_name,
                 const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds =
                     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-                double fill_data_time = 0.0);
+                double fill_data_time = 0.0,
+                bool close_X = true);
 
     /*!
      * \brief Interpolate a value from the Cartesian grid to the FE mesh using a
@@ -462,7 +473,8 @@ public:
                 const InterpSpec& interp_spec,
                 const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds =
                     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-                double fill_data_time = 0.0);
+                double fill_data_time = 0.0,
+                bool close_X = true);
 
     /*!
      * \brief Restrict a value from the Cartesian grid to the FE mesh.
@@ -471,7 +483,8 @@ public:
                       libMesh::NumericVector<double>& F,
                       libMesh::NumericVector<double>& X,
                       const std::string& system_name,
-                      bool use_consistent_mass_matrix = true);
+                      bool use_consistent_mass_matrix = true,
+                      bool close_X = true);
 
     /*!
      * \return Pointers to a linear solver and sparse matrix corresponding to a
@@ -492,6 +505,7 @@ public:
                              libMesh::NumericVector<double>& F,
                              const std::string& system_name,
                              bool consistent_mass_matrix = true,
+                             bool close_F = true,
                              double tol = 1.0e-6,
                              unsigned int max_its = 100);
 
