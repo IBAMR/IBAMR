@@ -829,7 +829,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     }
 
     // Build the right-hand-sides to compute the interpolated data.
-    std::vector<NumericVector<double>*> U_rhs_vec(d_num_parts);
+    std::vector<PetscVector<double>*> U_rhs_vec(d_num_parts);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         NumericVector<double>* U_vec = NULL;
@@ -845,10 +845,12 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         {
             U_vec = d_U_new_vecs[part];
         }
-        U_rhs_vec[part] = U_vec->zero_clone().release();
+        U_rhs_vec[part] = static_cast<PetscVector<double>*>(U_vec->zero_clone().release());
         NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         d_fe_data_managers[part]->interpWeighted(
             u_data_idx, *U_rhs_vec[part], *X_ghost_vec, VELOCITY_SYSTEM_NAME, no_fill, data_time, /*close_F*/ false, /*close_X*/ false);
+        int ierr = VecAssemblyBegin(U_rhs_vec[part]->vec());
+        IBTK_CHKERRQ(ierr);
     }
 
     // Solve for the interpolated data.
@@ -867,8 +869,14 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         {
             U_vec = d_U_new_vecs[part];
         }
-        d_fe_data_managers[part]->computeL2Projection(
-            *U_vec, *U_rhs_vec[part], VELOCITY_SYSTEM_NAME, d_interp_spec[part].use_consistent_mass_matrix, /*close_F*/ true);
+        int ierr = VecAssemblyEnd(U_rhs_vec[part]->vec());
+        IBTK_CHKERRQ(ierr);
+        d_fe_data_managers[part]->computeL2Projection(*U_vec,
+                                                      *U_rhs_vec[part],
+                                                      VELOCITY_SYSTEM_NAME,
+                                                      d_interp_spec[part].use_consistent_mass_matrix,
+                                                      /*close_U*/ true,
+                                                      /*close_F*/ false);
         delete U_rhs_vec[part];
     }
     return;
