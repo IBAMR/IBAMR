@@ -148,7 +148,7 @@ private:
     /*!
      * \brief total number of quadrature points in the meter mesh.
      */
-    std::vector<int> d_num_quad_points;
+    std::vector<unsigned int> d_num_quad_points;
 
     /*!
      * \brief part ID where the meter mesh lives, i.e. its parent mesh.

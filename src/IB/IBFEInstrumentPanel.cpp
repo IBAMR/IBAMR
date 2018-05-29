@@ -496,7 +496,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
     }
 
     // build the meshes
-    for (int ii = 0; ii < d_num_meters; ++ii)
+    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
     {
         d_meter_meshes[ii]->set_spatial_dimension(NDIM);
         d_meter_meshes[ii]->set_mesh_dimension(NDIM - 1);
@@ -507,12 +507,12 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
         d_meter_meshes[ii]->add_point(meter_centroids[ii], 0);
 
         // add nodes
-        for (int jj = 0; jj < d_num_nodes[ii]; ++jj)
+        for (unsigned int jj = 0; jj < d_num_nodes[ii]; ++jj)
         {
             d_meter_meshes[ii]->add_point(d_nodes[ii][jj], jj + 1);
         }
 
-        for (int jj = 0; jj < d_num_nodes[ii]; ++jj)
+        for (unsigned int jj = 0; jj < d_num_nodes[ii]; ++jj)
         {
             Elem* elem = new Tri3;
             elem->set_id(jj);
@@ -581,8 +581,12 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
 
     // loop over meters, update system data, and get the maximum
     // radius over all the meters in this FE part.
+    // the radius of a meter is defined to be the largest distance
+    // from the centroid to a node.  We are defining it in this way
+    // for robustness, in case some of the meters get squashed
+    // or flattened.
     double max_radius = 0.0;
-    for (int jj = 0; jj < d_num_meters; ++jj)
+    for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
         double radius = 0.0;
         // update FE system data for meter_mesh
@@ -616,8 +620,10 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
     // otherwise just use a really high order Gauss quadrature.
     else d_quad_order = FORTIETH;
         
+    std::cout << "d_quad_order = " << d_quad_order << "\n";
+    
     // store the number of quadrature points for each meter mesh
-    for (int jj = 0; jj < d_num_meters; ++jj)
+    for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
         d_num_quad_points[jj] = 0;
         const LinearImplicitSystem& displacement_sys =
@@ -683,7 +689,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
             if(d_use_QGrid) qrule.reset(new QGrid(NDIM-1, d_quad_order));
             else qrule.reset(new QGauss(NDIM-1, d_quad_order));
             fe_elem->attach_quadrature_rule(qrule.get());
-
+            std::cout << "order for meter " << jj << ": " << qrule->get_order() << "\n";
             //  for evaluating the displacement system
             const std::vector<Real>& JxW = fe_elem->get_JxW();
             const std::vector<std::vector<Real> >& phi = fe_elem->get_phi();
@@ -711,11 +717,11 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
                 }
 
                 // compute normal vector to element
-                const libMesh::Point foo1 = *elem->node_ptr(1) - *elem->node_ptr(0);
-                const libMesh::Point foo2 = *elem->node_ptr(2) - *elem->node_ptr(1);
-                libMesh::Point foo3 = foo1.cross(foo2).unit();
+                const libMesh::Point tau1 = *elem->node_ptr(1) - *elem->node_ptr(0);
+                const libMesh::Point tau2 = *elem->node_ptr(2) - *elem->node_ptr(1);
+                libMesh::Point normal_temp = tau1.cross(tau2).unit();
                 Vector normal;
-                for (unsigned int d = 0; d < NDIM; ++d) normal[d] = foo3(d);
+                for (unsigned int d = 0; d < NDIM; ++d) normal[d] = normal_temp(d);
 
                 // loop over quadrature points, compute their physical locations
                 // after displacement, and stores their indices.
@@ -916,7 +922,6 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
 
         // loop over elements again to compute mass flux and mean pressure
         double flux_correction = 0.0;
-        double area = 0.0;
         MeshBase::const_element_iterator el = d_meter_meshes[jj]->active_local_elements_begin();
         const MeshBase::const_element_iterator end_el = d_meter_meshes[jj]->active_local_elements_end();
         for (; el != end_el; ++el)
@@ -936,11 +941,9 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
             }
 
             // compute normal vector to element
-            const libMesh::Point foo1 = *elem->node_ptr(1) - *elem->node_ptr(0);
-            const libMesh::Point foo2 = *elem->node_ptr(2) - *elem->node_ptr(1);
-            const libMesh::Point normal = (foo1.cross(foo2)).unit();
-
-            area += 0.5 * (foo1.cross(foo2)).norm();
+            const libMesh::Point tau1 = *elem->node_ptr(1) - *elem->node_ptr(0);
+            const libMesh::Point tau2 = *elem->node_ptr(2) - *elem->node_ptr(1);
+            const libMesh::Point normal = (tau1.cross(tau2)).unit();
 
             // loop over quadrature points
             double vel_comp;
@@ -1031,7 +1034,7 @@ IBFEInstrumentPanel::updateSystemData(double& max_meter_radius, IBAMR::IBFEMetho
     mean_U_dofs.resize(NDIM);
     std::vector<double> mean_dX_dofs;
     mean_dX_dofs.resize(NDIM);
-    for (int ii = 0; ii < d_num_nodes[meter_mesh_number]; ++ii)
+    for (unsigned int ii = 0; ii < d_num_nodes[meter_mesh_number]; ++ii)
     {
         // get node on meter mesh
         const Node* node = &d_meter_meshes[meter_mesh_number]->node_ref(ii + 1);
@@ -1042,7 +1045,7 @@ IBFEInstrumentPanel::updateSystemData(double& max_meter_radius, IBAMR::IBFEMetho
         std::vector<double> dX_dofs;
         dX_dofs.resize(NDIM);
 
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             U_dofs[d] = U_coords_parent[d_U_dof_idx[meter_mesh_number][ii][d]];
             dX_dofs[d] = dX_coords_parent[d_dX_dof_idx[meter_mesh_number][ii][d]];
@@ -1052,7 +1055,7 @@ IBFEInstrumentPanel::updateSystemData(double& max_meter_radius, IBAMR::IBFEMetho
 
         // set dofs in meter mesh to correspond to the same values
         // as in the parent mesh
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             const int vel_dof_idx = node->dof_number(velocity_sys_num, d, 0);
             velocity_coords.set(vel_dof_idx, U_dofs[d]);
@@ -1063,7 +1066,7 @@ IBFEInstrumentPanel::updateSystemData(double& max_meter_radius, IBAMR::IBFEMetho
 
     // set dofs for the centroid node in the meter mesh
     const Node* centroid_node = &d_meter_meshes[meter_mesh_number]->node_ref(0);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         const int vel_dof_idx = centroid_node->dof_number(velocity_sys_num, d, 0);
         velocity_coords.set(vel_dof_idx, mean_U_dofs[d]);
@@ -1071,9 +1074,9 @@ IBFEInstrumentPanel::updateSystemData(double& max_meter_radius, IBAMR::IBFEMetho
         displacement_coords.set(disp_dof_idx, mean_dX_dofs[d]);
     }
 
-    // compute the maximum radius of the meter.
+    // compute the maximum radius of the meter in the current configuration
     max_meter_radius = 0.0;
-    for (int ii = 0; ii < d_num_nodes[meter_mesh_number]; ++ii)
+    for (unsigned int ii = 0; ii < d_num_nodes[meter_mesh_number]; ++ii)
     {
         // get node on meter mesh
         const Node* node = &d_meter_meshes[meter_mesh_number]->node_ref(ii+1);
@@ -1084,7 +1087,7 @@ IBFEInstrumentPanel::updateSystemData(double& max_meter_radius, IBAMR::IBFEMetho
         std::vector<double> centroid_disp(NDIM, 0.0); 
         std::vector<numeric_index_type> node_disp_dof_idx(NDIM, 0);
         std::vector<numeric_index_type> centroid_disp_dof_idx(NDIM, 0);
-        for(int d = 0; d < NDIM; ++d)
+        for(unsigned int d = 0; d < NDIM; ++d)
         {
             node_disp_dof_idx[d] = node->dof_number(displacement_sys_num, d, 0);
             centroid_disp_dof_idx[d] = centroid_node->dof_number(displacement_sys_num, d, 0);
@@ -1093,7 +1096,7 @@ IBFEInstrumentPanel::updateSystemData(double& max_meter_radius, IBAMR::IBFEMetho
         displacement_coords.get(centroid_disp_dof_idx, centroid_disp);
         
         double radius_squared = 0.0;
-        for(int d = 0; d < NDIM; ++d)
+        for(unsigned int d = 0; d < NDIM; ++d)
         {
             radius_squared += pow((*centroid_node)(d) + centroid_disp[d] - (*node)(d) + node_disp[d], 2.0);
         }
