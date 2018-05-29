@@ -73,6 +73,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/IBLagrangianSourceStrategy.cpp \
 ../src/IB/IBMethod.cpp \
 ../src/IB/IBMethodPostProcessStrategy.cpp \
+../src/IB/IBRedundantInitializer.cpp \
 ../src/IB/IBRodForceSpec.cpp \
 ../src/IB/IBRodForceSpecFactory.cpp \
 ../src/IB/IBSourceSpec.cpp \
@@ -198,6 +199,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/IBLagrangianSourceStrategy.h \
 ../include/ibamr/IBMethod.h \
 ../include/ibamr/IBMethodPostProcessStrategy.h \
+../include/ibamr/IBRedundantInitializer.h \
 ../include/ibamr/IBRodForceSpec.h \
 ../include/ibamr/IBSourceSpec.h \
 ../include/ibamr/IBSpringForceFunctions.h \
@@ -259,7 +261,7 @@ if LIBMESH_ENABLED
   ../include/ibamr/CIBFEMethod.h \
   ../include/ibamr/IBFECentroidPostProcessor.h \
   ../include/ibamr/IBFEInstrumentPanel.h \
-  ../include/ibamr/IBFEMethod.h \	
+  ../include/ibamr/IBFEMethod.h \
   ../include/ibamr/IBFEPatchRecoveryPostProcessor.h \
   ../include/ibamr/IBFEPostProcessor.h \
   ../include/ibamr/IMPInitializer.h \

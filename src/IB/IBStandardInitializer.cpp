@@ -208,6 +208,39 @@ IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Poi
     // Initialize object with data read from the input database.
     getFromInput(input_db);
 
+    // Process the vertex information.
+    readVertexFiles(".vertex");
+
+    // Process the spring information.
+    readSpringFiles(".spring", /*input_uses_global_idxs*/ false);
+
+    // Process the crosslink spring ("x-spring") information.
+    readXSpringFiles(".xspring", /*input_uses_global_idxs*/ true);
+
+    // Process the beam information.
+    readBeamFiles(".beam", /*input_uses_global_idxs*/ false);
+
+    // Process the rod information.
+    readRodFiles(".rod", /*input_uses_global_idxs*/ false);
+
+    // Process the target point information.
+    readTargetPointFiles(".target");
+
+    // Process the anchor point information.
+    readAnchorPointFiles(".anchor");
+
+    // Process the mass information.
+    readBoundaryMassFiles(".mass");
+
+    // Process the directors information.
+    readDirectorFiles(".director");
+
+    // Process the instrumentation information.
+    readInstrumentationFiles(".inst");
+
+    // Process the source information.
+    readSourceFiles(".source");
+
     // If the simulation is from restart then we do not need to process
     // user data.
     RestartManager* restart_manager = RestartManager::getManager();
@@ -244,9 +277,6 @@ IBStandardInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_wri
     // restart file.
     if (!is_from_restart)
     {
-        // Check if data has been processed.
-        init();
-
         for (int ln = 0; ln < d_max_levels; ++ln)
         {
             if (d_level_is_initialized[ln])
@@ -272,9 +302,6 @@ IBStandardInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHie
                                                           const bool /*can_be_refined*/,
                                                           const bool /*initial_time*/)
 {
-    // Check if data has been processed.
-    init();
-
     return std::accumulate(d_num_vertex[level_number].begin(), d_num_vertex[level_number].end(), 0);
 }
 
@@ -285,9 +312,6 @@ IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHier
                                                          const bool /*can_be_refined*/,
                                                          const bool /*initial_time*/)
 {
-    // Check if data has been processed.
-    init();
-
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
 
@@ -309,73 +333,6 @@ IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHier
 } // computeLocalNodeCountOnPatchLevel
 
 void
-IBStandardInitializer::init()
-{
-
-    // Process the input files and/or user-defined position.
-    if (d_data_processed)
-    {
-        return;
-    }
-    else
-    {
-        // Process the vertex information.
-        if (d_read_vertex_files)
-            readVertexFiles(".vertex");
-        else
-            initializeStructurePosition();
-
-        // Process the spring information.
-        readSpringFiles(".spring", /*input_uses_global_idxs*/ false);
-
-        // Process the crosslink spring ("x-spring") information.
-        readXSpringFiles(".xspring", /*input_uses_global_idxs*/ true);
-
-        // Process the beam information.
-        readBeamFiles(".beam", /*input_uses_global_idxs*/ false);
-
-        // Process the rod information.
-        readRodFiles(".rod", /*input_uses_global_idxs*/ false);
-
-        // Process the target point information.
-        readTargetPointFiles(".target");
-
-        // Process the anchor point information.
-        readAnchorPointFiles(".anchor");
-
-        // Process the mass information.
-        readBoundaryMassFiles(".mass");
-
-        // Process the directors information.
-        readDirectorFiles(".director");
-
-        // Process the instrumentation information.
-        readInstrumentationFiles(".inst");
-
-        // Process the source information.
-        readSourceFiles(".source");
-    }
-
-    // Indicate that we have processed the data.
-    d_data_processed = true;
-
-    return;
-
-} // init
-
-void
-IBStandardInitializer::initializePosnDataOnPatchLevel(int /*strct_num*/,
-                                                      int /*level_number*/,
-                                                      int& /*num_vertices*/,
-                                                      std::vector<IBTK::Point>& /*vertex_posn*/)
-{
-    TBOX_ERROR("IBStandardInitializer::initializePosnDataOnPatchLevel()\n"
-               << "  default implementation employed, nothing is initialized.\n"
-               << "Subclasses need to implement this function.\n");
-
-} // initializePosnDataOnPatchLevel
-
-void
 IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
     std::map<int, std::string>& strct_id_to_strct_name_map,
     std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map,
@@ -385,9 +342,6 @@ IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
     const bool /*initial_time*/,
     LDataManager* const /*l_data_manager*/)
 {
-    // Check if data has been processed.
-    init();
-
     int offset = 0;
     for (int j = 0; j < static_cast<int>(d_base_filename[level_number].size()); ++j)
     {
@@ -411,10 +365,6 @@ IBStandardInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                                                   const bool /*initial_time*/,
                                                   LDataManager* const /*l_data_manager*/)
 {
-
-    // Check if data has been processed.
-    init();
-
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
@@ -558,10 +508,6 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigned int /*globa
                                                       const bool /*initial_time*/,
                                                       LDataManager* const /*l_data_manager*/)
 {
-
-    // Check if data has been processed.
-    init();
-
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
 
@@ -622,9 +568,6 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*g
                                                           const bool /*initial_time*/,
                                                           LDataManager* const /*l_data_manager*/)
 {
-    // Check if data has been processed.
-    init();
-
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
 
@@ -667,9 +610,6 @@ IBStandardInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy
                                                     const double /*error_data_time*/,
                                                     const int tag_index)
 {
-    // Check if data has been processed.
-    init();
-    
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
@@ -910,53 +850,6 @@ IBStandardInitializer::readVertexFiles(const std::string& extension)
     if (d_use_file_batons) SAMRAI_MPI::barrier();
     return;
 } // readVertexFiles
-
-void
-IBStandardInitializer::initializeStructurePosition()
-{
-    for (int ln = 0; ln < d_max_levels; ++ln)
-    {
-        const size_t num_base_filename = d_base_filename[ln].size();
-        d_num_vertex[ln].resize(num_base_filename, 0);
-        d_vertex_offset[ln].resize(num_base_filename, std::numeric_limits<int>::max());
-        d_vertex_posn[ln].resize(num_base_filename);
-        for (unsigned int j = 0; j < num_base_filename; ++j)
-        {
-            if (j == 0)
-            {
-                d_vertex_offset[ln][j] = 0;
-            }
-            else
-            {
-                d_vertex_offset[ln][j] = d_vertex_offset[ln][j - 1] + d_num_vertex[ln][j - 1];
-            }
-
-            initializePosnDataOnPatchLevel(j, ln, d_num_vertex[ln][j], d_vertex_posn[ln][j]);
-#if !defined(NDEBUG)
-            if (d_num_vertex[ln][j] <= 0)
-            {
-                TBOX_ERROR(d_object_name << ":\n Invalid number of vertices " << d_num_vertex[ln][j] << " of structure "
-                                         << j
-                                         << " on level "
-                                         << ln
-                                         << std::endl);
-            }
-#endif
-
-            // Shift and scale the position of structures
-            for (int k = 0; k < d_num_vertex[ln][j]; ++k)
-            {
-                Point& X = d_vertex_posn[ln][j][k];
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    X[d] = d_length_scale_factor * (X[d] + d_posn_shift[d]);
-                }
-            }
-        }
-    }
-
-    return;
-} // initializeStructurePosition
 
 void
 IBStandardInitializer::readSpringFiles(const std::string& extension, const bool input_uses_global_idxs)
