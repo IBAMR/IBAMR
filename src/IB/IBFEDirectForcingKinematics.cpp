@@ -200,9 +200,40 @@ IBFEDirectForcingKinematics::preprocessIntegrateData(double current_time, double
 
     // Obtain the COM velocities.
     // Note: Only imposed DOFs will be used from them.
-    d_kinematics.comvelfcn(d_current_time, d_trans_vel_current, d_rot_vel_current, d_kinematics.ctx);
-    d_kinematics.comvelfcn(d_half_time, d_trans_vel_half, d_rot_vel_half, d_kinematics.ctx);
-    d_kinematics.comvelfcn(d_new_time, d_trans_vel_new, d_rot_vel_new, d_kinematics.ctx);
+    Eigen::Vector3d trans_vel_current, trans_vel_half, trans_vel_new;
+    Eigen::Vector3d rot_vel_current, rot_vel_half, rot_vel_new;
+    d_kinematics.comvelfcn(d_current_time, trans_vel_current, rot_vel_current, d_kinematics.ctx);
+    d_kinematics.comvelfcn(d_half_time, trans_vel_half, rot_vel_half, d_kinematics.ctx);
+    d_kinematics.comvelfcn(d_new_time, trans_vel_new, rot_vel_new, d_kinematics.ctx);
+
+    // Override imposed DOFs in internal vectors.
+    for (int k = 0; k < NDIM; ++k)
+    {
+        if (!d_solve_rigid_vel[k])
+        {
+            d_trans_vel_current[k] = trans_vel_current[k];
+            d_trans_vel_half[k] = trans_vel_half[k];
+            d_trans_vel_new[k] = trans_vel_new[k];
+        }
+    }
+#if (NDIM == 2)
+    if (!d_solve_rigid_vel[2])
+    {
+        d_rot_vel_current[2] = rot_vel_current[2];
+        d_rot_vel_half[2] = rot_vel_half[2];
+        d_rot_vel_new[2] = rot_vel_new[2];
+    }
+#elif (NDIM == 3)
+    for (int k = 0; k < NDIM; ++k)
+    {
+        if (!d_solve_rigid_vel[k + NDIM])
+        {
+            d_rot_vel_current[k] = rot_vel_current[k];
+            d_rot_vel_half[k] = rot_vel_half[k];
+            d_rot_vel_new[k] = rot_vel_new[k];
+        }
+    }
+#endif
 
     return;
 } // preprocessIntegrateData
