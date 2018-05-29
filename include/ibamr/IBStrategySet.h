@@ -221,6 +221,7 @@ public:
      */
     void spreadFluidSource(
         int q_data_idx,
+        IBTK::RobinPhysBdryPatchStrategy* q_phys_bdry_op,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& q_prolongation_scheds,
         double data_time);
 
