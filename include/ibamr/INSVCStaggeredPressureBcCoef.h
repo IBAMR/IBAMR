@@ -1,4 +1,4 @@
-// Filename: VCINSStaggeredVelocityBcCoef.h
+// Filename: INSVCStaggeredPressureBcCoef.h
 // Created on 25 Sep 2017 by Nishant Nangia
 //
 // Copyright (c) 2002-2014, Nishant Nangia and Amneet Bhalla
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBAMR_VCINSStaggeredVelocityBcCoef
-#define included_IBAMR_VCINSStaggeredVelocityBcCoef
+#ifndef included_IBAMR_INSVCStaggeredPressureBcCoef
+#define included_IBAMR_INSVCStaggeredPressureBcCoef
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -40,11 +40,12 @@
 #include "IntVector.h"
 #include "ibamr/StokesBcCoefStrategy.h"
 #include "ibamr/ibamr_enums.h"
+#include "ibtk/ibtk_enums.h"
 #include "tbox/Pointer.h"
 
 namespace IBAMR
 {
-class VCINSStaggeredHierarchyIntegrator;
+class INSVCStaggeredHierarchyIntegrator;
 class StokesSpecifications;
 } // namespace IBAMR
 namespace SAMRAI
@@ -75,27 +76,23 @@ class RobinBcCoefStrategy;
 namespace IBAMR
 {
 /*!
- * \brief Class VCINSStaggeredVelocityBcCoef is a concrete StokesBcCoefStrategy
- * that is used to specify velocity boundary conditions for the staggered grid
- * incompressible Navier-Stokes solver with variable coefficents.
+ * \brief Class INSVCStaggeredPressureBcCoef is a concrete StokesBcCoefStrategy
+ * that is used to specify pressure boundary conditions for the staggered grid
+ * incompressible Navier-Stokes solver with variable coefficients.
  *
  * This class interprets pure Dirichlet boundary conditions on the velocity as
  * prescribed velocity boundary conditions, whereas pure Neumann boundary
  * conditions are interpreted as prescribed traction (stress) boundary
- * conditions.  These are translated into Dirichlet and generalized Neumann
- * boundary conditions, respectively, for the velocity.
- *
- * Dirichlet, true traction, and pseudo-traction boundary conditions are
- * all supported.
+ * conditions.  These are translated into Neumann and generalized Dirichlet
+ * boundary conditions, respectively, for the pressure.
  */
-class VCINSStaggeredVelocityBcCoef : public StokesBcCoefStrategy
+class INSVCStaggeredPressureBcCoef : public StokesBcCoefStrategy
 {
 public:
     /*!
      * \brief Constructor.
      */
-    VCINSStaggeredVelocityBcCoef(unsigned int comp_idx,
-                                 const VCINSStaggeredHierarchyIntegrator* fluid_solver,
+    INSVCStaggeredPressureBcCoef(const INSVCStaggeredHierarchyIntegrator* fluid_solver,
                                  const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                  TractionBcType traction_bc_type,
                                  bool homogeneous_bc = false);
@@ -103,7 +100,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~VCINSStaggeredVelocityBcCoef();
+    ~INSVCStaggeredPressureBcCoef();
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -248,6 +245,12 @@ public:
 
     //\}
 
+    /*!
+     * \brief Set the interpolation type to bring cell centered viscosity
+     * to side centers
+     */
+    void setViscosityInterpolationType(IBTK::VCInterpType mu_interp_type);
+
 protected:
 private:
     /*!
@@ -255,7 +258,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCINSStaggeredVelocityBcCoef();
+    INSVCStaggeredPressureBcCoef();
 
     /*!
      * \brief Copy constructor.
@@ -264,7 +267,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCINSStaggeredVelocityBcCoef(const VCINSStaggeredVelocityBcCoef& from);
+    INSVCStaggeredPressureBcCoef(const INSVCStaggeredPressureBcCoef& from);
 
     /*!
      * \brief Assignment operator.
@@ -275,26 +278,30 @@ private:
      *
      * \return A reference to this object.
      */
-    VCINSStaggeredVelocityBcCoef& operator=(const VCINSStaggeredVelocityBcCoef& that);
-
-    /*
-     * Component of the velocity which this boundary condition specification is
-     * to operate on.
-     */
-    const unsigned int d_comp_idx;
+    INSVCStaggeredPressureBcCoef& operator=(const INSVCStaggeredPressureBcCoef& that);
 
     /*
      * The fluid solver.
      */
-    const VCINSStaggeredHierarchyIntegrator* d_fluid_solver;
+    const INSVCStaggeredHierarchyIntegrator* d_fluid_solver;
 
     /*
      * The boundary condition specification objects for the velocity.
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+
+    /*
+     * Patch data index for cell-centered viscosity with ghost cells.
+     */
+    int d_mu_idx;
+
+    /*
+     * The type of interpolation to bring cell centered viscosity to side centers.
+     */
+    IBTK::VCInterpType d_mu_interp_type;
 };
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_VCINSStaggeredVelocityBcCoef
+#endif //#ifndef included_IBAMR_INSVCStaggeredPressureBcCoef

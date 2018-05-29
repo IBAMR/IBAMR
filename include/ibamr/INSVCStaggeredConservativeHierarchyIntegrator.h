@@ -1,4 +1,4 @@
-// Filename: VCINSStaggeredConservativeHierarchyIntegrator.h
+// Filename: INSVCStaggeredConservativeHierarchyIntegrator.h
 // Created on 15 May 2018 by Nishant Nangia and Amneet Bhalla
 //
 // Copyright (c) 2002-2018, Nishant Nangia and Amneet Bhalla
@@ -30,15 +30,15 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBAMR_VCINSStaggeredConservativeHierarchyIntegrator
-#define included_IBAMR_VCINSStaggeredConservativeHierarchyIntegrator
+#ifndef included_IBAMR_INSVCStaggeredConservativeHierarchyIntegrator
+#define included_IBAMR_INSVCStaggeredConservativeHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <string>
 #include <vector>
 
-#include "ibamr/VCINSStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 
 namespace IBAMR
 {
@@ -55,7 +55,7 @@ namespace SAMRAI
 namespace IBAMR
 {
 /*!
- * \brief Class VCINSStaggeredConservativeHierarchyIntegrator provides a staggered-grid solver
+ * \brief Class INSVCStaggeredConservativeHierarchyIntegrator provides a staggered-grid solver
  * for the incompressible Navier-Stokes equations on an AMR grid hierarchy, with variable
  * coefficients.
  *
@@ -64,7 +64,7 @@ namespace IBAMR
  * where \f$ N(u) = \nabla \cdot (\rho u u) \f$.
  *
  * In other words, this class will ALWAYS treat the left-hand side of the momentum equation in conservative form.
- * This class is specialized to always use VCINSStaggeredConservativeConvectiveOperator, which will produce an update
+ * This class is specialized to always use INSVCStaggeredConservativeConvectiveOperator, which will produce an update
  * for the newest density by solving the mass transport equation \f$\frac{D \rho}{Dt} = 0\f$. Therefore, the density
  * variable must be registered and maintained by this class, and not by any other integrator.
  * It is also assumed that this density variable is side-centered. In other words, given a density at the beginning
@@ -73,25 +73,25 @@ namespace IBAMR
  * momentum and mass transport is carried out, which leads to stable solutions for high-density ratio flows.
  *
  */
-class VCINSStaggeredConservativeHierarchyIntegrator : public VCINSStaggeredHierarchyIntegrator
+class INSVCStaggeredConservativeHierarchyIntegrator : public INSVCStaggeredHierarchyIntegrator
 {
 public:
     /*!
-     * The constructor for class VCINSStaggeredConservativeHierarchyIntegrator sets some
+     * The constructor for class INSVCStaggeredConservativeHierarchyIntegrator sets some
      * default values, reads in configuration information from input and restart
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    VCINSStaggeredConservativeHierarchyIntegrator(const std::string& object_name,
+    INSVCStaggeredConservativeHierarchyIntegrator(const std::string& object_name,
                                                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                                   bool register_for_restart = true);
 
     /*!
-     * The destructor for class VCINSStaggeredConservativeHierarchyIntegrator unregisters the
+     * The destructor for class INSVCStaggeredConservativeHierarchyIntegrator unregisters the
      * integrator object with the restart manager when the object is so
      * registered.
      */
-    ~VCINSStaggeredConservativeHierarchyIntegrator();
+    ~INSVCStaggeredConservativeHierarchyIntegrator();
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -159,7 +159,8 @@ public:
     /*
      * \brief Supply boundary conditions for the side-centered density field, which is maintained by this integrator
      */
-    void registerMassDensityBoundaryConditions(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& rho_sc_bc_coefs);
+    void
+    registerMassDensityBoundaryConditions(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& rho_sc_bc_coefs);
 
     /*!
      * \brief Supply a source term for the mass update equation.
@@ -216,7 +217,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCINSStaggeredConservativeHierarchyIntegrator();
+    INSVCStaggeredConservativeHierarchyIntegrator();
 
     /*!
      * \brief Copy constructor.
@@ -225,7 +226,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCINSStaggeredConservativeHierarchyIntegrator(const VCINSStaggeredConservativeHierarchyIntegrator& from);
+    INSVCStaggeredConservativeHierarchyIntegrator(const INSVCStaggeredConservativeHierarchyIntegrator& from);
 
     /*!
      * \brief Assignment operator.
@@ -236,7 +237,7 @@ private:
      *
      * \return A reference to this object.
      */
-    VCINSStaggeredConservativeHierarchyIntegrator& operator=(const VCINSStaggeredConservativeHierarchyIntegrator& that);
+    INSVCStaggeredConservativeHierarchyIntegrator& operator=(const INSVCStaggeredConservativeHierarchyIntegrator& that);
 
     /*!
      * Determine the convective time stepping type for the current time step and
@@ -285,7 +286,7 @@ private:
      * Boundary condition object for the side-centered density variable maintained
      * by this integrator.
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM> *> d_rho_sc_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_rho_sc_bc_coefs;
 
     /*
      * Variables for plotting cell-centered density
@@ -302,4 +303,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_VCINSStaggeredConservativeHierarchyIntegrator
+#endif //#ifndef included_IBAMR_INSVCStaggeredConservativeHierarchyIntegrator

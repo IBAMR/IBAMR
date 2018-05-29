@@ -1,4 +1,4 @@
-// Filename: VCINSStaggeredHierarchyIntegrator.cpp
+// Filename: INSVCStaggeredHierarchyIntegrator.cpp
 // Created on 25 Sep 2017 by Nishant Nangia and Amneet Bhalla
 //
 // Copyright (c) 2002-2014, Nishant Nangia and Amneet Bhalla
@@ -32,12 +32,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <cmath>
 #include <deque>
 #include <limits>
 #include <ostream>
+#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -97,6 +97,10 @@
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/INSProjectionBcCoef.h"
 #include "ibamr/INSStaggeredConvectiveOperatorManager.h"
+#include "ibamr/INSVCStaggeredConservativeConvectiveOperator.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredPressureBcCoef.h"
+#include "ibamr/INSVCStaggeredVelocityBcCoef.h"
 #include "ibamr/PETScKrylovStaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
@@ -104,10 +108,6 @@
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/StokesSpecifications.h"
-#include "ibamr/VCINSStaggeredConservativeConvectiveOperator.h"
-#include "ibamr/VCINSStaggeredHierarchyIntegrator.h"
-#include "ibamr/VCINSStaggeredPressureBcCoef.h"
-#include "ibamr/VCINSStaggeredVelocityBcCoef.h"
 #include "ibamr/VCStaggeredStokesOperator.h"
 #include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
 #include "ibamr/ibamr_enums.h"
@@ -154,62 +154,63 @@
 #define NAVIER_STOKES_SIDE_TO_FACE_FC IBAMR_FC_FUNC_(navier_stokes_side_to_face3d, NAVIER_STOKES_SIDE_TO_FACE3D)
 #endif
 
-extern "C" {
-void NAVIER_STOKES_SC_STABLEDT_FC(const double*,
+extern "C"
+{
+    void NAVIER_STOKES_SC_STABLEDT_FC(const double*,
 #if (NDIM == 2)
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const double*,
-                                  const double*,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const double*,
+                                      const double*,
 #endif
 #if (NDIM == 3)
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const double*,
-                                  const double*,
-                                  const double*,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const double*,
+                                      const double*,
+                                      const double*,
 #endif
-                                  double&);
+                                      double&);
 
-void NAVIER_STOKES_SIDE_TO_FACE_FC(
+    void NAVIER_STOKES_SIDE_TO_FACE_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    double*,
-    double*,
-    const int&
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        double*,
+        double*,
+        const int&
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&
 #endif
     );
 }
@@ -314,11 +315,11 @@ allocate_vc_velocity_krylov_solver(const std::string& solver_object_name,
     krylov_solver->setOperator(new VCSCViscousOperator(solver_object_name + "::vc_viscous_operator"));
     return krylov_solver;
 }
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::string& object_name,
+INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(const std::string& object_name,
                                                                      Pointer<Database> input_db,
                                                                      bool register_for_restart)
     : INSHierarchyIntegrator(object_name,
@@ -391,7 +392,7 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
     if (input_db->keyExists("mu_is_const")) d_mu_is_const = input_db->getBool("mu_is_const");
     if (d_rho_is_const && d_mu_is_const)
     {
-        TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
+        TBOX_ERROR(d_object_name << "::INSVCStaggeredHierarchyIntegrator():\n"
                                  << " for constant coefficient problems,\n"
                                  << " variable coefficient integrator is less\n"
                                  << " efficient than constant coefficient version.\n"
@@ -420,10 +421,9 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
     case VC_AVERAGE_INTERP:
         break;
     default:
-        TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
+        TBOX_ERROR(d_object_name << "::INSVCStaggeredHierarchyIntegrator():\n"
                                  << "  unsupported density interpolation type: "
-                                 << IBTK::enum_to_string<VCInterpType>(d_rho_vc_interp_type)
-                                 << " \n"
+                                 << IBTK::enum_to_string<VCInterpType>(d_rho_vc_interp_type) << " \n"
                                  << "  valid choices are: VC_HARMONIC_INTERP, VC_AVERAGE_INTERP\n");
     }
     switch (d_mu_vc_interp_type)
@@ -432,10 +432,9 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
     case VC_AVERAGE_INTERP:
         break;
     default:
-        TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
+        TBOX_ERROR(d_object_name << "::INSVCStaggeredHierarchyIntegrator():\n"
                                  << "  unsupported viscosity interpolation type: "
-                                 << IBTK::enum_to_string<VCInterpType>(d_mu_vc_interp_type)
-                                 << " \n"
+                                 << IBTK::enum_to_string<VCInterpType>(d_mu_vc_interp_type) << " \n"
                                  << "  valid choices are: VC_HARMONIC_INTERP, VC_AVERAGE_INTERP\n");
     }
 
@@ -444,7 +443,7 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
     if (input_db->keyExists("condition_no_scaling")) d_A_scale = input_db->getDouble("condition_no_scaling");
     if (d_A_scale <= 0.0)
     {
-        TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
+        TBOX_ERROR(d_object_name << "::INSVCStaggeredHierarchyIntegrator():\n"
                                  << " scaling for improving the condition number of\n"
                                  << " the Stokes system must be positive.");
     }
@@ -455,7 +454,7 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
         d_precond_reinit_interval = input_db->getInteger("precond_reinit_interval");
     if (d_precond_reinit_interval <= 0)
     {
-        TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
+        TBOX_ERROR(d_object_name << "::INSVCStaggeredHierarchyIntegrator():\n"
                                  << " preconditioner reinitialization interval\n"
                                  << " must be a positive integer");
     }
@@ -468,10 +467,9 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
     case TRAPEZOIDAL_RULE:
         break;
     default:
-        TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
+        TBOX_ERROR(d_object_name << "::INSVCStaggeredHierarchyIntegrator():\n"
                                  << "  unsupported viscous time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type)
-                                 << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << " \n"
                                  << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
 
@@ -500,9 +498,9 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
     d_U_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_U_bc_coefs[d] = new VCINSStaggeredVelocityBcCoef(d, this, d_bc_coefs, d_traction_bc_type);
+        d_U_bc_coefs[d] = new INSVCStaggeredVelocityBcCoef(d, this, d_bc_coefs, d_traction_bc_type);
     }
-    d_P_bc_coef = new VCINSStaggeredPressureBcCoef(this, d_bc_coefs, d_traction_bc_type);
+    d_P_bc_coef = new INSVCStaggeredPressureBcCoef(this, d_bc_coefs, d_traction_bc_type);
 
     // Initialize all variables.  The velocity, pressure, body force, and fluid
     // source variables were created above in the constructor for the
@@ -533,9 +531,9 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
     d_EE_var = new CellVariable<NDIM, double>(d_object_name + "::EE", NDIM * NDIM);
 
     return;
-} // VCINSStaggeredHierarchyIntegrator
+} // INSVCStaggeredHierarchyIntegrator
 
-VCINSStaggeredHierarchyIntegrator::~VCINSStaggeredHierarchyIntegrator()
+INSVCStaggeredHierarchyIntegrator::~INSVCStaggeredHierarchyIntegrator()
 {
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -562,10 +560,10 @@ VCINSStaggeredHierarchyIntegrator::~VCINSStaggeredHierarchyIntegrator()
     }
 
     return;
-} // ~VCINSStaggeredHierarchyIntegrator
+} // ~INSVCStaggeredHierarchyIntegrator
 
 Pointer<ConvectiveOperator>
-VCINSStaggeredHierarchyIntegrator::getConvectiveOperator()
+INSVCStaggeredHierarchyIntegrator::getConvectiveOperator()
 {
     if (d_creeping_flow)
     {
@@ -586,7 +584,7 @@ VCINSStaggeredHierarchyIntegrator::getConvectiveOperator()
 } // getConvectiveOperator
 
 Pointer<PoissonSolver>
-VCINSStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
+INSVCStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
 {
     if (!d_velocity_solver)
     {
@@ -604,7 +602,7 @@ VCINSStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
 } // getVelocitySubdomainSolver
 
 Pointer<PoissonSolver>
-VCINSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
+INSVCStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
 {
     if (!d_pressure_solver)
     {
@@ -622,7 +620,7 @@ VCINSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
 } // getPressureSubdomainSolver
 
 void
-VCINSStaggeredHierarchyIntegrator::setStokesSolver(Pointer<StaggeredStokesSolver> stokes_solver)
+INSVCStaggeredHierarchyIntegrator::setStokesSolver(Pointer<StaggeredStokesSolver> stokes_solver)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_stokes_solver);
@@ -633,7 +631,7 @@ VCINSStaggeredHierarchyIntegrator::setStokesSolver(Pointer<StaggeredStokesSolver
 } // setStokesSolver
 
 Pointer<StaggeredStokesSolver>
-VCINSStaggeredHierarchyIntegrator::getStokesSolver()
+INSVCStaggeredHierarchyIntegrator::getStokesSolver()
 {
     if (!d_stokes_solver)
     {
@@ -651,14 +649,14 @@ VCINSStaggeredHierarchyIntegrator::getStokesSolver()
 } // getStokesSolver
 
 void
-VCINSStaggeredHierarchyIntegrator::setStokesSolverNeedsInit()
+INSVCStaggeredHierarchyIntegrator::setStokesSolverNeedsInit()
 {
     d_stokes_solver_needs_init = true;
     return;
 }
 
 void
-VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
+INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                                  Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     if (d_integrator_is_initialized) return;
@@ -751,14 +749,14 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         hier_ops_manager->getOperationsDouble(new FaceVariable<NDIM, double>("fc_var"), hierarchy, true);
     d_hier_sc_data_ops =
         hier_ops_manager->getOperationsDouble(new SideVariable<NDIM, double>("sc_var"), hierarchy, true);
-    d_hier_nc_data_ops = 
+    d_hier_nc_data_ops =
         hier_ops_manager->getOperationsDouble(new NodeVariable<NDIM, double>("nc_var"), hierarchy, true);
     d_hier_ec_data_ops =
         hier_ops_manager->getOperationsDouble(new EdgeVariable<NDIM, double>("ec_var"), hierarchy, true);
     d_hier_math_ops = buildHierarchyMathOps(d_hierarchy);
 
     // Register state variables that are maintained by the
-    // VCINSStaggeredHierarchyIntegrator.
+    // INSVCStaggeredHierarchyIntegrator.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedConstantRefine());
     grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
@@ -835,7 +833,7 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
     // Get the viscosity variable, which can either be an advected field maintained by
     // an appropriate advection-diffusion integrator, or a set field with some functional
-    // form maintained by the INS integrator 
+    // form maintained by the INS integrator
     if (!d_mu_is_const)
     {
         if (d_adv_diff_hier_integrator && d_mu_adv_diff_var)
@@ -854,21 +852,21 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
             Pointer<CellVariable<NDIM, double> > cc_var = d_mu_var;
             if (!cc_var)
             {
-                TBOX_ERROR("VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():\n"
-                      << " registered viscosity variable must be cell centered");
+                TBOX_ERROR("INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():\n"
+                           << " registered viscosity variable must be cell centered");
             }
         }
         else
         {
-            TBOX_ERROR("VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():\n"
-                   << "  mu_is_const == false but no viscosity variable has been registered.\n");
+            TBOX_ERROR("INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():\n"
+                       << "  mu_is_const == false but no viscosity variable has been registered.\n");
         }
     }
 
     if (d_mu_var)
     {
 #if !defined(NDEBUG)
-        // VCINSStaggeredHierarchyIntegrator should initialize the viscosity variable.
+        // INSVCStaggeredHierarchyIntegrator should initialize the viscosity variable.
         TBOX_ASSERT(d_mu_init_fcn);
 #endif
         registerVariable(d_mu_current_idx,
@@ -906,7 +904,7 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
 
 // Register scratch variables that are maintained by the
-// VCINSStaggeredHierarchyIntegrator.
+// INSVCStaggeredHierarchyIntegrator.
 #if (NDIM == 3)
     registerVariable(d_Omega_Norm_idx, d_Omega_Norm_var, no_ghosts);
 #endif
@@ -1037,11 +1035,16 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     // Note: these will not be deallocated.
     Pointer<CellVariable<NDIM, double> > mu_cc_linear_op_var =
         new CellVariable<NDIM, double>(d_object_name + "_mu_cc_linear_op_var", /*depth*/ 1);
-    d_mu_linear_op_idx = var_db->registerVariableAndContext(mu_cc_linear_op_var, var_db->getContext(d_object_name + "::mu_linear_op"), mu_cell_ghosts);
-    d_mu_interp_linear_op_idx = var_db->registerVariableAndContext(d_mu_interp_var, var_db->getContext(d_object_name + "::mu_interp_linear_op"), NDIM == 2 ? node_ghosts : edge_ghosts);
-    Pointer<SideVariable<NDIM, double> > rho_sc_linear_op_var = 
+    d_mu_linear_op_idx = var_db->registerVariableAndContext(
+        mu_cc_linear_op_var, var_db->getContext(d_object_name + "::mu_linear_op"), mu_cell_ghosts);
+    d_mu_interp_linear_op_idx =
+        var_db->registerVariableAndContext(d_mu_interp_var,
+                                           var_db->getContext(d_object_name + "::mu_interp_linear_op"),
+                                           NDIM == 2 ? node_ghosts : edge_ghosts);
+    Pointer<SideVariable<NDIM, double> > rho_sc_linear_op_var =
         new SideVariable<NDIM, double>(d_object_name + "_rho_sc_linear_op_var", /*depth*/ 1);
-    d_rho_linear_op_idx = var_db->registerVariableAndContext(rho_sc_linear_op_var, var_db->getContext(d_object_name + "::rho_linear_op_var"), no_ghosts);
+    d_rho_linear_op_idx = var_db->registerVariableAndContext(
+        rho_sc_linear_op_var, var_db->getContext(d_object_name + "::rho_linear_op_var"), no_ghosts);
 
     // Setup a specialized coarsen algorithm.
     Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
@@ -1115,7 +1118,7 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 } // initializeHierarchyIntegrator
 
 void
-VCINSStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
+INSVCStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                             Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
@@ -1144,7 +1147,7 @@ VCINSStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarc
 } // initializePatchHierarhcy
 
 void
-VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
+INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                                 const double new_time,
                                                                 const int num_cycles)
 {
@@ -1171,7 +1174,8 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         level->allocatePatchData(d_N_full_idx, current_time);
         if (d_mu_var.isNull()) level->allocatePatchData(d_mu_scratch_idx, current_time);
         if (!level->checkAllocated(d_mu_linear_op_idx)) level->allocatePatchData(d_mu_linear_op_idx, current_time);
-        if (!level->checkAllocated(d_mu_interp_linear_op_idx)) level->allocatePatchData(d_mu_interp_linear_op_idx, current_time);
+        if (!level->checkAllocated(d_mu_interp_linear_op_idx))
+            level->allocatePatchData(d_mu_interp_linear_op_idx, current_time);
         if (!level->checkAllocated(d_rho_linear_op_idx)) level->allocatePatchData(d_rho_linear_op_idx, current_time);
     }
 
@@ -1182,7 +1186,7 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
 } // preprocessIntegrateHierarchy
 
 void
-VCINSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
+INSVCStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
                                                                  const double new_time,
                                                                  const bool skip_synchronize_new_state_data,
                                                                  const int num_cycles)
@@ -1286,7 +1290,7 @@ VCINSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double cu
 } // postprocessIntegrateHierarchy
 
 void
-VCINSStaggeredHierarchyIntegrator::regridHierarchy()
+INSVCStaggeredHierarchyIntegrator::regridHierarchy()
 {
     const int coarsest_ln = 0;
 
@@ -1321,10 +1325,8 @@ VCINSStaggeredHierarchyIntegrator::regridHierarchy()
         break;
     default:
         TBOX_ERROR(d_object_name << "::regridHierarchy():\n"
-                                 << "  unrecognized regrid mode: "
-                                 << IBTK::enum_to_string<RegridMode>(d_regrid_mode)
-                                 << "."
-                                 << std::endl);
+                                 << "  unrecognized regrid mode: " << IBTK::enum_to_string<RegridMode>(d_regrid_mode)
+                                 << "." << std::endl);
     }
 
     // Determine the divergence of the velocity field after regridding.
@@ -1359,7 +1361,7 @@ VCINSStaggeredHierarchyIntegrator::regridHierarchy()
 } // regridHierarchy
 
 void
-VCINSStaggeredHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec)
+INSVCStaggeredHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec)
 {
     if (d_nul_vecs.empty()) return;
     for (size_t k = 0; k < d_nul_vecs.size(); ++k)
@@ -1372,7 +1374,7 @@ VCINSStaggeredHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorRea
 } // removeNullSpace
 
 void
-VCINSStaggeredHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable<NDIM> > rho_var)
+INSVCStaggeredHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable<NDIM> > rho_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_rho_var);
@@ -1383,13 +1385,13 @@ VCINSStaggeredHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable<
 } // registerMassDensityVariable
 
 Pointer<Variable<NDIM> >
-VCINSStaggeredHierarchyIntegrator::getMassDensityVariable() const
+INSVCStaggeredHierarchyIntegrator::getMassDensityVariable() const
 {
     return d_rho_var;
 } // getMassDensityVariable
 
 void
-VCINSStaggeredHierarchyIntegrator::registerViscosityVariable(Pointer<Variable<NDIM> > mu_var)
+INSVCStaggeredHierarchyIntegrator::registerViscosityVariable(Pointer<Variable<NDIM> > mu_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_mu_var);
@@ -1400,27 +1402,27 @@ VCINSStaggeredHierarchyIntegrator::registerViscosityVariable(Pointer<Variable<ND
 } // registerViscosityVariable
 
 Pointer<Variable<NDIM> >
-VCINSStaggeredHierarchyIntegrator::getViscosityVariable() const
+INSVCStaggeredHierarchyIntegrator::getViscosityVariable() const
 {
     return d_mu_var;
 } // getViscosityVariable
 
 void
-VCINSStaggeredHierarchyIntegrator::setDensityVCInterpolationType(const IBTK::VCInterpType vc_interp_type)
+INSVCStaggeredHierarchyIntegrator::setDensityVCInterpolationType(const IBTK::VCInterpType vc_interp_type)
 {
     d_rho_vc_interp_type = vc_interp_type;
     return;
 } // setDensityVCInterpolationType
 
 void
-VCINSStaggeredHierarchyIntegrator::setViscosityVCInterpolationType(const IBTK::VCInterpType vc_interp_type)
+INSVCStaggeredHierarchyIntegrator::setViscosityVCInterpolationType(const IBTK::VCInterpType vc_interp_type)
 {
     d_mu_vc_interp_type = vc_interp_type;
     return;
 } // setViscosityVCInterpolationType
 
 void
-VCINSStaggeredHierarchyIntegrator::registerResetFluidDensityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
+INSVCStaggeredHierarchyIntegrator::registerResetFluidDensityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
 {
     d_reset_rho_fcns.push_back(callback);
     d_reset_rho_fcns_ctx.push_back(ctx);
@@ -1428,7 +1430,7 @@ VCINSStaggeredHierarchyIntegrator::registerResetFluidDensityFcn(ResetFluidProper
 } // registerResetFluidDensityFcn
 
 void
-VCINSStaggeredHierarchyIntegrator::registerResetFluidViscosityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
+INSVCStaggeredHierarchyIntegrator::registerResetFluidViscosityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
 {
     d_reset_mu_fcns.push_back(callback);
     d_reset_mu_fcns_ctx.push_back(ctx);
@@ -1436,7 +1438,7 @@ VCINSStaggeredHierarchyIntegrator::registerResetFluidViscosityFcn(ResetFluidProp
 } // registerResetFluidViscosityFcn
 
 void
-VCINSStaggeredHierarchyIntegrator::registerMassDensityInitialConditions(const Pointer<CartGridFunction> rho_init_fcn)
+INSVCStaggeredHierarchyIntegrator::registerMassDensityInitialConditions(const Pointer<CartGridFunction> rho_init_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -1446,7 +1448,7 @@ VCINSStaggeredHierarchyIntegrator::registerMassDensityInitialConditions(const Po
 } // registerMassDensityInitialConditions
 
 void
-VCINSStaggeredHierarchyIntegrator::registerViscosityInitialConditions(const Pointer<CartGridFunction> mu_init_fcn)
+INSVCStaggeredHierarchyIntegrator::registerViscosityInitialConditions(const Pointer<CartGridFunction> mu_init_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -1456,7 +1458,7 @@ VCINSStaggeredHierarchyIntegrator::registerViscosityInitialConditions(const Poin
 } // registerViscosityInitialConditions
 
 void
-VCINSStaggeredHierarchyIntegrator::registerViscosityBoundaryConditions(RobinBcCoefStrategy<NDIM>* mu_bc_coef)
+INSVCStaggeredHierarchyIntegrator::registerViscosityBoundaryConditions(RobinBcCoefStrategy<NDIM>* mu_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -1466,7 +1468,7 @@ VCINSStaggeredHierarchyIntegrator::registerViscosityBoundaryConditions(RobinBcCo
 } // registerViscosityBoundaryConditions
 
 void
-VCINSStaggeredHierarchyIntegrator::setTransportedViscosityVariable(Pointer<CellVariable<NDIM, double> > mu_adv_diff_var)
+INSVCStaggeredHierarchyIntegrator::setTransportedViscosityVariable(Pointer<CellVariable<NDIM, double> > mu_adv_diff_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_adv_diff_hier_integrator);
@@ -1475,8 +1477,8 @@ VCINSStaggeredHierarchyIntegrator::setTransportedViscosityVariable(Pointer<CellV
     return;
 } // setTransportedViscosityVariable
 
-Pointer<CellVariable<NDIM, double> > 
-VCINSStaggeredHierarchyIntegrator::getTransportedViscosityVariable() const
+Pointer<CellVariable<NDIM, double> >
+INSVCStaggeredHierarchyIntegrator::getTransportedViscosityVariable() const
 {
     return d_mu_adv_diff_var;
 } // getTransportedViscosityVariable
@@ -1484,13 +1486,14 @@ VCINSStaggeredHierarchyIntegrator::getTransportedViscosityVariable() const
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-VCINSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
-                                                                  const int level_number,
-                                                                  const double init_data_time,
-                                                                  const bool /*can_be_refined*/,
-                                                                  const bool initial_time,
-                                                                  const Pointer<BasePatchLevel<NDIM> > base_old_level,
-                                                                  const bool /*allocate_data*/)
+INSVCStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
+    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const int level_number,
+    const double init_data_time,
+    const bool /*can_be_refined*/,
+    const bool initial_time,
+    const Pointer<BasePatchLevel<NDIM> > base_old_level,
+    const bool /*allocate_data*/)
 {
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
@@ -1654,7 +1657,7 @@ VCINSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<
 } // initializeLevelDataSpecialized
 
 void
-VCINSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int coarsest_level,
     const int finest_level)
@@ -1757,7 +1760,7 @@ VCINSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 } // resetHierarchyConfigurationSpecialized
 
 void
-VCINSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+INSVCStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
                                                                     const int level_number,
                                                                     const double /*error_data_time*/,
                                                                     const int tag_index,
@@ -1828,7 +1831,7 @@ VCINSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointe
 } // applyGradientDetectorSpecialized
 
 void
-VCINSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
+INSVCStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
 {
     Pointer<VariableContext> ctx = getCurrentContext();
 
@@ -1849,7 +1852,7 @@ VCINSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
     {
         const int F_sc_idx = var_db->mapVariableAndContextToIndex(d_F_var, ctx);
         const int F_cc_idx = var_db->mapVariableAndContextToIndex(d_F_cc_var, ctx);
-        
+
         d_hier_math_ops->interp(
             F_cc_idx, d_F_cc_var, F_sc_idx, d_F_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
     }
@@ -1905,7 +1908,7 @@ VCINSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
 } // setupPlotDataSpecialized
 
 void
-VCINSStaggeredHierarchyIntegrator::regridProjection()
+INSVCStaggeredHierarchyIntegrator::regridProjection()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2019,7 +2022,7 @@ VCINSStaggeredHierarchyIntegrator::regridProjection()
 } // regridProjection
 
 double
-VCINSStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const
+INSVCStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
     const double* const dx = patch_geom->getDx();
@@ -2061,7 +2064,7 @@ VCINSStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch
 } // getStableTimestep
 
 void
-VCINSStaggeredHierarchyIntegrator::copySideToFace(const int U_fc_idx,
+INSVCStaggeredHierarchyIntegrator::copySideToFace(const int U_fc_idx,
                                                   const int U_sc_idx,
                                                   Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
@@ -2072,7 +2075,7 @@ VCINSStaggeredHierarchyIntegrator::copySideToFace(const int U_fc_idx,
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-VCINSStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double current_time, const double new_time)
+INSVCStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double current_time, const double new_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2173,13 +2176,13 @@ VCINSStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double cu
     // Setup boundary conditions objects.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        VCINSStaggeredVelocityBcCoef* U_bc_coef = dynamic_cast<VCINSStaggeredVelocityBcCoef*>(d_U_bc_coefs[d]);
+        INSVCStaggeredVelocityBcCoef* U_bc_coef = dynamic_cast<INSVCStaggeredVelocityBcCoef*>(d_U_bc_coefs[d]);
         U_bc_coef->setStokesSpecifications(&d_problem_coefs);
         U_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_bc_coef->setSolutionTime(new_time);
         U_bc_coef->setTimeInterval(current_time, new_time);
     }
-    VCINSStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<VCINSStaggeredPressureBcCoef*>(d_P_bc_coef);
+    INSVCStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSVCStaggeredPressureBcCoef*>(d_P_bc_coef);
     P_bc_coef->setStokesSpecifications(&d_problem_coefs);
     P_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     P_bc_coef->setSolutionTime(new_time);

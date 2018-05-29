@@ -1,4 +1,4 @@
-// Filename: VCINSStaggeredPressureBcCoef.cpp
+// Filename: INSVCStaggeredPressureBcCoef.cpp
 // Created on 25 Sep 2017 by Nishant Nangia
 //
 // Copyright (c) 2002-2014, Nishant Nangia and Amneet Bhalla
@@ -32,10 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <limits>
 #include <ostream>
+#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -51,8 +51,8 @@
 #include "SideIndex.h"
 #include "Variable.h"
 #include "VariableContext.h"
-#include "ibamr/VCINSStaggeredHierarchyIntegrator.h"
-#include "ibamr/VCINSStaggeredPressureBcCoef.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredPressureBcCoef.h"
 #include "ibamr/StokesBcCoefStrategy.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_enums.h"
@@ -70,7 +70,7 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-VCINSStaggeredPressureBcCoef::VCINSStaggeredPressureBcCoef(const VCINSStaggeredHierarchyIntegrator* fluid_solver,
+INSVCStaggeredPressureBcCoef::INSVCStaggeredPressureBcCoef(const INSVCStaggeredHierarchyIntegrator* fluid_solver,
                                                            const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                            const TractionBcType traction_bc_type,
                                                            const bool homogeneous_bc)
@@ -84,16 +84,16 @@ VCINSStaggeredPressureBcCoef::VCINSStaggeredPressureBcCoef(const VCINSStaggeredH
     // Set some default values.
     d_mu_interp_type = VC_HARMONIC_INTERP;
     return;
-} // VCINSStaggeredPressureBcCoef
+} // INSVCStaggeredPressureBcCoef
 
-VCINSStaggeredPressureBcCoef::~VCINSStaggeredPressureBcCoef()
+INSVCStaggeredPressureBcCoef::~INSVCStaggeredPressureBcCoef()
 {
     // intentionally blank
     return;
-} // ~VCINSStaggeredPressureBcCoef
+} // ~INSVCStaggeredPressureBcCoef
 
 void
-VCINSStaggeredPressureBcCoef::setStokesSpecifications(const StokesSpecifications* problem_coefs)
+INSVCStaggeredPressureBcCoef::setStokesSpecifications(const StokesSpecifications* problem_coefs)
 {
     StokesBcCoefStrategy::setStokesSpecifications(problem_coefs);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -105,7 +105,7 @@ VCINSStaggeredPressureBcCoef::setStokesSpecifications(const StokesSpecifications
 } // setStokesSpecifications
 
 void
-VCINSStaggeredPressureBcCoef::setTargetVelocityPatchDataIndex(int u_target_data_idx)
+INSVCStaggeredPressureBcCoef::setTargetVelocityPatchDataIndex(int u_target_data_idx)
 {
     StokesBcCoefStrategy::setTargetVelocityPatchDataIndex(u_target_data_idx);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -117,7 +117,7 @@ VCINSStaggeredPressureBcCoef::setTargetVelocityPatchDataIndex(int u_target_data_
 } // setTargetVelocityPatchDataIndex
 
 void
-VCINSStaggeredPressureBcCoef::clearTargetVelocityPatchDataIndex()
+INSVCStaggeredPressureBcCoef::clearTargetVelocityPatchDataIndex()
 {
     StokesBcCoefStrategy::clearTargetVelocityPatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -129,7 +129,7 @@ VCINSStaggeredPressureBcCoef::clearTargetVelocityPatchDataIndex()
 } // clearTargetVelocityPatchDataIndex
 
 void
-VCINSStaggeredPressureBcCoef::setTargetPressurePatchDataIndex(int p_target_data_idx)
+INSVCStaggeredPressureBcCoef::setTargetPressurePatchDataIndex(int p_target_data_idx)
 {
     StokesBcCoefStrategy::setTargetPressurePatchDataIndex(p_target_data_idx);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -141,7 +141,7 @@ VCINSStaggeredPressureBcCoef::setTargetPressurePatchDataIndex(int p_target_data_
 } // setTargetPressurePatchDataIndex
 
 void
-VCINSStaggeredPressureBcCoef::clearTargetPressurePatchDataIndex()
+INSVCStaggeredPressureBcCoef::clearTargetPressurePatchDataIndex()
 {
     StokesBcCoefStrategy::clearTargetPressurePatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -153,7 +153,7 @@ VCINSStaggeredPressureBcCoef::clearTargetPressurePatchDataIndex()
 } // clearTargetPressurePatchDataIndex
 
 void
-VCINSStaggeredPressureBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+INSVCStaggeredPressureBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -163,21 +163,21 @@ VCINSStaggeredPressureBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefSt
 } // setPhysicalBcCoefs
 
 void
-VCINSStaggeredPressureBcCoef::setSolutionTime(const double /*solution_time*/)
+INSVCStaggeredPressureBcCoef::setSolutionTime(const double /*solution_time*/)
 {
     // intentionally blank
     return;
 } // setSolutionTime
 
 void
-VCINSStaggeredPressureBcCoef::setTimeInterval(const double /*current_time*/, const double /*new_time*/)
+INSVCStaggeredPressureBcCoef::setTimeInterval(const double /*current_time*/, const double /*new_time*/)
 {
     // intentionally blank
     return;
 } // setTimeInterval
 
 void
-VCINSStaggeredPressureBcCoef::setTargetPatchDataIndex(int target_idx)
+INSVCStaggeredPressureBcCoef::setTargetPatchDataIndex(int target_idx)
 {
     StokesBcCoefStrategy::setTargetPatchDataIndex(target_idx);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -189,7 +189,7 @@ VCINSStaggeredPressureBcCoef::setTargetPatchDataIndex(int target_idx)
 } // setTargetPatchDataIndex
 
 void
-VCINSStaggeredPressureBcCoef::clearTargetPatchDataIndex()
+INSVCStaggeredPressureBcCoef::clearTargetPatchDataIndex()
 {
     StokesBcCoefStrategy::clearTargetPatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -201,7 +201,7 @@ VCINSStaggeredPressureBcCoef::clearTargetPatchDataIndex()
 } // clearTargetPatchDataIndex
 
 void
-VCINSStaggeredPressureBcCoef::setHomogeneousBc(bool homogeneous_bc)
+INSVCStaggeredPressureBcCoef::setHomogeneousBc(bool homogeneous_bc)
 {
     ExtendedRobinBcCoefStrategy::setHomogeneousBc(homogeneous_bc);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -213,7 +213,7 @@ VCINSStaggeredPressureBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
+INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
                                          Pointer<ArrayData<NDIM, double> >& bcoef_data,
                                          Pointer<ArrayData<NDIM, double> >& gcoef_data,
                                          const Pointer<Variable<NDIM> >& variable,
@@ -347,7 +347,9 @@ VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                     }
                     else if (d_mu_interp_type == VC_HARMONIC_INTERP)
                     {
-                        mu = mu_contains_cells ? 2.0*((*mu_data)(i_g) * (*mu_data)(i_i))/((*mu_data)(i_g) + (*mu_data)(i_i)) : -1.0e305;
+                        mu = mu_contains_cells ?
+                                 2.0 * ((*mu_data)(i_g) * (*mu_data)(i_i)) / ((*mu_data)(i_g) + (*mu_data)(i_i)) :
+                                 -1.0e305;
                     }
                     else
                     {
@@ -390,10 +392,9 @@ VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
             default:
             {
                 TBOX_ERROR(
-                    "VCINSStaggeredPressureBcCoef::setBcCoefs(): unrecognized or unsupported "
+                    "INSVCStaggeredPressureBcCoef::setBcCoefs(): unrecognized or unsupported "
                     "traction boundary condition type: "
-                    << enum_to_string<TractionBcType>(d_traction_bc_type)
-                    << "\n");
+                    << enum_to_string<TractionBcType>(d_traction_bc_type) << "\n");
             }
             }
         }
@@ -406,7 +407,7 @@ VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
 } // setBcCoefs
 
 IntVector<NDIM>
-VCINSStaggeredPressureBcCoef::numberOfExtensionsFillable() const
+INSVCStaggeredPressureBcCoef::numberOfExtensionsFillable() const
 {
 #if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -423,7 +424,7 @@ VCINSStaggeredPressureBcCoef::numberOfExtensionsFillable() const
 } // numberOfExtensionsFillable
 
 void
-VCINSStaggeredPressureBcCoef::setViscosityInterpolationType(const IBTK::VCInterpType mu_interp_type)
+INSVCStaggeredPressureBcCoef::setViscosityInterpolationType(const IBTK::VCInterpType mu_interp_type)
 {
     d_mu_interp_type = mu_interp_type;
     return;

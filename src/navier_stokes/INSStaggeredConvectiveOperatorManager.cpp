@@ -45,7 +45,7 @@
 #include "ibamr/INSStaggeredPPMConvectiveOperator.h"
 #include "ibamr/INSStaggeredStabilizedPPMConvectiveOperator.h"
 #include "ibamr/INSStaggeredUpwindConvectiveOperator.h"
-#include "ibamr/VCINSStaggeredConservativeConvectiveOperator.h"
+#include "ibamr/INSVCStaggeredConservativeConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
@@ -146,7 +146,7 @@ INSStaggeredConvectiveOperatorManager::INSStaggeredConvectiveOperatorManager() :
     registerOperatorFactoryFunction(UPWIND, INSStaggeredUpwindConvectiveOperator::allocate_operator);
     registerOperatorFactoryFunction(STABILIZED_PPM, INSStaggeredStabilizedPPMConvectiveOperator::allocate_operator);
     registerOperatorFactoryFunction(VC_CONSERVATIVE_OP,
-                                    VCINSStaggeredConservativeConvectiveOperator::allocate_operator);
+                                    INSVCStaggeredConservativeConvectiveOperator::allocate_operator);
     return;
 } // INSStaggeredConvectiveOperatorManager
 

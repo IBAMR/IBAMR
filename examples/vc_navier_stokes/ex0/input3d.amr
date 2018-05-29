@@ -188,7 +188,7 @@ ForcingFunction {
 }
 
 
-VCINSStaggeredNonConservativeHierarchyIntegrator {
+INSVCStaggeredNonConservativeHierarchyIntegrator {
    start_time                    = START_TIME
    end_time                      = END_TIME
    grow_dt                       = GROW_DT

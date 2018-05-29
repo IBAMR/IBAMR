@@ -1,4 +1,4 @@
-// Filename: VCINSStaggeredNonConservativeHierarchyIntegrator.h
+// Filename: INSVCStaggeredNonConservativeHierarchyIntegrator.h
 // Created on 17 May 2018 by Nishant Nangia and Amneet Bhalla
 //
 // Copyright (c) 2002-2018, Nishant Nangia and Amneet Bhalla
@@ -30,15 +30,15 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBAMR_VCINSStaggeredNonConservativeHierarchyIntegrator
-#define included_IBAMR_VCINSStaggeredNonConservativeHierarchyIntegrator
+#ifndef included_IBAMR_INSVCStaggeredNonConservativeHierarchyIntegrator
+#define included_IBAMR_INSVCStaggeredNonConservativeHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <string>
 #include <vector>
 
-#include "ibamr/VCINSStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 
 namespace IBAMR
 {
@@ -55,7 +55,7 @@ namespace SAMRAI
 namespace IBAMR
 {
 /*!
- * \brief Class VCINSStaggeredNonConservativeHierarchyIntegrator provides a staggered-grid solver
+ * \brief Class INSVCStaggeredNonConservativeHierarchyIntegrator provides a staggered-grid solver
  * for the incompressible Navier-Stokes equations on an AMR grid hierarchy, with variable
  * coefficients.
  *
@@ -71,28 +71,28 @@ namespace IBAMR
  * interpolated onto the required degrees of freedom (side-centers for rho and node(edge)-centers for mu in 2D(3D))
  *
  * Note that this class is suitable for low density ratio flows. At high density ratios, the non-conservative form
- * can lead to instabilities, and VCINSStaggeredConservativeHierarchyIntegrator should be used instead.
+ * can lead to instabilities, and INSVCStaggeredConservativeHierarchyIntegrator should be used instead.
  *
  */
-class VCINSStaggeredNonConservativeHierarchyIntegrator : public VCINSStaggeredHierarchyIntegrator
+class INSVCStaggeredNonConservativeHierarchyIntegrator : public INSVCStaggeredHierarchyIntegrator
 {
 public:
     /*!
-     * The constructor for class VCINSStaggeredNonConservativeHierarchyIntegrator sets some
+     * The constructor for class INSVCStaggeredNonConservativeHierarchyIntegrator sets some
      * default values, reads in configuration information from input and restart
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    VCINSStaggeredNonConservativeHierarchyIntegrator(const std::string& object_name,
+    INSVCStaggeredNonConservativeHierarchyIntegrator(const std::string& object_name,
                                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                                      bool register_for_restart = true);
 
     /*!
-     * The destructor for class VCINSStaggeredNonConservativeHierarchyIntegrator unregisters the
+     * The destructor for class INSVCStaggeredNonConservativeHierarchyIntegrator unregisters the
      * integrator object with the restart manager when the object is so
      * registered.
      */
-    ~VCINSStaggeredNonConservativeHierarchyIntegrator();
+    ~INSVCStaggeredNonConservativeHierarchyIntegrator();
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -163,7 +163,8 @@ public:
      *
      * \note The variable set here MUST be registered and maintained by the advection-diffusion integrator.
      */
-     void setTransportedMassDensityVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > rho_adv_diff_var);
+    void setTransportedMassDensityVariable(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > rho_adv_diff_var);
 
 protected:
     /*!
@@ -213,7 +214,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCINSStaggeredNonConservativeHierarchyIntegrator();
+    INSVCStaggeredNonConservativeHierarchyIntegrator();
 
     /*!
      * \brief Copy constructor.
@@ -222,7 +223,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCINSStaggeredNonConservativeHierarchyIntegrator(const VCINSStaggeredNonConservativeHierarchyIntegrator& from);
+    INSVCStaggeredNonConservativeHierarchyIntegrator(const INSVCStaggeredNonConservativeHierarchyIntegrator& from);
 
     /*!
      * \brief Assignment operator.
@@ -233,8 +234,8 @@ private:
      *
      * \return A reference to this object.
      */
-    VCINSStaggeredNonConservativeHierarchyIntegrator&
-    operator=(const VCINSStaggeredNonConservativeHierarchyIntegrator& that);
+    INSVCStaggeredNonConservativeHierarchyIntegrator&
+    operator=(const INSVCStaggeredNonConservativeHierarchyIntegrator& that);
 
     /*!
      * Determine the convective time stepping type for the current time step and
@@ -248,9 +249,9 @@ private:
     void updateOperatorsAndSolvers(double current_time, double new_time);
 
     /*!
-    * Setup solution and RHS vectors using state data maintained by the
-    * integrator.
-    */
+     * Setup solution and RHS vectors using state data maintained by the
+     * integrator.
+     */
     void setupSolverVectors(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec,
                             const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& rhs_vec,
                             double current_time,
@@ -303,4 +304,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_VCINSStaggeredNonConservativeHierarchyIntegrator
+#endif //#ifndef included_IBAMR_INSVCStaggeredNonConservativeHierarchyIntegrator

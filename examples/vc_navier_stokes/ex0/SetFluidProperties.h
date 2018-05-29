@@ -19,7 +19,7 @@ class CartGridFunction;
 }
 
 /*!
- * Pre processing call back function to be hooked into IBAMR::VCINSStaggeredHierarchyIntegrator class.
+ * Pre processing call back function to be hooked into IBAMR::INSVCStaggeredHierarchyIntegrator class.
  *
  * \param rho_idx a patch data index for the current density variable maintained by the integrator.
  * \param ctx is the pointer to SetFluidProperties class object.
@@ -35,7 +35,7 @@ void callSetFluidDensityCallbackFunction(int rho_idx,
                                          void* ctx);
 
 /*!
- * Pre processing call back function to be hooked into IBAMR::VCINSStaggeredHierarchyIntegrator class.
+ * Pre processing call back function to be hooked into IBAMR::INSVCStaggeredHierarchyIntegrator class.
  *
  * \param rho_idx a patch data index for the current density variable maintained by the integrator.
  * \param ctx is the pointer to SetFluidProperties class object.

@@ -45,8 +45,8 @@
 #include "boost/array.hpp"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/INSStaggeredPressureBcCoef.h"
-#include "ibamr/VCINSStaggeredHierarchyIntegrator.h"
-#include "ibamr/VCINSStaggeredPressureBcCoef.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredPressureBcCoef.h"
 #include "ibamr/namespaces.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/IndexUtilities.h"
@@ -128,8 +128,8 @@ IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
     INSStaggeredHierarchyIntegrator* p_ins_hier_integrator =
         dynamic_cast<INSStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
 
-    VCINSStaggeredHierarchyIntegrator* p_vc_ins_hier_integrator =
-        dynamic_cast<VCINSStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
+    INSVCStaggeredHierarchyIntegrator* p_vc_ins_hier_integrator =
+        dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
 
     if (p_ins_hier_integrator)
     {
@@ -395,8 +395,8 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
     // Fill in ghost cells for viscosity, when necessary
     if (!d_mu_is_const)
     {
-        VCINSStaggeredHierarchyIntegrator* p_vc_ins_hier_integrator =
-            dynamic_cast<VCINSStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
+        INSVCStaggeredHierarchyIntegrator* p_vc_ins_hier_integrator =
+            dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
 #if !defined(NDEBUG)
         TBOX_ASSERT(p_vc_ins_hier_integrator);
 #endif
@@ -413,8 +413,8 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
         else if (mu_ins_var)
         {
             mu_current_idx = var_db->mapVariableAndContextToIndex(mu_ins_var, d_fluid_solver->getCurrentContext());
-            VCINSStaggeredHierarchyIntegrator* p_vc_ins_hier_integrator =
-                dynamic_cast<VCINSStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
+            INSVCStaggeredHierarchyIntegrator* p_vc_ins_hier_integrator =
+                dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
             mu_bc_coef = p_vc_ins_hier_integrator->getViscosityBoundaryConditions();
         }
         else
@@ -441,8 +441,8 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
         const int p_current_idx = var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getCurrentContext());
         INSStaggeredPressureBcCoef* p_ins_bc_coef =
             dynamic_cast<INSStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
-        VCINSStaggeredPressureBcCoef* p_vc_ins_bc_coef =
-            dynamic_cast<VCINSStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
+        INSVCStaggeredPressureBcCoef* p_vc_ins_bc_coef =
+            dynamic_cast<INSVCStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
         InterpolationTransactionComponent p_transaction_comp;
         if (p_ins_bc_coef)
         {

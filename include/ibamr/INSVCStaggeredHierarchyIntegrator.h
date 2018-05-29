@@ -1,4 +1,4 @@
-// Filename: VCINSStaggeredHierarchyIntegrator.h
+// Filename: INSVCStaggeredHierarchyIntegrator.h
 // Created on 25 Sep 2017 by Nishant Nangia and Amneet Bhalla
 //
 // Copyright (c) 2002-2018, Nishant Nangia and Amneet Bhalla
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBAMR_VCINSStaggeredHierarchyIntegrator
-#define included_IBAMR_VCINSStaggeredHierarchyIntegrator
+#ifndef included_IBAMR_INSVCStaggeredHierarchyIntegrator
+#define included_IBAMR_INSVCStaggeredHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -97,7 +97,7 @@ class RobinBcCoefStrategy;
 namespace IBAMR
 {
 /*!
- * \brief Class VCINSStaggeredHierarchyIntegrator provides an abstract interface for time 
+ * \brief Class INSVCStaggeredHierarchyIntegrator provides an abstract interface for time
  * integrator for a staggered-grid, incompressible Navier-Stokes solver on an AMR grid hierarchy
  * with variable coefficients.
  *
@@ -107,25 +107,25 @@ namespace IBAMR
  * in which the viscous block, the pressure degrees of freedom, and the velocity RHS have been scaled.
  */
 
-class VCINSStaggeredHierarchyIntegrator : public INSHierarchyIntegrator
+class INSVCStaggeredHierarchyIntegrator : public INSHierarchyIntegrator
 {
 public:
     /*!
-     * The constructor for class VCINSStaggeredHierarchyIntegrator sets some
+     * The constructor for class INSVCStaggeredHierarchyIntegrator sets some
      * default values, reads in configuration information from input and restart
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    VCINSStaggeredHierarchyIntegrator(const std::string& object_name,
+    INSVCStaggeredHierarchyIntegrator(const std::string& object_name,
                                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                       bool register_for_restart = true);
 
     /*!
-     * The destructor for class VCINSStaggeredHierarchyIntegrator unregisters the
+     * The destructor for class INSVCStaggeredHierarchyIntegrator unregisters the
      * integrator object with the restart manager when the object is so
      * registered.
      */
-    ~VCINSStaggeredHierarchyIntegrator();
+    ~INSVCStaggeredHierarchyIntegrator();
 
     /*!
      * Get the convective operator being used by this solver class.
@@ -296,25 +296,27 @@ public:
      *
      * \note The boundary conditions set here will be overwritten if viscosity if being advected.
      */
-     void registerViscosityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* mu_bc_coef);
+    void registerViscosityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* mu_bc_coef);
 
-     /*
-      * \brief Set the transported viscosity variable if it is being maintained by the advection-diffusion integrator.
-      *
-      * \note The variable set here MUST be registered and maintained by the advection-diffusion integrator.
-      */
-     void setTransportedViscosityVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > mu_adv_diff_var);
-
-     /*!
-     * \brief Get the transported viscosity variable that is being manintained by an advection-diffusion integrator
+    /*
+     * \brief Set the transported viscosity variable if it is being maintained by the advection-diffusion integrator.
+     *
+     * \note The variable set here MUST be registered and maintained by the advection-diffusion integrator.
      */
-     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getTransportedViscosityVariable() const;
+    void
+    setTransportedViscosityVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > mu_adv_diff_var);
 
     /*!
-     * \brief Get the side-centered density patch data index, which will always be the newest one used in the linear operator
-     * i.e. rho_sc in rho_sc*u^{n+1} term.
+     * \brief Get the transported viscosity variable that is being manintained by an advection-diffusion integrator
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getTransportedViscosityVariable() const;
+
+    /*!
+     * \brief Get the side-centered density patch data index, which will always be the newest one used in the linear
+     * operator i.e. rho_sc in rho_sc*u^{n+1} term.
      *
-     * \note These patch data will not be deallocated at the end of the time step, so they can be used for various applications
+     * \note These patch data will not be deallocated at the end of the time step, so they can be used for various
+     * applications
      */
     inline int getLinearOperatorRhoPatchDataIndex() const
     {
@@ -338,9 +340,11 @@ public:
     }
 
     /*!
-     * \brief Get the cell-centered viscosity patch data index, which will always be the newest one used in the linear operator.
+     * \brief Get the cell-centered viscosity patch data index, which will always be the newest one used in the linear
+     * operator.
      *
-     * \note These patch data will not be deallocated at the end of the time step, so they can be used for various applications
+     * \note These patch data will not be deallocated at the end of the time step, so they can be used for various
+     * applications
      */
     inline int getLinearOperatorMuPatchDataIndex() const
     {
@@ -348,9 +352,11 @@ public:
     }
 
     /*!
-     * \brief Get the interpolated viscosity patch data index, which will always be the newest one used in the linear operator.
+     * \brief Get the interpolated viscosity patch data index, which will always be the newest one used in the linear
+     * operator.
      *
-     * \note These patch data will not be deallocated at the end of the time step, so they can be used for various applications
+     * \note These patch data will not be deallocated at the end of the time step, so they can be used for various
+     * applications
      */
     inline int getInterpolatedLinearOperatorMuPatchDataIndex() const
     {
@@ -371,7 +377,7 @@ public:
     inline SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getViscosityBoundaryConditions() const
     {
         return d_mu_bc_coef;
-    } 
+    }
 
 protected:
     /*!
@@ -530,7 +536,7 @@ protected:
      * Functions resetting rho and mu if they are maintained by this integrator.
      */
     std::vector<ResetFluidPropertiesFcnPtr> d_reset_rho_fcns, d_reset_mu_fcns;
-    std::vector<void *> d_reset_rho_fcns_ctx, d_reset_mu_fcns_ctx;
+    std::vector<void*> d_reset_rho_fcns_ctx, d_reset_mu_fcns_ctx;
 
     /*!
      * Temporary storage variables that contain intermediate quantities
@@ -621,7 +627,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCINSStaggeredHierarchyIntegrator();
+    INSVCStaggeredHierarchyIntegrator();
 
     /*!
      * \brief Copy constructor.
@@ -630,7 +636,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCINSStaggeredHierarchyIntegrator(const VCINSStaggeredHierarchyIntegrator& from);
+    INSVCStaggeredHierarchyIntegrator(const INSVCStaggeredHierarchyIntegrator& from);
 
     /*!
      * \brief Assignment operator.
@@ -641,7 +647,7 @@ private:
      *
      * \return A reference to this object.
      */
-    VCINSStaggeredHierarchyIntegrator& operator=(const VCINSStaggeredHierarchyIntegrator& that);
+    INSVCStaggeredHierarchyIntegrator& operator=(const INSVCStaggeredHierarchyIntegrator& that);
 
     /*!
      * Preprocess the operators and solvers used by the hierarchy integrator.
@@ -652,4 +658,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_VCINSStaggeredHierarchyIntegrator
+#endif //#ifndef included_IBAMR_INSVCStaggeredHierarchyIntegrator

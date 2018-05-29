@@ -1,4 +1,4 @@
-// Filename: VCINSStaggeredNonConservativeHierarchyIntegrator.cpp
+// Filename: INSVCStaggeredNonConservativeHierarchyIntegrator.cpp
 // Created on 17 May 2018 by Nishant Nangia and Amneet Bhalla
 //
 // Copyright (c) 2002-2018, Nishant Nangia and Amneet Bhalla
@@ -97,6 +97,10 @@
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/INSProjectionBcCoef.h"
 #include "ibamr/INSStaggeredConvectiveOperatorManager.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredPressureBcCoef.h"
+#include "ibamr/INSVCStaggeredVelocityBcCoef.h"
 #include "ibamr/PETScKrylovStaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
@@ -104,10 +108,6 @@
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/StokesSpecifications.h"
-#include "ibamr/VCINSStaggeredHierarchyIntegrator.h"
-#include "ibamr/VCINSStaggeredNonConservativeHierarchyIntegrator.h"
-#include "ibamr/VCINSStaggeredPressureBcCoef.h"
-#include "ibamr/VCINSStaggeredVelocityBcCoef.h"
 #include "ibamr/VCStaggeredStokesOperator.h"
 #include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
 #include "ibamr/ibamr_enums.h"
@@ -153,15 +153,17 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
 static const int SIDEG = 1;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-VCINSStaggeredNonConservativeHierarchyIntegrator::VCINSStaggeredNonConservativeHierarchyIntegrator(
+INSVCStaggeredNonConservativeHierarchyIntegrator::INSVCStaggeredNonConservativeHierarchyIntegrator(
     const std::string& object_name,
     Pointer<Database> input_db,
     bool register_for_restart)
-    : VCINSStaggeredHierarchyIntegrator(object_name, input_db, register_for_restart), d_rho_bc_coef(NULL), d_rho_adv_diff_var(NULL)
+    : INSVCStaggeredHierarchyIntegrator(object_name, input_db, register_for_restart),
+      d_rho_bc_coef(NULL),
+      d_rho_adv_diff_var(NULL)
 {
     switch (d_convective_time_stepping_type)
     {
@@ -171,10 +173,9 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::VCINSStaggeredNonConservativeH
     case TRAPEZOIDAL_RULE:
         break;
     default:
-        TBOX_ERROR(d_object_name << "::VCINSStaggeredNonConservativeHierarchyIntegrator():\n"
+        TBOX_ERROR(d_object_name << "::INSVCStaggeredNonConservativeHierarchyIntegrator():\n"
                                  << "  unsupported convective time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
-                                 << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " \n"
                                  << "  valid choices are: ADAMS_BASHFORTH, FORWARD_EULER, "
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
@@ -187,10 +188,9 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::VCINSStaggeredNonConservativeH
         case TRAPEZOIDAL_RULE:
             break;
         default:
-            TBOX_ERROR(d_object_name << "::VCINSStaggeredNonConservativeHierarchyIntegrator():\n"
+            TBOX_ERROR(d_object_name << "::INSVCStaggeredNonConservativeHierarchyIntegrator():\n"
                                      << "  unsupported initial convective time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type)
-                                     << " \n"
+                                     << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type) << " \n"
                                      << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
     }
@@ -207,22 +207,22 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::VCINSStaggeredNonConservativeH
         d_convective_op_type = input_db->getString("default_convective_operator_type");
 
     return;
-} // VCINSStaggeredNonConservativeHierarchyIntegrator
+} // INSVCStaggeredNonConservativeHierarchyIntegrator
 
-VCINSStaggeredNonConservativeHierarchyIntegrator::~VCINSStaggeredNonConservativeHierarchyIntegrator()
+INSVCStaggeredNonConservativeHierarchyIntegrator::~INSVCStaggeredNonConservativeHierarchyIntegrator()
 {
     // intentionally blank
     return;
-} // ~VCINSStaggeredNonConservativeHierarchyIntegrator
+} // ~INSVCStaggeredNonConservativeHierarchyIntegrator
 
 void
-VCINSStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
-    VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
+    INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const IntVector<NDIM> cell_ghosts = CELLG;
@@ -243,22 +243,20 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
 #endif
             d_rho_var = Pointer<CellVariable<NDIM, double> >(NULL);
             // Ensure that boundary conditions are provided by the advection-diffusion integrator
-            d_rho_bc_coef =
-                (d_adv_diff_hier_integrator->getPhysicalBcCoefs(d_rho_adv_diff_var))
-                    .front();
+            d_rho_bc_coef = (d_adv_diff_hier_integrator->getPhysicalBcCoefs(d_rho_adv_diff_var)).front();
         }
         else if (d_rho_var)
         {
             Pointer<CellVariable<NDIM, double> > cc_var = d_rho_var;
             if (!cc_var)
             {
-                TBOX_ERROR("VCINSStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator():\n"
-                      << " registered density variable must be cell centered");
+                TBOX_ERROR("INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator():\n"
+                           << " registered density variable must be cell centered");
             }
         }
         else
         {
-            TBOX_ERROR("VCINSStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator():\n"
+            TBOX_ERROR("INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator():\n"
                        << "  rho_is_const == false but no mass density variable has been registered.\n");
         }
     }
@@ -266,7 +264,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     if (d_rho_var)
     {
 #if !defined(NDEBUG)
-        // VCINSStaggeredNonConservativeHierarchyIntegrator should initialize the density variable.
+        // INSVCStaggeredNonConservativeHierarchyIntegrator should initialize the density variable.
         TBOX_ASSERT(d_rho_init_fcn);
 #endif
         registerVariable(d_rho_current_idx,
@@ -306,20 +304,20 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
 } // initializeHierarchyIntegrator
 
 void
-VCINSStaggeredNonConservativeHierarchyIntegrator::initializePatchHierarchy(
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializePatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
-    VCINSStaggeredHierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
+    INSVCStaggeredHierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
     return;
 } // initializePatchHierarhcy
 
 void
-VCINSStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
+INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                                                const double new_time,
                                                                                const int num_cycles)
 {
-    VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+    INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
     // Keep track of the number of cycles to be used for the present integration
     // step.
@@ -330,9 +328,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
                                  << "  time stepping type: "
                                  << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
                                  << " requires num_cycles > 1.\n"
-                                 << "  at current time step, num_cycles = "
-                                 << d_current_num_cycles
-                                 << "\n");
+                                 << "  at current time step, num_cycles = " << d_current_num_cycles << "\n");
     }
 
     const int coarsest_ln = 0;
@@ -345,7 +341,6 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
         if (d_rho_var.isNull()) level->allocatePatchData(d_rho_scratch_idx, current_time);
         level->allocatePatchData(d_rho_interp_idx, current_time);
     }
-       
 
     // Get the current value of viscosity
     if (!d_mu_is_const)
@@ -354,9 +349,8 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
         int mu_current_idx;
         if (d_adv_diff_hier_integrator && d_mu_adv_diff_var)
         {
-            mu_current_idx =
-                var_db->mapVariableAndContextToIndex(d_mu_adv_diff_var,
-                                                     d_adv_diff_hier_integrator->getCurrentContext());
+            mu_current_idx = var_db->mapVariableAndContextToIndex(d_mu_adv_diff_var,
+                                                                  d_adv_diff_hier_integrator->getCurrentContext());
         }
         else
         {
@@ -502,12 +496,10 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
         if (adv_diff_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
         {
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                     << "  attempting to perform "
-                                     << d_current_num_cycles
+                                     << "  attempting to perform " << d_current_num_cycles
                                      << " cycles of fixed point iteration.\n"
                                      << "  number of cycles required by coupled advection-diffusion solver = "
-                                     << adv_diff_num_cycles
-                                     << ".\n"
+                                     << adv_diff_num_cycles << ".\n"
                                      << "  current implementation requires either that both solvers use the same "
                                         "number of cycles,\n"
                                      << "  or that the Navier-Stokes solver use only a single cycle.\n");
@@ -517,7 +509,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
             var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
         if (isAllocatedPatchData(U_adv_diff_current_idx))
         {
-            VCINSStaggeredHierarchyIntegrator::copySideToFace(U_adv_diff_current_idx, d_U_current_idx, d_hierarchy);
+            INSVCStaggeredHierarchyIntegrator::copySideToFace(U_adv_diff_current_idx, d_U_current_idx, d_hierarchy);
         }
         d_adv_diff_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, adv_diff_num_cycles);
         const int U_adv_diff_scratch_idx =
@@ -565,11 +557,11 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
 } // preprocessIntegrateHierarchy
 
 void
-VCINSStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const double current_time,
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const double current_time,
                                                                      const double new_time,
                                                                      const int cycle_num)
 {
-    VCINSStaggeredHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
+    INSVCStaggeredHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
 
     // Get the coarsest and finest level numbers.
     const int coarsest_ln = 0;
@@ -580,7 +572,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
     if (d_current_num_cycles != expected_num_cycles)
     {
         IBAMR_DO_ONCE({
-            pout << "VCINSStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy():\n"
+            pout << "INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy():\n"
                  << "  WARNING: num_cycles = " << d_current_num_cycles
                  << " but expected num_cycles = " << expected_num_cycles << ".\n";
         });
@@ -631,8 +623,8 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
         int rho_new_idx;
         if (d_adv_diff_hier_integrator && d_rho_adv_diff_var)
         {
-            rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_adv_diff_var,
-                                                               d_adv_diff_hier_integrator->getNewContext());
+            rho_new_idx =
+                var_db->mapVariableAndContextToIndex(d_rho_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
         }
         else
         {
@@ -685,8 +677,8 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
         int mu_new_idx;
         if (d_adv_diff_hier_integrator && d_mu_adv_diff_var)
         {
-            mu_new_idx = var_db->mapVariableAndContextToIndex(d_mu_adv_diff_var,
-                                                              d_adv_diff_hier_integrator->getNewContext());
+            mu_new_idx =
+                var_db->mapVariableAndContextToIndex(d_mu_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
         }
         else
         {
@@ -780,7 +772,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
             var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
         if (isAllocatedPatchData(U_adv_diff_new_idx))
         {
-            VCINSStaggeredHierarchyIntegrator::copySideToFace(U_adv_diff_new_idx, d_U_new_idx, d_hierarchy);
+            INSVCStaggeredHierarchyIntegrator::copySideToFace(U_adv_diff_new_idx, d_U_new_idx, d_hierarchy);
         }
         const int U_adv_diff_current_idx =
             var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
@@ -847,13 +839,13 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
 } // integrateHierarchy
 
 void
-VCINSStaggeredNonConservativeHierarchyIntegrator::postprocessIntegrateHierarchy(
+INSVCStaggeredNonConservativeHierarchyIntegrator::postprocessIntegrateHierarchy(
     const double current_time,
     const double new_time,
     const bool skip_synchronize_new_state_data,
     const int num_cycles)
 {
-    VCINSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(
+    INSVCStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
     const int coarsest_ln = 0;
@@ -870,22 +862,22 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::postprocessIntegrateHierarchy(
 } // postprocessIntegrateHierarchy
 
 void
-VCINSStaggeredNonConservativeHierarchyIntegrator::regridHierarchy()
+INSVCStaggeredNonConservativeHierarchyIntegrator::regridHierarchy()
 {
-    VCINSStaggeredHierarchyIntegrator::regridHierarchy();
+    INSVCStaggeredHierarchyIntegrator::regridHierarchy();
     return;
 } // regridHierarchy
 
 void
-VCINSStaggeredNonConservativeHierarchyIntegrator::removeNullSpace(
+INSVCStaggeredNonConservativeHierarchyIntegrator::removeNullSpace(
     const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec)
 {
-    VCINSStaggeredHierarchyIntegrator::removeNullSpace(sol_vec);
+    INSVCStaggeredHierarchyIntegrator::removeNullSpace(sol_vec);
     return;
 } // removeNullSpace
 
 void
-VCINSStaggeredNonConservativeHierarchyIntegrator::registerMassDensityBoundaryConditions(
+INSVCStaggeredNonConservativeHierarchyIntegrator::registerMassDensityBoundaryConditions(
     RobinBcCoefStrategy<NDIM>* rho_bc_coef)
 {
 #if !defined(NDEBUG)
@@ -896,7 +888,8 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::registerMassDensityBoundaryCon
 } // registerMassDensityBoundaryConditions
 
 void
-VCINSStaggeredNonConservativeHierarchyIntegrator::setTransportedMassDensityVariable(Pointer<CellVariable<NDIM, double> > rho_adv_diff_var)
+INSVCStaggeredNonConservativeHierarchyIntegrator::setTransportedMassDensityVariable(
+    Pointer<CellVariable<NDIM, double> > rho_adv_diff_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_adv_diff_hier_integrator);
@@ -908,7 +901,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::setTransportedMassDensityVaria
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-VCINSStaggeredNonConservativeHierarchyIntegrator::initializeLevelDataSpecialized(
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializeLevelDataSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int level_number,
     const double init_data_time,
@@ -917,18 +910,18 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::initializeLevelDataSpecialized
     const Pointer<BasePatchLevel<NDIM> > base_old_level,
     const bool allocate_data)
 {
-    VCINSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
+    INSVCStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
         base_hierarchy, level_number, init_data_time, can_be_refined, initial_time, base_old_level, allocate_data);
     return;
 } // initializeLevelDataSpecialized
 
 void
-VCINSStaggeredNonConservativeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+INSVCStaggeredNonConservativeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
-    VCINSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+    INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
         base_hierarchy, coarsest_level, finest_level);
 
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -949,7 +942,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::resetHierarchyConfigurationSpe
 } // resetHierarchyConfigurationSpecialized
 
 void
-VCINSStaggeredNonConservativeHierarchyIntegrator::applyGradientDetectorSpecialized(
+INSVCStaggeredNonConservativeHierarchyIntegrator::applyGradientDetectorSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double error_data_time,
@@ -957,28 +950,28 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::applyGradientDetectorSpecializ
     const bool initial_time,
     const bool uses_richardson_extrapolation_too)
 {
-    VCINSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(
+    INSVCStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(
         hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     return;
 } // applyGradientDetectorSpecialized
 
 void
-VCINSStaggeredNonConservativeHierarchyIntegrator::setupPlotDataSpecialized()
+INSVCStaggeredNonConservativeHierarchyIntegrator::setupPlotDataSpecialized()
 {
-    VCINSStaggeredHierarchyIntegrator::setupPlotDataSpecialized();
+    INSVCStaggeredHierarchyIntegrator::setupPlotDataSpecialized();
     return;
 } // setupPlotDataSpecialized
 
 void
-VCINSStaggeredNonConservativeHierarchyIntegrator::regridProjection()
+INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
 {
-    VCINSStaggeredHierarchyIntegrator::regridProjection();
+    INSVCStaggeredHierarchyIntegrator::regridProjection();
     return;
 } // regridProjection
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 TimeSteppingType
-VCINSStaggeredNonConservativeHierarchyIntegrator::getConvectiveTimeSteppingType(const int cycle_num)
+INSVCStaggeredNonConservativeHierarchyIntegrator::getConvectiveTimeSteppingType(const int cycle_num)
 {
     TimeSteppingType convective_time_stepping_type = d_convective_time_stepping_type;
     if (is_multistep_time_stepping_type(convective_time_stepping_type))
@@ -994,7 +987,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::getConvectiveTimeSteppingType(
         {
             convective_time_stepping_type = MIDPOINT_RULE;
             IBAMR_DO_ONCE({
-                pout << "VCINSStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy():\n"
+                pout << "INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy():\n"
                      << "  WARNING: convective_time_stepping_type = "
                      << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
                      << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
@@ -1009,7 +1002,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::getConvectiveTimeSteppingType(
 } // getConvectiveTimeSteppingType
 
 void
-VCINSStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const double current_time,
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const double current_time,
                                                                             const double new_time)
 {
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
@@ -1044,7 +1037,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
     else
     {
         d_hier_sc_data_ops->scale(d_velocity_C_idx, d_A_scale / dt, d_rho_interp_idx, /*interior_only*/ true);
-        
+
         if (!MathUtilities<double>::equalEps(lambda, 0.0))
         {
             d_hier_sc_data_ops->addScalar(
@@ -1117,8 +1110,9 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
         if (d_velocity_solver_needs_init)
         {
             if (d_enable_logging)
-                plog << d_object_name << "::updateOperatorsAndSolvers`(): initializing "
-                                         "velocity subdomain solver"
+                plog << d_object_name
+                     << "::updateOperatorsAndSolvers`(): initializing "
+                        "velocity subdomain solver"
                      << std::endl;
             LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
             if (p_velocity_solver)
@@ -1140,8 +1134,9 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
         if (d_pressure_solver_needs_init)
         {
             if (d_enable_logging)
-                plog << d_object_name << "::updateOperatorsAndSolvers(): initializing "
-                                         "pressure subdomain solver"
+                plog << d_object_name
+                     << "::updateOperatorsAndSolvers(): initializing "
+                        "pressure subdomain solver"
                      << std::endl;
             LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
             if (p_pressure_solver)
@@ -1215,8 +1210,9 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
     if (d_stokes_solver_needs_init)
     {
         if (d_enable_logging)
-            plog << d_object_name << "::updateOperatorsAndSolvers(): initializing "
-                                     "incompressible Stokes solver"
+            plog << d_object_name
+                 << "::updateOperatorsAndSolvers(): initializing "
+                    "incompressible Stokes solver"
                  << std::endl;
         if (p_stokes_linear_solver)
         {
@@ -1231,7 +1227,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
 } // updateOperatorsAndSolvers
 
 void
-VCINSStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
+INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
     const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec,
     const Pointer<SAMRAIVectorReal<NDIM, double> >& rhs_vec,
     const double current_time,
@@ -1408,7 +1404,7 @@ VCINSStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
 } // setupSolverVectors
 
 void
-VCINSStaggeredNonConservativeHierarchyIntegrator::resetSolverVectors(
+INSVCStaggeredNonConservativeHierarchyIntegrator::resetSolverVectors(
     const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec,
     const Pointer<SAMRAIVectorReal<NDIM, double> >& rhs_vec,
     const double current_time,

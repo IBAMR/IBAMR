@@ -1,4 +1,4 @@
-// Filename: VCINSStaggeredConservativeConvectiveOperator.h
+// Filename: INSVCStaggeredConservativeConvectiveOperator.h
 // Created on 01 April 2018 by Nishant Nangia and Amneet Bhalla
 //
 // Copyright (c) 2002-2018, Nishant Nangia and Amneet Bhalla
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBAMR_VCINSStaggeredConservativeConvectiveOperator
-#define included_IBAMR_VCINSStaggeredConservativeConvectiveOperator
+#ifndef included_IBAMR_INSVCStaggeredConservativeConvectiveOperator
+#define included_IBAMR_INSVCStaggeredConservativeConvectiveOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -67,10 +67,10 @@ class RobinBcCoefStrategy;
 namespace IBAMR
 {
 /*!
- * \brief Class VCINSStaggeredConservativeConvectiveOperator is a concrete
+ * \brief Class INSVCStaggeredConservativeConvectiveOperator is a concrete
  * ConvectiveOperator that implements an upwind convective differencing operator.
  *
- * Class VCINSStaggeredConservativeConvectiveOperator computes the convective derivative of
+ * Class INSVCStaggeredConservativeConvectiveOperator computes the convective derivative of
  * a side-centered velocity field using various limiters described by Patel and Natarajan.
  *
  * A side-centered density update is provided by this class, which is used in the conservative discretization
@@ -86,15 +86,15 @@ namespace IBAMR
  * This operator is to be used in conjuction with the conservative form of the variable coefficient
  * Navier-Stokes equations, which will produce better results for high density ratio flows.
  *
- * \see VCINSStaggeredHierarchyIntegrator
+ * \see INSVCStaggeredHierarchyIntegrator
  */
-class VCINSStaggeredConservativeConvectiveOperator : public ConvectiveOperator
+class INSVCStaggeredConservativeConvectiveOperator : public ConvectiveOperator
 {
 public:
     /*!
      * \brief Class constructor.
      */
-    VCINSStaggeredConservativeConvectiveOperator(const std::string& object_name,
+    INSVCStaggeredConservativeConvectiveOperator(const std::string& object_name,
                                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                                  ConvectiveDifferencingType difference_form,
                                                  const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
@@ -102,10 +102,10 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~VCINSStaggeredConservativeConvectiveOperator();
+    ~INSVCStaggeredConservativeConvectiveOperator();
 
     /*!
-     * \brief Static function to construct an VCINSStaggeredConservativeConvectiveOperator.
+     * \brief Static function to construct an INSVCStaggeredConservativeConvectiveOperator.
      */
     static SAMRAI::tbox::Pointer<ConvectiveOperator>
     allocate_operator(const std::string& object_name,
@@ -113,7 +113,7 @@ public:
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
     {
-        return new VCINSStaggeredConservativeConvectiveOperator(object_name, input_db, difference_form, bc_coefs);
+        return new INSVCStaggeredConservativeConvectiveOperator(object_name, input_db, difference_form, bc_coefs);
     } // allocate_operator
 
     /*!
@@ -187,7 +187,7 @@ public:
      * \brief Get the newly constructed side-centered density patch data index.
      *
      * \note This data is produced as a part of the apply() routine and should be used
-     * in the linear operator for the VCINS solver.
+     * in the linear operator for the INSVC solver.
      */
     int getUpdatedSideCenteredDensityPatchDataIndex();
 
@@ -202,7 +202,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCINSStaggeredConservativeConvectiveOperator();
+    INSVCStaggeredConservativeConvectiveOperator();
 
     /*!
      * \brief Copy constructor.
@@ -211,7 +211,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCINSStaggeredConservativeConvectiveOperator(const VCINSStaggeredConservativeConvectiveOperator& from);
+    INSVCStaggeredConservativeConvectiveOperator(const INSVCStaggeredConservativeConvectiveOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -222,7 +222,7 @@ private:
      *
      * \return A reference to this object.
      */
-    VCINSStaggeredConservativeConvectiveOperator& operator=(const VCINSStaggeredConservativeConvectiveOperator& that);
+    INSVCStaggeredConservativeConvectiveOperator& operator=(const INSVCStaggeredConservativeConvectiveOperator& that);
 
     /*!
      * \brief Compute the advection velocity using simple averages
@@ -325,4 +325,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_VCINSStaggeredConservativeConvectiveOperator
+#endif //#ifndef included_IBAMR_INSVCStaggeredConservativeConvectiveOperator

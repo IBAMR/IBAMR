@@ -135,7 +135,7 @@ ADV_DIFF_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE" // convective time stepping type
 ADV_DIFF_CONVECTIVE_OP_TYPE = "PPM"             // convective differencing discretization type
 ADV_DIFF_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
 
-VCINSStaggeredNonConservativeHierarchyIntegrator {
+INSVCStaggeredNonConservativeHierarchyIntegrator {
    start_time                 = START_TIME
    end_time                   = END_TIME
    grow_dt                    = GROW_DT

@@ -128,6 +128,12 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/INSStaggeredStochasticForcing.cpp \
 ../src/navier_stokes/INSStaggeredUpwindConvectiveOperator.cpp \
 ../src/navier_stokes/INSStaggeredVelocityBcCoef.cpp \
+../src/navier_stokes/INSVCStaggeredConservativeConvectiveOperator.cpp \
+../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp \
+../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp \
+../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp \
+../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp \
+../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp \
 ../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp \
 ../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp \
 ../src/navier_stokes/SpongeLayerForceFunction.cpp \
@@ -147,12 +153,6 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/StaggeredStokesSolverManager.cpp \
 ../src/navier_stokes/StokesBcCoefStrategy.cpp \
 ../src/navier_stokes/SurfaceTensionForceFunction.cpp \
-../src/navier_stokes/VCINSStaggeredConservativeConvectiveOperator.cpp \
-../src/navier_stokes/VCINSStaggeredConservativeHierarchyIntegrator.cpp \
-../src/navier_stokes/VCINSStaggeredHierarchyIntegrator.cpp \
-../src/navier_stokes/VCINSStaggeredNonConservativeHierarchyIntegrator.cpp \
-../src/navier_stokes/VCINSStaggeredPressureBcCoef.cpp \
-../src/navier_stokes/VCINSStaggeredVelocityBcCoef.cpp \
 ../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
 ../src/utilities/ConvectiveOperator.cpp
@@ -237,6 +237,12 @@ pkg_include_HEADERS += \
 ../include/ibamr/INSStaggeredStochasticForcing.h \
 ../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
 ../include/ibamr/INSStaggeredVelocityBcCoef.h \
+../include/ibamr/INSVCStaggeredConservativeConvectiveOperator.h \
+../include/ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h \
+../include/ibamr/INSVCStaggeredHierarchyIntegrator.h \
+../include/ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h \
+../include/ibamr/INSVCStaggeredPressureBcCoef.h \
+../include/ibamr/INSVCStaggeredVelocityBcCoef.h \
 ../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 ../include/ibamr/KrylovMobilitySolver.h \
@@ -266,12 +272,6 @@ pkg_include_HEADERS += \
 ../include/ibamr/StokesBcCoefStrategy.h \
 ../include/ibamr/StokesSpecifications.h \
 ../include/ibamr/SurfaceTensionForceFunction.h \
-../include/ibamr/VCINSStaggeredConservativeConvectiveOperator.h \
-../include/ibamr/VCINSStaggeredConservativeHierarchyIntegrator.h \
-../include/ibamr/VCINSStaggeredHierarchyIntegrator.h \
-../include/ibamr/VCINSStaggeredNonConservativeHierarchyIntegrator.h \
-../include/ibamr/VCINSStaggeredPressureBcCoef.h \
-../include/ibamr/VCINSStaggeredVelocityBcCoef.h \
 ../include/ibamr/VCStaggeredStokesOperator.h \
 ../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
 ../include/ibamr/Wall.h \

@@ -42,8 +42,8 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/VCINSStaggeredConservativeHierarchyIntegrator.h>
-#include <ibamr/VCINSStaggeredHierarchyIntegrator.h>
+#include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
+#include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -119,14 +119,14 @@ run_example(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<VCINSStaggeredConservativeHierarchyIntegrator> time_integrator;
+        Pointer<INSVCStaggeredConservativeHierarchyIntegrator> time_integrator;
         const string discretization_form =
             app_initializer->getComponentDatabase("Main")->getStringWithDefault("discretization_form", "CONSERVATIVE");
         if (discretization_form == "CONSERVATIVE")
         {
-            time_integrator = new VCINSStaggeredConservativeHierarchyIntegrator(
-                "VCINSStaggeredConservativeHierarchyIntegrator",
-                app_initializer->getComponentDatabase("VCINSStaggeredConservativeHierarchyIntegrator"));
+            time_integrator = new INSVCStaggeredConservativeHierarchyIntegrator(
+                "INSVCStaggeredConservativeHierarchyIntegrator",
+                app_initializer->getComponentDatabase("INSVCStaggeredConservativeHierarchyIntegrator"));
         }
         else
         {

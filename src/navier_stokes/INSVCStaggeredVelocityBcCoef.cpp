@@ -1,4 +1,4 @@
-// Filename: VCINSStaggeredVelocityBcCoef.cpp
+// Filename: INSVCStaggeredVelocityBcCoef.cpp
 // Created on 25 Sep 2017 by Nishant Nangia
 //
 // Copyright (c) 2002-2014, Nishant Nangia and Amneet Bhalla
@@ -32,10 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <limits>
 #include <ostream>
+#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -51,10 +51,10 @@
 #include "RobinBcCoefStrategy.h"
 #include "SideData.h"
 #include "SideIndex.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredVelocityBcCoef.h"
 #include "ibamr/StokesBcCoefStrategy.h"
 #include "ibamr/StokesSpecifications.h"
-#include "ibamr/VCINSStaggeredHierarchyIntegrator.h"
-#include "ibamr/VCINSStaggeredVelocityBcCoef.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
@@ -79,8 +79,8 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-VCINSStaggeredVelocityBcCoef::VCINSStaggeredVelocityBcCoef(const unsigned int comp_idx,
-                                                           const VCINSStaggeredHierarchyIntegrator* fluid_solver,
+INSVCStaggeredVelocityBcCoef::INSVCStaggeredVelocityBcCoef(const unsigned int comp_idx,
+                                                           const INSVCStaggeredHierarchyIntegrator* fluid_solver,
                                                            const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                            const TractionBcType traction_bc_type,
                                                            const bool homogeneous_bc)
@@ -93,16 +93,16 @@ VCINSStaggeredVelocityBcCoef::VCINSStaggeredVelocityBcCoef(const unsigned int co
     setTractionBcType(traction_bc_type);
     setHomogeneousBc(homogeneous_bc);
     return;
-} // VCINSStaggeredVelocityBcCoef
+} // INSVCStaggeredVelocityBcCoef
 
-VCINSStaggeredVelocityBcCoef::~VCINSStaggeredVelocityBcCoef()
+INSVCStaggeredVelocityBcCoef::~INSVCStaggeredVelocityBcCoef()
 {
     // intentionally blank
     return;
-} // ~VCINSStaggeredVelocityBcCoef
+} // ~INSVCStaggeredVelocityBcCoef
 
 void
-VCINSStaggeredVelocityBcCoef::setStokesSpecifications(const StokesSpecifications* problem_coefs)
+INSVCStaggeredVelocityBcCoef::setStokesSpecifications(const StokesSpecifications* problem_coefs)
 {
     StokesBcCoefStrategy::setStokesSpecifications(problem_coefs);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -114,7 +114,7 @@ VCINSStaggeredVelocityBcCoef::setStokesSpecifications(const StokesSpecifications
 } // setStokesSpecifications
 
 void
-VCINSStaggeredVelocityBcCoef::setTargetVelocityPatchDataIndex(int u_target_data_idx)
+INSVCStaggeredVelocityBcCoef::setTargetVelocityPatchDataIndex(int u_target_data_idx)
 {
     StokesBcCoefStrategy::setTargetVelocityPatchDataIndex(u_target_data_idx);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -126,7 +126,7 @@ VCINSStaggeredVelocityBcCoef::setTargetVelocityPatchDataIndex(int u_target_data_
 } // setTargetVelocityPatchDataIndex
 
 void
-VCINSStaggeredVelocityBcCoef::clearTargetVelocityPatchDataIndex()
+INSVCStaggeredVelocityBcCoef::clearTargetVelocityPatchDataIndex()
 {
     StokesBcCoefStrategy::clearTargetVelocityPatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -138,7 +138,7 @@ VCINSStaggeredVelocityBcCoef::clearTargetVelocityPatchDataIndex()
 } // clearTargetVelocityPatchDataIndex
 
 void
-VCINSStaggeredVelocityBcCoef::setTargetPressurePatchDataIndex(int p_target_data_idx)
+INSVCStaggeredVelocityBcCoef::setTargetPressurePatchDataIndex(int p_target_data_idx)
 {
     StokesBcCoefStrategy::setTargetPressurePatchDataIndex(p_target_data_idx);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -150,7 +150,7 @@ VCINSStaggeredVelocityBcCoef::setTargetPressurePatchDataIndex(int p_target_data_
 } // setTargetPressurePatchDataIndex
 
 void
-VCINSStaggeredVelocityBcCoef::clearTargetPressurePatchDataIndex()
+INSVCStaggeredVelocityBcCoef::clearTargetPressurePatchDataIndex()
 {
     StokesBcCoefStrategy::clearTargetPressurePatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -162,7 +162,7 @@ VCINSStaggeredVelocityBcCoef::clearTargetPressurePatchDataIndex()
 } // clearTargetPressurePatchDataIndex
 
 void
-VCINSStaggeredVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+INSVCStaggeredVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -172,21 +172,21 @@ VCINSStaggeredVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefSt
 } // setPhysicalBcCoefs
 
 void
-VCINSStaggeredVelocityBcCoef::setSolutionTime(const double /*solution_time*/)
+INSVCStaggeredVelocityBcCoef::setSolutionTime(const double /*solution_time*/)
 {
     // intentionally blank
     return;
 } // setSolutionTime
 
 void
-VCINSStaggeredVelocityBcCoef::setTimeInterval(const double /*current_time*/, const double /*new_time*/)
+INSVCStaggeredVelocityBcCoef::setTimeInterval(const double /*current_time*/, const double /*new_time*/)
 {
     // intentionally blank
     return;
 } // setTimeInterval
 
 void
-VCINSStaggeredVelocityBcCoef::setTargetPatchDataIndex(int target_idx)
+INSVCStaggeredVelocityBcCoef::setTargetPatchDataIndex(int target_idx)
 {
     StokesBcCoefStrategy::setTargetPatchDataIndex(target_idx);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -198,7 +198,7 @@ VCINSStaggeredVelocityBcCoef::setTargetPatchDataIndex(int target_idx)
 } // setTargetPatchDataIndex
 
 void
-VCINSStaggeredVelocityBcCoef::clearTargetPatchDataIndex()
+INSVCStaggeredVelocityBcCoef::clearTargetPatchDataIndex()
 {
     StokesBcCoefStrategy::clearTargetPatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -210,7 +210,7 @@ VCINSStaggeredVelocityBcCoef::clearTargetPatchDataIndex()
 } // clearTargetPatchDataIndex
 
 void
-VCINSStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
+INSVCStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 {
     ExtendedRobinBcCoefStrategy::setHomogeneousBc(homogeneous_bc);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -222,7 +222,7 @@ VCINSStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-VCINSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
+INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
                                          Pointer<ArrayData<NDIM, double> >& bcoef_data,
                                          Pointer<ArrayData<NDIM, double> >& gcoef_data,
                                          const Pointer<Variable<NDIM> >& variable,
@@ -421,11 +421,10 @@ VCINSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                 default:
                 {
                     TBOX_ERROR(
-                        "VCINSStaggeredVelocityBcCoef::setBcCoefs(): unrecognized or "
+                        "INSVCStaggeredVelocityBcCoef::setBcCoefs(): unrecognized or "
                         "unsupported "
                         "traction boundary condition type: "
-                        << enum_to_string<TractionBcType>(d_traction_bc_type)
-                        << "\n");
+                        << enum_to_string<TractionBcType>(d_traction_bc_type) << "\n");
                 }
                 }
             }
@@ -439,7 +438,7 @@ VCINSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
 } // setBcCoefs
 
 IntVector<NDIM>
-VCINSStaggeredVelocityBcCoef::numberOfExtensionsFillable() const
+INSVCStaggeredVelocityBcCoef::numberOfExtensionsFillable() const
 {
 #if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)

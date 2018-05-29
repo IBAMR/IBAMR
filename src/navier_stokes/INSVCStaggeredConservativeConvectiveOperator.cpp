@@ -1,4 +1,4 @@
-// Filename: VCINSStaggeredConservativeConvectiveOperator.cpp
+// Filename: INSVCStaggeredConservativeConvectiveOperator.cpp
 // Created on 01 April 2018 by Nishant Nangia and Amneet Bhalla
 //
 // Copyright (c) 2002-2018, Nishant Nangia and Amneet Bhalla
@@ -59,8 +59,8 @@
 #include "VariableDatabase.h"
 #include "boost/array.hpp"
 #include "ibamr/ConvectiveOperator.h"
+#include "ibamr/INSVCStaggeredConservativeConvectiveOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/VCINSStaggeredConservativeConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -90,12 +90,12 @@ class RobinBcCoefStrategy;
     IBAMR_FC_FUNC_(vc_navier_stokes_upwind_quantity2d, VC_NAVIER_STOKES_UPWIND_QUANTITY2D)
 #define VC_NAVIER_STOKES_CUI_QUANTITY_FC                                                                               \
     IBAMR_FC_FUNC_(vc_navier_stokes_cui_quantity2d, VC_NAVIER_STOKES_CUI_QUANTITY2D)
-#define VC_NAVIER_STOKES_FBICS_QUANTITY_FC                                                                               \
+#define VC_NAVIER_STOKES_FBICS_QUANTITY_FC                                                                             \
     IBAMR_FC_FUNC_(vc_navier_stokes_fbics_quantity2d, VC_NAVIER_STOKES_FBICS_QUANTITY2D)
-#define VC_NAVIER_STOKES_MGAMMA_QUANTITY_FC                                                                               \
+#define VC_NAVIER_STOKES_MGAMMA_QUANTITY_FC                                                                            \
     IBAMR_FC_FUNC_(vc_navier_stokes_mgamma_quantity2d, VC_NAVIER_STOKES_MGAMMA_QUANTITY2D)
 #define GODUNOV_EXTRAPOLATE_FC IBAMR_FC_FUNC_(godunov_extrapolate2d, GODUNOV_EXTRAPOLATE2D)
-#define VC_NAVIER_STOKES_COMPUTE_MOMENTUM_FC                                                                       \
+#define VC_NAVIER_STOKES_COMPUTE_MOMENTUM_FC                                                                           \
     IBAMR_FC_FUNC_(vc_navier_stokes_compute_momentum2d, VC_NAVIER_STOKES_COMPUTE_MOMENTUM2D)
 #endif
 
@@ -107,941 +107,942 @@ class RobinBcCoefStrategy;
     IBAMR_FC_FUNC_(vc_navier_stokes_upwind_quantity3d, VC_NAVIER_STOKES_UPWIND_QUANTITY3D)
 #define VC_NAVIER_STOKES_CUI_QUANTITY_FC                                                                               \
     IBAMR_FC_FUNC_(vc_navier_stokes_cui_quantity3d, VC_NAVIER_STOKES_CUI_QUANTITY3D)
-#define VC_NAVIER_STOKES_FBICS_QUANTITY_FC                                                                               \
+#define VC_NAVIER_STOKES_FBICS_QUANTITY_FC                                                                             \
     IBAMR_FC_FUNC_(vc_navier_stokes_fbics_quantity3d, VC_NAVIER_STOKES_FBICS_QUANTITY3D)
-#define VC_NAVIER_STOKES_MGAMMA_QUANTITY_FC                                                                               \
+#define VC_NAVIER_STOKES_MGAMMA_QUANTITY_FC                                                                            \
     IBAMR_FC_FUNC_(vc_navier_stokes_mgamma_quantity3d, VC_NAVIER_STOKES_MGAMMA_QUANTITY3D)
 #define GODUNOV_EXTRAPOLATE_FC IBAMR_FC_FUNC_(godunov_extrapolate3d, GODUNOV_EXTRAPOLATE3D)
-#define VC_NAVIER_STOKES_COMPUTE_MOMENTUM_FC                                                                       \
+#define VC_NAVIER_STOKES_COMPUTE_MOMENTUM_FC                                                                           \
     IBAMR_FC_FUNC_(vc_navier_stokes_compute_momentum3d, VC_NAVIER_STOKES_COMPUTE_MOMENTUM3D)
 #endif
 
-extern "C" {
-void CONVECT_DERIVATIVE_FC(const double*,
+extern "C"
+{
+    void CONVECT_DERIVATIVE_FC(const double*,
 #if (NDIM == 2)
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const double*,
-                           const double*,
-                           const double*,
-                           const double*,
-                           const int&,
-                           const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const double*,
+                               const double*,
+                               const double*,
+                               const double*,
+                               const int&,
+                               const int&,
 #endif
 #if (NDIM == 3)
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const double*,
-                           const double*,
-                           const double*,
-                           const double*,
-                           const double*,
-                           const double*,
-                           const int&,
-                           const int&,
-                           const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const double*,
+                               const double*,
+                               const double*,
+                               const double*,
+                               const double*,
+                               const double*,
+                               const int&,
+                               const int&,
+                               const int&,
 #endif
-                           double*);
-void VC_UPDATE_DENSITY_FC(const double*,
-                          const double&,
-                          const double&,
-                          const double&,
-                          const double&,
+                               double*);
+    void VC_UPDATE_DENSITY_FC(const double*,
+                              const double&,
+                              const double&,
+                              const double&,
+                              const double&,
 #if (NDIM == 2)
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const double*,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const double*,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const int&,
-                          const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const double*,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const double*,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const int&,
+                              const int&,
 
 #endif
 #if (NDIM == 3)
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const int&,
-                          const int&,
-                          const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const int&,
+                              const int&,
+                              const int&,
 
 #endif
-                          double*);
+                              double*);
 
-void VC_SSP_RK2_UPDATE_DENSITY_FC(const double*,
-                                  const double&,
+    void VC_SSP_RK2_UPDATE_DENSITY_FC(const double*,
+                                      const double&,
 #if (NDIM == 2)
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const double*,
-                                  const double*,
-                                  const int&,
-                                  const int&,
-                                  const double*,
-                                  const double*,
-                                  const int&,
-                                  const int&,
-                                  const double*,
-                                  const int&,
-                                  const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const double*,
+                                      const double*,
+                                      const int&,
+                                      const int&,
+                                      const double*,
+                                      const double*,
+                                      const int&,
+                                      const int&,
+                                      const double*,
+                                      const int&,
+                                      const int&,
 #endif
 #if (NDIM == 3)
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const double*,
-                                  const double*,
-                                  const double*,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const double*,
-                                  const double*,
-                                  const double*,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const double*,
-                                  const int&,
-                                  const int&,
-                                  const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const double*,
+                                      const double*,
+                                      const double*,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const double*,
+                                      const double*,
+                                      const double*,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const double*,
+                                      const int&,
+                                      const int&,
+                                      const int&,
 #endif
-                                  double*);
+                                      double*);
 
-void NAVIER_STOKES_INTERP_COMPS_FC(
+    void NAVIER_STOKES_INTERP_COMPS_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*
 #endif
     );
 
-void VC_NAVIER_STOKES_UPWIND_QUANTITY_FC(
+    void VC_NAVIER_STOKES_UPWIND_QUANTITY_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        double*,
+        double*
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*
 #endif
     );
 
-void VC_NAVIER_STOKES_CUI_QUANTITY_FC(
+    void VC_NAVIER_STOKES_CUI_QUANTITY_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        double*,
+        double*
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*
 #endif
     );
 
-void VC_NAVIER_STOKES_CUI_QUANTITY_FC(
+    void VC_NAVIER_STOKES_CUI_QUANTITY_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        double*,
+        double*
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*
 #endif
     );
 
-void VC_NAVIER_STOKES_FBICS_QUANTITY_FC(
+    void VC_NAVIER_STOKES_FBICS_QUANTITY_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        double*,
+        double*
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*
 #endif
     );
 
-void VC_NAVIER_STOKES_MGAMMA_QUANTITY_FC(
+    void VC_NAVIER_STOKES_MGAMMA_QUANTITY_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        double*,
+        double*
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*
 #endif
     );
 
-void GODUNOV_EXTRAPOLATE_FC(
+    void GODUNOV_EXTRAPOLATE_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    double*,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        double*,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        double*,
+        double*
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    double*,
-    double*,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    double*,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        double*,
+        double*,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        double*,
+        double*,
+        double*
 #endif
     );
 
-void VC_NAVIER_STOKES_COMPUTE_MOMENTUM_FC(
+    void VC_NAVIER_STOKES_COMPUTE_MOMENTUM_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const double*,
-    const double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const double*,
+        const double*
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*
 #endif
     );
 }
@@ -1068,11 +1069,11 @@ static Timer* t_apply_convective_operator;
 static Timer* t_apply;
 static Timer* t_initialize_operator_state;
 static Timer* t_deallocate_operator_state;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvectiveOperator(
+INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvectiveOperator(
     const std::string& object_name,
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
@@ -1103,10 +1104,9 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
 {
     if (d_difference_form != CONSERVATIVE)
     {
-        TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvectiveOperator():\n"
+        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvectiveOperator():\n"
                    << "  unsupported differencing form: "
-                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
-                   << " \n"
+                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
                    << "  valid choices are: CONSERVATIVE\n");
     }
 
@@ -1160,10 +1160,9 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
         d_velocity_limiter_gcw = GPPMG;
         break;
     default:
-        TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvectiveOperator():\n"
+        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvectiveOperator():\n"
                    << "  unsupported velocity convective limiter: "
-                   << IBAMR::enum_to_string<LimiterType>(d_velocity_convective_limiter)
-                   << " \n"
+                   << IBAMR::enum_to_string<LimiterType>(d_velocity_convective_limiter) << " \n"
                    << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
     }
 
@@ -1182,13 +1181,12 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
         d_density_limiter_gcw = GMGAMMAG;
         break;
     case PPM:
-       d_density_limiter_gcw = GPPMG;
-       break;
+        d_density_limiter_gcw = GPPMG;
+        break;
     default:
-        TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvectiveOperator():\n"
+        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvectiveOperator():\n"
                    << "  unsupported density convective limiter: "
-                   << IBAMR::enum_to_string<LimiterType>(d_density_convective_limiter)
-                   << " \n"
+                   << IBAMR::enum_to_string<LimiterType>(d_density_convective_limiter) << " \n"
                    << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
     }
 
@@ -1204,17 +1202,16 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
         d_num_steps = 3;
         break;
     default:
-        TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvectiveOperator():\n"
+        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvectiveOperator():\n"
                    << "  unsupported density time stepping type: "
-                   << IBAMR::enum_to_string<TimeSteppingType>(d_density_time_stepping_type)
-                   << " \n"
+                   << IBAMR::enum_to_string<TimeSteppingType>(d_density_time_stepping_type) << " \n"
                    << "  valid choices are: FORWARD_EULER, SSPRK2, SSPRK3\n");
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext("VCINSStaggeredConservativeConvectiveOperator::CONTEXT");
+    Pointer<VariableContext> context = var_db->getContext("INSVCStaggeredConservativeConvectiveOperator::CONTEXT");
 
-    const std::string U_var_name = "VCINSStaggeredConservativeConvectiveOperator::U";
+    const std::string U_var_name = "INSVCStaggeredConservativeConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
     if (d_U_var)
     {
@@ -1230,7 +1227,7 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 #endif
 
-    const std::string rho_sc_name = "VCINSStaggeredConservativeConvectiveOperator::RHO_SIDE_CENTERED";
+    const std::string rho_sc_name = "INSVCStaggeredConservativeConvectiveOperator::RHO_SIDE_CENTERED";
     d_rho_sc_var = var_db->getVariable(rho_sc_name);
     if (d_rho_sc_var)
     {
@@ -1252,7 +1249,7 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
     TBOX_ASSERT(d_rho_sc_new_idx >= 0);
 #endif
 
-    const std::string S_var_name = "VCINSStaggeredConservativeConvectiveOperator::S";
+    const std::string S_var_name = "INSVCStaggeredConservativeConvectiveOperator::S";
     d_S_var = var_db->getVariable(S_var_name);
     if (d_S_var)
     {
@@ -1271,23 +1268,23 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
     // Setup Timers.
     IBAMR_DO_ONCE(
         t_apply_convective_operator = TimerManager::getManager()->getTimer(
-            "IBAMR::VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator()");
-        t_apply = TimerManager::getManager()->getTimer("IBAMR::VCINSStaggeredConservativeConvectiveOperator::apply()");
+            "IBAMR::INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator()");
+        t_apply = TimerManager::getManager()->getTimer("IBAMR::INSVCStaggeredConservativeConvectiveOperator::apply()");
         t_initialize_operator_state = TimerManager::getManager()->getTimer(
-            "IBAMR::VCINSStaggeredConservativeConvectiveOperator::initializeOperatorState()");
+            "IBAMR::INSVCStaggeredConservativeConvectiveOperator::initializeOperatorState()");
         t_deallocate_operator_state = TimerManager::getManager()->getTimer(
-            "IBAMR::VCINSStaggeredConservativeConvectiveOperator::deallocateOperatorState()"););
+            "IBAMR::INSVCStaggeredConservativeConvectiveOperator::deallocateOperatorState()"););
     return;
-} // VCINSStaggeredConservativeConvectiveOperator
+} // INSVCStaggeredConservativeConvectiveOperator
 
-VCINSStaggeredConservativeConvectiveOperator::~VCINSStaggeredConservativeConvectiveOperator()
+INSVCStaggeredConservativeConvectiveOperator::~INSVCStaggeredConservativeConvectiveOperator()
 {
     deallocateOperatorState();
     return;
-} // ~VCINSStaggeredConservativeConvectiveOperator
+} // ~INSVCStaggeredConservativeConvectiveOperator
 
 void
-VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
+INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
 {
     // Get hierarchy operation object
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
@@ -1298,16 +1295,16 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
 #if !defined(NDEBUG)
     if (!d_is_initialized)
     {
-        TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                                 << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
+                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
     }
     TBOX_ASSERT(U_idx == d_u_idx);
 
     if (!d_rho_is_set)
     {
-        TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                                 << "  a side-centered density field must be set via setSideCenteredDensityPatchDataIndex()\n"
-                                 << "  prior to call to applyConvectiveOperator\n");
+        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
+                   << "  a side-centered density field must be set via setSideCenteredDensityPatchDataIndex()\n"
+                   << "  prior to call to applyConvectiveOperator\n");
     }
     TBOX_ASSERT(d_rho_sc_current_idx >= 0);
 #endif
@@ -1317,8 +1314,8 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
 #if !defined(NDEBUG)
     if (!(dt > 0.0))
     {
-        TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                                 << " invalid time step size dt = " << dt << "\n");
+        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
+                   << " invalid time step size dt = " << dt << "\n");
     }
 #endif
 
@@ -1359,7 +1356,8 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     const double old_mass = d_hier_sc_data_ops->integral(d_rho_sc_current_idx, wgt_sc_idx);
     if (d_enable_logging)
     {
-        plog << "VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(): old mass in the domain = " << old_mass << "\n";
+        plog << "INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(): old mass in the domain = "
+             << old_mass << "\n";
     }
 
     // Compute the convective derivative.
@@ -1524,17 +1522,19 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     // Ensure that the density has been updated
     if (!N_computed)
     {
-        TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                                 << "  convective derivative has not been computed by VCINSStaggeredConservativeConvectiveOperator.\n"
-                                 << " Something went wrong\n");
+        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
+                   << "  convective derivative has not been computed by INSVCStaggeredConservativeConvectiveOperator.\n"
+                   << " Something went wrong\n");
     }
 
     // Compute the new mass
     const double new_mass = d_hier_sc_data_ops->integral(d_rho_sc_new_idx, wgt_sc_idx);
     if (d_enable_logging)
     {
-        plog << "VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(): new mass in the domain = " << new_mass << "\n";
-        plog << "VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(): change in mass         = " << new_mass - old_mass << "\n";
+        plog << "INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(): new mass in the domain = "
+             << new_mass << "\n";
+        plog << "INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(): change in mass         = "
+             << new_mass - old_mass << "\n";
     }
 
     // Reset select options
@@ -1546,7 +1546,7 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
 } // applyConvectiveOperator
 
 void
-VCINSStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+INSVCStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
                                                                       const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
@@ -1597,8 +1597,8 @@ VCINSStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMR
 
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops =
-            new HierarchyMathOps("VCINSStaggeredConservativeConvectiveOperator::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        d_hier_math_ops = new HierarchyMathOps(
+            "INSVCStaggeredConservativeConvectiveOperator::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
     }
     else
     {
@@ -1614,7 +1614,7 @@ VCINSStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMR
 } // initializeOperatorState
 
 void
-VCINSStaggeredConservativeConvectiveOperator::deallocateOperatorState()
+INSVCStaggeredConservativeConvectiveOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -1644,7 +1644,7 @@ VCINSStaggeredConservativeConvectiveOperator::deallocateOperatorState()
 } // deallocateOperatorState
 
 void
-VCINSStaggeredConservativeConvectiveOperator::setSideCenteredDensityPatchDataIndex(int rho_sc_idx)
+INSVCStaggeredConservativeConvectiveOperator::setSideCenteredDensityPatchDataIndex(int rho_sc_idx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(rho_sc_idx >= 0);
@@ -1654,7 +1654,7 @@ VCINSStaggeredConservativeConvectiveOperator::setSideCenteredDensityPatchDataInd
 } // setSideCenteredDensityPatchDataIndex
 
 void
-VCINSStaggeredConservativeConvectiveOperator::setSideCenteredDensityBoundaryConditions(
+INSVCStaggeredConservativeConvectiveOperator::setSideCenteredDensityBoundaryConditions(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& rho_sc_bc_coefs)
 {
 #if !defined(NDEBUG)
@@ -1665,7 +1665,7 @@ VCINSStaggeredConservativeConvectiveOperator::setSideCenteredDensityBoundaryCond
 } // setSideCenteredDensityBoundaryConditions
 
 int
-VCINSStaggeredConservativeConvectiveOperator::getUpdatedSideCenteredDensityPatchDataIndex()
+INSVCStaggeredConservativeConvectiveOperator::getUpdatedSideCenteredDensityPatchDataIndex()
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_rho_sc_new_idx >= 0);
@@ -1674,7 +1674,7 @@ VCINSStaggeredConservativeConvectiveOperator::getUpdatedSideCenteredDensityPatch
 } // getUpdatedSideCenteredDensityPatchDataIndex
 
 void
-VCINSStaggeredConservativeConvectiveOperator::setMassDensitySourceTerm(const Pointer<CartGridFunction> S_fcn)
+INSVCStaggeredConservativeConvectiveOperator::setMassDensitySourceTerm(const Pointer<CartGridFunction> S_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(S_fcn);
@@ -1688,7 +1688,7 @@ VCINSStaggeredConservativeConvectiveOperator::setMassDensitySourceTerm(const Poi
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-VCINSStaggeredConservativeConvectiveOperator::computeAdvectionVelocity(
+INSVCStaggeredConservativeConvectiveOperator::computeAdvectionVelocity(
     boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
     const Pointer<SideData<NDIM, double> > U_data,
     const IntVector<NDIM>& patch_lower,
@@ -1774,7 +1774,7 @@ VCINSStaggeredConservativeConvectiveOperator::computeAdvectionVelocity(
 } // computeAdvectionVelocity
 
 void
-VCINSStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
+INSVCStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
     boost::array<Pointer<FaceData<NDIM, double> >, NDIM> Q_half_data,
     const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
     const Pointer<SideData<NDIM, double> > Q_data,
@@ -1880,7 +1880,7 @@ VCINSStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
                                             Q_half_data[2]->getPointer(1),
                                             Q_half_data[2]->getPointer(2)
 #endif
-                                                );
+        );
 
         break;
     case CUI:
@@ -1978,7 +1978,7 @@ VCINSStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
                                          Q_half_data[2]->getPointer(1),
                                          Q_half_data[2]->getPointer(2)
 #endif
-                                             );
+        );
 
         break;
     case FBICS:
@@ -2075,7 +2075,7 @@ VCINSStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
                                            Q_half_data[2]->getPointer(1),
                                            Q_half_data[2]->getPointer(2)
 #endif
-                                               );
+        );
         break;
     case MGAMMA:
         VC_NAVIER_STOKES_MGAMMA_QUANTITY_FC(patch_lower(0),
@@ -2171,7 +2171,7 @@ VCINSStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
                                             Q_half_data[2]->getPointer(1),
                                             Q_half_data[2]->getPointer(2)
 #endif
-                                                );
+        );
         break;
     case PPM:
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -2238,19 +2238,18 @@ VCINSStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
                                    Q_half_data[axis]->getPointer(1),
                                    Q_half_data[axis]->getPointer(2));
 #endif
-      }
-      break;
+        }
+        break;
     default:
-        TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  unsupported convective limiter: "
-                   << IBAMR::enum_to_string<LimiterType>(convective_limiter)
+        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
+                   << "  unsupported convective limiter: " << IBAMR::enum_to_string<LimiterType>(convective_limiter)
                    << " \n"
                    << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
     }
 } // interpolateSideQuantity
 
 void
-VCINSStaggeredConservativeConvectiveOperator::computeConvectiveDerivative(
+INSVCStaggeredConservativeConvectiveOperator::computeConvectiveDerivative(
     Pointer<SideData<NDIM, double> > N_data,
     boost::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data,
     const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
@@ -2419,17 +2418,16 @@ VCINSStaggeredConservativeConvectiveOperator::computeConvectiveDerivative(
 #endif
             break;
         default:
-            TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                                     << "  unsupported differencing form: "
-                                     << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
-                                     << " \n"
-                                     << "  valid choices are: CONSERVATIVE\n");
+            TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
+                       << "  unsupported differencing form: "
+                       << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                       << "  valid choices are: CONSERVATIVE\n");
         }
     }
 } // computeConvectiveDerivative
 
 void
-VCINSStaggeredConservativeConvectiveOperator::computeDensityUpdate(
+INSVCStaggeredConservativeConvectiveOperator::computeDensityUpdate(
     Pointer<SideData<NDIM, double> > R_data,
     const double& a0,
     const Pointer<SideData<NDIM, double> > R0_data,

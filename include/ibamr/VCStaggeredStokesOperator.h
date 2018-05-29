@@ -66,7 +66,7 @@ namespace IBAMR
  * This class is intended to be used with an iterative (Krylov or Newton-Krylov)
  * incompressible flow solver.
  *
- * \see VCINSStaggeredHierarchyIntegrator
+ * \see INSVCStaggeredHierarchyIntegrator
  */
 class VCStaggeredStokesOperator : public IBAMR::StaggeredStokesOperator
 {

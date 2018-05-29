@@ -44,7 +44,7 @@
 #include "PatchHierarchy.h"
 #include "VariableDatabase.h"
 #include "ibamr/ConstraintIBMethod.h"
-#include "ibamr/VCINSStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/namespaces.h"
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
@@ -568,8 +568,8 @@ ConstraintIBMethod::registerEulerianVariables()
         d_Div_u_scratch_idx = var_db->registerVariableAndContext(d_Div_u_var, d_scratch_context, cell_ghosts);
     }
 
-    VCINSStaggeredHierarchyIntegrator* p_vc_ins_hier_integrator =
-            dynamic_cast<VCINSStaggeredHierarchyIntegrator*>(IBStrategy::getINSHierarchyIntegrator());
+    INSVCStaggeredHierarchyIntegrator* p_vc_ins_hier_integrator =
+        dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(IBStrategy::getINSHierarchyIntegrator());
     // If using constant rho INS solver,
     // then assert rho_fluid == rho_solid
     if (!p_vc_ins_hier_integrator)
