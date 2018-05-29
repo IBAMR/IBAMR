@@ -753,14 +753,15 @@ IBFEDirectForcingKinematics::computeImposedLagrangianForceDensity(PetscVector<do
             F_petsc.set(nodal_indices[d][k], d_trans_vel_half[d] + WxR[d]);
         }
     }
+    F_petsc.close();
 
     const double dt = d_new_time - d_current_time;
     int ierr;
     ierr = VecAXPY(F_petsc.vec(), -1.0, U_petsc.vec());
     IBTK_CHKERRQ(ierr);
-    ierr = VecScale(F_petsc.vec(), d_rho / dt);
+    PetscScalar alpha = d_rho / dt;
+    ierr = VecScale(F_petsc.vec(), alpha);
     IBTK_CHKERRQ(ierr);
-    F_petsc.close();
 
     return;
 } // computeImposedLagrangianForceDensity
