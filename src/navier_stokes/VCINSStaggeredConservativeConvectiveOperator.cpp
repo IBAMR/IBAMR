@@ -94,6 +94,7 @@ class RobinBcCoefStrategy;
     IBAMR_FC_FUNC_(vc_navier_stokes_fbics_quantity2d, VC_NAVIER_STOKES_FBICS_QUANTITY2D)
 #define VC_NAVIER_STOKES_MGAMMA_QUANTITY_FC                                                                               \
     IBAMR_FC_FUNC_(vc_navier_stokes_mgamma_quantity2d, VC_NAVIER_STOKES_MGAMMA_QUANTITY2D)
+#define GODUNOV_EXTRAPOLATE_FC IBAMR_FC_FUNC_(godunov_extrapolate2d, GODUNOV_EXTRAPOLATE2D)
 #define VC_NAVIER_STOKES_COMPUTE_MOMENTUM_FC                                                                       \
     IBAMR_FC_FUNC_(vc_navier_stokes_compute_momentum2d, VC_NAVIER_STOKES_COMPUTE_MOMENTUM2D)
 #endif
@@ -110,6 +111,7 @@ class RobinBcCoefStrategy;
     IBAMR_FC_FUNC_(vc_navier_stokes_fbics_quantity3d, VC_NAVIER_STOKES_FBICS_QUANTITY3D)
 #define VC_NAVIER_STOKES_MGAMMA_QUANTITY_FC                                                                               \
     IBAMR_FC_FUNC_(vc_navier_stokes_mgamma_quantity3d, VC_NAVIER_STOKES_MGAMMA_QUANTITY3D)
+#define GODUNOV_EXTRAPOLATE_FC IBAMR_FC_FUNC_(godunov_extrapolate3d, GODUNOV_EXTRAPOLATE3D)
 #define VC_NAVIER_STOKES_COMPUTE_MOMENTUM_FC                                                                       \
     IBAMR_FC_FUNC_(vc_navier_stokes_compute_momentum3d, VC_NAVIER_STOKES_COMPUTE_MOMENTUM3D)
 #endif
@@ -879,6 +881,59 @@ void VC_NAVIER_STOKES_MGAMMA_QUANTITY_FC(
 #endif
     );
 
+void GODUNOV_EXTRAPOLATE_FC(
+#if (NDIM == 2)
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    double*,
+    double*,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    double*,
+    double*
+#endif
+#if (NDIM == 3)
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    double*,
+    double*,
+    double*,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    double*,
+    double*,
+    double*
+#endif
+    );
+
 void VC_NAVIER_STOKES_COMPUTE_MOMENTUM_FC(
 #if (NDIM == 2)
     const int&,
@@ -1005,6 +1060,7 @@ static const int GUPWINDG = 2;
 static const int GCUIG = 3;
 static const int GFBICSG = 3;
 static const int GMGAMMAG = 3;
+static const int GPPMG = 4;
 static const int NOGHOSTS = 0;
 
 // Timers.
@@ -1100,12 +1156,15 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
     case MGAMMA:
         d_velocity_limiter_gcw = GMGAMMAG;
         break;
+    case PPM:
+        d_velocity_limiter_gcw = GPPMG;
+        break;
     default:
         TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvectiveOperator():\n"
                    << "  unsupported velocity convective limiter: "
                    << IBAMR::enum_to_string<LimiterType>(d_velocity_convective_limiter)
                    << " \n"
-                   << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA\n");
+                   << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
     }
 
     switch (d_density_convective_limiter)
@@ -1122,12 +1181,15 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
     case MGAMMA:
         d_density_limiter_gcw = GMGAMMAG;
         break;
+    case PPM:
+       d_density_limiter_gcw = GPPMG;
+       break;
     default:
         TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvectiveOperator():\n"
                    << "  unsupported density convective limiter: "
                    << IBAMR::enum_to_string<LimiterType>(d_density_convective_limiter)
                    << " \n"
-                   << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA\n");
+                   << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
     }
 
     switch (d_density_time_stepping_type)
@@ -2016,7 +2078,6 @@ VCINSStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
                                                );
         break;
     case MGAMMA:
-        // Upwind side-centered densities onto faces.
         VC_NAVIER_STOKES_MGAMMA_QUANTITY_FC(patch_lower(0),
                                             patch_upper(0),
                                             patch_lower(1),
@@ -2112,13 +2173,79 @@ VCINSStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
 #endif
                                                 );
         break;
-
+    case PPM:
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            Pointer<SideData<NDIM, double> > dQ_data =
+                new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
+            Pointer<SideData<NDIM, double> > Q_L_data =
+                new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
+            Pointer<SideData<NDIM, double> > Q_R_data =
+                new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
+            Pointer<SideData<NDIM, double> > Q_scratch1_data =
+                new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
+#if (NDIM == 3)
+            Pointer<SideData<NDIM, double> > Q_scratch2_data =
+                new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
+#endif
+#if (NDIM == 2)
+            GODUNOV_EXTRAPOLATE_FC(side_boxes[axis].lower(0),
+                                   side_boxes[axis].upper(0),
+                                   side_boxes[axis].lower(1),
+                                   side_boxes[axis].upper(1),
+                                   Q_data->getGhostCellWidth()(0),
+                                   Q_data->getGhostCellWidth()(1),
+                                   Q_data->getPointer(axis),
+                                   Q_scratch1_data->getPointer(axis),
+                                   dQ_data->getPointer(axis),
+                                   Q_L_data->getPointer(axis),
+                                   Q_R_data->getPointer(axis),
+                                   U_adv_data[axis]->getGhostCellWidth()(0),
+                                   U_adv_data[axis]->getGhostCellWidth()(1),
+                                   Q_half_data[axis]->getGhostCellWidth()(0),
+                                   Q_half_data[axis]->getGhostCellWidth()(1),
+                                   U_adv_data[axis]->getPointer(0),
+                                   U_adv_data[axis]->getPointer(1),
+                                   Q_half_data[axis]->getPointer(0),
+                                   Q_half_data[axis]->getPointer(1));
+#endif
+#if (NDIM == 3)
+            GODUNOV_EXTRAPOLATE_FC(side_boxes[axis].lower(0),
+                                   side_boxes[axis].upper(0),
+                                   side_boxes[axis].lower(1),
+                                   side_boxes[axis].upper(1),
+                                   side_boxes[axis].lower(2),
+                                   side_boxes[axis].upper(2),
+                                   Q_data->getGhostCellWidth()(0),
+                                   Q_data->getGhostCellWidth()(1),
+                                   Q_data->getGhostCellWidth()(2),
+                                   Q_data->getPointer(axis),
+                                   Q_scratch1_data->getPointer(axis),
+                                   Q_scratch2_data->getPointer(axis),
+                                   dQ_data->getPointer(axis),
+                                   Q_L_data->getPointer(axis),
+                                   Q_R_data->getPointer(axis),
+                                   U_adv_data[axis]->getGhostCellWidth()(0),
+                                   U_adv_data[axis]->getGhostCellWidth()(1),
+                                   U_adv_data[axis]->getGhostCellWidth()(2),
+                                   Q_half_data[axis]->getGhostCellWidth()(0),
+                                   Q_half_data[axis]->getGhostCellWidth()(1),
+                                   Q_half_data[axis]->getGhostCellWidth()(2),
+                                   U_adv_data[axis]->getPointer(0),
+                                   U_adv_data[axis]->getPointer(1),
+                                   U_adv_data[axis]->getPointer(2),
+                                   Q_half_data[axis]->getPointer(0),
+                                   Q_half_data[axis]->getPointer(1),
+                                   Q_half_data[axis]->getPointer(2));
+#endif
+      }
+      break;
     default:
         TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
                    << "  unsupported convective limiter: "
                    << IBAMR::enum_to_string<LimiterType>(convective_limiter)
                    << " \n"
-                   << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA\n");
+                   << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
     }
 } // interpolateSideQuantity
 
