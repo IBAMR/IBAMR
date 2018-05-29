@@ -128,7 +128,8 @@ discard_comments(const std::string& input_string)
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Pointer<Database> input_db)
-    : d_object_name(object_name),
+    : IBRedundantInitializer(object_name, input_db),
+      d_object_name(object_name),
       d_read_vertex_files(true),
       d_data_processed(false),
       d_use_file_batons(true),

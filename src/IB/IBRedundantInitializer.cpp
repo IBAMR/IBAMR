@@ -156,7 +156,14 @@ IBRedundantInitializer::IBRedundantInitializer(const std::string& object_name, P
       d_instrument_idx(),
       d_enable_sources(),
       d_source_idx(),
-      d_global_index_offset()
+      d_global_index_offset(),
+      d_init_structure_on_level_fcn(NULL),
+      d_init_spring_on_level_fcn(NULL),
+      d_init_beam_on_level_fcn(NULL),
+      d_init_director_and_rod_on_level_fcn(NULL),
+      d_init_boundary_mass_on_level_fcn(NULL),
+      d_init_target_pt_on_level_fcn(NULL),
+      d_data_processed(false)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
@@ -172,15 +179,7 @@ IBRedundantInitializer::IBRedundantInitializer(const std::string& object_name, P
     IBSpringForceSpec::registerWithStreamableManager();
     IBTargetPointForceSpec::registerWithStreamableManager();
 
-    getFromInput(input_db);
-
-    initializeStructurePosition();
-    initializeSprings();
-    initializeBeams();
-    initializeDirectorAndRods();
-    initializeBoundaryMass();
-    initializeTargetPts();
-
+    //     getFromInput(input_db);
     return;
 } // IBRedundantInitializer
 
@@ -208,6 +207,9 @@ IBRedundantInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_wr
     // restart file.
     if (!is_from_restart)
     {
+        // Check if data has been processed.
+        init();
+
         for (int ln = 0; ln < d_max_levels; ++ln)
         {
             if (d_level_is_initialized[ln])
@@ -218,6 +220,30 @@ IBRedundantInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_wr
     }
     return;
 } // registerLSiloDataWriter
+
+void
+IBRedundantInitializer::init()
+{
+    if (d_data_processed)
+    {
+        return;
+    }
+    else
+    {
+        // Process structure information.
+        initializeStructurePosition();
+        initializeSprings();
+        initializeBeams();
+        initializeDirectorAndRods();
+        initializeBoundaryMass();
+        initializeTargetPts();
+    }
+
+    // Indicate that we have processed data.
+    d_data_processed = true;
+
+    return;
+}
 
 bool
 IBRedundantInitializer::getLevelHasLagrangianData(const int level_number, const bool /*can_be_refined*/) const
@@ -232,6 +258,9 @@ IBRedundantInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHi
                                                            const bool /*can_be_refined*/,
                                                            const bool /*initial_time*/)
 {
+    // Check if data has been processed.
+    init();
+
     return std::accumulate(d_num_vertex[level_number].begin(), d_num_vertex[level_number].end(), 0);
 }
 
@@ -242,6 +271,8 @@ IBRedundantInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHie
                                                           const bool /*can_be_refined*/,
                                                           const bool /*initial_time*/)
 {
+    // Check if data has been processed.
+    init();
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
 
@@ -272,6 +303,9 @@ IBRedundantInitializer::initializeStructureIndexingOnPatchLevel(
     const bool /*initial_time*/,
     LDataManager* const /*l_data_manager*/)
 {
+    // Check if data has been processed.
+    init();
+
     int offset = 0;
     for (int j = 0; j < static_cast<int>(d_base_filename[level_number].size()); ++j)
     {
@@ -283,78 +317,62 @@ IBRedundantInitializer::initializeStructureIndexingOnPatchLevel(
 } // initializeStructureIndexingOnPatchLevel
 
 void
-IBRedundantInitializer::initializePosnDataOnPatchLevel(const unsigned int& /*strct_num*/,
-                                                       const int& /*level_num*/,
-                                                       int& /*num_vertices*/,
-                                                       std::vector<IBTK::Point>& /*vertex_posn*/)
+IBRedundantInitializer::registerInitStructureFunction(InitStructureOnLevel fcn)
 {
-    TBOX_ERROR("IBStandardInitializer::initializePosnDataOnPatchLevel()\n"
-               << "  default implementation employed, nothing is initialized.\n"
-               << "Subclasses need to implement this function.\n");
+    d_init_structure_on_level_fcn = fcn;
     return;
-} // initializePosnDataOnPatchLevel
+}
 
 void
-IBRedundantInitializer::initializeSpringDataOnPatchLevel(const unsigned int& /*strct_num*/,
-                                                         const int& /*level_num*/,
-                                                         std::multimap<int, Edge>& /*spring_map*/,
-                                                         std::map<Edge, SpringSpec, EdgeComp>& /*spring_spec*/)
+IBRedundantInitializer::registerInitSpringDataFunction(InitSpringDataOnLevel fcn)
 {
-    TBOX_ERROR("IBStandardInitializer::initializeSpringDataOnPatchLevel()\n"
-               << "  default implementation employed, nothing is initialized.\n"
-               << "Subclasses need to implement this function.\n");
+    d_init_spring_on_level_fcn = fcn;
     return;
-} // initializeSpringDataOnPatchLevel
+}
 
 void
-IBRedundantInitializer::initializeTargetPtDataOnPatchLevel(const unsigned int& /*strct_num*/,
-                                                           const int& /*level_num*/,
-                                                           std::vector<TargetSpec>& /*tg_pt_spec*/)
+IBRedundantInitializer::registerInitBeamDataFunction(InitBeamDataOnLevel fcn)
 {
-    TBOX_ERROR("IBStandardInitializer::initializeTargetPtDataOnPatchLevel()\n"
-               << "  default implementation employed, nothing is initialized.\n"
-               << "Subclasses need to implement this function.\n");
+    d_init_beam_on_level_fcn = fcn;
     return;
-} // initializeTargetPtDataOnPatchLevel
+}
 
 void
-IBRedundantInitializer::initializeBeamDataOnPatchLevel(const unsigned int& /*strct_num*/,
-                                                       const int& /*level_num*/,
-                                                       std::vector<BeamSpec>& /*beam_spec*/)
+IBRedundantInitializer::registerInitDirectorAndRodFunction(InitDirectorAndRodOnLevel fcn)
 {
-    TBOX_ERROR("IBStandardInitializer::initializeBeamDataOnPatchLevel()\n"
-               << "  default implementation employed, nothing is initialized.\n"
-               << "Subclasses need to implement this function.\n");
+    d_init_director_and_rod_on_level_fcn = fcn;
     return;
-} // initializeBeamDataOnPatchLevel
+}
 
 void
-IBRedundantInitializer::initializeDirectorAndRodDataOnPatchLevel(const unsigned int& /*strct_num*/,
-                                                                 const int& /*level_num*/,
-                                                                 std::vector<std::vector<double> >& /*director_spec*/,
-                                                                 std::multimap<int, Edge> /*rod_edge_map*/,
-                                                                 std::map<Edge, RodSpec>& /*rod_spec*/)
+IBRedundantInitializer::registerInitBoundaryMassFunction(InitBoundaryMassOnLevel fcn)
 {
-    TBOX_ERROR("IBStandardInitializer::initializeDirectorAndRodDataOnPatchLevel()\n"
-               << "  default implementation employed, nothing is initialized.\n"
-               << "Subclasses need to implement this function.\n");
+    d_init_boundary_mass_on_level_fcn = fcn;
     return;
-} // initializeDirectorAndRodDataOnPatchLevel
+}
 
 void
-IBRedundantInitializer::initializeBoundaryMassDataOnPatchLevel(const unsigned int& /*strct_num*/,
-                                                               const int& /*level_num*/,
-                                                               std::vector<BdryMassSpec>& /*bdry_mass_spec*/)
+IBRedundantInitializer::registerInitTargetPtFunction(InitTargetPtOnLevel fcn)
 {
-    TBOX_ERROR("IBStandardInitializer::initializeBoundaryMassDataOnPatchLevel()\n"
-               << "  default implementation employed, nothing is initialized.\n"
-               << "Subclasses need to implement this function.\n");
+    d_init_target_pt_on_level_fcn = fcn;
     return;
-} // initializeBoundaryMassDataOnPatchLevel
+}
+
+void
+IBRedundantInitializer::registerInitAnchorPtFunction(InitAnchorPtOnLevel fcn)
+{
+    d_init_anchor_pt_on_level_fcn = fcn;
+    return;
+}
 
 void
 IBRedundantInitializer::initializeStructurePosition()
 {
+    if (!d_init_structure_on_level_fcn)
+    {
+        TBOX_ERROR("IBRedundantInitializer::initializeStructurePosition()\n"
+                   << " no function registered to initialize structure.\n");
+    }
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const size_t num_base_filename = d_base_filename[ln].size();
@@ -372,7 +390,7 @@ IBRedundantInitializer::initializeStructurePosition()
                 d_vertex_offset[ln][j] = d_vertex_offset[ln][j - 1] + d_num_vertex[ln][j - 1];
             }
 
-            initializePosnDataOnPatchLevel(j, ln, d_num_vertex[ln][j], d_vertex_posn[ln][j]);
+            d_init_structure_on_level_fcn(j, ln, d_num_vertex[ln][j], d_vertex_posn[ln][j]);
 #if !defined(NDEBUG)
             if (d_num_vertex[ln][j] <= 0)
             {
@@ -399,6 +417,7 @@ IBRedundantInitializer::initializeStructurePosition()
 void
 IBRedundantInitializer::initializeSprings()
 {
+    if (!d_init_spring_on_level_fcn) return;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const size_t num_base_filename = d_base_filename[ln].size();
@@ -406,7 +425,7 @@ IBRedundantInitializer::initializeSprings()
         d_spring_spec_data[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
-            initializeSpringDataOnPatchLevel(j, ln, d_spring_edge_map[ln][j], d_spring_spec_data[ln][j]);
+            d_init_spring_on_level_fcn(j, ln, d_spring_edge_map[ln][j], d_spring_spec_data[ln][j]);
         }
     }
     return;
@@ -415,13 +434,14 @@ IBRedundantInitializer::initializeSprings()
 void
 IBRedundantInitializer::initializeBeams()
 {
+    if (!d_init_beam_on_level_fcn) return;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const size_t num_base_filename = d_base_filename[ln].size();
         d_beam_spec_data[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
-            initializeBeamDataOnPatchLevel(j, ln, d_beam_spec_data[ln][j]);
+            d_init_beam_on_level_fcn(j, ln, d_beam_spec_data[ln][j]);
         }
     }
     return;
@@ -430,13 +450,14 @@ IBRedundantInitializer::initializeBeams()
 void
 IBRedundantInitializer::initializeTargetPts()
 {
+    if (!d_init_target_pt_on_level_fcn) return;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const size_t num_base_filename = d_base_filename[ln].size();
         d_target_spec_data[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
-            initializeTargetPtDataOnPatchLevel(j, ln, d_target_spec_data[ln][j]);
+            d_init_target_pt_on_level_fcn(j, ln, d_target_spec_data[ln][j]);
         }
     }
     return;
@@ -445,15 +466,16 @@ IBRedundantInitializer::initializeTargetPts()
 void
 IBRedundantInitializer::initializeDirectorAndRods()
 {
+    if (!d_init_director_and_rod_on_level_fcn) return;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const size_t num_base_filename = d_base_filename[ln].size();
         d_directors[ln].resize(num_base_filename);
-        d_rod_edge_map[ln].resize();
-        d_rod_spec_data[ln].resize();
+        d_rod_edge_map[ln].resize(num_base_filename);
+        d_rod_spec_data[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
-            initializeDirectorAndRodDataOnPatchLevel(
+            d_init_director_and_rod_on_level_fcn(
                 j, ln, d_directors[ln][j], d_rod_edge_map[ln][j], d_rod_spec_data[ln][j]);
         }
     }
@@ -463,13 +485,30 @@ IBRedundantInitializer::initializeDirectorAndRods()
 void
 IBRedundantInitializer::initializeBoundaryMass()
 {
+    if (!d_init_boundary_mass_on_level_fcn) return;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const size_t num_base_filename = d_base_filename[ln].size();
         d_bdry_mass_spec_data[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
-            initializeBoundaryMassDataOnPatchLevel(j, ln, d_bdry_mass_spec_data[ln][j]);
+            d_init_boundary_mass_on_level_fcn(j, ln, d_bdry_mass_spec_data[ln][j]);
+        }
+    }
+    return;
+}
+
+void
+IBRedundantInitializer::initializeAnchorPts()
+{
+    if (!d_init_anchor_pt_on_level_fcn) return;
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const size_t num_base_filename = d_base_filename[ln].size();
+        d_anchor_spec_data[ln].resize(num_base_filename);
+        for (unsigned int j = 0; j < num_base_filename; ++j)
+        {
+            d_init_anchor_pt_on_level_fcn(j, ln, d_anchor_spec_data[ln][j]);
         }
     }
     return;
@@ -488,6 +527,9 @@ IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                                                    const bool /*initial_time*/,
                                                    LDataManager* const /*l_data_manager*/)
 {
+    // Check if data has been processed.
+    init();
+
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
@@ -631,6 +673,9 @@ IBRedundantInitializer::initializeMassDataOnPatchLevel(const unsigned int /*glob
                                                        const bool /*initial_time*/,
                                                        LDataManager* const /*l_data_manager*/)
 {
+    // Check if data has been processed.
+    init();
+
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
 
@@ -691,6 +736,9 @@ IBRedundantInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*
                                                            const bool /*initial_time*/,
                                                            LDataManager* const /*l_data_manager*/)
 {
+    // Check if data has been processed.
+    init();
+
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
 
@@ -733,6 +781,9 @@ IBRedundantInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarch
                                                      const double /*error_data_time*/,
                                                      const int tag_index)
 {
+    // Check if data has been processed.
+    init();
+
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();

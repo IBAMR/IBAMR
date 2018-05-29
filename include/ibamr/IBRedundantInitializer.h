@@ -48,6 +48,7 @@
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
+#include <boost/concept_check.hpp>
 
 namespace IBTK
 {
@@ -93,7 +94,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~IBRedundantInitializer();
+    ~IBRedundantInitializer();
 
     /*!
      * \brief Register a Silo data writer with the IB initializer object.
@@ -133,35 +134,128 @@ public:
                                                    bool initial_time);
 
     /*!
+     * \brief Initialize structure specific configurations.
+     */
+    void init();
+
+    /*!
      * \brief Initialize vertex data programmatically.
      */
     void initializeStructurePosition();
+
+    typedef void (*InitStructureOnLevel)(const unsigned int& strct_num,
+                                         const int& level_num,
+                                         int& num_vertices,
+                                         std::vector<IBTK::Point>& vertex_posn);
+
+    void registerInitStructureFunction(InitStructureOnLevel fcn);
 
     /*!
      * \brief Initialize spring data programmatically.
      */
     void initializeSprings();
 
+    /*
+     * Edge data structures.
+     */
+    typedef std::pair<int, int> Edge;
+    struct EdgeComp : public std::binary_function<Edge, Edge, bool>
+    {
+        inline bool operator()(const Edge& e1, const Edge& e2) const
+        {
+            return (e1.first < e2.first) || (e1.first == e2.first && e1.second < e2.second);
+        }
+    };
+    struct SpringSpec
+    {
+        std::vector<double> parameters;
+        int force_fcn_idx;
+    };
+    typedef void (*InitSpringDataOnLevel)(const unsigned int& strct_num,
+                                          const int& level_num,
+                                          std::multimap<int, Edge>& spring_map,
+                                          std::map<Edge, SpringSpec, EdgeComp>& spring_spec);
+
+    void registerInitSpringDataFunction(InitSpringDataOnLevel fcn);
+
     /*!
      * \brief Initialize beam data programmatically.
      */
     void initializeBeams();
+
+    struct BeamSpec
+    {
+        std::pair<int, int> neighbor_idxs;
+        double bend_rigidity;
+        IBTK::Vector curvature;
+    };
+    typedef void (*InitBeamDataOnLevel)(const unsigned int& strct_num,
+                                        const int& level_num,
+                                        std::multimap<int, BeamSpec>& beam_spec);
+
+    void registerInitBeamDataFunction(InitBeamDataOnLevel fcn);
 
     /*!
      * \brief Initialize director and rod data programmatically.
      */
     void initializeDirectorAndRods();
 
+    struct RodSpec
+    {
+        boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> properties;
+    };
+    typedef void (*InitDirectorAndRodOnLevel)(const unsigned int& strct_num,
+                                              const int& level_num,
+                                              std::vector<std::vector<double> >& director_spec,
+                                              std::multimap<int, Edge>& rod_edge_map,
+                                              std::map<Edge, RodSpec, EdgeComp>& rod_spec);
+
+    void registerInitDirectorAndRodFunction(InitDirectorAndRodOnLevel fcn);
+
     /*!
      * \brief Initialize massive point data programmatically.
      */
     void initializeBoundaryMass();
+
+    struct BdryMassSpec
+    {
+        double bdry_mass, stiffness;
+    };
+
+    typedef void (*InitBoundaryMassOnLevel)(const unsigned int& strct_num,
+                                            const int& level_num,
+                                            std::vector<BdryMassSpec>& bdry_mass_spec);
+
+    void registerInitBoundaryMassFunction(InitBoundaryMassOnLevel fcn);
 
     /*!
      * \brief Initialize target point data programmatically.
      */
     void initializeTargetPts();
 
+    struct TargetSpec
+    {
+        double stiffness, damping;
+    };
+
+    typedef void (*InitTargetPtOnLevel)(const unsigned int& strct_num,
+                                        const int& level_num,
+                                        std::vector<TargetSpec>& tg_pt_spec);
+
+    void registerInitTargetPtFunction(InitTargetPtOnLevel fcn);
+
+    struct AnchorSpec
+    {
+        bool is_anchor_point;
+    };
+
+    typedef void (*InitAnchorPtOnLevel)(const unsigned int& strct_num,
+                                        const int& level_num,
+                                        std::vector<AnchorSpec>& anchor_pt_spec);
+
+    void registerInitAnchorPtFunction(InitAnchorPtOnLevel fcn);
+
+    void initializeAnchorPts();
     /*!
      * \brief Initialize the structure indexing information on the patch level.
      */
@@ -314,24 +408,18 @@ protected:
      * \return The target point specifications associated with a particular
      * node.
      */
-    struct TargetSpec;
-
     const TargetSpec& getVertexTargetSpec(const std::pair<int, int>& point_index, int level_number) const;
 
     /*!
      * \return The anchor point specifications associated with a particular
      * node.
      */
-    struct AnchorSpec;
-
     const AnchorSpec& getVertexAnchorSpec(const std::pair<int, int>& point_index, int level_number) const;
 
     /*!
      * \return The massive boundary point specifications associated with a
      * particular node.
      */
-    struct BdryMassSpec;
-
     const BdryMassSpec& getVertexBdryMassSpec(const std::pair<int, int>& point_index, int level_number) const;
 
     /*!
@@ -364,7 +452,7 @@ protected:
      *
      * When assertion checking is active, the database pointer must be non-null.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    //     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*
      * The object name is used as a handle to databases stored in restart files
@@ -412,27 +500,7 @@ protected:
     std::vector<std::vector<int> > d_num_vertex, d_vertex_offset;
     std::vector<std::vector<std::vector<IBTK::Point> > > d_vertex_posn;
 
-    /*!
-     * \brief Initialize initial position of structure on a patch level.
-     *
-     * \note A default empty implementation is provided.
-     */
-    virtual void initializePosnDataOnPatchLevel(const unsigned int& strct_num,
-                                                const int& level_num,
-                                                int& num_vertices,
-                                                std::vector<IBTK::Point>& vertex_posn);
 
-    /*
-     * Edge data structures.
-     */
-    typedef std::pair<int, int> Edge;
-    struct EdgeComp : public std::binary_function<Edge, Edge, bool>
-    {
-        inline bool operator()(const Edge& e1, const Edge& e2) const
-        {
-            return (e1.first < e2.first) || (e1.first == e2.first && e1.second < e2.second);
-        }
-    };
 
     /*
      * Spring information.
@@ -441,11 +509,6 @@ protected:
 
     std::vector<std::vector<std::multimap<int, Edge> > > d_spring_edge_map;
 
-    struct SpringSpec
-    {
-        std::vector<double> parameters;
-        int force_fcn_idx;
-    };
     std::vector<std::vector<std::map<Edge, SpringSpec, EdgeComp> > > d_spring_spec_data;
 
     std::vector<std::vector<bool> > d_using_uniform_spring_stiffness;
@@ -456,16 +519,6 @@ protected:
 
     std::vector<std::vector<bool> > d_using_uniform_spring_force_fcn_idx;
     std::vector<std::vector<int> > d_uniform_spring_force_fcn_idx;
-
-    /*!
-     * \brief Initialize initial spring data of structure on a patch level.
-     *
-     * \note A default empty implementation is provided.
-     */
-    virtual void initializeSpringDataOnPatchLevel(const unsigned int& strct_num,
-                                                  const int& level_num,
-                                                  std::multimap<int, Edge>& spring_map,
-                                                  std::map<Edge, SpringSpec, EdgeComp>& spring_spec);
 
     /*
      * Crosslink spring ("x-spring") information.
@@ -495,12 +548,6 @@ protected:
      */
     std::vector<std::vector<bool> > d_enable_beams;
 
-    struct BeamSpec
-    {
-        std::pair<int, int> neighbor_idxs;
-        double bend_rigidity;
-        IBTK::Vector curvature;
-    };
     std::vector<std::vector<std::multimap<int, BeamSpec> > > d_beam_spec_data;
 
     std::vector<std::vector<bool> > d_using_uniform_beam_bend_rigidity;
@@ -509,15 +556,6 @@ protected:
     std::vector<std::vector<bool> > d_using_uniform_beam_curvature;
     std::vector<std::vector<IBTK::Vector> > d_uniform_beam_curvature;
 
-    /*!
-     * \brief Initialize initial beam data of structure on a patch level.
-     *
-     * \note A default empty implementation is provided.
-     */
-    virtual void initializeBeamDataOnPatchLevel(const unsigned int& strct_num,
-                                                const int& level_num,
-                                                std::vector<BeamSpec>& beam_spec);
-
     /*
      * Rod information.
      */
@@ -525,35 +563,16 @@ protected:
 
     std::vector<std::vector<std::multimap<int, Edge> > > d_rod_edge_map;
 
-    struct RodSpec
-    {
-        boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> properties;
-    };
     std::vector<std::vector<std::map<Edge, RodSpec, EdgeComp> > > d_rod_spec_data;
 
     std::vector<std::vector<bool> > d_using_uniform_rod_properties;
     std::vector<std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_uniform_rod_properties;
-
-    /*!
-     * \brief Initialize initial director and rod data of structure on a patch level.
-     *
-     * \note A default empty implementation is provided
-     */
-    virtual void initializeDirectorAndRodDataOnPatchLevel(const unsigned int& strct_num,
-                                                          const int& level_num,
-                                                          std::vector<std::vector<double> >& director_spec,
-                                                          std::multimap<int, Edge> rod_edge_map,
-                                                          std::map<Edge, RodSpec>& rod_spec);
 
     /*
      * Target point information.
      */
     std::vector<std::vector<bool> > d_enable_target_points;
 
-    struct TargetSpec
-    {
-        double stiffness, damping;
-    };
     std::vector<std::vector<std::vector<TargetSpec> > > d_target_spec_data;
 
     std::vector<std::vector<bool> > d_using_uniform_target_stiffness;
@@ -562,24 +581,11 @@ protected:
     std::vector<std::vector<bool> > d_using_uniform_target_damping;
     std::vector<std::vector<double> > d_uniform_target_damping;
 
-    /*!
-     * \brief Initialize initial target point data of structure on a patch level.
-     *
-     * \note A default empty implementation is provided.
-     */
-    virtual void initializeTargetPtDataOnPatchLevel(const unsigned int& strct_num,
-                                                    const int& level_num,
-                                                    std::vector<TargetSpec>& tg_pt_spec);
-
     /*
      * Anchor point information.
      */
     std::vector<std::vector<bool> > d_enable_anchor_points;
 
-    struct AnchorSpec
-    {
-        bool is_anchor_point;
-    };
     std::vector<std::vector<std::vector<AnchorSpec> > > d_anchor_spec_data;
 
     /*
@@ -587,10 +593,6 @@ protected:
      */
     std::vector<std::vector<bool> > d_enable_bdry_mass;
 
-    struct BdryMassSpec
-    {
-        double bdry_mass, stiffness;
-    };
     std::vector<std::vector<std::vector<BdryMassSpec> > > d_bdry_mass_spec_data;
 
     std::vector<std::vector<bool> > d_using_uniform_bdry_mass;
@@ -598,15 +600,6 @@ protected:
 
     std::vector<std::vector<bool> > d_using_uniform_bdry_mass_stiffness;
     std::vector<std::vector<double> > d_uniform_bdry_mass_stiffness;
-
-    /*!
-     * \brief Initialize initial boundary mass data of structure on a patch level.
-     *
-     * \note A default empty implementation is provided
-     */
-    virtual void initializeBoundaryMassDataOnPatchLevel(const unsigned int& strct_num,
-                                                        const int& level_num,
-                                                        std::vector<BdryMassSpec>& bdry_mass_spec);
 
     /*
      * Orthonormal directors for the generalized IB method.
@@ -630,6 +623,21 @@ protected:
      * purposes.
      */
     std::vector<unsigned int> d_global_index_offset;
+
+    /*
+     * Functions used to initialize structures programmatically.
+     */
+    InitStructureOnLevel d_init_structure_on_level_fcn;
+    InitSpringDataOnLevel d_init_spring_on_level_fcn;
+    InitBeamDataOnLevel d_init_beam_on_level_fcn;
+    InitDirectorAndRodOnLevel d_init_director_and_rod_on_level_fcn;
+    InitBoundaryMassOnLevel d_init_boundary_mass_on_level_fcn;
+    InitTargetPtOnLevel d_init_target_pt_on_level_fcn;
+    InitAnchorPtOnLevel d_init_anchor_pt_on_level_fcn;
+    /*!
+     * Check if user defined data has been processed.
+     */
+    bool d_data_processed;
 };
 } // namespace IBAMR
 
