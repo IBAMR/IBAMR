@@ -8,7 +8,10 @@ bool run_example(int, char**);
 
 // Set names of test based on if compiled with 2D or 3D libraries
 #if (NDIM == 2)
-#define TEST_CASE_NAME vc_navier_stokes_ex1_2d
+#define TEST_CASE_NAME multiphase_flow_ex0_2d
+#endif
+#if (NDIM == 3)
+#define TEST_CASE_NAME multiphase_flow_ex0_3d
 #endif
 
 TEST(TEST_CASE_NAME, example_runs)

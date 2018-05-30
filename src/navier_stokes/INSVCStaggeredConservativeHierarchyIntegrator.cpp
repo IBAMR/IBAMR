@@ -263,7 +263,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         if (d_output_rho)
         {
-            d_visit_writer->registerPlotQuantity("RHO_INTERP", "VECTOR", d_rho_interp_cc_idx, 0, d_rho_scale);
+            d_visit_writer->registerPlotQuantity("rho_ins_cc", "VECTOR", d_rho_interp_cc_idx, 0, d_rho_scale);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (d == 0)
