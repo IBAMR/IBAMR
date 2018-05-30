@@ -86,6 +86,8 @@ block_tether_force_function(VectorValue<double>& F,
 static double beam_kappa_s = 1.0e6;
 void
 beam_tether_force_function(VectorValue<double>& F,
+                           const VectorValue<double>& /*n*/,
+                           const VectorValue<double>& /*N*/,
                            const TensorValue<double>& /*FF*/,
                            const libMesh::Point& X,
                            const libMesh::Point& s,
@@ -278,7 +280,7 @@ compute_inflow_flux(const Pointer<PatchHierarchy<NDIM> > hierarchy, const int U_
                     side_box.upper(axis) = patch_box.lower(axis);
                     for (Box<NDIM>::Iterator b(side_box); b; b++)
                     {
-                        const Index<NDIM>& i = b();
+                        const hier::Index<NDIM>& i = b();
                         for (int d = 0; d < NDIM; ++d)
                         {
                             X[d] = x_lower[d] + dx[d] * (double(i(d) - patch_box.lower(d)) + (d == axis ? 0.0 : 0.5));

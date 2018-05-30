@@ -494,9 +494,11 @@ FEDataManager::spread(const int f_data_idx,
                       NumericVector<double>& X_vec,
                       const std::string& system_name,
                       RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                      const double fill_data_time)
+                      const double fill_data_time,
+                      const bool close_F,
+                      const bool close_X)
 {
-    spread(f_data_idx, F_vec, X_vec, system_name, d_default_spread_spec, f_phys_bdry_op, fill_data_time);
+    spread(f_data_idx, F_vec, X_vec, system_name, d_default_spread_spec, f_phys_bdry_op, fill_data_time, close_X, close_F);
     return;
 } // spread
 
@@ -507,7 +509,9 @@ FEDataManager::spread(const int f_data_idx,
                       const std::string& system_name,
                       const FEDataManager::SpreadSpec& spread_spec,
                       RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                      const double fill_data_time)
+                      const double fill_data_time,
+                      const bool close_F,
+                      const bool close_X)
 {
     IBTK_TIMER_START(t_spread);
 
@@ -569,7 +573,7 @@ FEDataManager::spread(const int f_data_idx,
 
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
-    /*if (!F_vec.closed())*/ F_vec.close();
+    if (close_F) F_vec.close();
     PetscVector<double>* F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
     Vec F_global_vec = F_petsc_vec->vec();
     Vec F_local_vec;
@@ -577,23 +581,13 @@ FEDataManager::spread(const int f_data_idx,
     double* F_local_soln;
     VecGetArray(F_local_vec, &F_local_soln);
 
-    /*if (!X_vec.closed())*/ X_vec.close();
+    if (close_X) X_vec.close();
     PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
     Vec X_global_vec = X_petsc_vec->vec();
     Vec X_local_vec;
     VecGhostGetLocalForm(X_global_vec, &X_local_vec);
     double* X_local_soln;
     VecGetArray(X_local_vec, &X_local_soln);
-
-    /*!
-     * \return The DofMapCache for a specified system.
-     */
-    SystemDofMapCache& getDofMapCache(const std::string& system_name);
-
-    /*!
-     * \return The DofMapCache for a specified system.
-     */
-    SystemDofMapCache& getDofMapCache(unsigned int system_num);
 
     // Loop over the patches to interpolate nodal values on the FE mesh to the
     // element quadrature points, then spread those values onto the Eulerian
@@ -739,7 +733,9 @@ FEDataManager::prolongData(const int f_data_idx,
                            NumericVector<double>& X_vec,
                            const std::string& system_name,
                            const bool is_density,
-                           const bool accumulate_on_grid)
+                           const bool accumulate_on_grid,
+                           const bool close_F,
+                           const bool close_X)
 {
     IBTK_TIMER_START(t_prolong_data);
 
@@ -788,7 +784,7 @@ FEDataManager::prolongData(const int f_data_idx,
 
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
-    /*if (!F_vec.closed())*/ F_vec.close();
+    if (close_F) F_vec.close();
     PetscVector<double>* F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
     Vec F_global_vec = F_petsc_vec->vec();
     Vec F_local_vec;
@@ -796,7 +792,7 @@ FEDataManager::prolongData(const int f_data_idx,
     double* F_local_soln;
     VecGetArray(F_local_vec, &F_local_soln);
 
-    /*if (!X_vec.closed())*/ X_vec.close();
+    if (close_X) X_vec.close();
     PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
     Vec X_global_vec = X_petsc_vec->vec();
     Vec X_local_vec;
@@ -959,9 +955,11 @@ FEDataManager::interpWeighted(const int f_data_idx,
                               NumericVector<double>& X_vec,
                               const std::string& system_name,
                               const std::vector<Pointer<RefineSchedule<NDIM> > >& f_refine_scheds,
-                              const double fill_data_time)
+                              const double fill_data_time,
+                              const bool close_F,
+                              const bool close_X)
 {
-    interpWeighted(f_data_idx, F_vec, X_vec, system_name, d_default_interp_spec, f_refine_scheds, fill_data_time);
+    interpWeighted(f_data_idx, F_vec, X_vec, system_name, d_default_interp_spec, f_refine_scheds, fill_data_time, close_F, close_X);
     return;
 } // interpWeighted
 
@@ -972,7 +970,9 @@ FEDataManager::interpWeighted(const int f_data_idx,
                               const std::string& system_name,
                               const FEDataManager::InterpSpec& interp_spec,
                               const std::vector<Pointer<RefineSchedule<NDIM> > >& f_refine_scheds,
-                              const double fill_data_time)
+                              const double fill_data_time,
+                              const bool close_F,
+                              const bool close_X)
 {
     IBTK_TIMER_START(t_interp_weighted);
 
@@ -1024,7 +1024,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
         if (f_refine_scheds[k]) f_refine_scheds[k]->fillData(fill_data_time);
     }
 
-    /*if (!X_vec.closed())*/ X_vec.close();
+    if (close_X) X_vec.close();
     PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
     Vec X_global_vec = X_petsc_vec->vec();
     Vec X_local_vec;
@@ -1185,10 +1185,11 @@ FEDataManager::interpWeighted(const int f_data_idx,
             qp_offset += n_qp;
         }
     }
-    F_vec.close();
 
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+
+    if (close_F) F_vec.close();
 
     IBTK_TIMER_STOP(t_interp_weighted);
     return;
@@ -1200,9 +1201,10 @@ FEDataManager::interp(const int f_data_idx,
                       NumericVector<double>& X_vec,
                       const std::string& system_name,
                       const std::vector<Pointer<RefineSchedule<NDIM> > >& f_refine_scheds,
-                      const double fill_data_time)
+                      const double fill_data_time,
+                      const bool close_X)
 {
-    interp(f_data_idx, F_vec, X_vec, system_name, d_default_interp_spec, f_refine_scheds, fill_data_time);
+    interp(f_data_idx, F_vec, X_vec, system_name, d_default_interp_spec, f_refine_scheds, fill_data_time, close_X);
     return;
 } // interp
 
@@ -1213,13 +1215,14 @@ FEDataManager::interp(const int f_data_idx,
                       const std::string& system_name,
                       const FEDataManager::InterpSpec& interp_spec,
                       const std::vector<Pointer<RefineSchedule<NDIM> > >& f_refine_scheds,
-                      const double fill_data_time)
+                      const double fill_data_time,
+                      const bool close_X)
 {
     IBTK_TIMER_START(t_interp);
 
     // Interpolate quantity at quadrature points and filter it to nodal points.
     UniquePtr<NumericVector<double> > F_rhs_vec = F_vec.zero_clone();
-    interpWeighted(f_data_idx, *F_rhs_vec, X_vec, system_name, interp_spec, f_refine_scheds, fill_data_time);
+    interpWeighted(f_data_idx, *F_rhs_vec, X_vec, system_name, interp_spec, f_refine_scheds, fill_data_time, /*close_F*/ true, close_X);
 
     // Solve for the nodal values.
     computeL2Projection(F_vec, *F_rhs_vec, system_name, interp_spec.use_consistent_mass_matrix);
@@ -1233,7 +1236,8 @@ FEDataManager::restrictData(const int f_data_idx,
                             NumericVector<double>& F_vec,
                             NumericVector<double>& X_vec,
                             const std::string& system_name,
-                            const bool use_consistent_mass_matrix)
+                            const bool use_consistent_mass_matrix,
+                            const bool close_X)
 {
     IBTK_TIMER_START(t_restrict_data);
 
@@ -1281,7 +1285,7 @@ FEDataManager::restrictData(const int f_data_idx,
 
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
-    /*if (!X_vec.closed())*/ X_vec.close();
+    if (close_X) X_vec.close();
     PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
     Vec X_global_vec = X_petsc_vec->vec();
     Vec X_local_vec;
@@ -1440,6 +1444,7 @@ FEDataManager::restrictData(const int f_data_idx,
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
 
     // Solve for the nodal values.
+    F_rhs_vec->close();
     computeL2Projection(F_vec, *F_rhs_vec, system_name, use_consistent_mass_matrix);
 
     IBTK_TIMER_STOP(t_restrict_data);
@@ -1704,6 +1709,8 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
                                    NumericVector<double>& F_vec,
                                    const std::string& system_name,
                                    const bool consistent_mass_matrix,
+                                   const bool close_U,
+                                   const bool close_F,
                                    const double tol,
                                    const unsigned int max_its)
 {
@@ -1712,7 +1719,7 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
     int ierr;
     bool converged = false;
 
-    /*if (!F_vec.closed())*/ F_vec.close();
+    if (close_F) F_vec.close();
     const System& system = d_es->get_system(system_name);
     const DofMap& dof_map = system.get_dof_map();
     if (consistent_mass_matrix)
@@ -1748,7 +1755,7 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
         IBTK_CHKERRQ(ierr);
         converged = true;
     }
-    U_vec.close();
+    if (close_U) U_vec.close();
     dof_map.enforce_constraints_exactly(system, &U_vec);
 
     IBTK_TIMER_STOP(t_compute_l2_projection);
