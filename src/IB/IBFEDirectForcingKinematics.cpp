@@ -202,9 +202,13 @@ IBFEDirectForcingKinematics::preprocessIntegrateData(double current_time, double
     // Note: Only imposed DOFs will be used from them.
     Eigen::Vector3d trans_vel_current, trans_vel_half, trans_vel_new;
     Eigen::Vector3d rot_vel_current, rot_vel_half, rot_vel_new;
-    d_kinematics.comvelfcn(d_current_time, trans_vel_current, rot_vel_current, d_kinematics.ctx);
-    d_kinematics.comvelfcn(d_half_time, trans_vel_half, rot_vel_half, d_kinematics.ctx);
-    d_kinematics.comvelfcn(d_new_time, trans_vel_new, rot_vel_new, d_kinematics.ctx);
+
+    if (d_kinematics.comvelfcn)
+    {
+        d_kinematics.comvelfcn(d_current_time, trans_vel_current, rot_vel_current, d_kinematics.ctx);
+        d_kinematics.comvelfcn(d_half_time, trans_vel_half, rot_vel_half, d_kinematics.ctx);
+        d_kinematics.comvelfcn(d_new_time, trans_vel_new, rot_vel_new, d_kinematics.ctx);
+    }
 
     // Override imposed DOFs in internal vectors.
     for (int k = 0; k < NDIM; ++k)
@@ -273,10 +277,17 @@ IBFEDirectForcingKinematics::forwardEulerStep(double current_time,
         nodal_X0_values[d].reserve(total_local_nodes);
     }
 
+    IBFEMethod::CoordinateMappingFcnData mapping = d_ibfe_method_ops->getInitialCoordinateMappingFunction(d_part);
+    const bool identity_mapping = !(mapping.fcn);
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         const Node* const n = *it;
-        const libMesh::Point& X0 = *n;
+        const libMesh::Point& s = *n;
+        libMesh::Point X0 = s;
+        if (!identity_mapping)
+        {
+            mapping.fcn(X0, s, mapping.ctx);
+        }
         if (n->n_vars(X_sys_num))
         {
 #if !defined(NDEBUG)
@@ -350,10 +361,17 @@ IBFEDirectForcingKinematics::midpointStep(double current_time,
         nodal_X0_values[d].reserve(total_local_nodes);
     }
 
+    IBFEMethod::CoordinateMappingFcnData mapping = d_ibfe_method_ops->getInitialCoordinateMappingFunction(d_part);
+    const bool identity_mapping = !(mapping.fcn);
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         const Node* const n = *it;
-        const libMesh::Point& X0 = *n;
+        const libMesh::Point& s = *n;
+        libMesh::Point X0 = s;
+        if (!identity_mapping)
+        {
+            mapping.fcn(X0, s, mapping.ctx);
+        }
         if (n->n_vars(X_sys_num))
         {
 #if !defined(NDEBUG)
@@ -786,24 +804,13 @@ IBFEDirectForcingKinematics::computeMixedLagrangianForceDensity(PetscVector<doub
     DofMap& U_dof_map = U_system.get_dof_map();
     std::vector<std::vector<unsigned int> > U_dof_indices(NDIM);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-    FEType U_fe_type = U_dof_map.variable_type(0);
-    FEType X_fe_type = X_dof_map.variable_type(0);
-    UniquePtr<QBase> U_qrule = U_fe_type.default_quadrature_rule(dim);
-    UniquePtr<QBase> X_qrule = X_fe_type.default_quadrature_rule(dim);
-    UniquePtr<FEBase> U_fe_autoptr(FEBase::build(dim, U_fe_type)), X_fe_autoptr;
-    if (U_fe_type != X_fe_type)
-    {
-        X_fe_autoptr = UniquePtr<FEBase>(FEBase::build(dim, X_fe_type));
-    }
-    FEBase* U_fe = U_fe_autoptr.get();
-    FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : U_fe_autoptr.get();
-    U_fe->attach_quadrature_rule(U_qrule.get());
-    if (X_fe_autoptr.get())
-    {
-        X_fe->attach_quadrature_rule(X_qrule.get());
-    }
-    const std::vector<double>& JxW = U_fe->get_JxW();
-    const std::vector<std::vector<double> >& phi = U_fe->get_phi();
+    FEType fe_type = U_dof_map.variable_type(0);
+    UniquePtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+    UniquePtr<FEBase> fe_autoptr(FEBase::build(dim, fe_type));
+    FEBase* fe = fe_autoptr.get();
+    fe->attach_quadrature_rule(qrule.get());
+    const std::vector<double>& JxW = fe->get_JxW();
+    const std::vector<std::vector<double> >& phi = fe->get_phi();
 
     int ierr;
     X_petsc.close();
@@ -834,7 +841,7 @@ IBFEDirectForcingKinematics::computeMixedLagrangianForceDensity(PetscVector<doub
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
-        U_fe->reinit(elem);
+        fe->reinit(elem);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             X_dof_map.dof_indices(elem, X_dof_indices[d], d);
@@ -843,7 +850,7 @@ IBFEDirectForcingKinematics::computeMixedLagrangianForceDensity(PetscVector<doub
         get_values_for_interpolation(U_node, U_petsc, U_local_ghost_soln, U_dof_indices);
         get_values_for_interpolation(X_node, X_petsc, X_local_ghost_soln, X_dof_indices);
 
-        const unsigned int n_qp = X_qrule->n_points();
+        const unsigned int n_qp = qrule->n_points();
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
             interpolate(X_qp, qp, X_node, phi);

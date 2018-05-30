@@ -91,7 +91,7 @@ EXTRA_PROGRAMS = $(am__EXEEXT_5)
 @LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
 @GTEST_ENABLED_TRUE@@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_2 = test2d
 @LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_3 = $(EXAMPLES) $(GTESTS)
-subdir = examples/IBFE/explicit/ex9
+subdir = examples/IBFE/explicit/ex10
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/ax_prog_cc_mpi.m4 \
@@ -533,9 +533,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/IBFE/explicit/ex9/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/IBFE/explicit/ex10/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign examples/IBFE/explicit/ex9/Makefile
+	  $(AUTOMAKE) --foreign examples/IBFE/explicit/ex10/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \

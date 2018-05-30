@@ -182,6 +182,11 @@ public:
     void registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data, unsigned int part = 0);
 
     /*!
+     * Get the initial coordinate mapping function data.
+     */
+    CoordinateMappingFcnData getInitialCoordinateMappingFunction(unsigned int part = 0) const;
+
+    /*!
      * Typedef specifying interface for initial velocity specification function.
      */
     typedef void (*InitialVelocityFcnPtr)(libMesh::VectorValue<double>& U0, const libMesh::Point& X0, void* ctx);
@@ -207,6 +212,11 @@ public:
      * zero.
      */
     void registerInitialVelocityFunction(const InitialVelocityFcnData& data, unsigned int part = 0);
+
+    /*!
+     * Get the initial velocity function data.
+     */
+    InitialVelocityFcnData getInitialVelocityFunction(unsigned int part = 0) const;
 
     /*!
      * Typedef specifying interface for PK1 stress tensor function.
@@ -246,6 +256,11 @@ public:
     void registerPK1StressFunction(const PK1StressFcnData& data, unsigned int part = 0);
 
     /*!
+     * Get the PK1 stress function data.
+     */
+    std::vector<PK1StressFcnData> getPK1StressFunction(unsigned int part = 0) const;
+
+    /*!
      * Typedef specifying interface for Lagrangian body force distribution
      * function.
      */
@@ -276,6 +291,11 @@ public:
      * with this class.
      */
     void registerLagBodyForceFunction(const LagBodyForceFcnData& data, unsigned int part = 0);
+
+    /*!
+     * Get the Lagrangian body force function data.
+     */
+    LagBodyForceFcnData getLagBodyForceFunction(unsigned int part = 0) const;
 
     /*!
      * Typedef specifying interface for Lagrangian pressure force distribution
@@ -310,6 +330,11 @@ public:
     void registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& data, unsigned int part = 0);
 
     /*!
+     * Get the Lagrangian surface pressure function data.
+     */
+    LagSurfacePressureFcnData getLagSurfacePressureFunction(unsigned int part = 0) const;
+
+    /*!
      * Typedef specifying interface for Lagrangian surface force distribution
      * function.
      */
@@ -342,6 +367,11 @@ public:
     void registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, unsigned int part = 0);
 
     /*!
+     * Get the Lagrangian surface force function data.
+     */
+    LagSurfaceForceFcnData getLagSurfaceForceFunction(unsigned int part = 0) const;
+
+    /*!
      * Typedef specifying interface for Lagrangian mass source/sink distribution
      * function.
      */
@@ -369,6 +399,11 @@ public:
      * distribution on the Lagrangian finite element mesh.
      */
     void registerLagBodySourceFunction(const LagBodySourceFcnData& data, unsigned int part = 0);
+
+    /*!
+     * Get the Lagrangian body source function data.
+     */
+    LagBodySourceFcnData getLagBodySourceFunction(unsigned int part = 0) const;
 
     /*!
      * Use tether forces to constrain the motion of a pair of parts.

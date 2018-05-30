@@ -67,45 +67,17 @@
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
 
-inline double
-kernel(double x)
+// Coordinate mapping function.
+
+static double R, H, L;
+void
+coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
 {
-    x += 4.;
-    const double x2 = x * x;
-    const double x3 = x * x2;
-    const double x4 = x * x3;
-    const double x5 = x * x4;
-    const double x6 = x * x5;
-    const double x7 = x * x6;
-    if (x <= 0.)
-        return 0.;
-    else if (x <= 1.)
-        return .1984126984126984e-3 * x7;
-    else if (x <= 2.)
-        return .1111111111111111e-1 * x6 - .1388888888888889e-2 * x7 - .3333333333333333e-1 * x5 +
-               .5555555555555556e-1 * x4 - .5555555555555556e-1 * x3 + .3333333333333333e-1 * x2 -
-               .1111111111111111e-1 * x + .1587301587301587e-2;
-    else if (x <= 3.)
-        return .4333333333333333 * x5 - .6666666666666667e-1 * x6 + .4166666666666667e-2 * x7 - 1.500000000000000 * x4 +
-               3.055555555555556 * x3 - 3.700000000000000 * x2 + 2.477777777777778 * x - .7095238095238095;
-    else if (x <= 4.)
-        return 9. * x4 - 1.666666666666667 * x5 + .1666666666666667 * x6 - .6944444444444444e-2 * x7 -
-               28.44444444444444 * x3 + 53. * x2 - 54.22222222222222 * x + 23.59047619047619;
-    else if (x <= 5.)
-        return 96. * x3 - 22.11111111111111 * x4 + 3. * x5 - .2222222222222222 * x6 + .6944444444444444e-2 * x7 -
-               245.6666666666667 * x2 + 344. * x - 203.9650793650794;
-    else if (x <= 6.)
-        return 483.5000000000000 * x2 - 147.0555555555556 * x3 + 26.50000000000000 * x4 - 2.833333333333333 * x5 +
-               .1666666666666667 * x6 - .4166666666666667e-2 * x7 - 871.2777777777778 * x + 664.0904761904762;
-    else if (x <= 7.)
-        return 943.1222222222222 * x - 423.7000000000000 * x2 + 104.9444444444444 * x3 - 15.50000000000000 * x4 +
-               1.366666666666667 * x5 - .6666666666666667e-1 * x6 + .1388888888888889e-2 * x7 - 891.1095238095238;
-    else if (x <= 8.)
-        return 416.1015873015873 - 364.0888888888889 * x + 136.5333333333333 * x2 - 28.44444444444444 * x3 +
-               3.555555555555556 * x4 - .2666666666666667 * x5 + .1111111111111111e-1 * x6 - .1984126984126984e-3 * x7;
-    else
-        return 0.;
-} // kernel
+    X(0) = s(0) + L / 4.0;
+    X(1) = s(1) + H / 4.0;
+    ;
+    return;
+} // coordinate_mapping_function
 
 void
 cylinder_kinematics(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* /*ctx*/)
@@ -117,15 +89,8 @@ cylinder_kinematics(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3
 } // cylinder_kinematics
 
 // Function prototypes
-static ofstream drag_stream, lift_stream;
-static double R;
-void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                      Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-                      Mesh& mesh,
-                      EquationSystems* equation_systems,
-                      const int iteration_num,
-                      const double loop_time,
-                      const string& data_dump_dirname);
+static ofstream U_stream, X_stream;
+void postprocess_data(double loop_time, Pointer<IBFEDirectForcingKinematics> df_kinematics_ops);
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -156,10 +121,6 @@ run_example(int argc, char** argv)
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
-        // Setup user-defined kernel function.
-        LEInteractor::s_kernel_fcn = &kernel;
-        LEInteractor::s_kernel_fcn_stencil_size = 8;
-
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
@@ -188,6 +149,8 @@ run_example(int argc, char** argv)
         const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
         R = input_db->getDouble("R");
+        H = input_db->getDouble("H");
+        L = input_db->getDouble("L");
         if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
         {
 #ifdef LIBMESH_HAVE_TRIANGLE
@@ -283,11 +246,13 @@ run_example(int argc, char** argv)
         // Specify structure kinematics
         FreeRigidDOFVector solve_dofs;
         solve_dofs.setZero();
+        solve_dofs << 1, 1, 1;
         df_kinematics_ops->setSolveRigidBodyVelocity(solve_dofs);
         df_kinematics_ops->registerKinematicsFunction(&cylinder_kinematics, NULL);
 
         // Configure the IBFE solver.
         ib_method_ops->initializeFEEquationSystems();
+        ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Create Eulerian initial condition specification objects.
@@ -378,14 +343,14 @@ run_example(int argc, char** argv)
             }
         }
 
-        // Open streams to save lift and drag coefficients.
+        // Open streams to save COM position and velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
-            lift_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
+            X_stream.open("X.curve", ios_base::out | ios_base::trunc);
+            U_stream.open("U.curve", ios_base::out | ios_base::trunc);
 
-            drag_stream.precision(10);
-            lift_stream.precision(10);
+            X_stream.precision(10);
+            U_stream.precision(10);
         }
 
         // Main time step loop.
@@ -442,21 +407,15 @@ run_example(int argc, char** argv)
             }
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                postprocess_data(patch_hierarchy,
-                                 navier_stokes_integrator,
-                                 mesh,
-                                 equation_systems,
-                                 iteration_num,
-                                 loop_time,
-                                 postproc_data_dump_dirname);
+                postprocess_data(loop_time, df_kinematics_ops);
             }
         }
 
         // Close the logging streams.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_stream.close();
-            lift_stream.close();
+            X_stream.close();
+            U_stream.close();
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
@@ -470,64 +429,16 @@ run_example(int argc, char** argv)
 } // run_example
 
 void
-postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
-                 Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
-                 Mesh& mesh,
-                 EquationSystems* equation_systems,
-                 const int /*iteration_num*/,
-                 const double loop_time,
-                 const string& /*data_dump_dirname*/)
+postprocess_data(double loop_time, Pointer<IBFEDirectForcingKinematics> df_kinematics_ops)
 {
-    const unsigned int dim = mesh.mesh_dimension();
-    double F_integral[NDIM];
-    for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
-
-    System& F_system = equation_systems->get_system(IBFEMethod::FORCE_SYSTEM_NAME);
-    NumericVector<double>* F_vec = F_system.solution.get();
-    NumericVector<double>* F_ghost_vec = F_system.current_local_solution.get();
-    F_vec->localize(*F_ghost_vec);
-    const DofMap& dof_map = F_system.get_dof_map();
-    FEType fe_type = dof_map.variable_type(0);
-    libMesh::UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
-    UniquePtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
-    fe->attach_quadrature_rule(qrule.get());
-    const vector<double>& JxW = fe->get_JxW();
-    const vector<vector<double> >& phi = fe->get_phi();
-
-    std::vector<std::vector<unsigned int> > dof_indices(NDIM);
-    boost::multi_array<double, 2> F_node;
-    VectorValue<double> F;
-
-    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
-    {
-        Elem* const elem = *el_it;
-        fe->reinit(elem);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            dof_map.dof_indices(elem, dof_indices[d], d);
-        }
-        get_values_for_interpolation(F_node, *F_ghost_vec, dof_indices);
-
-        const unsigned int n_qp = qrule->n_points();
-        for (unsigned int qp = 0; qp < n_qp; ++qp)
-        {
-            interpolate(F, qp, F_node, phi);
-            for (int d = 0; d < NDIM; ++d)
-            {
-                F_integral[d] += F(d) * JxW[qp];
-            }
-        }
-    }
-    SAMRAI_MPI::sumReduction(F_integral, NDIM);
-    static const double rho = 1.0;
-    static const double U_max = 1.0;
-    static const double D = 2.0 * R;
+    const Eigen::Vector3d& X = df_kinematics_ops->getStructureCOM();
+    const Eigen::Vector3d& U = df_kinematics_ops->getCOMTransVelocity();
+    const Eigen::Vector3d& W = df_kinematics_ops->getCOMRotVelocity();
     if (SAMRAI_MPI::getRank() == 0)
     {
-        drag_stream << loop_time << " " << -F_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
-        lift_stream << loop_time << " " << -F_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
+        X_stream << loop_time << "\t" << X[0] << "\t" << X[1] << endl;
+        U_stream << loop_time << "\t" << U[0] << "\t" << U[1] << "\t" << W[2] << endl;
+        ;
     }
     return;
 } // postprocess_data

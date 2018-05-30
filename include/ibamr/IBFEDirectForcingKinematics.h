@@ -179,6 +179,30 @@ public:
     virtual void postprocessIntegrateData(double current_time, double new_time, int num_cycles);
 
     /*!
+     * Get COM position.
+     */
+    const Eigen::Vector3d& getStructureCOM() const
+    {
+        return d_center_of_mass_current;
+    } // getStructureCOM
+
+    /*!
+     * Get COM translational velocity.
+     */
+    const Eigen::Vector3d& getCOMTransVelocity() const
+    {
+        return d_trans_vel_current;
+    } // getCOMTransVelocity
+
+    /*!
+     * Get COM rotational velocity.
+     */
+    const Eigen::Vector3d& getCOMRotVelocity() const
+    {
+        return d_rot_vel_current;
+    } // getCOMRotVelocity
+
+    /*!
      * \brief Write out object state to the given database.
      *
      * \note An empty default implementation is provided.

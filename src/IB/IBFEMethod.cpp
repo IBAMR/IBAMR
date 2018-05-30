@@ -402,6 +402,13 @@ IBFEMethod::registerInitialCoordinateMappingFunction(const CoordinateMappingFcnD
     return;
 } // registerInitialCoordinateMappingFunction
 
+IBFEMethod::CoordinateMappingFcnData
+IBFEMethod::getInitialCoordinateMappingFunction(unsigned int part) const
+{
+    TBOX_ASSERT(part < d_num_parts);
+    return d_coordinate_mapping_fcn_data[part];
+} // getInitialCoordinateMappingFunction
+
 void
 IBFEMethod::registerInitialVelocityFunction(const InitialVelocityFcnData& data, const unsigned int part)
 {
@@ -409,6 +416,13 @@ IBFEMethod::registerInitialVelocityFunction(const InitialVelocityFcnData& data, 
     d_initial_velocity_fcn_data[part] = data;
     return;
 } // registerInitialVelocityFunction
+
+IBFEMethod::InitialVelocityFcnData
+IBFEMethod::getInitialVelocityFunction(unsigned int part) const
+{
+    TBOX_ASSERT(part < d_num_parts);
+    return d_initial_velocity_fcn_data[part];
+} // getInitialVelocityFunction
 
 void
 IBFEMethod::registerPK1StressFunction(const PK1StressFcnData& data, const unsigned int part)
@@ -426,6 +440,13 @@ IBFEMethod::registerPK1StressFunction(const PK1StressFcnData& data, const unsign
     return;
 } // registerPK1StressFunction
 
+std::vector<IBFEMethod::PK1StressFcnData>
+IBFEMethod::getPK1StressFunction(unsigned int part) const
+{
+    TBOX_ASSERT(part < d_num_parts);
+    return d_PK1_stress_fcn_data[part];
+} // getPK1StressFunction
+
 void
 IBFEMethod::registerLagBodyForceFunction(const LagBodyForceFcnData& data, const unsigned int part)
 {
@@ -433,6 +454,13 @@ IBFEMethod::registerLagBodyForceFunction(const LagBodyForceFcnData& data, const 
     d_lag_body_force_fcn_data[part] = data;
     return;
 } // registerLagBodyForceFunction
+
+IBFEMethod::LagBodyForceFcnData
+IBFEMethod::getLagBodyForceFunction(unsigned int part) const
+{
+    TBOX_ASSERT(part < d_num_parts);
+    return d_lag_body_force_fcn_data[part];
+} // getLagBodyForceFunction
 
 void
 IBFEMethod::registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& data, const unsigned int part)
@@ -442,6 +470,13 @@ IBFEMethod::registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& 
     return;
 } // registerLagSurfacePressureFunction
 
+IBFEMethod::LagSurfacePressureFcnData
+IBFEMethod::getLagSurfacePressureFunction(unsigned int part) const
+{
+    TBOX_ASSERT(part < d_num_parts);
+    return d_lag_surface_pressure_fcn_data[part];
+} // getLagSurfacePressureFunction
+
 void
 IBFEMethod::registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, const unsigned int part)
 {
@@ -449,6 +484,13 @@ IBFEMethod::registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, 
     d_lag_surface_force_fcn_data[part] = data;
     return;
 } // registerLagSurfaceForceFunction
+
+IBFEMethod::LagSurfaceForceFcnData
+IBFEMethod::getLagSurfaceForceFunction(unsigned int part) const
+{
+    TBOX_ASSERT(part < d_num_parts);
+    return d_lag_surface_force_fcn_data[part];
+} // getLagSurfaceForceFunction
 
 void
 IBFEMethod::registerLagBodySourceFunction(const LagBodySourceFcnData& data, const unsigned int part)
@@ -462,6 +504,13 @@ IBFEMethod::registerLagBodySourceFunction(const LagBodySourceFcnData& data, cons
     Q_system.add_variable("Q", d_fe_order[part], d_fe_family[part]);
     return;
 } // registerLagBodySourceFunction
+
+IBFEMethod::LagBodySourceFcnData
+IBFEMethod::getLagBodySourceFunction(unsigned int part) const
+{
+    TBOX_ASSERT(part < d_num_parts);
+    return d_lag_body_source_fcn_data[part];
+} // getLagBodySourceFunction
 
 void
 IBFEMethod::constrainPartOverlap(const unsigned int part1,
