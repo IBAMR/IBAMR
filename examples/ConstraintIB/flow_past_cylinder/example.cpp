@@ -238,6 +238,7 @@ run_example(int argc, char* argv[])
         ib_method_ops->initializeHierarchyOperatorsandData();
 
         // Create hydrodynamic force evaluator object.
+        double start_time = time_integrator->getIntegratorTime();
         double rho_fluid = input_db->getDouble("RHO");
         double mu_fluid = input_db->getDouble("MU");
         Pointer<IBHydrodynamicForceEvaluator> hydro_force =
