@@ -1711,20 +1711,30 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                     const libMesh::Point& n_prime = *n_prime_it;
                                     if (x.absolute_fuzzy_equals(x_prime, 1.0e-5 * dx[axis]))
                                     {
+                                        // WARNING: This check is ONLY
+                                        // guaranteed to work at edges (where
+                                        // only two elements meet).  To avoid FE
+                                        // mesh nodes, set
+                                        // d_perturb_fe_mesh_nodes to true.
                                         found_same_intersection_point = n(axis) * n_prime(axis) > 0.0;
-                                        plog << "==========\n";
-                                        plog << "multiple intersections detected:\n";
-                                        plog << "  x    = " << x << "\n";
-                                        plog << "  x'   = " << x_prime << "\n";
-                                        plog << "  xi   = " << xi << "\n";
-                                        plog << "  xi'  = " << xi_prime << "\n";
-                                        plog << "  n    = " << n << "\n";
-                                        plog << "  n'   = " << n_prime << "\n";
-                                        plog << "  i_s  = " << i_s << "\n";
-                                        plog << "  i_s' = " << i_s_prime << "\n";
-                                        plog << "  axis = " << axis << "\n";
+                                        if (d_do_log)
+                                        {
+                                            plog << "==========\n";
+                                            plog << "multiple intersections detected:\n";
+                                            plog << "  x    = " << x << "\n";
+                                            plog << "  x'   = " << x_prime << "\n";
+                                            plog << "  xi   = " << xi << "\n";
+                                            plog << "  xi'  = " << xi_prime << "\n";
+                                            plog << "  n    = " << n << "\n";
+                                            plog << "  n'   = " << n_prime << "\n";
+                                            plog << "  i_s  = " << i_s << "\n";
+                                            plog << "  i_s' = " << i_s_prime << "\n";
+                                            plog << "  axis = " << axis << "\n";
+                                        }
                                     }
+                                    if (found_same_intersection_point) break;
                                 }
+                                if (found_same_intersection_point) break;
                             }
                             if (!found_same_intersection_point)
                             {
