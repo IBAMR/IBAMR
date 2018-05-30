@@ -75,8 +75,6 @@ namespace IBTK
 
 namespace
 {
-// Number of ghosts cells used for each variable quantity.
-static const int SIDEG = 1;
 
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.

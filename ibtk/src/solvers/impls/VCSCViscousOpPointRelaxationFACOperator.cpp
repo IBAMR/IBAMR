@@ -300,12 +300,6 @@ static Timer* t_smooth_error;
 static Timer* t_solve_coarsest_level;
 static Timer* t_compute_residual;
 
-// Default data depth.
-static const int DEFAULT_DATA_DEPTH = 1;
-
-// Number of ghosts cells used for each variable quantity.
-static const int SIDEG = 1;
-
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.
 static const std::string DATA_REFINE_TYPE = "NONE";

@@ -32,10 +32,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <functional>
+#include <limits>
 #include <map>
 #include <ostream>
+#include <stddef.h>
 #include <vector>
 
 #include "ArrayData.h"
@@ -85,6 +86,7 @@ compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
     return extended_box;
 }
 
+#if (NDIM == 2)
 inline double
 compute_mu_avg(const Index<NDIM>& i, const NodeData<NDIM, double>& mu_data)
 {
@@ -122,7 +124,9 @@ compute_mu_harmonic_avg(const Index<NDIM>& i, const NodeData<NDIM, double>& mu_d
 #endif
     return n_nodes / avg_mu;
 } // compute_mu_harmonic_avg
+#endif
 
+#if (NDIM == 3)
 inline double
 compute_mu_avg(const Index<NDIM>& i, const EdgeData<NDIM, double>& mu_data)
 {
@@ -173,6 +177,7 @@ get_mu_edge(const Index<NDIM>& i, const int perp, const Pointer<EdgeData<NDIM, d
     const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
     return mu_array_data(i, /*depth*/ 0);
 }
+#endif
 
 inline Index<NDIM>
 get_shift(int dir, int shift)
@@ -813,7 +818,8 @@ typedef std::map<Index<NDIM>, int, IndexFortranOrder> StencilMapType;
                     const Index<NDIM> shift_axis_plus = get_shift(axis, 1);
                     const Index<NDIM> shift_axis_minus = get_shift(axis, -1);
 
-                    double mu_upper, mu_lower;
+                    double mu_upper = std::numeric_limits<double>::quiet_NaN();
+                    double mu_lower = std::numeric_limits<double>::quiet_NaN();
                     if (mu_interp_type == VC_AVERAGE_INTERP)
                     {
                         mu_upper = compute_mu_avg(cc, *mu_data);
@@ -1914,7 +1920,8 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
                 const SideIndex<NDIM> i_s_bdry(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
 
                 const Index<NDIM> shift_axis_minus = get_shift(bdry_normal_axis, -1);
-                double mu_upper, mu_lower;
+                double mu_upper = std::numeric_limits<double>::quiet_NaN();
+                double mu_lower = std::numeric_limits<double>::quiet_NaN();
                 if (mu_interp_type == VC_AVERAGE_INTERP)
                 {
                     mu_upper = compute_mu_avg(i, *mu_data);
