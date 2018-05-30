@@ -240,7 +240,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
         d_rho_sc_var = INSVCStaggeredHierarchyIntegrator::d_rho_var;
 #if !defined(NDEBUG)
         TBOX_ASSERT(d_rho_sc_var);
-        TBOX_ASSERT(d_rho_init_fcn);
+        TBOX_ASSERT(d_rho_init_fcn || d_reset_rho_fcns.size() > 0);
 #endif
         registerVariable(d_rho_sc_current_idx,
                          d_rho_sc_new_idx,
@@ -334,23 +334,19 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     TBOX_ASSERT(d_rho_sc_current_idx >= 0);
     TBOX_ASSERT(d_rho_sc_scratch_idx >= 0);
 #endif
-    // After the initial time, we should reset
-    // the current value of density
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
+    
+    // Note that we always reset current context of state variables here, if necessary.
     const double apply_time = current_time;
-    if (!initial_time)
+    for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
     {
-        for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
-        {
-            d_reset_rho_fcns[k](d_rho_sc_current_idx,
-                                d_rho_sc_var,
-                                d_hier_math_ops,
-                                -1 /*cycle_num*/,
-                                apply_time,
-                                current_time,
-                                new_time,
-                                d_reset_rho_fcns_ctx[k]);
-        }
+        d_reset_rho_fcns[k](d_rho_sc_current_idx,
+                            d_rho_sc_var,
+                            d_hier_math_ops,
+                            -1 /*cycle_num*/,
+                            apply_time,
+                            current_time,
+                            new_time,
+                            d_reset_rho_fcns_ctx[k]);
     }
     d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx, d_rho_sc_current_idx, /*interior_only*/ true);
 
@@ -368,6 +364,19 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
         {
             mu_current_idx = d_mu_current_idx;
         }
+        // Note that we always reset current context of state variables here, if necessary.
+        for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
+        {
+            d_reset_mu_fcns[k](d_mu_current_idx,
+                               d_mu_var,
+                               d_hier_math_ops,
+                               -1 /*cycle_num*/,
+                               apply_time,
+                               current_time,
+                               new_time,
+                               d_reset_mu_fcns_ctx[k]);
+        }
+        
         d_hier_cc_data_ops->copyData(d_mu_scratch_idx, mu_current_idx, /*interior_only*/ true);
         d_mu_bdry_bc_fill_op->fillData(current_time);
 

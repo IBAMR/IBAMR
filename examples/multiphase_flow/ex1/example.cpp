@@ -283,14 +283,6 @@ run_example(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
         navier_stokes_integrator->registerViscosityVariable(mu_var);
 
-        // Set the density and viscosity initial condition
-        Pointer<CartGridFunction> rho_fcn = new muParserCartGridFunction(
-            "rho_fcn", app_initializer->getComponentDatabase("DensityInitialConditions"), grid_geometry);
-        Pointer<CartGridFunction> mu_fcn = new muParserCartGridFunction(
-            "mu_fcn", app_initializer->getComponentDatabase("ViscosityInitialConditions"), grid_geometry);
-        navier_stokes_integrator->registerViscosityInitialConditions(mu_fcn);
-        navier_stokes_integrator->registerMassDensityInitialConditions(rho_fcn);
-
         // Array for input into callback function
         const int ls_reinit_interval = input_db->getInteger("LS_REINIT_INTERVAL");
         const double rho_fluid = input_db->getDouble("RHO_F");

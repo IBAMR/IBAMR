@@ -265,7 +265,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     {
 #if !defined(NDEBUG)
         // INSVCStaggeredNonConservativeHierarchyIntegrator should initialize the density variable.
-        TBOX_ASSERT(d_rho_init_fcn);
+        TBOX_ASSERT(d_rho_init_fcn || d_reset_rho_fcns.size() > 0);
 #endif
         registerVariable(d_rho_current_idx,
                          d_rho_new_idx,
@@ -356,6 +356,21 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
         {
             mu_current_idx = d_mu_current_idx;
         }
+
+        // Note that we always reset current context of state variables here, if necessary.
+        for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
+        {
+            const double apply_time = current_time;
+            d_reset_mu_fcns[k](d_mu_current_idx,
+                               d_mu_var,
+                               d_hier_math_ops,
+                               -1 /*cycle_num*/,
+                               apply_time,
+                               current_time,
+                               new_time,
+                               d_reset_mu_fcns_ctx[k]);
+        }
+        
         d_hier_cc_data_ops->copyData(d_mu_scratch_idx, mu_current_idx, /*interior_only*/ true);
         d_mu_bdry_bc_fill_op->fillData(current_time);
 

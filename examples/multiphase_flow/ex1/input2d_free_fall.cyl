@@ -66,18 +66,6 @@ VelocityInitialConditions {
    function_1 = "0.0"
 }
 
-// Here, we are setting initial density and viscosity to rho_gas and mu_gas.
-// They will be set properly in every time step after the first and doing this does not
-// significantly affect the solution. One can register a CartGridFunction instead to set these more properly.
-DensityInitialConditions {
-  rho_g = RHO_G
-  function = "rho_g"
-}
-
-ViscosityInitialConditions {
-  mu_g = MU_G
-  function = "mu_g"
-}
 
 VelocityBcCoefs_0 {
    acoef_function_0 = "1.0"

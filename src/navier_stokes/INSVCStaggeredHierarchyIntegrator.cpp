@@ -867,7 +867,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     {
 #if !defined(NDEBUG)
         // INSVCStaggeredHierarchyIntegrator should initialize the viscosity variable.
-        TBOX_ASSERT(d_mu_init_fcn);
+        TBOX_ASSERT(d_mu_init_fcn || d_reset_mu_fcns.size() > 0);
 #endif
         registerVariable(d_mu_current_idx,
                          d_mu_new_idx,
