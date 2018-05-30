@@ -847,8 +847,14 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         }
         U_rhs_vec[part] = static_cast<PetscVector<double>*>(U_vec->zero_clone().release());
         NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        d_fe_data_managers[part]->interpWeighted(
-            u_data_idx, *U_rhs_vec[part], *X_ghost_vec, VELOCITY_SYSTEM_NAME, no_fill, data_time, /*close_F*/ false, /*close_X*/ false);
+        d_fe_data_managers[part]->interpWeighted(u_data_idx,
+                                                 *U_rhs_vec[part],
+                                                 *X_ghost_vec,
+                                                 VELOCITY_SYSTEM_NAME,
+                                                 no_fill,
+                                                 data_time,
+                                                 /*close_F*/ false,
+                                                 /*close_X*/ false);
         int ierr = VecAssemblyBegin(U_rhs_vec[part]->vec());
         IBTK_CHKERRQ(ierr);
     }
@@ -2206,9 +2212,13 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
     {
         if (d_is_overlapping_part[k])
         {
-            F_rhs_vec[k] = F_vec[k]->zero_clone().release();  // \todo fix this when we update to C++11
+            F_rhs_vec[k] = F_vec[k]->zero_clone().release(); // \todo fix this when we update to C++11
         }
     }
+    d_overlapping_part_max_displacement.resize(d_num_parts);
+    std::fill(d_overlapping_part_max_displacement.begin(),
+              d_overlapping_part_max_displacement.end(),
+              std::vector<double>(d_num_parts, 0.0));
 
     // Add additional forces to constrain overlapping parts.
     unsigned int n_pairs = d_overlapping_part_idxs.size();
@@ -2307,7 +2317,10 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
                             other_x(d) += x_node[(k + 1) % 2][l][d] * p;
                         }
                     }
-                    VectorValue<double> F = kappa * (other_x - x);
+                    VectorValue<double> disp = (other_x - x);
+                    VectorValue<double> F = kappa * disp;
+                    d_overlapping_part_max_displacement[part_idx[k]][part_idx[(k + 1) % 2]] =
+                        std::max(d_overlapping_part_max_displacement[part_idx[k]][part_idx[(k + 1) % 2]], disp.norm());
                     for (unsigned int l = 0; l < n_basis; ++l)
                     {
                         F_qp = F * phi[l][qp] * JxW[qp];
@@ -2328,6 +2341,14 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
                 }
             }
         }
+
+        // Report the maximum displacement between this pair of parts.
+        SAMRAI_MPI::maxReduction(&d_overlapping_part_max_displacement[part_idx[0]][part_idx[1]], 1);
+        plog << "max displacement from part " << part_idx[0] << " to part " << part_idx[1] << ": "
+             << d_overlapping_part_max_displacement[part_idx[0]][part_idx[1]] << "\n";
+        SAMRAI_MPI::maxReduction(&d_overlapping_part_max_displacement[part_idx[1]][part_idx[0]], 1);
+        plog << "max displacement from part " << part_idx[1] << " to part " << part_idx[0] << ": "
+             << d_overlapping_part_max_displacement[part_idx[1]][part_idx[0]] << "\n";
     }
 
     // Solve for the constraint force densities.
