@@ -731,6 +731,7 @@ protected:
     std::vector<double> d_overlapping_part_kappa;
     std::vector<boost::array<libMesh::QBase*, 2> > d_overlapping_part_qrule; // \todo let's try to fix this when we
                                                                              // switch to C++11!
+    std::vector<std::vector<double> > d_overlapping_part_max_displacement;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
