@@ -155,8 +155,9 @@ if LIBMESH_ENABLED
   ../src/IB/IBFEInstrumentPanel.cpp \
   ../src/IB/IBFEMethod.cpp \
   ../src/IB/IBFEPostProcessor.cpp \
-  ../src/IB/IMPMethod.cpp \
+  ../src/IB/IBFESurfaceMethod.cpp \
   ../src/IB/IMPInitializer.cpp \
+  ../src/IB/IMPMethod.cpp \
   ../src/IB/MaterialPointSpec.cpp \
   ../src/IB/MaterialPointSpecFactory.cpp
 endif
@@ -263,11 +264,12 @@ if LIBMESH_ENABLED
   ../include/ibamr/IBFECentroidPostProcessor.h \
   ../include/ibamr/IBFEInstrumentPanel.h \
   ../include/ibamr/IBFEMethod.h \
-  ../include/ibamr/IBFEPatchRecoveryPostProcessor.h \
   ../include/ibamr/IBFEPostProcessor.h \
+  ../include/ibamr/IBFESurfaceMethod.h \
   ../include/ibamr/IMPInitializer.h \
   ../include/ibamr/IMPMethod.h \
-  ../include/ibamr/MaterialPointSpec.h
+  ../include/ibamr/MaterialPointSpec.h \
+  ../include/ibamr/private/MaterialPointSpec-inl.h
 endif
 
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
