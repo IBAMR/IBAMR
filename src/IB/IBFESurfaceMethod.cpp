@@ -599,274 +599,6 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
     return;
 } // postprocessIntegrateData
 
-//~ void
-//~ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
-                                       //~ const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                       //~ const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-                                       //~ const double data_time)
-//~ {
-    //~ for (unsigned int part = 0; part < d_num_parts; ++part)
-    //~ {
-        //~ NumericVector<double>* U_vec = NULL;
-        //~ NumericVector<double>* U_n_vec = NULL;
-        //~ NumericVector<double>* U_t_vec = NULL;
-        //~ NumericVector<double>* X_vec = NULL;
-        //~ NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        //~ if (MathUtilities<double>::equalEps(data_time, d_current_time))
-        //~ {
-            //~ U_vec = d_U_current_vecs[part];
-            //~ U_n_vec = d_U_n_current_vecs[part];
-            //~ U_t_vec = d_U_t_current_vecs[part];
-            //~ X_vec = d_X_current_vecs[part];
-        //~ }
-        //~ else if (MathUtilities<double>::equalEps(data_time, d_half_time))
-        //~ {
-            //~ U_vec = d_U_half_vecs[part];
-            //~ U_n_vec = d_U_n_half_vecs[part];
-            //~ U_t_vec = d_U_t_half_vecs[part];
-            //~ X_vec = d_X_half_vecs[part];
-        //~ }
-        //~ else if (MathUtilities<double>::equalEps(data_time, d_new_time))
-        //~ {
-            //~ U_vec = d_U_new_vecs[part];
-            //~ U_n_vec = d_U_n_new_vecs[part];
-            //~ U_t_vec = d_U_t_new_vecs[part];
-            //~ X_vec = d_X_new_vecs[part];
-        //~ }
-        //~ X_vec->localize(*X_ghost_vec);
-
-        //~ // Extract the mesh.
-        //~ EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-        //~ const MeshBase& mesh = equation_systems->get_mesh();
-        //~ const unsigned int dim = mesh.mesh_dimension();
-        //~ UniquePtr<QBase> qrule;
-
-        //~ // Extract the FE systems and DOF maps, and setup the FE object.
-        //~ System& U_system = *d_U_systems[part];
-        //~ const DofMap& U_dof_map = U_system.get_dof_map();
-        //~ FEDataManager::SystemDofMapCache& U_dof_map_cache =
-            //~ *d_fe_data_managers[part]->getDofMapCache(VELOCITY_SYSTEM_NAME);
-        //~ System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
-        //~ const DofMap& X_dof_map = X_system.get_dof_map();
-        //~ FEDataManager::SystemDofMapCache& X_dof_map_cache =
-            //~ *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
-        //~ std::vector<std::vector<unsigned int> > U_dof_indices(NDIM);
-        //~ std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-        //~ FEType U_fe_type = U_dof_map.variable_type(0);
-        //~ for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(U_dof_map.variable_type(d) == U_fe_type);
-        //~ FEType X_fe_type = X_dof_map.variable_type(0);
-        //~ for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
-        //~ TBOX_ASSERT(U_fe_type == X_fe_type);
-        //~ FEType fe_type = U_fe_type;
-        //~ UniquePtr<FEBase> fe = FEBase::build(dim, fe_type);
-        //~ const std::vector<double>& JxW = fe->get_JxW();
-        //~ const std::vector<std::vector<double> >& phi = fe->get_phi();
-        //~ boost::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
-        //~ dphi_dxi[0] = &fe->get_dphidxi();
-        //~ if (NDIM > 2) dphi_dxi[1] = &fe->get_dphideta();
-
-        //~ // Communicate any unsynchronized ghost data and extract the underlying
-        //~ // solution data.
-        //~ for (unsigned int k = 0; k < u_ghost_fill_scheds.size(); ++k)
-        //~ {
-            //~ if (u_ghost_fill_scheds[k]) u_ghost_fill_scheds[k]->fillData(data_time);
-        //~ }
-
-        //~ X_ghost_vec->close();
-        //~ PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec);
-        //~ Vec X_global_vec = X_petsc_vec->vec();
-        //~ Vec X_local_vec;
-        //~ VecGhostGetLocalForm(X_global_vec, &X_local_vec);
-        //~ double* X_local_soln;
-        //~ VecGetArray(X_local_vec, &X_local_soln);
-        //~ UniquePtr<NumericVector<double> > X0_vec = X_petsc_vec->clone();
-        //~ X_system.get_vector("INITIAL_COORDINATES").localize(*X0_vec);
-        //~ X0_vec->close();
-
-        //~ // Loop over the patches to interpolate values to the element quadrature
-        //~ // points from the grid, then use these values to compute the projection
-        //~ // of the interpolated velocity field onto the FE basis functions.
-        //~ UniquePtr<NumericVector<double> > U_rhs_vec = U_vec->zero_clone();
-        //~ std::vector<DenseVector<double> > U_rhs_e(NDIM);
-        //~ UniquePtr<NumericVector<double> > U_n_rhs_vec = U_n_vec->zero_clone();
-        //~ std::vector<DenseVector<double> > U_n_rhs_e(NDIM);
-        //~ UniquePtr<NumericVector<double> > U_t_rhs_vec = U_t_vec->zero_clone();
-        //~ std::vector<DenseVector<double> > U_t_rhs_e(NDIM);
-        //~ boost::multi_array<double, 2> X_node, x_node;
-        //~ std::vector<double> U_qp, x_qp;
-        //~ VectorValue<double> U, U_n, U_t, N, n;
-        //~ boost::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
-
-        //~ Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
-        //~ int local_patch_num = 0;
-        //~ for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
-        //~ {
-            //~ // The relevant collection of elements.
-            //~ const std::vector<Elem*>& patch_elems =
-                //~ d_fe_data_managers[part]->getActivePatchElementMap()[local_patch_num];
-            //~ const size_t num_active_patch_elems = patch_elems.size();
-            //~ if (!num_active_patch_elems) continue;
-
-            //~ const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            //~ const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            //~ const double* const patch_dx = patch_geom->getDx();
-            //~ const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
-
-            //~ // Setup vectors to store the values of F and X at the quadrature
-            //~ // points.
-            //~ unsigned int n_qp_patch = 0;
-            //~ for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
-            //~ {
-                //~ Elem* const elem = patch_elems[e_idx];
-                //~ for (unsigned int d = 0; d < NDIM; ++d)
-                //~ {
-                    //~ X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-                //~ }
-                //~ get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                //~ FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
-                //~ n_qp_patch += qrule->n_points();
-            //~ }
-            //~ if (!n_qp_patch) continue;
-            //~ U_qp.resize(NDIM * n_qp_patch);
-            //~ x_qp.resize(NDIM * n_qp_patch);
-            //~ std::fill(U_qp.begin(), U_qp.end(), 0.0);
-
-            //~ // Loop over the elements and compute the positions of the quadrature points.
-            //~ qrule.reset();
-            //~ unsigned int qp_offset = 0;
-            //~ for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
-            //~ {
-                //~ Elem* const elem = patch_elems[e_idx];
-                //~ for (unsigned int d = 0; d < NDIM; ++d)
-                //~ {
-                    //~ X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-                //~ }
-                //~ get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                //~ const bool qrule_changed =
-                    //~ FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
-                //~ if (qrule_changed) fe->attach_quadrature_rule(qrule.get());
-                //~ fe->reinit(elem);
-                //~ const unsigned int n_node = elem->n_nodes();
-                //~ const unsigned int n_qp = qrule->n_points();
-                //~ double* x_begin = &x_qp[NDIM * qp_offset];
-                //~ std::fill(x_begin, x_begin + NDIM * n_qp, 0.0);
-                //~ for (unsigned int k = 0; k < n_node; ++k)
-                //~ {
-                    //~ for (unsigned int qp = 0; qp < n_qp; ++qp)
-                    //~ {
-                        //~ const double& p = phi[k][qp];
-                        //~ for (unsigned int d = 0; d < NDIM; ++d)
-                        //~ {
-                            //~ x_qp[NDIM * (qp_offset + qp) + d] += x_node[k][d] * p;
-                        //~ }
-                    //~ }
-                //~ }
-                //~ qp_offset += n_qp;
-            //~ }
-
-            //~ // Interpolate values from the Cartesian grid patch to the
-            //~ // quadrature points.
-            //~ //
-            //~ // NOTE: Values are interpolated only to those quadrature points
-            //~ // that are within the patch interior.
-            //~ const Box<NDIM>& interp_box = patch->getBox();
-            //~ Pointer<PatchData<NDIM> > u_data = patch->getPatchData(u_data_idx);
-            //~ Pointer<CellData<NDIM, double> > u_cc_data = u_data;
-            //~ if (u_cc_data)
-            //~ {
-                //~ LEInteractor::interpolate(
-                    //~ U_qp, NDIM, x_qp, NDIM, u_cc_data, patch, interp_box, d_default_interp_spec.kernel_fcn);
-            //~ }
-            //~ Pointer<SideData<NDIM, double> > u_sc_data = u_data;
-            //~ if (u_sc_data)
-            //~ {
-                //~ LEInteractor::interpolate(
-                    //~ U_qp, NDIM, x_qp, NDIM, u_sc_data, patch, interp_box, d_default_interp_spec.kernel_fcn);
-            //~ }
-
-            //~ // Loop over the elements and accumulate the right-hand-side values.
-            //~ qrule.reset();
-            //~ qp_offset = 0;
-            //~ for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
-            //~ {
-                //~ Elem* const elem = patch_elems[e_idx];
-                //~ for (unsigned int d = 0; d < NDIM; ++d)
-                //~ {
-                    //~ U_dof_map_cache.dof_indices(elem, U_dof_indices[d], d);
-                    //~ U_rhs_e[d].resize(static_cast<int>(U_dof_indices[d].size()));
-                    //~ U_n_rhs_e[d].resize(static_cast<int>(U_dof_indices[d].size()));
-                    //~ U_t_rhs_e[d].resize(static_cast<int>(U_dof_indices[d].size()));
-                    //~ X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-                //~ }
-                //~ get_values_for_interpolation(X_node, *X0_vec, X_dof_indices);
-                //~ get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                //~ const bool qrule_changed =
-                    //~ FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
-                //~ if (qrule_changed) fe->attach_quadrature_rule(qrule.get());
-                //~ fe->reinit(elem);
-                //~ const unsigned int n_qp = qrule->n_points();
-                //~ const size_t n_basis = U_dof_indices[0].size();
-                //~ for (unsigned int qp = 0; qp < n_qp; ++qp)
-                //~ {
-                    //~ for (unsigned int k = 0; k < NDIM - 1; ++k)
-                    //~ {
-                        //~ interpolate(dX_dxi[k], qp, X_node, *dphi_dxi[k]);
-                        //~ interpolate(dx_dxi[k], qp, x_node, *dphi_dxi[k]);
-                    //~ }
-                    //~ if (NDIM == 2)
-                    //~ {
-                        //~ dX_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
-                        //~ dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
-                    //~ }
-                    //~ N = (dX_dxi[0].cross(dX_dxi[1])).unit();
-                    //~ n = (dx_dxi[0].cross(dx_dxi[1])).unit();
-                    //~ const int idx = NDIM * (qp_offset + qp);
-                    //~ for (unsigned int d = 0; d < NDIM; ++d)
-                    //~ {
-                        //~ U(d) = U_qp[idx + d];
-                    //~ }
-                    //~ U_n = (U * N) * N;
-                    //~ U_t = U - U_n;
-                    //~ for (unsigned int k = 0; k < n_basis; ++k)
-                    //~ {
-                        //~ const double p_JxW = phi[k][qp] * JxW[qp];
-                        //~ for (unsigned int d = 0; d < NDIM; ++d)
-                        //~ {
-                            //~ U_rhs_e[d](k) += U(d) * p_JxW;
-                            //~ U_n_rhs_e[d](k) += U_n(d) * p_JxW;
-                            //~ U_t_rhs_e[d](k) += U_t(d) * p_JxW;
-                        //~ }
-                    //~ }
-                //~ }
-                //~ for (unsigned int d = 0; d < NDIM; ++d)
-                //~ {
-                    //~ U_dof_map.constrain_element_vector(U_rhs_e[d], U_dof_indices[d]);
-                    //~ U_dof_map.constrain_element_vector(U_n_rhs_e[d], U_dof_indices[d]);
-                    //~ U_dof_map.constrain_element_vector(U_t_rhs_e[d], U_dof_indices[d]);
-                    //~ U_rhs_vec->add_vector(U_rhs_e[d], U_dof_indices[d]);
-                    //~ U_n_rhs_vec->add_vector(U_n_rhs_e[d], U_dof_indices[d]);
-                    //~ U_t_rhs_vec->add_vector(U_t_rhs_e[d], U_dof_indices[d]);
-                //~ }
-                //~ qp_offset += n_qp;
-            //~ }
-        //~ }
-        //~ U_rhs_vec->close();
-        //~ U_n_rhs_vec->close();
-        //~ U_t_rhs_vec->close();
-
-        //~ VecRestoreArray(X_local_vec, &X_local_soln);
-        //~ VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
-
-        //~ // Solve for the nodal values.
-        //~ d_fe_data_managers[part]->computeL2Projection(
-            //~ *U_vec, *U_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
-        //~ d_fe_data_managers[part]->computeL2Projection(
-            //~ *U_n_vec, *U_n_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
-        //~ d_fe_data_managers[part]->computeL2Projection(
-            //~ *U_t_vec, *U_t_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
-    //~ }
-    //~ return;
-//~ } // interpolateVelocity
 
 
 void
@@ -2121,8 +1853,27 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
         {
             PetscVector<double>* DP_vec = d_DP_half_vecs[part];
             PetscVector<double>* DP_ghost_vec = d_DP_IB_ghost_vecs[part];
+            PetscVector<double>* du_j_ghost_vec = d_du_j_IB_ghost_vecs[part];
+			PetscVector<double>* dv_j_ghost_vec = d_dv_j_IB_ghost_vecs[part];
+			PetscVector<double>* du_j_vec = d_du_j_half_vecs[part];
+			PetscVector<double>* dv_j_vec = d_dv_j_half_vecs[part];
+                     
+
+#if (NDIM == 3)        
+			PetscVector<double>* dw_j_ghost_vec = d_dw_j_IB_ghost_vecs[part];
+			PetscVector<double>* dw_j_vec = d_dw_j_half_vecs[part];
+#endif
             DP_vec->localize(*DP_ghost_vec);
-            imposeJumpConditions(f_data_idx, *DP_ghost_vec, *X_ghost_vec, data_time, part);
+            imposeJumpConditions(f_data_idx, 
+							*DP_ghost_vec, 
+							*du_j_ghost_vec,
+                            *dv_j_ghost_vec,
+#if (NDIM == 3)
+                            *dw_j_ghost_vec,
+#endif
+							*X_ghost_vec, 
+							data_time, 
+							part);
         }
     }
     return;
@@ -2499,6 +2250,11 @@ struct IndexOrder : std::binary_function<SAMRAI::hier::Index<NDIM>, SAMRAI::hier
 void
 IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                         PetscVector<double>& DP_ghost_vec,
+                                        PetscVector<double>& du_j_ghost_vec,
+										PetscVector<double>& dv_j_ghost_vec, 
+#if (NDIM == 3) 
+										PetscVector<double>& dw_j_ghost_vec,
+#endif
                                         PetscVector<double>& X_ghost_vec,
                                         const double /*data_time*/,
                                         const unsigned int part)
