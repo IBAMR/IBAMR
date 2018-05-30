@@ -957,7 +957,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 TimeSteppingType
-INSVCStaggeredConservativeHierarchyIntegrator::getConvectiveTimeSteppingType(const int cycle_num)
+INSVCStaggeredConservativeHierarchyIntegrator::getConvectiveTimeSteppingType(const int /*cycle_num*/)
 {
     TimeSteppingType convective_time_stepping_type = d_convective_time_stepping_type;
     return convective_time_stepping_type;
@@ -1313,7 +1313,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
     const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec,
     const Pointer<SAMRAIVectorReal<NDIM, double> >& rhs_vec,
     const double current_time,
-    const double new_time,
+    const double /*new_time*/,
     const int /*cycle_num*/)
 {
     // Synchronize solution data after solve.

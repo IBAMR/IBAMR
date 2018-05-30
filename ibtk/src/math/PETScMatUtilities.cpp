@@ -622,7 +622,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
         SOUTHEAST = 7,
         SOUTHWEST = 8,
         X = 0,
-        Y = 1,
+        Y = 1
     };
     IBTK_DO_ONCE(static StencilMapType sm;
                  sm[ORIGIN] = CENTER; sm[get_shift(X, 1)] = EAST;
@@ -634,7 +634,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                  sm[get_shift(Y, -1) + get_shift(X, 1)] = SOUTHEAST;
                  sm[get_shift(Y, -1) + get_shift(X, -1)] = SOUTHWEST;
                  stencil_map_vec.push_back(sm););
-    
+
 #elif (NDIM == 3)
     // In 3D, the shifted directions depend on the axis under consideration
     enum COMMONDIRECTIONS
@@ -660,7 +660,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                      sm[get_shift(Y, -1)] = SOUTH;
                      sm[get_shift(Z, 1)] = TOP;
                      sm[get_shift(Z, -1)] = BOTTOM;
-                     
+
                      // Specific to certain axes
                      int idx = BOTTOM;
                      for (int d = 0; d < NDIM; ++d)

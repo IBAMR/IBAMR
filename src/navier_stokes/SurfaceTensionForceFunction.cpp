@@ -179,17 +179,6 @@ void SC_SURFACE_TENSION_FORCE_FC(double* F0,
 
 namespace IBAMR
 {
-/////////////////////////////// STATIC ///////////////////////////////////////
-
-namespace
-{
-inline double
-smooth_kernel(const double r)
-{
-    return std::abs(r) < 1.0 ? 0.5 * (cos(M_PI * r) + 1.0) : 0.0;
-} // smooth_kernel
-}
-
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SurfaceTensionForceFunction::SurfaceTensionForceFunction(const std::string& object_name,

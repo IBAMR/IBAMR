@@ -4451,10 +4451,10 @@ PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
                          patch_box.upper(1));
     }
 
-    
+
 #endif
 
-    return;    
+    return;
 } // interp
 
 void
@@ -4544,7 +4544,7 @@ PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
     }
 #endif
 
-    return;    
+    return;
 } // interp
 
 void
@@ -4559,6 +4559,7 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
     NULL_USE(dst);
     NULL_USE(src);
     NULL_USE(patch);
+    NULL_USE(dst_ghost_interp);
 #endif
 
 #if (NDIM == 2)
@@ -4652,6 +4653,7 @@ PatchMathOps::interp(Pointer<EdgeData<NDIM, double> > dst,
     NULL_USE(dst);
     NULL_USE(src);
     NULL_USE(patch);
+    NULL_USE(dst_ghost_interp);
 #endif
 #if (NDIM == 3)
     const int u_ghosts = (dst->getGhostCellWidth()).max();
@@ -4840,6 +4842,7 @@ PatchMathOps::harmonic_interp(Pointer<NodeData<NDIM, double> > dst,
     NULL_USE(dst);
     NULL_USE(src);
     NULL_USE(patch);
+    NULL_USE(dst_ghost_interp);
 #endif
 
 #if (NDIM == 2)
@@ -4940,6 +4943,7 @@ PatchMathOps::harmonic_interp(Pointer<EdgeData<NDIM, double> > dst,
     NULL_USE(dst);
     NULL_USE(src);
     NULL_USE(patch);
+    NULL_USE(dst_ghost_interp);
 #endif
 #if (NDIM == 3)
     const int u_ghosts = (dst->getGhostCellWidth()).max();
@@ -6066,6 +6070,7 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
     NULL_USE(gamma_in);
     NULL_USE(src2_in);
     NULL_USE(patch);
+    NULL_USE(use_harmonic_interp);
     NULL_USE(l);
     NULL_USE(m);
     NULL_USE(n);
@@ -6271,6 +6276,7 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
     NULL_USE(gamma_in);
     NULL_USE(src2_in);
     NULL_USE(patch);
+    NULL_USE(use_harmonic_interp);
     NULL_USE(l);
     NULL_USE(m);
     NULL_USE(n);

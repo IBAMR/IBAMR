@@ -1287,7 +1287,7 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
 
 void
 IBHydrodynamicForceEvaluator::getPhysicalCoordinateFromSideIndex(IBTK::Vector3d& side_coord,
-                                                                 Pointer<PatchLevel<NDIM> > patch_level,
+                                                                 Pointer<PatchLevel<NDIM> > /*patch_level*/,
                                                                  Pointer<Patch<NDIM> > patch,
                                                                  const SideIndex<NDIM> side_idx,
                                                                  const int axis)

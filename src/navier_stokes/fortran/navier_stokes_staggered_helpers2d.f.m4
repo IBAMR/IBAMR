@@ -305,8 +305,8 @@ c
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Apply cubic interpolation upwinding to place the components of 
-c     side-centered quantity onto the faces of zones centered about the 
+c     Apply cubic interpolation upwinding to place the components of
+c     side-centered quantity onto the faces of zones centered about the
 c     components of the velocity field.
 c
 c     Note that this scheme carries out nonlinear upwinding.
@@ -439,7 +439,7 @@ c
 
 c           High-resolution scheme (HR)
             call interpolate_cui_hr_quantity2d(RU,RC,RD,Rf_HR)
-            R00(i0,i1) = Rf_HR 
+            R00(i0,i1) = Rf_HR
 
             if (V01(i1,i0) .ge. 0.d0) then
               RC  = R0(i0,i1-1)
@@ -463,32 +463,32 @@ c           High-resolution scheme (HR)
       do    i0 = side1_ifirst0-gc0,side1_ilast0+gc0
          do i1 = side1_ifirst1-gc1,side1_ilast1+gc1
             if (V10(i0,i1) .ge. 0.d0) then
-              RC  = R1(i0-1,i1)
-              RU  = R1(i0-2,i1)
-              RD  = R1(i0,i1)
+               RC  = R1(i0-1,i1)
+               RU  = R1(i0-2,i1)
+               RD  = R1(i0,i1)
             else
-              RC  = R1(i0,i1)
-              RU  = R1(i0+1,i1)
-              RD  = R1(i0-1,i1)
+               RC  = R1(i0,i1)
+               RU  = R1(i0+1,i1)
+               RD  = R1(i0-1,i1)
             endif
 
 c           High-resolution scheme (HR)
             call interpolate_cui_hr_quantity2d(RU,RC,RD,Rf_HR)
-            R10(i0,i1) = Rf_HR 
+            R10(i0,i1) = Rf_HR
 
             if (V11(i1,i0) .ge. 0.d0) then
-              RC  = R1(i0,i1-1)
-              RU  = R1(i0,i1-2)
-              RD  = R1(i0,i1)
+               RC  = R1(i0,i1-1)
+               RU  = R1(i0,i1-2)
+               RD  = R1(i0,i1)
             else
-              RC  = R1(i0,i1)
-              RU  = R1(i0,i1+1)
-              RD  = R1(i0,i1-1)
+               RC  = R1(i0,i1)
+               RU  = R1(i0,i1+1)
+               RD  = R1(i0,i1-1)
             endif
 
 c           High-resolution scheme (HR)
             call interpolate_cui_hr_quantity2d(RU,RC,RD,Rf_HR)
-            R11(i1,i0) = Rf_HR 
+            R11(i1,i0) = Rf_HR
          enddo
       enddo
 c
@@ -497,8 +497,8 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Apply FBICS upwinding to place the components of 
-c     side-centered quantity onto the faces of zones centered about the 
+c     Apply FBICS upwinding to place the components of
+c     side-centered quantity onto the faces of zones centered about the
 c     components of the velocity field.
 c
 c     Note that this scheme carries out nonlinear upwinding.
@@ -631,16 +631,16 @@ c
 
 c           High-resolution scheme (HR)
             call interpolate_fbics_hr_quantity2d(RU,RC,RD,Rf_HR)
-            R00(i0,i1) = Rf_HR 
+            R00(i0,i1) = Rf_HR
 
             if (V01(i1,i0) .ge. 0.d0) then
-              RC  = R0(i0,i1-1)
-              RU  = R0(i0,i1-2)
-              RD  = R0(i0,i1)
+               RC  = R0(i0,i1-1)
+               RU  = R0(i0,i1-2)
+               RD  = R0(i0,i1)
             else
-              RC  = R0(i0,i1)
-              RU  = R0(i0,i1+1)
-              RD  = R0(i0,i1-1)
+               RC  = R0(i0,i1)
+               RU  = R0(i0,i1+1)
+               RD  = R0(i0,i1-1)
             endif
 
 c           High-resolution scheme (HR)
@@ -655,32 +655,32 @@ c           High-resolution scheme (HR)
       do    i0 = side1_ifirst0-gc0,side1_ilast0+gc0
          do i1 = side1_ifirst1-gc1,side1_ilast1+gc1
             if (V10(i0,i1) .ge. 0.d0) then
-              RC  = R1(i0-1,i1)
-              RU  = R1(i0-2,i1)
-              RD  = R1(i0,i1)
+               RC  = R1(i0-1,i1)
+               RU  = R1(i0-2,i1)
+               RD  = R1(i0,i1)
             else
-              RC  = R1(i0,i1)
-              RU  = R1(i0+1,i1)
-              RD  = R1(i0-1,i1)
+               RC  = R1(i0,i1)
+               RU  = R1(i0+1,i1)
+               RD  = R1(i0-1,i1)
             endif
 
 c           High-resolution scheme (HR)
             call interpolate_fbics_hr_quantity2d(RU,RC,RD,Rf_HR)
-            R10(i0,i1) = Rf_HR 
+            R10(i0,i1) = Rf_HR
 
             if (V11(i1,i0) .ge. 0.d0) then
-              RC  = R1(i0,i1-1)
-              RU  = R1(i0,i1-2)
-              RD  = R1(i0,i1)
+               RC  = R1(i0,i1-1)
+               RU  = R1(i0,i1-2)
+               RD  = R1(i0,i1)
             else
-              RC  = R1(i0,i1)
-              RU  = R1(i0,i1+1)
-              RD  = R1(i0,i1-1)
+               RC  = R1(i0,i1)
+               RU  = R1(i0,i1+1)
+               RD  = R1(i0,i1-1)
             endif
 
 c           High-resolution scheme (HR)
             call interpolate_fbics_hr_quantity2d(RU,RC,RD,Rf_HR)
-            R11(i1,i0) = Rf_HR 
+            R11(i1,i0) = Rf_HR
          enddo
       enddo
 c
@@ -690,8 +690,8 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Apply modified gamma upwinding to place the components of 
-c     side-centered quantity onto the faces of zones centered about the 
+c     Apply modified gamma upwinding to place the components of
+c     side-centered quantity onto the faces of zones centered about the
 c     components of the velocity field.
 c
 c     Note that this scheme carries out nonlinear upwinding.
@@ -824,16 +824,16 @@ c
 
 c           High-resolution scheme (HR)
             call interpolate_mgamma_hr_quantity2d(RU,RC,RD,Rf_HR)
-            R00(i0,i1) = Rf_HR 
+            R00(i0,i1) = Rf_HR
 
             if (V01(i1,i0) .ge. 0.d0) then
-              RC  = R0(i0,i1-1)
-              RU  = R0(i0,i1-2)
-              RD  = R0(i0,i1)
+               RC  = R0(i0,i1-1)
+               RU  = R0(i0,i1-2)
+               RD  = R0(i0,i1)
             else
-              RC  = R0(i0,i1)
-              RU  = R0(i0,i1+1)
-              RD  = R0(i0,i1-1)
+               RC  = R0(i0,i1)
+               RU  = R0(i0,i1+1)
+               RD  = R0(i0,i1-1)
             endif
 
 c           High-resolution scheme (HR)
@@ -848,32 +848,32 @@ c           High-resolution scheme (HR)
       do    i0 = side1_ifirst0-gc0,side1_ilast0+gc0
          do i1 = side1_ifirst1-gc1,side1_ilast1+gc1
             if (V10(i0,i1) .ge. 0.d0) then
-              RC  = R1(i0-1,i1)
-              RU  = R1(i0-2,i1)
-              RD  = R1(i0,i1)
+               RC  = R1(i0-1,i1)
+               RU  = R1(i0-2,i1)
+               RD  = R1(i0,i1)
             else
-              RC  = R1(i0,i1)
-              RU  = R1(i0+1,i1)
-              RD  = R1(i0-1,i1)
+               RC  = R1(i0,i1)
+               RU  = R1(i0+1,i1)
+               RD  = R1(i0-1,i1)
             endif
 
 c           High-resolution scheme (HR)
             call interpolate_mgamma_hr_quantity2d(RU,RC,RD,Rf_HR)
-            R10(i0,i1) = Rf_HR 
+            R10(i0,i1) = Rf_HR
 
             if (V11(i1,i0) .ge. 0.d0) then
-              RC  = R1(i0,i1-1)
-              RU  = R1(i0,i1-2)
-              RD  = R1(i0,i1)
+               RC  = R1(i0,i1-1)
+               RU  = R1(i0,i1-2)
+               RD  = R1(i0,i1)
             else
-              RC  = R1(i0,i1)
-              RU  = R1(i0,i1+1)
-              RD  = R1(i0,i1-1)
+               RC  = R1(i0,i1)
+               RU  = R1(i0,i1+1)
+               RD  = R1(i0,i1-1)
             endif
 
 c           High-resolution scheme (HR)
             call interpolate_mgamma_hr_quantity2d(RU,RC,RD,Rf_HR)
-            R11(i1,i0) = Rf_HR 
+            R11(i1,i0) = Rf_HR
          enddo
       enddo
 c
@@ -1266,8 +1266,8 @@ c     a0,a1,a2 are coefficients for steps of a SSP Runge-Kutta update
 c     R is a side-centered updated density field
 c     R0,R1 are side-centered density fields from different RK stages
 c     rhalf is the face-centered interpolation of R1
-c     u is the face-centered advection velocity   
-c     
+c     u is the face-centered advection velocity
+c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -1451,7 +1451,7 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Copy SAMRAI velocity and pressure patch data to PETSc Vec  
+c     Copy SAMRAI velocity and pressure patch data to PETSc Vec
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -1495,24 +1495,24 @@ c
 c
 c     Copy velocity to array.
 c
-    
+
       do i1 = ifirst1,ilast1
          do i0 = ifirst0,ilast0+1
-	    dof_idx = u_dof_sc0(i0,i1)
-	    if ((dof_idx .ge. first_local) .and.
-     &   	(dof_idx .lt. last_local)) then
-	       arr(dof_idx) = u_sc0(i0,i1)
-	    end if	  
+            dof_idx = u_dof_sc0(i0,i1)
+            if ((dof_idx .ge. first_local) .and.
+     &           (dof_idx .lt. last_local)) then
+               arr(dof_idx) = u_sc0(i0,i1)
+            end if
          enddo
       enddo
 
       do i1 = ifirst1,ilast1+1
          do i0 = ifirst0,ilast0
-	    dof_idx = u_dof_sc1(i0,i1)
-	    if ((dof_idx .ge. first_local) .and.
-     &      (dof_idx .lt. last_local)) then
-     	       arr(dof_idx) = u_sc1(i0,i1)
-	    end if	    
+            dof_idx = u_dof_sc1(i0,i1)
+            if ((dof_idx .ge. first_local) .and.
+     &           (dof_idx .lt. last_local)) then
+               arr(dof_idx) = u_sc1(i0,i1)
+            end if
          enddo
       enddo
 c
@@ -1520,23 +1520,23 @@ c
 c
 c     Copy pressure to array
 c
-      
+
       do i1 = ifirst1,ilast1
          do i0 = ifirst0,ilast0
-	    dof_idx = p_dof_cc(i0,i1)
-	    if ((dof_idx .ge. first_local) .and.
-     &      (dof_idx .lt. last_local)) then
-	       arr(dof_idx) = p_cc(i0,i1)
-	    end if	  
+            dof_idx = p_dof_cc(i0,i1)
+            if ((dof_idx .ge. first_local) .and.
+     &           (dof_idx .lt. last_local)) then
+               arr(dof_idx) = p_cc(i0,i1)
+            end if
          enddo
-      enddo     
- 
+      enddo
+
       return
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Copy PETSc Vec velocity and pressure to SAMRAI patch data  
+c     Copy PETSc Vec velocity and pressure to SAMRAI patch data
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -1580,24 +1580,23 @@ c
 c
 c     Copy array velocity  to SAMRAI patch data.
 c
-    
       do i1 = ifirst1,ilast1
          do i0 = ifirst0,ilast0+1
-	    dof_idx = u_dof_sc0(i0,i1)
-	    if ((dof_idx .ge. first_local) .and.
-     &      (dof_idx .lt. last_local)) then
-	       u_sc0(i0,i1) = arr(dof_idx)
-	    end if	  
+            dof_idx = u_dof_sc0(i0,i1)
+            if ((dof_idx .ge. first_local) .and.
+     &           (dof_idx .lt. last_local)) then
+               u_sc0(i0,i1) = arr(dof_idx)
+            end if
          enddo
       enddo
 
       do i1 = ifirst1,ilast1+1
          do i0 = ifirst0,ilast0
-	    dof_idx = u_dof_sc1(i0,i1)
-	    if ((dof_idx .ge. first_local) .and.
-     &      (dof_idx .lt. last_local)) then
-	       u_sc1(i0,i1) =  arr(dof_idx)
-	    end if	    
+            dof_idx = u_dof_sc1(i0,i1)
+            if ((dof_idx .ge. first_local) .and.
+     &           (dof_idx .lt. last_local)) then
+               u_sc1(i0,i1) =  arr(dof_idx)
+            end if
          enddo
       enddo
 c
@@ -1605,19 +1604,18 @@ c
 c
 c     Copy array pressure to SAMRAI patch data.
 c
-      
+
       do i1 = ifirst1,ilast1
          do i0 = ifirst0,ilast0
-	    dof_idx = p_dof_cc(i0,i1)
-	    if ((dof_idx .ge. first_local) .and.
-     &      (dof_idx .lt. last_local)) then
-	       p_cc(i0,i1) = arr(dof_idx)
-	    end if	  
+            dof_idx = p_dof_cc(i0,i1)
+            if ((dof_idx .ge. first_local) .and.
+     &           (dof_idx .lt. last_local)) then
+               p_cc(i0,i1) = arr(dof_idx)
+            end if
          enddo
-      enddo     
- 
+      enddo
+
       return
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
