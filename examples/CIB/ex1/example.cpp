@@ -332,6 +332,7 @@ run_example(int argc, char* argv[])
         // Set up the hydro force objects
         double rho_fluid = input_db->getDouble("RHO");
         double mu_fluid = input_db->getDouble("MU");
+        double start_time = time_integrator->getIntegratorTime();
         Pointer<IBHydrodynamicForceEvaluator> hydro_force =
             new IBHydrodynamicForceEvaluator("IBHydrodynamicForce", rho_fluid, mu_fluid, start_time, true);
 

@@ -2249,7 +2249,8 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                 const SideIndex<NDIM> i_s_bdry(
                     i + (is_lower ? shift_axis_minus : shift_axis_plus), bdry_normal_axis, SideIndex<NDIM>::Lower);
 
-                double mu_upper, mu_lower;
+                double mu_upper = std::numeric_limits<double>::quiet_NaN();
+                double mu_lower = std::numeric_limits<double>::quiet_NaN();
                 if (mu_interp_type == VC_AVERAGE_INTERP)
                 {
                     mu_upper = compute_mu_avg(i, *mu_data);
