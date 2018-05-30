@@ -511,8 +511,8 @@ IBFEMethod::constrainPartOverlap(const unsigned int part1,
     {
         es[k] = d_fe_data_managers[part_idx[k]]->getEquationSystems();
         System& F_system = es[k]->get_system<System>(FORCE_SYSTEM_NAME);
+        System& X_system = es[k]->get_system<System>(COORDS_SYSTEM_NAME);
         F_dof_map[k] = &F_system.get_dof_map();
-        System& X_system = es[k]->get_system<System>(FORCE_SYSTEM_NAME);
         X_dof_map[k] = &X_system.get_dof_map();
         NumericVector<double>& X_vec = *X_system.solution;
         first_local_idx[k] = X_vec.first_local_index();
