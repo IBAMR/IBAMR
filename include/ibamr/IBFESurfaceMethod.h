@@ -474,6 +474,11 @@ protected:
      */
     void imposeJumpConditions(const int f_data_idx,
                               libMesh::PetscVector<double>& DP_ghost_vec,
+                              libMesh::PetscVector<double>& du_j_ghost_vec,
+                              libMesh::PetscVector<double>& dv_j_ghost_vec,
+#if (NDIM == 3)
+                              libMesh::PetscVector<double>& dw_j_ghost_vec,
+#endif
                               libMesh::PetscVector<double>& X_ghost_vec,
                               const double data_time,
                               const unsigned int part);
