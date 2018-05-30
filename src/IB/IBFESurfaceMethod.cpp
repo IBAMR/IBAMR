@@ -1538,8 +1538,6 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
     VectorValue<double> n;
     std::vector<libMesh::Point> X_node_cache, x_node_cache;
     IBTK::Point x_min, x_max;
-    std::vector<libMesh::Point> intersection_ref_coords;
-    std::vector<SideIndex<NDIM> > intersection_indices;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     const IntVector<NDIM>& ratio = level->getRatio();
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
@@ -1555,11 +1553,19 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
         Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
+        boost::array<Box<NDIM>, NDIM> side_ghost_boxes;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            side_ghost_boxes[d] = SideGeometry<NDIM>::toSideBox(f_data->getGhostBox(), d);
+        }
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const x_lower = patch_geom->getXLower();
         const double* const dx = patch_geom->getDx();
 
-        boost::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_points;
+        boost::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_points,
+            intersection_ref_coords;
+        boost::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>
+            intersection_normals;
 
         // Loop over the elements.
         for (size_t e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -1570,6 +1576,8 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
             {
                 X_dof_map.dof_indices(elem, X_dof_indices[d], d);
             }
+            get_values_for_interpolation(DP_node, DP_ghost_vec, DP_dof_indices);
+            get_values_for_interpolation(x_node, X_ghost_vec, X_dof_indices);
 
             // Cache the nodal and physical coordinates of the side element,
             // determine the bounding box of the current configuration of the
@@ -1584,8 +1592,10 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
             {
                 X_node_cache[k] = elem->point(k);
                 libMesh::Point& x = x_node_cache[k];
-                for (unsigned int d = 0; d < NDIM; ++d) x(d) = X_ghost_vec(X_dof_indices[d][k]);
-
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    x(d) = x_node[k][d];
+                }
                 if (d_perturb_fe_mesh_nodes)
                 {
                     // Perturb the mesh configuration to keep the FE mesh nodes
@@ -1607,7 +1617,6 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                         }
                     }
                 }
-
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     x_min[d] = std::min(x_min[d], x(d));
@@ -1622,8 +1631,6 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 
             // Loop over coordinate directions and look for intersections with
             // the background fluid grid.
-            intersection_ref_coords.clear();
-            intersection_indices.clear();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 Box<NDIM> extended_box = patch_box;
@@ -1658,41 +1665,83 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 #endif
                     for (unsigned int k = 0; k < intersections.size(); ++k)
                     {
-                        libMesh::Point x = r + intersections[k].first * q;
+                        const libMesh::Point x = r + intersections[k].first * q;
+                        const libMesh::Point& xi = intersections[k].second;
                         SideIndex<NDIM> i_s(i_c, axis, 0);
                         i_s(axis) = std::floor((x(axis) - x_lower[axis]) / dx[axis] + 0.5) + patch_lower[axis];
                         if (extended_box.contains(i_s))
                         {
-                            bool found_old_intersection_point = false;
+                            std::vector<libMesh::Point> ref_coords(1, xi);
+                            fe->reinit(elem, &ref_coords);
+                            for (unsigned int l = 0; l < NDIM - 1; ++l)
+                            {
+                                interpolate(dx_dxi[l], 0, x_node, *dphi_dxi[l]);
+                            }
+                            if (NDIM == 2)
+                            {
+                                dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
+                            }
+                            n = (dx_dxi[0].cross(dx_dxi[1])).unit();
+
+                            // Make sure we haven't already found this
+                            // intersection.
+                            //
+                            // (Because we are doing this in floating point
+                            // arithmetic, we can't even count on the
+                            // intersection being assigned to the same index!)
+                            bool found_same_intersection_point = false;
                             for (int shift = -1; shift <= 1; ++shift)
                             {
-                                SideIndex<NDIM> i_s_shift = i_s;
-                                i_s_shift(axis) += shift;
-                                std::vector<libMesh::Point>& candidates = intersection_points[axis][i_s_shift];
-                                for (std::vector<libMesh::Point>::iterator it = candidates.begin();
-                                     it != candidates.end();
-                                     ++it)
+                                SideIndex<NDIM> i_s_prime = i_s;
+                                i_s_prime(axis) += shift;
+                                const std::vector<libMesh::Point>& candidate_coords =
+                                    intersection_points[axis][i_s_prime];
+                                const std::vector<libMesh::Point>& candidate_ref_coords =
+                                    intersection_ref_coords[axis][i_s_prime];
+                                const std::vector<VectorValue<double> >& candidate_normals =
+                                    intersection_normals[axis][i_s_prime];
+                                std::vector<libMesh::Point>::const_iterator x_prime_it = candidate_coords.begin();
+                                std::vector<libMesh::Point>::const_iterator xi_prime_it = candidate_ref_coords.begin();
+                                std::vector<VectorValue<double> >::const_iterator n_prime_it =
+                                    candidate_normals.begin();
+                                for (; x_prime_it != candidate_coords.end(); ++x_prime_it, ++xi_prime_it, ++n_prime_it)
                                 {
-                                    if (it->absolute_fuzzy_equals(x, 1.0e-5 * dx[axis]))
+                                    const libMesh::Point& x_prime = *x_prime_it;
+                                    const libMesh::Point& xi_prime = *xi_prime_it;
+                                    const libMesh::Point& n_prime = *n_prime_it;
+                                    if (x.absolute_fuzzy_equals(x_prime, 1.0e-5 * dx[axis]))
                                     {
-                                        found_old_intersection_point = true;
+                                        found_same_intersection_point = n(axis) * n_prime(axis) > 0.0;
                                         plog << "==========\n";
                                         plog << "multiple intersections detected:\n";
+                                        plog << "  x    = " << x << "\n";
+                                        plog << "  x'   = " << x_prime << "\n";
+                                        plog << "  xi   = " << xi << "\n";
+                                        plog << "  xi'  = " << xi_prime << "\n";
+                                        plog << "  n    = " << n << "\n";
+                                        plog << "  n'   = " << n_prime << "\n";
+                                        plog << "  i_s  = " << i_s << "\n";
+                                        plog << "  i_s' = " << i_s_prime << "\n";
                                         plog << "  axis = " << axis << "\n";
-                                        plog << "  x  = " << x << "\n";
-                                        plog << "  x' = " << *it << "\n";
-                                        plog << "  |x - x'| = " << (x - *it).norm() << "\n";
-                                        plog << "  |x - x'|/dx = " << (x - *it).norm() / dx[axis] << "\n";
-                                        plog << "  shift = " << shift << "\n";
-                                        plog << "  reference coords = " << intersections[k].second << "\n";
                                     }
                                 }
                             }
-                            if (!found_old_intersection_point)
+                            if (!found_same_intersection_point)
                             {
-                                intersection_ref_coords.push_back(intersections[k].second);
-                                intersection_indices.push_back(i_s);
+                                // Evaluate the jump conditions and apply them
+                                // to the Eulerian grid.
+                                if (side_ghost_boxes[axis].contains(i_s))
+                                {
+                                    const double C_p = interpolate(0, DP_node, phi);
+                                    const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
+                                    (*f_data)(i_s) += sgn * (C_p / dx[axis]);
+                                }
+
+                                // Keep track of the positions where we have
+                                // imposed jump conditions.
                                 intersection_points[axis][i_s].push_back(x);
+                                intersection_ref_coords[axis][i_s].push_back(xi);
+                                intersection_normals[axis][i_s].push_back(n);
                             }
                         }
                     }
@@ -1703,62 +1752,6 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
             for (unsigned int k = 0; k < n_node; ++k)
             {
                 elem->point(k) = X_node_cache[k];
-            }
-
-            // If there are no intersection points, then skip to the next patch.
-            if (intersection_ref_coords.empty()) continue;
-
-            // Evaluate the jump conditions and apply them to the Eulerian grid.
-            fe->reinit(elem, &intersection_ref_coords);
-            get_values_for_interpolation(DP_node, DP_ghost_vec, DP_dof_indices);
-            get_values_for_interpolation(x_node, X_ghost_vec, X_dof_indices);
-            const size_t n_ip = intersection_ref_coords.size();
-            for (unsigned int ip = 0; ip < n_ip; ++ip)
-            {
-                const SideIndex<NDIM>& i_s = intersection_indices[ip];
-                const unsigned int axis = i_s.getAxis();
-#if !defined(NDEBUG)
-                if (!d_perturb_fe_mesh_nodes)
-                {
-                    VectorValue<double> x;
-                    interpolate(x, ip, x_node, phi);
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        if (d == axis)
-                        {
-                            const double x_lower_bound = x_lower[d] +
-                                                         (static_cast<double>(i_s(d) - patch_lower[d]) - 0.5) * dx[d] -
-                                                         sqrt(std::numeric_limits<double>::epsilon());
-                            const double x_upper_bound = x_lower[d] +
-                                                         (static_cast<double>(i_s(d) - patch_lower[d]) + 0.5) * dx[d] +
-                                                         sqrt(std::numeric_limits<double>::epsilon());
-                            TBOX_ASSERT(x_lower_bound <= x(d) && x(d) <= x_upper_bound);
-                        }
-                        else
-                        {
-                            const double x_intersection =
-                                x_lower[d] + (static_cast<double>(i_s(d) - patch_lower[d]) + 0.5) * dx[d];
-                            const double x_interp = x(d);
-                            const double rel_diff =
-                                std::abs(x_intersection - x_interp) /
-                                std::max(1.0, std::max(std::abs(x_intersection), std::abs(x_interp)));
-                            TBOX_ASSERT(rel_diff <= sqrt(std::numeric_limits<double>::epsilon()));
-                        }
-                    }
-                }
-#endif
-                // Impose the jump conditions.
-                const double C_p = interpolate(ip, DP_node, phi);
-                for (unsigned int k = 0; k < NDIM - 1; ++k)
-                {
-                    interpolate(dx_dxi[k], ip, x_node, *dphi_dxi[k]);
-                }
-                if (NDIM == 2)
-                {
-                    dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
-                }
-                n = dx_dxi[0].cross(dx_dxi[1]).unit();
-                (*f_data)(i_s) += (n(axis) > 0.0 ? +1.0 : -1.0) * C_p / dx[axis];
             }
         }
     }
