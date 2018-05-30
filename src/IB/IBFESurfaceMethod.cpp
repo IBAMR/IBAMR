@@ -161,6 +161,12 @@ const std::string IBFESurfaceMethod::PRESSURE_JUMP_SYSTEM_NAME = "IB [[p]] syste
 const std::string IBFESurfaceMethod::TANGENTIAL_VELOCITY_SYSTEM_NAME = "IB tangential velocity system";
 const std::string IBFESurfaceMethod::VELOCITY_SYSTEM_NAME = "IB velocity system";
 
+const std::string IBFESurfaceMethod::DU_JUMP_SYSTEM_NAME = "IB velocity du jump system";
+const std::string IBFESurfaceMethod::DV_JUMP_SYSTEM_NAME = "IB velocity dv jump system";
+const std::string IBFESurfaceMethod::DW_JUMP_SYSTEM_NAME = "IB velocity dw jump system";
+
+
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
@@ -325,6 +331,22 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
     d_F_systems.resize(d_num_parts);
     d_F_half_vecs.resize(d_num_parts);
     d_F_IB_ghost_vecs.resize(d_num_parts);
+    
+    d_du_j_systems.resize(d_num_parts);
+    d_du_j_half_vecs.resize(d_num_parts);
+    d_du_j_IB_ghost_vecs.resize(d_num_parts);
+
+    d_dv_j_systems.resize(d_num_parts);
+    d_dv_j_half_vecs.resize(d_num_parts);
+    d_dv_j_IB_ghost_vecs.resize(d_num_parts);
+    
+#if (NDIM == 3)
+
+    d_dw_j_systems.resize(d_num_parts);
+    d_dw_j_half_vecs.resize(d_num_parts);
+    d_dw_j_IB_ghost_vecs.resize(d_num_parts);
+#endif
+
 
     d_DP_systems.resize(d_num_parts);
     d_DP_half_vecs.resize(d_num_parts);
@@ -376,6 +398,25 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
             d_DP_IB_ghost_vecs[part] =
                 dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(
                     PRESSURE_JUMP_SYSTEM_NAME, /*localize_data*/ false));
+
+#if (NDIM == 3)
+				
+			d_dw_j_systems[part] = &d_equation_systems[part]->get_system(DW_JUMP_SYSTEM_NAME);
+			d_dw_j_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_dw_j_systems[part]->current_local_solution.get());
+			d_dw_j_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+            d_fe_data_managers[part]->buildGhostedSolutionVector(DW_JUMP_SYSTEM_NAME, /*localize_data*/ false));
+#endif
+				
+				
+			d_du_j_systems[part] = &d_equation_systems[part]->get_system(DU_JUMP_SYSTEM_NAME);
+			d_du_j_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_du_j_systems[part]->current_local_solution.get());
+			d_du_j_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+            d_fe_data_managers[part]->buildGhostedSolutionVector(DU_JUMP_SYSTEM_NAME, /*localize_data*/ false));
+
+			d_dv_j_systems[part] = &d_equation_systems[part]->get_system(DV_JUMP_SYSTEM_NAME);
+			d_dv_j_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_dv_j_systems[part]->current_local_solution.get());
+			d_dv_j_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+				d_fe_data_managers[part]->buildGhostedSolutionVector(DV_JUMP_SYSTEM_NAME, /*localize_data*/ false));
         }
 
         // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
@@ -407,6 +448,19 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
         {
             d_DP_systems[part]->solution->close();
             d_DP_systems[part]->solution->localize(*d_DP_half_vecs[part]);
+       
+			d_du_j_systems[part]->solution->close();
+			d_du_j_systems[part]->solution->localize(*d_du_j_half_vecs[part]);
+
+			d_dv_j_systems[part]->solution->close();
+			d_dv_j_systems[part]->solution->localize(*d_dv_j_half_vecs[part]);
+			
+#if (NDIM == 3)		
+	
+			d_dw_j_systems[part]->solution->close();
+			d_dw_j_systems[part]->solution->localize(*d_dw_j_half_vecs[part]);
+#endif
+
         }
     }
     return;
@@ -450,6 +504,8 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
         *d_F_systems[part]->solution = *d_F_half_vecs[part];
         d_F_systems[part]->solution->close();
         d_F_systems[part]->solution->localize(*d_F_systems[part]->current_local_solution);
+        
+       
 
         if (d_use_jump_conditions)
         {
@@ -457,6 +513,27 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
             *d_DP_systems[part]->solution = *d_DP_half_vecs[part];
             d_DP_systems[part]->solution->close();
             d_DP_systems[part]->solution->localize(*d_DP_systems[part]->current_local_solution);
+				
+			d_du_j_half_vecs[part]->close();
+			*d_du_j_systems[part]->solution = *d_du_j_half_vecs[part];
+			d_du_j_systems[part]->solution->close();
+			d_du_j_systems[part]->solution->localize(*d_du_j_systems[part]->current_local_solution);
+
+			d_dv_j_half_vecs[part]->close();
+			*d_dv_j_systems[part]->solution = *d_dv_j_half_vecs[part];
+			d_dv_j_systems[part]->solution->close();
+			d_dv_j_systems[part]->solution->localize(*d_dv_j_systems[part]->current_local_solution);
+
+#if (NDIM == 3)
+
+			d_dw_j_half_vecs[part]->close();
+			*d_dw_j_systems[part]->solution = *d_dw_j_half_vecs[part];
+			d_dw_j_systems[part]->solution->close();
+			d_dw_j_systems[part]->solution->localize(*d_dw_j_systems[part]->current_local_solution);
+
+#endif
+
+            
         }
 
         // Update the coordinate mapping dX = X - s.
@@ -491,6 +568,22 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
     d_DP_systems.clear();
     d_DP_half_vecs.clear();
     d_DP_IB_ghost_vecs.clear();
+    
+    d_du_j_systems.clear();
+    d_du_j_half_vecs.clear();
+    d_du_j_IB_ghost_vecs.clear();
+
+    d_dv_j_systems.clear();
+    d_dv_j_half_vecs.clear();
+    d_dv_j_IB_ghost_vecs.clear();
+   
+    
+#if (NDIM == 3)
+    d_dw_j_systems.clear();
+    d_dw_j_half_vecs.clear();
+    d_dw_j_IB_ghost_vecs.clear();
+    
+#endif
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -868,6 +961,28 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         UniquePtr<NumericVector<double> > DP_rhs_vec =
             (d_use_jump_conditions ? DP_vec->zero_clone() : UniquePtr<NumericVector<double> >());
         DenseVector<double> DP_rhs_e;
+        
+        
+        
+        NumericVector<double>* du_j_vec = d_du_j_half_vecs[part];
+        UniquePtr<NumericVector<double> > du_j_rhs_vec =
+            (d_use_jump_conditions ? du_j_vec->zero_clone() : UniquePtr<NumericVector<double> >());
+        DenseVector<double> du_j_rhs_e[NDIM];
+        
+        
+        NumericVector<double>* dv_j_vec = d_dv_j_half_vecs[part];
+        UniquePtr<NumericVector<double> > dv_j_rhs_vec =
+            (d_use_jump_conditions ? dv_j_vec->zero_clone() : UniquePtr<NumericVector<double> >());
+        DenseVector<double> dv_j_rhs_e[NDIM];
+        
+
+        NumericVector<double>* dw_j_vec = d_dw_j_half_vecs[part];
+        UniquePtr<NumericVector<double> > dw_j_rhs_vec =
+            (d_use_jump_conditions ? dw_j_vec->zero_clone() : UniquePtr<NumericVector<double> >());
+        DenseVector<double> dw_j_rhs_e[NDIM];    
+
+        
+        
         VectorValue<double>& F_integral = d_lag_surface_force_integral[part];
         F_integral.zero();
         double DP_rhs_integral = 0.0;
@@ -909,8 +1024,42 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             DP_dof_map_cache = d_fe_data_managers[part]->getDofMapCache(PRESSURE_JUMP_SYSTEM_NAME);
             FEType DP_fe_type = DP_dof_map->variable_type(0);
             TBOX_ASSERT(DP_fe_type == X_fe_type);
-            TBOX_ASSERT(DP_fe_type == F_fe_type);
+            TBOX_ASSERT(DP_fe_type == F_fe_type);  
         }
+        
+            System& du_j_system = equation_systems->get_system(DU_JUMP_SYSTEM_NAME);
+			FEDataManager::SystemDofMapCache& du_j_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(DU_JUMP_SYSTEM_NAME);
+			const DofMap& du_j_dof_map = du_j_system.get_dof_map();
+			FEType du_j_fe_type = du_j_dof_map.variable_type(0);
+			for (unsigned int d = 0; d < NDIM; ++d)
+			{
+				TBOX_ASSERT(du_j_dof_map.variable_type(d) == du_j_fe_type);
+			}
+			std::vector<std::vector<unsigned int> > du_j_dof_indices(NDIM);
+
+			System& dv_j_system = equation_systems->get_system(DV_JUMP_SYSTEM_NAME);
+			FEDataManager::SystemDofMapCache& dv_j_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(DV_JUMP_SYSTEM_NAME);
+			const DofMap& dv_j_dof_map = dv_j_system.get_dof_map();
+			FEType dv_j_fe_type = dv_j_dof_map.variable_type(0);
+			for (unsigned int d = 0; d < NDIM; ++d)
+			{
+				TBOX_ASSERT(dv_j_dof_map.variable_type(d) == dv_j_fe_type);
+			}
+			std::vector<std::vector<unsigned int> > dv_j_dof_indices(NDIM);
+            
+#if (NDIM == 3)    
+
+			System& dw_j_system = equation_systems->get_system(DW_JUMP_SYSTEM_NAME);
+			FEDataManager::SystemDofMapCache& dw_j_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(DW_JUMP_SYSTEM_NAME);
+			const DofMap& dw_j_dof_map = dw_j_system.get_dof_map();
+			FEType dw_j_fe_type = dw_j_dof_map.variable_type(0);
+			for (unsigned int d = 0; d < NDIM; ++d)
+			{
+				TBOX_ASSERT(dw_j_dof_map.variable_type(d) == dw_j_fe_type);
+			}
+			std::vector<std::vector<unsigned int> > dw_j_dof_indices(NDIM);        
+#endif  
+
         std::vector<unsigned int> DP_dof_indices;
 
         FEType fe_type = F_fe_type;
@@ -942,7 +1091,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         // Loop over the elements to compute the right-hand side vector.
         boost::multi_array<double, 2> X_node, x_node;
         TensorValue<double> FF;
-        VectorValue<double> F, F_b, F_s, F_qp, N, X, n, x;
+        VectorValue<double> F, F_b, F_s, F_qp, N, X, n, x, du, dv, dw;
         boost::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
@@ -959,6 +1108,19 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             {
                 DP_dof_map_cache->dof_indices(elem, DP_dof_indices);
                 DP_rhs_e.resize(static_cast<int>(F_dof_indices[0].size()));
+                for (unsigned int d = 0; d < NDIM; ++d)
+				{
+					du_j_dof_map_cache.dof_indices(elem, du_j_dof_indices[d], d);
+					du_j_rhs_e[d].resize(static_cast<int>(du_j_dof_indices[d].size()));
+
+					dv_j_dof_map_cache.dof_indices(elem, dv_j_dof_indices[d], d);
+					dv_j_rhs_e[d].resize(static_cast<int>(dv_j_dof_indices[d].size()));
+#if (NDIM == 3)
+					dw_j_dof_map_cache.dof_indices(elem, dw_j_dof_indices[d], d);
+					dw_j_rhs_e[d].resize(static_cast<int>(dw_j_dof_indices[d].size()));
+#endif
+				}
+
             }
             fe->reinit(elem);
             fe_interpolator.reinit(elem);
@@ -1043,10 +1205,18 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                 }
 
                 const double C_p = F * n * dA / da;
+                
+                du = - (dA / da) * (F(0) - F * n * n(0)) * n; // [ux] , [uy], [uz]
+                
+                dv = - (dA / da) * (F(1) - F * n * n(1)) * n; // [vx] , [vy], [vz]
+#if (NDIM == 3)
+                dw = - (dA / da) * (F(2) - F * n * n(2)) * n; // [wx] , [wy], [wz]
+#endif
                 if (d_use_jump_conditions)
                 {
-                    F -= (F * n) * n;
+                    F = 0.0;
                 }
+
 
                 for (unsigned int d = 0; d < NDIM; ++d) F_integral(d) += F(d) * JxW[qp];
 
@@ -1058,7 +1228,18 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                     {
                         F_rhs_e[i](k) += F_qp(i);
                     }
-                    if (d_use_jump_conditions) DP_rhs_e(k) += C_p * phi[k][qp] * JxW[qp];
+                    if (d_use_jump_conditions) 
+                    {
+						DP_rhs_e(k) += C_p * phi[k][qp] * JxW[qp];
+						for (unsigned int i = 0; i < NDIM; ++i)
+						{
+                        du_j_rhs_e[i](k) += du(i) * phi[k][qp] * JxW[qp];
+                        dv_j_rhs_e[i](k) += dv(i) * phi[k][qp] * JxW[qp];
+#if (NDIM == 3)
+                        dw_j_rhs_e[i](k) += dw(i) * phi[k][qp] * JxW[qp];
+#endif
+						}
+					}
                 }
                 if (d_use_jump_conditions)
                 {
@@ -1073,11 +1254,27 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             {
                 F_dof_map.constrain_element_vector(F_rhs_e[i], F_dof_indices[i]);
                 F_rhs_vec->add_vector(F_rhs_e[i], F_dof_indices[i]);
+                if (d_use_jump_conditions)
+				{
+					du_j_dof_map.constrain_element_vector(du_j_rhs_e[i], du_j_dof_indices[i]);
+					du_j_rhs_vec->add_vector(du_j_rhs_e[i], du_j_dof_indices[i]);
+
+					dv_j_dof_map.constrain_element_vector(dv_j_rhs_e[i], dv_j_dof_indices[i]);
+					dv_j_rhs_vec->add_vector(dv_j_rhs_e[i], dv_j_dof_indices[i]);
+					
+#if (NDIM == 3)
+					dw_j_dof_map.constrain_element_vector(dw_j_rhs_e[i], dw_j_dof_indices[i]);
+					dw_j_rhs_vec->add_vector(dw_j_rhs_e[i], dw_j_dof_indices[i]);
+#endif
+				}
             }
             if (d_use_jump_conditions)
             {
                 DP_dof_map->constrain_element_vector(DP_rhs_e, DP_dof_indices);
                 DP_rhs_vec->add_vector(DP_rhs_e, DP_dof_indices);
+                
+
+
             }
         }
 
@@ -1094,6 +1291,18 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             surface_area = SAMRAI_MPI::sumReduction(surface_area);
             if (d_normalize_pressure_jump) DP_vec->add(-DP_rhs_integral / surface_area);
             DP_vec->close();
+            
+            d_fe_data_managers[part]->computeL2Projection(
+				*du_j_vec, *du_j_rhs_vec, DU_JUMP_SYSTEM_NAME, d_use_consistent_mass_matrix);
+            du_j_vec->close();
+			d_fe_data_managers[part]->computeL2Projection(
+				*dv_j_vec, *dv_j_rhs_vec, DV_JUMP_SYSTEM_NAME, d_use_consistent_mass_matrix);
+            dv_j_vec->close();
+            
+#if (NDIM == 3)
+			d_fe_data_managers[part]->computeL2Projection(*dw_j_vec, *dw_j_rhs_vec, DW_JUMP_SYSTEM_NAME, d_use_consistent_mass_matrix);
+			dw_j_vec->close();
+#endif
         }
     }
     return;
