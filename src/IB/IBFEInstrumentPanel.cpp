@@ -620,7 +620,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
     // otherwise just use a really high order Gauss quadrature.
     else d_quad_order = FORTIETH;
         
-    std::cout << "d_quad_order = " << d_quad_order << "\n";
+    perr << "d_quad_order = " << d_quad_order << "\n";
     
     // store the number of quadrature points for each meter mesh
     for (unsigned int jj = 0; jj < d_num_meters; ++jj)
@@ -689,7 +689,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
             if(d_use_QGrid) qrule.reset(new QGrid(NDIM-1, d_quad_order));
             else qrule.reset(new QGauss(NDIM-1, d_quad_order));
             fe_elem->attach_quadrature_rule(qrule.get());
-            std::cout << "order for meter " << jj << ": " << qrule->get_order() << "\n";
+            perr << "order for meter " << jj << ": " << qrule->get_order() << "\n";
             //  for evaluating the displacement system
             const std::vector<Real>& JxW = fe_elem->get_JxW();
             const std::vector<std::vector<Real> >& phi = fe_elem->get_phi();
