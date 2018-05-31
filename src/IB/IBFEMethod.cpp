@@ -544,6 +544,7 @@ IBFEMethod::constrainPartOverlap(const unsigned int part1,
     }
     for (int k = 0; k < 2; ++k)
     {
+        const int k_next = (k + 1) % 2;
         const std::vector<libMesh::Point>& q_point = fe[k]->get_xyz();
         MeshBase::const_element_iterator el = mesh[k]->active_local_elements_begin();
         const MeshBase::const_element_iterator end_el = mesh[k]->active_local_elements_end();
@@ -567,21 +568,21 @@ IBFEMethod::constrainPartOverlap(const unsigned int part1,
             fe[k]->reinit(elem);
             for (unsigned int qp = 0; qp < qrule[k]->n_points(); qp++)
             {
-                const Elem* const other_elem = (*ploc[(k + 1) % 2])(q_point[qp]);
+                const Elem* const other_elem = (*ploc[k_next])(q_point[qp]);
                 if (other_elem)
                 {
                     elem_map[k][elem->id()][qp] = other_elem->id();
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X_dof_map[(k + 1) % 2]->dof_indices(other_elem, X_dof_indices[(k + 1) % 2][d], d);
-                        for (std::vector<unsigned int>::iterator it = X_dof_indices[(k + 1) % 2][d].begin();
-                             it != X_dof_indices[(k + 1) % 2][d].end();
+                        X_dof_map[k_next]->dof_indices(other_elem, X_dof_indices[k_next][d], d);
+                        for (std::vector<unsigned int>::iterator it = X_dof_indices[k_next][d].begin();
+                             it != X_dof_indices[k_next][d].end();
                              ++it)
                         {
                             const unsigned int idx = *it;
-                            if (idx < first_local_idx[(k + 1) % 2] || idx >= last_local_idx[(k + 1) % 2])
+                            if (idx < first_local_idx[k_next] || idx >= last_local_idx[k_next])
                             {
-                                d_overlapping_part_ghost_idxs[part_idx[(k + 1) % 2]].insert(idx);
+                                d_overlapping_part_ghost_idxs[part_idx[k_next]].insert(idx);
                             }
                         }
                     }
@@ -2273,6 +2274,7 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
         VectorValue<double> F, F_qp, other_x, x;
         for (int k = 0; k < 2; ++k)
         {
+            const int k_next = (k + 1) % 2;
             const std::vector<libMesh::Point>& q_point = fe[k]->get_xyz();
             const std::vector<double>& JxW = fe[k]->get_JxW();
             const std::vector<std::vector<double> >& phi = fe[k]->get_phi();
@@ -2298,29 +2300,28 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
                     const unsigned int qp = qp_it->first;
                     const libMesh::Point& X = q_point[qp];
                     interpolate(x, qp, x_node[k], phi);
-                    const Elem* const other_elem = mesh[(k + 1) % 2]->elem_ptr(qp_it->second);
+                    const Elem* const other_elem = mesh[k_next]->elem_ptr(qp_it->second);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X_dof_map_cache[(k + 1) % 2]->dof_indices(other_elem, X_dof_indices[(k + 1) % 2][d], d);
+                        X_dof_map_cache[k_next]->dof_indices(other_elem, X_dof_indices[k_next][d], d);
                     }
                     const libMesh::Point xi = FEInterface::inverse_map(other_elem->dim(), fe_type, other_elem, X);
-                    FEComputeData fe_data(*es[(k + 1) % 2], xi);
+                    FEComputeData fe_data(*es[k_next], xi);
                     FEInterface::compute_data(other_elem->dim(), fe_type, other_elem, fe_data);
-                    get_values_for_interpolation(
-                        x_node[(k + 1) % 2], *X_vec[part_idx[(k + 1) % 2]], X_dof_indices[(k + 1) % 2]);
+                    get_values_for_interpolation(x_node[k_next], *X_vec[part_idx[k_next]], X_dof_indices[k_next]);
                     other_x.zero();
                     for (unsigned int l = 0; l < fe_data.shape.size(); ++l)
                     {
                         const double& p = fe_data.shape[l];
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            other_x(d) += x_node[(k + 1) % 2][l][d] * p;
+                            other_x(d) += x_node[k_next][l][d] * p;
                         }
                     }
                     VectorValue<double> disp = (other_x - x);
                     VectorValue<double> F = kappa * disp;
-                    d_overlapping_part_max_displacement[part_idx[k]][part_idx[(k + 1) % 2]] =
-                        std::max(d_overlapping_part_max_displacement[part_idx[k]][part_idx[(k + 1) % 2]], disp.norm());
+                    d_overlapping_part_max_displacement[part_idx[k]][part_idx[k_next]] =
+                        std::max(d_overlapping_part_max_displacement[part_idx[k]][part_idx[k_next]], disp.norm());
                     for (unsigned int l = 0; l < n_basis; ++l)
                     {
                         F_qp = F * phi[l][qp] * JxW[qp];
