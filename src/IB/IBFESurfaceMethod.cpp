@@ -1,4 +1,3 @@
-
 // Filename: IBFESurfaceMethod.cpp
 // Created on 19 May 2018 by Boyce Griffith
 //
@@ -167,11 +166,16 @@ const std::string IBFESurfaceMethod::FORCE_SYSTEM_NAME = "IB force system";
 const std::string IBFESurfaceMethod::NORMAL_VELOCITY_SYSTEM_NAME = "IB normal velocity system";
 const std::string IBFESurfaceMethod::PRESSURE_JUMP_SYSTEM_NAME = "IB [[p]] system";
 const std::string IBFESurfaceMethod::TANGENTIAL_VELOCITY_SYSTEM_NAME = "IB tangential velocity system";
+const boost::array<std::string, NDIM> IBFESurfaceMethod::VELOCITY_JUMP_SYSTEM_NAME = {
+    { "IB velocity [[du]] jump system",
+      "IB velocity [[dv]] jump system"
+#if (NDIM == 3)
+      ,
+      "IB velocity [[dw]] jump system"
+#endif
+    }
+};
 const std::string IBFESurfaceMethod::VELOCITY_SYSTEM_NAME = "IB velocity system";
-
-const std::string IBFESurfaceMethod::DU_JUMP_SYSTEM_NAME = "IB velocity du jump system";
-const std::string IBFESurfaceMethod::DV_JUMP_SYSTEM_NAME = "IB velocity dv jump system";
-const std::string IBFESurfaceMethod::DW_JUMP_SYSTEM_NAME = "IB velocity dw jump system";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -338,24 +342,13 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
     d_F_half_vecs.resize(d_num_parts);
     d_F_IB_ghost_vecs.resize(d_num_parts);
 
-    d_du_j_systems.resize(d_num_parts);
-    d_du_j_half_vecs.resize(d_num_parts);
-    d_du_j_IB_ghost_vecs.resize(d_num_parts);
-
-    d_dv_j_systems.resize(d_num_parts);
-    d_dv_j_half_vecs.resize(d_num_parts);
-    d_dv_j_IB_ghost_vecs.resize(d_num_parts);
-
-#if (NDIM == 3)
-
-    d_dw_j_systems.resize(d_num_parts);
-    d_dw_j_half_vecs.resize(d_num_parts);
-    d_dw_j_IB_ghost_vecs.resize(d_num_parts);
-#endif
-
     d_DP_systems.resize(d_num_parts);
     d_DP_half_vecs.resize(d_num_parts);
     d_DP_IB_ghost_vecs.resize(d_num_parts);
+
+    d_DU_j_systems.resize(d_num_parts);
+    d_DU_j_half_vecs.resize(d_num_parts);
+    d_DU_j_IB_ghost_vecs.resize(d_num_parts);
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -396,34 +389,25 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
         d_F_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME, /*localize_data*/ false));
 
-        if (d_use_jump_conditions)
+        if (d_use_pressure_jump_conditions)
         {
             d_DP_systems[part] = &d_equation_systems[part]->get_system(PRESSURE_JUMP_SYSTEM_NAME);
             d_DP_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_DP_systems[part]->current_local_solution.get());
             d_DP_IB_ghost_vecs[part] =
                 dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(
                     PRESSURE_JUMP_SYSTEM_NAME, /*localize_data*/ false));
+        }
 
-#if (NDIM == 3)
-
-            d_dw_j_systems[part] = &d_equation_systems[part]->get_system(DW_JUMP_SYSTEM_NAME);
-            d_dw_j_half_vecs[part] =
-                dynamic_cast<PetscVector<double>*>(d_dw_j_systems[part]->current_local_solution.get());
-            d_dw_j_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
-                d_fe_data_managers[part]->buildGhostedSolutionVector(DW_JUMP_SYSTEM_NAME, /*localize_data*/ false));
-#endif
-
-            d_du_j_systems[part] = &d_equation_systems[part]->get_system(DU_JUMP_SYSTEM_NAME);
-            d_du_j_half_vecs[part] =
-                dynamic_cast<PetscVector<double>*>(d_du_j_systems[part]->current_local_solution.get());
-            d_du_j_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
-                d_fe_data_managers[part]->buildGhostedSolutionVector(DU_JUMP_SYSTEM_NAME, /*localize_data*/ false));
-
-            d_dv_j_systems[part] = &d_equation_systems[part]->get_system(DV_JUMP_SYSTEM_NAME);
-            d_dv_j_half_vecs[part] =
-                dynamic_cast<PetscVector<double>*>(d_dv_j_systems[part]->current_local_solution.get());
-            d_dv_j_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
-                d_fe_data_managers[part]->buildGhostedSolutionVector(DV_JUMP_SYSTEM_NAME, /*localize_data*/ false));
+        if (d_use_velocity_jump_conditions)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                d_DU_j_systems[part][d] = &d_equation_systems[part]->get_system(VELOCITY_JUMP_SYSTEM_NAME[d]);
+                d_DU_j_half_vecs[part][d] =
+                    dynamic_cast<PetscVector<double>*>(d_DU_j_systems[part][d]->current_local_solution.get());
+                d_DU_j_IB_ghost_vecs[part][d] = dynamic_cast<PetscVector<double>*>(
+                    d_fe_data_managers[part]->buildGhostedSolutionVector(VELOCITY_JUMP_SYSTEM_NAME[d], /*localize_data*/ false));
+            }
         }
 
         // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
@@ -451,22 +435,19 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
         d_F_systems[part]->solution->close();
         d_F_systems[part]->solution->localize(*d_F_half_vecs[part]);
 
-        if (d_use_jump_conditions)
+        if (d_use_pressure_jump_conditions)
         {
             d_DP_systems[part]->solution->close();
             d_DP_systems[part]->solution->localize(*d_DP_half_vecs[part]);
+        }
 
-            d_du_j_systems[part]->solution->close();
-            d_du_j_systems[part]->solution->localize(*d_du_j_half_vecs[part]);
-
-            d_dv_j_systems[part]->solution->close();
-            d_dv_j_systems[part]->solution->localize(*d_dv_j_half_vecs[part]);
-
-#if (NDIM == 3)
-
-            d_dw_j_systems[part]->solution->close();
-            d_dw_j_systems[part]->solution->localize(*d_dw_j_half_vecs[part]);
-#endif
+        if (d_use_velocity_jump_conditions)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                d_DU_j_systems[part][d]->solution->close();
+                d_DU_j_systems[part][d]->solution->localize(*d_DU_j_half_vecs[part][d]);
+            }
         }
     }
     return;
@@ -511,31 +492,23 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
         d_F_systems[part]->solution->close();
         d_F_systems[part]->solution->localize(*d_F_systems[part]->current_local_solution);
 
-        if (d_use_jump_conditions)
+        if (d_use_pressure_jump_conditions)
         {
             d_DP_half_vecs[part]->close();
             *d_DP_systems[part]->solution = *d_DP_half_vecs[part];
             d_DP_systems[part]->solution->close();
             d_DP_systems[part]->solution->localize(*d_DP_systems[part]->current_local_solution);
+        }
 
-            d_du_j_half_vecs[part]->close();
-            *d_du_j_systems[part]->solution = *d_du_j_half_vecs[part];
-            d_du_j_systems[part]->solution->close();
-            d_du_j_systems[part]->solution->localize(*d_du_j_systems[part]->current_local_solution);
-
-            d_dv_j_half_vecs[part]->close();
-            *d_dv_j_systems[part]->solution = *d_dv_j_half_vecs[part];
-            d_dv_j_systems[part]->solution->close();
-            d_dv_j_systems[part]->solution->localize(*d_dv_j_systems[part]->current_local_solution);
-
-#if (NDIM == 3)
-
-            d_dw_j_half_vecs[part]->close();
-            *d_dw_j_systems[part]->solution = *d_dw_j_half_vecs[part];
-            d_dw_j_systems[part]->solution->close();
-            d_dw_j_systems[part]->solution->localize(*d_dw_j_systems[part]->current_local_solution);
-
-#endif
+        if (d_use_velocity_jump_conditions)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                d_DU_j_half_vecs[part][d]->close();
+                *d_DU_j_systems[part][d]->solution = *d_DU_j_half_vecs[part][d];
+                d_DU_j_systems[part][d]->solution->close();
+                d_DU_j_systems[part][d]->solution->localize(*d_DU_j_systems[part][d]->current_local_solution);
+            }
         }
 
         // Update the coordinate mapping dX = X - s.
@@ -571,20 +544,9 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
     d_DP_half_vecs.clear();
     d_DP_IB_ghost_vecs.clear();
 
-    d_du_j_systems.clear();
-    d_du_j_half_vecs.clear();
-    d_du_j_IB_ghost_vecs.clear();
-
-    d_dv_j_systems.clear();
-    d_dv_j_half_vecs.clear();
-    d_dv_j_IB_ghost_vecs.clear();
-
-#if (NDIM == 3)
-    d_dw_j_systems.clear();
-    d_dw_j_half_vecs.clear();
-    d_dw_j_IB_ghost_vecs.clear();
-
-#endif
+    d_DU_j_systems.clear();
+    d_DU_j_half_vecs.clear();
+    d_DU_j_IB_ghost_vecs.clear();
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
