@@ -85,6 +85,7 @@
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+#include <../contrib/eigen/Eigen/src/Core/products/GeneralBlockPanelKernel.h>
 
 namespace IBTK
 {
@@ -108,53 +109,18 @@ IBRedundantInitializer::IBRedundantInitializer(const std::string& object_name, P
       d_num_vertex(),
       d_vertex_offset(),
       d_vertex_posn(),
-      d_enable_springs(),
       d_spring_edge_map(),
       d_spring_spec_data(),
-      d_using_uniform_spring_stiffness(),
-      d_uniform_spring_stiffness(),
-      d_using_uniform_spring_rest_length(),
-      d_uniform_spring_rest_length(),
-      d_using_uniform_spring_force_fcn_idx(),
-      d_uniform_spring_force_fcn_idx(),
-      d_enable_xsprings(),
       d_xspring_edge_map(),
       d_xspring_spec_data(),
-      d_using_uniform_xspring_stiffness(),
-      d_uniform_xspring_stiffness(),
-      d_using_uniform_xspring_rest_length(),
-      d_uniform_xspring_rest_length(),
-      d_using_uniform_xspring_force_fcn_idx(),
-      d_uniform_xspring_force_fcn_idx(),
-      d_enable_beams(),
       d_beam_spec_data(),
-      d_using_uniform_beam_bend_rigidity(),
-      d_uniform_beam_bend_rigidity(),
-      d_using_uniform_beam_curvature(),
-      d_uniform_beam_curvature(),
-      d_enable_rods(),
       d_rod_edge_map(),
       d_rod_spec_data(),
-      d_using_uniform_rod_properties(),
-      d_uniform_rod_properties(),
-      d_enable_target_points(),
       d_target_spec_data(),
-      d_using_uniform_target_stiffness(),
-      d_uniform_target_stiffness(),
-      d_using_uniform_target_damping(),
-      d_uniform_target_damping(),
-      d_enable_anchor_points(),
       d_anchor_spec_data(),
-      d_enable_bdry_mass(),
       d_bdry_mass_spec_data(),
-      d_using_uniform_bdry_mass(),
-      d_uniform_bdry_mass(),
-      d_using_uniform_bdry_mass_stiffness(),
-      d_uniform_bdry_mass_stiffness(),
       d_directors(),
-      d_enable_instrumentation(),
       d_instrument_idx(),
-      d_enable_sources(),
       d_source_idx(),
       d_global_index_offset(),
       d_init_structure_on_level_fcn(NULL),
@@ -179,7 +145,7 @@ IBRedundantInitializer::IBRedundantInitializer(const std::string& object_name, P
     IBSpringForceSpec::registerWithStreamableManager();
     IBTargetPointForceSpec::registerWithStreamableManager();
 
-    //     getFromInput(input_db);
+    getFromInput(input_db);
     return;
 } // IBRedundantInitializer
 
@@ -831,6 +797,18 @@ IBRedundantInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarch
     return;
 } // tagCellsForInitialRefinement
 
+void
+IBRedundantInitializer::setStructureNamesOnLevel(const int& level_num, const std::vector<std::string>& strct_names)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(level_num >= 0);
+    TBOX_ASSERT(level_num < d_max_levels);
+    TBOX_ASSERT(d_level_is_initialized[level_num]);
+#endif
+    d_base_filename[level_num] = strct_names;
+    return;
+}
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
@@ -1058,37 +1036,32 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
     {
         std::vector<int> slave_idxs, force_fcn_idxs;
         std::vector<std::vector<double> > parameters;
-        if (d_enable_springs[level_number][j])
+        for (std::multimap<int, Edge>::const_iterator it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
+             it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx);
+             ++it)
         {
-            for (std::multimap<int, Edge>::const_iterator it =
-                     d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
-                 it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx);
-                 ++it)
-            {
 #if !defined(NDEBUG)
-                TBOX_ASSERT(mastr_idx == it->first);
+            TBOX_ASSERT(mastr_idx == it->first);
 #endif
-                // The connectivity information.
-                const Edge& e = it->second;
-                if (e.first == mastr_idx)
-                {
-                    slave_idxs.push_back(e.second + global_index_offset);
-                }
-                else
-                {
-                    slave_idxs.push_back(e.first + global_index_offset);
-                }
-
-                // The material properties.
-                const SpringSpec& spec_data = d_spring_spec_data[level_number][j].find(e)->second;
-                parameters.push_back(spec_data.parameters);
-                force_fcn_idxs.push_back(spec_data.force_fcn_idx);
+            // The connectivity information.
+            const Edge& e = it->second;
+            if (e.first == mastr_idx)
+            {
+                slave_idxs.push_back(e.second + global_index_offset);
             }
+            else
+            {
+                slave_idxs.push_back(e.first + global_index_offset);
+            }
+
+            // The material properties.
+            const SpringSpec& spec_data = d_spring_spec_data[level_number][j].find(e)->second;
+            parameters.push_back(spec_data.parameters);
+            force_fcn_idxs.push_back(spec_data.force_fcn_idx);
         }
         const size_t num_base_filename = d_base_filename[level_number].size();
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
-            if (!d_enable_xsprings[level_number][j]) continue;
             for (std::multimap<int, Edge>::const_iterator it =
                      d_xspring_edge_map[level_number][j].lower_bound(mastr_idx);
                  it != d_xspring_edge_map[level_number][j].upper_bound(mastr_idx);
@@ -1121,7 +1094,6 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
     }
 
     // Initialize any beam specifications associated with the present vertex.
-    if (d_enable_beams[level_number][j])
     {
         std::vector<std::pair<int, int> > beam_neighbor_idxs;
         std::vector<double> beam_bend_rigidity;
@@ -1143,7 +1115,6 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
     }
 
     // Initialize any rod specifications associated with the present vertex.
-    if (d_enable_rods[level_number][j])
     {
         std::vector<int> rod_next_idxs;
         std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
@@ -1177,7 +1148,6 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
 
     // Initialize any target point specifications associated with the present
     // vertex.
-    if (d_enable_target_points[level_number][j])
     {
         const TargetSpec& spec_data = getVertexTargetSpec(point_index, level_number);
         const double kappa_target = spec_data.stiffness;
@@ -1188,7 +1158,6 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
 
     // Initialize any anchor point specifications associated with the present
     // vertex.
-    if (d_enable_anchor_points[level_number][j])
     {
         const AnchorSpec& spec_data = getVertexAnchorSpec(point_index, level_number);
         const bool is_anchor_point = spec_data.is_anchor_point;
@@ -1200,7 +1169,6 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
 
     // Initialize any instrumentation specifications associated with the present
     // vertex.
-    if (d_enable_instrumentation[level_number][j])
     {
         const std::pair<int, int> inst_idx = getVertexInstrumentationIndices(point_index, level_number);
         if (inst_idx.first != -1 && inst_idx.second != -1)
@@ -1211,7 +1179,6 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
 
     // Initialize any source specifications associated with the present
     // vertex.
-    if (d_enable_sources[level_number][j])
     {
         const int source_idx = getVertexSourceIndices(point_index, level_number);
         if (source_idx != -1)
@@ -1219,8 +1186,139 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
             node_data.push_back(new IBSourceSpec(mastr_idx, source_idx));
         }
     }
+
     return node_data;
 } // initializeNodeData
+
+void
+IBRedundantInitializer::getFromInput(Pointer<Database> db)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(db);
+#endif
+    if (db->keyExists("max_levels"))
+    {
+        d_max_levels = db->getInteger("max_levels");
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << ":  "
+                                 << "Key data `max_levels' not found in input.");
+    }
+
+    if (d_max_levels < 1)
+    {
+        TBOX_ERROR(d_object_name << ":  "
+                                 << "Key data `max_levels' found in input is < 1.");
+    }
+
+    d_level_is_initialized.resize(d_max_levels, false);
+    d_base_filename.resize(d_max_levels);
+    d_num_vertex.resize(d_max_levels);
+    d_spring_edge_map.resize(d_max_levels);
+    d_spring_spec_data.resize(d_max_levels);
+    d_xspring_edge_map.resize(d_max_levels);
+    d_xspring_spec_data.resize(d_max_levels);
+    d_beam_spec_data.resize(d_max_levels);
+    d_rod_edge_map.resize(d_max_levels);
+    d_rod_spec_data.resize(d_max_levels);
+    d_target_spec_data.resize(d_max_levels);
+    d_anchor_spec_data.resize(d_max_levels);
+    d_bdry_mass_spec_data.resize(d_max_levels);
+    d_directors.resize(d_max_levels);
+
+    // Determine the various input file names.
+    //
+    // Prefer to use the new ``structure_names'' key, but revert to the
+    // level-by-level ``base_filenames'' keys if necessary.
+    if (db->keyExists("structure_names"))
+    {
+        const int num_strcts = db->getArraySize("structure_names");
+        std::vector<std::string> structure_names(num_strcts);
+        db->getStringArray("structure_names", &structure_names[0], num_strcts);
+        for (int n = 0; n < num_strcts; ++n)
+        {
+            const std::string& strct_name = structure_names[n];
+            if (db->keyExists(strct_name))
+            {
+                Pointer<Database> sub_db = db->getDatabase((strct_name));
+                if (sub_db->keyExists("level_number"))
+                {
+                    const int ln = sub_db->getInteger("level_number");
+                    if (ln < 0)
+                    {
+                        TBOX_ERROR(d_object_name << ":  "
+                                                 << "Key data `level_number' associated with structure `" << strct_name
+                                                 << "' is negative.");
+                    }
+                    else if (ln > d_max_levels)
+                    {
+                        TBOX_ERROR(d_object_name << ":  "
+                                                 << "Key data `level_number' associated with structure `" << strct_name
+                                                 << "' is greater than the expected maximum level number "
+                                                 << d_max_levels << ".");
+                    }
+                    d_base_filename[ln].push_back(strct_name);
+                }
+                else
+                {
+                    TBOX_ERROR(d_object_name << ":  "
+                                             << "Key data `level_number' not found in structure `" << strct_name
+                                             << "' input.");
+                }
+            }
+            else
+            {
+                TBOX_ERROR(d_object_name << ":  "
+                                         << "Key data `" << strct_name << "' not found in input.");
+            }
+        }
+    }
+    else if (db->keyExists("structure_levels"))
+    {
+        const int num_levels = db->getArraySize("structure_levels");
+        std::vector<int> strct_levels(num_levels);
+        db->getIntegerArray("structure_levels", &strct_levels[0], num_levels);
+        std::vector<int> num_strcts(num_levels);
+        db->getIntegerArray("num_structures_levels", &num_strcts[0], num_levels);
+
+        for (int k = 0; k < num_levels; ++k)
+        {
+            const int ln = strct_levels[k];
+            const int num_strcts_on_ln = num_strcts[k];
+            d_base_filename[ln].resize(num_strcts_on_ln);
+
+            for (int s = 0; s < num_strcts_on_ln; ++s)
+            {
+                std::ostringstream strct_name_stream;
+                strct_name_stream << "body_" << s << "_ln_" << ln;
+                d_base_filename[ln][s] = strct_name_stream.str();
+            }
+        }
+    }
+    else
+    {
+        for (int ln = 0; ln < d_max_levels; ++ln)
+        {
+            std::ostringstream db_key_name_stream;
+            db_key_name_stream << "base_filenames_" << ln;
+            const std::string db_key_name = db_key_name_stream.str();
+            if (db->keyExists(db_key_name))
+            {
+                const int num_files = db->getArraySize(db_key_name);
+                d_base_filename[ln].resize(num_files);
+                db->getStringArray(db_key_name, &d_base_filename[ln][0], num_files);
+            }
+            else
+            {
+                TBOX_WARNING(d_object_name << ":  "
+                                           << "Key data `" << db_key_name << "' not found in input.");
+            }
+        }
+    }
+
+    return;
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

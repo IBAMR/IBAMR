@@ -94,7 +94,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~IBRedundantInitializer();
+    virtual ~IBRedundantInitializer();
 
     /*!
      * \brief Register a Silo data writer with the IB initializer object.
@@ -136,7 +136,7 @@ public:
     /*!
      * \brief Initialize structure specific configurations.
      */
-    void init();
+    virtual void init();
 
     /*!
      * \brief Initialize vertex data programmatically.
@@ -333,6 +333,13 @@ public:
                                       double error_data_time,
                                       int tag_index);
 
+    /*!
+     * \brief Set the names of the structures on a given level.
+     *
+     * \note The structure will be initialized in the same order as the supplied vector.
+     */
+    void setStructureNamesOnLevel(const int& level_num, const std::vector<std::string>& strct_names);
+
 protected:
     /*!
      * \brief Default constructor.
@@ -443,16 +450,17 @@ protected:
     /*!
      * \return The specification objects associated with the specified vertex.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::Streamable> > initializeNodeData(const std::pair<int, int>& point_index,
-                                                                             unsigned int global_index_offset,
-                                                                             int level_number) const;
+    virtual std::vector<SAMRAI::tbox::Pointer<IBTK::Streamable> >
+    initializeNodeData(const std::pair<int, int>& point_index,
+                       unsigned int global_index_offset,
+                       int level_number) const;
 
     /*!
      * Read input values, indicated above, from given database.
      *
      * When assertion checking is active, the database pointer must be non-null.
      */
-    //     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*
      * The object name is used as a handle to databases stored in restart files
@@ -500,31 +508,16 @@ protected:
     std::vector<std::vector<int> > d_num_vertex, d_vertex_offset;
     std::vector<std::vector<std::vector<IBTK::Point> > > d_vertex_posn;
 
-
-
     /*
      * Spring information.
      */
-    std::vector<std::vector<bool> > d_enable_springs;
-
     std::vector<std::vector<std::multimap<int, Edge> > > d_spring_edge_map;
 
     std::vector<std::vector<std::map<Edge, SpringSpec, EdgeComp> > > d_spring_spec_data;
 
-    std::vector<std::vector<bool> > d_using_uniform_spring_stiffness;
-    std::vector<std::vector<double> > d_uniform_spring_stiffness;
-
-    std::vector<std::vector<bool> > d_using_uniform_spring_rest_length;
-    std::vector<std::vector<double> > d_uniform_spring_rest_length;
-
-    std::vector<std::vector<bool> > d_using_uniform_spring_force_fcn_idx;
-    std::vector<std::vector<int> > d_uniform_spring_force_fcn_idx;
-
     /*
      * Crosslink spring ("x-spring") information.
      */
-    std::vector<std::vector<bool> > d_enable_xsprings;
-
     std::vector<std::vector<std::multimap<int, Edge> > > d_xspring_edge_map;
 
     struct XSpringSpec
@@ -534,72 +527,32 @@ protected:
     };
     std::vector<std::vector<std::map<Edge, XSpringSpec, EdgeComp> > > d_xspring_spec_data;
 
-    std::vector<std::vector<bool> > d_using_uniform_xspring_stiffness;
-    std::vector<std::vector<double> > d_uniform_xspring_stiffness;
-
-    std::vector<std::vector<bool> > d_using_uniform_xspring_rest_length;
-    std::vector<std::vector<double> > d_uniform_xspring_rest_length;
-
-    std::vector<std::vector<bool> > d_using_uniform_xspring_force_fcn_idx;
-    std::vector<std::vector<int> > d_uniform_xspring_force_fcn_idx;
-
     /*
      * Beam information.
      */
-    std::vector<std::vector<bool> > d_enable_beams;
-
     std::vector<std::vector<std::multimap<int, BeamSpec> > > d_beam_spec_data;
-
-    std::vector<std::vector<bool> > d_using_uniform_beam_bend_rigidity;
-    std::vector<std::vector<double> > d_uniform_beam_bend_rigidity;
-
-    std::vector<std::vector<bool> > d_using_uniform_beam_curvature;
-    std::vector<std::vector<IBTK::Vector> > d_uniform_beam_curvature;
 
     /*
      * Rod information.
      */
-    std::vector<std::vector<bool> > d_enable_rods;
-
     std::vector<std::vector<std::multimap<int, Edge> > > d_rod_edge_map;
 
     std::vector<std::vector<std::map<Edge, RodSpec, EdgeComp> > > d_rod_spec_data;
 
-    std::vector<std::vector<bool> > d_using_uniform_rod_properties;
-    std::vector<std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_uniform_rod_properties;
-
     /*
      * Target point information.
      */
-    std::vector<std::vector<bool> > d_enable_target_points;
-
     std::vector<std::vector<std::vector<TargetSpec> > > d_target_spec_data;
-
-    std::vector<std::vector<bool> > d_using_uniform_target_stiffness;
-    std::vector<std::vector<double> > d_uniform_target_stiffness;
-
-    std::vector<std::vector<bool> > d_using_uniform_target_damping;
-    std::vector<std::vector<double> > d_uniform_target_damping;
 
     /*
      * Anchor point information.
      */
-    std::vector<std::vector<bool> > d_enable_anchor_points;
-
     std::vector<std::vector<std::vector<AnchorSpec> > > d_anchor_spec_data;
 
     /*
      * Mass information for the pIB method.
      */
-    std::vector<std::vector<bool> > d_enable_bdry_mass;
-
     std::vector<std::vector<std::vector<BdryMassSpec> > > d_bdry_mass_spec_data;
-
-    std::vector<std::vector<bool> > d_using_uniform_bdry_mass;
-    std::vector<std::vector<double> > d_uniform_bdry_mass;
-
-    std::vector<std::vector<bool> > d_using_uniform_bdry_mass_stiffness;
-    std::vector<std::vector<double> > d_uniform_bdry_mass_stiffness;
 
     /*
      * Orthonormal directors for the generalized IB method.
@@ -609,13 +562,11 @@ protected:
     /*
      * Instrumentation information.
      */
-    std::vector<std::vector<bool> > d_enable_instrumentation;
     std::vector<std::vector<std::map<int, std::pair<int, int> > > > d_instrument_idx;
 
     /*
      * Source information.
      */
-    std::vector<std::vector<bool> > d_enable_sources;
     std::vector<std::vector<std::map<int, int> > > d_source_idx;
 
     /*
@@ -624,6 +575,12 @@ protected:
      */
     std::vector<unsigned int> d_global_index_offset;
 
+    /*!
+     * Check if user defined data has been processed.
+     */
+    bool d_data_processed;
+
+private:
     /*
      * Functions used to initialize structures programmatically.
      */
@@ -634,10 +591,6 @@ protected:
     InitBoundaryMassOnLevel d_init_boundary_mass_on_level_fcn;
     InitTargetPtOnLevel d_init_target_pt_on_level_fcn;
     InitAnchorPtOnLevel d_init_anchor_pt_on_level_fcn;
-    /*!
-     * Check if user defined data has been processed.
-     */
-    bool d_data_processed;
 };
 } // namespace IBAMR
 
