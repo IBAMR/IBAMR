@@ -470,11 +470,12 @@ protected:
      * Impose (pressure) jump conditions.
      */
     void imposeJumpConditions(const int f_data_idx,
-                              libMesh::PetscVector<double>* DP_ghost_vec,
+                              libMesh::PetscVector<double>& P_j_ghost_vec,
                               boost::array<libMesh::PetscVector<double>*, NDIM>& DU_j_ghost_vec,
-                              libMesh::PetscVector<double>* X_ghost_vec,
+                              libMesh::PetscVector<double>& X_ghost_vec,
                               const double data_time,
                               const unsigned int part);
+                             
 
     /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
@@ -523,7 +524,7 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_DP_systems;
+    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_P_j_systems;
     std::vector<boost::array<libMesh::System*, NDIM> > d_DU_j_systems;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
         d_X_IB_ghost_vecs;
@@ -531,7 +532,7 @@ protected:
     std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_DP_half_vecs, d_DP_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_P_j_half_vecs, d_P_j_IB_ghost_vecs;
     std::vector<boost::array<libMesh::PetscVector<double>*, NDIM> > d_DU_j_half_vecs, d_DU_j_IB_ghost_vecs;
 
     bool d_fe_equation_systems_initialized, d_fe_data_initialized;
