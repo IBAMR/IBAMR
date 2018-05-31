@@ -532,7 +532,7 @@ protected:
     std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_DP_half_vecs, d_DP_IB_ghost_vecs;
-    boost::array<std::vector<libMesh::PetscVector<double>*>, 3> d_DU_j_half_vecs, d_DU_j_IB_ghost_vecs;
+    boost::array<std::vector<libMesh::PetscVector<double>*>, NDIM> d_DU_j_half_vecs, d_DU_j_IB_ghost_vecs;
 
     bool d_fe_equation_systems_initialized, d_fe_data_initialized;
 
