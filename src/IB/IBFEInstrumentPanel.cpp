@@ -969,11 +969,11 @@ IBFEInstrumentPanel::getFromInput(Pointer<Database> db)
 }
 
 void
-IBFEInstrumentPanel::outputMeterMeshes(const int timestep_num, const double data_time)
+IBFEInstrumentPanel::outputMeterMeshes(IBAMR::IBFEMethod* ib_method_ops, const int timestep_num, const double data_time)
 {
     // things to do at initial timestep
     if (timestep_num == 1) outputNodes();
-    outputExodus(timestep_num, data_time);
+    outputExodus(ib_method_ops, timestep_num, data_time);
 }
 
 int
@@ -1135,10 +1135,11 @@ IBFEInstrumentPanel::outputData(const double data_time)
 }
 
 void
-IBFEInstrumentPanel::outputExodus(const int timestep, const double loop_time)
+IBFEInstrumentPanel::outputExodus(IBAMR::IBFEMethod* ib_method_ops, const int timestep, const double loop_time)
 {
     for (unsigned int ii = 0; ii < d_num_meters; ++ii)
     {
+        updateSystemData(ib_method_ops, ii);
         std::ostringstream mesh_output;
         mesh_output << d_plot_directory_name << "/"
                     << "" << d_meter_mesh_names[ii] << ".ex2";

@@ -100,7 +100,7 @@ public:
     /*!
      * \brief output exodus files and .dat file for meshes and nodes.
      */
-    void outputMeterMeshes(int timestep_num, double data_time);
+    void outputMeterMeshes(IBAMR::IBFEMethod* ib_method_ops, int timestep_num, double data_time);
 
     /*!
      * \return return the instrument dump interval.
@@ -128,7 +128,7 @@ private:
     /*!
      * \brief write out meshes and equation systems in Exodus file.
      */
-    void outputExodus(int timestep, double loop_time);
+    void outputExodus(IBAMR::IBFEMethod* ib_method_ops, int timestep, double loop_time);
 
     /*!
      * \brief write out nodes.
