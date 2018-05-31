@@ -111,7 +111,7 @@ public:
     static const std::string PRESSURE_JUMP_SYSTEM_NAME;
     static const std::string TANGENTIAL_VELOCITY_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
-    
+
     static const std::string DU_JUMP_SYSTEM_NAME;
     static const std::string DV_JUMP_SYSTEM_NAME;
     static const std::string DW_JUMP_SYSTEM_NAME;
@@ -530,8 +530,10 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_DP_systems, d_du_j_systems, d_dv_j_systems, d_dw_j_systems;
-    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs, d_X_IB_ghost_vecs;
+    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_DP_systems,
+        d_du_j_systems, d_dv_j_systems, d_dw_j_systems;
+    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
+        d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
