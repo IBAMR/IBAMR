@@ -305,7 +305,6 @@ IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Dat
     : d_num_meters(0),
       d_quad_order(),
       d_use_QGrid(),  
-      d_num_quad_points(),
       d_part(part),
       d_initialized(false),
       d_num_nodes(),
@@ -402,7 +401,6 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
 
     // resize members and local variables
     d_num_meters = d_nodeset_IDs_for_meters.size();
-    d_num_quad_points.resize(d_num_meters);
     d_U_dof_idx.resize(d_num_meters);
     d_dX_dof_idx.resize(d_num_meters);
     d_node_dof_IDs.resize(d_num_meters);
@@ -548,7 +546,6 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
         d_meter_systems[jj]->init();
     }
 
-
     // store dof indices for the velocity and displacement systems that we will use later
     for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
@@ -590,7 +587,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
     {
         double radius = 0.0;
         // update FE system data for meter_mesh
-        updateSystemData(radius, ib_method_ops, jj);
+        initializeSystemDependentData(radius, ib_method_ops, jj);
         max_radius = std::max(radius, max_radius);
     }
         
@@ -618,31 +615,17 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
     // set the quadrature rule according to this spacing if we are using QGrid
     if(d_use_QGrid) d_quad_order = static_cast<Order>(max_radius / (0.25 * h_finest));
     // otherwise just use a really high order Gauss quadrature.
-    else d_quad_order = FORTIETH;
-        
-    perr << "d_quad_order = " << d_quad_order << "\n";
+    else d_quad_order = FORTYTHIRD;
     
-    // store the number of quadrature points for each meter mesh
-    for (unsigned int jj = 0; jj < d_num_meters; ++jj)
+    // print a warning
+    if(d_use_QGrid && d_quad_order > FORTYTHIRD)
     {
-        d_num_quad_points[jj] = 0;
-        const LinearImplicitSystem& displacement_sys =
-        d_meter_systems[jj]->get_system<LinearImplicitSystem> (IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
-        FEType fe_type = displacement_sys.variable_type(0);
-        UniquePtr<FEBase> fe_elem(FEBase::build(NDIM-1, fe_type));
-        UniquePtr<QBase> qrule(NULL);
-        if(d_use_QGrid) qrule.reset(new QGrid(NDIM-1, d_quad_order));
-        else qrule.reset(new QGauss(NDIM-1, d_quad_order));
-        fe_elem->attach_quadrature_rule(qrule.get());
-        const std::vector<libMesh::Point>& qp_points = fe_elem->get_xyz();
-        MeshBase::const_element_iterator el = d_meter_meshes[jj]->active_elements_begin();
-        const MeshBase::const_element_iterator end_el = d_meter_meshes[jj]->active_elements_end();
-        for ( ; el != end_el; ++el)
-        {  
-            const Elem * elem = *el;
-            fe_elem->reinit(elem);
-            d_num_quad_points[jj] += qp_points.size();
-        }
+        TBOX_WARNING("IBFEInstrumentPanel::initializeHierarchyDependentData : "
+                << "QGrid quadrature order exceeds 43 for meter mesh in IBFE part "
+                << d_part
+                << "."
+                << " there may be undefined behavior in casting to this"
+                << " Order in older versions of libMesh.");
     }
     
     // reset the quad point maps
@@ -689,7 +672,6 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
             if(d_use_QGrid) qrule.reset(new QGrid(NDIM-1, d_quad_order));
             else qrule.reset(new QGauss(NDIM-1, d_quad_order));
             fe_elem->attach_quadrature_rule(qrule.get());
-            perr << "order for meter " << jj << ": " << qrule->get_order() << "\n";
             //  for evaluating the displacement system
             const std::vector<Real>& JxW = fe_elem->get_JxW();
             const std::vector<std::vector<Real> >& phi = fe_elem->get_phi();
@@ -790,7 +772,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     // values for the number of quadrature points.
     int count_qp_1 = 0;
     int count_qp_2 = 0;
-
+    
     // compute flow and mean pressure on mesh meters
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -877,9 +859,9 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     const int count_qp_3 = SAMRAI_MPI::sumReduction(count_qp_2);
     if (count_qp_1 != count_qp_3)
     {
-        TBOX_ERROR("IBFEInstrumentPanel::readInstrumentData : "
-                   << "the total number of quadrature points in the meter meshes "
-                   << " is not consistent with the number used in the "
+        TBOX_WARNING("IBFEInstrumentPanel::readInstrumentData :"
+                   << " the total number of quadrature points in the meter meshes"
+                   << " is not consistent with the number used in the"
                    << " calculations, for IBFE part "
                    << d_part
                    << "."
@@ -1003,13 +985,56 @@ IBFEInstrumentPanel::getInstrumentDumpInterval() const
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IBFEInstrumentPanel::updateSystemData(double& max_meter_radius, IBAMR::IBFEMethod* ib_method_ops, const int meter_mesh_number)
+IBFEInstrumentPanel::initializeSystemDependentData(double& max_meter_radius, IBAMR::IBFEMethod* ib_method_ops, const int meter_mesh_number)
 {
-    // get the coordinate mapping system and velocity systems for the parent mesh
+    // get displacement system for meter mesh
+    LinearImplicitSystem& displacement_sys =
+        d_meter_systems[meter_mesh_number]->get_system<LinearImplicitSystem>(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
+    const unsigned int displacement_sys_num = displacement_sys.number();
+    NumericVector<double>& displacement_coords = displacement_sys.get_vector("serial solution");
+
+    // update system data, including the solution vector and serialized
+    // solution vector
+    updateSystemData(ib_method_ops, meter_mesh_number);
+    
+    // compute the maximum radius of the meter in the current configuration
+    max_meter_radius = 0.0;
+    for (unsigned int ii = 0; ii < d_num_nodes[meter_mesh_number]; ++ii)
+    {
+        // get node on meter mesh
+        const Node* node = &d_meter_meshes[meter_mesh_number]->node_ref(ii+1);
+        // get the centroid
+        const Node* centroid_node = &d_meter_meshes[meter_mesh_number]->node_ref(0);
+        
+        std::vector<double> node_disp(NDIM, 0.0);
+        std::vector<double> centroid_disp(NDIM, 0.0); 
+        std::vector<numeric_index_type> node_disp_dof_idx(NDIM, 0);
+        std::vector<numeric_index_type> centroid_disp_dof_idx(NDIM, 0);
+        for(unsigned int d = 0; d < NDIM; ++d)
+        {
+            node_disp_dof_idx[d] = node->dof_number(displacement_sys_num, d, 0);
+            centroid_disp_dof_idx[d] = centroid_node->dof_number(displacement_sys_num, d, 0);
+        }
+        displacement_coords.get(node_disp_dof_idx, node_disp);
+        displacement_coords.get(centroid_disp_dof_idx, centroid_disp);
+        
+        double radius_squared = 0.0;
+        for(unsigned int d = 0; d < NDIM; ++d)
+        {
+            radius_squared += pow((*centroid_node)(d) + centroid_disp[d] - (*node)(d) + node_disp[d], 2.0);
+        }
+        max_meter_radius = std::max(pow(radius_squared, 0.5), max_meter_radius);
+    }
+}
+
+void 
+IBFEInstrumentPanel::updateSystemData(IBAMR::IBFEMethod* ib_method_ops, const int meter_mesh_number)
+{
+     // get the coordinate mapping system and velocity systems for the parent mesh
     const FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager(d_part);
     const EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
     const System& dX_system = equation_systems->get_system(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
-    // TO DO: find a better way to do this
+    // \todo: find a better way to do this
     std::vector<double> dX_coords_parent;
     dX_system.update_global_solution(dX_coords_parent);
     const System& U_system = equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
@@ -1073,37 +1098,8 @@ IBFEInstrumentPanel::updateSystemData(double& max_meter_radius, IBAMR::IBFEMetho
         const int disp_dof_idx = centroid_node->dof_number(displacement_sys_num, d, 0);
         displacement_coords.set(disp_dof_idx, mean_dX_dofs[d]);
     }
-
-    // compute the maximum radius of the meter in the current configuration
-    max_meter_radius = 0.0;
-    for (unsigned int ii = 0; ii < d_num_nodes[meter_mesh_number]; ++ii)
-    {
-        // get node on meter mesh
-        const Node* node = &d_meter_meshes[meter_mesh_number]->node_ref(ii+1);
-        // get the centroid
-        const Node* centroid_node = &d_meter_meshes[meter_mesh_number]->node_ref(0);
-        
-        std::vector<double> node_disp(NDIM, 0.0);
-        std::vector<double> centroid_disp(NDIM, 0.0); 
-        std::vector<numeric_index_type> node_disp_dof_idx(NDIM, 0);
-        std::vector<numeric_index_type> centroid_disp_dof_idx(NDIM, 0);
-        for(unsigned int d = 0; d < NDIM; ++d)
-        {
-            node_disp_dof_idx[d] = node->dof_number(displacement_sys_num, d, 0);
-            centroid_disp_dof_idx[d] = centroid_node->dof_number(displacement_sys_num, d, 0);
-        }
-        displacement_coords.get(node_disp_dof_idx, node_disp);
-        displacement_coords.get(centroid_disp_dof_idx, centroid_disp);
-        
-        double radius_squared = 0.0;
-        for(unsigned int d = 0; d < NDIM; ++d)
-        {
-            radius_squared += pow((*centroid_node)(d) + centroid_disp[d] - (*node)(d) + node_disp[d], 2.0);
-        }
-        max_meter_radius = std::max(pow(radius_squared, 0.5), max_meter_radius);
-    }
     
-    // populate solution vector in system also
+    // also populate solution vector in the system for exodus IO
     MeshBase::const_node_iterator node_it = d_meter_meshes[meter_mesh_number]->local_nodes_begin();
     const MeshBase::const_node_iterator end_node_it = d_meter_meshes[meter_mesh_number]->local_nodes_end();
     for (; node_it != end_node_it; ++node_it)

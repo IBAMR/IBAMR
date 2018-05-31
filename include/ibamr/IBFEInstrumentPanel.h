@@ -109,9 +109,16 @@ public:
 
 private:
     /*!
+     * \brief initialize data which depend on the FE equation systems for
+     * the meter mesh.  this includes computing the max radius of the mesh
+     * in the current configuration, and updating the mesh's system data.
+     */
+    void initializeSystemDependentData(double& max_meter_radius, IBAMR::IBFEMethod* ib_method_ops, int meter_mesh_number);
+
+    /*!
      * \brief update system data.
      */
-    void updateSystemData(double& max_meter_radius, IBAMR::IBFEMethod* ib_method_ops, int meter_num);
+    void updateSystemData(IBAMR::IBFEMethod* ib_method_ops, int meter_num);
 
     /*!
      * \brief write out data to file.
@@ -144,11 +151,6 @@ private:
      * quadrature.
      */
     bool d_use_QGrid;
-
-    /*!
-     * \brief total number of quadrature points in the meter mesh.
-     */
-    std::vector<unsigned int> d_num_quad_points;
 
     /*!
      * \brief part ID where the meter mesh lives, i.e. its parent mesh.
