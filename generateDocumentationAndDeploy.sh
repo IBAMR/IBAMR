@@ -72,6 +72,10 @@ mkdir -p html/ibamr/html
 # to NO, which it is by default. So creating the file just in case.
 echo "" > .nojekyll
 
+# Grab the libstdc++ tagfile and move into the doc directory
+wget https://gcc.gnu.org/onlinedocs/libstdc++/latest-doxygen/libstdc++.tag
+mv libstdc++.tag $TRAVIS_BUILD_DIR/doc
+
 ################################################################################
 ##### Generate the Doxygen code documentation and log the output.          #####
 echo 'Generating Doxygen code documentation...'
