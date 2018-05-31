@@ -110,7 +110,7 @@ public:
     static const std::string NORMAL_VELOCITY_SYSTEM_NAME;
     static const std::string PRESSURE_JUMP_SYSTEM_NAME;
     static const std::string TANGENTIAL_VELOCITY_SYSTEM_NAME;
-    static const std::string VELOCITY_JUMP_SYSTEM_NAME[NDIM];
+    static const boost::array<std::string, NDIM> VELOCITY_JUMP_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
 
     /*!
