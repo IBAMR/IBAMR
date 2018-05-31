@@ -1025,6 +1025,8 @@ IBFEMethod::computeLagrangianForce(const double data_time)
         {
             computeStressNormalization(*d_Phi_half_vecs[part], *d_X_half_vecs[part], data_time, part);
         }
+        // Zero-out force vector
+        d_F_half_vecs[part]->zero();
         computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
         if (d_direct_forcing_kinematics_data[part])
         {
