@@ -487,7 +487,7 @@ IBFEMethod::registerOverlappingVelocityConstraint(const unsigned int part1, cons
     // Set up basic data structures.
     boost::array<EquationSystems*, 2> es;
     boost::array<MeshBase*, 2> mesh;
-    boost::array<const DofMap*, 2> U_dof_map;
+    boost::array<const DofMap*, 2> U_dof_map, X_dof_map;
     boost::array<UniquePtr<PointLocatorBase>, 2> ploc;
     boost::array<numeric_index_type, 2> first_local_idx, last_local_idx;
     for (int k = 0; k < 2; ++k)
@@ -496,12 +496,18 @@ IBFEMethod::registerOverlappingVelocityConstraint(const unsigned int part1, cons
         System& U_system = es[k]->get_system<System>(VELOCITY_SYSTEM_NAME);
         U_dof_map[k] = &U_system.get_dof_map();
         NumericVector<double>& U_vec = *U_system.solution;
+        System& X_system = es[k]->get_system<System>(COORDS_SYSTEM_NAME);
+        X_dof_map[k] = &X_system.get_dof_map();
+        NumericVector<double>& X_vec = *X_system.solution;
+        TBOX_ASSERT(U_vec.first_local_index() == X_vec.first_local_index());
+        TBOX_ASSERT(U_vec.last_local_index() == X_vec.last_local_index());
         first_local_idx[k] = U_vec.first_local_index();
         last_local_idx[k] = U_vec.last_local_index();
         FEType fe_type = U_dof_map[k]->variable_type(0);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             TBOX_ASSERT(fe_type == U_dof_map[k]->variable_type(d));
+            TBOX_ASSERT(fe_type == X_dof_map[k]->variable_type(d));
         }
         mesh[k] = &es[k]->get_mesh();
         ploc[k] = PointLocatorBase::build(TREE_ELEMENTS, *mesh[k]);
@@ -955,33 +961,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     // Account for any velocity constraints.
     if (d_has_overlap_velocity_parts)
     {
-        std::vector<NumericVector<double>*> U_ghost_vecs(d_num_parts);
-        for (unsigned int part = 0; part < d_num_parts; ++part)
-        {
-            if (d_is_overlap_velocity_master_part[part])
-            {
-                std::vector<numeric_index_type> ghost_idxs(d_overlap_velocity_part_ghost_idxs[part].begin(),
-                                                           d_overlap_velocity_part_ghost_idxs[part].end());
-                U_ghost_vecs[part] = new PetscVector<double>(
-                    U_vecs[part]->comm(), U_vecs[part]->size(), U_vecs[part]->local_size(), ghost_idxs);
-                U_vecs[part]->localize(*U_ghost_vecs[part]);
-            }
-        }
-        for (unsigned int part = 0; part < d_num_parts; ++part)
-        {
-            if (d_is_overlap_velocity_part[part])
-            {
-                const unsigned int master_part = d_overlap_velocity_master_part[part];
-                resetNodalVelocities(part, U_vecs[part], U_ghost_vecs[master_part]);
-            }
-        }
-        for (unsigned int part = 0; part < d_num_parts; ++part)
-        {
-            if (d_is_overlap_velocity_master_part[part])
-            {
-                delete U_ghost_vecs[part];
-            }
-        }
+        resetOverlapNodalValues(VELOCITY_SYSTEM_NAME, U_vecs);
     }
     return;
 } // interpolateVelocity
@@ -1001,6 +981,13 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
     }
+
+    // Account for any velocity constraints.
+    if (d_has_overlap_velocity_parts)
+    {
+        resetOverlapNodalValues(COORDS_SYSTEM_NAME, d_X_half_vecs);
+        resetOverlapNodalValues(COORDS_SYSTEM_NAME, d_X_new_vecs);
+    }
     return;
 } // eulerStep
 
@@ -1018,6 +1005,13 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
+    }
+
+    // Account for any velocity constraints.
+    if (d_has_overlap_velocity_parts)
+    {
+        resetOverlapNodalValues(COORDS_SYSTEM_NAME, d_X_half_vecs);
+        resetOverlapNodalValues(COORDS_SYSTEM_NAME, d_X_new_vecs);
     }
     return;
 } // midpointStep
@@ -1039,6 +1033,13 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
+    }
+
+    // Account for any velocity constraints.
+    if (d_has_overlap_velocity_parts)
+    {
+        resetOverlapNodalValues(COORDS_SYSTEM_NAME, d_X_half_vecs);
+        resetOverlapNodalValues(COORDS_SYSTEM_NAME, d_X_new_vecs);
     }
     return;
 } // trapezoidalStep
@@ -2300,9 +2301,50 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 } // computeInteriorForceDensity
 
 void
-IBFEMethod::resetNodalVelocities(const unsigned int part,
-                                 libMesh::NumericVector<double>* U_vec,
-                                 libMesh::NumericVector<double>* U_master_vec)
+IBFEMethod::resetOverlapNodalValues(const std::string& system_name, const std::vector<NumericVector<double>*>& F_vecs)
+{
+    std::vector<NumericVector<double>*> F_ghost_vecs(d_num_parts);
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        if (d_is_overlap_velocity_master_part[part])
+        {
+            std::vector<numeric_index_type> ghost_idxs(d_overlap_velocity_part_ghost_idxs[part].begin(),
+                                                       d_overlap_velocity_part_ghost_idxs[part].end());
+            F_ghost_vecs[part] = new PetscVector<double>(
+                F_vecs[part]->comm(), F_vecs[part]->size(), F_vecs[part]->local_size(), ghost_idxs);
+            F_vecs[part]->localize(*F_ghost_vecs[part]);
+        }
+    }
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        if (d_is_overlap_velocity_part[part])
+        {
+            const unsigned int master_part = d_overlap_velocity_master_part[part];
+            resetOverlapNodalValues(part, system_name, F_vecs[part], F_ghost_vecs[master_part]);
+        }
+    }
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        if (d_is_overlap_velocity_master_part[part])
+        {
+            delete F_ghost_vecs[part];
+        }
+    }
+    return;
+}
+
+void
+IBFEMethod::resetOverlapNodalValues(const std::string& system_name, const std::vector<PetscVector<double>*>& F_vecs)
+{
+    resetOverlapNodalValues(system_name, std::vector<NumericVector<double>*>(F_vecs.begin(), F_vecs.end()));
+    return;
+}
+
+void
+IBFEMethod::resetOverlapNodalValues(const unsigned int part,
+                                    const std::string& system_name,
+                                    libMesh::NumericVector<double>* F_vec,
+                                    libMesh::NumericVector<double>* F_master_vec)
 {
     TBOX_ASSERT(part < d_num_parts);
     TBOX_ASSERT(d_is_overlap_velocity_part[part]);
@@ -2314,36 +2356,36 @@ IBFEMethod::resetNodalVelocities(const unsigned int part,
     // Set up basic data structures.
     boost::array<EquationSystems*, 2> es;
     boost::array<MeshBase*, 2> mesh;
-    boost::array<const DofMap*, 2> U_dof_map;
-    boost::array<FEDataManager::SystemDofMapCache*, 2> U_dof_map_cache;
+    boost::array<const DofMap*, 2> F_dof_map;
+    boost::array<FEDataManager::SystemDofMapCache*, 2> F_dof_map_cache;
     FEType fe_type;
-    boost::array<unsigned int,2> U_sys_num;
+    boost::array<unsigned int, 2> F_sys_num;
     for (int k = 0; k < 2; ++k)
     {
         es[k] = d_fe_data_managers[part_idx[k]]->getEquationSystems();
-        System& U_system = es[k]->get_system<System>(VELOCITY_SYSTEM_NAME);
-        U_dof_map[k] = &U_system.get_dof_map();
-        fe_type = U_dof_map[k]->variable_type(0);
+        System& F_system = es[k]->get_system<System>(system_name);
+        F_dof_map[k] = &F_system.get_dof_map();
+        fe_type = F_dof_map[k]->variable_type(0);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            TBOX_ASSERT(fe_type == U_dof_map[k]->variable_type(d));
+            TBOX_ASSERT(fe_type == F_dof_map[k]->variable_type(d));
         }
-        U_dof_map_cache[k] = d_fe_data_managers[part_idx[k]]->getDofMapCache(VELOCITY_SYSTEM_NAME);
-        U_sys_num[k] = U_system.number();
+        F_dof_map_cache[k] = d_fe_data_managers[part_idx[k]]->getDofMapCache(system_name);
+        F_sys_num[k] = F_system.number();
         mesh[k] = &es[k]->get_mesh();
     }
 
     // Find the elements of part2 that contain nodes of part1.
-    boost::array<std::vector<std::vector<unsigned int> >, 2> U_dof_indices;
+    boost::array<std::vector<std::vector<unsigned int> >, 2> F_dof_indices;
     for (int k = 0; k < 2; ++k)
     {
-        U_dof_indices[k].resize(NDIM);
+        F_dof_indices[k].resize(NDIM);
     }
-    VectorValue<double> U;
-    boost::array<boost::multi_array<double, 2>, 2> U_node;
+    VectorValue<double> F;
+    boost::array<boost::multi_array<double, 2>, 2> F_node;
     const unsigned int k_slave = 0;
     const unsigned int k_master = 1;
-    std::map<dof_id_type, dof_id_type>& node_to_elem_map = d_overlap_velocity_part_node_to_elem_map[part_idx[k_master]];
+    std::map<dof_id_type, dof_id_type>& node_to_elem_map = d_overlap_velocity_part_node_to_elem_map[part_idx[k_slave]];
     for (std::map<dof_id_type, dof_id_type>::iterator n = node_to_elem_map.begin(); n != node_to_elem_map.end(); ++n)
     {
         const Node* const node = mesh[k_slave]->node_ptr(n->first);
@@ -2353,28 +2395,28 @@ IBFEMethod::resetNodalVelocities(const unsigned int part,
         // Read the velocity from the master mesh.
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            U_dof_map_cache[k_master]->dof_indices(other_elem, U_dof_indices[k_master][d], d);
+            F_dof_map_cache[k_master]->dof_indices(other_elem, F_dof_indices[k_master][d], d);
         }
         const libMesh::Point xi = FEInterface::inverse_map(other_elem->dim(), fe_type, other_elem, X);
         FEComputeData fe_data(*es[k_master], xi);
         FEInterface::compute_data(other_elem->dim(), fe_type, other_elem, fe_data);
-        get_values_for_interpolation(U_node[k_master], *U_master_vec, U_dof_indices[k_master]);
-        U.zero();
+        get_values_for_interpolation(F_node[k_master], *F_master_vec, F_dof_indices[k_master]);
+        F.zero();
         for (unsigned int l = 0; l < fe_data.shape.size(); ++l)
         {
             const double& p = fe_data.shape[l];
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                U(d) += U_node[k_master][l][d] * p;
+                F(d) += F_node[k_master][l][d] * p;
             }
         }
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            const int dof_index = node->dof_number(U_sys_num[k_slave], d, 0);
-            U_vec->set(dof_index, U(d));
+            const int dof_index = node->dof_number(F_sys_num[k_slave], d, 0);
+            F_vec->set(dof_index, F(d));
         }
     }
-    U_vec->close();
+    F_vec->close();
     return;
 }
 

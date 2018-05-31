@@ -621,12 +621,25 @@ protected:
                                      unsigned int part);
 
     /*!
-     * \brief Reset the velocities in the specified part to equal the
+     * \brief Reset positions in overlap regions.
+     */
+    void resetOverlapNodalValues(const std::string& system_name,
+                                 const std::vector<libMesh::NumericVector<double>*>& F_vecs);
+
+    /*!
+     * \brief Reset positions in overlap regions.
+     */
+    void resetOverlapNodalValues(const std::string& system_name,
+                                 const std::vector<libMesh::PetscVector<double>*>& F_vecs);
+
+    /*!
+     * \brief Reset values in the specified part to equal the
      * corresponding velocities of the overlapping part.
      */
-    void resetNodalVelocities(unsigned int part,
-                              libMesh::NumericVector<double>* U_vec,
-                              libMesh::NumericVector<double>* U_master_vec);
+    void resetOverlapNodalValues(unsigned int part,
+                                 const std::string& system_name,
+                                 libMesh::NumericVector<double>* F_vec,
+                                 libMesh::NumericVector<double>* F_master_vec);
 
     /*!
      * \brief Compute constraint forces between pairs of overlapping bodies.
