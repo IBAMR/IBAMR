@@ -1825,50 +1825,9 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 			for (unsigned int d = 0; d < NDIM; ++d)
 			{
 				TBOX_ASSERT(DU_j_dof_map[i]->variable_type(d) == DU_j_fe_type);
-			}
-			//std::vector<std::vector<unsigned int> > du_j_dof_indices(NDIM);
-			                //~ d_DU_j_systems[part][d] = &d_equation_systems[part]->get_system(VELOCITY_JUMP_SYSTEM_NAME[d]);
-                //~ d_DU_j_half_vecs[part][d] =
-                    //~ dynamic_cast<PetscVector<double>*>(d_DU_j_systems[part][d]->current_local_solution.get());
-                //~ d_DU_j_IB_ghost_vecs[part][d] = dynamic_cast<PetscVector<double>*>(
-                    //~ d_fe_data_managers[part]->buildGhostedSolutionVector(VELOCITY_JUMP_SYSTEM_NAME[d], /*localize_data*/ false));          		
+			}       		
 		}
 
-        //~ System& du_j_system = equation_systems->get_system(DU_JUMP_SYSTEM_NAME);
-        //~ FEDataManager::SystemDofMapCache& du_j_dof_map_cache =
-            //~ *d_fe_data_managers[part]->getDofMapCache(DU_JUMP_SYSTEM_NAME);
-        //~ const DofMap& du_j_dof_map = du_j_system.get_dof_map();
-        //~ FEType du_j_fe_type = du_j_dof_map.variable_type(0);
-        //~ for (unsigned int d = 0; d < NDIM; ++d)
-        //~ {
-            //~ TBOX_ASSERT(du_j_dof_map.variable_type(d) == du_j_fe_type);
-        //~ }
-        //~ std::vector<std::vector<unsigned int> > du_j_dof_indices(NDIM);
-
-        //~ System& dv_j_system = equation_systems->get_system(DV_JUMP_SYSTEM_NAME);
-        //~ FEDataManager::SystemDofMapCache& dv_j_dof_map_cache =
-            //~ *d_fe_data_managers[part]->getDofMapCache(DV_JUMP_SYSTEM_NAME);
-        //~ const DofMap& dv_j_dof_map = dv_j_system.get_dof_map();
-        //~ FEType dv_j_fe_type = dv_j_dof_map.variable_type(0);
-        //~ for (unsigned int d = 0; d < NDIM; ++d)
-        //~ {
-            //~ TBOX_ASSERT(dv_j_dof_map.variable_type(d) == dv_j_fe_type);
-        //~ }
-        //~ std::vector<std::vector<unsigned int> > dv_j_dof_indices(NDIM);
-
-//~ #if (NDIM == 3)
-
-        //~ System& dw_j_system = equation_systems->get_system(DW_JUMP_SYSTEM_NAME);
-        //~ FEDataManager::SystemDofMapCache& dw_j_dof_map_cache =
-            //~ *d_fe_data_managers[part]->getDofMapCache(DW_JUMP_SYSTEM_NAME);
-        //~ const DofMap& dw_j_dof_map = dw_j_system.get_dof_map();
-        //~ FEType dw_j_fe_type = dw_j_dof_map.variable_type(0);
-        //~ for (unsigned int d = 0; d < NDIM; ++d)
-        //~ {
-            //~ TBOX_ASSERT(dw_j_dof_map.variable_type(d) == dw_j_fe_type);
-        //~ }
-        //~ std::vector<std::vector<unsigned int> > dw_j_dof_indices(NDIM);
-//~ #endif
 
         std::vector<unsigned int> P_j_dof_indices;
 
@@ -2020,10 +1979,6 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 					for (unsigned int k = 0; k < NDIM; ++k)
 						DU[i][k] = -(dA / da) * (F(i) - F * n * n(i)) * n(k); // [Ux] , [Uy], [Uz]
 					
-                //~ dv = -(dA / da) * (F(1) - F * n * n(1)) * n; // [vx] , [vy], [vz]
-//~ #if (NDIM == 3)
-                //~ dw = -(dA / da) * (F(2) - F * n * n(2)) * n; // [wx] , [wy], [wz]
-//~ #endif
 
                 for (unsigned int d = 0; d < NDIM; ++d) F_integral(d) += F(d) * JxW[qp];
 
@@ -2047,12 +2002,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 						   {
 							   DU_j_rhs_e[i][j](k) += DU[i][j] * phi[k][qp] * JxW[qp];
 						   }	
-                            //~ du_j_rhs_e[i](k) += du(i) * phi[k][qp] * JxW[qp];
-                            //~ dv_j_rhs_e[i](k) += dv(i) * phi[k][qp] * JxW[qp];
-//~ #if (NDIM == 3)
-                            //~ dw_j_rhs_e[i](k) += dw(i) * phi[k][qp] * JxW[qp];
-//~ #endif
-                        }
+						}
                     }
                 }
                 if (d_use_pressure_jump_conditions)
@@ -2124,18 +2074,6 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 				d_fe_data_managers[part]->computeL2Projection(
 					*DU_j_vec[d], *DU_j_rhs_vec[d], VELOCITY_JUMP_SYSTEM_NAME[d], d_use_consistent_mass_matrix);
 			}
-            //~ d_fe_data_managers[part]->computeL2Projection(
-                //~ *du_j_vec, *du_j_rhs_vec, DU_JUMP_SYSTEM_NAME, d_use_consistent_mass_matrix);
-            //~ du_j_vec->close();
-            //~ d_fe_data_managers[part]->computeL2Projection(
-                //~ *dv_j_vec, *dv_j_rhs_vec, DV_JUMP_SYSTEM_NAME, d_use_consistent_mass_matrix);
-            //~ dv_j_vec->close();
-
-//~ #if (NDIM == 3)
-            //~ d_fe_data_managers[part]->computeL2Projection(
-                //~ *dw_j_vec, *dw_j_rhs_vec, DW_JUMP_SYSTEM_NAME, d_use_consistent_mass_matrix);
-            //~ dw_j_vec->close();
-//~ #endif
         }
     }
     return;
@@ -2158,22 +2096,7 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
         F_vec->localize(*F_ghost_vec);
         d_fe_data_managers[part]->spread(
             f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op, data_time);
-        //~ if (d_use_pressure_jump_conditions)
-        //~ {
-            //~ PetscVector<double>* P_j_vec = d_P_j_half_vecs[part];
-            //~ PetscVector<double>* P_j_ghost_vec = d_P_j_IB_ghost_vecs[part];
-            //~ P_j_vec->localize(*P_j_ghost_vec);
 
-		//~ }
-        //~ if (d_use_velocity_jump_conditions)
-        //~ {
-			//~ boost::array<PetscVector<double>*, NDIM> DU_j_ghost_vec = d_DU_j_IB_ghost_vecs[part];
-            //~ boost::array<PetscVector<double>*, NDIM> DU_j_vec = d_DU_j_half_vecs[part];
-            //~ for (unsigned int d = 0; d < NDIM; ++d)
-            //~ {
-				//~ DU_j_vec[d]->localize(*DU_j_ghost_vec[d]);
-			//~ }
-        //~ }
         if ( d_use_pressure_jump_conditions || d_use_velocity_jump_conditions) 
         {
 			            
