@@ -370,10 +370,10 @@ public:
     void registerLagBodySourceFunction(const LagBodySourceFcnData& data, unsigned int part = 0);
 
     /*!
-     * Set the velocity of the nodes of part1 that overlap part2 to equal the
-     * velocity of part2.
+     * Always reset the velocity of the nodes of part1 that overlap part2 to
+     * equal the velocity of part2.
      */
-    void registerOverlappingVelocityConstraint(unsigned int part1, unsigned int part2);
+    void registerOverlappingVelocityReset(unsigned int part1, unsigned int part2);
 
     /*!
      * Set up forces to penalize relative motion between part1 and part2.

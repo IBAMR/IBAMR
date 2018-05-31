@@ -464,7 +464,7 @@ IBFEMethod::registerLagBodySourceFunction(const LagBodySourceFcnData& data, cons
 } // registerLagBodySourceFunction
 
 void
-IBFEMethod::registerOverlappingVelocityConstraint(const unsigned int part1, const unsigned int part2)
+IBFEMethod::registerOverlappingVelocityReset(const unsigned int part1, const unsigned int part2)
 {
     TBOX_ASSERT(part1 < d_num_parts);
     TBOX_ASSERT(part2 < d_num_parts);
@@ -472,7 +472,7 @@ IBFEMethod::registerOverlappingVelocityConstraint(const unsigned int part1, cons
     // Check to see if we have already registered this part.
     if (d_is_overlap_velocity_part[part1])
     {
-        TBOX_ERROR("IBFEMethod::registerOverlappingVelocityConstraint(): already registered part " << part1 << "\n");
+        TBOX_ERROR("IBFEMethod::registerOverlappingVelocityReset(): already registered part " << part1 << "\n");
     }
 
     d_has_overlap_velocity_parts = true;
