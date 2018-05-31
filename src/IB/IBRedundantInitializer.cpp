@@ -199,6 +199,7 @@ IBRedundantInitializer::init()
         // Process structure information.
         initializeStructurePosition();
         initializeSprings();
+        initializeXSprings();
         initializeBeams();
         initializeDirectorAndRods();
         initializeBoundaryMass();
@@ -293,6 +294,13 @@ void
 IBRedundantInitializer::registerInitSpringDataFunction(InitSpringDataOnLevel fcn)
 {
     d_init_spring_on_level_fcn = fcn;
+    return;
+}
+
+void
+IBRedundantInitializer::registerInitXSpringDataFunction(InitXSpringDataOnLevel fcn)
+{
+    d_init_xspring_on_level_fcn = fcn;
     return;
 }
 
@@ -396,6 +404,23 @@ IBRedundantInitializer::initializeSprings()
     }
     return;
 } // initializeSprings
+
+void
+IBRedundantInitializer::initializeXSprings()
+{
+    if (!d_init_xspring_on_level_fcn) return;
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const size_t num_base_filename = d_base_filename[ln].size();
+        d_xspring_edge_map[ln].resize(num_base_filename);
+        d_xspring_spec_data[ln].resize(num_base_filename);
+        for (unsigned int j = 0; j < num_base_filename; ++j)
+        {
+            d_init_xspring_on_level_fcn(j, ln, d_xspring_edge_map[ln][j], d_xspring_spec_data[ln][j]);
+        }
+    }
+    return;
+} // initializeXSprings
 
 void
 IBRedundantInitializer::initializeBeams()

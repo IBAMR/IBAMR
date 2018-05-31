@@ -166,6 +166,7 @@ public:
             return (e1.first < e2.first) || (e1.first == e2.first && e1.second < e2.second);
         }
     };
+
     struct SpringSpec
     {
         std::vector<double> parameters;
@@ -177,6 +178,24 @@ public:
                                           std::map<Edge, SpringSpec, EdgeComp>& spring_spec);
 
     void registerInitSpringDataFunction(InitSpringDataOnLevel fcn);
+
+    /*
+     * \brief Initialize xspring data programmatically.
+     */
+    void initializeXSprings();
+
+    struct XSpringSpec
+    {
+        std::vector<double> parameters;
+        int force_fcn_idx;
+    };
+
+    typedef void (*InitXSpringDataOnLevel)(const unsigned int& strct_num,
+                                           const int& level_num,
+                                           std::multimap<int, Edge>& xspring_map,
+                                           std::map<Edge, XSpringSpec, EdgeComp> xspring_spec);
+
+    void registerInitXSpringDataFunction(InitXSpringDataOnLevel fcn);
 
     /*!
      * \brief Initialize beam data programmatically.
@@ -520,11 +539,6 @@ protected:
      */
     std::vector<std::vector<std::multimap<int, Edge> > > d_xspring_edge_map;
 
-    struct XSpringSpec
-    {
-        std::vector<double> parameters;
-        int force_fcn_idx;
-    };
     std::vector<std::vector<std::map<Edge, XSpringSpec, EdgeComp> > > d_xspring_spec_data;
 
     /*
@@ -586,6 +600,7 @@ private:
      */
     InitStructureOnLevel d_init_structure_on_level_fcn;
     InitSpringDataOnLevel d_init_spring_on_level_fcn;
+    InitXSpringDataOnLevel d_init_xspring_on_level_fcn;
     InitBeamDataOnLevel d_init_beam_on_level_fcn;
     InitDirectorAndRodOnLevel d_init_director_and_rod_on_level_fcn;
     InitBoundaryMassOnLevel d_init_boundary_mass_on_level_fcn;
