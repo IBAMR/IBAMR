@@ -180,6 +180,45 @@ public:
     }
 
     /*!
+     * \brief Get the current center of mass for all Lagrangian structures
+     */
+    inline const std::vector<std::vector<double> >& getCurrentStructureCOM()
+    {
+        return d_center_of_mass_current;
+    }
+
+    /*
+     * Set velocity physical boundary options
+     */
+    inline void setVelocityPhysBdryOp(IBTK::RobinPhysBdryPatchStrategy* u_phys_bdry_op)
+    {
+        d_u_phys_bdry_op = u_phys_bdry_op;
+        return;
+    }
+
+    /*
+     * Set the volume element for each Lagrangian node for each individual structure
+     */
+    inline void setVolumeElement(double vol_element, int struct_no)
+    {
+        d_vol_element[struct_no] = vol_element;
+        d_vol_element_is_set[struct_no] = true;
+        return;
+    }
+
+    /*
+     * Set the volume element for each Lagrangian node for all the structures
+     */
+    inline void setVolumeElement(std::vector<double> vol_element)
+    {
+#if !defined(NDEBUG)
+        TBOX_ASSERT(vol_element.size() == ((size_t) d_no_structures)) ;
+#endif
+        d_vol_element = vol_element;
+        d_vol_element_is_set = std::vector<bool>(d_no_structures, true);
+    }
+
+    /*
      * \brief Get the total volume for all the Lagrangian structures
      */
     inline const std::vector<double>& getStructureVolume()
@@ -211,15 +250,6 @@ public:
                 "FALSE");
         }
         return d_structure_rotational_mom;
-    }
-
-    /*!
-     * \brief Get the center of mass for all Lagrangian structures
-     */
-
-    inline const std::vector<std::vector<double> >& getStructureCOM()
-    {
-        return d_center_of_mass_current;
     }
 
 private:
@@ -304,6 +334,11 @@ private:
      * \brief Copy vector.
      */
     void copyFluidVariable(int copy_from_idx, int copy_to);
+
+    /*!
+     * \brief Copy density patch data.
+     */
+    void copyDensityVariable(int copy_from_idx, int copy_to);
 
     /*!
      * \brief Interpolate fluid solve velocity from Eulerian grid onto the Lagrangian mesh.
@@ -407,6 +442,11 @@ private:
      */
     std::vector<double> d_vol_element;
 
+    /*
+     * Whether or not the volume has been set for the material structure
+     */
+    std::vector<bool> d_vol_element_is_set;
+
     /*!
      * Volume associated with each immersed structure
      */
@@ -473,9 +513,19 @@ private:
     std::vector<std::vector<double> > d_tagged_pt_position;
 
     /*!
-     * Density and viscosity of the fluid.
+     * Density of the structures.
      */
-    double d_rho_fluid, d_mu_fluid;
+    std::vector<double> d_rho_solid;
+
+    /*!
+     * Density of the fluid in constant coefficient case.
+     */
+    double d_rho_fluid;
+
+    /*!
+     * Whether or not the density from the integrator is constant
+     */
+    bool d_rho_is_const;
 
     /*!
      * Bools for computing linear and rotational momentums of the body
@@ -522,7 +572,13 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_u_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_scratch_context;
-    int d_u_scratch_idx, d_u_fluidSolve_idx, d_u_fluidSolve_cib_idx, d_phi_idx, d_Div_u_scratch_idx;
+    int d_u_fluidSolve_idx, d_u_fluidSolve_cib_idx, d_phi_idx, d_Div_u_scratch_idx;
+
+    /*!
+     * Variables associated with the spatially varying density field, which is maintained by an integrator.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_var;
+    int d_rho_ins_idx, d_rho_scratch_idx;
 
     /*!
      * The following variables are needed to solve cell centered poison equation for \f$ \phi \f$ ,which is
@@ -540,7 +596,7 @@ private:
     /*!
      * File streams associated for the output.
      */
-    std::vector<std::ofstream*> d_trans_vel_stream, d_rot_vel_stream, d_drag_force_stream, d_moment_of_inertia_stream,
+    std::vector<std::ofstream *> d_trans_vel_stream, d_rot_vel_stream, d_drag_force_stream, d_moment_of_inertia_stream,
         d_torque_stream, d_position_COM_stream, d_power_spent_stream;
 
     /*!
@@ -551,9 +607,12 @@ private:
     /*!
      * Pre and post fluid solve call back functions and contexts.
      */
-    std::vector<void (*)(const double, const double, const int, void*)> d_prefluidsolve_callback_fns,
+    std::vector<void (*)(const double, const double, const int, void *)> d_prefluidsolve_callback_fns,
         d_postfluidsolve_callback_fns;
-    std::vector<void*> d_prefluidsolve_callback_fns_ctx, d_postfluidsolve_callback_fns_ctx;
+    std::vector<void *> d_prefluidsolve_callback_fns_ctx, d_postfluidsolve_callback_fns_ctx;
+
+    // Velocity boundary operator.
+    IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op;
 };
 } // namespace IBAMR
 

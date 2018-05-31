@@ -113,9 +113,14 @@ FastSweepingLSMethod::~FastSweepingLSMethod()
 void
 FastSweepingLSMethod::initializeLSData(int D_idx,
                                        Pointer<HierarchyMathOps> hier_math_ops,
+                                       int integrator_step,
                                        double time,
                                        bool initial_time)
 {
+    bool initialize_ls =
+        d_reinitialize_ls || initial_time || (d_reinit_interval && integrator_step % d_reinit_interval == 0);
+    if (!initialize_ls) return;
+
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > data_var;
     var_db->mapIndexToVariable(D_idx, data_var);
@@ -128,10 +133,24 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
-    // Create a temporary variable to hold previous iteration values.
-    const int D_iter_idx = var_db->registerClonedPatchDataIndex(D_var, D_idx);
+    // Create a temporary variable to hold previous iteration values with appropriate ghost cell width
+    // since it is not guaranteed that D_idx will have proper ghost cell width.
+    IntVector<NDIM> cell_ghosts;
+    if (d_ls_order == FIRST_ORDER_LS)
+    {
+        cell_ghosts = 1;
+    }
+    else
+    {
+        TBOX_ERROR("FastSweepLSMethod does not support " << enum_to_string(d_ls_order) << std::endl);
+    }
+    const int D_scratch_idx =
+        var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::SCRATCH"), cell_ghosts);
+    const int D_iter_idx =
+        var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::ITER"), cell_ghosts);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
+        hierarchy->getPatchLevel(ln)->allocatePatchData(D_scratch_idx, time);
         hierarchy->getPatchLevel(ln)->allocatePatchData(D_iter_idx, time);
     }
 
@@ -139,13 +158,13 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     // away from the interface and actual distance value near the interface.
     for (unsigned k = 0; k < d_locate_interface_fcns.size(); ++k)
     {
-        (*d_locate_interface_fcns[k])(D_idx, hier_math_ops, time, initial_time, d_locate_interface_fcns_ctx[k]);
+        (*d_locate_interface_fcns[k])(D_scratch_idx, hier_math_ops, time, initial_time, d_locate_interface_fcns_ctx[k]);
     }
 
     // Set hierarchy objects.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(
-        D_idx, "LINEAR_REFINE", true, "NONE", "QUADRATIC", false, d_bc_coef);
+        D_scratch_idx, "LINEAR_REFINE", true, "NONE", "LINEAR", false, d_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();
     fill_op->initializeOperatorState(D_transaction, hierarchy);
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
@@ -157,12 +176,12 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
 
     while (diff_L2_norm > d_abs_tol && outer_iter < d_max_its)
     {
-        hier_cc_data_ops.copyData(D_iter_idx, D_idx);
+        hier_cc_data_ops.copyData(D_iter_idx, D_scratch_idx);
         fill_op->fillData(time);
 
-        fastSweep(hier_math_ops, D_idx);
+        fastSweep(hier_math_ops, D_scratch_idx);
 
-        hier_cc_data_ops.axmy(D_iter_idx, 1.0, D_iter_idx, D_idx);
+        hier_cc_data_ops.axmy(D_iter_idx, 1.0, D_iter_idx, D_scratch_idx);
         diff_L2_norm = hier_cc_data_ops.L2Norm(D_iter_idx, cc_wgt_idx);
 
         outer_iter += 1;
@@ -191,12 +210,20 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
         }
     }
 
+    // Copy signed distance into supplied patch data index
+    hier_cc_data_ops.copyData(D_idx, D_scratch_idx);
+
     // Deallocate the temporary variable.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
+        hierarchy->getPatchLevel(ln)->deallocatePatchData(D_scratch_idx);
         hierarchy->getPatchLevel(ln)->deallocatePatchData(D_iter_idx);
     }
+    var_db->removePatchDataIndex(D_scratch_idx);
     var_db->removePatchDataIndex(D_iter_idx);
+
+    // Indicate that the LS has been initialized.
+    d_reinitialize_ls = false;
 
     return;
 } // initializeLSData
@@ -307,6 +334,8 @@ FastSweepingLSMethod::getFromInput(Pointer<Database> input_db)
     d_abs_tol = input_db->getDoubleWithDefault("abs_tol", d_abs_tol);
 
     d_enable_logging = input_db->getBoolWithDefault("enable_logging", d_enable_logging);
+
+    d_reinit_interval = input_db->getIntegerWithDefault("reinit_interval", d_reinit_interval);
 
     d_consider_phys_bdry_wall = input_db->getBoolWithDefault("physical_bdry_wall", d_consider_phys_bdry_wall);
     Array<int> wall_loc_idices;

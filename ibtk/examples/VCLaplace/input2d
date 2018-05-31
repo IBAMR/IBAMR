@@ -26,7 +26,7 @@ Main {
    timer_enabled = TRUE
 }
 
-N = 8
+N = 32
 
 CartesianGeometry {
    domain_boxes       = [(0,0), (N - 1,N - 1)]

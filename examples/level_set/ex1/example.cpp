@@ -189,8 +189,8 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         const ConvectiveDifferencingType difference_form =
             IBAMR::string_to_enum<ConvectiveDifferencingType>(main_db->getStringWithDefault(
                 "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
-        pout << "solving the advection equation in " << enum_to_string<ConvectiveDifferencingType>(difference_form)
-             << " form.\n";
+        pout << "solving the advection equation in "
+             << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
         Pointer<CellVariable<NDIM, double> > Q_var = new CellVariable<NDIM, double>("Q");
         LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
             "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));
@@ -235,8 +235,11 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("LevelSet"));
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&circular_interface_neighborhood, (void*)&circle);
-        level_set_ops->initializeLSData(
-            Q_scratch_idx, hier_math_ops, time_integrator->getIntegratorTime(), /*initial_time*/ true);
+        level_set_ops->initializeLSData(Q_scratch_idx,
+                                        hier_math_ops,
+                                        time_integrator->getIntegratorStep(),
+                                        time_integrator->getIntegratorTime(),
+                                        /*initial_time*/ true);
 
         // Compute L1 error from analytical solution
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -283,7 +286,7 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         double E_domain = 0.0;
         double E_interface = 0.0;
         int num_interface_pts = 0;
-        // Compute L1 Norm for specific regions (only in serial)
+        // Compute L1 Norm for specific regions
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);

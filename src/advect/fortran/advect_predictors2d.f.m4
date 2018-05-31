@@ -1994,4 +1994,98 @@ c
 c
       return
       end
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Apply cubic interpolation upwinding to extrapolate a cell centered
+c     quantity onto the cell faces.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      subroutine cui_extrapolate2d(
+     &     ifirst0,ilast0,ifirst1,ilast1,
+     &     nQgc0,nQgc1,
+     &     Q0,Q1,
+     &     nugc0,nugc1,
+     &     nqhalfgc0,nqhalfgc1,
+     &     u0,u1,
+     &     qhalf0,qhalf1)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ifirst0,ilast0,ifirst1,ilast1
+
+      INTEGER nQgc0,nQgc1
+
+      INTEGER nugc0,nugc1
+      INTEGER nqhalfgc0,nqhalfgc1
+
+      REAL Q0(CELL2dVECG(ifirst,ilast,nQgc))
+      REAL Q1(ifirst1-nQgc1:ilast1+nQgc1,
+     &        ifirst0-nQgc0:ilast0+nQgc0)
+
+      REAL u0(FACE2d0VECG(ifirst,ilast,nugc))
+      REAL u1(FACE2d1VECG(ifirst,ilast,nugc))
+c
+c     Input/Output.
+c
+      REAL qhalf0(FACE2d0VECG(ifirst,ilast,nqhalfgc))
+      REAL qhalf1(FACE2d1VECG(ifirst,ilast,nqhalfgc))
+c
+c     Local variables.
+c
+      INTEGER ic0,ic1
+      REAL QC,QU,QD
+      REAL Qf_HR
+c
+c     Make a permuted copy of Q.
+c
+      do ic1 = ifirst1-nQgc1,ilast1+nQgc1
+         do ic0 = ifirst0-nQgc0,ilast0+nQgc0
+            Q1(ic1,ic0) = Q0(ic0,ic1)
+         enddo
+      enddo
+c
+c     Extrapolate values in the x-direction.
+c
+      do ic1 = ifirst1,ilast1
+        do ic0 = ifirst0,ilast0+1
+          if (u0(ic0,ic1) .ge. 0.d0) then
+              QC  = Q0(ic0-1,ic1)
+              QU  = Q0(ic0-2,ic1)
+              QD  = Q0(ic0,ic1)
+            else
+              QC  = Q0(ic0,ic1)
+              QU  = Q0(ic0+1,ic1)
+              QD  = Q0(ic0-1,ic1)
+            endif
+
+c           High-resolution scheme (HR)
+            call interpolate_cui_hr_quantity2d(QU,QC,QD,Qf_HR)
+            qhalf0(ic0,ic1) = Qf_HR
+        enddo
+      enddo
+c
+c     Extrapolate values in the y-direction.
+c
+      do ic0 = ifirst0,ilast0
+        do ic1 = ifirst1,ilast1+1
+          if (u1(ic1,ic0) .ge. 0.d0) then
+              QC  = Q1(ic1-1,ic0)
+              QU  = Q1(ic1-2,ic0)
+              QD  = Q1(ic1,ic0)
+            else
+              QC  = Q1(ic1,ic0)
+              QU  = Q1(ic1+1,ic0)
+              QD  = Q1(ic1-1,ic0)
+            endif
+
+c           High-resolution scheme (HR)
+            call interpolate_cui_hr_quantity2d(QU,QC,QD,Qf_HR)
+            qhalf1(ic1,ic0) = Qf_HR 
+        enddo
+      enddo
+c
+      return
+      end 

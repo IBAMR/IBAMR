@@ -238,10 +238,11 @@ run_example(int argc, char* argv[])
         ib_method_ops->initializeHierarchyOperatorsandData();
 
         // Create hydrodynamic force evaluator object.
+        double start_time = time_integrator->getIntegratorTime();
         double rho_fluid = input_db->getDouble("RHO");
         double mu_fluid = input_db->getDouble("MU");
         Pointer<IBHydrodynamicForceEvaluator> hydro_force =
-            new IBHydrodynamicForceEvaluator("IBHydrodynamicForce", rho_fluid, mu_fluid, true);
+            new IBHydrodynamicForceEvaluator("IBHydrodynamicForce", rho_fluid, mu_fluid, start_time, true);
 
         // Get the initial box position and velocity from input
         const string init_hydro_force_box_db_name = "InitHydroForceBox_0";
@@ -251,7 +252,7 @@ run_example(int argc, char* argv[])
         input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("upper_right_corner", &box_X_upper[0], 3);
         input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("init_velocity", &box_init_vel[0], 3);
 
-	// Register control volume
+        // Register control volume
         hydro_force->registerStructure(box_X_lower, box_X_upper, patch_hierarchy, box_init_vel, 0);
 
         // Register plotting data for the control volume
@@ -259,7 +260,7 @@ run_example(int argc, char* argv[])
 
         // Get the center of mass of the cylinder
         IBTK::Vector3d Cylinder_COM;
-        std::vector<std::vector<double> > structure_COM = ib_method_ops->getStructureCOM();
+        std::vector<std::vector<double> > structure_COM = ib_method_ops->getCurrentStructureCOM();
 
         // Deallocate initialization objects.
         ib_method_ops->freeLInitStrategy();
@@ -359,7 +360,7 @@ run_example(int argc, char* argv[])
             hydro_force->updateStructurePlotData(patch_hierarchy, 0);
 
             // Set the torque origin for the next time step
-            structure_COM = ib_method_ops->getStructureCOM();
+            structure_COM = ib_method_ops->getCurrentStructureCOM();
             for (int d = 0; d < 3; ++d) Cylinder_COM[d] = structure_COM[0][d];
 
             // Set the torque evaluation axis to point from newest COM

@@ -10,7 +10,7 @@ EXTRA_DIST =                          \
   interp2d.f.m4     interp3d.f.m4     \
   laplace2d.f.m4    laplace3d.f.m4    \
   miscmath2d.f.m4   miscmath3d.f.m4   \
-  vclaplace2d.f.m4                    \
+  vclaplace2d.f.m4  vclaplace3d.f.m4  \
   rot2d.f.m4        rot3d.f.m4        \
   strain2d.f.m4     strain3d.f.m4
 BUILT_SOURCES =                 \
@@ -22,7 +22,7 @@ BUILT_SOURCES =                 \
   interp2d.f     interp3d.f     \
   laplace2d.f    laplace3d.f    \
   miscmath2d.f   miscmath3d.f   \
-  vclaplace2d.f                 \
+  vclaplace2d.f  vclaplace3d.f  \
   rot2d.f        rot3d.f        \
   strain2d.f     strain3d.f
 CLEANFILES = ${BUILT_SOURCES}
