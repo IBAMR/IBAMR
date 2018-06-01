@@ -62,6 +62,7 @@
 #include "SideIndex.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
+#include "boost/math/special_functions/round.hpp"
 #include "boost/multi_array.hpp"
 #include "ibamr/IBFESurfaceMethod.h"
 #include "ibamr/IBHierarchyIntegrator.h"
@@ -1668,7 +1669,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                         const libMesh::Point x = r + intersections[k].first * q;
                         const libMesh::Point& xi = intersections[k].second;
                         SideIndex<NDIM> i_s(i_c, axis, 0);
-                        i_s(axis) = std::floor((x(axis) - x_lower[axis]) / dx[axis] + 0.5) + patch_lower[axis];
+                        i_s(axis) = boost::math::iround((x(axis) - x_lower[axis]) / dx[axis]) + patch_lower[axis];
                         if (extended_box.contains(i_s))
                         {
                             std::vector<libMesh::Point> ref_coords(1, xi);

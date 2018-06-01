@@ -643,73 +643,37 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
     {
     case libMesh::TRI3:
     {
+        const libMesh::VectorValue<double>& p = r;
+        const libMesh::VectorValue<double>& d = q;
+
         // Linear interpolation:
         //
-        //    (1-u-v)*p0 + u*p1 + v*p2 = r + t*q
+        //    (1-u-v)*p0 + u*p1 + v*p2 = p + t*d
         //
-        // Factor the interpolation formula:
-        //
-        //    (p1-p0)*u + (p2-p0)*v + p0 = r + t*q
-        //
-        // Solve a small linear system for u and v.
+        // https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+        // http://www.lighthouse3d.com/tutorials/maths/ray-triangle-intersection/
         const libMesh::Point& p0 = *elem->get_node(0);
         const libMesh::Point& p1 = *elem->get_node(1);
         const libMesh::Point& p2 = *elem->get_node(2);
-        double A00, A10, A01, A11, C1, C2;
-        if (q(0) != 0.0)
-        {
-            A00 = p1(1) - p0(1);
-            A01 = p2(1) - p0(1);
-            C1 = p0(1) - r(1);
-            A10 = p1(2) - p0(2);
-            A11 = p2(2) - p0(2);
-            C2 = p0(2) - r(2);
-        }
-        else if (q(1) != 0.0)
-        {
-            A00 = p1(0) - p0(0);
-            A01 = p2(0) - p0(0);
-            C1 = p0(0) - r(0);
-            A10 = p1(2) - p0(2);
-            A11 = p2(2) - p0(2);
-            C2 = p0(2) - r(2);
-        }
-        else
-        {
-            A00 = p1(0) - p0(0);
-            A01 = p2(0) - p0(0);
-            C1 = p0(0) - r(0);
-            A10 = p1(1) - p0(1);
-            A11 = p2(1) - p0(1);
-            C2 = p0(1) - r(1);
-        }
-        const double det = A00 * A11 - A10 * A01;
-        if (std::abs(det) > std::numeric_limits<double>::epsilon())
-        {
-            const double u = (A01 * C2 - A11 * C1) / det;
-            const double v = -(A00 * C2 - A10 * C1) / det;
 
-            // Look for intersections within the element interior.
-            if (u >= 0.0 - tol && v >= 0.0 -tol && (u + v) <= 1.0 + tol)
+        const libMesh::VectorValue<double> e1 = p1 - p0;
+        const libMesh::VectorValue<double> e2 = p2 - p0;
+        const libMesh::VectorValue<double> h = d.cross(e2);
+        double a = e1 * h;
+        if (std::abs(a) > std::numeric_limits<double>::epsilon())
+        {
+            double f = 1.0 / a;
+            const libMesh::VectorValue<double> s = p - p0;
+            double u = f * (s * h);
+            if (u >= -tol && u <= 1.0 + tol)
             {
-                is_interior_intersection = (u >= 0.0 && v >= 0.0 && (u + v) <= 1.0);
-                double t;
-                if (std::abs(q(0)) >= std::abs(q(1)) && std::abs(q(0)) >= std::abs(q(2)))
+                const libMesh::VectorValue<double> q = s.cross(e1);
+                double v = f * (d * q);
+                if (v >= tol && (u + v) <= 1.0 + tol)
                 {
-                    const double p = u * p0(0) + v * p1(0) + (1.0 - u - v) * p2(0);
-                    t = (p - r(0)) / q(0);
+                    double t = f * (e2 * q);
+                    t_vals.push_back(std::make_pair(t, libMesh::Point(u, v, 0.0)));
                 }
-                else if (std::abs(q(1)) >= std::abs(q(2)))
-                {
-                    const double p = u * p0(1) + v * p1(1) + (1.0 - u - v) * p2(1);
-                    t = (p - r(1)) / q(1);
-                }
-                else
-                {
-                    const double p = u * p0(2) + v * p1(2) + (1.0 - u - v) * p2(2);
-                    t = (p - r(2)) / q(2);
-                }
-                t_vals.push_back(std::make_pair(t, libMesh::Point(u, v, 0.0)));
             }
         }
         break;
