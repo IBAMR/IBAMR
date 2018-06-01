@@ -94,8 +94,11 @@ ConstraintIBMethod {
    delta_fcn                = DELTA_FUNCTION
    enable_logging           = ENABLE_LOGGING
    needs_divfree_projection = FALSE
-   rho_fluid                = RHO
-   mu_fluid                 = MU
+   rho_solid                = RHO
+   
+   // Options to calculate the structure's momenta
+   calculate_structure_linear_mom       = TRUE            // default false
+   calculate_structure_rotational_mom   = TRUE            // default false
    
    // Options to calculate the structure's momenta
    calculate_structure_linear_mom       = TRUE            // default false

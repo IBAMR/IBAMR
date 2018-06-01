@@ -896,6 +896,13 @@ public:
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
+    /*!
+     * Register user defined Lagrangian data to be maintained
+     *
+     */
+    void registerUserDefinedLData(const std::string& data_name,
+                                  int depth);
+
 protected:
     /*!
      * \brief Constructor.
@@ -1212,6 +1219,11 @@ private:
      * PETSc ordering corresponding to a depth of 1.
      */
     std::vector<std::vector<int> > d_nonlocal_petsc_indices;
+
+    /*!
+     * Container for additional user defined Lagrangian data
+     */
+    std::map<std::string, int> d_user_defined_ldata;
 
     //\}
 };

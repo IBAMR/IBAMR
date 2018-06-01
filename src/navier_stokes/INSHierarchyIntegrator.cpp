@@ -289,33 +289,6 @@ INSHierarchyIntegrator::getProjectionBoundaryConditions() const
 } // getProjectionBoundaryConditions
 
 void
-INSHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable<NDIM> > rho_var)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(!d_rho_var);
-    TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
-    d_rho_var = rho_var;
-    return;
-} // registerMassDensityVariable
-
-void
-INSHierarchyIntegrator::setMassDensityFunction(Pointer<CartGridFunction> rho_fcn)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
-    d_rho_fcn = rho_fcn;
-    return;
-} // registerMassDensityFunction
-
-Pointer<CartGridFunction>
-INSHierarchyIntegrator::getMassDensityFunction() const
-{
-    return d_rho_fcn;
-} // getMassDensityFunction
-
-void
 INSHierarchyIntegrator::setCreepingFlow(bool creeping_flow)
 {
 #if !defined(NDEBUG)
@@ -616,8 +589,10 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
         }
         else
         {
-            TBOX_ERROR(d_object_name << ":  "
-                                     << "Key data `rho' not found in input.");
+            TBOX_WARNING("INSHierarchyIntegrator::getFromInput()\n"
+                         << "  no constant density specified;\n"
+                         << "  setting to quiet_NaN");
+            d_problem_coefs.setRho(std::numeric_limits<double>::quiet_NaN());
         }
 
         if (db->keyExists("mu"))
@@ -626,8 +601,10 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
         }
         else
         {
-            TBOX_ERROR(d_object_name << ":  "
-                                     << "Key data `mu' not found in input.");
+            TBOX_WARNING("INSHierarchyIntegrator::getFromInput()\n"
+                         << "  no constant viscosity specified;\n"
+                         << "  setting to quiet_NaN");
+            d_problem_coefs.setMu(std::numeric_limits<double>::quiet_NaN());
         }
 
         if (db->keyExists("lambda"))

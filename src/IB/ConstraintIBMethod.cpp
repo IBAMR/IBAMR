@@ -44,6 +44,7 @@
 #include "PatchHierarchy.h"
 #include "VariableDatabase.h"
 #include "ibamr/ConstraintIBMethod.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/namespaces.h"
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
@@ -169,6 +170,7 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
       d_FuRMoRP_current_time(0.0),
       d_FuRMoRP_new_time(0.0),
       d_vol_element(d_no_structures, 0.0),
+      d_vol_element_is_set(d_no_structures, false),
       d_structure_vol(d_no_structures, 0.0),
       d_structure_mom(d_no_structures, std::vector<double>(3, 0.0)),
       d_structure_rotational_mom(d_no_structures, std::vector<double>(3, 0.0)),
@@ -188,8 +190,9 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
       d_moment_of_inertia_new(d_no_structures, Eigen::Matrix3d::Zero()),
       d_tagged_pt_lag_idx(d_no_structures, 0),
       d_tagged_pt_position(d_no_structures, std::vector<double>(3, 0.0)),
+      d_rho_solid(d_no_structures, std::numeric_limits<double>::quiet_NaN()),
       d_rho_fluid(std::numeric_limits<double>::quiet_NaN()),
-      d_mu_fluid(std::numeric_limits<double>::quiet_NaN()),
+      d_rho_is_const(true),
       d_calculate_structure_linear_mom(false),
       d_calculate_structure_rotational_mom(false),
       d_timestep_counter(0),
@@ -204,7 +207,10 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
       d_output_MOI(false),
       d_output_eul_mom(false),
       d_dir_name("./ConstraintIBMethodDump"),
-      d_base_output_filename("ImmersedStructrue")
+      d_base_output_filename("ImmersedStructrue"),
+      d_rho_ins_idx(-1),
+      d_rho_scratch_idx(-1),
+      d_u_phys_bdry_op(NULL)
 {
     // NOTE: Parent class constructor registers class with the restart manager, sets object name.
 
@@ -394,6 +400,8 @@ ConstraintIBMethod::~ConstraintIBMethod()
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_u_fluidSolve_cib_idx)) level->deallocatePatchData(d_u_fluidSolve_cib_idx);
+        if (!d_rho_is_const && level->checkAllocated(d_rho_scratch_idx))
+            level->deallocatePatchData(d_rho_scratch_idx);
     }
 
     return;
@@ -505,6 +513,20 @@ ConstraintIBMethod::calculateEulerianMomentum()
                 }
             }
         }
+        if (d_rho_is_const)
+        {
+#if !defined(NDEBUG)
+            TBOX_ASSERT(d_rho_fluid >= 0.0);
+#endif
+            d_hier_sc_data_ops->scale(wgt_sc_active_idx, d_rho_fluid, wgt_sc_active_idx);
+        }
+        else
+        {
+#if !defined(NDEBUG)
+            TBOX_ASSERT(d_rho_ins_idx > 0);
+#endif
+            d_hier_sc_data_ops->multiply(wgt_sc_active_idx, d_rho_ins_idx, wgt_sc_active_idx);
+        }
 
         momentum[active] = d_hier_sc_data_ops->dot(d_u_fluidSolve_idx, wgt_sc_active_idx);
 
@@ -542,10 +564,57 @@ ConstraintIBMethod::registerEulerianVariables()
         d_phi_var = new CellVariable<NDIM, double>(d_object_name + "::phi");
         const IntVector<NDIM> cell_ghosts = CELLG;
         const IntVector<NDIM> side_ghosts = SIDEG;
-        d_u_scratch_idx = var_db->registerVariableAndContext(d_u_var, d_scratch_context, side_ghosts);
         d_phi_idx = var_db->registerVariableAndContext(d_phi_var, d_scratch_context, cell_ghosts);
         d_Div_u_scratch_idx = var_db->registerVariableAndContext(d_Div_u_var, d_scratch_context, cell_ghosts);
     }
+
+    INSVCStaggeredHierarchyIntegrator* p_vc_ins_hier_integrator =
+        dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(IBStrategy::getINSHierarchyIntegrator());
+    // If using constant rho INS solver,
+    // then assert rho_fluid == rho_solid
+    if (!p_vc_ins_hier_integrator)
+    {
+        d_rho_is_const = true;
+        INSHierarchyIntegrator* p_ins_hier_integrator = IBStrategy::getINSHierarchyIntegrator();
+        d_rho_fluid = p_ins_hier_integrator->getStokesSpecifications()->getRho();
+        for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
+        {
+            if (d_rho_solid[struct_no] != d_rho_fluid)
+            {
+                TBOX_ERROR(d_object_name << "::registerEulerianVariables():\n"
+                                         << "  for constant density cases, rho_solid[struct_no]\n"
+                                         << "  must equal rho_fluid");
+            }
+        }
+    }
+    else
+    {
+        d_rho_is_const = p_vc_ins_hier_integrator->rhoIsConstant();
+        if (d_rho_is_const)
+        {
+            d_rho_fluid = p_vc_ins_hier_integrator->getStokesSpecifications()->getRho();
+            for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
+            {
+                if (d_rho_solid[struct_no] != d_rho_fluid)
+                {
+                    TBOX_ERROR(d_object_name << "::registerEulerianVariables():\n"
+                                             << "  for constant density cases, rho_solid[struct_no]\n"
+                                             << "  must equal rho_fluid");
+                }
+            }
+        }
+        else
+        {
+            // Get the density maintained by the integrator
+            d_rho_ins_idx = p_vc_ins_hier_integrator->getLinearOperatorRhoPatchDataIndex();
+#if !defined(NDEBUG)
+            TBOX_ASSERT(d_rho_ins_idx >= 0);
+#endif
+                d_rho_var = new SideVariable<NDIM, double>(d_object_name + "::rho");
+                d_rho_scratch_idx =
+                    var_db->registerVariableAndContext(d_rho_var, d_scratch_context, getMinimumGhostCellWidth());
+            }
+        }
 
     return;
 } // registerEulerianVariables
@@ -576,8 +645,11 @@ ConstraintIBMethod::registerConstraintIBKinematics(const std::vector<Pointer<Con
     if (ib_kinematics.size() != static_cast<unsigned int>(d_no_structures))
     {
         TBOX_ERROR("ConstraintIBMethod::registerConstraintIBKinematics(). No of structures "
-                   << ib_kinematics.size() << " in vector passed to this method is not equal to no. of structures "
-                   << d_no_structures << " registered with this class" << std::endl);
+                   << ib_kinematics.size()
+                   << " in vector passed to this method is not equal to no. of structures "
+                   << d_no_structures
+                   << " registered with this class"
+                   << std::endl);
     }
     else
     {
@@ -704,13 +776,15 @@ ConstraintIBMethod::postprocessIntegrateData(double current_time, double new_tim
     return;
 } // postprocessIntegrateData
 
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
 void
 ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool from_restart)
 {
     // Read in control parameters from input database.
     d_needs_div_free_projection = input_db->getBoolWithDefault("needs_divfree_projection", d_needs_div_free_projection);
+    input_db->getDoubleArray("rho_solid", &d_rho_solid[0], d_no_structures);
     d_rho_fluid = input_db->getDoubleWithDefault("rho_fluid", d_rho_fluid);
-    d_mu_fluid = input_db->getDoubleWithDefault("mu_fluid", d_mu_fluid);
     d_calculate_structure_linear_mom =
         input_db->getBoolWithDefault("calculate_structure_linear_mom", d_calculate_structure_linear_mom);
     d_calculate_structure_rotational_mom =
@@ -767,7 +841,8 @@ ConstraintIBMethod::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
@@ -1303,6 +1378,13 @@ ConstraintIBMethod::calculateVolumeElement()
         const size_t structs_on_this_ln = structIDs.size();
         for (size_t struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
+            // If the volume element has already been set, then skip the volume computation
+            if (d_vol_element_is_set[struct_no])
+            {
+                tbox::plog << "Skipping volume element computation for structure no. " << struct_no << std::endl;
+                tbox::pout << "Skipping volume element computation for structure no. " << struct_no << std::endl;
+                continue;
+            }
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
             Pointer<ConstraintIBKinematics> ptr_ib_kinematics =
@@ -1345,7 +1427,7 @@ ConstraintIBMethod::calculateVolumeElement()
 
                 for (CellData<NDIM, int>::Iterator it(patch_box); it; it++)
                 {
-                    if ((*vol_cc_scratch_idx_data)(*it)) d_vol_element[location_struct_handle] += patch_cell_vol;
+                    if ((*vol_cc_scratch_idx_data)(*it)) d_structure_vol[location_struct_handle] += patch_cell_vol;
 
                 } // on the same patch
                 vol_cc_scratch_idx_data->fill(0, patch_box, 0);
@@ -1354,14 +1436,23 @@ ConstraintIBMethod::calculateVolumeElement()
         }     // all structs
         d_l_data_manager->getLData("X", ln)->restoreArrays();
     } // all levels
-    SAMRAI_MPI::sumReduction(&d_vol_element[0], d_no_structures);
-    d_structure_vol = d_vol_element;
+    SAMRAI_MPI::sumReduction(&d_structure_vol[0], d_no_structures);
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
         Pointer<ConstraintIBKinematics> ptr_ib_kinematics = d_ib_kinematics[struct_no];
         const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
-        d_vol_element[struct_no] /= struct_param.getTotalNodes();
+
+        // If the volume element has already been set, then no need to compute it
+        if (d_vol_element_is_set[struct_no])
+        {
+            d_structure_vol[struct_no] = struct_param.getTotalNodes() * d_vol_element[struct_no];
+        }
+        else
+        {
+            d_vol_element[struct_no] = d_structure_vol[struct_no] / struct_param.getTotalNodes();
+            d_vol_element_is_set[struct_no] = true;
+        }
 
         tbox::plog << " ++++++++++++++++ "
                    << " STRUCTURE NO. " << struct_no << "  ++++++++++++++++++++++++++ \n\n\n"
@@ -1568,7 +1659,9 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
             solveSystemOfEqns(d_rigid_rot_vel_new[struct_no], d_moment_of_inertia_new[struct_no]);
             Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
             for (int d = 0; d < NDIM; ++d)
+            {
                 if (!calculate_rot_mom[d]) d_rigid_rot_vel_new[struct_no][d] = 0.0;
+            }
 #endif
         }
     }
@@ -1815,7 +1908,6 @@ ConstraintIBMethod::applyProjection()
 
     // Allocate temporary data.
     ComponentSelector scratch_idxs;
-    scratch_idxs.setFlag(d_u_scratch_idx);
     scratch_idxs.setFlag(d_phi_idx);
     scratch_idxs.setFlag(d_Div_u_scratch_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1861,8 +1953,20 @@ ConstraintIBMethod::applyProjection()
     rhs_vec.addComponent(d_Div_u_var, d_Div_u_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
     // Setup the Poisson solver.
+    // Note that here, the delta t is absorbed in the phi term
     d_velcorrection_projection_spec->setCZero();
-    d_velcorrection_projection_spec->setDConstant(-1.0);
+    if (!d_rho_is_const)
+    {
+        // Copy rho from INS integrator and take reciprocal and scale
+        copyDensityVariable(d_rho_ins_idx, d_rho_scratch_idx);
+        d_hier_sc_data_ops->reciprocal(d_rho_scratch_idx, d_rho_scratch_idx);
+        d_hier_sc_data_ops->scale(d_rho_scratch_idx, -1.0, d_rho_scratch_idx);
+        d_velcorrection_projection_spec->setDPatchDataId(d_rho_scratch_idx);
+    }
+    else
+    {
+        d_velcorrection_projection_spec->setDConstant(-1.0/d_rho_fluid);
+    }
 
     d_velcorrection_projection_op->setPoissonSpecifications(*d_velcorrection_projection_spec);
     d_velcorrection_projection_op->setPhysicalBcCoef(&d_velcorrection_projection_bc_coef);
@@ -1895,26 +1999,45 @@ ConstraintIBMethod::applyProjection()
     Phi_bdry_bc_fill_op->setHomogeneousBc(true);
     Phi_bdry_bc_fill_op->fillData(d_FuRMoRP_new_time);
 
-    // Set U := U - grad Phi.
+    // Set U := U - 1/rho * grad Phi.
     const bool U_scratch_cf_bdry_synch = true;
-    getHierarchyMathOps()->grad(d_u_scratch_idx,
-                                Pointer<SideVariable<NDIM, double> >(d_u_var), // dst
-                                U_scratch_cf_bdry_synch,                       // dst_cf_bdry_synch
-                                1.0,                                           // alpha
-                                d_phi_idx,
-                                d_phi_var,    // src
-                                d_no_fill_op, // src_bdry_fill
-                                d_FuRMoRP_new_time);
+    if (!d_rho_is_const)
+    {
+        getHierarchyMathOps()->grad(d_u_fluidSolve_idx,
+                                    Pointer<SideVariable<NDIM, double> >(d_u_var),
+                                    U_scratch_cf_bdry_synch,
+                                    d_rho_scratch_idx,
+                                    Pointer<SideVariable<NDIM, double> >(d_rho_var),
+                                    d_phi_idx,
+                                    d_phi_var,
+                                    d_no_fill_op,
+                                    d_FuRMoRP_new_time,
+                                    1.0,
+                                    d_u_fluidSolve_idx,
+                                    Pointer<SideVariable<NDIM, double> >(d_u_var));
+    }
+    else
+    {
+        getHierarchyMathOps()->grad(d_u_fluidSolve_idx,
+                                    Pointer<SideVariable<NDIM, double> >(d_u_var),
+                                    U_scratch_cf_bdry_synch,
+                                    -1.0/d_rho_fluid,
+                                    d_phi_idx,
+                                    d_phi_var,
+                                    d_no_fill_op,
+                                    d_FuRMoRP_new_time,
+                                    1.0,
+                                    d_u_fluidSolve_idx,
+                                    Pointer<SideVariable<NDIM, double> >(d_u_var));
+    }
 
-    d_hier_sc_data_ops->axpy(d_u_fluidSolve_idx, -1.0, d_u_scratch_idx, d_u_fluidSolve_idx);
-
-    // Update pressure p = p + rho/dt * phi
+    // Update pressure p = p + phi/dt
     const Pointer<Variable<NDIM> > p_var = d_ib_solver->getPressureVariable();
     const Pointer<VariableContext> p_ctx = d_ib_solver->getNewContext();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
     const double dt = d_FuRMoRP_new_time - d_FuRMoRP_current_time;
-    d_hier_cc_data_ops->axpy(p_idx, d_rho_fluid / dt, d_phi_idx, p_idx);
+    d_hier_cc_data_ops->axpy(p_idx, 1.0 / dt, d_phi_idx, p_idx);
 
     // Compute div U after applying the projection operator
     if (d_do_log)
@@ -2115,9 +2238,8 @@ ConstraintIBMethod::updateStructurePositionMidPointStep()
                         {
                             X_new[d] = d_center_of_mass_current[location_struct_handle][d] +
                                        new_shape[d][lag_idx - offset] +
-                                       dt * 0.5 *
-                                           (d_rigid_trans_vel_current[location_struct_handle][d] +
-                                            d_rigid_trans_vel_new[location_struct_handle][d]);
+                                       dt * 0.5 * (d_rigid_trans_vel_current[location_struct_handle][d] +
+                                                   d_rigid_trans_vel_new[location_struct_handle][d]);
                         }
                     }
                     else if (position_update_method == "CONSTRAINT_EXPT_POSITION")
@@ -2213,6 +2335,23 @@ ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
 } // copyFluidVariable
 
 void
+ConstraintIBMethod::copyDensityVariable(int copy_from_idx, int copy_to_idx)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(copy_to_idx)) level->allocatePatchData(copy_to_idx);
+    }
+
+    d_hier_sc_data_ops->copyData(copy_to_idx, copy_from_idx, /*interior_only*/ true);
+
+    return;
+} // copyDensityVariable
+
+void
 ConstraintIBMethod::interpolateFluidSolveVelocity()
 {
     const int coarsest_ln = 0;
@@ -2259,7 +2398,8 @@ ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
     u_ins.addComponent(d_u_fluidSolve_var, d_u_fluidSolve_idx, d_wgt_sc_idx);
 
     u_cib.setToScalar(0.0);
-    d_l_data_manager->spread(d_u_fluidSolve_cib_idx, F_data, X_data, (RobinPhysBdryPatchStrategy*)NULL);
+    d_l_data_manager->spread(d_u_fluidSolve_cib_idx, F_data, X_data, d_u_phys_bdry_op);
+
     u_ins.add(Pointer<SAMRAIVectorReal<NDIM, double> >(&u_ins, false),
               Pointer<SAMRAIVectorReal<NDIM, double> >(&u_cib, false));
 
@@ -2351,8 +2491,8 @@ ConstraintIBMethod::calculateDrag()
         SAMRAI_MPI::sumReduction(&constraint_force[struct_no][0], 3);
         for (int d = 0; d < NDIM; ++d)
         {
-            inertia_force[struct_no][d] *= (d_rho_fluid / dt) * d_vol_element[struct_no];
-            constraint_force[struct_no][d] *= (d_rho_fluid / dt);
+            inertia_force[struct_no][d] *= (d_rho_solid[struct_no] / dt) * d_vol_element[struct_no];
+            constraint_force[struct_no][d] *= (d_rho_solid[struct_no] / dt);
         }
     }
 
@@ -2462,8 +2602,8 @@ ConstraintIBMethod::calculateTorque()
         SAMRAI_MPI::sumReduction(&constraint_torque[struct_no][0], 3);
         for (int d = 0; d < 3; ++d)
         {
-            inertia_torque[struct_no][d] *= (d_rho_fluid / dt) * d_vol_element[struct_no];
-            constraint_torque[struct_no][d] *= (d_rho_fluid / dt);
+            inertia_torque[struct_no][d] *= (d_rho_solid[struct_no] / dt) * d_vol_element[struct_no];
+            constraint_torque[struct_no][d] *= (d_rho_solid[struct_no] / dt);
         }
     }
 
@@ -2545,8 +2685,8 @@ ConstraintIBMethod::calculatePower()
         SAMRAI_MPI::sumReduction(&constraint_power[struct_no][0], 3);
         for (int d = 0; d < NDIM; ++d)
         {
-            inertia_power[struct_no][d] *= (d_rho_fluid / dt) * d_vol_element[struct_no];
-            constraint_power[struct_no][d] *= (d_rho_fluid / dt);
+            inertia_power[struct_no][d] *= (d_rho_solid[struct_no] / dt) * d_vol_element[struct_no];
+            constraint_power[struct_no][d] *= (d_rho_solid[struct_no] / dt);
         }
     }
 
@@ -2615,7 +2755,7 @@ ConstraintIBMethod::calculateStructureMomentum()
         SAMRAI_MPI::sumReduction(&d_structure_mom[struct_no][0], 3);
         for (int d = 0; d < NDIM; ++d)
         {
-            d_structure_mom[struct_no][d] *= d_rho_fluid * d_vol_element[struct_no];
+            d_structure_mom[struct_no][d] *= d_rho_solid[struct_no] * d_vol_element[struct_no];
         }
     }
 
@@ -2695,7 +2835,7 @@ ConstraintIBMethod::calculateStructureRotationalMomentum()
         SAMRAI_MPI::sumReduction(&d_structure_rotational_mom[struct_no][0], 3);
         for (int d = 0; d < 3; ++d)
         {
-            d_structure_rotational_mom[struct_no][d] *= d_rho_fluid * d_vol_element[struct_no];
+            d_structure_rotational_mom[struct_no][d] *= d_rho_solid[struct_no] * d_vol_element[struct_no];
         }
     }
 
