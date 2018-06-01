@@ -563,6 +563,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         boost::array<PetscVector<double>*, NDIM> DU_j_ghost_vec = d_DU_j_IB_ghost_vecs[part];
+
      
         NumericVector<double>* X_vec = NULL;
         NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
@@ -752,7 +753,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                 if (d_use_velocity_jump_conditions)
 				{
 					for (unsigned int d = 0; d < NDIM; ++d)
-						get_values_for_interpolation(DU_j_node[d], DU_j_ghost_vec[d], DU_j_dof_indices[d]);
+						get_values_for_interpolation(DU_j_node[d], *DU_j_ghost_vec[d], DU_j_dof_indices[d]);
 				}
 
                 const bool qrule_changed =
@@ -769,7 +770,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 				boost::array<double*, NDIM> DU_j_begin;
 				for (unsigned int d = 0; d < NDIM; ++d)
                 {
-					double* DU_j_begin[d] = &DU_j_qp[d][NDIM * qp_offset];
+					DU_j_begin[d] = &DU_j_qp[d][NDIM * qp_offset];
 					std::fill(DU_j_begin[d], DU_j_begin[d] + NDIM * n_qp, 0.0);
 				}
                 //~ double* du_j_begin = &DU_j_qp[k][NDIM * qp_offset];
