@@ -2112,39 +2112,25 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
     DofMap& P_j_dof_map = P_j_system.get_dof_map();
     FEType P_j_fe_type = P_j_dof_map.variable_type(0);
     std::vector<unsigned int> P_j_dof_indices;
-
-    //~ System& du_j_system = equation_systems->get_system(DU_JUMP_SYSTEM_NAME);
-    //~ const DofMap& du_j_dof_map = du_j_system.get_dof_map();
-
-    //~ FEType du_j_fe_type = du_j_dof_map.variable_type(0);
-
-    //~ for (unsigned int d = 0; d < NDIM; ++d)
-    //~ {
-        //~ TBOX_ASSERT(du_j_dof_map.variable_type(d) == du_j_fe_type);
-    //~ }
-    //~ std::vector<std::vector<unsigned int> > du_j_dof_indices(NDIM);
-
-    //~ System& dv_j_system = equation_systems->get_system(DV_JUMP_SYSTEM_NAME);
-    //~ const DofMap& dv_j_dof_map = dv_j_system.get_dof_map();
-    //~ FEType dv_j_fe_type = dv_j_dof_map.variable_type(0);
-
-    //~ for (unsigned int d = 0; d < NDIM; ++d)
-    //~ {
-        //~ TBOX_ASSERT(dv_j_dof_map.variable_type(d) == dv_j_fe_type);
-    //~ }
-    //~ std::vector<std::vector<unsigned int> > dv_j_dof_indices(NDIM);
-
-//~ #if (NDIM == 3)
-    //~ System& dw_j_system = equation_systems->get_system(DW_JUMP_SYSTEM_NAME);
-    //~ const DofMap& dw_j_dof_map = dw_j_system.get_dof_map();
-    //~ FEType dw_j_fe_type = dw_j_dof_map.variable_type(0);
-
-    //~ for (unsigned int d = 0; d < NDIM; ++d)
-    //~ {
-        //~ TBOX_ASSERT(dw_j_dof_map.variable_type(d) == dw_j_fe_type);
-    //~ }
-    //~ std::vector<std::vector<unsigned int> > dw_j_dof_indices(NDIM);
-//~ #endif
+    
+    const DofMap* DU_j_dof_map[NDIM];
+    FEDataManager::SystemDofMapCache* DU_j_dof_map_cache[NDIM];
+    boost::array< std::vector<std::vector<unsigned int> >, NDIM> DU_j_dof_indices;
+    boost::array<System*, NDIM> DU_j_system; 
+    if (d_use_velocity_jump_conditions)
+    {
+			for (unsigned int i = 0; i < NDIM; ++i)
+			{
+				DU_j_system[i] = &equation_systems->get_system(VELOCITY_JUMP_SYSTEM_NAME[i]);
+				DU_j_dof_map_cache[i] = d_fe_data_managers[part]->getDofMapCache(VELOCITY_JUMP_SYSTEM_NAME[i]);
+				DU_j_dof_map[i] = &DU_j_system[i]->get_dof_map();
+				FEType DU_j_fe_type = DU_j_dof_map[i]->variable_type(0);
+				for (unsigned int d = 0; d < NDIM; ++d)
+				{
+					TBOX_ASSERT(DU_j_dof_map[i]->variable_type(d) == DU_j_fe_type);
+				}       		
+			}		
+	}
 
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     DofMap& X_dof_map = X_system.get_dof_map();
@@ -2169,7 +2155,8 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
         d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
     boost::multi_array<double, 1> P_j_node;
-    boost::multi_array<double, 2> x_node, du_j_node, dv_j_node, dw_j_node;
+    boost::multi_array<double, 2> x_node;
+    boost::array< boost::multi_array<double, 2>, NDIM> DU_j_node; 
     boost::array<VectorValue<double>, 2> dx_dxi;
     VectorValue<double> n;
     std::vector<libMesh::Point> X_node_cache, x_node_cache;
@@ -2211,21 +2198,14 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
             for (int d = 0; d < NDIM; ++d)
             {
                 X_dof_map.dof_indices(elem, X_dof_indices[d], d);
-                //~ du_j_dof_map.dof_indices(elem, du_j_dof_indices[d], d);
-                //~ dv_j_dof_map.dof_indices(elem, dv_j_dof_indices[d], d);
-//~ #if (NDIM == 3)
-                //~ dw_j_dof_map.dof_indices(elem, dw_j_dof_indices[d], d);
-//~ #endif
             }
             get_values_for_interpolation(P_j_node, P_j_ghost_vec, P_j_dof_indices);
             get_values_for_interpolation(x_node, X_ghost_vec, X_dof_indices);
-
-            //~ get_values_for_interpolation(du_j_node, du_j_ghost_vec, du_j_dof_indices);
-            //~ get_values_for_interpolation(dv_j_node, dv_j_ghost_vec, dv_j_dof_indices);
-
-//~ #if (NDIM == 3)
-            //~ get_values_for_interpolation(dw_j_node, dw_j_ghost_vec, dw_j_dof_indices);
-//~ #endif
+            if (d_use_velocity_jump_conditions)
+			{
+					for (unsigned int d = 0; d < NDIM; ++d)
+						get_values_for_interpolation(DU_j_node[d], *DU_j_ghost_vec[d], DU_j_dof_indices[d]);
+			}
 
             // Cache the nodal and physical coordinates of the side element,
             // determine the bounding box of the current configuration of the
