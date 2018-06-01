@@ -204,6 +204,7 @@ IBRedundantInitializer::init()
         initializeDirectorAndRods();
         initializeBoundaryMass();
         initializeTargetPts();
+        initializeAnchorPts();
     }
 
     // Indicate that we have processed data.
@@ -391,15 +392,17 @@ IBRedundantInitializer::initializeStructurePosition()
 void
 IBRedundantInitializer::initializeSprings()
 {
-    if (!d_init_spring_on_level_fcn) return;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const size_t num_base_filename = d_base_filename[ln].size();
         d_spring_edge_map[ln].resize(num_base_filename);
         d_spring_spec_data[ln].resize(num_base_filename);
-        for (unsigned int j = 0; j < num_base_filename; ++j)
+        if (d_init_spring_on_level_fcn)
         {
-            d_init_spring_on_level_fcn(j, ln, d_spring_edge_map[ln][j], d_spring_spec_data[ln][j]);
+            for (unsigned int j = 0; j < num_base_filename; ++j)
+            {
+                d_init_spring_on_level_fcn(j, ln, d_spring_edge_map[ln][j], d_spring_spec_data[ln][j]);
+            }
         }
     }
     return;
@@ -408,15 +411,17 @@ IBRedundantInitializer::initializeSprings()
 void
 IBRedundantInitializer::initializeXSprings()
 {
-    if (!d_init_xspring_on_level_fcn) return;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const size_t num_base_filename = d_base_filename[ln].size();
         d_xspring_edge_map[ln].resize(num_base_filename);
         d_xspring_spec_data[ln].resize(num_base_filename);
-        for (unsigned int j = 0; j < num_base_filename; ++j)
+        if (d_init_xspring_on_level_fcn)
         {
-            d_init_xspring_on_level_fcn(j, ln, d_xspring_edge_map[ln][j], d_xspring_spec_data[ln][j]);
+            for (unsigned int j = 0; j < num_base_filename; ++j)
+            {
+                d_init_xspring_on_level_fcn(j, ln, d_xspring_edge_map[ln][j], d_xspring_spec_data[ln][j]);
+            }
         }
     }
     return;
@@ -425,14 +430,16 @@ IBRedundantInitializer::initializeXSprings()
 void
 IBRedundantInitializer::initializeBeams()
 {
-    if (!d_init_beam_on_level_fcn) return;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const size_t num_base_filename = d_base_filename[ln].size();
         d_beam_spec_data[ln].resize(num_base_filename);
-        for (unsigned int j = 0; j < num_base_filename; ++j)
+        if (d_init_beam_on_level_fcn)
         {
-            d_init_beam_on_level_fcn(j, ln, d_beam_spec_data[ln][j]);
+            for (unsigned int j = 0; j < num_base_filename; ++j)
+            {
+                d_init_beam_on_level_fcn(j, ln, d_beam_spec_data[ln][j]);
+            }
         }
     }
     return;
@@ -441,14 +448,26 @@ IBRedundantInitializer::initializeBeams()
 void
 IBRedundantInitializer::initializeTargetPts()
 {
-    if (!d_init_target_pt_on_level_fcn) return;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const size_t num_base_filename = d_base_filename[ln].size();
+        TargetSpec default_spec;
+        default_spec.stiffness = 0.0;
+        default_spec.damping = 0.0;
         d_target_spec_data[ln].resize(num_base_filename);
-        for (unsigned int j = 0; j < num_base_filename; ++j)
+        if (d_init_target_pt_on_level_fcn)
         {
-            d_init_target_pt_on_level_fcn(j, ln, d_target_spec_data[ln][j]);
+            for (unsigned int j = 0; j < num_base_filename; ++j)
+            {
+                d_init_target_pt_on_level_fcn(j, ln, d_target_spec_data[ln][j]);
+            }
+        }
+        else
+        {
+            for (unsigned int j = 0; j < num_base_filename; ++j)
+            {
+                d_target_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
+            }
         }
     }
     return;
@@ -457,17 +476,19 @@ IBRedundantInitializer::initializeTargetPts()
 void
 IBRedundantInitializer::initializeDirectorAndRods()
 {
-    if (!d_init_director_and_rod_on_level_fcn) return;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const size_t num_base_filename = d_base_filename[ln].size();
         d_directors[ln].resize(num_base_filename);
         d_rod_edge_map[ln].resize(num_base_filename);
         d_rod_spec_data[ln].resize(num_base_filename);
-        for (unsigned int j = 0; j < num_base_filename; ++j)
+        if (d_init_director_and_rod_on_level_fcn)
         {
-            d_init_director_and_rod_on_level_fcn(
-                j, ln, d_directors[ln][j], d_rod_edge_map[ln][j], d_rod_spec_data[ln][j]);
+            for (unsigned int j = 0; j < num_base_filename; ++j)
+            {
+                d_init_director_and_rod_on_level_fcn(
+                    j, ln, d_directors[ln][j], d_rod_edge_map[ln][j], d_rod_spec_data[ln][j]);
+            }
         }
     }
     return;
@@ -476,14 +497,16 @@ IBRedundantInitializer::initializeDirectorAndRods()
 void
 IBRedundantInitializer::initializeBoundaryMass()
 {
-    if (!d_init_boundary_mass_on_level_fcn) return;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const size_t num_base_filename = d_base_filename[ln].size();
         d_bdry_mass_spec_data[ln].resize(num_base_filename);
-        for (unsigned int j = 0; j < num_base_filename; ++j)
+        if (d_init_boundary_mass_on_level_fcn)
         {
-            d_init_boundary_mass_on_level_fcn(j, ln, d_bdry_mass_spec_data[ln][j]);
+            for (unsigned int j = 0; j < num_base_filename; ++j)
+            {
+                d_init_boundary_mass_on_level_fcn(j, ln, d_bdry_mass_spec_data[ln][j]);
+            }
         }
     }
     return;
@@ -492,14 +515,25 @@ IBRedundantInitializer::initializeBoundaryMass()
 void
 IBRedundantInitializer::initializeAnchorPts()
 {
-    if (!d_init_anchor_pt_on_level_fcn) return;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const size_t num_base_filename = d_base_filename[ln].size();
         d_anchor_spec_data[ln].resize(num_base_filename);
-        for (unsigned int j = 0; j < num_base_filename; ++j)
+        AnchorSpec default_spec;
+        default_spec.is_anchor_point = false;
+        if (d_init_anchor_pt_on_level_fcn)
         {
-            d_init_anchor_pt_on_level_fcn(j, ln, d_anchor_spec_data[ln][j]);
+            for (unsigned int j = 0; j < num_base_filename; ++j)
+            {
+                d_init_anchor_pt_on_level_fcn(j, ln, d_anchor_spec_data[ln][j]);
+            }
+        }
+        else
+        {
+            for (unsigned int j = 0; j < num_base_filename; ++j)
+            {
+                d_anchor_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
+            }
         }
     }
     return;
@@ -828,7 +862,6 @@ IBRedundantInitializer::setStructureNamesOnLevel(const int& level_num, const std
 #if !defined(NDEBUG)
     TBOX_ASSERT(level_num >= 0);
     TBOX_ASSERT(level_num < d_max_levels);
-    TBOX_ASSERT(d_level_is_initialized[level_num]);
 #endif
     d_base_filename[level_num] = strct_names;
     return;
@@ -1240,6 +1273,8 @@ IBRedundantInitializer::getFromInput(Pointer<Database> db)
     d_level_is_initialized.resize(d_max_levels, false);
     d_base_filename.resize(d_max_levels);
     d_num_vertex.resize(d_max_levels);
+    d_vertex_offset.resize(d_max_levels);
+    d_vertex_posn.resize(d_max_levels);
     d_spring_edge_map.resize(d_max_levels);
     d_spring_spec_data.resize(d_max_levels);
     d_xspring_edge_map.resize(d_max_levels);
@@ -1251,6 +1286,8 @@ IBRedundantInitializer::getFromInput(Pointer<Database> db)
     d_anchor_spec_data.resize(d_max_levels);
     d_bdry_mass_spec_data.resize(d_max_levels);
     d_directors.resize(d_max_levels);
+
+    d_global_index_offset.resize(d_max_levels);
 
     // Determine the various input file names.
     //
