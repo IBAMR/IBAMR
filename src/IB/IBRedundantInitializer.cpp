@@ -205,6 +205,8 @@ IBRedundantInitializer::init()
         initializeBoundaryMass();
         initializeTargetPts();
         initializeAnchorPts();
+        initializeInstrumentationData();
+        initializeSourceData();
     }
 
     // Indicate that we have processed data.
@@ -500,12 +502,22 @@ IBRedundantInitializer::initializeBoundaryMass()
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const size_t num_base_filename = d_base_filename[ln].size();
+        BdryMassSpec default_spec;
+        default_spec.bdry_mass = 0.0;
+        default_spec.stiffness = 0.0;
         d_bdry_mass_spec_data[ln].resize(num_base_filename);
         if (d_init_boundary_mass_on_level_fcn)
         {
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
                 d_init_boundary_mass_on_level_fcn(j, ln, d_bdry_mass_spec_data[ln][j]);
+            }
+        }
+        else
+        {
+            for (unsigned int j = 0; j < num_base_filename; ++j)
+            {
+                d_bdry_mass_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
             }
         }
     }
@@ -535,6 +547,28 @@ IBRedundantInitializer::initializeAnchorPts()
                 d_anchor_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
             }
         }
+    }
+    return;
+}
+
+void
+IBRedundantInitializer::initializeInstrumentationData()
+{
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const size_t num_base_filename = d_base_filename[ln].size();
+        d_instrument_idx[ln].resize(num_base_filename);
+    }
+    return;
+}
+
+void
+IBRedundantInitializer::initializeSourceData()
+{
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const size_t num_base_filename = d_base_filename[ln].size();
+        d_source_idx[ln].resize(num_base_filename);
     }
     return;
 }
@@ -1286,6 +1320,8 @@ IBRedundantInitializer::getFromInput(Pointer<Database> db)
     d_anchor_spec_data.resize(d_max_levels);
     d_bdry_mass_spec_data.resize(d_max_levels);
     d_directors.resize(d_max_levels);
+    d_instrument_idx.resize(d_max_levels);
+    d_source_idx.resize(d_max_levels);
 
     d_global_index_offset.resize(d_max_levels);
 

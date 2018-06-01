@@ -275,6 +275,21 @@ public:
     void registerInitAnchorPtFunction(InitAnchorPtOnLevel fcn);
 
     void initializeAnchorPts();
+
+    /*!
+     * \brief Initialize instrumentation data.
+     *
+     * \note Instruments can not currently be implemented using IBRedundantInitializer
+     */
+    void initializeInstrumentationData();
+
+    /*!
+     * \brief Initialize source/sink data.
+     *
+     * \note Sources/sinks can not currently be implemented using IBRedundantInitializer
+     */
+    void initializeSourceData();
+
     /*!
      * \brief Initialize the structure indexing information on the patch level.
      */
