@@ -1436,7 +1436,8 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             surface_pressure_grad_var_data;
 
         // Loop over the elements to compute the right-hand side vector.
-        boost::multi_array<double, 2> X_node, x_node, DU;
+        boost::multi_array<double, 2> X_node, x_node;
+        boost::array <std::vector<double>, NDIM> DU;
         TensorValue<double> FF;
         VectorValue<double> F, F_b, F_s, F_qp, N, X, n, x;
         boost::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
@@ -1553,7 +1554,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                 const double C_p = F * n * dA / da;
                 for (unsigned int i = 0; i < NDIM; ++i)
 					for (unsigned int k = 0; k < NDIM; ++k)
-						DU[i][k] = -(dA / da) * (F(i) - F * n * n(i)) * n(k); // [Ux] , [Uy], [Uz]
+						DU[i][k] = 0.0;  //-(dA / da) * (F(i) - F * n * n(i)) * n(k); // [Ux] , [Uy], [Uz]
 					
 
                 for (unsigned int d = 0; d < NDIM; ++d) F_integral(d) += F(d) * JxW[qp];
