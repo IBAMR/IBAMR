@@ -1221,7 +1221,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
         d_Q_bdry_bc_fill_op->fillData(half_time);
 
         // Account for momentum loss at sources/sinks.
-        if (!d_creeping_flow)
+        if (d_use_div_sink_drag_term && !d_creeping_flow)
         {
             d_hier_cc_data_ops->linearSum(d_U_scratch_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
             computeDivSourceTerm(d_F_div_idx, d_Q_scratch_idx, d_U_scratch_idx);
