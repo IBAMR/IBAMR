@@ -462,6 +462,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
     d_output_Omega = true;
     d_output_Div_U = true;
     d_output_EE = false;
+    d_use_div_sink_drag_term = false;
     d_velocity_solver = NULL;
     d_pressure_solver = NULL;
 
@@ -683,6 +684,7 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
     if (db->keyExists("output_EE")) d_output_EE = db->getBool("output_EE");
     if (db->keyExists("traction_bc_type"))
         d_traction_bc_type = string_to_enum<TractionBcType>(db->getString("traction_bc_type"));
+    if (db->keyExists("use_div_sink_drag_term")) d_use_div_sink_drag_term = db->getBool("use_div_sink_drag_term");
 
     if (db->keyExists("velocity_solver_type"))
     {

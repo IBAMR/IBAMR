@@ -494,6 +494,8 @@ protected:
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_P_bdry_bc_fill_op,
         d_Q_bdry_bc_fill_op, d_no_fill_op;
 
+    bool d_use_div_sink_drag_term;
+
     /*!
      * Hierarchy operators and solvers and related configuration data.
      */
