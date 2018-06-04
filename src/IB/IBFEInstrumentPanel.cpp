@@ -594,6 +594,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
         // update FE system data for meter_mesh
         initializeSystemDependentData(ib_method_ops, jj);
         meter_radii[jj] = getMeterRadius(jj);
+        perr << "meter radius = " << meter_radii[jj] << "\n";
     }
         
     // get info about levels in AMR mesh
@@ -632,6 +633,8 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
                     << " there may be undefined behavior in casting to this"
                     << " Order in older versions of libMesh.");
         }
+        perr << "quad order = " << d_quad_order[jj] << "\n";
+        perr << "quad type = " << Utility::enum_to_string<QuadratureType>(d_quad_type) << "\n";
     }
     
     // reset the quad point maps
