@@ -586,10 +586,9 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
     // from the centroid to a node.  We are defining it in this way
     // for robustness, in case some of the meters get squashed
     // or flattened.
-    std::vector<double> meter_radii(d_num_meters, 1.0);
+    std::vector<double> meter_radii(d_num_meters, 0.0);
     for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
-        double radius = 0.0;
         // update FE system data for meter_mesh
         initializeSystemDependentData(ib_method_ops, jj);
         meter_radii[jj] = getMeterRadius(jj);
