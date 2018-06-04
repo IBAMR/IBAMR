@@ -143,11 +143,20 @@ public:
      */
     void initializeStructurePosition();
 
+    /*!
+     * Typedef specifying the interface for initializing structures on a given level.
+     */
     typedef void (*InitStructureOnLevel)(const unsigned int& strct_num,
                                          const int& level_num,
                                          int& num_vertices,
                                          std::vector<IBTK::Point>& vertex_posn);
 
+    /*!
+     * Register the function to initialize a structure on a given level.
+     *
+     * \note A function must be registered or IBRedundantInitializer will
+     * return an error.
+     */
     void registerInitStructureFunction(InitStructureOnLevel fcn);
 
     /*!
@@ -167,34 +176,67 @@ public:
         }
     };
 
+    /*
+     * Struct for spring specifications.
+     * Spring parameters should be structured as:
+     * parameters[0] is the spring constant.
+     * parameters[1] is the resting length.
+     * force_fcn_idx is the spring function index.
+     */
     struct SpringSpec
     {
         std::vector<double> parameters;
         int force_fcn_idx;
     };
+
+    /*!
+     * Typedef specifying the interface for initializing springs on a given level.
+     *
+     * spring_map should contain the map between the master point and the Edge of the spring.
+     * spring_spec should bw the map between the Edge and the SpringSpec.
+     */
     typedef void (*InitSpringDataOnLevel)(const unsigned int& strct_num,
                                           const int& level_num,
                                           std::multimap<int, Edge>& spring_map,
                                           std::map<Edge, SpringSpec, EdgeComp>& spring_spec);
 
+    /*!
+     * \brief Register a function to initialize spring data structures on a given level.
+     */
     void registerInitSpringDataFunction(InitSpringDataOnLevel fcn);
 
-    /*
+    /*!
      * \brief Initialize xspring data programmatically.
      */
     void initializeXSprings();
 
+    /*
+     * Struct for xspring specifications.
+     * XSpring parameters should be structured as:
+     * parameters[0] is the spring constant.
+     * parameters[1] is the resting length.
+     * force_fcn_idx is the spring function index.
+     */
     struct XSpringSpec
     {
         std::vector<double> parameters;
         int force_fcn_idx;
     };
 
+    /*!
+     * Typedef specifying the interface for initializing xsprings on a given level.
+     *
+     * xspring_map should contain the map between the master point and the Edge of the spring.
+     * xspring_spec should be the map between the Edge and the XSpringSpec.
+     */
     typedef void (*InitXSpringDataOnLevel)(const unsigned int& strct_num,
                                            const int& level_num,
                                            std::multimap<int, Edge>& xspring_map,
                                            std::map<Edge, XSpringSpec, EdgeComp> xspring_spec);
 
+    /*!
+     * \brief Register a function to initialize xspring data structures on a given level.
+     */
     void registerInitXSpringDataFunction(InitXSpringDataOnLevel fcn);
 
     /*!
@@ -202,16 +244,32 @@ public:
      */
     void initializeBeams();
 
+    /*
+     * Struct for beam specifications.
+     * Beam parameters should be structured as:
+     * neighbor_idxs should be neighboring vertex indices.
+     * bend_rigidity should be bending rigidity.
+     * curvature is a vector of the curvature of the rod.
+     */
     struct BeamSpec
     {
         std::pair<int, int> neighbor_idxs;
         double bend_rigidity;
         IBTK::Vector curvature;
     };
+
+    /*!
+     * Typdef specifying the interface for initializing beams on a given level.
+     *
+     * beam_spec should be the map between the master index and the corresponding BeamSpec.
+     */
     typedef void (*InitBeamDataOnLevel)(const unsigned int& strct_num,
                                         const int& level_num,
                                         std::multimap<int, BeamSpec>& beam_spec);
 
+    /*!
+     * \brief Register a function to initialize beam data structures on a given level.
+     */
     void registerInitBeamDataFunction(InitBeamDataOnLevel fcn);
 
     /*!
@@ -219,16 +277,32 @@ public:
      */
     void initializeDirectorAndRods();
 
+    /*!
+     * Struct for rod specifications.
+     * Rod parameters should be structured as:
+     * [ds, a1, a2, a3, b1, b2, b3, kappa1, kappa2, tau]
+     */
     struct RodSpec
     {
         boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> properties;
     };
+
+    /*!
+     * Typedef specifying the interface for initializing rods and director vectors on a given level.
+     *
+     * director_spec should be a vector of the initial orthonormal director vectors.
+     * rod_edge_map should contain the map between the master point and the Edge of the rod.
+     * rod_spec should be the map between the Edge and the RodSpec.
+     */
     typedef void (*InitDirectorAndRodOnLevel)(const unsigned int& strct_num,
                                               const int& level_num,
                                               std::vector<std::vector<double> >& director_spec,
                                               std::multimap<int, Edge>& rod_edge_map,
                                               std::map<Edge, RodSpec, EdgeComp>& rod_spec);
 
+    /*!
+     * \brief Register a funcion to initialize director and rod data structures on a given level.
+     */
     void registerInitDirectorAndRodFunction(InitDirectorAndRodOnLevel fcn);
 
     /*!
@@ -236,15 +310,30 @@ public:
      */
     void initializeBoundaryMass();
 
+    /*
+     * Struct for massive point specifications.
+     * bdry_mass should be the mass of the point.
+     * stiffness is the penalty spring constant.
+     */
     struct BdryMassSpec
     {
         double bdry_mass, stiffness;
     };
 
+    /*!
+     * Typedef specifying the interface for initializing massive points on a given level.
+     *
+     * bdry_mass_spec should be the vector of boundary mass spec.
+     *
+     * \note ALL vertices of a given structure must be assigned a BdryMassSpec.
+     */
     typedef void (*InitBoundaryMassOnLevel)(const unsigned int& strct_num,
                                             const int& level_num,
                                             std::vector<BdryMassSpec>& bdry_mass_spec);
 
+    /*!
+     * \brief Register a function to initialize massive points on a given level.
+     */
     void registerInitBoundaryMassFunction(InitBoundaryMassOnLevel fcn);
 
     /*!
@@ -252,29 +341,64 @@ public:
      */
     void initializeTargetPts();
 
+    /*!
+     * Struct for target point specifications.
+     *
+     * stiffness should be the penalty spring constant.
+     * damping should be the penalty damping coefficient.
+     */
     struct TargetSpec
     {
         double stiffness, damping;
     };
 
+    /*!
+     * Typedef specifying the interface for initializing target points on a given level.
+     *
+     * tg_pt_spec should be the vector of target point specifications.
+     *
+     * \note ALL vertices of a given structure must be assigned a TargetSpec
+     */
+
     typedef void (*InitTargetPtOnLevel)(const unsigned int& strct_num,
                                         const int& level_num,
                                         std::vector<TargetSpec>& tg_pt_spec);
 
+    /*!
+     * \brief Register a function to initialize target points on a given level.
+     */
     void registerInitTargetPtFunction(InitTargetPtOnLevel fcn);
 
+    /*!
+     * \brief Initialize anchor points programmatically.
+     */
+    void initializeAnchorPts();
+
+    /*!
+     * Struct for anchor point specifications.
+     *
+     * is_anchor_point should be TRUE for points that are anchor points.
+     */
     struct AnchorSpec
     {
         bool is_anchor_point;
     };
 
+    /*!
+     * Typedef specifying the interface for initializing anchor points on a given level.
+     *
+     * anchor_pt_spec should be the vector of anchor point specifications.
+     *
+     * \note ALL vertices of a given structure must be assigned an AnchorSpec.
+     */
     typedef void (*InitAnchorPtOnLevel)(const unsigned int& strct_num,
                                         const int& level_num,
                                         std::vector<AnchorSpec>& anchor_pt_spec);
 
+    /*!
+     * \brief Register a function to initialize anchor points on a given level.
+     */
     void registerInitAnchorPtFunction(InitAnchorPtOnLevel fcn);
-
-    void initializeAnchorPts();
 
     /*!
      * \brief Initialize instrumentation data.
