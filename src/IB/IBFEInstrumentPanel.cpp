@@ -1001,13 +1001,8 @@ IBFEInstrumentPanel::getInstrumentDumpInterval() const
 void
 IBFEInstrumentPanel::initializeSystemDependentData(IBAMR::IBFEMethod* ib_method_ops, const int meter_mesh_number)
 {
-    // get displacement system for meter mesh
-    LinearImplicitSystem& displacement_sys =
-        d_meter_systems[meter_mesh_number]->get_system<LinearImplicitSystem>(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
-    const unsigned int displacement_sys_num = displacement_sys.number();
-    NumericVector<double>& displacement_coords = displacement_sys.get_vector("serial solution");
-
-   // get the coordinate mapping system and velocity systems for the parent mesh
+    
+    // get the coordinate mapping system and velocity systems for the parent mesh
     const FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager(d_part);
     const EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
     const System& dX_system = equation_systems->get_system(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
@@ -1099,6 +1094,13 @@ IBFEInstrumentPanel::getMeterRadius(const int meter_mesh_number)
 {
     // NOTE: this function should be called **after** updating the meter system data,
     // with initializeSystemDependentData.
+    
+    // get displacement system for meter mesh
+    LinearImplicitSystem& displacement_sys =
+            d_meter_systems[meter_mesh_number]->get_system<LinearImplicitSystem>(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
+    const unsigned int displacement_sys_num = displacement_sys.number();
+    NumericVector<double>& displacement_coords = displacement_sys.get_vector("serial solution");
+    double max_meter_radius = 0.0;
     for (unsigned int ii = 0; ii < d_num_nodes[meter_mesh_number]; ++ii)
     {
         // get node on meter mesh
