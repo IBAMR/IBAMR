@@ -171,16 +171,16 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
-   viz_dump_interval           = int(0.1/DT)
+   viz_dump_interval           = 0 //int(0.1/DT)
    viz_dump_dirname            = "viz_IB2d"
-   visit_number_procs_per_file = 1
+   visit_number_procs_per_file = 0
 
 // restart dump parameters
    restart_dump_interval       = 0
    restart_dump_dirname        = "restart_IB2d"
 
 // hierarchy data dump parameters
-   data_dump_interval          = 1
+   data_dump_interval          = 0
    data_dump_dirname           = "hier_data_IB2d"
 
 // timer dump parameters

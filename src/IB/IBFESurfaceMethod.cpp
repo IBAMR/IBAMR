@@ -815,12 +815,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 							for (unsigned int k = 0; k < n_node; ++k)
 								DU_j_qp[d][NDIM * (qp_offset + qp) + i] += DU_j_node[k][i][d] * phi[k][qp];
 							
-						
-									
-					
-                    
-                    
-                    
+						  
                 }
                 qp_offset += n_qp;
             }
@@ -1477,7 +1472,6 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 					for (unsigned int k = 0; k < NDIM; ++k)
 					{
 						DU_j_dof_map_cache[d]->dof_indices(elem, DU_j_dof_indices[k][d], k);
-						//DU_j_dof_map[d]->dof_indices(elem, DU_j_dof_indices[k][d], k);
 						DU_j_rhs_e[k][d].resize(static_cast<int>(DU_j_dof_indices[k][d].size()));
 						
 
@@ -1667,6 +1661,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             {
 				d_fe_data_managers[part]->computeL2Projection(
 					*DU_j_vec[d], *DU_j_rhs_vec[d], VELOCITY_JUMP_SYSTEM_NAME[d], d_use_consistent_mass_matrix);
+				DU_j_vec[d]->close();
 			}
         }
     }
@@ -1693,8 +1688,7 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
 
         if ( d_use_pressure_jump_conditions || d_use_velocity_jump_conditions) 
         {
-			            
-            
+			             
             PetscVector<double>* P_j_vec = d_P_j_half_vecs[part];
             PetscVector<double>* P_j_ghost_vec = d_P_j_IB_ghost_vecs[part];
             P_j_vec->localize(*P_j_ghost_vec);
@@ -2304,6 +2298,11 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                 Box<NDIM> side_boxes[NDIM];
 				for (int d = 0; d < NDIM; ++d)
 					side_boxes[d] = SideGeometry<NDIM>::toSideBox(extended_box, d);
+					
+				Box<NDIM> side_u_boxes[NDIM];
+				for (int d = 0; d < NDIM; ++d)
+					side_u_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box, d);
+		
 
 
                 // Setup a unit vector pointing in the coordinate direction of
@@ -2461,7 +2460,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                 static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) + patch_lower[axis];
 
 
-                            if (side_boxes[axis].contains(i_s_up) && side_boxes[axis].contains(i_s_um))
+                            if (side_u_boxes[axis].contains(i_s_up) && side_u_boxes[axis].contains(i_s_um))
                             {
 								
 									std::vector<libMesh::Point> ref_coords(1, xui);
@@ -2477,7 +2476,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 									n = (dx_dxi[0].cross(dx_dxi[1])).unit();
 									
 									bool found_same_intersection_point = false;
-									
+									/*
 									for (int shift = -1; shift <= 1; ++shift)
 									{
 										SideIndex<NDIM> i_s_prime = i_s_um;
@@ -2524,6 +2523,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 										}
 										if (found_same_intersection_point) break;
 									}
+									*/
 									
 									if (!found_same_intersection_point)
 									{
@@ -2562,8 +2562,8 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 												C_u_um = sdh_um * jn(1);
 											}
 #endif
-											(*f_data)(i_s_up) += - (n(axis) > 0.0 ? 1.0 : -1.0) * (C_u_um / (dx[axis] * dx[axis]));
-											(*f_data)(i_s_um) += - (n(axis) > 0.0 ? -1.0 : 1.0) * (C_u_up / (dx[axis] * dx[axis]));  
+											(*f_data)(i_s_up) += 0.0; // - (n(axis) > 0.0 ? 1.0 : -1.0) * (C_u_um / (dx[axis] * dx[axis]));
+											(*f_data)(i_s_um) += 0.0; //- (n(axis) > 0.0 ? -1.0 : 1.0) * (C_u_up / (dx[axis] * dx[axis]));  
 									}                
                             }
                             // Keep track of the positions where we have
@@ -2598,7 +2598,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                               patch_lower[axis];
                                               
 												
-                                if (side_boxes[axis].contains(i_s_up) && side_boxes[axis].contains(i_s_um))
+                                if (side_u_boxes[axis].contains(i_s_up) && side_u_boxes[axis].contains(i_s_um))
                                 {
                               		std::vector<libMesh::Point> ref_coords(1, xui);
 									fe->reinit(elem, &ref_coords);
@@ -2615,10 +2615,11 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 
 									bool found_same_intersection_point = false;
 									
+									/*
 									for (int shift = -1; shift <= 1; ++shift)
 									{
 										SideIndex<NDIM> i_s_prime = i_s_um;
-										i_s_prime(axis) += shift;
+										i_s_prime(dd) += shift;
 										const std::vector<libMesh::Point>& candidate_coords =
 											intersectionSide_u_points[axis][i_s_prime];
 										const std::vector<libMesh::Point>& candidate_ref_coords =
@@ -2661,7 +2662,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 										}
 										if (found_same_intersection_point) break;
 									}
-								
+									*/
 
 									if (!found_same_intersection_point)
 									{
@@ -2670,7 +2671,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 
 										// Evaluate the jump conditions and apply them
 										// to the Eulerian grid.
-										if (side_ghost_boxes[axis].contains(i_s_um))
+										if (side_u_boxes[axis].contains(i_s_um))
 										{
 												TBOX_ASSERT( i_s_up(axis) - i_s_um(axis) == 1);
 												
@@ -2705,9 +2706,9 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 												}
 
 												 
-											   (*f_data)(i_s_um) += - (n(axis) > 0.0 ? -1.0 : 1.0) * ( C_u_up / (dx[axis] * dx[axis]));
+											   (*f_data)(i_s_um) += 0.0; // - (n(axis) > 0.0 ? -1.0 : 1.0) * ( C_u_up / (dx[axis] * dx[axis]));
 											   
-											   (*f_data)(i_s_up) += - (n(axis) > 0.0 ? 1.0 : -1.0) * ( C_u_um / (dx[axis] * dx[axis]));
+											   (*f_data)(i_s_up) += 0.0; // - (n(axis) > 0.0 ? 1.0 : -1.0) * ( C_u_um / (dx[axis] * dx[axis]));
 										}
 										
 										intersectionSide_u_points[axis][i_s_um].push_back(xu);
@@ -2733,7 +2734,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                 i_s_um(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
 											 patch_lower[axis];
 
-                                if (side_boxes[axis].contains(i_s_up) &&  side_boxes[axis].contains(i_s_um))
+                                if (side_u_boxes[axis].contains(i_s_up) &&  side_u_boxes[axis].contains(i_s_um))
                                 {
 									std::vector<libMesh::Point> ref_coords(1, xui);
 									fe->reinit(elem, &ref_coords);
@@ -2749,11 +2750,11 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 									
 									bool found_same_intersection_point = false;
 									
-									
+									/*
 									for (int shift = -1; shift <= 1; ++shift)
 									{
 										SideIndex<NDIM> i_s_prime = i_s_um;
-										i_s_prime(axis) += shift;
+										i_s_prime(dd) += shift;
 										const std::vector<libMesh::Point>& candidate_coords =
 											intersectionSide_u_points[axis][i_s_prime];
 										const std::vector<libMesh::Point>& candidate_ref_coords =
@@ -2796,12 +2797,13 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 										}
 										if (found_same_intersection_point) break;
 									}
+									*/
 									
 									if (!found_same_intersection_point)
 									{
 										// Evaluate the jump conditions and apply them
 										// to the Eulerian grid.
-										if (side_ghost_boxes[axis].contains(i_s_um) && side_ghost_boxes[axis].contains(i_s_up))
+										if (side_u_boxes[axis].contains(i_s_um) && side_u_boxes[axis].contains(i_s_up))
 										{
 												TBOX_ASSERT( i_s_up(axis) - i_s_um(axis) == 1);
 												
@@ -2836,9 +2838,9 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 												}
 
 												 
-											   (*f_data)(i_s_um) += - (n(axis) > 0.0 ? -1.0 : 1.0) * ( C_u_up / (dx[axis] * dx[axis]));
+											   (*f_data)(i_s_um) += 0.0; //- (n(axis) > 0.0 ? -1.0 : 1.0) * ( C_u_up / (dx[axis] * dx[axis]));
 											   
-											   (*f_data)(i_s_up) += - (n(axis) > 0.0 ? 1.0 : -1.0) * ( C_u_um / (dx[axis] * dx[axis]));
+											   (*f_data)(i_s_up) += 0.0; //- (n(axis) > 0.0 ? 1.0 : -1.0) * ( C_u_um / (dx[axis] * dx[axis]));
 										}
 									
 										intersectionSide_u_points[axis][i_s_um].push_back(xu);
