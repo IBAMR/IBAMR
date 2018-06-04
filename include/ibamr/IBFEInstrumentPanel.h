@@ -115,14 +115,9 @@ private:
      * the meter mesh.  this includes computing the max radius of the mesh
      * in the current configuration, and updating the mesh's system data.
      */
-    void initializeSystemDependentData(double& max_meter_radius, IBAMR::IBFEMethod* ib_method_ops, int meter_mesh_number);
+    void initializeSystemDependentData(IBAMR::IBFEMethod* ib_method_ops, int meter_mesh_number);
 
-    /*!
-     * \brief update system data.
-     */
-    void updateSystemData(IBAMR::IBFEMethod* ib_method_ops, int meter_num);
-
-    /*!
+     /*!
      * \brief write out data to file.
      */
     void outputData(double data_time);
@@ -136,6 +131,11 @@ private:
      * \brief write out nodes.
      */
     void outputNodes();
+    
+     /*!
+     * \brief get the maximum radius of the meter in its current configuration
+     */
+    double getMeterRadius(int meter_mesh_number);
 
     /*!
      * \brief number of mesh meters.
@@ -145,7 +145,12 @@ private:
     /*!
      * \brief quadrature order used for the meter meshes.
      */
-    libMesh::Order d_quad_order;
+    std::vector<libMesh::Order> d_quad_order;
+    
+    /*!
+     * \brief quadrature order from input file
+     */
+    libMesh::Order d_input_quad_order;
     
     /*!
      * \brief whether we use a grid based quadrature rule.
