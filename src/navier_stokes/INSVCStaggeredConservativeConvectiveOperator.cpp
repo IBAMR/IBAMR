@@ -1527,6 +1527,21 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                    << " Something went wrong\n");
     }
 
+    // Refill boundary values of newest density
+    const double new_time = d_current_time + dt;
+    InterpolationTransactionComponent update_transaction(d_rho_sc_scratch_idx,
+                                                         d_rho_sc_new_idx,
+                                                         "CONSERVATIVE_LINEAR_REFINE",
+                                                         false,
+                                                         "CONSERVATIVE_COARSEN",
+                                                         d_bdry_extrap_type,
+                                                         false,
+                                                         d_rho_sc_bc_coefs);
+    Pointer<HierarchyGhostCellInterpolation> hier_update_bdry_fill = new HierarchyGhostCellInterpolation();
+    hier_update_bdry_fill->initializeOperatorState(update_transaction, d_hierarchy);
+    hier_update_bdry_fill->fillData(new_time);
+    d_hier_sc_data_ops->copyData(d_rho_sc_new_idx, d_rho_sc_scratch_idx, /*interior_only*/ true);
+
     // Compute the new mass
     const double new_mass = d_hier_sc_data_ops->integral(d_rho_sc_new_idx, wgt_sc_idx);
     if (d_enable_logging)
