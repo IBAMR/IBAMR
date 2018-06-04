@@ -415,12 +415,14 @@ IBRedundantInitializer::initializeSprings()
                     const SpringSpec& spec = d_spring_spec_data[ln][j][e];
                     if ((e.first < min_idx) || (e.first > max_idx))
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid spring edge encountered:\n"
+                        TBOX_ERROR(d_object_name << ":\n Invalid spring edge encountered on level "
+                                                 << ln << " and structure number " << j << ":\n"
                                                  << e.first << " is not a valid index");
                     }
                     if ((e.second < min_idx) || (e.second > max_idx))
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid spring edge encountered:\n"
+                        TBOX_ERROR(d_object_name << ":\n Invalid spring edge encountered on level "
+                                                 << ln << " and structure number " << j << ":\n"
                                                  << e.second << " is not a valid index");
                     }
                     if (e.first > e.second)
@@ -429,12 +431,14 @@ IBRedundantInitializer::initializeSprings()
                     }
                     if (spec.parameters[0] < 0.0)
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid spring constant encountered:\n"
+                        TBOX_ERROR(d_object_name << ":\n Invalid spring constant encountered on level "
+                                                 << ln << " and structure number " << j << ":\n"
                                                  << spec.parameters[0] << " for index " << e.first << " is negative");
                     }
                     if (spec.parameters[1] < 0.0)
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid resting length encountered:\n"
+                        TBOX_ERROR(d_object_name << ":\n Invalid resting length encountered on level "
+                                                 << ln << " and structure number " << j << ":\n"
                                                  << spec.parameters[1] << " for index " << e.first << " is negative");
                     }
                 }
@@ -486,17 +490,20 @@ IBRedundantInitializer::initializeBeams()
                     const std::pair<int, int>& idxs = e.neighbor_idxs;
                     if ((idxs.first < min_idx) || (idxs.first > max_idx))
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid beam edge encountered:\n"
+                        TBOX_ERROR(d_object_name << ":\n Invalid beam edge encountered on level "
+                                                 << ln << " and structure number " << j << ":\n"
                                                  << idxs.first << " is not a valid index");
                     }
                     if ((idxs.second < min_idx) || (idxs.second > max_idx))
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid beam edge encountered:\n"
+                        TBOX_ERROR(d_object_name << ":\n Invalid beam edge encountered on level "
+                                                 << ln << " and structure number " << j << ":\n"
                                                  << idxs.second << " is not a valid index");
                     }
                     if (e.bend_rigidity < 0.0)
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid bending rigidity encountered:\n"
+                        TBOX_ERROR(d_object_name << ":\n Invalid bending rigidity encountered on level "
+                                                 << ln << " and structure number " << j << ":\n"
                                                  << e.bend_rigidity << " for index " << it->first << " is negative");
                     }
                 }
@@ -603,7 +610,7 @@ IBRedundantInitializer::initializeDirectorAndRods()
                         const double D_norm = sqrt(D_norm_squared);
                         if (!MathUtilities<double>::equalEps(D_norm, 1.0))
                         {
-                            TBOX_WARNING(d_object_name << ":\n  Director vector for index " << k << " of strucutre "
+                            TBOX_WARNING(d_object_name << ":\n  Director vector for index " << k << " of structure "
                                                        << j << " on level " << ln
                                                        << " is not normalized; norm = " << D_norm << std::endl);
                             for (int d = 0; d < 3; ++d)
@@ -622,47 +629,56 @@ IBRedundantInitializer::initializeDirectorAndRods()
                     const boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> parameters = rod_spec.properties;
                     if ((e.first < min_idx) || (e.first > max_idx))
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid rod edge encountered:\n"
+                        TBOX_ERROR(d_object_name << ":\n Invalid rod edge encountered on level "
+                                                 << ln << " and structure number " << j << ":\n"
                                                  << e.first << " is not a valid index");
                     }
                     if ((e.second < min_idx) || (e.second > max_idx))
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid rod edge encountered:\n"
+                        TBOX_ERROR(d_object_name << ":\n Invalid rod edge encountered on level "
+                                                 << ln << " and structure number " << j << ":\n"
                                                  << e.second << " is not a valid index");
                     }
                     if (parameters[0] < 0.0)
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid rod length encountered:\n"
+                        TBOX_ERROR(d_object_name << ":\n Invalid rod length encountered on level "
+                                                 << ln << " and structure number " << j << ":\n"
                                                  << parameters[0] << "for index " << e.first << " is negative");
                     }
                     if (parameters[1] < 0.0)
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid parameter a1 encountered:\n"
+                        TBOX_ERROR(d_object_name << ":\n Invalid parameter a1 encountered on level "
+                                                 << ln << " and structure number " << j << ":\n"
                                                  << parameters[1] << "for index " << e.first << " is negative");
                     }
                     if (parameters[2] < 0.0)
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid parameter a2 encountered:\n"
+                        TBOX_ERROR(d_object_name << ":\n Invalid parameter a2 encountered on level "
+                                                 << ln << " and structure number " << j << ":\n"
                                                  << parameters[2] << "for index " << e.first << " is negative");
                     }
                     if (parameters[3] < 0.0)
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid a3 length encountered:\n"
+                        TBOX_ERROR(d_object_name << ":\n Invalid a3 length encountered on level "
+                                                 << ln << " and structure number " << j << ":\n"
                                                  << parameters[3] << "for index " << e.first << " is negative");
                     }
                     if (parameters[4] < 0.0)
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid b1 encountered:\n"
+                        TBOX_ERROR(d_object_name << ":\n Invalid b1 encountered on level "
+                                                 << ln << " and structure number " << j << ":\n"
                                                  << parameters[4] << "for index " << e.first << " is negative");
                     }
                     if (parameters[5] < 0.0)
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid b2 encountered:\n"
+                        TBOX_ERROR(d_object_name << ":\n Invalid b2 encountered on level "
+                                                 << ln << " and structure number " << j << ":\n"
                                                  << parameters[5] << "for index " << e.first << " is negative");
                     }
                     if (parameters[6] < 0.0)
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid b3 encountered:\n"
+                        TBOX_ERROR(d_object_name << ":\n Invalid b3 encountered on level "
+                                                 << ln << " and structure number " << j << ":\n"
                                                  << parameters[6] << "for index " << e.first << " is negative");
                     }
                 }
@@ -695,7 +711,7 @@ IBRedundantInitializer::initializeBoundaryMass()
                 {
                     if ((it->first < min_idx) || (it->first > max_idx))
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid target point index on level " << ln
+                        TBOX_ERROR(d_object_name << ":\n Invalid massive point index on level " << ln
                                                  << " and structure number " << j << ": \n"
                                                  << it->first);
                     }
@@ -750,7 +766,7 @@ IBRedundantInitializer::initializeAnchorPts()
                 {
                     if ((it->first < min_idx) || (it->first > max_idx))
                     {
-                        TBOX_ERROR(d_object_name << ":\n Invalid target point index on level " << ln
+                        TBOX_ERROR(d_object_name << ":\n Invalid anchor point index on level " << ln
                                                  << " and structure number " << j << ": \n"
                                                  << it->first);
                     }
