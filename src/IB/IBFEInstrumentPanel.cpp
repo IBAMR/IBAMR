@@ -581,11 +581,9 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
     if (d_num_meters == 0) return;
 
     // loop over meters, update system data, and get the maximum
-    // radius over all the meters in this FE part.
+    // radius for each meter in this FE part.
     // the radius of a meter is defined to be the largest distance
-    // from the centroid to a node.  We are defining it in this way
-    // for robustness, in case some of the meters get squashed
-    // or flattened.
+    // from the centroid to a node.  
     std::vector<double> meter_radii(d_num_meters, 0.0);
     for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
