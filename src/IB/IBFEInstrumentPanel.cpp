@@ -506,23 +506,22 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
         d_meter_meshes[ii]->reserve_nodes(d_num_nodes[ii] + 1);
         d_meter_meshes[ii]->reserve_elem(d_num_nodes[ii]);
 
-        // add centroid
-        d_meter_meshes[ii]->add_point(meter_centroids[ii], 0);
-
         // add nodes
         for (unsigned int jj = 0; jj < d_num_nodes[ii]; ++jj)
         {
-            d_meter_meshes[ii]->add_point(d_nodes[ii][jj], jj + 1);
+            d_meter_meshes[ii]->add_point(d_nodes[ii][jj], jj);
         }
+        // add centroid
+        d_meter_meshes[ii]->add_point(meter_centroids[ii], d_num_nodes[ii]);
 
         for (unsigned int jj = 0; jj < d_num_nodes[ii]; ++jj)
         {
             Elem* elem = new Tri3;
             elem->set_id(jj);
             elem = d_meter_meshes[ii]->add_elem(elem);
-            elem->set_node(0) = d_meter_meshes[ii]->node_ptr(0);
-            elem->set_node(1) = d_meter_meshes[ii]->node_ptr(jj + 1);
-            elem->set_node(2) = d_meter_meshes[ii]->node_ptr(((jj + 1) % d_num_nodes[ii]) + 1);
+            elem->set_node(0) = d_meter_meshes[ii]->node_ptr(d_num_nodes[ii]);
+            elem->set_node(1) = d_meter_meshes[ii]->node_ptr(jj);
+            elem->set_node(2) = d_meter_meshes[ii]->node_ptr((jj + 1) % d_num_nodes[ii]);
         }
         d_meter_meshes[ii]->allow_renumbering(false);
         d_meter_meshes[ii]->prepare_for_use();
@@ -1037,7 +1036,7 @@ IBFEInstrumentPanel::initializeSystemDependentData(IBAMR::IBFEMethod* ib_method_
     for (unsigned int ii = 0; ii < d_num_nodes[meter_mesh_number]; ++ii)
     {
         // get node on meter mesh
-        const Node* node = &d_meter_meshes[meter_mesh_number]->node_ref(ii + 1);
+        const Node* node = &d_meter_meshes[meter_mesh_number]->node_ref(ii);
 
         // get corresponding dofs on parent mesh
         std::vector<double> U_dofs;
@@ -1065,7 +1064,7 @@ IBFEInstrumentPanel::initializeSystemDependentData(IBAMR::IBFEMethod* ib_method_
     }
 
     // set dofs for the centroid node in the meter mesh
-    const Node* centroid_node = &d_meter_meshes[meter_mesh_number]->node_ref(0);
+    const Node* centroid_node = &d_meter_meshes[meter_mesh_number]->node_ref(d_num_nodes[meter_mesh_number]);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         const int vel_dof_idx = centroid_node->dof_number(velocity_sys_num, d, 0);
@@ -1107,9 +1106,9 @@ IBFEInstrumentPanel::getMeterRadius(const int meter_mesh_number)
     for (unsigned int ii = 0; ii < d_num_nodes[meter_mesh_number]; ++ii)
     {
         // get node on meter mesh
-        const Node* node = &d_meter_meshes[meter_mesh_number]->node_ref(ii+1);
+        const Node* node = &d_meter_meshes[meter_mesh_number]->node_ref(ii);
         // get the centroid
-        const Node* centroid_node = &d_meter_meshes[meter_mesh_number]->node_ref(0);
+        const Node* centroid_node = &d_meter_meshes[meter_mesh_number]->node_ref(d_num_nodes[meter_mesh_number]);
         
         std::vector<double> node_disp(NDIM, 0.0);
         std::vector<double> centroid_disp(NDIM, 0.0); 
