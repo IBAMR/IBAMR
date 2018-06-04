@@ -628,11 +628,11 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         if (NDIM > 2) dphi_dxi[1] = &fe->get_dphideta();
         
         
-        boost::array<const DofMap*, NDIM> DU_j_dof_map;
+        boost::array<const DofMap*, NDIM>  DU_j_dof_map;
         //~ FEDataManager::SystemDofMapCache* DU_j_dof_map_cache[NDIM];
         boost::array<FEDataManager::SystemDofMapCache*, NDIM> DU_j_dof_map_cache;
         boost::array< std::vector<std::vector<unsigned int> >, NDIM> DU_j_dof_indices;
-        boost::array<System*, NDIM> DU_j_system;
+        boost::array<System*, NDIM>  DU_j_system;
        
         if (d_use_velocity_jump_conditions)
         {
@@ -751,7 +751,6 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 							DU_j_dof_map_cache[k][d].dof_indices(elem, DU_j_dof_indices[k][d], d);
 					}
                 }
-                
                 get_values_for_interpolation(X_node, *X0_vec, X_dof_indices);
                 get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 if (d_use_velocity_jump_conditions)
@@ -1337,7 +1336,8 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             (d_use_pressure_jump_conditions ? P_j_vec->zero_clone() : UniquePtr<NumericVector<double> >());
         DenseVector<double> P_j_rhs_e;
         
-        boost::array<boost::array<DenseVector<double>, NDIM>, NDIM> DU_j_rhs_e;
+        //~ boost::array<boost::array<DenseVector<double>, NDIM>, NDIM> DU_j_rhs_e;
+        boost::array< std::vector<DenseVector<double> >, NDIM > DU_j_rhs_e;
 		boost::array<UniquePtr<NumericVector<double> >, NDIM> DU_j_rhs_vec;
 		boost::array<NumericVector<double>*, NDIM> DU_j_vec;
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -1355,6 +1355,8 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         // Extract the FE systems and DOF maps, and setup the FE objects.
         System& F_system = equation_systems->get_system(FORCE_SYSTEM_NAME);
         const DofMap& F_dof_map = F_system.get_dof_map();
+        
+        
         FEDataManager::SystemDofMapCache& F_dof_map_cache =
             *d_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
         FEType F_fe_type = F_dof_map.variable_type(0);
@@ -1366,6 +1368,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 
         System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
+        
         FEDataManager::SystemDofMapCache& X_dof_map_cache =
             *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
         FEType X_fe_type = X_dof_map.variable_type(0);
@@ -1384,16 +1387,20 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         {
             P_j_system = &equation_systems->get_system(PRESSURE_JUMP_SYSTEM_NAME);
             P_j_dof_map = &P_j_system->get_dof_map();
+
             P_j_dof_map_cache = d_fe_data_managers[part]->getDofMapCache(PRESSURE_JUMP_SYSTEM_NAME);
             FEType P_j_fe_type = P_j_dof_map->variable_type(0);
             TBOX_ASSERT(P_j_fe_type == X_fe_type);
             TBOX_ASSERT(P_j_fe_type == F_fe_type);
         }
-        
-        const DofMap* DU_j_dof_map[NDIM];
-        FEDataManager::SystemDofMapCache* DU_j_dof_map_cache[NDIM];
+            
+        boost::array<DofMap*, NDIM>  DU_j_dof_map;
+        boost::array< FEDataManager::SystemDofMapCache*, NDIM> DU_j_dof_map_cache;
+
         boost::array< std::vector<std::vector<unsigned int> >, NDIM> DU_j_dof_indices;
         boost::array<System*, NDIM> DU_j_system; 
+        
+					
         if (d_use_velocity_jump_conditions)
         {
 			for (unsigned int i = 0; i < NDIM; ++i)
@@ -1405,7 +1412,9 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 				for (unsigned int d = 0; d < NDIM; ++d)
 				{
 					TBOX_ASSERT(DU_j_dof_map[i]->variable_type(d) == DU_j_fe_type);
-				}       		
+				}
+				DU_j_dof_indices[i].resize(NDIM);
+				DU_j_rhs_e[i].resize(NDIM);
 			}
 		}
 
@@ -1466,12 +1475,20 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                 {
 					for (unsigned int k = 0; k < NDIM; ++k)
 					{
-						DU_j_dof_map_cache[k][d].dof_indices(elem, DU_j_dof_indices[k][d], k);
+						DU_j_dof_map_cache[d]->dof_indices(elem, DU_j_dof_indices[k][d], k);
+						//~ pout << " DU_j_dof_indices[k][d] = " << DU_j_dof_indices[k][d].size() << "\n\n";
+						//DU_j_dof_map_cache[d]->dof_indices(elem, &DU_j_dof_indices[k][d], k);
+						//DU_j_dof_indices[k][d].size();
+						//DU_j_dof_map[d]->dof_indices(elem, DU_j_dof_indices[k][d], k);
+						//pout << " DU_j_dof_indices[k][d] = " << DU_j_dof_indices[k][d][0] << "\n\n";
 						DU_j_rhs_e[k][d].resize(static_cast<int>(DU_j_dof_indices[k][d].size()));
+						
 
 					}
                 }
 			}
+		
+
             fe->reinit(elem);
             fe_interpolator.reinit(elem);
             fe_interpolator.collectDataForInterpolation(elem);
@@ -1691,6 +1708,10 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
             {
 				DU_j_vec[d]->localize(*DU_j_ghost_vec[d]);
 			}
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+				DU_j_vec[d]->localize(*DU_j_ghost_vec[d]);
+			}
             imposeJumpConditions(f_data_idx,
                                  *P_j_ghost_vec,
                                  DU_j_ghost_vec,
@@ -1905,7 +1926,6 @@ IBFESurfaceMethod::initializeFEData()
 			for (unsigned int d = 0; d < NDIM; ++d)
             {
 				DU_j_system[d] = &equation_systems->get_system<System>(VELOCITY_JUMP_SYSTEM_NAME[d]);
-				//~ DU_j_system[d] = equation_systems->get_system<System>(VELOCITY_JUMP_SYSTEM_NAME[d]);
 				DU_j_system[d]->assemble_before_solve = false;
 				DU_j_system[d]->assemble();
 			}
@@ -2119,14 +2139,14 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
     FEType P_j_fe_type = P_j_dof_map.variable_type(0);
     std::vector<unsigned int> P_j_dof_indices;
     
-    const DofMap* DU_j_dof_map[NDIM];
-    FEDataManager::SystemDofMapCache* DU_j_dof_map_cache[NDIM];
+    boost::array<DofMap*, NDIM>  DU_j_dof_map;
+    boost::array< FEDataManager::SystemDofMapCache*, NDIM> DU_j_dof_map_cache;
     boost::array< std::vector<std::vector<unsigned int> >, NDIM> DU_j_dof_indices;
     boost::array<System*, NDIM> DU_j_system; 
     if (d_use_velocity_jump_conditions)
     {
 			for (unsigned int i = 0; i < NDIM; ++i)
-			{
+			{				
 				DU_j_system[i] = &equation_systems->get_system(VELOCITY_JUMP_SYSTEM_NAME[i]);
 				DU_j_dof_map_cache[i] = d_fe_data_managers[part]->getDofMapCache(VELOCITY_JUMP_SYSTEM_NAME[i]);
 				DU_j_dof_map[i] = &DU_j_system[i]->get_dof_map();
@@ -2134,7 +2154,8 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 				for (unsigned int d = 0; d < NDIM; ++d)
 				{
 					TBOX_ASSERT(DU_j_dof_map[i]->variable_type(d) == DU_j_fe_type);
-				}       		
+				}  
+				DU_j_dof_indices[i].resize(NDIM);
 			}		
 	}
 
@@ -2215,7 +2236,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 			{
 				for (unsigned int d = 0; d < NDIM; ++d)
 					for (unsigned int k = 0; k < NDIM; ++k)
-						DU_j_dof_map_cache[d][k].dof_indices(elem, DU_j_dof_indices[d][k], k);
+						DU_j_dof_map_cache[d]->dof_indices(elem, DU_j_dof_indices[k][d], k);
 
 				for (unsigned int d = 0; d < NDIM; ++d)
 					get_values_for_interpolation(DU_j_node[d], *DU_j_ghost_vec[d], DU_j_dof_indices[d]);
@@ -2457,6 +2478,9 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                         {
                             libMesh::Point xu = rs + intersectionsSide[k].first * q;
                             const libMesh::Point& xui = intersectionsSide[k].second;
+                            
+                            
+                             pout << " xu(axis) = " << xu(axis) << "\n\n";
                             int dd = (axis == 0 ? 1 : 0);
                             if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) >= 0.5 * dx[axis])
                             {
@@ -2471,6 +2495,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                 i_s_um(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
                                               patch_lower[axis];
                                               
+												
                                 if (side_boxes[axis].contains(i_s_up) && side_boxes[axis].contains(i_s_um))
                                 {
                               		std::vector<libMesh::Point> ref_coords(1, xui);
@@ -2608,6 +2633,19 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                              patch_lower[axis];
                                 i_s_um(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
 											 patch_lower[axis];
+											 
+											 
+											 TBOX_ASSERT(i_s_um.getAxis() == i_s_up.getAxis());
+													TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
+													const double x_cell_bdry_um =
+														x_lower[axis] + static_cast<double>(i_s_um(axis) - patch_lower[axis]) * dx[axis];
+														
+													const double x_cell_bdry_up =
+														x_lower[axis] + static_cast<double>(i_s_up(axis) - patch_lower[axis]) * dx[axis];
+													const double sdh_um = ((xu(axis) - x_cell_bdry_um)); // Signed Distance h
+													const double sdh_up = ((xu(axis) - x_cell_bdry_up)); // Signed Distance h
+													pout << " x_cell_bdry_um = " << x_cell_bdry_um << " x_cell_bdry_up = " << x_cell_bdry_up << " xu(axis) = "<< xu(axis)<<"\n\n";
+
 
                                 if (side_boxes[axis].contains(i_s_up) &&  side_boxes[axis].contains(i_s_um))
                                 {
@@ -2688,8 +2726,8 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 													const double x_cell_bdry_up =
 														x_lower[axis] + static_cast<double>(i_s_up(axis) - patch_lower[axis]) * dx[axis];
 													const double sdh_um = ((xu(axis) - x_cell_bdry_um)); // Signed Distance h
-
 													const double sdh_up = ((xu(axis) - x_cell_bdry_up)); // Signed Distance h
+													pout << " x_cell_bdry_um = " << x_cell_bdry_um << " x_cell_bdry_up = " << x_cell_bdry_up << " xu(axis) = "<< xu(axis)<<"\n\n";
 
 													TBOX_ASSERT((sdh_um) < dx[axis] && sdh_um > 0);
 													TBOX_ASSERT(fabs(sdh_up) < dx[axis] && sdh_up < 0);
@@ -2722,7 +2760,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 										intersection_u_points[axis][i_s_um].push_back(xu);
 										intersection_u_ref_coords[axis][i_s_um].push_back(xui);
 										intersection_u_normals[axis][i_s_um].push_back(n);
-                                }
+									}
 								}
 							}
 							else
