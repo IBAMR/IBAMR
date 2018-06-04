@@ -41,6 +41,8 @@
 #include "ibamr/IBFEMethod.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/ibtk_utilities.h"
+#include "libmesh/enum_order.h"
+#include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/exodusII_io.h"
 #include "libmesh/mesh.h"
@@ -141,7 +143,7 @@ private:
     unsigned int d_num_meters;
 
     /*!
-     * \brief quad order used for the meter meshes.
+     * \brief quadrature order used for the meter meshes.
      */
     libMesh::Order d_quad_order;
     
@@ -150,7 +152,12 @@ private:
      * if false, then we default to using a high order Gauss
      * quadrature.
      */
-    bool d_use_QGrid;
+    bool d_use_adaptive_quadrature;
+    
+    /*!
+     * \brief quadrature type used for the meter meshes.
+     */
+    libMesh::QuadratureType d_quad_type; 
 
     /*!
      * \brief part ID where the meter mesh lives, i.e. its parent mesh.

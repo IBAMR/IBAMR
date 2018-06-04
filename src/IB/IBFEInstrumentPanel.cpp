@@ -78,6 +78,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "libmesh/boundary_info.h"
 #include "libmesh/dense_vector.h"
+#include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/exodusII_io.h"
 #include "libmesh/face_tri3.h"
@@ -88,6 +89,7 @@
 #include "libmesh/point.h"
 #include "libmesh/quadrature_grid.h"
 #include "libmesh/serial_mesh.h"
+#include "libmesh/string_to_enum.h"
 #include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
@@ -304,7 +306,8 @@ linear_interp(const Vector& X,
 IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const int part)
     : d_num_meters(0),
       d_quad_order(),
-      d_use_QGrid(),  
+      d_use_adaptive_quadrature(),
+      d_quad_type(),
       d_part(part),
       d_initialized(false),
       d_num_nodes(),
@@ -612,13 +615,11 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
     }
     const double h_finest = *std::min_element(dx_finest.begin(), dx_finest.end());
     
-    // set the quadrature rule according to this spacing if we are using QGrid
-    if(d_use_QGrid) d_quad_order = static_cast<Order>(max_radius / (0.25 * h_finest));
-    // otherwise just use a really high order Gauss quadrature.
-    else d_quad_order = FORTYTHIRD;
+    // set the quadrature rule adaptively according to the fluid mesh size
+    if(d_use_adaptive_quadrature) d_quad_order = static_cast<Order>(max_radius / (0.25 * h_finest));
     
     // print a warning
-    if(d_use_QGrid && d_quad_order > FORTYTHIRD)
+    if(d_quad_type == libMesh::QGRID && d_quad_order > libMesh::FORTYTHIRD)
     {
         TBOX_WARNING("IBFEInstrumentPanel::initializeHierarchyDependentData : "
                 << "QGrid quadrature order exceeds 43 for meter mesh in IBFE part "
@@ -668,9 +669,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
 
             // set up FE objects
             UniquePtr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
-            UniquePtr<QBase> qrule(NULL);
-            if(d_use_QGrid) qrule.reset(new QGrid(NDIM-1, d_quad_order));
-            else qrule.reset(new QGauss(NDIM-1, d_quad_order));
+            UniquePtr<QBase> qrule(QBase::build(d_quad_type, NDIM - 1, d_quad_order));
             fe_elem->attach_quadrature_rule(qrule.get());
             //  for evaluating the displacement system
             const std::vector<Real>& JxW = fe_elem->get_JxW();
@@ -958,13 +957,23 @@ IBFEInstrumentPanel::getFromInput(Pointer<Database> db)
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
-    if (db->keyExists("plot_directory_name")) d_plot_directory_name = db->getString("plot_directory_name");
-    if (db->keyExists("instrument_dump_interval"))
-        d_instrument_dump_interval = db->getIntegerWithDefault("instrument_dump_interval", 1);
+    if (db->keyExists("meters_directory_name")) d_plot_directory_name = db->getString("meters_directory_name");
+    if (db->keyExists("meters_dump_interval"))
+        d_instrument_dump_interval = db->getIntegerWithDefault("meters_dump_interval", 1);
     if (db->keyExists("nodeset_IDs_for_meters"))
         d_nodeset_IDs_for_meters = db->getIntegerArray("nodeset_IDs_for_meters");
-    if (db->keyExists("use_QGrid"))
-        d_use_QGrid = db->getBoolWithDefault("use_QGrid", false);
+    if (db->keyExists("meters_adaptive_quadrature"))
+        d_use_adaptive_quadrature = db->getBoolWithDefault("meters_adaptive_quadrature", false);
+    if (db->keyExists("meters_quad_type"))
+        d_quad_type = Utility::string_to_enum<QuadratureType>(db->getStringWithDefault("meters_quad_type", "QGAUSS"));
+    if (db->keyExists("meters_quad_order"))
+        d_quad_order = Utility::string_to_enum<Order>(db->getStringWithDefault("meters_quad_order", "FORTIETH"));
+    if (d_use_adaptive_quadrature && d_quad_type != libMesh::QGRID)
+    {
+        TBOX_ERROR("IBFEInstrumentPanel::getFromInput :"
+                 << " Adaptive quadrature for the meters"
+                 << " is only supported with QuadratureType QGRID.");
+    }
     return;
 }
 
