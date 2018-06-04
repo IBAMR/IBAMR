@@ -185,6 +185,9 @@ public:
      */
     struct SpringSpec
     {
+        SpringSpec() : parameters(), force_fcn_idx(0)
+        {
+        }
         std::vector<double> parameters;
         int force_fcn_idx;
     };
@@ -219,6 +222,9 @@ public:
      */
     struct XSpringSpec
     {
+        XSpringSpec() : parameters(), force_fcn_idx(0)
+        {
+        }
         std::vector<double> parameters;
         int force_fcn_idx;
     };
@@ -253,6 +259,9 @@ public:
      */
     struct BeamSpec
     {
+        BeamSpec() : neighbor_idxs(), bend_rigidity(-1.0), curvature(IBTK::Vector::Zero())
+        {
+        }
         std::pair<int, int> neighbor_idxs;
         double bend_rigidity;
         IBTK::Vector curvature;
@@ -323,13 +332,11 @@ public:
     /*!
      * Typedef specifying the interface for initializing massive points on a given level.
      *
-     * bdry_mass_spec should be the vector of boundary mass spec.
-     *
-     * \note ALL vertices of a given structure must be assigned a BdryMassSpec.
+     * bdry_mass_spec should be a map between indices and the corresponding BdryMassSpec.
      */
     typedef void (*InitBoundaryMassOnLevel)(const unsigned int& strct_num,
                                             const int& level_num,
-                                            std::vector<BdryMassSpec>& bdry_mass_spec);
+                                            std::multimap<int, BdryMassSpec>& bdry_mass_spec);
 
     /*!
      * \brief Register a function to initialize massive points on a given level.
@@ -355,14 +362,12 @@ public:
     /*!
      * Typedef specifying the interface for initializing target points on a given level.
      *
-     * tg_pt_spec should be the vector of target point specifications.
-     *
-     * \note ALL vertices of a given structure must be assigned a TargetSpec
+     * tg_pt_spec should be a map between indices and the corresponding TargetSpec.
      */
 
     typedef void (*InitTargetPtOnLevel)(const unsigned int& strct_num,
                                         const int& level_num,
-                                        std::vector<TargetSpec>& tg_pt_spec);
+                                        std::multimap<int, TargetSpec>& tg_pt_spec);
 
     /*!
      * \brief Register a function to initialize target points on a given level.
@@ -387,13 +392,11 @@ public:
     /*!
      * Typedef specifying the interface for initializing anchor points on a given level.
      *
-     * anchor_pt_spec should be the vector of anchor point specifications.
-     *
-     * \note ALL vertices of a given structure must be assigned an AnchorSpec.
+     * anchor_pt_spec should be a map between indices and the corresponding AnchorSpec.
      */
     typedef void (*InitAnchorPtOnLevel)(const unsigned int& strct_num,
                                         const int& level_num,
-                                        std::vector<AnchorSpec>& anchor_pt_spec);
+                                        std::multimap<int, AnchorSpec>& anchor_pt_spec);
 
     /*!
      * \brief Register a function to initialize anchor points on a given level.

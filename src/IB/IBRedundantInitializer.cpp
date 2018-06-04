@@ -404,6 +404,40 @@ IBRedundantInitializer::initializeSprings()
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
                 d_init_spring_on_level_fcn(j, ln, d_spring_edge_map[ln][j], d_spring_spec_data[ln][j]);
+
+                int min_idx = 0;
+                int max_idx = d_num_vertex[ln][j];
+                for (std::multimap<int, Edge>::iterator it = d_spring_edge_map[ln][j].begin();
+                     it != d_spring_edge_map[ln][j].end();
+                     ++it)
+                {
+                    Edge& e = it->second;
+                    const SpringSpec& spec = d_spring_spec_data[ln][j][e];
+                    if ((e.first < min_idx) || (e.first > max_idx))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid spring edge encountered:\n"
+                                                 << e.first << " is not a valid index");
+                    }
+                    if ((e.second < min_idx) || (e.second > max_idx))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid spring edge encountered:\n"
+                                                 << e.second << " is not a valid index");
+                    }
+                    if (e.first > e.second)
+                    {
+                        std::swap<int>(e.first, e.second);
+                    }
+                    if (spec.parameters[0] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid spring constant encountered:\n"
+                                                 << spec.parameters[0] << " for index " << e.first << " is negative");
+                    }
+                    if (spec.parameters[1] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid resting length encountered:\n"
+                                                 << spec.parameters[1] << " for index " << e.first << " is negative");
+                    }
+                }
             }
         }
     }
@@ -441,6 +475,31 @@ IBRedundantInitializer::initializeBeams()
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
                 d_init_beam_on_level_fcn(j, ln, d_beam_spec_data[ln][j]);
+
+                const int min_idx = 0;
+                const int max_idx = d_num_vertex[ln][j];
+                for (std::multimap<int, BeamSpec>::const_iterator it = d_beam_spec_data[ln][j].begin();
+                     it != d_beam_spec_data[ln][j].end();
+                     ++it)
+                {
+                    const BeamSpec& e = it->second;
+                    const std::pair<int, int>& idxs = e.neighbor_idxs;
+                    if ((idxs.first < min_idx) || (idxs.first > max_idx))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid beam edge encountered:\n"
+                                                 << idxs.first << " is not a valid index");
+                    }
+                    if ((idxs.second < min_idx) || (idxs.second > max_idx))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid beam edge encountered:\n"
+                                                 << idxs.second << " is not a valid index");
+                    }
+                    if (e.bend_rigidity < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid bending rigidity encountered:\n"
+                                                 << e.bend_rigidity << " for index " << it->first << " is negative");
+                    }
+                }
             }
         }
     }
@@ -457,11 +516,40 @@ IBRedundantInitializer::initializeTargetPts()
         default_spec.stiffness = 0.0;
         default_spec.damping = 0.0;
         d_target_spec_data[ln].resize(num_base_filename);
+        std::multimap<int, TargetSpec> tg_pt_spec;
         if (d_init_target_pt_on_level_fcn)
         {
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
-                d_init_target_pt_on_level_fcn(j, ln, d_target_spec_data[ln][j]);
+                d_init_target_pt_on_level_fcn(j, ln, tg_pt_spec);
+
+                int min_idx = 0;
+                int max_idx = d_num_vertex[ln][j];
+                d_target_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
+                for (std::multimap<int, TargetSpec>::const_iterator it = tg_pt_spec.begin(); it != tg_pt_spec.end();
+                     ++it)
+                {
+                    if ((it->first < min_idx) || (it->first > max_idx))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid target point index on level " << ln
+                                                 << " and structure number " << j << ": \n"
+                                                 << it->first);
+                    }
+                    const TargetSpec& tg_spec = it->second;
+                    if (tg_spec.stiffness < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid target point stiffness encountered on level " << ln
+                                                 << " and structure number " << j << ": \n"
+                                                 << tg_spec.stiffness << " is negative");
+                    }
+                    if (tg_spec.damping < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid target point damping encountered on level " << ln
+                                                 << " and structure number " << j << ": \n"
+                                                 << tg_spec.damping << " is negative");
+                    }
+                    d_target_spec_data[ln][j][it->first] = tg_spec;
+                }
             }
         }
         else
@@ -490,6 +578,94 @@ IBRedundantInitializer::initializeDirectorAndRods()
             {
                 d_init_director_and_rod_on_level_fcn(
                     j, ln, d_directors[ln][j], d_rod_edge_map[ln][j], d_rod_spec_data[ln][j]);
+
+                int min_idx = 0;
+                int max_idx = d_num_vertex[ln][j];
+                if (d_directors[ln][j].size() != max_idx)
+                {
+                    TBOX_ERROR(d_object_name << "\n Not enough director vectors supplied for structure " << j
+                                             << "on level " << ln << ".");
+                }
+                for (int k = 0; k < d_directors[ln][j].size(); ++k)
+                {
+                    if (d_directors[ln][j][k].size() != 9)
+                    {
+                        TBOX_ERROR(d_object_name << "\n Not enough director vectors supplied on index " << k
+                                                 << " for structure " << j << "on level " << ln << ".\n");
+                    }
+                    for (int n = 0; n < 3; ++n)
+                    {
+                        double D_norm_squared = 0.0;
+                        for (int d = 0; d < 3; ++d)
+                        {
+                            D_norm_squared += d_directors[ln][j][k][3 * n + d] * d_directors[ln][j][k][3 * n + d];
+                        }
+                        const double D_norm = sqrt(D_norm_squared);
+                        if (!MathUtilities<double>::equalEps(D_norm, 1.0))
+                        {
+                            TBOX_WARNING(d_object_name << ":\n  Director vector for index " << k << " of strucutre "
+                                                       << j << " on level " << ln
+                                                       << " is not normalized; norm = " << D_norm << std::endl);
+                            for (int d = 0; d < 3; ++d)
+                            {
+                                d_directors[ln][j][k][3 * n + d] /= D_norm;
+                            }
+                        }
+                    }
+                }
+                for (std::multimap<int, Edge>::const_iterator it = d_rod_edge_map[ln][j].begin();
+                     it != d_rod_edge_map[ln][j].end();
+                     ++it)
+                {
+                    const Edge& e = it->second;
+                    const RodSpec& rod_spec = d_rod_spec_data[ln][j][e];
+                    const boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> parameters = rod_spec.properties;
+                    if ((e.first < min_idx) || (e.first > max_idx))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid rod edge encountered:\n"
+                                                 << e.first << " is not a valid index");
+                    }
+                    if ((e.second < min_idx) || (e.second > max_idx))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid rod edge encountered:\n"
+                                                 << e.second << " is not a valid index");
+                    }
+                    if (parameters[0] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid rod length encountered:\n"
+                                                 << parameters[0] << "for index " << e.first << " is negative");
+                    }
+                    if (parameters[1] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid parameter a1 encountered:\n"
+                                                 << parameters[1] << "for index " << e.first << " is negative");
+                    }
+                    if (parameters[2] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid parameter a2 encountered:\n"
+                                                 << parameters[2] << "for index " << e.first << " is negative");
+                    }
+                    if (parameters[3] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid a3 length encountered:\n"
+                                                 << parameters[3] << "for index " << e.first << " is negative");
+                    }
+                    if (parameters[4] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid b1 encountered:\n"
+                                                 << parameters[4] << "for index " << e.first << " is negative");
+                    }
+                    if (parameters[5] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid b2 encountered:\n"
+                                                 << parameters[5] << "for index " << e.first << " is negative");
+                    }
+                    if (parameters[6] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid b3 encountered:\n"
+                                                 << parameters[6] << "for index " << e.first << " is negative");
+                    }
+                }
             }
         }
     }
@@ -508,9 +684,36 @@ IBRedundantInitializer::initializeBoundaryMass()
         d_bdry_mass_spec_data[ln].resize(num_base_filename);
         if (d_init_boundary_mass_on_level_fcn)
         {
+            std::multimap<int, BdryMassSpec> bdry_map;
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
-                d_init_boundary_mass_on_level_fcn(j, ln, d_bdry_mass_spec_data[ln][j]);
+                d_init_boundary_mass_on_level_fcn(j, ln, bdry_map);
+                d_bdry_mass_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
+                int min_idx = 0;
+                int max_idx = d_num_vertex[ln][j];
+                for (std::multimap<int, BdryMassSpec>::const_iterator it = bdry_map.begin(); it != bdry_map.end(); ++it)
+                {
+                    if ((it->first < min_idx) || (it->first > max_idx))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid target point index on level " << ln
+                                                 << " and structure number " << j << ": \n"
+                                                 << it->first);
+                    }
+                    const BdryMassSpec& bdry_mass_spec = it->second;
+                    if (bdry_mass_spec.bdry_mass < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid boundary mass encountered on level " << ln
+                                                 << " and structure number " << j << ": \n"
+                                                 << bdry_mass_spec.bdry_mass << " is negative");
+                    }
+                    if (bdry_mass_spec.stiffness < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid boundary mass stiffness encountered on level " << ln
+                                                 << " and structure number " << j << ": \n"
+                                                 << bdry_mass_spec.stiffness << " is negative");
+                    }
+                    d_bdry_mass_spec_data[ln][j][it->first] = bdry_mass_spec;
+                }
             }
         }
         else
@@ -535,9 +738,24 @@ IBRedundantInitializer::initializeAnchorPts()
         default_spec.is_anchor_point = false;
         if (d_init_anchor_pt_on_level_fcn)
         {
+            std::multimap<int, AnchorSpec> anchor_map;
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
-                d_init_anchor_pt_on_level_fcn(j, ln, d_anchor_spec_data[ln][j]);
+                d_init_anchor_pt_on_level_fcn(j, ln, anchor_map);
+                d_anchor_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
+                int min_idx = 0;
+                int max_idx = d_num_vertex[ln][j];
+                for (std::multimap<int, AnchorSpec>::const_iterator it = anchor_map.begin(); it != anchor_map.end();
+                     ++it)
+                {
+                    if ((it->first < min_idx) || (it->first > max_idx))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid target point index on level " << ln
+                                                 << " and structure number " << j << ": \n"
+                                                 << it->first);
+                    }
+                    d_anchor_spec_data[ln][j][it->first] = it->second;
+                }
             }
         }
         else
@@ -1135,7 +1353,7 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
 #if !defined(NDEBUG)
             TBOX_ASSERT(mastr_idx == it->first);
 #endif
-            // The connectivity information.
+            // The connectivity information.d(
             const Edge& e = it->second;
             if (e.first == mastr_idx)
             {
