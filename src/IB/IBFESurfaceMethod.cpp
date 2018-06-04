@@ -768,13 +768,13 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                 const unsigned int n_node = elem->n_nodes();
                 const unsigned int n_qp = qrule->n_points();
 
-                // Zero out the values of X, du, and dv prior to accumulation.
+                // Zero out the values prior to accumulation.
                 double* x_begin = &x_qp[NDIM * qp_offset];
                 std::fill(x_begin, x_begin + NDIM * n_qp, 0.0);
 				boost::array<double*, NDIM> DU_j_begin;
 				for (unsigned int d = 0; d < NDIM; ++d)
                 {
-					DU_j_begin[d] = &DU_j_qp[NDIM * qp_offset][d];
+					DU_j_begin[d] = &DU_j_qp[d][NDIM * qp_offset];
 					std::fill(DU_j_begin[d], DU_j_begin[d] + NDIM * n_qp, 0.0);
 				}
 
@@ -806,13 +806,21 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                         for (unsigned int k = 0; k < n_node; ++k)
                         {
 								x_qp[NDIM * (qp_offset + qp) + i] += x_node[k][i] * phi[k][qp];
-								for (unsigned int d = 0; d < NDIM; ++d)
-								{
-									DU_j_qp[NDIM * (qp_offset + qp) + i][d] += DU_j_node[k][i][d] * phi[k][qp];
-								}
                         }
                         N_qp[NDIM * (qp_offset + qp) + i] = n(i);
                     }
+                    
+                    for (unsigned int d = 0; d < NDIM; ++d)
+						for (unsigned int i = 0; i < NDIM; ++i)
+							for (unsigned int k = 0; k < n_node; ++k)
+								DU_j_qp[d][NDIM * (qp_offset + qp) + i] += DU_j_node[k][i][d] * phi[k][qp];
+							
+						
+									
+					
+                    
+                    
+                    
                 }
                 qp_offset += n_qp;
             }
@@ -985,13 +993,13 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                             for (int d = 0; d < NDIM; ++d)
                             {
 								Ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]][d] =
-									dx[0] * w0[0] * w1[0] * (LL[0] * DU_j_qp[s * NDIM][d] + LL[1] * DU_j_qp[1 + s * NDIM][d]);
+									dx[0] * w0[0] * w1[0] * (LL[0] * DU_j_qp[d][s * NDIM] + LL[1] * DU_j_qp[d][1 + s * NDIM]);
 								Ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]][d] =
-									dx[0] * w0[1] * w1[0] * (UL[0] * DU_j_qp[s * NDIM][d] + UL[1] * DU_j_qp[1 + s * NDIM][d]);
+									dx[0] * w0[1] * w1[0] * (UL[0] * DU_j_qp[d][s * NDIM] + UL[1] * DU_j_qp[d][1 + s * NDIM]);
 								Ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]][d] =
-									dx[0] * w0[1] * w1[1] * (UU[0] * DU_j_qp[s * NDIM][d] + UU[1] * DU_j_qp[1 + s * NDIM][d]);
+									dx[0] * w0[1] * w1[1] * (UU[0] * DU_j_qp[d][s * NDIM] + UU[1] * DU_j_qp[d][1 + s * NDIM]);
 								Ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]][d] =
-									dx[0] * w0[0] * w1[1] * (LU[0] * DU_j_qp[s * NDIM][d] + LU[1] * DU_j_qp[1 + s * NDIM][d]);
+									dx[0] * w0[0] * w1[1] * (LU[0] * DU_j_qp[d][s * NDIM] + LU[1] * DU_j_qp[d][1 + s * NDIM]);
 
 							}
 #endif
@@ -1028,42 +1036,42 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                             {
 								Ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]][ic_trimmed_lower[2]][d] =
 									dx[0] * w0[0] * w1[0] * w2[0] *
-									(LLL[0] * DU_j_qp[s * NDIM][d] + LLL[1] * DU_j_qp[1 + s * NDIM][d] +
+									(LLL[0] * DU_j_qp[s * NDIM][d] + LLL[1] * DU_j_qp[d][1 + s * NDIM] +
 									 LLL[2] * DU_j_qp[2 + s * NDIM][d]);
 
 								Ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]][ic_trimmed_lower[2]][d] =
 									dx[0] * w0[1] * w1[0] * w2[0] *
-									(ULL[0] * DU_j_qp[s * NDIM][d] + ULL[1] * DU_j_qp[1 + s * NDIM][d] +
+									(ULL[0] * DU_j_qp[s * NDIM][d] + ULL[1] * DU_j_qp[d][1 + s * NDIM] +
 									 ULL[2] * DU_j_qp[2 + s * NDIM][d]);
 
 								Ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]][ic_trimmed_upper[2]][d] =
 									dx[0] * w0[1] * w1[0] * w2[1] *
-									(ULU[0] * DU_j_qp[s * NDIM][d] + ULU[1] * DU_j_qp[1 + s * NDIM][d] +
+									(ULU[0] * DU_j_qp[s * NDIM][d] + ULU[1] * DU_j_qp[d][1 + s * NDIM] +
 									 ULU[2] * DU_j_qp[2 + s * NDIM][d]);
 									 
 								Ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]][ic_trimmed_lower[2]][d] =
 									dx[0] * w0[1] * w1[1] * w2[0] *
-									(UUL[0] * DU_j_qp[s * NDIM][d] + UUL[1] * DU_j_qp[1 + s * NDIM][d] +
+									(UUL[0] * DU_j_qp[s * NDIM][d] + UUL[1] * DU_j_qp[d][1 + s * NDIM] +
 									 UUL[2] * DU_j_qp[2 + s * NDIM][d]);
 
 								Ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]][ic_trimmed_lower[2]][d] =
 									dx[0] * w0[0] * w1[1] * w2[0] *
-									(LUL[0] * DU_j_qp[s * NDIM][d] + LUL[1] * DU_j_qp[1 + s * NDIM][d] +
+									(LUL[0] * DU_j_qp[s * NDIM][d] + LUL[1] * DU_j_qp[d][1 + s * NDIM] +
 									 LUL[2] * DU_j_qp[2 + s * NDIM][d]);
 
 								Ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]][ic_trimmed_upper[2]][d] =
 									dx[0] * w0[0] * w1[1] * w2[1] *
-									(LUU[0] * DU_j_qp[s * NDIM][d] + LUU[1] * DU_j_qp[1 + s * NDIM][d] +
+									(LUU[0] * DU_j_qp[s * NDIM][d] + LUU[1] * DU_j_qp[d][1 + s * NDIM] +
 									 LUU[2] * DU_j_qp[2 + s * NDIM][d]);
 
 								Ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]][ic_trimmed_upper[2]][d] =
 									dx[0] * w0[0] * w1[0] * w2[1] *
-									(LLU[0] * DU_j_qp[s * NDIM][d] + LLU[1] * DU_j_qp[1 + s * NDIM][d] +
+									(LLU[0] * DU_j_qp[s * NDIM][d] + LLU[1] * DU_j_qp[d][1 + s * NDIM] +
 									 LLU[2] * DU_j_qp[2 + s * NDIM][d]);
 									 
 								Ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]][ic_trimmed_upper[2]][d] =
 									dx[0] * w0[1] * w1[1] * w2[1] *
-									(UUU[0] * DU_j_qp[s * NDIM][d] + UUU[1] * DU_j_qp[1 + s * NDIM][d] +
+									(UUU[0] * DU_j_qp[s * NDIM][d] + UUU[1] * DU_j_qp[d][1 + s * NDIM] +
 									 UUU[2] * DU_j_qp[2 + s * NDIM][d]);
 							 }
 #endif
@@ -2412,6 +2420,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 									}
 									if (found_same_intersection_point) break;
 								}
+								
 								if (!found_same_intersection_point)
 								{
 									// Evaluate the jump conditions and apply them
@@ -2451,11 +2460,6 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                             i_s_um(axis) =
                                 static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) + patch_lower[axis];
 
-                            const double x_cell_bdry_um =
-                                x_lower[axis] + static_cast<double>(i_s_um(axis) - patch_lower[axis]) * dx[axis];
-
-                            const double x_cell_bdry_up =
-                                x_lower[axis] + static_cast<double>(i_s_up(axis) - patch_lower[axis]) * dx[axis];
 
                             if (side_boxes[axis].contains(i_s_up) && side_boxes[axis].contains(i_s_um))
                             {
@@ -2472,49 +2476,100 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 									}
 									n = (dx_dxi[0].cross(dx_dxi[1])).unit();
 									
+									bool found_same_intersection_point = false;
 									
+									for (int shift = -1; shift <= 1; ++shift)
+									{
+										SideIndex<NDIM> i_s_prime = i_s_um;
+										i_s_prime(axis) += shift;
+										const std::vector<libMesh::Point>& candidate_coords =
+											intersection_u_points[axis][i_s_prime];
+										const std::vector<libMesh::Point>& candidate_ref_coords =
+											intersection_u_ref_coords[axis][i_s_prime];
+										const std::vector<VectorValue<double> >& candidate_normals =
+											intersection_u_normals[axis][i_s_prime];
+										std::vector<libMesh::Point>::const_iterator x_prime_it = candidate_coords.begin();
+										std::vector<libMesh::Point>::const_iterator xi_prime_it = candidate_ref_coords.begin();
+										std::vector<VectorValue<double> >::const_iterator n_prime_it =
+											candidate_normals.begin();
+										for (; x_prime_it != candidate_coords.end(); ++x_prime_it, ++xi_prime_it, ++n_prime_it)
+										{
+											const libMesh::Point& x_prime = *x_prime_it;
+											const libMesh::Point& xi_prime = *xi_prime_it;
+											const libMesh::Point& n_prime = *n_prime_it;
+											if (xu.absolute_fuzzy_equals(x_prime, 1.0e-5 * dx[axis]))
+											{
+												// WARNING: This check is ONLY
+												// guaranteed to work at edges (where
+												// only two elements meet).  To avoid FE
+												// mesh nodes, set
+												// d_perturb_fe_mesh_nodes to true.
+												found_same_intersection_point = n(axis) * n_prime(axis) > 0.0;
+												if (d_do_log)
+												{
+													plog << "==========\n";
+													plog << "multiple intersections detected:\n";
+													plog << "  xu    = " << xu << "\n";
+													plog << "  x'   = " << x_prime << "\n";
+													plog << "  xui   = " << xui << "\n";
+													plog << "  xi'  = " << xi_prime << "\n";
+													plog << "  n    = " << n << "\n";
+													plog << "  n'   = " << n_prime << "\n";
+													plog << "  i_s  = " << i_s_um << "\n";
+													plog << "  i_s' = " << i_s_prime << "\n";
+													plog << "  axis = " << axis << "\n";
+												}
+											}
+											if (found_same_intersection_point) break;
+										}
+										if (found_same_intersection_point) break;
+									}
+									
+									if (!found_same_intersection_point)
+									{
 										// imposed jump conditions.
-									
-									TBOX_ASSERT(i_s_um.getAxis() == i_s_up.getAxis());
-									TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
-									const double x_cell_bdry_um =
-										x_lower[axis] + static_cast<double>(i_s_um(axis) - patch_lower[axis]) * dx[axis];
-										
-									const double x_cell_bdry_up =
-										x_lower[axis] + static_cast<double>(i_s_up(axis) - patch_lower[axis]) * dx[axis];
-									const double sdh_um = ((xu(axis) - x_cell_bdry_um)); // Signed Distance h
+											
+											TBOX_ASSERT(i_s_um.getAxis() == i_s_up.getAxis());
+											TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
+											const double x_cell_bdry_um =
+												x_lower[axis] + static_cast<double>(i_s_um(axis) - patch_lower[axis]) * dx[axis];
+												
+											const double x_cell_bdry_up =
+												x_lower[axis] + static_cast<double>(i_s_up(axis) - patch_lower[axis]) * dx[axis];
+											const double sdh_um = ((xu(axis) - x_cell_bdry_um)); // Signed Distance h
 
-									const double sdh_up = ((xu(axis) - x_cell_bdry_up)); // Signed Distance h
+											const double sdh_up = ((xu(axis) - x_cell_bdry_up)); // Signed Distance h
 
-									TBOX_ASSERT((sdh_um) < dx[axis] && sdh_um > 0);
-									TBOX_ASSERT(fabs(sdh_up) < dx[axis] && sdh_up < 0);
-			
+											TBOX_ASSERT((sdh_um) < dx[axis] && sdh_um > 0);
+											TBOX_ASSERT(fabs(sdh_up) < dx[axis] && sdh_up < 0);
+					
 
-									double C_u_um = 0;
-									double C_u_up = 0;
+											double C_u_um = 0;
+											double C_u_up = 0;
 #if (NDIM == 2)
 
-									if (axis == 0)
-									{
-										interpolate(&jn(0), 0, DU_j_node[0], phi);
-										C_u_up = sdh_up * jn(0);
-										C_u_um = sdh_um * jn(0);
+											if (axis == 0)
+											{
+												interpolate(&jn(0), 0, DU_j_node[0], phi);
+												C_u_up = sdh_up * jn(0);
+												C_u_um = sdh_um * jn(0);
 
-									}
-									else if (axis == 1)
-									{
-										interpolate(&jn(0), 0, DU_j_node[1], phi);
-										C_u_up = sdh_up * jn(1);
-										C_u_um = sdh_um * jn(1);
-									}
+											}
+											else if (axis == 1)
+											{
+												interpolate(&jn(0), 0, DU_j_node[1], phi);
+												C_u_up = sdh_up * jn(1);
+												C_u_um = sdh_um * jn(1);
+											}
 #endif
-									(*f_data)(i_s_up) += - (n(axis) > 0.0 ? 1.0 : -1.0) * (C_u_um / (dx[axis] * dx[axis]));
-									(*f_data)(i_s_um) += - (n(axis) > 0.0 ? -1.0 : 1.0) * (C_u_up / (dx[axis] * dx[axis]));                  
+											(*f_data)(i_s_up) += - (n(axis) > 0.0 ? 1.0 : -1.0) * (C_u_um / (dx[axis] * dx[axis]));
+											(*f_data)(i_s_um) += - (n(axis) > 0.0 ? -1.0 : 1.0) * (C_u_up / (dx[axis] * dx[axis]));  
+									}                
                             }
                             // Keep track of the positions where we have
-                            	intersection_u_points[axis][i_s_um].push_back(xu);
-								intersection_u_ref_coords[axis][i_s_um].push_back(xui);
-								intersection_u_normals[axis][i_s_um].push_back(n);
+                            intersection_u_points[axis][i_s_um].push_back(xu);
+							intersection_u_ref_coords[axis][i_s_um].push_back(xui);
+							intersection_u_normals[axis][i_s_um].push_back(n);
                         }
 
 						
@@ -2559,6 +2614,55 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 											
 
 									bool found_same_intersection_point = false;
+									
+									for (int shift = -1; shift <= 1; ++shift)
+									{
+										SideIndex<NDIM> i_s_prime = i_s_um;
+										i_s_prime(axis) += shift;
+										const std::vector<libMesh::Point>& candidate_coords =
+											intersectionSide_u_points[axis][i_s_prime];
+										const std::vector<libMesh::Point>& candidate_ref_coords =
+											intersectionSide_u_ref_coords[axis][i_s_prime];
+										const std::vector<VectorValue<double> >& candidate_normals =
+											intersectionSide_u_normals[axis][i_s_prime];
+										std::vector<libMesh::Point>::const_iterator x_prime_it = candidate_coords.begin();
+										std::vector<libMesh::Point>::const_iterator xi_prime_it = candidate_ref_coords.begin();
+										std::vector<VectorValue<double> >::const_iterator n_prime_it =
+											candidate_normals.begin();
+										for (; x_prime_it != candidate_coords.end(); ++x_prime_it, ++xi_prime_it, ++n_prime_it)
+										{
+											const libMesh::Point& x_prime = *x_prime_it;
+											const libMesh::Point& xi_prime = *xi_prime_it;
+											const libMesh::Point& n_prime = *n_prime_it;
+											if (xu.absolute_fuzzy_equals(x_prime, 1.0e-5 * dx[axis]))
+											{
+												// WARNING: This check is ONLY
+												// guaranteed to work at edges (where
+												// only two elements meet).  To avoid FE
+												// mesh nodes, set
+												// d_perturb_fe_mesh_nodes to true.
+												found_same_intersection_point = n(axis) * n_prime(axis) > 0.0;
+												if (d_do_log)
+												{
+													plog << "==========\n";
+													plog << "multiple intersections detected:\n";
+													plog << "  x    = " << xu << "\n";
+													plog << "  x'   = " << x_prime << "\n";
+													plog << "  xi   = " << xui << "\n";
+													plog << "  xi'  = " << xi_prime << "\n";
+													plog << "  n    = " << n << "\n";
+													plog << "  n'   = " << n_prime << "\n";
+													plog << "  i_s  = " << i_s_um << "\n";
+													plog << "  i_s' = " << i_s_prime << "\n";
+													plog << "  axis = " << axis << "\n";
+												}
+											}
+											if (found_same_intersection_point) break;
+										}
+										if (found_same_intersection_point) break;
+									}
+								
+
 									if (!found_same_intersection_point)
 									{
 										// Evaluate the jump conditions and apply them
@@ -2644,11 +2748,60 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 									n = (dx_dxi[0].cross(dx_dxi[1])).unit();
 									
 									bool found_same_intersection_point = false;
+									
+									
+									for (int shift = -1; shift <= 1; ++shift)
+									{
+										SideIndex<NDIM> i_s_prime = i_s_um;
+										i_s_prime(axis) += shift;
+										const std::vector<libMesh::Point>& candidate_coords =
+											intersectionSide_u_points[axis][i_s_prime];
+										const std::vector<libMesh::Point>& candidate_ref_coords =
+											intersectionSide_u_ref_coords[axis][i_s_prime];
+										const std::vector<VectorValue<double> >& candidate_normals =
+											intersectionSide_u_normals[axis][i_s_prime];
+										std::vector<libMesh::Point>::const_iterator x_prime_it = candidate_coords.begin();
+										std::vector<libMesh::Point>::const_iterator xi_prime_it = candidate_ref_coords.begin();
+										std::vector<VectorValue<double> >::const_iterator n_prime_it =
+											candidate_normals.begin();
+										for (; x_prime_it != candidate_coords.end(); ++x_prime_it, ++xi_prime_it, ++n_prime_it)
+										{
+											const libMesh::Point& x_prime = *x_prime_it;
+											const libMesh::Point& xi_prime = *xi_prime_it;
+											const libMesh::Point& n_prime = *n_prime_it;
+											if (xu.absolute_fuzzy_equals(x_prime, 1.0e-5 * dx[axis]))
+											{
+												// WARNING: This check is ONLY
+												// guaranteed to work at edges (where
+												// only two elements meet).  To avoid FE
+												// mesh nodes, set
+												// d_perturb_fe_mesh_nodes to true.
+												found_same_intersection_point = n(axis) * n_prime(axis) > 0.0;
+												if (d_do_log)
+												{
+													plog << "==========\n";
+													plog << "multiple intersections detected:\n";
+													plog << "  xu    = " << xu << "\n";
+													plog << "  x'   = " << x_prime << "\n";
+													plog << "  xi   = " << xui << "\n";
+													plog << "  xi'  = " << xi_prime << "\n";
+													plog << "  n    = " << n << "\n";
+													plog << "  n'   = " << n_prime << "\n";
+													plog << "  i_s  = " << i_s_um << "\n";
+													plog << "  i_s' = " << i_s_prime << "\n";
+													plog << "  axis = " << axis << "\n";
+												}
+											}
+											if (found_same_intersection_point) break;
+										}
+										if (found_same_intersection_point) break;
+									}
+									
 									if (!found_same_intersection_point)
 									{
 										// Evaluate the jump conditions and apply them
 										// to the Eulerian grid.
-										if (side_ghost_boxes[axis].contains(i_s_um))
+										if (side_ghost_boxes[axis].contains(i_s_um) && side_ghost_boxes[axis].contains(i_s_up))
 										{
 												TBOX_ASSERT( i_s_up(axis) - i_s_um(axis) == 1);
 												
