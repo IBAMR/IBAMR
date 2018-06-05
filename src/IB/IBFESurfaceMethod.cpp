@@ -658,7 +658,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         const std::vector<std::vector<Elem*> >& active_patch_element_map =
             d_fe_data_managers[part]->getActivePatchElementMap();
         // if (!X_vec.closed())/
-        (*X_ghost_vec).close();
+        X_ghost_vec->close();
 
         PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec);
         Vec X_global_vec = X_petsc_vec->vec();
@@ -669,9 +669,9 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         UniquePtr<NumericVector<double> > X0_vec = X_petsc_vec->clone();
         X_system.get_vector("INITIAL_COORDINATES").localize(*X0_vec);
         X0_vec->close();
-        AutoPtr<NumericVector<double> > U_rhs_vec = (*U_vec).zero_clone();
+        UniquePtr<NumericVector<double> > U_rhs_vec = U_vec->zero_clone();
         (*U_rhs_vec).zero();
-        DenseVector<double> U_rhs_e[NDIM];
+        std::vector<DenseVector<double> >U_rhs_e(NDIM);
         UniquePtr<NumericVector<double> > U_n_rhs_vec = U_n_vec->zero_clone();
         std::vector<DenseVector<double> > U_n_rhs_e(NDIM);
         UniquePtr<NumericVector<double> > U_t_rhs_vec = U_t_vec->zero_clone();
@@ -693,7 +693,8 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
             // The relevant collection of elements.
-            const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
+            //~ const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
+            const std::vector<Elem*>& patch_elems = d_fe_data_managers[part]->getActivePatchElementMap()[local_patch_num];
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
             const Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -1107,7 +1108,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                                                                N_qp[s * NDIM + 2] * wr2[ic_upper[2] - ic2];
                                                 if (nproj > 0) CC = Ujump[ic0][ic1][ic2][axis];
 
-                                                Q_data_axis[s] -= CC / d_mu;
+                                                Q_data_axis[s] -=  CC / d_mu;
                                             }
                                         }
                                     }
@@ -1141,6 +1142,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X0_vec, X_dof_indices);
+                get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const bool qrule_changed =
                     FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
                 if (qrule_changed) fe->attach_quadrature_rule(qrule.get());
@@ -1593,7 +1595,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                 }
                 if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
                 {
-                    F = 0.0;
+                     F = 0.0;
                 }
             }
 
@@ -2529,10 +2531,8 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                         C_u_um = sdh_um * jn(1);
                                     }
 #endif
-                                    (*f_data)(i_s_up) +=
-                                        0.0; // - (n(axis) > 0.0 ? 1.0 : -1.0) * (C_u_um / (dx[axis] * dx[axis]));
-                                    (*f_data)(i_s_um) +=
-                                        0.0; //- (n(axis) > 0.0 ? -1.0 : 1.0) * (C_u_up / (dx[axis] * dx[axis]));
+                                    (*f_data)(i_s_up) += - (n(axis) > 0.0 ? 1.0 : -1.0) * (C_u_um / (dx[axis] * dx[axis]));
+                                    (*f_data)(i_s_um) += - (n(axis) > 0.0 ? -1.0 : 1.0) * (C_u_up / (dx[axis] * dx[axis]));
                                 }
                             }
                             // Keep track of the positions where we have
@@ -2669,11 +2669,9 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                                 C_u_up = sdh_up * jn(0);
                                             }
 
-                                            (*f_data)(i_s_um) += 0.0; // - (n(axis) > 0.0 ? -1.0 : 1.0) * ( C_u_up /
-                                                                      // (dx[axis] * dx[axis]));
+                                            (*f_data)(i_s_um) +=  - (n(axis) > 0.0 ? -1.0 : 1.0) * ( C_u_up / (dx[axis] * dx[axis]));
 
-                                            (*f_data)(i_s_up) += 0.0; // - (n(axis) > 0.0 ? 1.0 : -1.0) * ( C_u_um /
-                                                                      // (dx[axis] * dx[axis]));
+                                            (*f_data)(i_s_up) += - (n(axis) > 0.0 ? 1.0 : -1.0) * ( C_u_um / (dx[axis] * dx[axis]));
                                         }
 
                                         intersectionSide_u_points[axis][i_s_um].push_back(xu);
@@ -2798,11 +2796,9 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                                 C_u_up = sdh_up * jn(0);
                                             }
 
-                                            (*f_data)(i_s_um) += 0.0; //- (n(axis) > 0.0 ? -1.0 : 1.0) * ( C_u_up /
-                                                                      //(dx[axis] * dx[axis]));
+                                            (*f_data)(i_s_um) += - (n(axis) > 0.0 ? -1.0 : 1.0) * ( C_u_up / (dx[axis] * dx[axis]));
 
-                                            (*f_data)(i_s_up) += 0.0; //- (n(axis) > 0.0 ? 1.0 : -1.0) * ( C_u_um /
-                                                                      //(dx[axis] * dx[axis]));
+                                            (*f_data)(i_s_up) += - (n(axis) > 0.0 ? 1.0 : -1.0) * ( C_u_um / (dx[axis] * dx[axis]));
                                         }
 
                                         intersectionSide_u_points[axis][i_s_um].push_back(xu);
