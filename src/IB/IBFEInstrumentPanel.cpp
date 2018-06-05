@@ -47,7 +47,6 @@
 #include "BasePatchLevel.h"
 #include "Box.h"
 #include "BoxArray.h"
-#include "BoxArray.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
@@ -69,7 +68,6 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/FEDataManager.h"
 #include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
@@ -140,22 +138,21 @@ linear_interp(const Vector& X,
                                       ,
                                       X_cell[2] + static_cast<double>(i_shift2) * dx[2]
 #endif
-                                      );
+                );
                 const double wgt =
                     (((X[0] < X_center[0] ? X[0] - (X_center[0] - dx[0]) : (X_center[0] + dx[0]) - X[0]) / dx[0]) *
                      ((X[1] < X_center[1] ? X[1] - (X_center[1] - dx[1]) : (X_center[1] + dx[1]) - X[1]) / dx[1])
 #if (NDIM == 3)
-                     *
-                     ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
+                     * ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
 #endif
-                         );
+                    );
                 const Index<NDIM> i(i_shift0 + i_cell(0),
                                     i_shift1 + i_cell(1)
 #if (NDIM == 3)
                                         ,
                                     i_shift2 + i_cell(2)
 #endif
-                                        );
+                );
                 const CellIndex<NDIM> i_c(i);
                 U += v(i_c) * wgt;
             }
@@ -201,22 +198,21 @@ linear_interp(const Vector& X,
                                       ,
                                       X_cell[2] + static_cast<double>(i_shift2) * dx[2]
 #endif
-                                      );
+                );
                 const double wgt =
                     (((X[0] < X_center[0] ? X[0] - (X_center[0] - dx[0]) : (X_center[0] + dx[0]) - X[0]) / dx[0]) *
                      ((X[1] < X_center[1] ? X[1] - (X_center[1] - dx[1]) : (X_center[1] + dx[1]) - X[1]) / dx[1])
 #if (NDIM == 3)
-                     *
-                     ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
+                     * ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
 #endif
-                         );
+                    );
                 const Index<NDIM> i(i_shift0 + i_cell(0),
                                     i_shift1 + i_cell(1)
 #if (NDIM == 3)
                                         ,
                                     i_shift2 + i_cell(2)
 #endif
-                                        );
+                );
                 const CellIndex<NDIM> i_c(i);
                 for (int k = 0; k < N; ++k)
                 {
@@ -273,22 +269,21 @@ linear_interp(const Vector& X,
                                         ,
                                         X_cell[2] + (static_cast<double>(i_shift2) + (axis == 2 ? -0.5 : 0.0)) * dx[2]
 #endif
-                                        );
+                    );
                     const double wgt =
                         (((X[0] < X_side[0] ? X[0] - (X_side[0] - dx[0]) : (X_side[0] + dx[0]) - X[0]) / dx[0]) *
                          ((X[1] < X_side[1] ? X[1] - (X_side[1] - dx[1]) : (X_side[1] + dx[1]) - X[1]) / dx[1])
 #if (NDIM == 3)
-                         *
-                         ((X[2] < X_side[2] ? X[2] - (X_side[2] - dx[2]) : (X_side[2] + dx[2]) - X[2]) / dx[2])
+                         * ((X[2] < X_side[2] ? X[2] - (X_side[2] - dx[2]) : (X_side[2] + dx[2]) - X[2]) / dx[2])
 #endif
-                             );
+                        );
                     const Index<NDIM> i(i_shift0 + i_cell(0),
                                         i_shift1 + i_cell(1)
 #if (NDIM == 3)
                                             ,
                                         i_shift2 + i_cell(2)
 #endif
-                                            );
+                    );
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                     U[axis] += v(i_s) * wgt;
                 }
@@ -299,7 +294,7 @@ linear_interp(const Vector& X,
     }
     return U;
 }
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -399,8 +394,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
     if (nodes.size() == 0 || bcs.size() == 0 || (nodes.size() != bcs.size()))
     {
         TBOX_ERROR("IBFEInstrumentPanel::initializeHierarchyIndependentData : "
-                   << "nodesets not set up correctly or don't exist in FE part with number "
-                   << d_part);
+                   << "nodesets not set up correctly or don't exist in FE part with number " << d_part);
     }
 
     // resize members and local variables
@@ -583,7 +577,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
     // loop over meters, update system data, and get the maximum
     // radius for each meter in this FE part.
     // the radius of a meter is defined to be the largest distance
-    // from the centroid to a node.  
+    // from the centroid to a node.
     std::vector<double> meter_radii(d_num_meters, 0.0);
     for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
@@ -592,7 +586,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
         meter_radii[jj] = getMeterRadius(jj);
         perr << "meter radius = " << meter_radii[jj] << "\n";
     }
-        
+
     // get info about levels in AMR mesh
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
@@ -604,7 +598,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
     const double* const dx_coarsest = grid_geom->getDx();
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
     const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
-    
+
     // get the finest spacing of fluid grid
     const IntVector<NDIM>& ratio_to_level_zero = hierarchy->getPatchLevel(finest_ln)->getRatio();
     boost::array<double, NDIM> dx_finest;
@@ -613,26 +607,26 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
         dx_finest[d] = dx_coarsest[d] / static_cast<double>(ratio_to_level_zero(d));
     }
     const double h_finest = *std::min_element(dx_finest.begin(), dx_finest.end());
-    
+
     for (int jj = 0; jj < d_num_meters; ++jj)
     {
         // set the quadrature rule adaptively according to the fluid mesh size
-        if(d_use_adaptive_quadrature) d_quad_order[jj] = static_cast<Order>(meter_radii[jj] / (0.25 * h_finest));
-        else d_quad_order[jj] = d_input_quad_order;
+        if (d_use_adaptive_quadrature)
+            d_quad_order[jj] = static_cast<Order>(meter_radii[jj] / (0.25 * h_finest));
+        else
+            d_quad_order[jj] = d_input_quad_order;
         // print a warning
-        if(d_quad_type == libMesh::QGRID && d_quad_order[jj] > libMesh::FORTYTHIRD)
+        if (d_quad_type == libMesh::QGRID && d_quad_order[jj] > libMesh::FORTYTHIRD)
         {
             TBOX_WARNING("IBFEInstrumentPanel::initializeHierarchyDependentData : "
-                    << "QGrid quadrature order exceeds 43 for meter mesh in IBFE part "
-                    << d_part
-                    << "."
-                    << " there may be undefined behavior in casting to this"
-                    << " Order in older versions of libMesh.");
+                         << "QGrid quadrature order exceeds 43 for meter mesh in IBFE part " << d_part << "."
+                         << " there may be undefined behavior in casting to this"
+                         << " Order in older versions of libMesh.");
         }
         perr << "quad order = " << d_quad_order[jj] << "\n";
         perr << "quad type = " << Utility::enum_to_string<QuadratureType>(d_quad_type) << "\n";
     }
-    
+
     // reset the quad point maps
     d_quad_point_map.clear();
     d_quad_point_map.resize(finest_ln + 1);
@@ -775,7 +769,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     // values for the number of quadrature points.
     int count_qp_1 = 0;
     int count_qp_2 = 0;
-    
+
     // compute flow and mean pressure on mesh meters
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -811,7 +805,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                                             ,
                                         x_lower[2] + dx[2] * (static_cast<double>(i(2) - patch_lower(2)) + 0.5)
 #endif
-                                            );
+                    );
                     if (U_cc_data)
                     {
                         for (QuadPointMap::const_iterator it = qp_range.first; it != qp_range.second; ++it)
@@ -863,12 +857,10 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     if (count_qp_1 != count_qp_3)
     {
         TBOX_WARNING("IBFEInstrumentPanel::readInstrumentData :"
-                   << " the total number of quadrature points in the meter meshes"
-                   << " is not consistent with the number used in the"
-                   << " calculations, for IBFE part "
-                   << d_part
-                   << "."
-                   << " there may be overlapping patches in the AMR grid.");
+                     << " the total number of quadrature points in the meter meshes"
+                     << " is not consistent with the number used in the"
+                     << " calculations, for IBFE part " << d_part << "."
+                     << " there may be overlapping patches in the AMR grid.");
     }
 
     // Synchronize the values across all processes.
@@ -975,8 +967,8 @@ IBFEInstrumentPanel::getFromInput(Pointer<Database> db)
     if (d_use_adaptive_quadrature && d_quad_type != libMesh::QGRID)
     {
         TBOX_ERROR("IBFEInstrumentPanel::getFromInput :"
-                 << " Adaptive quadrature for the meters"
-                 << " is only supported with QuadratureType QGRID.");
+                   << " Adaptive quadrature for the meters"
+                   << " is only supported with QuadratureType QGRID.");
     }
     return;
 }
@@ -1000,7 +992,6 @@ IBFEInstrumentPanel::getInstrumentDumpInterval() const
 void
 IBFEInstrumentPanel::initializeSystemDependentData(IBAMR::IBFEMethod* ib_method_ops, const int meter_mesh_number)
 {
-    
     // get the coordinate mapping system and velocity systems for the parent mesh
     const FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager(d_part);
     const EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
@@ -1069,7 +1060,7 @@ IBFEInstrumentPanel::initializeSystemDependentData(IBAMR::IBFEMethod* ib_method_
         const int disp_dof_idx = centroid_node->dof_number(displacement_sys_num, d, 0);
         displacement_coords.set(disp_dof_idx, mean_dX_dofs[d]);
     }
-    
+
     // also populate solution vector in the system for exodus IO
     MeshBase::const_node_iterator node_it = d_meter_meshes[meter_mesh_number]->local_nodes_begin();
     const MeshBase::const_node_iterator end_node_it = d_meter_meshes[meter_mesh_number]->local_nodes_end();
@@ -1093,10 +1084,10 @@ IBFEInstrumentPanel::getMeterRadius(const int meter_mesh_number)
 {
     // NOTE: this function should be called **after** updating the meter system data,
     // with initializeSystemDependentData.
-    
+
     // get displacement system for meter mesh
     LinearImplicitSystem& displacement_sys =
-            d_meter_systems[meter_mesh_number]->get_system<LinearImplicitSystem>(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
+        d_meter_systems[meter_mesh_number]->get_system<LinearImplicitSystem>(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
     const unsigned int displacement_sys_num = displacement_sys.number();
     NumericVector<double>& displacement_coords = displacement_sys.get_vector("serial solution");
     double max_meter_radius = 0.0;
@@ -1106,21 +1097,21 @@ IBFEInstrumentPanel::getMeterRadius(const int meter_mesh_number)
         const Node* node = &d_meter_meshes[meter_mesh_number]->node_ref(ii);
         // get the centroid
         const Node* centroid_node = &d_meter_meshes[meter_mesh_number]->node_ref(d_num_nodes[meter_mesh_number]);
-        
+
         std::vector<double> node_disp(NDIM, 0.0);
-        std::vector<double> centroid_disp(NDIM, 0.0); 
+        std::vector<double> centroid_disp(NDIM, 0.0);
         std::vector<numeric_index_type> node_disp_dof_idx(NDIM, 0);
         std::vector<numeric_index_type> centroid_disp_dof_idx(NDIM, 0);
-        for(unsigned int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             node_disp_dof_idx[d] = node->dof_number(displacement_sys_num, d, 0);
             centroid_disp_dof_idx[d] = centroid_node->dof_number(displacement_sys_num, d, 0);
         }
         displacement_coords.get(node_disp_dof_idx, node_disp);
         displacement_coords.get(centroid_disp_dof_idx, centroid_disp);
-        
+
         double radius_squared = 0.0;
-        for(unsigned int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             radius_squared += pow((*centroid_node)(d) + centroid_disp[d] - (*node)(d) + node_disp[d], 2.0);
         }

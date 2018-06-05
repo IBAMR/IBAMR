@@ -58,7 +58,7 @@ namespace IBAMR
 /*!
  * \brief Class IBFEInstrumentPanel provides support for meters to measure flow
  * and pressure.
-*/
+ */
 class IBFEInstrumentPanel
 {
 public:
@@ -117,7 +117,7 @@ private:
      */
     void initializeSystemDependentData(IBAMR::IBFEMethod* ib_method_ops, int meter_mesh_number);
 
-     /*!
+    /*!
      * \brief write out data to file.
      */
     void outputData(double data_time);
@@ -131,8 +131,8 @@ private:
      * \brief write out nodes.
      */
     void outputNodes();
-    
-     /*!
+
+    /*!
      * \brief get the maximum radius of the meter in its current configuration
      */
     double getMeterRadius(int meter_mesh_number);
@@ -146,23 +146,23 @@ private:
      * \brief quadrature order used for the meter meshes.
      */
     std::vector<libMesh::Order> d_quad_order;
-    
+
     /*!
      * \brief quadrature order from input file
      */
     libMesh::Order d_input_quad_order;
-    
+
     /*!
      * \brief whether we use a grid based quadrature rule.
      * if false, then we default to using a high order Gauss
      * quadrature.
      */
     bool d_use_adaptive_quadrature;
-    
+
     /*!
      * \brief quadrature type used for the meter meshes.
      */
-    libMesh::QuadratureType d_quad_type; 
+    libMesh::QuadratureType d_quad_type;
 
     /*!
      * \brief part ID where the meter mesh lives, i.e. its parent mesh.
@@ -245,14 +245,12 @@ private:
         {
             return (lhs(0) < rhs(0)
 #if (NDIM > 1)
-                    ||
-                    (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                    || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM > 2)
-                    ||
-                    (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                    || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
-                        );
+            );
         }
     };
 
