@@ -1026,43 +1026,43 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                             {
                                 Ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]][ic_trimmed_lower[2]][d] =
                                     dx[0] * w0[0] * w1[0] * w2[0] *
-                                    (LLL[0] * DU_j_qp[s * NDIM][d] + LLL[1] * DU_j_qp[d][1 + s * NDIM] +
-                                     LLL[2] * DU_j_qp[2 + s * NDIM][d]);
+                                    (LLL[0] * DU_j_qp[d][s * NDIM] + LLL[1] * DU_j_qp[d][1 + s * NDIM] +
+                                     LLL[2] * DU_j_qp[d][2 + s * NDIM]);
 
                                 Ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]][ic_trimmed_lower[2]][d] =
                                     dx[0] * w0[1] * w1[0] * w2[0] *
-                                    (ULL[0] * DU_j_qp[s * NDIM][d] + ULL[1] * DU_j_qp[d][1 + s * NDIM] +
-                                     ULL[2] * DU_j_qp[2 + s * NDIM][d]);
+                                    (ULL[0] * DU_j_qp[d][s * NDIM] + ULL[1] * DU_j_qp[d][1 + s * NDIM] +
+                                     ULL[2] * DU_j_qp[d][2 + s * NDIM]);
 
                                 Ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]][ic_trimmed_upper[2]][d] =
                                     dx[0] * w0[1] * w1[0] * w2[1] *
-                                    (ULU[0] * DU_j_qp[s * NDIM][d] + ULU[1] * DU_j_qp[d][1 + s * NDIM] +
-                                     ULU[2] * DU_j_qp[2 + s * NDIM][d]);
+                                    (ULU[0] * DU_j_qp[d][s * NDIM] + ULU[1] * DU_j_qp[d][1 + s * NDIM] +
+                                     ULU[2] * DU_j_qp[d][2 + s * NDIM]);
 
                                 Ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]][ic_trimmed_lower[2]][d] =
                                     dx[0] * w0[1] * w1[1] * w2[0] *
-                                    (UUL[0] * DU_j_qp[s * NDIM][d] + UUL[1] * DU_j_qp[d][1 + s * NDIM] +
-                                     UUL[2] * DU_j_qp[2 + s * NDIM][d]);
+                                    (UUL[0] * DU_j_qp[d][s * NDIM] + UUL[1] * DU_j_qp[d][1 + s * NDIM] +
+                                     UUL[2] * DU_j_qp[d][2 + s * NDIM]);
 
                                 Ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]][ic_trimmed_lower[2]][d] =
                                     dx[0] * w0[0] * w1[1] * w2[0] *
-                                    (LUL[0] * DU_j_qp[s * NDIM][d] + LUL[1] * DU_j_qp[d][1 + s * NDIM] +
-                                     LUL[2] * DU_j_qp[2 + s * NDIM][d]);
+                                    (LUL[0] * DU_j_qp[d][s * NDIM] + LUL[1] * DU_j_qp[d][1 + s * NDIM] +
+                                     LUL[2] * DU_j_qp[d][2 + s * NDIM]);
 
                                 Ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]][ic_trimmed_upper[2]][d] =
                                     dx[0] * w0[0] * w1[1] * w2[1] *
-                                    (LUU[0] * DU_j_qp[s * NDIM][d] + LUU[1] * DU_j_qp[d][1 + s * NDIM] +
-                                     LUU[2] * DU_j_qp[2 + s * NDIM][d]);
+                                    (LUU[0] * DU_j_qp[d][s * NDIM] + LUU[1] * DU_j_qp[d][1 + s * NDIM] +
+                                     LUU[2] * DU_j_qp[d][2 + s * NDIM]);
 
                                 Ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]][ic_trimmed_upper[2]][d] =
                                     dx[0] * w0[0] * w1[0] * w2[1] *
-                                    (LLU[0] * DU_j_qp[s * NDIM][d] + LLU[1] * DU_j_qp[d][1 + s * NDIM] +
-                                     LLU[2] * DU_j_qp[2 + s * NDIM][d]);
+                                    (LLU[0] * DU_j_qp[d][s * NDIM] + LLU[1] * DU_j_qp[d][1 + s * NDIM] +
+                                     LLU[2] * DU_j_qp[d][2 + s * NDIM]);
 
                                 Ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]][ic_trimmed_upper[2]][d] =
                                     dx[0] * w0[1] * w1[1] * w2[1] *
-                                    (UUU[0] * DU_j_qp[s * NDIM][d] + UUU[1] * DU_j_qp[d][1 + s * NDIM] +
-                                     UUU[2] * DU_j_qp[2 + s * NDIM][d]);
+                                    (UUU[0] * DU_j_qp[d][s * NDIM] + UUU[1] * DU_j_qp[d][1 + s * NDIM] +
+                                     UUU[2] * DU_j_qp[d][2 + s * NDIM]);
                             }
 #endif
 
