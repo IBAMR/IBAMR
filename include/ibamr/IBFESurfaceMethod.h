@@ -475,7 +475,6 @@ protected:
                               libMesh::PetscVector<double>& X_ghost_vec,
                               const double data_time,
                               const unsigned int part);
-                             
 
     /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
