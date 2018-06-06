@@ -1042,13 +1042,13 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                     F += F_s;
                 }
 
+                for (unsigned int d = 0; d < NDIM; ++d) F_integral(d) += F(d) * JxW[qp];
+
                 const double C_p = F * n * dA / da;
                 if (d_use_jump_conditions)
                 {
                     F -= (F * n) * n;
                 }
-
-                for (unsigned int d = 0; d < NDIM; ++d) F_integral(d) += F(d) * JxW[qp];
 
                 // Add the boundary forces to the right-hand-side vector.
                 for (unsigned int k = 0; k < n_basis; ++k)
