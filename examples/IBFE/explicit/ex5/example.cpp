@@ -671,7 +671,9 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
             {
                 U_qp_vec[d] = U(d);
             }
-            tether_force_function(F, FF, x, q_point[qp], elem, var_data, grad_var_data, loop_time, force_fcn_ctx);
+            tether_force_function(F, n, N, FF, x, q_point[qp], elem, 0, var_data, grad_var_data, loop_time, force_fcn_ctx);
+            
+            
             for (int d = 0; d < NDIM; ++d)
             {
                 F_integral[d] += F(d) * JxW[qp];

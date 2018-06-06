@@ -36,7 +36,7 @@ CONVECTIVE_FORM            = "ADVECTIVE"       // how to compute the convective 
 NORMALIZE_PRESSURE         = FALSE             // whether to explicitly force the pressure to have mean zero
 ERROR_ON_DT_CHANGE         = TRUE              // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING          = TRUE              // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER                 = 1                 // size of tag buffer used by grid generation algorithm
+TAG_BUFFER                 = 4                 // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL        = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
 OUTPUT_U                   = TRUE
 OUTPUT_P                   = TRUE
@@ -171,7 +171,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
-   viz_dump_interval           = int(END_TIME/(4*DT))
+   viz_dump_interval           = int(1/DT)
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
