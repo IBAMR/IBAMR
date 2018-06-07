@@ -1185,10 +1185,11 @@ FEDataManager::interpWeighted(const int f_data_idx,
             qp_offset += n_qp;
         }
     }
-    if (close_F) F_vec.close();
 
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+
+    if (close_F) F_vec.close();
 
     IBTK_TIMER_STOP(t_interp_weighted);
     return;
@@ -1708,6 +1709,7 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
                                    NumericVector<double>& F_vec,
                                    const std::string& system_name,
                                    const bool consistent_mass_matrix,
+                                   const bool close_U,
                                    const bool close_F,
                                    const double tol,
                                    const unsigned int max_its)
@@ -1753,7 +1755,7 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
         IBTK_CHKERRQ(ierr);
         converged = true;
     }
-    U_vec.close();
+    if (close_U) U_vec.close();
     dof_map.enforce_constraints_exactly(system, &U_vec);
 
     IBTK_TIMER_STOP(t_compute_l2_projection);

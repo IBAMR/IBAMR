@@ -505,6 +505,7 @@ public:
                              libMesh::NumericVector<double>& F,
                              const std::string& system_name,
                              bool consistent_mass_matrix = true,
+                             bool close_U = true,
                              bool close_F = true,
                              double tol = 1.0e-6,
                              unsigned int max_its = 100);

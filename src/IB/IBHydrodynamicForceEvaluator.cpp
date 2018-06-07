@@ -1,7 +1,7 @@
 // Filename: IBHydrodynamicForceEvaluator.cpp
-// Created on 22 Oct 2016 by Amneet Bhalla
+// Created on 22 Oct 2016 by Amneet Bhalla and Nishant Nangia
 //
-// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
+// Copyright (c) 2002-2018, Amneet Bhalla and Nishant Nangia
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -1287,7 +1287,7 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
 
 void
 IBHydrodynamicForceEvaluator::getPhysicalCoordinateFromSideIndex(IBTK::Vector3d& side_coord,
-                                                                 Pointer<PatchLevel<NDIM> > patch_level,
+                                                                 Pointer<PatchLevel<NDIM> > /*patch_level*/,
                                                                  Pointer<Patch<NDIM> > patch,
                                                                  const SideIndex<NDIM> side_idx,
                                                                  const int axis)

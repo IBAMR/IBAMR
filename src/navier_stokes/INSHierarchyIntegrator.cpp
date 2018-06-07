@@ -289,33 +289,6 @@ INSHierarchyIntegrator::getProjectionBoundaryConditions() const
 } // getProjectionBoundaryConditions
 
 void
-INSHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable<NDIM> > rho_var)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(!d_rho_var);
-    TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
-    d_rho_var = rho_var;
-    return;
-} // registerMassDensityVariable
-
-void
-INSHierarchyIntegrator::setMassDensityFunction(Pointer<CartGridFunction> rho_fcn)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
-    d_rho_fcn = rho_fcn;
-    return;
-} // registerMassDensityFunction
-
-Pointer<CartGridFunction>
-INSHierarchyIntegrator::getMassDensityFunction() const
-{
-    return d_rho_fcn;
-} // getMassDensityFunction
-
-void
 INSHierarchyIntegrator::setCreepingFlow(bool creeping_flow)
 {
 #if !defined(NDEBUG)
@@ -489,6 +462,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
     d_output_Omega = true;
     d_output_Div_U = true;
     d_output_EE = false;
+    d_use_div_sink_drag_term = false;
     d_velocity_solver = NULL;
     d_pressure_solver = NULL;
 
@@ -616,8 +590,10 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
         }
         else
         {
-            TBOX_ERROR(d_object_name << ":  "
-                                     << "Key data `rho' not found in input.");
+            TBOX_WARNING("INSHierarchyIntegrator::getFromInput()\n"
+                         << "  no constant density specified;\n"
+                         << "  setting to quiet_NaN");
+            d_problem_coefs.setRho(std::numeric_limits<double>::quiet_NaN());
         }
 
         if (db->keyExists("mu"))
@@ -626,8 +602,10 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
         }
         else
         {
-            TBOX_ERROR(d_object_name << ":  "
-                                     << "Key data `mu' not found in input.");
+            TBOX_WARNING("INSHierarchyIntegrator::getFromInput()\n"
+                         << "  no constant viscosity specified;\n"
+                         << "  setting to quiet_NaN");
+            d_problem_coefs.setMu(std::numeric_limits<double>::quiet_NaN());
         }
 
         if (db->keyExists("lambda"))
@@ -706,6 +684,7 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
     if (db->keyExists("output_EE")) d_output_EE = db->getBool("output_EE");
     if (db->keyExists("traction_bc_type"))
         d_traction_bc_type = string_to_enum<TractionBcType>(db->getString("traction_bc_type"));
+    if (db->keyExists("use_div_sink_drag_term")) d_use_div_sink_drag_term = db->getBool("use_div_sink_drag_term");
 
     if (db->keyExists("velocity_solver_type"))
     {
