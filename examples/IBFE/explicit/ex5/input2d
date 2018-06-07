@@ -2,7 +2,7 @@
 Re = 200.0
 MU = 1.0/Re
 RHO = 1.0
-
+U_MAX = 2.0
 // grid spacing parameters
 L = 60.0                                       // width of computational domain
 MAX_LEVELS = 6                                 // maximum number of levels in locally refined grid
@@ -11,8 +11,8 @@ N = 64                                         // actual    number of grid cells
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
 DX0 = L/N                                      // mesh width on coarsest grid level
 DX  = L/NFINEST                                // mesh width on finest   grid level
-MFAC = 3.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
-ELEM_TYPE = "TRI6"                             // type of element to use for structure discretization
+MFAC = 2.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
+ELEM_TYPE = "TRI3"                             // type of element to use for structure discretization
 PK1_DEV_QUAD_ORDER = "SEVENTH"
 PK1_DIL_QUAD_ORDER = "FIFTH"
 USE_BOUNDARY_MESH = TRUE
@@ -108,7 +108,7 @@ IBHierarchyIntegrator {
 IBFEMethod {
    IB_delta_fcn                = IB_DELTA_FUNCTION
    split_forces                = SPLIT_FORCES
-   use_pressure_jump_conditions         = USE_PRESSURE_JUMP_CONDITIONS
+   use_pressure_jump_conditions   = USE_PRESSURE_JUMP_CONDITIONS
    use_velocity_jump_conditions   = USE_VELOCITY_JUMP_CONDITIONS
    use_consistent_mass_matrix  = USE_CONSISTENT_MASS_MATRIX
    IB_point_density            = IB_POINT_DENSITY
@@ -166,13 +166,13 @@ Main {
    solver_type = SOLVER_TYPE
 
 // log file parameters
-   log_file_name               = "IB2d_test.log"
+   log_file_name               = "IB2d_Final2.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
    viz_dump_interval           = int(1/DT)
-   viz_dump_dirname            = "viz_IB2d_test"
+   viz_dump_dirname            = "viz_IB2d_Final2"
    visit_number_procs_per_file = 1
 
 // restart dump parameters

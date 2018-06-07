@@ -2687,65 +2687,65 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 
                             if (side_u_boxes[axis].contains(i_s_up) && side_u_boxes[axis].contains(i_s_um))
 							{
-                               std::vector<libMesh::Point> ref_coords(1, xui);
-                               fe->reinit(elem, &ref_coords);
-                               for (unsigned int l = 0; l < NDIM - 1; ++l)
-                               {
-                                  interpolate(dx_dxi[l], 0, x_node, *dphi_dxi[l]);
-                               }
-                               if (NDIM == 2)
-                               {
-                                   dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
-                               }
-                               n = (dx_dxi[0].cross(dx_dxi[1])).unit();
+								   std::vector<libMesh::Point> ref_coords(1, xui);
+								   fe->reinit(elem, &ref_coords);
+								   for (unsigned int l = 0; l < NDIM - 1; ++l)
+								   {
+									  interpolate(dx_dxi[l], 0, x_node, *dphi_dxi[l]);
+								   }
+								   if (NDIM == 2)
+								   {
+									   dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
+								   }
+								   n = (dx_dxi[0].cross(dx_dxi[1])).unit();
 
-                               bool found_same_intersection_point = false;
+								   bool found_same_intersection_point = false;
 
-                               for (int shift = -1; shift <= 1; ++shift)
-                               {
-                                 SideIndex<NDIM> i_s_prime = i_s_um;
-                                 i_s_prime(dd) += shift;
-                                  const std::vector<libMesh::Point>& candidate_coords =
-                                         intersectionSide_u_points[axis][i_s_prime];
-                                  const std::vector<libMesh::Point>& candidate_ref_coords =
-                                          intersectionSide_u_ref_coords[axis][i_s_prime];
-                                  const std::vector<VectorValue<double> >& candidate_normals =
-                                           intersectionSide_u_normals[axis][i_s_prime];
-                                   std::vector<libMesh::Point>::const_iterator x_prime_it =
-                                    candidate_coords.begin(); std::vector<libMesh::Point>::const_iterator xi_prime_it =
-                                    candidate_ref_coords.begin(); std::vector<VectorValue<double> >::const_iterator
-                                    n_prime_it = candidate_normals.begin(); for (; x_prime_it != candidate_coords.end();
-                                    ++x_prime_it, ++xi_prime_it, ++n_prime_it)
-                                            {
-                                                    const libMesh::Point& x_prime = *x_prime_it;
-                                                    const libMesh::Point& xi_prime = *xi_prime_it;
-                                                    const libMesh::Point& n_prime = *n_prime_it;
-                                                    if (xu.absolute_fuzzy_equals(x_prime, 1.0e-5 * dx[axis]))
-                                                    {
-                                                            // WARNING: This check is ONLY
-                                                            // guaranteed to work at edges (where
-                                                            // only two elements meet).  To avoid FE
-                                                            // mesh nodes, set
-                                                            // d_perturb_fe_mesh_nodes to true.
-                                                            found_same_intersection_point = n(axis) * n_prime(axis) > 0.0; if (d_do_log)
-                                                            {
-                                                                    plog << "==========\n";
-                                                                    plog << "multiple intersections detected:\n";
-                                                                    plog << "  x    = " << xu << "\n";
-                                                                    plog << "  x'   = " << x_prime << "\n";
-                                                                    plog << "  xi   = " << xui << "\n";
-                                                                    plog << "  xi'  = " << xi_prime << "\n";
-                                                                    plog << "  n    = " << n << "\n";
-                                                                    plog << "  n'   = " << n_prime << "\n";
-                                                                    plog << "  i_s  = " << i_s_um << "\n";
-                                                                    plog << "  i_s' = " << i_s_prime << "\n";
-                                                                    plog << "  axis = " << axis << "\n";
-                                                            }
-                                                    }
-                                                    if (found_same_intersection_point) break;
-                                            }
-                                            if (found_same_intersection_point) break;
-                                }
+								   for (int shift = -1; shift <= 1; ++shift)
+								   {
+									 SideIndex<NDIM> i_s_prime = i_s_um;
+									 i_s_prime(dd) += shift;
+									  const std::vector<libMesh::Point>& candidate_coords =
+											 intersectionSide_u_points[axis][i_s_prime];
+									  const std::vector<libMesh::Point>& candidate_ref_coords =
+											  intersectionSide_u_ref_coords[axis][i_s_prime];
+									  const std::vector<VectorValue<double> >& candidate_normals =
+											   intersectionSide_u_normals[axis][i_s_prime];
+									   std::vector<libMesh::Point>::const_iterator x_prime_it =
+										candidate_coords.begin(); std::vector<libMesh::Point>::const_iterator xi_prime_it =
+										candidate_ref_coords.begin(); std::vector<VectorValue<double> >::const_iterator
+										n_prime_it = candidate_normals.begin(); for (; x_prime_it != candidate_coords.end();
+										++x_prime_it, ++xi_prime_it, ++n_prime_it)
+												{
+														const libMesh::Point& x_prime = *x_prime_it;
+														const libMesh::Point& xi_prime = *xi_prime_it;
+														const libMesh::Point& n_prime = *n_prime_it;
+														if (xu.absolute_fuzzy_equals(x_prime, 1.0e-5 * dx[axis]))
+														{
+																// WARNING: This check is ONLY
+																// guaranteed to work at edges (where
+																// only two elements meet).  To avoid FE
+																// mesh nodes, set
+																// d_perturb_fe_mesh_nodes to true.
+																found_same_intersection_point = n(axis) * n_prime(axis) > 0.0; if (d_do_log)
+																{
+																		plog << "==========\n";
+																		plog << "multiple intersections detected:\n";
+																		plog << "  x    = " << xu << "\n";
+																		plog << "  x'   = " << x_prime << "\n";
+																		plog << "  xi   = " << xui << "\n";
+																		plog << "  xi'  = " << xi_prime << "\n";
+																		plog << "  n    = " << n << "\n";
+																		plog << "  n'   = " << n_prime << "\n";
+																		plog << "  i_s  = " << i_s_um << "\n";
+																		plog << "  i_s' = " << i_s_prime << "\n";
+																		plog << "  axis = " << axis << "\n";
+																}
+														}
+														if (found_same_intersection_point) break;
+												}
+												if (found_same_intersection_point) break;
+									}
 
                                     if (!found_same_intersection_point)
                                     {

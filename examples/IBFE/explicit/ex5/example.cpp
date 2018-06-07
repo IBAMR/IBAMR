@@ -500,8 +500,8 @@ run_example(int argc, char** argv)
         // velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
-            lift_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
+            drag_stream.open("C_D_Final2.curve", ios_base::out | ios_base::trunc);
+            lift_stream.open("C_L_Final2.curve", ios_base::out | ios_base::trunc);
             U_L1_norm_stream.open("U_L1.curve", ios_base::out | ios_base::trunc);
             U_L2_norm_stream.open("U_L2.curve", ios_base::out | ios_base::trunc);
             U_max_norm_stream.open("U_max.curve", ios_base::out | ios_base::trunc);
@@ -671,40 +671,41 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
             {
                 U_qp_vec[d] = U(d);
             }
+           // tether_force_function(F, n, x, q_point[qp], elem, var_data, grad_var_data, loop_time, force_fcn_ctx);
             tether_force_function(F, n, N, FF, x, q_point[qp], elem, 0, var_data, grad_var_data, loop_time, force_fcn_ctx);
             
-            
+                      
             for (int d = 0; d < NDIM; ++d)
             {
                 F_integral[d] += F(d) * JxW[qp];
             }
         }
-        for (unsigned short int side = 0; side < elem->n_sides(); ++side)
-        {
-            if (elem->neighbor(side)) continue;
-            fe_face->reinit(elem, side);
-            const unsigned int n_qp_face = qrule_face->n_points();
-            for (unsigned int qp = 0; qp < n_qp_face; ++qp)
-            {
-                interpolate(x, qp, x_node, phi_face);
-                jacobian(FF, qp, x_node, dphi_face);
-                interpolate(U, qp, U_node, phi_face);
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    U_qp_vec[d] = U(d);
-                }
-                N = normal_face[qp];
-                tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
-                n = (FF_inv_trans * N).unit();
+        //~ for (unsigned short int side = 0; side < elem->n_sides(); ++side)
+        //~ {
+            //~ if (elem->neighbor(side)) continue;
+            //~ fe_face->reinit(elem, side);
+            //~ const unsigned int n_qp_face = qrule_face->n_points();
+            //~ for (unsigned int qp = 0; qp < n_qp_face; ++qp)
+            //~ {
+                //~ interpolate(x, qp, x_node, phi_face);
+                //~ jacobian(FF, qp, x_node, dphi_face);
+                //~ interpolate(U, qp, U_node, phi_face);
+                //~ for (unsigned int d = 0; d < NDIM; ++d)
+                //~ {
+                    //~ U_qp_vec[d] = U(d);
+                //~ }
+                //~ N = normal_face[qp];
+                //~ tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
+                //~ n = (FF_inv_trans * N).unit();
 
-                tether_force_function(
-                    F, n, N, FF, x, q_point_face[qp], elem, side, var_data, grad_var_data, loop_time, force_fcn_ctx);
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    F_integral[d] += F(d) * JxW_face[qp];
-                }
-            }
-        }
+                //~ tether_force_function(
+                    //~ F, n, N, FF, x, q_point_face[qp], elem, side, var_data, grad_var_data, loop_time, force_fcn_ctx);
+                //~ for (int d = 0; d < NDIM; ++d)
+                //~ {
+                    //~ F_integral[d] += F(d) * JxW_face[qp];
+                //~ }
+            //~ }
+        //~ }
     }
     SAMRAI_MPI::sumReduction(F_integral, NDIM);
     static const double rho = 1.0;
