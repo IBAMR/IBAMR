@@ -691,6 +691,11 @@ IBFEDirectForcingKinematics::computeMOIOfStructure(Eigen::Matrix3d& I, const Eig
     }
     SAMRAI_MPI::sumReduction(&I(0, 0), 9);
 
+    // Fill-in the symmetric part of inertia tensor.
+    I(1, 0) = I(0, 1);
+    I(2, 0) = I(0, 2);
+    I(2, 1) = I(1, 2);
+
     ierr = VecRestoreArray(X_local_ghost_vec, &X_local_ghost_soln);
     IBTK_CHKERRQ(ierr);
     ierr = VecGhostRestoreLocalForm(X_global_vec, &X_local_ghost_vec);
