@@ -46,6 +46,7 @@
 // Headers for basic libMesh objects
 #include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
+#include <libmesh/matlab_io.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_triangle_interface.h>
@@ -178,7 +179,17 @@ run_example(int argc, char* argv[])
         string elem_type = input_db->getString("ELEM_TYPE");
         shift_x = circle.X0[0];
         shift_y = circle.X0[1];
-        if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
+        if (input_db->keyExists("XDA_FILENAME"))
+        {
+            TBOX_ASSERT(elem_type == "TRI3" || elem_type == "TRI6");
+
+            std::string filename = input_db->getString("XDA_FILENAME");
+            MatlabIO distmesh(solid_mesh);
+            distmesh.read(filename);
+
+            if (elem_type == "TRI6") solid_mesh.all_second_order();
+        }
+        else if (elem_type == "TRI3" || elem_type == "TRI6")
         {
 #ifdef LIBMESH_HAVE_TRIANGLE
             const int num_circum_nodes = ceil(2.0 * M_PI * circle.R / ds);
@@ -207,23 +218,6 @@ run_example(int argc, char* argv[])
             MeshTools::Generation::build_sphere(solid_mesh, circle.R, r, Utility::string_to_enum<ElemType>(elem_type));
         }
 
-        // Ensure nodes on the surface are on the analytic boundary.
-        MeshBase::element_iterator el_end = solid_mesh.elements_end();
-        for (MeshBase::element_iterator el = solid_mesh.elements_begin(); el != el_end; ++el)
-        {
-            Elem* const elem = *el;
-            for (unsigned int side = 0; side < elem->n_sides(); ++side)
-            {
-                const bool at_mesh_bdry = !elem->neighbor(side);
-                if (!at_mesh_bdry) continue;
-                for (unsigned int k = 0; k < elem->n_nodes(); ++k)
-                {
-                    if (!elem->is_node_on_side(k, side)) continue;
-                    Node& n = *elem->get_node(k);
-                    n = circle.R * n.unit();
-                }
-            }
-        }
         solid_mesh.prepare_for_use();
         Mesh& mesh = solid_mesh;
 

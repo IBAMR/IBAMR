@@ -46,7 +46,7 @@ NUM_SOLID_INTERFACE_CELLS = 3.0
 NUM_GAS_INTERFACE_CELLS   = 3.0
 
 // Level set option parameters
-LS_ORDER              = "THIRD_ORDER_ENO"
+LS_ORDER              = "THIRD_ORDER_WENO"
 LS_ABS_TOL            = 1.0e-8
 LS_REINIT_INTERVAL    = 1
 MAX_ITERATIONS        = 50
@@ -190,12 +190,13 @@ ENABLE_LOGGING                = TRUE
 
 // IBFEMethod parameters
 DX                         = H
-MFAC                       = 2.0
+MFAC                       = 1.0
 ELEM_TYPE                  = "TRI3"
+XDA_FILENAME               = "cylinder.xda"
 SPLIT_FORCES               = FALSE
 USE_JUMP_CONDITIONS        = FALSE
 USE_CONSISTENT_MASS_MATRIX = TRUE
-IB_POINT_DENSITY           = 4.0
+IB_POINT_DENSITY           = 2.0
 
 // AdvDiff solver parameters
 ADV_DIFF_SOLVER_TYPE        = "SEMI_IMPLICIT"

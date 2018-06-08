@@ -32,12 +32,14 @@ examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d.cyl $(PWD) ; \
 	  cp -f $(srcdir)/input2d_free_fall.cyl $(PWD) ; \
+	  cp -f $(srcdir)/cylinder.xda $(PWD) ; \
 	fi ;
 
 if GTEST_ENABLED
 gtest: $(GTESTS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d.test $(PWD) ; \
+	  cp -f $(srcdir)/cylinder.xda $(PWD) ; \
 	fi ;
 	./test2d input2d.test
 
@@ -60,4 +62,5 @@ clean-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input2d.cyl ; \
 	  rm -f $(builddir)/input2d_free_fall.cyl ; \
+	  rm -f $(builddir)/cylinder.xda ; \
 	fi ;
