@@ -350,7 +350,7 @@ run_example(int argc, char* argv[])
 
         // Setup the advected and diffused fluid quantities.
         Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
-        Pointer<Variable<NDIM> > rho_var;
+        Pointer<hier::Variable<NDIM> > rho_var;
         if (conservative_form)
         {
             rho_var = new SideVariable<NDIM, double>("rho");

@@ -76,7 +76,7 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 Pointer<Variable<NDIM> > var,
+                                 Pointer<hier::Variable<NDIM> > var,
                                  Pointer<PatchHierarchy<NDIM> > hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
@@ -87,7 +87,7 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<Variable<NDIM> > var,
+                        Pointer<hier::Variable<NDIM> > var,
                         Pointer<Patch<NDIM> > patch,
                         const double data_time,
                         const bool initial_time = false,

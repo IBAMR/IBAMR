@@ -67,7 +67,7 @@ GravityForcing::isTimeDependent() const
 
 void
 GravityForcing::setDataOnPatchHierarchy(const int data_idx,
-                                        Pointer<Variable<NDIM> > var,
+                                        Pointer<hier::Variable<NDIM> > var,
                                         Pointer<PatchHierarchy<NDIM> > hierarchy,
                                         const double data_time,
                                         const bool initial_time,
@@ -107,7 +107,7 @@ GravityForcing::setDataOnPatchHierarchy(const int data_idx,
 
 void
 GravityForcing::setDataOnPatch(const int data_idx,
-                               Pointer<Variable<NDIM> > /*var*/,
+                               Pointer<hier::Variable<NDIM> > /*var*/,
                                Pointer<Patch<NDIM> > patch,
                                const double /*data_time*/,
                                const bool initial_time,
