@@ -165,10 +165,8 @@ tether_force_function(VectorValue<double>& F,
                       void* /*ctx*/)
 {
     VectorValue<double> D = X - x;
-    VectorValue<double> D_n = (D*n)*n;
     VectorValue<double> U;
     for (unsigned int d = 0; d < NDIM; ++d) U(d) = (*var_data[0])[d];
-    VectorValue<double> U_t = U - (U*n)*n;
     F = kappa_s_surface * D - eta_s_surface * U;
     return;
 } // tether_force_function
@@ -500,8 +498,8 @@ run_example(int argc, char** argv)
         // velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_stream.open("C_D_Final2.curve", ios_base::out | ios_base::trunc);
-            lift_stream.open("C_L_Final2.curve", ios_base::out | ios_base::trunc);
+            drag_stream.open("C_D_II.curve", ios_base::out | ios_base::trunc);
+            lift_stream.open("C_L_II.curve", ios_base::out | ios_base::trunc);
             U_L1_norm_stream.open("U_L1.curve", ios_base::out | ios_base::trunc);
             U_L2_norm_stream.open("U_L2.curve", ios_base::out | ios_base::trunc);
             U_max_norm_stream.open("U_max.curve", ios_base::out | ios_base::trunc);

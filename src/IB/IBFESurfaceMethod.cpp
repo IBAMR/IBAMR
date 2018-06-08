@@ -1156,7 +1156,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                                                                N_qp[s * NDIM + 2] * wr2[ic_upper[2] - ic2];
                                                 if (nproj > 0) CC = Ujump[ic0][ic1][ic2][axis];
 
-                                                Q_data_axis[s] -=  CC / d_mu;
+                                                Q_data_axis[s] -= CC / d_mu;
                                             }
                                         }
                                     }
@@ -1262,9 +1262,9 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             *U_vec, *U_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
 
         d_fe_data_managers[part]->computeL2Projection(
-            *U_n_vec, *U_n_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
+            *U_n_vec, *U_n_rhs_vec, NORMAL_VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
         d_fe_data_managers[part]->computeL2Projection(
-            *U_t_vec, *U_t_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
+            *U_t_vec, *U_t_rhs_vec, TANGENTIAL_VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
         for (unsigned int d = 0; d < NDIM; ++d) d_DU_j_IB_ghost_vecs[part][d]->close();
         d_X_half_vecs[part]->close();
         d_X_current_vecs[part]->close();

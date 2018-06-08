@@ -48,8 +48,8 @@ ENABLE_LOGGING             = TRUE
 // model parameters
 KAPPA_S_BODY = 0.0 //2.5*DX/DT^2
 ETA_S_BODY = 0.0 //1.5*DX/DT
-KAPPA_S_SURFACE = 100
-ETA_S_SURFACE = 0.5
+KAPPA_S_SURFACE = 450 //0.05 *DX/DT^2
+ETA_S_SURFACE = 0.0*DX/DT
 C1_S = 0.0
 
 // collocated solver parameters
@@ -166,13 +166,13 @@ Main {
    solver_type = SOLVER_TYPE
 
 // log file parameters
-   log_file_name               = "IB2d_Final2.log"
+   log_file_name               = "II2d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
    viz_dump_interval           = int(1/DT)
-   viz_dump_dirname            = "viz_IB2d_Final2"
+   viz_dump_dirname            = "viz_II"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
