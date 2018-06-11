@@ -129,6 +129,9 @@ IBRedundantInitializer::IBRedundantInitializer(const std::string& object_name, P
       d_init_director_and_rod_on_level_fcn(NULL),
       d_init_boundary_mass_on_level_fcn(NULL),
       d_init_target_pt_on_level_fcn(NULL),
+      d_init_anchor_pt_on_level_fcn(NULL),
+      d_init_instrumentation_on_level_fcn(NULL),
+      d_init_source_on_level_fcn(NULL),
       d_data_processed(false)
 {
 #if !defined(NDEBUG)
@@ -339,6 +342,20 @@ void
 IBRedundantInitializer::registerInitAnchorPtFunction(InitAnchorPtOnLevel fcn)
 {
     d_init_anchor_pt_on_level_fcn = fcn;
+    return;
+}
+
+void
+IBRedundantInitializer::registerInitInstrumentationFunction(InitInstrumentationOnLevel fcn)
+{
+    d_init_instrumentation_on_level_fcn = fcn;
+    return;
+}
+
+void
+IBRedundantInitializer::registerInitSourceFunction(InitSourceOnLevel fcn)
+{
+    d_init_source_on_level_fcn = fcn;
     return;
 }
 
@@ -831,11 +848,97 @@ IBRedundantInitializer::initializeAnchorPts()
 void
 IBRedundantInitializer::initializeInstrumentationData()
 {
+    std::vector<std::string> instrument_names;
+    int instrument_offset = 0;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const size_t num_base_filename = d_base_filename[ln].size();
         d_instrument_idx[ln].resize(num_base_filename);
+        if (d_init_instrumentation_on_level_fcn)
+        {
+            std::vector<std::string> new_names;
+            for (unsigned int j = 0; j < num_base_filename; ++j)
+            {
+                d_init_instrumentation_on_level_fcn(j, ln, new_names, d_instrument_idx[ln][j]);
+                std::vector<bool> encountered_instrument_idx;
+                std::map<int, std::vector<bool> > encountered_node_idxs;
+                for (std::vector<std::string>::iterator i = new_names.begin(); i != new_names.end(); ++i)
+                    instrument_names.push_back(*i);
+                const int min_idx = 0;
+                const int max_idx = d_num_vertex[ln][j];
+                for (std::map<int, std::pair<int, int> >::iterator it = d_instrument_idx[ln][j].begin();
+                     it != d_instrument_idx[ln][j].end();
+                     ++it)
+                {
+                    if ((it->first < min_idx) || (it->first >= max_idx))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid instrument master index on level " << ln
+                                                 << " and structure number " << j << ".\n Vertex " << it->first
+                                                 << " is out of range.\n");
+                    }
+                    std::pair<int, int>& meter_map = it->second;
+                    if (meter_map.first < 0 || meter_map.first >= instrument_names.size())
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid meter number on level " << ln
+                                                 << " and structure number " << j << ".\n Meter index "
+                                                 << meter_map.first << " is out of range.\n");
+                    }
+
+                    if (meter_map.second < 0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid node index on level " << ln << " and structure number "
+                                                 << j << ".\n Node Index " << meter_map.second << " is invalid.\n");
+                    }
+
+                    if (meter_map.first >= static_cast<int>(encountered_instrument_idx.size()))
+                    {
+                        encountered_instrument_idx.resize(meter_map.first + 1, false);
+                    }
+                    encountered_instrument_idx[meter_map.first] = true;
+
+                    if (meter_map.second >= static_cast<int>(encountered_node_idxs[meter_map.first].size()))
+                    {
+                        encountered_node_idxs[meter_map.first].resize(meter_map.second + 1, false);
+                    }
+                    encountered_node_idxs[meter_map.first][meter_map.second] = true;
+
+                    meter_map.first += instrument_offset;
+                }
+                for (std::vector<bool>::iterator meter_it = encountered_instrument_idx.begin();
+                     meter_it != encountered_instrument_idx.end();
+                     ++meter_it)
+                {
+                    const size_t meter_idx = std::distance(encountered_instrument_idx.begin(), meter_it);
+                    if ((*meter_it) == false)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Instrument index " << meter_idx << " not found on level " << ln
+                                                 << " and structure number " << j);
+                    }
+
+                    std::vector<bool>& meter_node_idxs = encountered_node_idxs[meter_idx];
+                    for (std::vector<bool>::iterator node_it = meter_node_idxs.begin();
+                         node_it != meter_node_idxs.end();
+                         ++node_it)
+                    {
+                        const size_t node_idx = std::distance(meter_node_idxs.begin(), node_it);
+                        if ((*node_it) == false)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n Node index " << node_idx << " associated with meter index "
+                                                     << meter_idx << "not found on level " << ln
+                                                     << " and structure number " << j);
+                        }
+                    }
+                }
+                if (static_cast<int>(encountered_instrument_idx.size()) != new_names.size())
+                {
+                    TBOX_ERROR(d_object_name << ":\n Not all anticipated instrument indices were found on level " << ln
+                                             << " and structure number " << j << ". Expected to find "
+                                             << new_names.size() << " distinct meter indices.");
+                }
+            }
+        }
     }
+    IBInstrumentationSpec::setInstrumentNames(instrument_names);
     return;
 }
 
@@ -844,8 +947,57 @@ IBRedundantInitializer::initializeSourceData()
 {
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
+        std::vector<std::string> source_names;
+        std::vector<double> source_radii;
+        int source_offset = 0;
         const size_t num_base_filename = d_base_filename[ln].size();
         d_source_idx[ln].resize(num_base_filename);
+        if (d_init_source_on_level_fcn)
+        {
+            std::vector<std::string> new_names;
+            std::vector<double> new_radii;
+            int source_offset;
+            for (unsigned int j = 0; j < num_base_filename; ++j)
+            {
+                const int min_idx = 0;
+                const int max_idx = d_num_vertex[ln][j];
+                int num_source;
+                d_init_source_on_level_fcn(j, ln, d_source_idx[ln][j], new_names, new_radii);
+                if (source_names.size() != source_radii.size())
+                {
+                    TBOX_ERROR(d_object_name << ":\n Invalid number of sources/sinks. Number of sources "
+                                             << source_names.size() << " is not equal to number of radii "
+                                             << source_radii.size() << ".\n");
+                }
+                for (std::vector<std::string>::iterator i = new_names.begin(); i != new_names.end(); ++i)
+                    source_names.push_back(*i);
+                for (std::vector<double>::iterator i = new_radii.begin(); i != new_radii.end(); ++i)
+                    source_radii.push_back(*i);
+                num_source = new_names.size();
+                for (std::map<int, int>::iterator it = d_source_idx[ln][j].begin(); it != d_source_idx[ln][j].end();
+                     ++it)
+                {
+                    int& src_num = it->second;
+                    if ((it->first < min_idx) || (it->first >= max_idx))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid source vertex on level " << ln
+                                                 << " and structure number " << j << ".\n Source vertex " << it->first
+                                                 << ".\n");
+                    }
+                    if ((src_num < 0) || (src_num < num_source))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n Invalid source number on level " << ln
+                                                 << " and structure number " << j << ".\n Source number " << src_num
+                                                 << " but there are " << num_source << " Sources.\n");
+                    }
+                    src_num += source_offset;
+                }
+                source_offset += num_source;
+            }
+            IBStandardSourceGen::setNumSources(ln, source_offset);
+            IBStandardSourceGen::setSourceNames(ln, source_names);
+            IBStandardSourceGen::setSourceRadii(ln, source_radii);
+        }
     }
     return;
 }

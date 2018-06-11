@@ -139,11 +139,6 @@ public:
     virtual void init();
 
     /*!
-     * \brief Initialize vertex data programmatically.
-     */
-    void initializeStructurePosition();
-
-    /*!
      * Typedef specifying the interface for initializing structures on a given level.
      */
     typedef void (*InitStructureOnLevel)(const unsigned int& strct_num,
@@ -159,10 +154,6 @@ public:
      */
     void registerInitStructureFunction(InitStructureOnLevel fcn);
 
-    /*!
-     * \brief Initialize spring data programmatically.
-     */
-    void initializeSprings();
 
     /*
      * Edge data structures.
@@ -208,11 +199,6 @@ public:
      */
     void registerInitSpringDataFunction(InitSpringDataOnLevel fcn);
 
-    /*!
-     * \brief Initialize xspring data programmatically.
-     */
-    void initializeXSprings();
-
     /*
      * Struct for xspring specifications.
      * XSpring parameters should be structured as:
@@ -245,10 +231,6 @@ public:
      */
     void registerInitXSpringDataFunction(InitXSpringDataOnLevel fcn);
 
-    /*!
-     * \brief Initialize beam data programmatically.
-     */
-    void initializeBeams();
 
     /*
      * Struct for beam specifications.
@@ -281,10 +263,6 @@ public:
      */
     void registerInitBeamDataFunction(InitBeamDataOnLevel fcn);
 
-    /*!
-     * \brief Initialize director and rod data programmatically.
-     */
-    void initializeDirectorAndRods();
 
     /*!
      * Struct for rod specifications.
@@ -314,10 +292,6 @@ public:
      */
     void registerInitDirectorAndRodFunction(InitDirectorAndRodOnLevel fcn);
 
-    /*!
-     * \brief Initialize massive point data programmatically.
-     */
-    void initializeBoundaryMass();
 
     /*
      * Struct for massive point specifications.
@@ -343,10 +317,6 @@ public:
      */
     void registerInitBoundaryMassFunction(InitBoundaryMassOnLevel fcn);
 
-    /*!
-     * \brief Initialize target point data programmatically.
-     */
-    void initializeTargetPts();
 
     /*!
      * Struct for target point specifications.
@@ -374,10 +344,6 @@ public:
      */
     void registerInitTargetPtFunction(InitTargetPtOnLevel fcn);
 
-    /*!
-     * \brief Initialize anchor points programmatically.
-     */
-    void initializeAnchorPts();
 
     /*!
      * Struct for anchor point specifications.
@@ -404,18 +370,39 @@ public:
     void registerInitAnchorPtFunction(InitAnchorPtOnLevel fcn);
 
     /*!
-     * \brief Initialize instrumentation data.
+     * Typedef specifying the interface for initializing flow meters and pressure gauges on a given level.
      *
-     * \note Instruments can not currently be implemented using IBRedundantInitializer
+     * instrument_name should be the list of names of the instruments. Note that instrument names and indices are global
+     * over all levels and structures. instrument_spec should be the map between the master index of the instrument and
+     * a pair of instrument number and node index. Note that this map is ordered.
      */
-    void initializeInstrumentationData();
+    typedef void (*InitInstrumentationOnLevel)(const unsigned int& strct_num,
+                                               const int& level_num,
+                                               std::vector<std::string>& instrument_name,
+                                               std::map<int, std::pair<int, int> >& instrument_spec);
 
     /*!
-     * \brief Initialize source/sink data.
-     *
-     * \note Sources/sinks can not currently be implemented using IBRedundantInitializer
+     * \brief Register a function to initialize instrumentation data on a given level.
      */
-    void initializeSourceData();
+    void registerInitInstrumentationFunction(InitInstrumentationOnLevel fcn);
+
+    /*
+     * Typedef specifying the interface for initializing source and sink data on a given level.
+     *
+     * source_spec should be the map between vertices and source/sink index. The location of the source/sink is the
+     * arithmetic mean of the positions of the nodes. source_names should be the list of source/sink names. Note that
+     * the instrument names and indices are global over all levels and structures. source_radii should be the
+     * source/sink radii.
+     */
+    typedef void (*InitSourceOnLevel)(const unsigned int& strct_num,
+                                      const int& level_num,
+                                      std::map<int, int>& source_spec,
+                                      std::vector<std::string>& source_names,
+                                      std::vector<double>& source_radii);
+    /*!
+     * \brief Register a funciton to initialize source/sink data on a given level.
+     */
+    void registerInitSourceFunction(InitSourceOnLevel fcn);
 
     /*!
      * \brief Initialize the structure indexing information on the patch level.
@@ -535,6 +522,56 @@ protected:
      * grid.
      */
     void initializeLSiloDataWriter(int level_number);
+
+    /*!
+     * \brief Initialize vertex data programmatically.
+     */
+    void initializeStructurePosition();
+
+    /*!
+     * \brief Initialize spring data programmatically.
+     */
+    void initializeSprings();
+
+    /*!
+     * \brief Initialize xspring data programmatically.
+     */
+    void initializeXSprings();
+
+    /*!
+     * \brief Initialize beam data programmatically.
+     */
+    void initializeBeams();
+
+    /*!
+     * \brief Initialize director and rod data programmatically.
+     */
+    void initializeDirectorAndRods();
+
+    /*!
+     * \brief Initialize massive point data programmatically.
+     */
+    void initializeBoundaryMass();
+
+    /*!
+     * \brief Initialize target point data programmatically.
+     */
+    void initializeTargetPts();
+
+    /*!
+     * \brief Initialize anchor points programmatically.
+     */
+    void initializeAnchorPts();
+
+    /*!
+     * \brief Initialize instrumentation data.
+     */
+    void initializeInstrumentationData();
+
+    /*!
+     * \brief Initialize source/sink data.
+     */
+    void initializeSourceData();
 
     /*!
      * \brief Determine the indices of any vertices initially owned by the
@@ -748,6 +785,8 @@ private:
     InitBoundaryMassOnLevel d_init_boundary_mass_on_level_fcn;
     InitTargetPtOnLevel d_init_target_pt_on_level_fcn;
     InitAnchorPtOnLevel d_init_anchor_pt_on_level_fcn;
+    InitInstrumentationOnLevel d_init_instrumentation_on_level_fcn;
+    InitSourceOnLevel d_init_source_on_level_fcn;
 };
 } // namespace IBAMR
 
