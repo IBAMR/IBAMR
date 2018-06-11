@@ -366,7 +366,7 @@ IBFEInstrumentPanel::~IBFEInstrumentPanel()
 }
 
 void
-IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_method_ops)
+IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_ops)
 {
     // get relevant things for corresponding part
     const FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager(d_part);
@@ -565,8 +565,8 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
 }
 
 void
-IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_method_ops,
-                                                      const Pointer<PatchHierarchy<NDIM> > hierarchy)
+IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
+                                                      Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     if (!d_initialized)
     {
@@ -783,7 +783,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
             const Index<NDIM>& patch_lower = patch_box.lower();
             const Index<NDIM>& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             const double* const x_lower = pgeom->getXLower();
             const double* const x_upper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
@@ -974,7 +974,7 @@ IBFEInstrumentPanel::getFromInput(Pointer<Database> db)
 }
 
 void
-IBFEInstrumentPanel::outputMeterMeshes(IBAMR::IBFEMethod* ib_method_ops, const int timestep_num, const double data_time)
+IBFEInstrumentPanel::outputMeterMeshes(IBFEMethod* ib_method_ops, const int timestep_num, const double data_time)
 {
     // things to do at initial timestep
     if (timestep_num == 1) outputNodes();
@@ -990,7 +990,7 @@ IBFEInstrumentPanel::getInstrumentDumpInterval() const
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IBFEInstrumentPanel::initializeSystemDependentData(IBAMR::IBFEMethod* ib_method_ops, const int meter_mesh_number)
+IBFEInstrumentPanel::initializeSystemDependentData(IBFEMethod* ib_method_ops, const int meter_mesh_number)
 {
     // get the coordinate mapping system and velocity systems for the parent mesh
     const FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager(d_part);
@@ -1138,7 +1138,7 @@ IBFEInstrumentPanel::outputData(const double data_time)
 }
 
 void
-IBFEInstrumentPanel::outputExodus(IBAMR::IBFEMethod* ib_method_ops, const int timestep, const double loop_time)
+IBFEInstrumentPanel::outputExodus(IBFEMethod* ib_method_ops, const int timestep, const double loop_time)
 {
     for (unsigned int ii = 0; ii < d_num_meters; ++ii)
     {
