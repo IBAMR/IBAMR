@@ -8,13 +8,13 @@ set -o pipefail
 
 config() {
     ./configure \
-        CFLAGS=$CFLAGS \
-        CXXFLAGS=$CXXFLAGS \
-        FCFLAGS=$FCFLAGS \
+        CFLAGS="$CFLAGS" \
+        CXXFLAGS="$CXXFLAGS" \
+        FCFLAGS="$FCFLAGS" \
         CC=$MPICC \
         CXX=$MPICXX \
         FC=$MPIFC \
-        CPPFLAGS=$CPPFLAGS \
+        CPPFLAGS="$CPPFLAGS" \
         --with-hypre=$PETSC_DIR/$PETSC_ARCH \
         --with-samrai=$SAMRAI_DIR \
         --with-hdf5=$HDF5_DIR \
