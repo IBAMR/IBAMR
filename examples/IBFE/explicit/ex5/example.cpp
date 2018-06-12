@@ -499,8 +499,8 @@ run_example(int argc, char** argv)
         // velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
-            lift_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
+            drag_stream.open("C_D_II_p.curve", ios_base::out | ios_base::trunc);
+            lift_stream.open("C_L_II_p.curve", ios_base::out | ios_base::trunc);
             U_L1_norm_stream.open("U_L1.curve", ios_base::out | ios_base::trunc);
             U_L2_norm_stream.open("U_L2.curve", ios_base::out | ios_base::trunc);
             U_max_norm_stream.open("U_max.curve", ios_base::out | ios_base::trunc);
@@ -612,17 +612,9 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     System* x_system;
     System* U_system;
     
-    if (use_boundary_mesh)
-    {
-		x_system = &equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-		U_system = &equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
-	}
-    else
-    {
-		x_system = &equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-		U_system = &equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
-	}
 
+	x_system = &equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+	U_system = &equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
 
     NumericVector<double>* x_vec = x_system->solution.get();
     NumericVector<double>* x_ghost_vec = x_system->current_local_solution.get();

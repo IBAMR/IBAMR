@@ -1544,25 +1544,35 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
         F_vec->localize(*F_ghost_vec);
         d_fe_data_managers[part]->spread(
             f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op, data_time);
+		PetscVector<double>* P_j_vec;
+		PetscVector<double>* P_j_ghost_vec;
+		boost::array<PetscVector<double>*, NDIM> DU_j_ghost_vec;
+		boost::array<PetscVector<double>*, NDIM> DU_j_vec;
+        if (d_use_pressure_jump_conditions)
+        {
+            P_j_vec = d_P_j_half_vecs[part];
+            P_j_ghost_vec = d_P_j_IB_ghost_vecs[part];
+            P_j_vec->localize(*P_j_ghost_vec);
+        }
+        if (d_use_velocity_jump_conditions)
+        {
+		    DU_j_ghost_vec = d_DU_j_IB_ghost_vecs[part];
+            DU_j_vec = d_DU_j_half_vecs[part];
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                DU_j_vec[d]->localize(*DU_j_ghost_vec[d]);
+            }
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                DU_j_vec[d]->localize(*DU_j_ghost_vec[d]);
+            }
+		}
+
+
 
         if (d_use_pressure_jump_conditions || d_use_velocity_jump_conditions)
-        {
-            PetscVector<double>* P_j_vec = d_P_j_half_vecs[part];
-            PetscVector<double>* P_j_ghost_vec = d_P_j_IB_ghost_vecs[part];
-            P_j_vec->localize(*P_j_ghost_vec);
-
-            boost::array<PetscVector<double>*, NDIM> DU_j_ghost_vec = d_DU_j_IB_ghost_vecs[part];
-            boost::array<PetscVector<double>*, NDIM> DU_j_vec = d_DU_j_half_vecs[part];
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                DU_j_vec[d]->localize(*DU_j_ghost_vec[d]);
-            }
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                DU_j_vec[d]->localize(*DU_j_ghost_vec[d]);
-            }
             imposeJumpConditions(f_data_idx, *P_j_ghost_vec, DU_j_ghost_vec, *X_ghost_vec, data_time, part);
-        }
+
     }
     return;
 } // spreadForce
@@ -1975,13 +1985,21 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
     const MeshBase& mesh = equation_systems->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
 
-    // Extract the FE systems and DOF maps, and setup the FE object.
-    System& P_j_system = equation_systems->get_system(PRESSURE_JUMP_SYSTEM_NAME);
-    DofMap& P_j_dof_map = P_j_system.get_dof_map();
-    FEDataManager::SystemDofMapCache& P_j_dof_map_cache =
-        *d_fe_data_managers[part]->getDofMapCache(PRESSURE_JUMP_SYSTEM_NAME);
-    FEType P_j_fe_type = P_j_dof_map.variable_type(0);
+    // Extract the FE systems and DOF maps, and setup the FE object 
+    System* P_j_system;
+    const DofMap* P_j_dof_map;
+    FEDataManager::SystemDofMapCache* P_j_dof_map_cache;
+    FEType P_j_fe_type;
     std::vector<unsigned int> P_j_dof_indices;
+    if (d_use_pressure_jump_conditions)
+    {
+		P_j_system = &equation_systems->get_system(PRESSURE_JUMP_SYSTEM_NAME);
+		P_j_dof_map = &P_j_system->get_dof_map();
+		P_j_dof_map_cache = d_fe_data_managers[part]->getDofMapCache(PRESSURE_JUMP_SYSTEM_NAME);
+		P_j_fe_type = P_j_dof_map->variable_type(0);	
+     }
+    
+    
 
     boost::array<DofMap*, NDIM> DU_j_dof_map;
     boost::array<FEDataManager::SystemDofMapCache*, NDIM> DU_j_dof_map_cache;
@@ -1989,53 +2007,31 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
     boost::array<System*, NDIM> DU_j_system;
     if (d_use_velocity_jump_conditions)
     {
-        for (unsigned int i = 0; i < NDIM; ++i)
-        {
-            DU_j_system[i] = &equation_systems->get_system(VELOCITY_JUMP_SYSTEM_NAME[i]);
-            DU_j_dof_map_cache[i] = d_fe_data_managers[part]->getDofMapCache(VELOCITY_JUMP_SYSTEM_NAME[i]);
-            DU_j_dof_map[i] = &DU_j_system[i]->get_dof_map();
-            FEType DU_j_fe_type = DU_j_dof_map[i]->variable_type(0);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                TBOX_ASSERT(DU_j_dof_map[i]->variable_type(d) == DU_j_fe_type);
-            }
-            DU_j_dof_indices[i].resize(NDIM);
-        }
-    }
+		for (unsigned int i = 0; i < NDIM; ++i)
+		{
+		   DU_j_system[i] = &equation_systems->get_system(VELOCITY_JUMP_SYSTEM_NAME[i]);
+		   DU_j_dof_map_cache[i] = d_fe_data_managers[part]->getDofMapCache(VELOCITY_JUMP_SYSTEM_NAME[i]);
+		   DU_j_dof_map[i] = &DU_j_system[i]->get_dof_map();
+		   FEType DU_j_fe_type = DU_j_dof_map[i]->variable_type(0);
+		   for (unsigned int d = 0; d < NDIM; ++d)
+		   {
+			  TBOX_ASSERT(DU_j_dof_map[i]->variable_type(d) == DU_j_fe_type);
+		   }
+		   DU_j_dof_indices[i].resize(NDIM);
+		}
+	}
+	
+	System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
+	DofMap& X_dof_map = X_system.get_dof_map();
+	std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+	FEType X_fe_type = X_dof_map.variable_type(0);
+	for (unsigned int d = 0; d < NDIM; ++d)
+	{
+		TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
+	}
 
-    for (unsigned int d = 0; d < NDIM; ++d) DU_j_ghost_vec[d]->close();
-    boost::array<PetscVector<double>*, NDIM> DU_j_petsc_vec;
-    boost::array<Vec, NDIM> DU_j_global_vec;
-    boost::array<Vec, NDIM> DU_j_local_vec;
-    boost::array<double*, NDIM> DU_j_local_soln;
-
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        DU_j_petsc_vec[d] = static_cast<PetscVector<double>*>(DU_j_ghost_vec[d]);
-        DU_j_global_vec[d] = DU_j_petsc_vec[d]->vec();
-        VecGhostGetLocalForm(DU_j_global_vec[d], &DU_j_local_vec[d]);
-        VecGetArray(DU_j_local_vec[d], &DU_j_local_soln[d]);
-    }
-
-    P_j_ghost_vec.close();
-    PetscVector<double>* P_j_petsc_vec = static_cast<PetscVector<double>*>(&P_j_ghost_vec);
-    Vec P_j_global_vec = P_j_petsc_vec->vec();
-    Vec P_j_local_vec;
-    VecGhostGetLocalForm(P_j_global_vec, &P_j_local_vec);
-    double* P_j_local_soln;
-    VecGetArray(P_j_local_vec, &P_j_local_soln);
-
-    System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
-    DofMap& X_dof_map = X_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-    FEType X_fe_type = X_dof_map.variable_type(0);
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
-    }
-
-    TBOX_ASSERT(P_j_fe_type == X_fe_type);
-    FEType fe_type = P_j_fe_type;
+	TBOX_ASSERT(P_j_fe_type == X_fe_type);
+	FEType fe_type = P_j_fe_type;
 
     UniquePtr<FEBase> fe = FEBase::build(dim, fe_type);
     const std::vector<std::vector<double> >& phi = fe->get_phi();
@@ -2105,13 +2101,16 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
         {
             Elem* const elem = patch_elems[e_idx];
             // P_j_dof_map.dof_indices(elem, P_j_dof_indices);
-            P_j_dof_map_cache.dof_indices(elem, P_j_dof_indices);
+            
             for (int d = 0; d < NDIM; ++d)
             {
                 X_dof_map.dof_indices(elem, X_dof_indices[d], d);
             }
-            get_values_for_interpolation(P_j_node, *P_j_petsc_vec, P_j_local_soln, P_j_dof_indices);
-            //~ get_values_for_interpolation(P_j_node, P_j_ghost_vec, P_j_dof_indices);
+            if (d_use_pressure_jump_conditions)
+            {
+				P_j_dof_map_cache->dof_indices(elem, P_j_dof_indices);
+				get_values_for_interpolation(P_j_node, P_j_ghost_vec, P_j_dof_indices);
+			}
             get_values_for_interpolation(x_node, X_ghost_vec, X_dof_indices);
             if (d_use_velocity_jump_conditions)
             {
@@ -2120,9 +2119,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                         DU_j_dof_map_cache[d]->dof_indices(elem, DU_j_dof_indices[d][k], k);
 
                 for (unsigned int d = 0; d < NDIM; ++d)
-                    get_values_for_interpolation(
-                        DU_j_node[d], *DU_j_petsc_vec[d], DU_j_local_soln[d], DU_j_dof_indices[d]);
-                // get_values_for_interpolation(DU_j_node[d], *DU_j_ghost_vec[d], DU_j_dof_indices[d]);
+					get_values_for_interpolation(DU_j_node[d], *DU_j_ghost_vec[d], DU_j_dof_indices[d]);
             }
 
             // Cache the nodal and physical coordinates of the side element,
@@ -3030,16 +3027,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
             }
         }
     }
-
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        VecRestoreArray(DU_j_local_vec[d], &DU_j_local_soln[d]);
-        VecGhostRestoreLocalForm(DU_j_global_vec[d], &DU_j_local_vec[d]);
-    }
-
-    VecRestoreArray(P_j_local_vec, &P_j_local_soln);
-    VecGhostRestoreLocalForm(P_j_global_vec, &P_j_local_vec);
-
+    
     return;
 } // imposeJumpConditions
 
