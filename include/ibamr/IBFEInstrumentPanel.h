@@ -131,6 +131,11 @@ private:
      * \brief write out nodes.
      */
     void outputNodes();
+    
+    /*!
+     * \brief vector storing radius for each meter
+     */
+    std::vector<double> d_meter_radii;
 
     /*!
      * \brief get the maximum radius of the meter in its current configuration
