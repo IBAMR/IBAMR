@@ -112,11 +112,6 @@ public:
     static const std::string TANGENTIAL_VELOCITY_SYSTEM_NAME;
     static const boost::array<std::string, NDIM> VELOCITY_JUMP_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
-    
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > mask_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > side_mask_var;
-    int mask_current_idx, mask_new_idx, mask_scratch_idx;
-    int side_mask_current_idx, side_mask_new_idx, side_mask_scratch_idx;
 
     /*!
      * \brief Constructor.
