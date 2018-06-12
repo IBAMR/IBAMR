@@ -725,10 +725,10 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
         }
         Pointer<SideData<NDIM, bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         Pointer<SideData<NDIM, int> > u_dof_data = patch->getPatchData(u_dof_index_idx);
-        const int u_data_depth = u_dof_data->getDepth();
         Pointer<CellData<NDIM, int> > p_dof_data = patch->getPatchData(p_dof_index_idx);
-        const int p_data_depth = p_dof_data->getDepth();
 #if !defined(NDEBUG)
+        const int u_data_depth = u_dof_data->getDepth();
+        const int p_data_depth = p_dof_data->getDepth();
         TBOX_ASSERT(u_data_depth == 1);
         TBOX_ASSERT(p_data_depth == 1);
         TBOX_ASSERT(u_dof_data->getGhostCellWidth().min() >= overlap_size.max());

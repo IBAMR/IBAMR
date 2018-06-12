@@ -1279,7 +1279,9 @@ PETScMatUtilities::constructConservativeProlongationOp_cell(Mat& mat,
     const int n_local = num_coarse_dofs_per_proc[mpi_rank];
     const int i_fine_lower =
         std::accumulate(num_fine_dofs_per_proc.begin(), num_fine_dofs_per_proc.begin() + mpi_rank, 0);
+#if !defined(NDEBUG)
     const int i_fine_upper = i_fine_lower + m_local;
+#endif
     const int j_coarse_lower =
         std::accumulate(num_coarse_dofs_per_proc.begin(), num_coarse_dofs_per_proc.begin() + mpi_rank, 0);
     const int j_coarse_upper = j_coarse_lower + n_local;
@@ -2511,8 +2513,8 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& is_ove
             side_patch_box[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
         }
         Pointer<SideData<NDIM, int> > dof_data = patch->getPatchData(dof_index_idx);
-        const int data_depth = dof_data->getDepth();
 #if !defined(NDEBUG)
+        const int data_depth = dof_data->getDepth();
         TBOX_ASSERT(data_depth == 1);
         TBOX_ASSERT(dof_data->getGhostCellWidth().min() >= overlap_size.max());
 #endif

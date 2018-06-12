@@ -676,8 +676,10 @@ PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
     // vector.
     const int mpi_rank = SAMRAI_MPI::getRank();
     const int n_local = num_dofs_per_proc[mpi_rank];
+#if !defined (NDEBUG)
     const int i_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int i_upper = i_lower + n_local;
+#endif
     std::vector<int> petsc_idxs(n_local, -1), samrai_idxs(n_local, -1);
 
     int counter = 0;

@@ -552,6 +552,8 @@ CIBFEMethod::setConstraintForce(Vec L, const double data_time, const double scal
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+#else
+    NULL_USE(data_time);
 #endif
     // Unpack the Lambda vector.
     Vec* vL;
@@ -697,6 +699,8 @@ CIBFEMethod::setInterpolatedVelocityVector(Vec /*V*/, const double data_time)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+#else
+    NULL_USE(data_time);
 #endif
     d_lag_velvec_is_initialized = true;
 } // setInterpolatedVelocityVector
@@ -706,6 +710,8 @@ CIBFEMethod::getInterpolatedVelocity(Vec V, const double data_time, const double
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+#else
+    NULL_USE(data_time);
 #endif
     // Unpack the velocity vector.
     Vec* vV;
