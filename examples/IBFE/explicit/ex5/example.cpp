@@ -110,6 +110,7 @@ kernel(double x)
 namespace ModelData
 {
 // Tether (penalty) stress function.
+bool use_boundary_mesh = false;
 static double c1_s = 1.0e5;
 void
 PK1_stress_function(TensorValue<double>& PP,
@@ -296,7 +297,7 @@ run_example(int argc, char** argv)
         solid_mesh.boundary_info->sync(boundary_mesh);
         boundary_mesh.prepare_for_use();
 
-        bool use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
+        use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
         Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
 
         c1_s = input_db->getDouble("C1_S");
@@ -607,16 +608,29 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     const unsigned int dim = mesh.mesh_dimension();
     double F_integral[NDIM];
     for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
+    
+    System* x_system;
+    System* U_system;
+    
+    if (use_boundary_mesh)
+    {
+		x_system = &equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+		U_system = &equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+	}
+    else
+    {
+		x_system = &equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+		U_system = &equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+	}
 
-    System& x_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-    System& U_system = equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
-    NumericVector<double>* x_vec = x_system.solution.get();
-    NumericVector<double>* x_ghost_vec = x_system.current_local_solution.get();
+
+    NumericVector<double>* x_vec = x_system->solution.get();
+    NumericVector<double>* x_ghost_vec = x_system->current_local_solution.get();
     x_vec->localize(*x_ghost_vec);
-    NumericVector<double>* U_vec = U_system.solution.get();
-    NumericVector<double>* U_ghost_vec = U_system.current_local_solution.get();
+    NumericVector<double>* U_vec = U_system->solution.get();
+    NumericVector<double>* U_ghost_vec = U_system->current_local_solution.get();
     U_vec->localize(*U_ghost_vec);
-    const DofMap& dof_map = x_system.get_dof_map();
+    const DofMap& dof_map = x_system->get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 
     libMesh::UniquePtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
@@ -669,8 +683,11 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
             {
                 U_qp_vec[d] = U(d);
             }
-           // tether_force_function(F, n, x, q_point[qp], elem, var_data, grad_var_data, loop_time, force_fcn_ctx);
-            tether_force_function(F, n, N, FF, x, q_point[qp], elem, 0, var_data, grad_var_data, loop_time, force_fcn_ctx);
+            if (use_boundary_mesh)
+				tether_force_function(F, n, N, FF, x, q_point[qp], elem, 0, var_data, grad_var_data, loop_time, force_fcn_ctx);
+			else
+				tether_force_function(F, n, x, q_point[qp], elem, var_data, grad_var_data, loop_time, force_fcn_ctx);
+			
             
                       
             for (int d = 0; d < NDIM; ++d)
@@ -678,32 +695,35 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                 F_integral[d] += F(d) * JxW[qp];
             }
         }
-        //~ for (unsigned short int side = 0; side < elem->n_sides(); ++side)
-        //~ {
-            //~ if (elem->neighbor(side)) continue;
-            //~ fe_face->reinit(elem, side);
-            //~ const unsigned int n_qp_face = qrule_face->n_points();
-            //~ for (unsigned int qp = 0; qp < n_qp_face; ++qp)
-            //~ {
-                //~ interpolate(x, qp, x_node, phi_face);
-                //~ jacobian(FF, qp, x_node, dphi_face);
-                //~ interpolate(U, qp, U_node, phi_face);
-                //~ for (unsigned int d = 0; d < NDIM; ++d)
-                //~ {
-                    //~ U_qp_vec[d] = U(d);
-                //~ }
-                //~ N = normal_face[qp];
-                //~ tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
-                //~ n = (FF_inv_trans * N).unit();
+        if (!use_boundary_mesh)
+		{
+			for (unsigned short int side = 0; side < elem->n_sides(); ++side)
+			{
+				if (elem->neighbor(side)) continue;
+				fe_face->reinit(elem, side);
+				const unsigned int n_qp_face = qrule_face->n_points();
+				for (unsigned int qp = 0; qp < n_qp_face; ++qp)
+				{
+					interpolate(x, qp, x_node, phi_face);
+					jacobian(FF, qp, x_node, dphi_face);
+					interpolate(U, qp, U_node, phi_face);
+					for (unsigned int d = 0; d < NDIM; ++d)
+					{
+						U_qp_vec[d] = U(d);
+					}
+					N = normal_face[qp];
+					tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
+					n = (FF_inv_trans * N).unit();
 
-                //~ tether_force_function(
-                    //~ F, n, N, FF, x, q_point_face[qp], elem, side, var_data, grad_var_data, loop_time, force_fcn_ctx);
-                //~ for (int d = 0; d < NDIM; ++d)
-                //~ {
-                    //~ F_integral[d] += F(d) * JxW_face[qp];
-                //~ }
-            //~ }
-        //~ }
+					tether_force_function(
+						F, n, N, FF, x, q_point_face[qp], elem, side, var_data, grad_var_data, loop_time, force_fcn_ctx);
+					for (int d = 0; d < NDIM; ++d)
+					{
+						F_integral[d] += F(d) * JxW_face[qp];
+					}
+				}
+			}
+		}
     }
     SAMRAI_MPI::sumReduction(F_integral, NDIM);
     static const double rho = 1.0;
