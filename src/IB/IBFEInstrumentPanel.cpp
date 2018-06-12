@@ -47,7 +47,6 @@
 #include "BasePatchLevel.h"
 #include "Box.h"
 #include "BoxArray.h"
-#include "BoxArray.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
@@ -70,7 +69,6 @@
 #include "ibtk/FEDataManager.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/IndexUtilities.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LMesh.h"
@@ -78,6 +76,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "libmesh/boundary_info.h"
 #include "libmesh/dense_vector.h"
+#include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/exodusII_io.h"
 #include "libmesh/face_tri3.h"
@@ -86,7 +85,9 @@
 #include "libmesh/mesh_function.h"
 #include "libmesh/numeric_vector.h"
 #include "libmesh/point.h"
+#include "libmesh/quadrature_grid.h"
 #include "libmesh/serial_mesh.h"
+#include "libmesh/string_to_enum.h"
 #include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
@@ -137,22 +138,21 @@ linear_interp(const Vector& X,
                                       ,
                                       X_cell[2] + static_cast<double>(i_shift2) * dx[2]
 #endif
-                                      );
+                );
                 const double wgt =
                     (((X[0] < X_center[0] ? X[0] - (X_center[0] - dx[0]) : (X_center[0] + dx[0]) - X[0]) / dx[0]) *
                      ((X[1] < X_center[1] ? X[1] - (X_center[1] - dx[1]) : (X_center[1] + dx[1]) - X[1]) / dx[1])
 #if (NDIM == 3)
-                     *
-                     ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
+                     * ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
 #endif
-                         );
+                    );
                 const Index<NDIM> i(i_shift0 + i_cell(0),
                                     i_shift1 + i_cell(1)
 #if (NDIM == 3)
                                         ,
                                     i_shift2 + i_cell(2)
 #endif
-                                        );
+                );
                 const CellIndex<NDIM> i_c(i);
                 U += v(i_c) * wgt;
             }
@@ -198,22 +198,21 @@ linear_interp(const Vector& X,
                                       ,
                                       X_cell[2] + static_cast<double>(i_shift2) * dx[2]
 #endif
-                                      );
+                );
                 const double wgt =
                     (((X[0] < X_center[0] ? X[0] - (X_center[0] - dx[0]) : (X_center[0] + dx[0]) - X[0]) / dx[0]) *
                      ((X[1] < X_center[1] ? X[1] - (X_center[1] - dx[1]) : (X_center[1] + dx[1]) - X[1]) / dx[1])
 #if (NDIM == 3)
-                     *
-                     ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
+                     * ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
 #endif
-                         );
+                    );
                 const Index<NDIM> i(i_shift0 + i_cell(0),
                                     i_shift1 + i_cell(1)
 #if (NDIM == 3)
                                         ,
                                     i_shift2 + i_cell(2)
 #endif
-                                        );
+                );
                 const CellIndex<NDIM> i_c(i);
                 for (int k = 0; k < N; ++k)
                 {
@@ -270,22 +269,21 @@ linear_interp(const Vector& X,
                                         ,
                                         X_cell[2] + (static_cast<double>(i_shift2) + (axis == 2 ? -0.5 : 0.0)) * dx[2]
 #endif
-                                        );
+                    );
                     const double wgt =
                         (((X[0] < X_side[0] ? X[0] - (X_side[0] - dx[0]) : (X_side[0] + dx[0]) - X[0]) / dx[0]) *
                          ((X[1] < X_side[1] ? X[1] - (X_side[1] - dx[1]) : (X_side[1] + dx[1]) - X[1]) / dx[1])
 #if (NDIM == 3)
-                         *
-                         ((X[2] < X_side[2] ? X[2] - (X_side[2] - dx[2]) : (X_side[2] + dx[2]) - X[2]) / dx[2])
+                         * ((X[2] < X_side[2] ? X[2] - (X_side[2] - dx[2]) : (X_side[2] + dx[2]) - X[2]) / dx[2])
 #endif
-                             );
+                        );
                     const Index<NDIM> i(i_shift0 + i_cell(0),
                                         i_shift1 + i_cell(1)
 #if (NDIM == 3)
                                             ,
                                         i_shift2 + i_cell(2)
 #endif
-                                            );
+                    );
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                     U[axis] += v(i_s) * wgt;
                 }
@@ -296,14 +294,17 @@ linear_interp(const Vector& X,
     }
     return U;
 }
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const int part)
     : d_num_meters(0),
       d_quad_order(),
-      d_num_quad_points(),
+      d_input_quad_order(),
+      d_meter_radii(),
+      d_use_adaptive_quadrature(),
+      d_quad_type(),
       d_part(part),
       d_initialized(false),
       d_num_nodes(),
@@ -366,7 +367,7 @@ IBFEInstrumentPanel::~IBFEInstrumentPanel()
 }
 
 void
-IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_method_ops)
+IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_ops)
 {
     // get relevant things for corresponding part
     const FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager(d_part);
@@ -394,13 +395,13 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
     if (nodes.size() == 0 || bcs.size() == 0 || (nodes.size() != bcs.size()))
     {
         TBOX_ERROR("IBFEInstrumentPanel::initializeHierarchyIndependentData : "
-                   << "nodesets not set up correctly or don't exist in FE part with number "
-                   << d_part);
+                   << "nodesets not set up correctly or don't exist in FE part with number " << d_part);
     }
 
     // resize members and local variables
     d_num_meters = d_nodeset_IDs_for_meters.size();
-    d_num_quad_points.resize(d_num_meters);
+    d_meter_radii.resize(d_num_meters);
+    d_quad_order.resize(d_num_meters);
     d_U_dof_idx.resize(d_num_meters);
     d_dX_dof_idx.resize(d_num_meters);
     d_node_dof_IDs.resize(d_num_meters);
@@ -425,6 +426,8 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
         }
     }
 
+    // make sure nodes and node dof IDs have the same order
+    // on all the processes.
     for (int jj = 0; jj < d_nodeset_IDs_for_meters.size(); ++jj)
     {
         for (std::set<dof_id_type>::iterator it = temp_node_dof_ID_sets[jj].begin();
@@ -496,22 +499,25 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
     {
         d_meter_meshes[ii]->set_spatial_dimension(NDIM);
         d_meter_meshes[ii]->set_mesh_dimension(NDIM - 1);
-        d_meter_meshes[ii]->reserve_nodes(d_num_nodes[ii]);
-        d_meter_meshes[ii]->reserve_elem(d_num_nodes[ii] - 2);
+        d_meter_meshes[ii]->reserve_nodes(d_num_nodes[ii] + 1);
+        d_meter_meshes[ii]->reserve_elem(d_num_nodes[ii]);
 
+        // add nodes
         for (unsigned int jj = 0; jj < d_num_nodes[ii]; ++jj)
         {
             d_meter_meshes[ii]->add_point(d_nodes[ii][jj], jj);
         }
+        // add centroid
+        d_meter_meshes[ii]->add_point(meter_centroids[ii], d_num_nodes[ii]);
 
-        for (unsigned int jj = 0; jj < d_num_nodes[ii] - 2; ++jj)
+        for (unsigned int jj = 0; jj < d_num_nodes[ii]; ++jj)
         {
             Elem* elem = new Tri3;
             elem->set_id(jj);
             elem = d_meter_meshes[ii]->add_elem(elem);
-            elem->set_node(0) = d_meter_meshes[ii]->node_ptr(0);
-            elem->set_node(1) = d_meter_meshes[ii]->node_ptr(jj + 1);
-            elem->set_node(2) = d_meter_meshes[ii]->node_ptr(jj + 2);
+            elem->set_node(0) = d_meter_meshes[ii]->node_ptr(d_num_nodes[ii]);
+            elem->set_node(1) = d_meter_meshes[ii]->node_ptr(jj);
+            elem->set_node(2) = d_meter_meshes[ii]->node_ptr((jj + 1) % d_num_nodes[ii]);
         }
         d_meter_meshes[ii]->allow_renumbering(false);
         d_meter_meshes[ii]->prepare_for_use();
@@ -540,26 +546,6 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
         d_meter_systems[jj]->init();
     }
 
-    // store the number of quadrature points for each meter mesh
-    for (unsigned int jj = 0; jj < d_num_meters; ++jj)
-    {
-        const LinearImplicitSystem& displacement_sys =
-            d_meter_systems[jj]->get_system<LinearImplicitSystem>(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
-        FEType fe_type = displacement_sys.variable_type(0);
-        UniquePtr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
-        QGauss qrule(NDIM - 1, d_quad_order);
-        fe_elem->attach_quadrature_rule(&qrule);
-        const std::vector<libMesh::Point>& qp_points = fe_elem->get_xyz();
-        MeshBase::const_element_iterator el = d_meter_meshes[jj]->active_elements_begin();
-        const MeshBase::const_element_iterator end_el = d_meter_meshes[jj]->active_elements_end();
-        for (; el != end_el; ++el)
-        {
-            const Elem* elem = *el;
-            fe_elem->reinit(elem);
-            d_num_quad_points[jj] += qp_points.size();
-        }
-    }
-
     // store dof indices for the velocity and displacement systems that we will use later
     for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
@@ -581,8 +567,8 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
 }
 
 void
-IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_method_ops,
-                                                      const Pointer<PatchHierarchy<NDIM> > hierarchy)
+IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
+                                                      Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     if (!d_initialized)
     {
@@ -590,11 +576,14 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
     }
     if (d_num_meters == 0) return;
 
-    // loop over meters and update system data
+    // loop over meters, update system data, and get the maximum
+    // radius for each meter in this FE part.
+    // the radius of a meter is defined to be the largest distance
+    // from the centroid to a node.
     for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
         // update FE system data for meter_mesh
-        updateSystemData(ib_method_ops, jj);
+        initializeSystemDependentData(ib_method_ops, jj);
     }
 
     // get info about levels in AMR mesh
@@ -608,6 +597,32 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
     const double* const dx_coarsest = grid_geom->getDx();
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
     const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
+
+    // get the finest spacing of fluid grid
+    const IntVector<NDIM>& ratio_to_level_zero = hierarchy->getPatchLevel(finest_ln)->getRatio();
+    boost::array<double, NDIM> dx_finest;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        dx_finest[d] = dx_coarsest[d] / static_cast<double>(ratio_to_level_zero(d));
+    }
+    const double h_finest = *std::min_element(dx_finest.begin(), dx_finest.end());
+
+    for (int jj = 0; jj < d_num_meters; ++jj)
+    {
+        // set the quadrature rule adaptively according to the fluid mesh size
+        if (d_use_adaptive_quadrature)
+            d_quad_order[jj] = static_cast<Order>(d_meter_radii[jj] / (0.25 * h_finest));
+        else
+            d_quad_order[jj] = d_input_quad_order;
+        // print a warning
+        if (d_quad_type == libMesh::QGRID && d_quad_order[jj] > libMesh::FORTYTHIRD)
+        {
+            TBOX_WARNING("IBFEInstrumentPanel::initializeHierarchyDependentData : "
+                         << "QGrid quadrature order exceeds 43 for meter mesh in IBFE part " << d_part << "."
+                         << " there may be undefined behavior in casting to this"
+                         << " Order in older versions of libMesh.");
+        }
+    }
 
     // reset the quad point maps
     d_quad_point_map.clear();
@@ -649,9 +664,8 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
 
             // set up FE objects
             UniquePtr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
-            QGauss qrule(NDIM - 1, d_quad_order);
-            fe_elem->attach_quadrature_rule(&qrule);
-
+            UniquePtr<QBase> qrule(QBase::build(d_quad_type, NDIM - 1, d_quad_order[jj]));
+            fe_elem->attach_quadrature_rule(qrule.get());
             //  for evaluating the displacement system
             const std::vector<Real>& JxW = fe_elem->get_JxW();
             const std::vector<std::vector<Real> >& phi = fe_elem->get_phi();
@@ -679,11 +693,11 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
                 }
 
                 // compute normal vector to element
-                const libMesh::Point foo1 = *elem->node_ptr(1) - *elem->node_ptr(0);
-                const libMesh::Point foo2 = *elem->node_ptr(2) - *elem->node_ptr(1);
-                libMesh::Point foo3 = foo1.cross(foo2).unit();
+                const libMesh::Point tau1 = *elem->node_ptr(1) - *elem->node_ptr(0);
+                const libMesh::Point tau2 = *elem->node_ptr(2) - *elem->node_ptr(1);
+                libMesh::Point normal_temp = tau1.cross(tau2).unit();
                 Vector normal;
-                for (unsigned int d = 0; d < NDIM; ++d) normal[d] = foo3(d);
+                for (unsigned int d = 0; d < NDIM; ++d) normal[d] = normal_temp(d);
 
                 // loop over quadrature points, compute their physical locations
                 // after displacement, and stores their indices.
@@ -766,7 +780,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
             const Index<NDIM>& patch_lower = patch_box.lower();
             const Index<NDIM>& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             const double* const x_lower = pgeom->getXLower();
             const double* const x_upper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
@@ -788,7 +802,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                                             ,
                                         x_lower[2] + dx[2] * (static_cast<double>(i(2) - patch_lower(2)) + 0.5)
 #endif
-                                            );
+                    );
                     if (U_cc_data)
                     {
                         for (QuadPointMap::const_iterator it = qp_range.first; it != qp_range.second; ++it)
@@ -839,13 +853,11 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     const int count_qp_3 = SAMRAI_MPI::sumReduction(count_qp_2);
     if (count_qp_1 != count_qp_3)
     {
-        TBOX_ERROR("IBFEInstrumentPanel::readInstrumentData : "
-                   << "the total number of quadrature points in the meter meshes "
-                   << " is not consistent with the number used in the "
-                   << " calculations, for IBFE part "
-                   << d_part
-                   << "."
-                   << " there may be overlapping patches in the AMR grid.");
+        TBOX_WARNING("IBFEInstrumentPanel::readInstrumentData :"
+                     << " the total number of quadrature points in the meter meshes"
+                     << " is not consistent with the number used in the"
+                     << " calculations, for IBFE part " << d_part << "."
+                     << " there may be overlapping patches in the AMR grid.");
     }
 
     // Synchronize the values across all processes.
@@ -884,7 +896,6 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
 
         // loop over elements again to compute mass flux and mean pressure
         double flux_correction = 0.0;
-        double area = 0.0;
         MeshBase::const_element_iterator el = d_meter_meshes[jj]->active_local_elements_begin();
         const MeshBase::const_element_iterator end_el = d_meter_meshes[jj]->active_local_elements_end();
         for (; el != end_el; ++el)
@@ -904,11 +915,9 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
             }
 
             // compute normal vector to element
-            const libMesh::Point foo1 = *elem->node_ptr(1) - *elem->node_ptr(0);
-            const libMesh::Point foo2 = *elem->node_ptr(2) - *elem->node_ptr(1);
-            const libMesh::Point normal = (foo1.cross(foo2)).unit();
-
-            area += 0.5 * (foo1.cross(foo2)).norm();
+            const libMesh::Point tau1 = *elem->node_ptr(1) - *elem->node_ptr(0);
+            const libMesh::Point tau2 = *elem->node_ptr(2) - *elem->node_ptr(1);
+            const libMesh::Point normal = (tau1.cross(tau2)).unit();
 
             // loop over quadrature points
             double vel_comp;
@@ -941,22 +950,27 @@ IBFEInstrumentPanel::getFromInput(Pointer<Database> db)
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
-    if (db->keyExists("plot_directory_name")) d_plot_directory_name = db->getString("plot_directory_name");
-    if (db->keyExists("instrument_dump_interval"))
-        d_instrument_dump_interval = db->getIntegerWithDefault("instrument_dump_interval", 1);
-    if (db->keyExists("nodeset_IDs_for_meters"))
-        d_nodeset_IDs_for_meters = db->getIntegerArray("nodeset_IDs_for_meters");
-    if (db->keyExists("meter_mesh_quad_order"))
-        d_quad_order = Utility::string_to_enum<Order>(db->getStringWithDefault("meter_mesh_quad_order", "SECOND"));
+    d_plot_directory_name = db->getString("meters_directory_name");
+    d_instrument_dump_interval = db->getIntegerWithDefault("meters_dump_interval", 1);
+    d_nodeset_IDs_for_meters = db->getIntegerArray("nodeset_IDs_for_meters");
+    d_use_adaptive_quadrature = db->getBoolWithDefault("meters_adaptive_quadrature", false);
+    d_quad_type = Utility::string_to_enum<QuadratureType>(db->getStringWithDefault("meters_quad_type", "QGAUSS"));
+    d_input_quad_order = Utility::string_to_enum<Order>(db->getStringWithDefault("meters_quad_order", "FORTIETH"));
+    if (d_use_adaptive_quadrature && d_quad_type != libMesh::QGRID)
+    {
+        TBOX_ERROR("IBFEInstrumentPanel::getFromInput :"
+                   << " Adaptive quadrature for the meters"
+                   << " is only supported with QuadratureType QGRID.");
+    }
     return;
 }
 
 void
-IBFEInstrumentPanel::outputMeterMeshes(const int timestep_num, const double data_time)
+IBFEInstrumentPanel::outputMeterMeshes(IBFEMethod* ib_method_ops, const int timestep_num, const double data_time)
 {
     // things to do at initial timestep
     if (timestep_num == 1) outputNodes();
-    outputExodus(timestep_num, data_time);
+    outputExodus(ib_method_ops, timestep_num, data_time);
 }
 
 int
@@ -968,13 +982,13 @@ IBFEInstrumentPanel::getInstrumentDumpInterval() const
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IBFEInstrumentPanel::updateSystemData(IBAMR::IBFEMethod* ib_method_ops, const int meter_mesh_number)
+IBFEInstrumentPanel::initializeSystemDependentData(IBFEMethod* ib_method_ops, const int meter_mesh_number)
 {
     // get the coordinate mapping system and velocity systems for the parent mesh
     const FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager(d_part);
     const EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
     const System& dX_system = equation_systems->get_system(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
-    // TO DO: find a better way to do this
+    // \todo: find a better way to do this
     std::vector<double> dX_coords_parent;
     dX_system.update_global_solution(dX_coords_parent);
     const System& U_system = equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
@@ -994,7 +1008,11 @@ IBFEInstrumentPanel::updateSystemData(IBAMR::IBFEMethod* ib_method_ops, const in
     NumericVector<double>& displacement_solution = *displacement_sys.solution;
     NumericVector<double>& displacement_coords = displacement_sys.get_vector("serial solution");
 
-    // loop over all nodes in meter mesh
+    // loop over the (perimeter) nodes in the meter mesh
+    std::vector<double> mean_U_dofs;
+    mean_U_dofs.resize(NDIM);
+    std::vector<double> mean_dX_dofs;
+    mean_dX_dofs.resize(NDIM);
     for (unsigned int ii = 0; ii < d_num_nodes[meter_mesh_number]; ++ii)
     {
         // get node on meter mesh
@@ -1010,6 +1028,8 @@ IBFEInstrumentPanel::updateSystemData(IBAMR::IBFEMethod* ib_method_ops, const in
         {
             U_dofs[d] = U_coords_parent[d_U_dof_idx[meter_mesh_number][ii][d]];
             dX_dofs[d] = dX_coords_parent[d_dX_dof_idx[meter_mesh_number][ii][d]];
+            mean_U_dofs[d] += U_dofs[d] / static_cast<double>(d_num_nodes[meter_mesh_number]);
+            mean_dX_dofs[d] += dX_dofs[d] / static_cast<double>(d_num_nodes[meter_mesh_number]);
         }
 
         // set dofs in meter mesh to correspond to the same values
@@ -1023,7 +1043,17 @@ IBFEInstrumentPanel::updateSystemData(IBAMR::IBFEMethod* ib_method_ops, const in
         }
     }
 
-    // populate solution vector in system also... why not?
+    // set dofs for the centroid node in the meter mesh
+    const Node* centroid_node = &d_meter_meshes[meter_mesh_number]->node_ref(d_num_nodes[meter_mesh_number]);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        const int vel_dof_idx = centroid_node->dof_number(velocity_sys_num, d, 0);
+        velocity_coords.set(vel_dof_idx, mean_U_dofs[d]);
+        const int disp_dof_idx = centroid_node->dof_number(displacement_sys_num, d, 0);
+        displacement_coords.set(disp_dof_idx, mean_dX_dofs[d]);
+    }
+
+    // also populate solution vector in the system for exodus IO
     MeshBase::const_node_iterator node_it = d_meter_meshes[meter_mesh_number]->local_nodes_begin();
     const MeshBase::const_node_iterator end_node_it = d_meter_meshes[meter_mesh_number]->local_nodes_end();
     for (; node_it != end_node_it; ++node_it)
@@ -1039,6 +1069,44 @@ IBFEInstrumentPanel::updateSystemData(IBAMR::IBFEMethod* ib_method_ops, const in
     }
     velocity_solution.close();
     displacement_solution.close();
+
+    // compute the meter radius
+    double max_meter_radius = 0.0;
+    for (unsigned int ii = 0; ii < d_num_nodes[meter_mesh_number]; ++ii)
+    {
+        // get node on meter mesh
+        const Node* node = &d_meter_meshes[meter_mesh_number]->node_ref(ii);
+        // get the centroid
+        const Node* centroid_node = &d_meter_meshes[meter_mesh_number]->node_ref(d_num_nodes[meter_mesh_number]);
+
+        std::vector<double> node_disp(NDIM, 0.0);
+        std::vector<double> centroid_disp(NDIM, 0.0);
+        std::vector<numeric_index_type> node_disp_dof_idx(NDIM, 0);
+        std::vector<numeric_index_type> centroid_disp_dof_idx(NDIM, 0);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            node_disp_dof_idx[d] = node->dof_number(displacement_sys_num, d, 0);
+            centroid_disp_dof_idx[d] = centroid_node->dof_number(displacement_sys_num, d, 0);
+        }
+        displacement_coords.get(node_disp_dof_idx, node_disp);
+        displacement_coords.get(centroid_disp_dof_idx, centroid_disp);
+
+        double radius_squared = 0.0;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            radius_squared += pow((*centroid_node)(d) + centroid_disp[d] - (*node)(d) + node_disp[d], 2.0);
+        }
+        max_meter_radius = std::max(pow(radius_squared, 0.5), max_meter_radius);
+    }
+    d_meter_radii[meter_mesh_number] = max_meter_radius;
+}
+
+double
+IBFEInstrumentPanel::getMeterRadius(const int meter_mesh_number)
+{
+    // NOTE: this function should be called **after** updating the meter system data,
+    // with initializeSystemDependentData.
+    return d_meter_radii[meter_mesh_number];
 }
 
 void
@@ -1059,10 +1127,11 @@ IBFEInstrumentPanel::outputData(const double data_time)
 }
 
 void
-IBFEInstrumentPanel::outputExodus(const int timestep, const double loop_time)
+IBFEInstrumentPanel::outputExodus(IBFEMethod* ib_method_ops, const int timestep, const double loop_time)
 {
     for (unsigned int ii = 0; ii < d_num_meters; ++ii)
     {
+        initializeSystemDependentData(ib_method_ops, ii);
         std::ostringstream mesh_output;
         mesh_output << d_plot_directory_name << "/"
                     << "" << d_meter_mesh_names[ii] << ".ex2";
