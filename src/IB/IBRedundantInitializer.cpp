@@ -386,11 +386,6 @@ IBRedundantInitializer::initializeStructurePosition()
 
             d_init_structure_on_level_fcn(j, ln, d_num_vertex[ln][j], d_vertex_posn[ln][j]);
 #if !defined(NDEBUG)
-            if (d_num_vertex[ln][j] <= 0)
-            {
-                TBOX_ERROR(d_object_name << ":\n Invalid number of vertices " << d_num_vertex[ln][j] << " of structure "
-                                         << j << " on level " << ln << ".\n");
-            }
             if (d_vertex_posn[ln][j].size() != d_num_vertex[ln][j])
             {
                 TBOX_ERROR(d_object_name << ":\n Invalid number of vertices " << d_vertex_posn[ln][j].size() << " of structure "
@@ -448,9 +443,10 @@ IBRedundantInitializer::initializeSprings()
                                                  << " and structure number " << j << ":\n"
                                                  << e.second << " is not a valid index.");
                     }
-                    if (e.first > e.second)
+                    if (it->first > e.second)
                     {
-                        std::swap<int>(e.first, e.second);
+                        TBOX_ERROR(d_object_name << ":\n Error on level " << ln << " and structure number " << j
+                                                 << ".\n Master index must be lower than the slave index for springs.");
                     }
                     if (spec.parameters[0] < 0.0)
                     {
@@ -504,9 +500,11 @@ IBRedundantInitializer::initializeXSprings()
                                                  << " and structure number " << j << ":\n"
                                                  << e.second << " is not a valid index.");
                     }
-                    if (e.first > e.second)
+                    if (it->first > e.second)
                     {
-                        std::swap<int>(e.first, e.second);
+                        TBOX_ERROR(d_object_name
+                                   << ":\n Error on level " << ln << " and structure number " << j
+                                   << ".\n Master index must be lower than the slave index for xsprings.");
                     }
                     if (spec.parameters[0] < 0.0)
                     {
