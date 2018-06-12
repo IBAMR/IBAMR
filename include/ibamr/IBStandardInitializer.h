@@ -436,13 +436,13 @@ public:
      */
     ~IBStandardInitializer();
 
+protected:
+private:
     /*!
      * \brief Initialize structure specific configurations.
      */
     void init();
 
-protected:
-private:
     /*!
      * \brief Default constructor.
      *

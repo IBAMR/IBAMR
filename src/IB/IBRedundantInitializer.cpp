@@ -190,34 +190,6 @@ IBRedundantInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_wr
     return;
 } // registerLSiloDataWriter
 
-void
-IBRedundantInitializer::init()
-{
-    if (d_data_processed)
-    {
-        return;
-    }
-    else
-    {
-        // Process structure information.
-        initializeStructurePosition();
-        initializeSprings();
-        initializeXSprings();
-        initializeBeams();
-        initializeDirectorAndRods();
-        initializeBoundaryMass();
-        initializeTargetPts();
-        initializeAnchorPts();
-        initializeInstrumentationData();
-        initializeSourceData();
-    }
-
-    // Indicate that we have processed data.
-    d_data_processed = true;
-
-    return;
-}
-
 bool
 IBRedundantInitializer::getLevelHasLagrangianData(const int level_number, const bool /*can_be_refined*/) const
 {
@@ -1331,6 +1303,34 @@ IBRedundantInitializer::setStructureNamesOnLevel(const int& level_num, const std
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+IBRedundantInitializer::init()
+{
+    if (d_data_processed)
+    {
+        return;
+    }
+    else
+    {
+        // Process structure information.
+        initializeStructurePosition();
+        initializeSprings();
+        initializeXSprings();
+        initializeBeams();
+        initializeDirectorAndRods();
+        initializeBoundaryMass();
+        initializeTargetPts();
+        initializeAnchorPts();
+        initializeInstrumentationData();
+        initializeSourceData();
+    }
+
+    // Indicate that we have processed data.
+    d_data_processed = true;
+
+    return;
+}
 
 void
 IBRedundantInitializer::initializeLSiloDataWriter(const int level_number)
