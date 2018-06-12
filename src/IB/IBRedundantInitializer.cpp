@@ -123,6 +123,7 @@ IBRedundantInitializer::IBRedundantInitializer(const std::string& object_name, P
       d_instrument_idx(),
       d_source_idx(),
       d_global_index_offset(),
+      d_data_processed(false),
       d_init_structure_on_level_fcn(NULL),
       d_init_spring_on_level_fcn(NULL),
       d_init_beam_on_level_fcn(NULL),
@@ -131,8 +132,7 @@ IBRedundantInitializer::IBRedundantInitializer(const std::string& object_name, P
       d_init_target_pt_on_level_fcn(NULL),
       d_init_anchor_pt_on_level_fcn(NULL),
       d_init_instrumentation_on_level_fcn(NULL),
-      d_init_source_on_level_fcn(NULL),
-      d_data_processed(false)
+      d_init_source_on_level_fcn(NULL)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
@@ -926,7 +926,6 @@ IBRedundantInitializer::initializeSourceData()
         {
             std::vector<std::string> new_names;
             std::vector<double> new_radii;
-            int source_offset;
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
                 const int min_idx = 0;
