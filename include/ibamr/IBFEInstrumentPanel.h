@@ -131,7 +131,7 @@ private:
      * \brief write out nodes.
      */
     void outputNodes();
-    
+
     /*!
      * \brief vector storing radius for each meter
      */
