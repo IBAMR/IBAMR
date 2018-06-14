@@ -164,6 +164,7 @@ tether_force_function(VectorValue<double>& F,
                       const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                       double /*time*/,
                       void* /*ctx*/)
+                      
 {
     VectorValue<double> D = X - x;
     VectorValue<double> U;
@@ -331,8 +332,8 @@ run_example(int argc, char** argv)
         Pointer<IBStrategy> ib_ops;
         if (use_boundary_mesh)
             ib_ops = new IBFESurfaceMethod(
-                "IBFEMethod",
-                app_initializer->getComponentDatabase("IBFEMethod"),
+                "IBFESurfaceMethod",
+                app_initializer->getComponentDatabase("IBFESurfaceMethod"),
                 &mesh,
                 app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
         else
@@ -367,9 +368,10 @@ run_example(int argc, char** argv)
         EquationSystems* equation_systems;
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
-        vector<SystemData> sys_data(1, SystemData(IBFEMethod::VELOCITY_SYSTEM_NAME, vars));
+        
         if (use_boundary_mesh)
         {
+			vector<SystemData> sys_data(1, SystemData(IBFESurfaceMethod::VELOCITY_SYSTEM_NAME, vars));
             Pointer<IBFESurfaceMethod> ibfe_ops = ib_ops;
             ibfe_ops->initializeFEEquationSystems();
             equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
@@ -378,6 +380,7 @@ run_example(int argc, char** argv)
         }
         else
         {
+			vector<SystemData> sys_data(1, SystemData(IBFEMethod::VELOCITY_SYSTEM_NAME, vars));
             Pointer<IBFEMethod> ibfe_ops = ib_ops;
             ibfe_ops->initializeFEEquationSystems();
             equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
@@ -499,8 +502,8 @@ run_example(int argc, char** argv)
         // velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_stream.open("C_D_II_p.curve", ios_base::out | ios_base::trunc);
-            lift_stream.open("C_L_II_p.curve", ios_base::out | ios_base::trunc);
+            drag_stream.open("C_D_II_pu_nointerp.curve", ios_base::out | ios_base::trunc);
+            lift_stream.open("C_L_II_pu_nointerp.curve", ios_base::out | ios_base::trunc);
             U_L1_norm_stream.open("U_L1.curve", ios_base::out | ios_base::trunc);
             U_L2_norm_stream.open("U_L2.curve", ios_base::out | ios_base::trunc);
             U_max_norm_stream.open("U_max.curve", ios_base::out | ios_base::trunc);
@@ -612,10 +615,16 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     System* x_system;
     System* U_system;
     
-
-	x_system = &equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-	U_system = &equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
-
+    if (use_boundary_mesh)
+	{
+		x_system = &equation_systems->get_system(IBFESurfaceMethod::COORDS_SYSTEM_NAME);
+		U_system = &equation_systems->get_system(IBFESurfaceMethod::VELOCITY_SYSTEM_NAME);
+	}
+	else
+	{
+		x_system = &equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+		U_system = &equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+	}
     NumericVector<double>* x_vec = x_system->solution.get();
     NumericVector<double>* x_ghost_vec = x_system->current_local_solution.get();
     x_vec->localize(*x_ghost_vec);
@@ -624,6 +633,10 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     U_vec->localize(*U_ghost_vec);
     const DofMap& dof_map = x_system->get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+    
+    NumericVector<double>& X0_vec = x_system->get_vector("INITIAL_COORDINATES");
+    
+    
 
     libMesh::UniquePtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
     libMesh::UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
@@ -649,8 +662,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     void* force_fcn_ctx = NULL;
 
     TensorValue<double> FF, FF_inv_trans;
-    boost::multi_array<double, 2> x_node, U_node;
-    VectorValue<double> F, N, U, n, x;
+    boost::multi_array<double, 2> x_node, X0_node, U_node;
+    VectorValue<double> F, N, U, n, x, X;
 
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
@@ -664,10 +677,12 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         }
         get_values_for_interpolation(x_node, *x_ghost_vec, dof_indices);
         get_values_for_interpolation(U_node, *U_ghost_vec, dof_indices);
+        get_values_for_interpolation(X0_node, X0_vec, dof_indices);
 
         const unsigned int n_qp = qrule->n_points();
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
+			interpolate(X, qp, X0_node, phi);
             interpolate(x, qp, x_node, phi);
             jacobian(FF, qp, x_node, dphi);
             interpolate(U, qp, U_node, phi);
@@ -676,7 +691,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                 U_qp_vec[d] = U(d);
             }
             if (use_boundary_mesh)
-				tether_force_function(F, n, N, FF, x, q_point[qp], elem, 0, var_data, grad_var_data, loop_time, force_fcn_ctx);
+				tether_force_function(F, n, N, FF, x, X, elem, 0, var_data, grad_var_data, loop_time, force_fcn_ctx);
 			else
 				tether_force_function(F, n, x, q_point[qp], elem, var_data, grad_var_data, loop_time, force_fcn_ctx);
 			
