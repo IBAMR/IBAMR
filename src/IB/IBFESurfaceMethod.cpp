@@ -1430,8 +1430,23 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                 for (unsigned int i = 0; i < NDIM; ++i)
                     for (unsigned int k = 0; k < NDIM; ++k)
                         DU[i][k] = -(dA / da) * (F(i) - F * n * n(i)) * n(k); // [Ux] , [Uy], [Uz]
-
+                        
                 for (unsigned int d = 0; d < NDIM; ++d) F_integral(d) += F(d) * JxW[qp];
+
+                // Remote the part of the force that has been already included in the jump
+
+                if (d_use_pressure_jump_conditions && !d_use_velocity_jump_conditions)
+                {
+                    F -= (F * n) * n;
+                }
+                if (!d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
+                {
+                    F = (F * n) * n;
+                }
+                if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
+                {
+                    F = 0.0;
+                }
 
                 // Add the boundary forces to the right-hand-side vector.
                 for (unsigned int k = 0; k < n_basis; ++k)
@@ -1462,20 +1477,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                     surface_area += JxW[qp];
                 }
 
-                // Remote the part of the force that has been already included in the jump
 
-                if (d_use_pressure_jump_conditions && !d_use_velocity_jump_conditions)
-                {
-                    F -= (F * n) * n;
-                }
-                if (!d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
-                {
-                    F = (F * n) * n;
-                }
-                if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
-                {
-                    F = 0.0;
-                }
             }
 
             // Apply constraints (e.g., enforce periodic boundary conditions)
