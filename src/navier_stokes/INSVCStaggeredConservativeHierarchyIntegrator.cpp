@@ -213,6 +213,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
     d_rho_sc_var = new SideVariable<NDIM, double>(d_object_name + "::rho_sc");
     d_rho_interp_cc_var = new CellVariable<NDIM, double>(d_object_name + "::rho_interp_cc", NDIM);
 
+    // Side centered state variable for old velocity, required for the convective operator.
+    d_U_old_var = new SideVariable<NDIM, double>(d_object_name + "::U_old");
+
     return;
 } // INSVCStaggeredConservativeHierarchyIntegrator
 
@@ -275,6 +278,16 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
             }
         }
     }
+
+    // The old velocity variable, required for conservative convective operator
+    registerVariable(d_U_old_current_idx,
+                     d_U_old_new_idx,
+                     d_U_old_scratch_idx,
+                     d_U_old_var,
+                     side_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE",
+                     d_U_init);
 
     // Set the optional density source function.
     INSVCStaggeredConservativeConvectiveOperator* p_vc_convective_op =
@@ -579,7 +592,24 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
             dynamic_cast<INSVCStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
         if (p_vc_convective_op)
         {
-            p_vc_convective_op->setSideCenteredDensityPatchDataIndex(d_rho_sc_scratch_idx);
+            // Set the rho^{n} density
+            p_vc_convective_op->setSideCenteredDensityPatchDataIndex(d_rho_sc_current_idx);
+
+            // Data for the convective operator is for cycle 0
+            const int ins_cycle_num = 0;
+            p_vc_convective_op->setCycleNumber(ins_cycle_num);
+
+            // Set the velocities used to update the density
+            if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
+            {
+                p_vc_convective_op->setFluidVelocityPatchDataIndices(
+                    /*old*/ -1, /*current*/ d_U_current_idx, /*new*/ -1);
+            }
+            else
+            {
+                p_vc_convective_op->setFluidVelocityPatchDataIndices(
+                    /*old*/ d_U_old_current_idx, /*current*/ d_U_current_idx, /*new*/ -1);
+            }
         }
         else
         {
@@ -589,9 +619,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
                                      << " this statement should not have been reached\n");
         }
 
+        // Compute the convective operator
         d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
-        const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
-        d_hier_sc_data_ops->copyData(d_N_old_new_idx, N_idx);
+
+        // Keep track of the time-lagged velocity
+        d_hier_sc_data_ops->copyData(d_U_old_new_idx, d_U_current_idx);
     }
 
     // Execute any registered callbacks.
@@ -1248,6 +1280,21 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
             {
                 // Always set to current because we want to update rho^{n} to rho^{n+1}
                 p_vc_convective_op->setSideCenteredDensityPatchDataIndex(d_rho_sc_current_idx);
+
+                // Set the cycle number
+                p_vc_convective_op->setCycleNumber(cycle_num);
+
+                // Set the velocities used to update the density
+                if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
+                {
+                    p_vc_convective_op->setFluidVelocityPatchDataIndices(
+                        /*old*/ -1, /*current*/ d_U_current_idx, /*new*/ d_U_new_idx);
+                }
+                else
+                {
+                    p_vc_convective_op->setFluidVelocityPatchDataIndices(
+                        /*old*/ d_U_old_current_idx, /*current*/ d_U_current_idx, /*new*/ d_U_new_idx);
+                }
             }
             else
             {

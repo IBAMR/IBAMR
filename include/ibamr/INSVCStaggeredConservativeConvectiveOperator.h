@@ -196,6 +196,23 @@ public:
      */
     void setMassDensitySourceTerm(const SAMRAI::tbox::Pointer<IBTK::CartGridFunction> S_fcn);
 
+    /*!
+     * \brief Set the patch data indices corresponding to the velocity at the previous time step
+     * to be used when computing the density update
+     *
+     * \note This velocities will be used to compute an approximation to velocities required for SSPRK updates
+     * V_old_idx = n-1, V_current_idx = n, V_new_idx = n+1,k (after an INS cycle)
+     * If V_old_idx or V_new_idx are not set, then they will degenerate to V_current automatically, for the very first
+     * simulation time step and cases where an INS cycle has not been executed, respectively.
+     */
+    void setFluidVelocityPatchDataIndices(int V_old_idx, int V_current_idx, int V_new_idx);
+
+    /*!
+     * \brief Set the cycle number currently being executed by the INS integrator. This will determine the rho advection
+     * velocity.
+     */
+    void setCycleNumber(int cycle_num);
+
 private:
     /*!
      * \brief Default constructor.
@@ -280,9 +297,13 @@ private:
 
     // Cached communications operators.
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
-    std::string d_bdry_extrap_type;
+    std::string d_velocity_bdry_extrap_type, d_density_bdry_extrap_type;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
+    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_rho_transaction_comps;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_rho_bdry_fill;
+    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_v_transaction_comps;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_v_bdry_fill;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
@@ -290,6 +311,9 @@ private:
 
     // Whether or not the current density field has been set.
     bool d_rho_is_set;
+
+    // Whether or not the current velocity field has been set.
+    bool d_V_current_is_set;
 
     // Number of RK steps to take.
     int d_num_steps;
@@ -300,6 +324,8 @@ private:
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
     int d_U_scratch_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_V_var;
+    int d_V_scratch_idx, d_V_old_idx, d_V_current_idx, d_V_new_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var;
     int d_rho_sc_current_idx, d_rho_sc_scratch_idx, d_rho_sc_new_idx;
 
@@ -320,6 +346,9 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_S_var;
     int d_S_scratch_idx;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
+
+    // Variable to indicate the cycle number
+    int d_cycle_num;
 };
 } // namespace IBAMR
 

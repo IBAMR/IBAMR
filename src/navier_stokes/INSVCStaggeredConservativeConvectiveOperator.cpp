@@ -1080,15 +1080,22 @@ INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvecti
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
     : ConvectiveOperator(object_name, difference_form),
       d_bc_coefs(bc_coefs),
-      d_bdry_extrap_type("CONSTANT"),
+      d_velocity_bdry_extrap_type("CONSTANT"),
+      d_density_bdry_extrap_type("CONSTANT"),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
       d_rho_is_set(false),
+      d_V_current_is_set(false),
       d_num_steps(1),
       d_rho_sc_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_U_var(NULL),
       d_U_scratch_idx(-1),
+      d_V_var(NULL),
+      d_V_scratch_idx(-1),
+      d_V_old_idx(-1),
+      d_V_current_idx(-1),
+      d_V_new_idx(-1),
       d_rho_sc_var(NULL),
       d_rho_sc_current_idx(-1),
       d_rho_sc_scratch_idx(-1),
@@ -1100,7 +1107,8 @@ INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvecti
       d_density_time_stepping_type(FORWARD_EULER),
       d_S_var(NULL),
       d_S_scratch_idx(-1),
-      d_S_fcn(NULL)
+      d_S_fcn(NULL),
+      d_cycle_num(-1)
 {
     if (d_difference_form != CONSERVATIVE)
     {
@@ -1112,7 +1120,19 @@ INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvecti
 
     if (input_db)
     {
-        if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+        if (input_db->keyExists("bdry_extrap_type"))
+        {
+            d_velocity_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+            d_density_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+        }
+        if (input_db->keyExists("velocity_bdry_extrap_type"))
+        {
+            d_velocity_bdry_extrap_type = input_db->getString("velocity_bdry_extrap_type");
+        }
+        if (input_db->keyExists("density_bdry_extrap_type"))
+        {
+            d_density_bdry_extrap_type = input_db->getString("density_bdry_extrap_type");
+        }
         if (input_db->keyExists("convective_limiter"))
         {
             d_velocity_convective_limiter =
@@ -1227,6 +1247,22 @@ INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvecti
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 #endif
 
+    const std::string V_var_name = "INSVCStaggeredConservativeConvectiveOperator::V";
+    d_V_var = var_db->getVariable(V_var_name);
+    if (d_V_var)
+    {
+        d_V_scratch_idx = var_db->mapVariableAndContextToIndex(d_V_var, var_db->getContext(V_var_name + "::SCRATCH"));
+    }
+    else
+    {
+        d_V_var = new SideVariable<NDIM, double>(V_var_name);
+        d_V_scratch_idx = var_db->registerVariableAndContext(
+            d_V_var, var_db->getContext(V_var_name + "::SCRATCH"), IntVector<NDIM>(d_velocity_limiter_gcw));
+    }
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_V_scratch_idx >= 0);
+#endif
+
     const std::string rho_sc_name = "INSVCStaggeredConservativeConvectiveOperator::RHO_SIDE_CENTERED";
     d_rho_sc_var = var_db->getVariable(rho_sc_name);
     if (d_rho_sc_var)
@@ -1307,6 +1343,16 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                    << "  prior to call to applyConvectiveOperator\n");
     }
     TBOX_ASSERT(d_rho_sc_current_idx >= 0);
+
+    if (!d_V_current_is_set)
+    {
+        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
+                   << "  a side-centered fluid velocity field must be set via setFluidVelocityPatchDataIndices()\n"
+                   << "  prior to a call to applyConvectiveOperator\n");
+    }
+    TBOX_ASSERT(d_V_old_idx >= 0);
+    TBOX_ASSERT(d_V_current_idx >= 0);
+    TBOX_ASSERT(d_V_new_idx >= 0);
 #endif
 
     // Get the time step size
@@ -1319,6 +1365,17 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     }
 #endif
 
+// Get the cycle number
+#if !defined(NDEBUG)
+    if (d_cycle_num < 0)
+    {
+        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
+                   << "  invalid cycle number = "
+                   << d_cycle_num
+                   << "\n");
+    }
+#endif
+
     // Fill ghost cell values for velocity
     static const bool homogeneous_bc = false;
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -1328,7 +1385,7 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                                              "CONSERVATIVE_LINEAR_REFINE",
                                                              false,
                                                              "CONSERVATIVE_COARSEN",
-                                                             d_bdry_extrap_type,
+                                                             d_velocity_bdry_extrap_type,
                                                              false,
                                                              d_bc_coefs);
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
@@ -1339,17 +1396,36 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Fill ghost cells for current density
-    InterpolationTransactionComponent rho_transaction(d_rho_sc_scratch_idx,
-                                                      d_rho_sc_current_idx,
-                                                      "CONSERVATIVE_LINEAR_REFINE",
-                                                      false,
-                                                      "CONSERVATIVE_COARSEN",
-                                                      d_bdry_extrap_type,
-                                                      false,
-                                                      d_rho_sc_bc_coefs);
-    Pointer<HierarchyGhostCellInterpolation> hier_rho_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_rho_bdry_fill->initializeOperatorState(rho_transaction, d_hierarchy);
-    hier_rho_bdry_fill->fillData(d_current_time);
+    d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx, d_rho_sc_current_idx, /*interior_only*/ true);
+    std::vector<InterpolationTransactionComponent> rho_transaction_comps(1);
+    rho_transaction_comps[0] = InterpolationTransactionComponent(d_rho_sc_scratch_idx,
+                                                                 "CONSERVATIVE_LINEAR_REFINE",
+                                                                 false,
+                                                                 "CONSERVATIVE_COARSEN",
+                                                                 d_density_bdry_extrap_type,
+                                                                 false,
+                                                                 d_rho_sc_bc_coefs);
+    d_hier_rho_bdry_fill->resetTransactionComponents(rho_transaction_comps);
+    d_hier_rho_bdry_fill->setHomogeneousBc(homogeneous_bc);
+    d_hier_rho_bdry_fill->fillData(d_current_time);
+    d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
+
+    // Fill ghost cells for the velocity used to compute the density update
+    d_hier_sc_data_ops->copyData(d_V_scratch_idx, d_V_current_idx, /*interior_only*/ true);
+    std::vector<InterpolationTransactionComponent> v_transaction_comps(1);
+    v_transaction_comps[0] = InterpolationTransactionComponent(d_V_scratch_idx,
+                                                               "CONSERVATIVE_LINEAR_REFINE",
+                                                               false,
+                                                               "CONSERVATIVE_COARSEN",
+                                                               d_velocity_bdry_extrap_type,
+                                                               false,
+                                                               d_bc_coefs);
+    d_hier_v_bdry_fill->resetTransactionComponents(v_transaction_comps);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_bc_coefs, NULL, d_V_scratch_idx, -1, homogeneous_bc);
+    d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
+    d_hier_v_bdry_fill->fillData(d_current_time);
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, NULL);
+    d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
 
     // Compute the old mass
     const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
@@ -1365,6 +1441,9 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     for (int step = 0; step < d_num_steps; ++step)
     {
         double eval_time = std::numeric_limits<double>::quiet_NaN();
+        double w0 = std::numeric_limits<double>::quiet_NaN();
+        double w1 = std::numeric_limits<double>::quiet_NaN();
+        double w2 = std::numeric_limits<double>::quiet_NaN();
         switch (step)
         {
         case 0:
@@ -1372,27 +1451,67 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
             break;
         case 1:
             eval_time = d_current_time + dt;
+            if (d_cycle_num > 0)
+            {
+                w0 = 0.0, w1 = 0.0, w2 = 1.0;
+            }
+            else
+            {
+                w0 = -1.0, w1 = 2.0, w2 = 0.0;
+            }
             break;
         case 2:
             eval_time = d_current_time + dt / 2.0;
+            if (d_cycle_num > 0)
+            {
+                w0 = -0.125, w1 = 0.75, w2 = 0.375;
+            }
+            else
+            {
+                w0 = -0.5, w1 = 1.5, w2 = 0.0;
+            }
             break;
         default:
             TBOX_ERROR("This statement should not be reached");
         }
-        // Fill ghost cells for new density, if needed
+        // Fill ghost cells for new density and velocity, if needed
         if (step > 0)
         {
-            InterpolationTransactionComponent update_transaction(d_rho_sc_scratch_idx,
-                                                                 d_rho_sc_new_idx,
-                                                                 "CONSERVATIVE_LINEAR_REFINE",
-                                                                 false,
-                                                                 "CONSERVATIVE_COARSEN",
-                                                                 d_bdry_extrap_type,
-                                                                 false,
-                                                                 d_rho_sc_bc_coefs);
-            Pointer<HierarchyGhostCellInterpolation> hier_update_bdry_fill = new HierarchyGhostCellInterpolation();
-            hier_update_bdry_fill->initializeOperatorState(update_transaction, d_hierarchy);
-            hier_update_bdry_fill->fillData(eval_time);
+            d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx, d_rho_sc_new_idx, /*interior_only*/ true);
+            std::vector<InterpolationTransactionComponent> update_transaction_comps(1);
+            update_transaction_comps[0] = InterpolationTransactionComponent(d_rho_sc_scratch_idx,
+                                                                            "CONSERVATIVE_LINEAR_REFINE",
+                                                                            false,
+                                                                            "CONSERVATIVE_COARSEN",
+                                                                            d_density_bdry_extrap_type,
+                                                                            false,
+                                                                            d_rho_sc_bc_coefs);
+            d_hier_rho_bdry_fill->resetTransactionComponents(update_transaction_comps);
+            d_hier_rho_bdry_fill->setHomogeneousBc(homogeneous_bc);
+            d_hier_rho_bdry_fill->fillData(eval_time);
+            d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
+        }
+        if (step > 0)
+        {
+            // Compute an approximation to velocity at eval_time
+            d_hier_sc_data_ops->linearSum(
+                d_V_scratch_idx, w0, d_V_old_idx, w1, d_V_current_idx, /*interior_only*/ true);
+            d_hier_sc_data_ops->axpy(d_V_scratch_idx, w2, d_V_new_idx, d_V_scratch_idx, /*interior_only*/ true);
+            std::vector<InterpolationTransactionComponent> v_update_transaction_comps(1);
+            v_update_transaction_comps[0] = InterpolationTransactionComponent(d_V_scratch_idx,
+                                                                              "CONSERVATIVE_LINEAR_REFINE",
+                                                                              false,
+                                                                              "CONSERVATIVE_COARSEN",
+                                                                              d_velocity_bdry_extrap_type,
+                                                                              false,
+                                                                              d_bc_coefs);
+            d_hier_v_bdry_fill->resetTransactionComponents(v_transaction_comps);
+            StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+                d_bc_coefs, NULL, d_V_scratch_idx, -1, homogeneous_bc);
+            d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
+            d_hier_v_bdry_fill->fillData(eval_time);
+            StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, NULL);
+            d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
         }
 
         // Compute the source term
@@ -1421,6 +1540,7 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
 
                 Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(N_idx);
                 Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
+                Pointer<SideData<NDIM, double> > V_data = patch->getPatchData(d_V_scratch_idx);
                 Pointer<SideData<NDIM, double> > R_cur_data = patch->getPatchData(d_rho_sc_current_idx);
                 Pointer<SideData<NDIM, double> > R_pre_data = patch->getPatchData(d_rho_sc_scratch_idx);
                 Pointer<SideData<NDIM, double> > R_new_data = patch->getPatchData(d_rho_sc_new_idx);
@@ -1431,44 +1551,47 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                 const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
                 boost::array<Box<NDIM>, NDIM> side_boxes;
                 boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data;
-                boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data;
+                boost::array<Pointer<FaceData<NDIM, double> >, NDIM> V_adv_data;
+                boost::array<Pointer<FaceData<NDIM, double> >, NDIM> V_half_data;
                 boost::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data;
                 boost::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data;
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
                     U_adv_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
-                    U_half_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
+                    V_adv_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
+                    V_half_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
                     R_half_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
                     P_half_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
                 }
                 // Interpolate velocity components onto "faces" using simple averages.
-                computeAdvectionVelocity(U_adv_data, U_data, patch_lower, patch_upper, side_boxes);
+                computeAdvectionVelocity(V_adv_data, V_data, patch_lower, patch_upper, side_boxes);
 
                 // Upwind side-centered densities onto faces.
                 interpolateSideQuantity(R_half_data,
-                                        U_adv_data,
+                                        V_adv_data,
                                         R_pre_data,
                                         patch_lower,
                                         patch_upper,
                                         side_boxes,
                                         d_density_convective_limiter);
 
-                // Compute the convective derivative with this density, if necessary
+                // Compute the convective derivative with the penultimate density and velocity, if necessary
                 if ((d_density_time_stepping_type == FORWARD_EULER && step == 0) ||
                     (d_density_time_stepping_type == SSPRK2 && step == 1) ||
                     (d_density_time_stepping_type == SSPRK3 && step == 2))
                 {
-                    interpolateSideQuantity(U_half_data,
+                    computeAdvectionVelocity(U_adv_data, U_data, patch_lower, patch_upper, side_boxes);
+                    interpolateSideQuantity(V_half_data,
                                             U_adv_data,
-                                            U_data,
+                                            V_data,
                                             patch_lower,
                                             patch_upper,
                                             side_boxes,
                                             d_velocity_convective_limiter);
 
                     computeConvectiveDerivative(
-                        N_data, P_half_data, U_adv_data, R_half_data, U_half_data, side_boxes, dx);
+                        N_data, P_half_data, U_adv_data, R_half_data, V_half_data, side_boxes, dx);
                     N_computed = true;
                 }
 
@@ -1510,7 +1633,7 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                      a1,
                                      R_pre_data,
                                      a2,
-                                     U_adv_data,
+                                     V_adv_data,
                                      R_half_data,
                                      R_src_data,
                                      side_boxes,
@@ -1528,18 +1651,21 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     }
 
     // Refill boundary values of newest density
+    d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx, d_rho_sc_new_idx, /*interior_only*/ true);
     const double new_time = d_current_time + dt;
-    InterpolationTransactionComponent update_transaction(d_rho_sc_scratch_idx,
-                                                         d_rho_sc_new_idx,
-                                                         "CONSERVATIVE_LINEAR_REFINE",
-                                                         false,
-                                                         "CONSERVATIVE_COARSEN",
-                                                         d_bdry_extrap_type,
-                                                         false,
-                                                         d_rho_sc_bc_coefs);
-    Pointer<HierarchyGhostCellInterpolation> hier_update_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_update_bdry_fill->initializeOperatorState(update_transaction, d_hierarchy);
-    hier_update_bdry_fill->fillData(new_time);
+    std::vector<InterpolationTransactionComponent> new_transaction_comps(1);
+    new_transaction_comps[0] = InterpolationTransactionComponent(d_rho_sc_scratch_idx,
+                                                                 "CONSERVATIVE_LINEAR_REFINE",
+                                                                 false,
+                                                                 "CONSERVATIVE_COARSEN",
+                                                                 d_density_bdry_extrap_type,
+                                                                 false,
+                                                                 d_rho_sc_bc_coefs);
+    d_hier_rho_bdry_fill->resetTransactionComponents(new_transaction_comps);
+    d_hier_rho_bdry_fill->setHomogeneousBc(homogeneous_bc);
+    d_hier_rho_bdry_fill->fillData(new_time);
+    d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
+
     d_hier_sc_data_ops->copyData(d_rho_sc_new_idx, d_rho_sc_scratch_idx, /*interior_only*/ true);
 
     // Compute the new mass
@@ -1555,6 +1681,11 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     // Reset select options
     d_rho_sc_current_idx = -1;
     d_rho_is_set = false;
+    d_V_old_idx = -1;
+    d_V_current_idx = -1;
+    d_V_new_idx = -1;
+    d_V_current_is_set = false;
+    d_cycle_num = -1;
 
     IBAMR_TIMER_STOP(t_apply_convective_operator);
     return;
@@ -1588,13 +1719,34 @@ INSVCStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMR
                                                                "CONSERVATIVE_LINEAR_REFINE",
                                                                false,
                                                                "CONSERVATIVE_COARSEN",
-                                                               d_bdry_extrap_type,
+                                                               d_velocity_bdry_extrap_type,
                                                                false,
                                                                d_bc_coefs);
+    d_rho_transaction_comps.resize(1);
+    d_rho_transaction_comps[0] = InterpolationTransactionComponent(d_rho_sc_scratch_idx,
+                                                                   "CONSERVATIVE_LINEAR_REFINE",
+                                                                   false,
+                                                                   "CONSERVATIVE_COARSEN",
+                                                                   d_density_bdry_extrap_type,
+                                                                   false,
+                                                                   d_rho_sc_bc_coefs);
+
+    d_v_transaction_comps.resize(1);
+    d_v_transaction_comps[0] = InterpolationTransactionComponent(d_V_scratch_idx,
+                                                                 "CONSERVATIVE_LINEAR_REFINE",
+                                                                 false,
+                                                                 "CONSERVATIVE_COARSEN",
+                                                                 d_velocity_bdry_extrap_type,
+                                                                 false,
+                                                                 d_bc_coefs);
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
     d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy);
+    d_hier_rho_bdry_fill = new HierarchyGhostCellInterpolation();
+    d_hier_rho_bdry_fill->initializeOperatorState(d_rho_transaction_comps, d_hierarchy);
+    d_hier_v_bdry_fill = new HierarchyGhostCellInterpolation();
+    d_hier_v_bdry_fill->initializeOperatorState(d_v_transaction_comps, d_hierarchy);
 
     // Initialize the BC helper.
     d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
@@ -1605,6 +1757,7 @@ INSVCStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMR
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_U_scratch_idx)) level->allocatePatchData(d_U_scratch_idx);
+        if (!level->checkAllocated(d_V_scratch_idx)) level->allocatePatchData(d_V_scratch_idx);
         if (!level->checkAllocated(d_rho_sc_scratch_idx)) level->allocatePatchData(d_rho_sc_scratch_idx);
         if (!level->checkAllocated(d_rho_sc_new_idx)) level->allocatePatchData(d_rho_sc_new_idx);
         if (!level->checkAllocated(d_S_scratch_idx)) level->allocatePatchData(d_S_scratch_idx);
@@ -1644,6 +1797,7 @@ INSVCStaggeredConservativeConvectiveOperator::deallocateOperatorState()
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_U_scratch_idx)) level->deallocatePatchData(d_U_scratch_idx);
+        if (level->checkAllocated(d_V_scratch_idx)) level->deallocatePatchData(d_V_scratch_idx);
         if (level->checkAllocated(d_rho_sc_scratch_idx)) level->deallocatePatchData(d_rho_sc_scratch_idx);
         if (level->checkAllocated(d_rho_sc_new_idx)) level->deallocatePatchData(d_rho_sc_new_idx);
         if (level->checkAllocated(d_S_scratch_idx)) level->deallocatePatchData(d_S_scratch_idx);
@@ -1697,6 +1851,51 @@ INSVCStaggeredConservativeConvectiveOperator::setMassDensitySourceTerm(const Poi
     d_S_fcn = S_fcn;
     return;
 } // setMassDensitySourceTerm
+
+void
+INSVCStaggeredConservativeConvectiveOperator::setFluidVelocityPatchDataIndices(int V_old_idx,
+                                                                               int V_current_idx,
+                                                                               int V_new_idx)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(V_current_idx >= 0);
+#endif
+
+    // Set the old velocity if it has been set, otherwise set to current.
+    if (V_old_idx >= 0)
+    {
+        d_V_old_idx = V_old_idx;
+    }
+    else
+    {
+        d_V_old_idx = V_current_idx;
+    }
+
+    // Set the current velocity
+    d_V_current_is_set = true;
+    d_V_current_idx = V_current_idx;
+
+    // Set the new velocity if it has been set, otherwise set to current.
+    if (V_new_idx >= 0)
+    {
+        d_V_new_idx = V_new_idx;
+    }
+    else
+    {
+        d_V_new_idx = V_current_idx;
+    }
+    return;
+}
+
+void
+INSVCStaggeredConservativeConvectiveOperator::setCycleNumber(int cycle_num)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(cycle_num >= 0)
+#endif
+    d_cycle_num = cycle_num;
+    return;
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
