@@ -123,6 +123,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/INSProjectionBcCoef.cpp \
 ../src/navier_stokes/INSStaggeredCenteredConvectiveOperator.cpp \
 ../src/navier_stokes/INSStaggeredConvectiveOperatorManager.cpp \
+../src/navier_stokes/INSStaggeredCUIConvectiveOperator.cpp \
 ../src/navier_stokes/INSStaggeredHierarchyIntegrator.cpp \
 ../src/navier_stokes/INSStaggeredPPMConvectiveOperator.cpp \
 ../src/navier_stokes/INSStaggeredPressureBcCoef.cpp \
@@ -235,6 +236,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/INSProjectionBcCoef.h \
 ../include/ibamr/INSStaggeredCenteredConvectiveOperator.h \
 ../include/ibamr/INSStaggeredConvectiveOperatorManager.h \
+../include/ibamr/INSStaggeredCUIConvectiveOperator.h \
 ../include/ibamr/INSStaggeredHierarchyIntegrator.h \
 ../include/ibamr/INSStaggeredPPMConvectiveOperator.h \
 ../include/ibamr/INSStaggeredPressureBcCoef.h \

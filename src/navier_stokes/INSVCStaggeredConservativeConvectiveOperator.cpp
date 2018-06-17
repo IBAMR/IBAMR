@@ -567,111 +567,6 @@ extern "C"
 #endif
     );
 
-    void VC_NAVIER_STOKES_CUI_QUANTITY_FC(
-#if (NDIM == 2)
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const double*,
-        const double*,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const double*,
-        const double*,
-        const int&,
-        const int&,
-        double*,
-        double*,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const double*,
-        const double*,
-        const int&,
-        const int&,
-        double*,
-        double*
-#endif
-#if (NDIM == 3)
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const double*,
-        const double*,
-        const double*,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const double*,
-        const double*,
-        const double*,
-        const int&,
-        const int&,
-        const int&,
-        double*,
-        double*,
-        double*,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const double*,
-        const double*,
-        const double*,
-        const int&,
-        const int&,
-        const int&,
-        double*,
-        double*,
-        double*,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const int&,
-        const double*,
-        const double*,
-        const double*,
-        const int&,
-        const int&,
-        const int&,
-        double*,
-        double*,
-        double*
-#endif
-    );
-
     void VC_NAVIER_STOKES_FBICS_QUANTITY_FC(
 #if (NDIM == 2)
         const int&,
@@ -1891,7 +1786,7 @@ void
 INSVCStaggeredConservativeConvectiveOperator::setCycleNumber(int cycle_num)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(cycle_num >= 0)
+    TBOX_ASSERT(cycle_num >= 0);
 #endif
     d_cycle_num = cycle_num;
     return;

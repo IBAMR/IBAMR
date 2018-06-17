@@ -76,6 +76,7 @@ public:
     static const std::string STABILIZED_PPM;
     static const std::string VC_CONSERVATIVE_OP;
     static const std::string WAVE_PROP;
+    static const std::string CUI;
 
     /*!
      * Return a pointer to the instance of the operator manager.  Access to

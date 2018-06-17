@@ -40,6 +40,7 @@
 #include <vector>
 
 #include "ibamr/ConvectiveOperator.h"
+#include "ibamr/INSStaggeredCUIConvectiveOperator.h"
 #include "ibamr/INSStaggeredCenteredConvectiveOperator.h"
 #include "ibamr/INSStaggeredConvectiveOperatorManager.h"
 #include "ibamr/INSStaggeredPPMConvectiveOperator.h"
@@ -77,6 +78,7 @@ const std::string INSStaggeredConvectiveOperatorManager::UPWIND = "UPWIND";
 const std::string INSStaggeredConvectiveOperatorManager::STABILIZED_PPM = "STABILIZED_PPM";
 const std::string INSStaggeredConvectiveOperatorManager::VC_CONSERVATIVE_OP = "VC_CONSERVATIVE_OP";
 const std::string INSStaggeredConvectiveOperatorManager::WAVE_PROP = "WAVE_PROP";
+const std::string INSStaggeredConvectiveOperatorManager::CUI = "CUI";
 
 INSStaggeredConvectiveOperatorManager* INSStaggeredConvectiveOperatorManager::s_operator_manager_instance = NULL;
 bool INSStaggeredConvectiveOperatorManager::s_registered_callback = false;
@@ -150,6 +152,7 @@ INSStaggeredConvectiveOperatorManager::INSStaggeredConvectiveOperatorManager() :
     registerOperatorFactoryFunction(VC_CONSERVATIVE_OP,
                                     INSVCStaggeredConservativeConvectiveOperator::allocate_operator);
     registerOperatorFactoryFunction(WAVE_PROP, INSStaggeredWavePropConvectiveOperator::allocate_operator);
+    registerOperatorFactoryFunction(CUI, INSStaggeredCUIConvectiveOperator::allocate_operator);
     return;
 } // INSStaggeredConvectiveOperatorManager
 
