@@ -103,7 +103,7 @@ class Configure(config.base.Configure):
     configDir = os.path.split(config.base.__file__)[0]
     for utility in os.listdir(os.path.join(configDir, 'packages')):
       (utilityName, ext) = os.path.splitext(utility)
-      if not utilityName.startswith('.') and not utilityName.startswith('#') and ext == '.py' and not utilityName in ['__init__', 'concurrencykit', 'ctetgen', 'cuda', 'cusp', 'elemental', 'hypre', 'lgrind', 'metis', 'ml', 'mpi4py', 'MUMPS', 'parmetis', 'pARMS', 'PaStiX', 'petsc4py', 'pragmatic', 'PTScotch', 'revolve', 'sowing', 'SuperLU_DIST', 'SuperLU_MT', 'tetgen', 'thrust', 'Triangle', 'Trilinos', 'Zoltan']:
+      if not utilityName.startswith('.') and not utilityName.startswith('#') and ext == '.py' and not utilityName in ['__init__', 'concurrencykit', 'ctetgen', 'cuda', 'cusp', 'elemental', 'hypre', 'lgrind', 'metis', 'ml', 'mpi4py', 'MUMPS', 'parmetis', 'pARMS', 'PaStiX', 'petsc4py', 'pragmatic', 'PTScotch', 'revolve', 'sowing', 'SuperLU_DIST', 'SuperLU_MT', 'tetgen', 'thrust', 'Triangle', 'Trilinos', 'Zoltan', 'radau5', 'strumpack', 'libmesh', 'moose', 'slepc']:
         utilityObj                    = self.framework.require('config.packages.'+utilityName, self)
         utilityObj.headerPrefix       = self.headerPrefix
         utilityObj.archProvider       = self.arch
