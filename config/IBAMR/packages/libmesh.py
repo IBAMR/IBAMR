@@ -22,7 +22,8 @@ class Configure(config.package.GNUPackage):
     self.compilerFlags   = framework.require('config.compilerFlags', self)
     self.mpi             = framework.require('config.packages.MPI',  self)
     self.boost           = framework.require('config.packages.boost',self)
-    self.deps            = [self.mpi, self.boost]
+    self.eigen           = framework.require('config.packages.eigen',self)
+    self.deps            = [self.mpi, self.boost, self.eigen]
     return
 
   def formGNUConfigureArgs(self):
@@ -50,4 +51,5 @@ class Configure(config.package.GNUPackage):
     args.append('PETSC_ARCH='+os.environ['PETSC_ARCH'])
     args.append('--with-boost='+os.path.join(self.boost.directory,self.boost.includedir))
     args.append('--with-boost-libdir='+os.path.join(self.boost.directory,self.boost.libdir))
+    args.append('--with-eigen-include='+os.path.join(self.eigen.directory,self.eigen.includedir))
     return args
