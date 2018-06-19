@@ -496,7 +496,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = IB IBFE IMP adv_diff advect navier_stokes ConstraintIB CIB CIBFE
+SUBDIRS = IB IBFE IMP adv_diff advect navier_stokes ConstraintIB CIB CIBFE level_set multiphase_flow vc_navier_stokes
 all: all-recursive
 
 .SUFFIXES:
@@ -825,13 +825,14 @@ all:
 examples:
 	@(cd IB               && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd IBFE             && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd IMP              && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd adv_diff         && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd advect           && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd navier_stokes    && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd ConstraintIB     && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd CIB              && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd CIBFE            && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd level_set        && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd multiphase_flow  && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd vc_navier_stokes && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 
 @GTEST_ENABLED_TRUE@gtest:
 @GTEST_ENABLED_TRUE@	@(cd IB               && make gtest) || exit 1;
@@ -841,6 +842,9 @@ examples:
 @GTEST_ENABLED_TRUE@	@(cd navier_stokes    && make gtest) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd ConstraintIB     && make gtest) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd CIB              && make gtest) || exit 1;
+@GTEST_ENABLED_TRUE@	@(cd level_set        && make gtest) || exit 1;
+@GTEST_ENABLED_TRUE@	@(cd multiphase_flow  && make gtest) || exit 1;
+@GTEST_ENABLED_TRUE@	@(cd vc_navier_stokes && make gtest) || exit 1;
 
 @GTEST_ENABLED_TRUE@gtest-long:
 @GTEST_ENABLED_TRUE@	@(cd IB               && make gtest-long) || exit 1;
@@ -850,6 +854,9 @@ examples:
 @GTEST_ENABLED_TRUE@	@(cd navier_stokes    && make gtest-long) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd ConstraintIB     && make gtest-long) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd CIB              && make gtest-long) || exit 1;
+@GTEST_ENABLED_TRUE@	@(cd level_set        && make gtest-long) || exit 1;
+@GTEST_ENABLED_TRUE@	@(cd multiphase_flow  && make gtest-long) || exit 1;
+@GTEST_ENABLED_TRUE@	@(cd vc_navier_stokes && make gtest-long) || exit 1;
 
 @GTEST_ENABLED_TRUE@gtest-all:
 @GTEST_ENABLED_TRUE@	@(cd IB               && make gtest-all) || exit 1;
@@ -859,6 +866,9 @@ examples:
 @GTEST_ENABLED_TRUE@	@(cd navier_stokes    && make gtest-all) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd ConstraintIB     && make gtest-all) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd CIB              && make gtest-all) || exit 1;
+@GTEST_ENABLED_TRUE@	@(cd level_set        && make gtest-all) || exit 1;
+@GTEST_ENABLED_TRUE@	@(cd multiphase_flow  && make gtest-all) || exit 1;
+@GTEST_ENABLED_TRUE@	@(cd vc_navier_stokes && make gtest-all) || exit 1;
 
 @GTEST_ENABLED_FALSE@gtest:
 @GTEST_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"

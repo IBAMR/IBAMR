@@ -115,8 +115,14 @@ public:
      */
     virtual void initializeLSData(int dst_idx,
                                   SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hierarchy_math_ops,
+                                  int integrator_step,
                                   double time,
                                   bool initial_time) = 0;
+
+    /*!
+     * \brief Indicate that the class should reinitialize level set.
+     */
+    virtual void setReinitializeLSData(bool reinit_ls_data);
 
     /*!
      * Write out object state to the given database.
@@ -137,6 +143,8 @@ protected:
     double d_abs_tol;
     int d_max_its;
     bool d_enable_logging;
+    bool d_reinitialize_ls;
+    int d_reinit_interval;
 
     // Boundary condition object for level set.
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_bc_coef;

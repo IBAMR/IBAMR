@@ -892,30 +892,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
 
-    d_rho_var = INSHierarchyIntegrator::d_rho_var;
-    if (INSHierarchyIntegrator::d_rho_var && !d_rho_var)
-    {
-        TBOX_ERROR("INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():\n"
-                   << "  mass density variable must be side-centered.\n");
-    }
-    if (d_rho_var)
-    {
-        registerVariable(d_rho_current_idx,
-                         d_rho_new_idx,
-                         d_rho_scratch_idx,
-                         d_rho_var,
-                         side_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
-                         d_rho_fcn);
-    }
-    else
-    {
-        d_rho_current_idx = -1;
-        d_rho_new_idx = -1;
-        d_rho_scratch_idx = -1;
-    }
-
     // Register plot variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
     registerVariable(d_U_cc_idx, d_U_cc_var, no_ghosts, getCurrentContext());
@@ -929,11 +905,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     }
     registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext());
     registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
-    if (d_rho_var)
-    {
-        d_rho_cc_var = new CellVariable<NDIM, double>(d_object_name + "::rho_cc");
-        registerVariable(d_rho_cc_idx, d_rho_cc_var, no_ghosts, getCurrentContext());
-    }
 
 // Register scratch variables that are maintained by the
 // INSStaggeredHierarchyIntegrator.
@@ -1272,21 +1243,6 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
                                      N_idx,
                                      d_rhs_vec->getComponentDescriptorIndex(0));
         }
-    }
-
-    // Compute variable mass density.
-    if (d_rho_var)
-    {
-        if (d_rho_fcn)
-        {
-            d_rho_fcn->setDataOnPatchHierarchy(d_rho_current_idx, d_rho_var, d_hierarchy, current_time);
-            d_rho_fcn->setDataOnPatchHierarchy(d_rho_new_idx, d_rho_var, d_hierarchy, new_time);
-        }
-        else
-        {
-            d_hier_sc_data_ops->copyData(d_rho_new_idx, d_rho_current_idx);
-        }
-        d_hier_sc_data_ops->linearSum(d_rho_scratch_idx, 0.5, d_rho_current_idx, 0.5, d_rho_new_idx);
     }
 
     // Execute any registered callbacks.
@@ -1637,7 +1593,7 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
         d_Q_bdry_bc_fill_op->fillData(half_time);
 
         // Account for momentum loss at sources/sinks.
-        if (!d_creeping_flow)
+        if (d_use_div_sink_drag_term && !d_creeping_flow)
         {
             d_hier_sc_data_ops->linearSum(d_U_scratch_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
             computeDivSourceTerm(d_F_div_idx, d_Q_scratch_idx, d_U_scratch_idx);

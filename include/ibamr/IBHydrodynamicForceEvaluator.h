@@ -1,7 +1,7 @@
 // Filename: IBHydrodynamicForceEvaluator.h
-// Created on 22 Oct 2016 by Amneet Bhalla
+// Created on 22 Oct 2016 by Amneet Bhalla and Nishant Nangia
 //
-// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
+// Copyright (c) 2002-2018, Amneet Bhalla and Nishant Nangia
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -82,7 +82,8 @@ namespace IBAMR
  * Flavio Noca, <A HREF="http://thesis.library.caltech.edu/3081/1/Noca_f_1997.pdf">On the evaluation
  * of time-dependent fluid-dynamic forces on bluff bodies.</A>
  *
- * Nangia et al., <A HREF="https://arxiv.org/pdf/1704.00239.pdf">A moving control volume approach to computing
+ * Nangia et al., <A HREF="https://www.sciencedirect.com/science/article/pii/S0021999117305016">A moving control volume
+ * approach to computing
  * hydrodynamic forces and
  * torques on immersed bodies.
  *

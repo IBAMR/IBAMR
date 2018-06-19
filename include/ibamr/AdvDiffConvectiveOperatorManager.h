@@ -72,7 +72,9 @@ public:
      */
     static const std::string DEFAULT;
     static const std::string CENTERED;
+    static const std::string CUI;
     static const std::string PPM;
+    static const std::string WAVE_PROP;
 
     /*!
      * Return a pointer to the instance of the operator manager.  Access to

@@ -912,7 +912,7 @@ AdvectorExplicitPredictorPatchOps::getNumberCellGhosts() const
         return 3;
     case XSPPM7:
         return 4;
-    case UNKNOWN_LIMITER_TYPE:
+    default:
         TBOX_ERROR(d_object_name << "::getNumberCellGhosts():\n"
                                  << "  Limiter corresponding to d_limiter_type = "
                                  << d_limiter_type
@@ -1115,7 +1115,7 @@ AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
                                   q_half.getPointer(2, depth));
 #endif
             break;
-        case UNKNOWN_LIMITER_TYPE:
+        default:
             TBOX_ERROR(d_object_name << "::predict(q_half, u_ADV, Q, patch, dt):\n"
                                      << "  Limiter corresponding to d_limiter_type = "
                                      << d_limiter_type
@@ -1321,7 +1321,7 @@ AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>&
                                               q_half.getPointer(2, depth));
 #endif
             break;
-        case UNKNOWN_LIMITER_TYPE:
+        default:
             TBOX_ERROR(d_object_name << "::predictWithSourceTerm(q_half, u_ADV, Q, F, patch, dt):\n"
                                      << "  Limiter corresponding to d_limiter_type = "
                                      << d_limiter_type
