@@ -134,7 +134,7 @@ make_petsc      = 'cd $PETSC_DIR && make'
 configure_ibamr = './configure.new --IBAMR_ARCH=$IBAMR_ARCH --download-muparser --download-silo '
 configure_ibamr += ' --download-hdf5 --download-libmesh --download-boost --boost-headers-only '
 configure_ibamr += ' --download-samrai --download-fblaslapack --with-mpi-dir=$PETSC_DIR/$PETSC_ARCH '
-configure_ibamr += ' --download-eigen ' + ibamr_config_options
+configure_ibamr += ' --download-eigen --download-hypre ' + ibamr_config_options
 make_ibamr      = 'make all'
 
 if not SKIP_PETSC:
