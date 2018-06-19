@@ -1291,9 +1291,9 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Fill ghost cells for current density
-    d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx, d_rho_sc_current_idx, /*interior_only*/ true);
     std::vector<InterpolationTransactionComponent> rho_transaction_comps(1);
     rho_transaction_comps[0] = InterpolationTransactionComponent(d_rho_sc_scratch_idx,
+                                                                 d_rho_sc_current_idx,
                                                                  "CONSERVATIVE_LINEAR_REFINE",
                                                                  false,
                                                                  "CONSERVATIVE_COARSEN",
@@ -1372,9 +1372,9 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
         // Fill ghost cells for new density and velocity, if needed
         if (step > 0)
         {
-            d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx, d_rho_sc_new_idx, /*interior_only*/ true);
             std::vector<InterpolationTransactionComponent> update_transaction_comps(1);
             update_transaction_comps[0] = InterpolationTransactionComponent(d_rho_sc_scratch_idx,
+                                                                            d_rho_sc_new_idx,
                                                                             "CONSERVATIVE_LINEAR_REFINE",
                                                                             false,
                                                                             "CONSERVATIVE_COARSEN",
@@ -1476,9 +1476,9 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                     (d_density_time_stepping_type == SSPRK2 && step == 1) ||
                     (d_density_time_stepping_type == SSPRK3 && step == 2))
                 {
-                    computeAdvectionVelocity(U_adv_data, U_data, patch_lower, patch_upper, side_boxes);
+                    // computeAdvectionVelocity(U_adv_data, U_data, patch_lower, patch_upper, side_boxes);
                     interpolateSideQuantity(V_half_data,
-                                            U_adv_data,
+                                            V_adv_data,
                                             V_data,
                                             patch_lower,
                                             patch_upper,
@@ -1486,7 +1486,7 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                             d_velocity_convective_limiter);
 
                     computeConvectiveDerivative(
-                        N_data, P_half_data, U_adv_data, R_half_data, V_half_data, side_boxes, dx);
+                        N_data, P_half_data, V_adv_data, R_half_data, V_half_data, side_boxes, dx);
                     N_computed = true;
                 }
 
@@ -1546,10 +1546,10 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     }
 
     // Refill boundary values of newest density
-    d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx, d_rho_sc_new_idx, /*interior_only*/ true);
     const double new_time = d_current_time + dt;
     std::vector<InterpolationTransactionComponent> new_transaction_comps(1);
     new_transaction_comps[0] = InterpolationTransactionComponent(d_rho_sc_scratch_idx,
+                                                                 d_rho_sc_new_idx,
                                                                  "CONSERVATIVE_LINEAR_REFINE",
                                                                  false,
                                                                  "CONSERVATIVE_COARSEN",
@@ -1619,6 +1619,7 @@ INSVCStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMR
                                                                d_bc_coefs);
     d_rho_transaction_comps.resize(1);
     d_rho_transaction_comps[0] = InterpolationTransactionComponent(d_rho_sc_scratch_idx,
+                                                                   d_rho_sc_new_idx,
                                                                    "CONSERVATIVE_LINEAR_REFINE",
                                                                    false,
                                                                    "CONSERVATIVE_COARSEN",
