@@ -810,7 +810,7 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
     TBOX_ASSERT(part < d_num_parts);
     if (d_is_stress_normalization_part[part]) return;
     d_has_stress_normalization_parts = true;
-    d_stress_normalization_part[part] = true;
+    d_is_stress_normalization_part[part] = true;
     System& Phi_system = d_equation_systems[part]->add_system<TransientLinearImplicitSystem>(PHI_SYSTEM_NAME);
     d_equation_systems[part]->parameters.set<Real>("Phi_epsilon") = d_epsilon;
     d_equation_systems[part]->parameters.set<Real>("ipdg_jump0_penalty") = ipdg_jump0_penalty;
@@ -1562,8 +1562,10 @@ IBFEMethod::spreadForce(const int f_data_idx,
         PetscVector<double>* F_vec = d_F_half_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         PetscVector<double>* Phi_vec = d_Phi_half_vecs[part];
+        PetscVector<double>* Phi_ghost_vec = d_Phi_half_vecs[part];
         X_vec->localize(*X_ghost_vec);
         F_vec->localize(*F_ghost_vec);
+        Phi_vec->localize(*Phi_ghost_vec);
     }
 
     // Spread interior force density values.
@@ -1586,6 +1588,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
     {
         PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
+        PetscVector<double>* Phi_ghost_vec = d_Phi_half_vecs[part];
         if (d_split_normal_force || d_split_tangential_force)
         {
             if (d_use_jump_conditions && d_split_normal_force)
@@ -1594,7 +1597,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
             }
             if (!d_use_jump_conditions || d_split_tangential_force)
             {
-                spreadTransmissionForceDensity(f_data_idx, Phi_vec, *X_ghost_vec, f_phys_bdry_op, data_time, part);
+                spreadTransmissionForceDensity(f_data_idx, Phi_ghost_vec, *X_ghost_vec, f_phys_bdry_op, data_time, part);
             }
         }
     }
@@ -3496,7 +3499,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                     const int idx = NDIM * qp_offset;
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
-                        if (d_stress_normalization_part[part] && d_split_normal_force) F -= (F * n) * n;
+                        if (d_is_stress_normalization_part[part] && d_split_normal_force) F -= (F * n) * n;
                         T_bdry[idx + i] = F(i);
                     }
                     for (unsigned int i = 0; i < NDIM; ++i)
