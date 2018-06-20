@@ -300,6 +300,8 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
             d_coarse_solver_abs_residual_tol = input_db->getDouble("coarse_solver_abs_residual_tol");
         if (input_db->keyExists("coarse_solver_max_iterations"))
             d_coarse_solver_max_iterations = input_db->getInteger("coarse_solver_max_iterations");
+        if (input_db->keyExists("coarse_solver_prefix"))
+            d_coarse_solver_default_options_prefix = input_db->getString("coarse_solver_prefix");
         if (input_db->isDatabase("coarse_solver_db"))
         {
             d_coarse_solver_db = input_db->getDatabase("coarse_solver_db");

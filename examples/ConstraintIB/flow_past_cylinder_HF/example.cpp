@@ -53,13 +53,13 @@
 #include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/LData.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
-#include <ibtk/LData.h>
 
 // Application
-#include "RigidBodyKinematics.h"
 #include "HydroForceEval.h"
+#include "RigidBodyKinematics.h"
 
 using namespace SAMRAI::geom;
 using namespace SAMRAI::hier;
@@ -187,8 +187,8 @@ run_example(int argc, char* argv[])
             "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
         ib_method_ops->registerLInitStrategy(ib_initializer);
         Pointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
-		ib_force_fcn->registerSpringForceFunction(-1, &spring_force, &spring_force_deriv);
-		ib_force_fcn->registerSpringForceFunction(1, &spring_force, &spring_force_deriv);
+        ib_force_fcn->registerSpringForceFunction(-1, &spring_force, &spring_force_deriv);
+        ib_force_fcn->registerSpringForceFunction(1, &spring_force, &spring_force_deriv);
         ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);
 
         // Create Eulerian initial condition specification objects.
@@ -271,11 +271,12 @@ run_example(int argc, char* argv[])
         ib_method_ops->registerConstraintIBKinematics(ibkinematics_ops_vec);
         ib_method_ops->initializeHierarchyOperatorsandData();
 
-		// Create hydrodynamic surface force evaluator object.
-		Pointer<HydroForceEval> hf_eval =
-			new HydroForceEval("HydroForceEval", 
-							   app_initializer->getComponentDatabase("HydroForceEval"), patch_hierarchy, ib_method_ops->getLDataManager());
-		
+        // Create hydrodynamic surface force evaluator object.
+        Pointer<HydroForceEval> hf_eval = new HydroForceEval("HydroForceEval",
+                                                             app_initializer->getComponentDatabase("HydroForceEval"),
+                                                             patch_hierarchy,
+                                                             ib_method_ops->getLDataManager());
+
         // Deallocate initialization objects.
         ib_method_ops->freeLInitStrategy();
         ib_initializer.setNull();
@@ -284,28 +285,28 @@ run_example(int argc, char* argv[])
         // Print the input database contents to the log file.
         plog << "Input database:\n";
         input_db->printClassData(plog);
-        
-         // Setup data to compute hydrodynamic traction.
+
+        // Setup data to compute hydrodynamic traction.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        
+
         const Pointer<Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
-        
+
         const Pointer<Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
         const Pointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
-        
-		// Ghost data for surface hydrodynamic force calculation. 
-		Pointer<SideVariable<NDIM, double> > u_wide_var = new SideVariable<NDIM, double>("u_wide_var", /*depth*/ 1);
-		Pointer<CellVariable<NDIM, double> > p_wide_var = new CellVariable<NDIM, double>("p_wide_var", /*depth*/ 1);
-		int u_wide_idx = var_db->registerVariableAndContext(u_wide_var,
-															var_db->getContext("u_wide_var::CONTEXT"),
-															/*ghost cell width*/ hier::IntVector<NDIM>(1));
-		int p_wide_idx = var_db->registerVariableAndContext(p_wide_var,
-															var_db->getContext("p_wide_var::CONTEXT"),
-															/*ghost cell width*/ hier::IntVector<NDIM>(0));
-	
+
+        // Ghost data for surface hydrodynamic force calculation.
+        Pointer<SideVariable<NDIM, double> > u_wide_var = new SideVariable<NDIM, double>("u_wide_var", /*depth*/ 1);
+        Pointer<CellVariable<NDIM, double> > p_wide_var = new CellVariable<NDIM, double>("p_wide_var", /*depth*/ 1);
+        int u_wide_idx = var_db->registerVariableAndContext(u_wide_var,
+                                                            var_db->getContext("u_wide_var::CONTEXT"),
+                                                            /*ghost cell width*/ hier::IntVector<NDIM>(1));
+        int p_wide_idx = var_db->registerVariableAndContext(p_wide_var,
+                                                            var_db->getContext("p_wide_var::CONTEXT"),
+                                                            /*ghost cell width*/ hier::IntVector<NDIM>(0));
+
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
@@ -324,22 +325,22 @@ run_example(int argc, char* argv[])
         double dt = 0.0;
         while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
-			iteration_num = time_integrator->getIntegratorStep();
+            iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
-	    
+
             pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "At beginning of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
 
             // Regrid the hierarchy if necessary
-			const bool regrid_hierarchy = time_integrator->atRegridPoint();
-			if (regrid_hierarchy) time_integrator->regridHierarchy();
-			
-			dt = time_integrator->getMaximumTimeStepSize();
+            const bool regrid_hierarchy = time_integrator->atRegridPoint();
+            if (regrid_hierarchy) time_integrator->regridHierarchy();
+
+            dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
-			loop_time += dt;
-	    
+            loop_time += dt;
+
             pout << "\n";
             pout << "At end of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
@@ -347,32 +348,37 @@ run_example(int argc, char* argv[])
             pout << "\n";
 
             iteration_num += 1;
-			
+
             // Copy fluid variables.
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 const Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-				if (!level->checkAllocated(u_wide_idx)) level->allocatePatchData(u_wide_idx);
-				if (!level->checkAllocated(p_wide_idx)) level->allocatePatchData(p_wide_idx);
+                if (!level->checkAllocated(u_wide_idx)) level->allocatePatchData(u_wide_idx);
+                if (!level->checkAllocated(p_wide_idx)) level->allocatePatchData(p_wide_idx);
             }
             HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             hier_sc_data_ops.copyData(u_wide_idx, u_idx, /*interior only*/ false);
             HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             hier_cc_data_ops.copyData(p_wide_idx, p_idx, /*interior only*/ false);
-	    
-			RefineAlgorithm<NDIM> u_ghost_fill_alg, p_ghost_fill_alg;
-			Pointer<RefineSchedule<NDIM> > u_ghost_fill_schd, p_ghost_fill_schd;
-			u_ghost_fill_alg.registerRefine(u_wide_idx, u_wide_idx, u_wide_idx, NULL);
-			p_ghost_fill_alg.registerRefine(p_wide_idx, p_wide_idx, p_wide_idx, NULL);
-			u_ghost_fill_schd = u_ghost_fill_alg.createSchedule(patch_hierarchy->getPatchLevel(finest_ln));
-			p_ghost_fill_schd = p_ghost_fill_alg.createSchedule(patch_hierarchy->getPatchLevel(finest_ln));
-			u_ghost_fill_schd->fillData(loop_time);
-			p_ghost_fill_schd->fillData(loop_time);
-	    
-			// Evaluate force at immersed body surface.
-			hf_eval->calcHydroForce(u_wide_idx, p_wide_idx, /*f_idx*/ -1, patch_hierarchy, 
-									ib_method_ops->getLDataManager(), loop_time, iteration_num);
-			
+
+            RefineAlgorithm<NDIM> u_ghost_fill_alg, p_ghost_fill_alg;
+            Pointer<RefineSchedule<NDIM> > u_ghost_fill_schd, p_ghost_fill_schd;
+            u_ghost_fill_alg.registerRefine(u_wide_idx, u_wide_idx, u_wide_idx, NULL);
+            p_ghost_fill_alg.registerRefine(p_wide_idx, p_wide_idx, p_wide_idx, NULL);
+            u_ghost_fill_schd = u_ghost_fill_alg.createSchedule(patch_hierarchy->getPatchLevel(finest_ln));
+            p_ghost_fill_schd = p_ghost_fill_alg.createSchedule(patch_hierarchy->getPatchLevel(finest_ln));
+            u_ghost_fill_schd->fillData(loop_time);
+            p_ghost_fill_schd->fillData(loop_time);
+
+            // Evaluate force at immersed body surface.
+            hf_eval->calcHydroForce(u_wide_idx,
+                                    p_wide_idx,
+                                    /*f_idx*/ -1,
+                                    patch_hierarchy,
+                                    ib_method_ops->getLDataManager(),
+                                    loop_time,
+                                    iteration_num);
+
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
             // processing.

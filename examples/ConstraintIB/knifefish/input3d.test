@@ -129,8 +129,7 @@ ConstraintIBMethod {
    enable_logging           = ENABLE_LOGGING
    num_INS_cycles           = NUM_CYCLES
    needs_divfree_projection = FALSE
-   rho_fluid                = RHO
-   mu_fluid                 = MU
+   rho_solid                = RHO
    
    PrintOutput {
    print_output          = TRUE               //default false

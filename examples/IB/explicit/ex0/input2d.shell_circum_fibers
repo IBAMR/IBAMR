@@ -39,6 +39,8 @@ OUTPUT_OMEGA        = TRUE
 OUTPUT_DIV_U        = TRUE
 ENABLE_LOGGING      = TRUE
 
+STRUCTURE_LIST = "shell2d_64"
+
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
@@ -107,29 +109,8 @@ IBMethod {
    enable_logging = ENABLE_LOGGING
 }
 
-IBStandardInitializer {
+IBRedundantInitializer {
    max_levels      = MAX_LEVELS
-   structure_names = "shell2d_64"
-
-   beta  = 0.25
-   alpha = 0.25^2/beta
-   w = W
-
-   A = PI*alpha*beta  // area of ellipse
-   R = sqrt(A/PI)     // radius of disc with equivalent area as the ellipse
-   perim = 2*PI*R     // perimeter of the equivalent disc
-
-   dx = L/NFINEST
-   dx_64 = L/64
-   num_node_circum = (dx_64/dx)*ceil(perim/(dx_64/3)/4)*4
-   num_node_radial = (dx_64/dx)*ceil(w/(dx_64/3)/4)*4+1
-   ds = 2.0*PI*R/num_node_circum
-   dr = w/num_node_radial
-
-   shell2d_64 {
-      level_number = MAX_LEVELS - 1
-      uniform_spring_stiffness = (K/w)*dr/ds
-   }
 }
 
 INSCollocatedHierarchyIntegrator {

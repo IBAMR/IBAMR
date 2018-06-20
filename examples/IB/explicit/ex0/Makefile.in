@@ -508,16 +508,7 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 EXAMPLE_DRIVER = ex_main.cpp
 GTEST_DRIVER = test_main.cpp
-EXTRA_DIST = input2d input2d.shell input2d.shell_circum_fibers \
-	generate_curve2d.m generate_shell2d.m input2d.test \
-	curve2d_64.vertex curve2d_128.vertex curve2d_256.vertex \
-	curve2d_512.vertex curve2d_64.spring curve2d_128.spring \
-	curve2d_256.spring curve2d_512.spring shell2d_64.vertex \
-	shell2d_128.vertex shell2d_256.vertex shell2d_64.spring \
-	shell2d_128.spring shell2d_256.spring shell2d_radial_64.vertex \
-	shell2d_radial_128.vertex shell2d_radial_256.vertex \
-	shell2d_radial_64.spring shell2d_radial_128.spring \
-	shell2d_radial_256.spring ##shell2d_radial_512.spring
+EXTRA_DIST = input2d input2d.shell input2d.shell_circum_fibers input2d.test
 EXAMPLES = $(am__append_1)
 GTESTS = $(am__append_2)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -858,16 +849,10 @@ uninstall-am:
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d{,.shell,.shell_circum_fibers} $(PWD) ; \
-	  cp -f $(srcdir)/curve2d_{64,128,256,512}.{vertex,spring} $(PWD) ; \
-	  cp -f $(srcdir)/shell2d_{64,128,256}.{vertex,spring} $(PWD) ; \
-	  cp -f $(srcdir)/shell2d_radial_{64,128,256}.{vertex,spring} $(PWD) ; \
 	fi ;
 @GTEST_ENABLED_TRUE@gtest: $(GTESTS)
 @GTEST_ENABLED_TRUE@	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 @GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/input2d{,.shell,.shell_circum_fibers,.test} $(PWD) ; \
-@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/curve2d_{64,128,256,512}.{vertex,spring} $(PWD) ; \
-@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/shell2d_{64,128,256}.{vertex,spring} $(PWD) ; \
-@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/shell2d_radial_{64,128,256}.{vertex,spring} $(PWD) ; \
 @GTEST_ENABLED_TRUE@	fi ;
 @GTEST_ENABLED_TRUE@	./test2d input2d.test
 
@@ -885,9 +870,6 @@ clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input2d{,.shell,.shell_circum_fibers} ; \
-	  rm -f $(builddir)/curve2d_{64,128,256,512}.{vertex,spring} ; \
-	  rm -f $(builddir)/shell2d_{64,128,256}.{vertex,spring} ; \
-	  rm -f $(builddir)/shell2d_radial_{64,128,256}.{vertex,spring} ; \
 	fi ;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

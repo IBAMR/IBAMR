@@ -1,4 +1,4 @@
-# Doxyfile 1.8.7
+w∑# Doxyfile 1.8.7
 
 # This file describes the settings to be used by the documentation system
 # doxygen (www.doxygen.org) for a project.
@@ -161,7 +161,8 @@ STRIP_FROM_PATH        =
 # specify the list of include paths that are normally passed to the compiler
 # using the -I flag.
 
-STRIP_FROM_INC_PATH    = /Users/griffith/code/IBAMR/include
+STRIP_FROM_INC_PATH    = /home/travis/build/IBAMR/IBAMR/include/ \
+                         /home/travis/build/IBAMR/IBAMR/ibtk/include/
 
 # If the SHORT_NAMES tag is set to YES, doxygen will generate much shorter (but
 # less readable) file names. This can be useful is your file systems doesn't
@@ -754,7 +755,7 @@ WARN_LOGFILE           =
 # spaces.
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = ../include ../src .
+INPUT                  = $(TRAVIS_BUILD_DIR)/doc/mainpage.md $(TRAVIS_BUILD_DIR)/include $(TRAVIS_BUILD_DIR)/src $(TRAVIS_BUILD_DIR)/ibtk/include $(TRAVIS_BUILD_DIR)/ibtk/src 
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -897,7 +898,7 @@ FILTER_SOURCE_PATTERNS =
 # (index.html). This can be useful if you have a project on for instance GitHub
 # and want to reuse the introduction page also for the doxygen output.
 
-USE_MDFILE_AS_MAINPAGE =
+USE_MDFILE_AS_MAINPAGE = $(TRAVIS_BUILD_DIR)/doc/mainpage.md 
 
 #---------------------------------------------------------------------------
 # Configuration options related to source browsing
@@ -2007,14 +2008,13 @@ SKIP_FUNCTION_MACROS   = YES
 # run, you must also specify the path to the tagfile here.
 
 TAGFILES               = "libstdc++.tag=http://gcc.gnu.org/onlinedocs/libstdc++/latest-doxygen" \
-                         "samrai.tag=../../samrai/2.4.4/html" \
-                         "ibtk.tag=../../ibtk/html"
+		         "samrai.tag=../../samrai/2.4.4/html"
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create a
 # tag file that is based on the input files it reads. See section "Linking to
 # external documentation" for more information about the usage of tag files.
 
-GENERATE_TAGFILE       = ibamr.tag
+GENERATE_TAGFILE       = ibamr.tag 
 
 # If the ALLEXTERNALS tag is set to YES all external class will be listed in the
 # class index. If set to NO only the inherited external classes will be listed.

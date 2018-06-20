@@ -160,6 +160,8 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
       d_os_var(new OutersideVariable<NDIM, double>(d_object_name + "::scratch_os")),
       d_fc_idx(-1),
       d_sc_idx(-1),
+      d_nc_idx(-1),
+      d_ec_idx(-1),
       d_of_idx(-1),
       d_os_idx(-1),
       d_coarsen_op_name(coarsen_op_name),
@@ -218,7 +220,7 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
     {
         d_sc_idx = var_db->registerVariableAndContext(d_sc_var, d_context, ghosts);
     }
-
+    
     if (var_db->checkVariableExists(d_of_var->getName()))
     {
         d_of_var = var_db->getVariable(d_of_var->getName());
@@ -1939,6 +1941,229 @@ HierarchyMathOps::interp(const int dst_idx,
 } // interp
 
 void
+HierarchyMathOps::interp(const int dst_idx,
+                         const Pointer<CellVariable<NDIM, double> > /*dst_var*/,
+                         const int src_idx,
+                         const Pointer<NodeVariable<NDIM, double> > /*src_var*/,
+                         const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                         const double src_ghost_fill_time)
+{
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Interpolate.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<NodeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.interp(dst_data, src_data, patch);
+        }
+    }
+    return;
+} // interp
+
+void
+HierarchyMathOps::interp(const int dst_idx,
+                         const Pointer<CellVariable<NDIM, double> > /*dst_var*/,
+                         const int src_idx,
+                         const Pointer<EdgeVariable<NDIM, double> > /*src_var*/,
+                         const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                         const double src_ghost_fill_time)
+{
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Interpolate.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<EdgeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.interp(dst_data, src_data, patch);
+        }
+    }
+    return;
+} // interp
+
+void
+HierarchyMathOps::interp(const int dst_idx,
+                         const Pointer<NodeVariable<NDIM, double> > /*dst_var*/,
+                         const bool dst_ghost_interp,
+                         const int src_idx,
+                         const Pointer<CellVariable<NDIM, double> > /*src_var*/,
+                         const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                         const double src_ghost_fill_time)
+{
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Interpolate.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<NodeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.interp(dst_data, src_data, patch, dst_ghost_interp);
+        }
+    }
+    return;
+} // interp
+
+void
+HierarchyMathOps::interp(const int dst_idx,
+                         const Pointer<EdgeVariable<NDIM, double> > /*dst_var*/,
+                         const bool dst_ghost_interp,
+                         const int src_idx,
+                         const Pointer<CellVariable<NDIM, double> > /*src_var*/,
+                         const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                         const double src_ghost_fill_time)
+{
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Interpolate.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<EdgeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.interp(dst_data, src_data, patch, dst_ghost_interp);
+        }
+    }
+    return;
+} // interp
+
+void
+HierarchyMathOps::harmonic_interp(const int dst_idx,
+                                  const Pointer<SideVariable<NDIM, double> > /*dst_var*/,
+                                  const bool dst_cf_bdry_synch,
+                                  const int src_idx,
+                                  const Pointer<CellVariable<NDIM, double> > /*src_var*/,
+                                  const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                                  const double src_ghost_fill_time)
+{
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Allocate temporary data to synchronize the coarse-fine interface.
+        if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
+        {
+            level->allocatePatchData(d_os_idx);
+        }
+
+        // Interpolate and extract data on the coarse-fine interface.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.harmonic_interp(dst_data, src_data, patch);
+
+            if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
+            {
+                Pointer<OutersideData<NDIM, double> > os_data = patch->getPatchData(d_os_idx);
+                os_data->copy(*dst_data);
+            }
+        }
+    }
+
+    // Synchronize the coarse-fine interface and deallocate temporary data.
+    if (dst_cf_bdry_synch)
+    {
+        for (int ln = d_finest_ln; ln >= d_coarsest_ln + 1; --ln)
+        {
+            xeqScheduleOutersideRestriction(dst_idx, d_os_idx, ln - 1);
+            d_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_os_idx);
+        }
+    }
+    return;
+} // harmonic_interp
+
+void
+HierarchyMathOps::harmonic_interp(const int dst_idx,
+                                  const Pointer<NodeVariable<NDIM, double> > /*dst_var*/,
+                                  const bool dst_ghost_interp,
+                                  const int src_idx,
+                                  const Pointer<CellVariable<NDIM, double> > /*src_var*/,
+                                  const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                                  const double src_ghost_fill_time)
+{
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Interpolate
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<NodeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.interp(dst_data, src_data, patch, dst_ghost_interp);
+        }
+    }
+    return;
+} // harmonic_interp
+
+void
+HierarchyMathOps::harmonic_interp(const int dst_idx,
+                                  const Pointer<EdgeVariable<NDIM, double> > /*dst_var*/,
+                                  const bool dst_ghost_interp,
+                                  const int src_idx,
+                                  const Pointer<CellVariable<NDIM, double> > /*src_var*/,
+                                  const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                                  const double src_ghost_fill_time)
+{
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Interpolate.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<EdgeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.interp(dst_data, src_data, patch, dst_ghost_interp);
+        }
+    }
+    return;
+} // harmonic_interp
+
+void
 HierarchyMathOps::laplace(const int dst_idx,
                           const Pointer<CellVariable<NDIM, double> > dst_var,
                           const PoissonSpecifications& poisson_spec,
@@ -2287,12 +2512,15 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
                              const Pointer<SideVariable<NDIM, double> > dst_var,
                              const double alpha,
                              const double beta,
-                             const int coef_idx,
+                             const int coef1_idx,
                              const Pointer<NodeVariable<NDIM, double> > /*coef_var*/,
                              const int src1_idx,
                              const Pointer<SideVariable<NDIM, double> > src1_var,
                              const Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                              const double src1_ghost_fill_time,
+                             const IBTK::VCInterpType coef1_interp_type,
+                             int coef2_idx,
+                             Pointer<SideVariable<NDIM, double> > /*coef2_var*/,
                              const double gamma,
                              const int src2_idx,
                              const Pointer<SideVariable<NDIM, double> > src2_var)
@@ -2317,8 +2545,17 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
                        << std::endl);
         }
     }
+    if (coef1_interp_type != VC_HARMONIC_INTERP && coef1_interp_type != VC_AVERAGE_INTERP)
+    {
+        TBOX_ERROR("HierarchyMathOps()::vc_laplace\n"
+                   << "  unsupported variable coefficient interpolation type: "
+                   << enum_to_string<VCInterpType>(coef1_interp_type)
+                   << " \n"
+                   << "  valid choices are: VC_HARMONIC_INTERP, VC_AVERAGE_INTERP\n");
+    }
+    const bool use_harmonic_interp = (coef1_interp_type == VC_HARMONIC_INTERP);
 
-    // Compute dst = alpha div coef ((grad src1) + (grad src1)^T) + beta src1 +
+    // Compute dst = alpha div coef1 ((grad src1) + (grad src1)^T) + beta coef2 src1 +
     // gamma src2 independently on each level.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -2328,12 +2565,120 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
 
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
-            Pointer<NodeData<NDIM, double> > coef_data = patch->getPatchData(coef_idx);
+            Pointer<NodeData<NDIM, double> > coef1_data = patch->getPatchData(coef1_idx);
+            Pointer<SideData<NDIM, double> > coef2_data =
+                (coef2_idx >= 0) ? patch->getPatchData(coef2_idx) : Pointer<PatchData<NDIM> >();
             Pointer<SideData<NDIM, double> > src1_data = patch->getPatchData(src1_idx);
             Pointer<SideData<NDIM, double> > src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
-            d_patch_math_ops.vc_laplace(dst_data, alpha, beta, coef_data, src1_data, gamma, src2_data, patch);
+            d_patch_math_ops.vc_laplace(
+                dst_data, alpha, beta, coef1_data, coef2_data, src1_data, gamma, src2_data, patch, use_harmonic_interp);
+        }
+    }
+
+    // Allocate temporary data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_os_idx);
+    }
+
+    // Synchronize data along the coarse-fine interface.
+    for (int ln = d_finest_ln; ln > d_coarsest_ln; --ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Extract data on the coarse-fine interface.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<OutersideData<NDIM, double> > os_data = patch->getPatchData(d_os_idx);
+            os_data->copy(*dst_data);
+        }
+
+        // Synchronize the coarse-fine interface of dst.
+        xeqScheduleOutersideRestriction(dst_idx, d_os_idx, ln - 1);
+    }
+
+    // Deallocate temporary data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_os_idx);
+    }
+    return;
+} // vc_laplace
+
+void
+HierarchyMathOps::vc_laplace(const int dst_idx,
+                             const Pointer<SideVariable<NDIM, double> > dst_var,
+                             const double alpha,
+                             const double beta,
+                             const int coef1_idx,
+                             const Pointer<EdgeVariable<NDIM, double> > /*coef_var*/,
+                             const int src1_idx,
+                             const Pointer<SideVariable<NDIM, double> > src1_var,
+                             const Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                             const double src1_ghost_fill_time,
+                             const IBTK::VCInterpType coef1_interp_type,
+                             int coef2_idx,
+                             Pointer<SideVariable<NDIM, double> > /*coef2_var*/,
+                             const double gamma,
+                             const int src2_idx,
+                             const Pointer<SideVariable<NDIM, double> > src2_var)
+{
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
+
+    Pointer<SideDataFactory<NDIM, double> > dst_factory = dst_var->getPatchDataFactory();
+    Pointer<SideDataFactory<NDIM, double> > src1_factory = src1_var->getPatchDataFactory();
+    if (dst_factory->getDefaultDepth() != 1 || src1_factory->getDefaultDepth() != 1)
+    {
+        TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
+                   << "  side-centered variable-coefficient Laplacian requires scalar-valued data"
+                   << std::endl);
+    }
+    if (src2_var)
+    {
+        Pointer<SideDataFactory<NDIM, double> > src2_factory = src2_var->getPatchDataFactory();
+        if (src2_factory->getDefaultDepth() != 1)
+        {
+            TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
+                       << "  side-centered variable-coefficient Laplacian requires scalar-valued data"
+                       << std::endl);
+        }
+    }
+    if (coef1_interp_type != VC_HARMONIC_INTERP && coef1_interp_type != VC_AVERAGE_INTERP)
+    {
+        TBOX_ERROR("HierarchyMathOps()::vc_laplace\n"
+                   << "  unsupported variable coefficient interpolation type: "
+                   << enum_to_string<VCInterpType>(coef1_interp_type)
+                   << " \n"
+                   << "  valid choices are: VC_HARMONIC_INTERP, VC_AVERAGE_INTERP\n");
+    }
+    const bool use_harmonic_interp = (coef1_interp_type == VC_HARMONIC_INTERP);
+
+    // Compute dst = alpha div coef1 ((grad src1) + (grad src1)^T) + beta coef2 src1 +
+    // gamma src2 independently on each level.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<EdgeData<NDIM, double> > coef1_data = patch->getPatchData(coef1_idx);
+            Pointer<SideData<NDIM, double> > coef2_data =
+                (coef2_idx >= 0) ? patch->getPatchData(coef2_idx) : Pointer<PatchData<NDIM> >();
+            Pointer<SideData<NDIM, double> > src1_data = patch->getPatchData(src1_idx);
+            Pointer<SideData<NDIM, double> > src2_data =
+                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
+
+            d_patch_math_ops.vc_laplace(
+                dst_data, alpha, beta, coef1_data, coef2_data, src1_data, gamma, src2_data, patch, use_harmonic_interp);
         }
     }
 

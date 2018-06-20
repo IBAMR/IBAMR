@@ -53,6 +53,8 @@ LSInitStrategy::LSInitStrategy(const std::string& object_name, bool register_for
     d_abs_tol = 1e-5;
     d_enable_logging = false;
     d_bc_coef = NULL;
+    d_reinitialize_ls = false;
+    d_reinit_interval = 0;
 
     if (d_registered_for_restart)
     {
@@ -87,6 +89,13 @@ LSInitStrategy::registerInterfaceNeighborhoodLocatingFcn(LocateInterfaceNeighbor
 
     return;
 } // registerInterfaceNeighborhoodLocatingFcn
+
+void
+LSInitStrategy::setReinitializeLSData(bool reinit_ls_data)
+{
+    d_reinitialize_ls = reinit_ls_data;
+    return;
+} // setReinitializeLSData
 
 void LSInitStrategy::putToDatabase(Pointer<Database> /*db*/)
 {

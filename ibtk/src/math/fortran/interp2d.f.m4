@@ -412,3 +412,212 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the cell centered field U from the node centered
+c     field V using simple averaging.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ntocinterp2d(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER U_gcw,V_gcw
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+
+      REAL V(NODE2d(ilower,iupper,v_gcw))
+c
+c     Output.
+c
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+c
+c     Compute the cell centered field U from the node centered
+c     field v0.
+c
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0
+            U(i0,i1) = 0.25d0*(V(i0,i1)+V(i0+1,i1)+
+     &                         V(i0,i1+1)+V(i0+1,i1+1))
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the node centered field U from the cell centered
+c     field V using simple averaging.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ctoninterp2d(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     U_ghost_interp)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER U_gcw,V_gcw
+      INTEGER U_ghost_interp
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+
+      REAL V(CELL2d(ilower,iupper,V_gcw))
+
+c
+c     Output.
+c
+      REAL U(NODE2d(ilower,iupper,U_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      INTEGER gcw_shift
+c
+c     Compute the node centered scalar field U from the cell centered
+c     scalar field V.
+c
+      gcw_shift = 0
+      if (U_ghost_interp .eq. 1) then
+         gcw_shift = U_gcw
+      endif
+
+      do i1 = ilower1-gcw_shift,iupper1+gcw_shift+1
+         do i0 = ilower0-gcw_shift,iupper0+gcw_shift+1
+            U(i0,i1) = 0.25d0*(V(i0,i1)+V(i0-1,i1)
+     &            +V(i0,i1-1)+V(i0-1,i1-1))
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the side centered normal vector field (u0,u1) from the
+c     cell centered vector field V using harmonic averaging.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ctosharmonicinterp2nd2d(
+     &     u0,u1,u_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER u_gcw,V_gcw
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+
+      REAL V(CELL2d(ilower,iupper,V_gcw),0:NDIM-1)
+c
+c     Output.
+c
+      REAL u0(SIDE2d0(ilower,iupper,u_gcw))
+      REAL u1(SIDE2d1(ilower,iupper,u_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL    nmr,dmr
+c
+c     Compute the side centered vector field (u0,u1) from the cell
+c     centered vector field V.
+c
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0+1
+            nmr = 2.d0*V(i0-1,i1,0)*V(i0,i1,0)
+            dmr = V(i0-1,i1,0)+V(i0,i1,0)
+            u0(i0,i1) = nmr/dmr
+         enddo
+      enddo
+      do i1 = ilower1,iupper1+1
+         do i0 = ilower0,iupper0
+            nmr = 2.d0*V(i0,i1-1,1)*V(i0,i1,1)
+            dmr = V(i0,i1-1,1)+V(i0,i1,1)
+            u1(i0,i1) = nmr/dmr
+         enddo
+      enddo
+c
+      return
+      end
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the node centered field U from the cell centered
+c     field V using harmonic averaging.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ctonharmonicinterp2d(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     U_ghost_interp)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER U_gcw,V_gcw
+      INTEGER U_ghost_interp
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+
+      REAL V(CELL2d(ilower,iupper,V_gcw))
+
+c
+c     Output.
+c
+      REAL U(NODE2d(ilower,iupper,U_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      INTEGER gcw_shift
+      REAL    nmr,dmr
+c
+c     Compute the node centered scalar field U from the cell centered
+c     scalar field V.
+c
+      gcw_shift = 0
+      if (U_ghost_interp .eq. 1) then
+         gcw_shift = U_gcw
+      endif
+
+      nmr = 4.d0
+      do i1 = ilower1-gcw_shift,iupper1+gcw_shift+1
+         do i0 = ilower0-gcw_shift,iupper0+gcw_shift+1
+            dmr = 1.d0/V(i0,i1)+1.d0/V(i0-1,i1)
+     &            +1.d0/V(i0,i1-1)+1.d0/V(i0-1,i1-1)
+            U(i0,i1) = nmr/dmr
+         enddo
+      enddo
+c
+      return
+      end
+c

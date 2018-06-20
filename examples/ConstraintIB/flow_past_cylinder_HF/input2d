@@ -90,8 +90,7 @@ ConstraintIBMethod {
    delta_fcn                = DELTA_FUNCTION
    enable_logging           = ENABLE_LOGGING
    needs_divfree_projection = TRUE
-   rho_fluid                = RHO
-   mu_fluid                 = MU
+   rho_solid                = RHO
    structure_names = "cylinder2d"
    
    PrintOutput {

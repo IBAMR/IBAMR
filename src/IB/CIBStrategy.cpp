@@ -54,6 +54,7 @@ CIBStrategy::CIBStrategy(const unsigned int parts) : d_num_rigid_parts(parts)
     d_center_of_mass_current.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
     d_center_of_mass_half.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
     d_center_of_mass_new.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
+    d_compute_center_of_mass_initial.resize(d_num_rigid_parts, true);
 
     d_quaternion_current.resize(d_num_rigid_parts, Eigen::Quaterniond::Identity());
     d_quaternion_half.resize(d_num_rigid_parts, Eigen::Quaterniond::Identity());
@@ -110,6 +111,18 @@ CIBStrategy::getNumberOfRigidStructures() const
     return d_num_rigid_parts;
 
 } // getNumberOfRigidStructures
+
+void
+CIBStrategy::setInitialCenterOfMass(const unsigned int part, const Eigen::Vector3d& XCOM_0)
+{
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(part < d_num_rigid_parts);
+#endif
+    d_center_of_mass_initial[part] = XCOM_0;
+    d_compute_center_of_mass_initial[part] = false;
+
+}// setInitialCenterOfMass
 
 void
 CIBStrategy::setSolveRigidBodyVelocity(const unsigned int part, const FreeRigidDOFVector& solve_rigid_vel)

@@ -106,6 +106,9 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/solvers/impls/SCPoissonPETScLevelSolver.cpp \
 ../src/solvers/impls/SCPoissonPointRelaxationFACOperator.cpp \
 ../src/solvers/impls/SCPoissonSolverManager.cpp \
+../src/solvers/impls/VCSCViscousOpPointRelaxationFACOperator.cpp \
+../src/solvers/impls/VCSCViscousOperator.cpp \
+../src/solvers/impls/VCSCViscousPETScLevelSolver.cpp \
 ../src/solvers/interfaces/FACPreconditionerStrategy.cpp \
 ../src/solvers/interfaces/GeneralOperator.cpp \
 ../src/solvers/interfaces/GeneralSolver.cpp \
@@ -291,6 +294,9 @@ pkg_include_HEADERS += \
 ../include/ibtk/Streamable.h \
 ../include/ibtk/StreamableFactory.h \
 ../include/ibtk/StreamableManager.h \
+../include/ibtk/VCSCViscousOpPointRelaxationFACOperator.h \
+../include/ibtk/VCSCViscousOperator.h \
+../include/ibtk/VCSCViscousPETScLevelSolver.h \
 ../include/ibtk/muParserCartGridFunction.h \
 ../include/ibtk/muParserRobinBcCoefs.h \
 ../include/ibtk/private/FixedSizedStream-inl.h \
@@ -356,6 +362,7 @@ $(top_builddir)/src/math/fortran/laplace3d.f \
 $(top_builddir)/src/math/fortran/rot3d.f \
 $(top_builddir)/src/math/fortran/strain3d.f \
 $(top_builddir)/src/math/fortran/miscmath3d.f \
+$(top_builddir)/src/math/fortran/vclaplace3d.f \
 $(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f \
 $(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
 $(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f

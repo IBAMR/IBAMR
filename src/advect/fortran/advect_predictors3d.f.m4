@@ -2535,4 +2535,133 @@ c
 c
       return
       end
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Apply cubic interpolation upwinding to extrapolate a cell centered
+c     quantity onto the cell faces.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      subroutine cui_extrapolate3d(
+     &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
+     &     nQgc0,nQgc1,nQgc2,
+     &     Q0,Q1,Q2,
+     &     nugc0,nugc1,nugc2,
+     &     nqhalfgc0,nqhalfgc1,nqhalfgc2,
+     &     u0,u1,u2,
+     &     qhalf0,qhalf1,qhalf2)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2
+
+      INTEGER nQgc0,nQgc1,nQgc2
+
+      INTEGER nugc0,nugc1,nugc2
+      INTEGER nqhalfgc0,nqhalfgc1,nqhalfgc2
+
+      REAL Q0(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q1(ifirst1-nQgc1:ilast1+nQgc1,
+     &        ifirst2-nQgc2:ilast2+nQgc2,
+     &        ifirst0-nQgc0:ilast0+nQgc0)
+      REAL Q2(ifirst2-nQgc2:ilast2+nQgc2,
+     &        ifirst0-nQgc0:ilast0+nQgc0,
+     &        ifirst1-nQgc1:ilast1+nQgc1)
+
+      REAL u0(FACE3d0VECG(ifirst,ilast,nugc))
+      REAL u1(FACE3d1VECG(ifirst,ilast,nugc))
+      REAL u2(FACE3d2VECG(ifirst,ilast,nugc))
+c
+c     Input/Output.
+c
+      REAL qhalf0(FACE3d0VECG(ifirst,ilast,nqhalfgc))
+      REAL qhalf1(FACE3d1VECG(ifirst,ilast,nqhalfgc))
+      REAL qhalf2(FACE3d2VECG(ifirst,ilast,nqhalfgc))
+c
+c     Local variables.
+c
+      INTEGER ic0,ic1,ic2
+      REAL QC,QU,QD
+      REAL Qf_HR
+c
+c     Make permuted copies of Q.
+c
+      do ic2 = ifirst2-nQgc2,ilast2+nQgc2
+         do ic1 = ifirst1-nQgc1,ilast1+nQgc1
+            do ic0 = ifirst0-nQgc0,ilast0+nQgc0
+               Q1(ic1,ic2,ic0) = Q0(ic0,ic1,ic2)
+               Q2(ic2,ic0,ic1) = Q0(ic0,ic1,ic2)
+            enddo
+         enddo
+      enddo
+c
+c     Extrapolate values in the x-direction.
+c
+      do ic2 = ifirst2,ilast2
+        do ic1 = ifirst1,ilast1
+          do ic0 = ifirst0,ilast0+1
+            if (u0(ic0,ic1,ic2) .ge. 0.d0) then
+                QC  = Q0(ic0-1,ic1,ic2)
+                QU  = Q0(ic0-2,ic1,ic2)
+                QD  = Q0(ic0,ic1,ic2)
+              else
+                QC  = Q0(ic0,ic1,ic2)
+                QU  = Q0(ic0+1,ic1,ic2)
+                QD  = Q0(ic0-1,ic1,ic2)
+              endif
+
+c             High-resolution scheme (HR)
+              call interpolate_cui_hr_quantity3d(QU,QC,QD,Qf_HR)
+              qhalf0(ic0,ic1,ic2) = Qf_HR
+          enddo
+        enddo
+      enddo
+c
+c     Extrapolate values in the y-direction.
+c
+      do ic0 = ifirst0,ilast0
+        do ic2 = ifirst2,ilast2
+          do ic1 = ifirst1,ilast1+1
+            if (u1(ic1,ic2,ic0) .ge. 0.d0) then
+                QC  = Q1(ic1-1,ic2,ic0)
+                QU  = Q1(ic1-2,ic2,ic0)
+                QD  = Q1(ic1,ic2,ic0)
+              else
+                QC  = Q1(ic1,ic2,ic0)
+                QU  = Q1(ic1+1,ic2,ic0)
+                QD  = Q1(ic1-1,ic2,ic0)
+              endif
+
+c             High-resolution scheme (HR)
+              call interpolate_cui_hr_quantity3d(QU,QC,QD,Qf_HR)
+              qhalf1(ic1,ic2,ic0) = Qf_HR 
+          enddo
+        enddo
+      enddo
+c
+c     Extrapolate values in the z-direction.
+c
+      do ic1 = ifirst1,ilast1
+        do ic0 = ifirst0,ilast0
+          do ic2 = ifirst2,ilast2+1
+            if (u2(ic2,ic0,ic1) .ge. 0.d0) then
+                QC  = Q2(ic2-1,ic0,ic1)
+                QU  = Q2(ic2-2,ic0,ic1)
+                QD  = Q2(ic2,ic0,ic1)
+              else
+                QC  = Q2(ic2,ic0,ic1)
+                QU  = Q2(ic2+1,ic0,ic1)
+                QD  = Q2(ic2-1,ic0,ic1)
+              endif
+
+c             High-resolution scheme (HR)
+              call interpolate_cui_hr_quantity3d(QU,QC,QD,Qf_HR)
+              qhalf2(ic2,ic0,ic1) = Qf_HR 
+          enddo
+        enddo
+      enddo
+c
+      return
+      end 

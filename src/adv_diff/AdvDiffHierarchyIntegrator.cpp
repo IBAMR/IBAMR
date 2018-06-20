@@ -1,7 +1,7 @@
 // Filename: AdvDiffHierarchyIntegrator.cpp
 // Created on 21 May 2012 by Boyce Griffith
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith, Amneet Bhalla and Nishant Nangia
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <deque>
 #include <iterator>
 #include <limits>
 #include <map>
 #include <ostream>
+#include <stddef.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -111,33 +111,34 @@ class RobinBcCoefStrategy;
 #define ADVECT_STABLEDT_FC IBAMR_FC_FUNC_(advect_stabledt3d, ADVECT_STABLEDT3D)
 #endif
 
-extern "C" {
-void ADVECT_STABLEDT_FC(const double*,
+extern "C"
+{
+    void ADVECT_STABLEDT_FC(const double*,
 #if (NDIM == 2)
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const double*,
-                        const double*,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const double*,
+                            const double*,
 #endif
 #if (NDIM == 3)
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const double*,
-                        const double*,
-                        const double*,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const double*,
+                            const double*,
+                            const double*,
 #endif
-                        double&);
+                            double&);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -167,7 +168,16 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Version of AdvDiffHierarchyIntegrator restart file data.
 static const int ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION = 3;
-}
+
+// Function to reset variables registered by this integrator
+typedef void (*ResetPropertiesFcnPtr)(int property_idx,
+                                      Pointer<HierarchyMathOps> hier_math_ops,
+                                      int integrator_step,
+                                      double time,
+                                      bool initial_time,
+                                      bool regrid_time,
+                                      void* ctx);
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -341,6 +351,7 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDI
     d_Q_init[Q_var] = NULL;
     d_Q_bc_coef[Q_var] =
         std::vector<RobinBcCoefStrategy<NDIM>*>(Q_depth, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
+    d_Q_reset_priority.push_back(std::numeric_limits<int>::max());
     return;
 } // registerTransportedQuantity
 
@@ -441,8 +452,9 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficient(Pointer<CellVariable<NDIM, d
         const std::string& Q_var_name = Q_var->getName();
         Pointer<SideVariable<NDIM, double> > D_var = d_Q_diffusion_coef_variable[Q_var];
         // print a warning.
-        pout << d_object_name << "::setDiffusionCoefficient(Pointer<CellVariable<NDIM,double> > "
-                                 "Q_var, const double kappa): WARNING: \n"
+        pout << d_object_name
+             << "::setDiffusionCoefficient(Pointer<CellVariable<NDIM,double> > "
+                "Q_var, const double kappa): WARNING: \n"
              << "   a variable diffusion coefficient for the variable " << Q_var_name << " has already been set.\n"
              << "   this variable coefficient will be overriden by the constant diffusion "
                 "coefficient "
@@ -665,19 +677,18 @@ AdvDiffHierarchyIntegrator::getHelmholtzSolver(Pointer<CellVariable<NDIM, double
     if (!d_helmholtz_solvers[l])
     {
         const std::string& name = Q_var->getName();
+        std::ostringstream solver_prefix, precond_prefix;
+        solver_prefix << "adv_diff_" << l << "_";
+        precond_prefix << "adv_diff_pc_" << l << "_";
         d_helmholtz_solvers[l] =
             CCPoissonSolverManager::getManager()->allocateSolver(d_helmholtz_solver_type,
                                                                  d_object_name + "::helmholtz_solver::" + name,
                                                                  d_helmholtz_solver_db,
-                                                                 "adv_diff_",
+                                                                 solver_prefix.str(),
                                                                  d_helmholtz_precond_type,
                                                                  d_object_name + "::helmholtz_precond::" + name,
                                                                  d_helmholtz_precond_db,
-                                                                 "adv_diff_pc_",
-                                                                 d_helmholtz_sub_precond_type,
-                                                                 d_object_name + "::helmholtz_sub_precond::" + name,
-                                                                 d_helmholtz_sub_precond_db,
-                                                                 "adv_diff_sub_pc_");
+                                                                 precond_prefix.str());
         d_helmholtz_solvers_need_init[l] = true;
     }
     return d_helmholtz_solvers[l];
@@ -837,6 +848,88 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
     return;
 } // initializeHierarchyIntegrator
 
+void
+AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles)
+{
+    HierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+
+    const bool initial_time = false;
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    // Build the priority mapping, which determines which variables are reset first
+    std::multimap<int, Pointer<CellVariable<NDIM, double> > > priority_Q_map;
+    unsigned int l = 0;
+    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
+         ++cit, ++l)
+    {
+        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
+        const int priority = d_Q_reset_priority[l];
+        priority_Q_map.insert(std::make_pair(priority, Q_var));
+    }
+
+    // Reset the desired transported quantities.
+    std::multimap<int, Pointer<CellVariable<NDIM, double> > >::iterator it;
+    for (it = priority_Q_map.begin(); it != priority_Q_map.end(); ++it)
+    {
+        Pointer<CellVariable<NDIM, double> > Q_var = it->second;
+        const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
+        for (unsigned k = 0; k < d_Q_reset_fcns[Q_var].size(); ++k)
+        {
+            d_Q_reset_fcns[Q_var][k](Q_current_idx,
+                                     d_hier_math_ops,
+                                     d_integrator_step,
+                                     current_time,
+                                     initial_time,
+                                     false /*regrid_time*/,
+                                     d_Q_reset_fcns_ctx[Q_var][k]);
+        }
+    }
+    return;
+} // preprocessIntegrateHierarchy
+
+void
+AdvDiffHierarchyIntegrator::registerResetFunction(Pointer<CellVariable<NDIM, double> > Q_var,
+                                                  ResetPropertiesFcnPtr callback,
+                                                  void* ctx)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
+#endif
+    d_Q_reset_fcns[Q_var].push_back(callback);
+    d_Q_reset_fcns_ctx[Q_var].push_back(ctx);
+    return;
+} // registerResetFunction
+
+void
+AdvDiffHierarchyIntegrator::setResetPriority(Pointer<CellVariable<NDIM, double> > Q_var, int reset_priority)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
+#endif
+    const size_t l = distance(d_Q_var.begin(), std::find(d_Q_var.begin(), d_Q_var.end(), Q_var));
+    d_Q_reset_priority[l] = reset_priority;
+    return;
+} // setResetPriority
+
+std::vector<ResetPropertiesFcnPtr>
+AdvDiffHierarchyIntegrator::getResetFunctions(Pointer<CellVariable<NDIM, double> > Q_var) const
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
+#endif
+    return d_Q_reset_fcns.find(Q_var)->second;
+} // getResetFunctions
+
+int
+AdvDiffHierarchyIntegrator::getResetPriority(Pointer<CellVariable<NDIM, double> > Q_var) const
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
+#endif
+    const size_t l = distance(d_Q_var.begin(), std::find(d_Q_var.begin(), d_Q_var.end(), Q_var));
+    return d_Q_reset_priority[l];
+} // getResetPriority
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(const std::string& object_name,
@@ -951,6 +1044,44 @@ AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     }
     return dt;
 } // getMaximumTimeStepSizeSpecialized
+
+void
+AdvDiffHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time)
+{
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    // Build the priority mapping, which determines which variables are reset first
+    std::multimap<int, Pointer<CellVariable<NDIM, double> > > priority_Q_map;
+    unsigned int l = 0;
+    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
+         ++cit, ++l)
+    {
+        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
+        const int priority = d_Q_reset_priority[l];
+        priority_Q_map.insert(std::make_pair(priority, Q_var));
+    }
+
+    // Reset the desired transported quantities.
+    for (std::multimap<int, Pointer<CellVariable<NDIM, double> > >::iterator it = priority_Q_map.begin();
+         it != priority_Q_map.end();
+         ++it)
+    {
+        Pointer<CellVariable<NDIM, double> > Q_var = it->second;
+        const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
+        for (unsigned k = 0; k < d_Q_reset_fcns[Q_var].size(); ++k)
+        {
+            d_Q_reset_fcns[Q_var][k](Q_current_idx,
+                                     d_hier_math_ops,
+                                     d_integrator_step,
+                                     init_data_time,
+                                     initial_time,
+                                     true /*regrid_time*/,
+                                     d_Q_reset_fcns_ctx[Q_var][k]);
+        }
+    }
+
+    return;
+} // initializeCompositeHierarchyDataSpecialized
 
 void
 AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
@@ -1236,8 +1367,7 @@ AdvDiffHierarchyIntegrator::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
     int ver = db->getInteger("ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION");
     if (ver != ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION)
