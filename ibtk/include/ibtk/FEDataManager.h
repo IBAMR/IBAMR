@@ -733,7 +733,9 @@ private:
                           libMesh::NumericVector<double>& X,
                           const std::string& system_name,
                           bool is_density = true,
-                          bool accumulate_on_grid = true);
+                          bool accumulate_on_grid = true,
+                          bool close_F = true,
+                          bool close_X = true);
 
     /*!
  * \brief Prolong a value or a density from the FE mesh to the Cartesian
@@ -744,7 +746,9 @@ private:
                           libMesh::NumericVector<double>& X,
                           const std::string& system_name,
                           bool is_density = true,
-                          bool accumulate_on_grid = true);
+                          bool accumulate_on_grid = true,
+                          bool close_F = true,
+                          bool close_X = true);
 
     /*!
      * Read object state from the restart file and initialize class data

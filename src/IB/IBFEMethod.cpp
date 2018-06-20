@@ -4267,7 +4267,7 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     ipdg_beta1 = db->getDouble("ipdg_beta1");
     cg_penalty = db->getDouble("cg_penalty");
     Phi_dt = db->getDouble("Phi_dt");
-    Phi_fe_order = static_cast<Order>(db->getIntegerWithDefault("Phi_fe_order", 2));
+    Phi_fe_order = static_cast<Order>(db->getIntegerWithDefault("Phi_fe_order", 1));
 
     return;
 } // getFromInput

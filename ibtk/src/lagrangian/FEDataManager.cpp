@@ -752,11 +752,11 @@ FEDataManager::prolongData(const int f_data_idx,
     // call the correct helper function
     if (cc_data)
     {
-        FEDataManager::prolongData_cell(f_data_idx, F_vec, X_vec, system_name, is_density, accumulate_on_grid);
+        FEDataManager::prolongData_cell(f_data_idx, F_vec, X_vec, system_name, is_density, accumulate_on_grid, close_F, close_X);
     }
     if (sc_data)
     {
-        FEDataManager::prolongData_side(f_data_idx, F_vec, X_vec, system_name, is_density, accumulate_on_grid);
+        FEDataManager::prolongData_side(f_data_idx, F_vec, X_vec, system_name, is_density, accumulate_on_grid, close_F, close_X);
     }
 
 } // prolongData
@@ -767,7 +767,10 @@ FEDataManager::prolongData_side(const int f_data_idx,
                                 NumericVector<double>& X_vec,
                                 const std::string& system_name,
                                 const bool is_density,
-                                const bool accumulate_on_grid)
+                                const bool accumulate_on_grid,
+                                const bool close_F,
+                                const bool close_X)
+
 {
     IBTK_TIMER_START(t_prolong_data_side);
 
@@ -987,7 +990,9 @@ FEDataManager::prolongData_cell(const int f_data_idx,
                                 NumericVector<double>& X_vec,
                                 const std::string& system_name,
                                 const bool is_density,
-                                const bool accumulate_on_grid)
+                                const bool accumulate_on_grid,
+                                const bool close_F,
+                                const bool close_X)
 {
     IBTK_TIMER_START(t_prolong_data_cell);
 
@@ -1025,7 +1030,7 @@ FEDataManager::prolongData_cell(const int f_data_idx,
 
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
-    /*if (!F_vec.closed())*/ F_vec.close();
+    if (close_F) F_vec.close();
     PetscVector<double>* F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
     Vec F_global_vec = F_petsc_vec->vec();
     Vec F_local_vec;
@@ -1033,7 +1038,7 @@ FEDataManager::prolongData_cell(const int f_data_idx,
     double* F_local_soln;
     VecGetArray(F_local_vec, &F_local_soln);
 
-    /*if (!X_vec.closed())*/ X_vec.close();
+    if (close_X) X_vec.close();
     PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
     Vec X_global_vec = X_petsc_vec->vec();
     Vec X_local_vec;
