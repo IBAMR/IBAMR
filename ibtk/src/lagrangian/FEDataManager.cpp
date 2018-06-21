@@ -1018,10 +1018,10 @@ FEDataManager::prolongData_cell(const int f_data_idx,
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
     FEType X_fe_type = X_dof_map.variable_type(0);
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
-    AutoPtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr(NULL);
+    UniquePtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr(NULL);
     if (F_fe_type != X_fe_type)
     {
-        X_fe_autoptr = AutoPtr<FEBase>(FEBase::build(dim, X_fe_type));
+        X_fe_autoptr = UniquePtr<FEBase>(FEBase::build(dim, X_fe_type));
     }
     FEBase* F_fe = F_fe_autoptr.get();
     FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : F_fe_autoptr.get();
