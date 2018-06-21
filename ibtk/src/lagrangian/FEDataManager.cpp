@@ -798,7 +798,7 @@ FEDataManager::prolongData_side(const int f_data_idx,
     TBOX_ASSERT(n_vars == NDIM); // specialized to side-centered data
     const DofMap& F_dof_map = F_system.get_dof_map();
     SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
-    System& X_system = d_es->get_system(system_name);
+    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
@@ -1009,7 +1009,7 @@ FEDataManager::prolongData_cell(const int f_data_idx,
     TBOX_ASSERT(n_vars == 1); // specialized to cell-centered scalar valued data
     const DofMap& F_dof_map = F_system.get_dof_map();
     SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
-    System& X_system = d_es->get_system(system_name);
+    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
@@ -1017,7 +1017,7 @@ FEDataManager::prolongData_cell(const int f_data_idx,
     FEType F_fe_type = F_dof_map.variable_type(0);
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
     FEType X_fe_type = X_dof_map.variable_type(0);
-    for (unsigned d = 0; d < n_vars; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
+    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
     AutoPtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr(NULL);
     if (F_fe_type != X_fe_type)
     {
@@ -1037,7 +1037,7 @@ FEDataManager::prolongData_cell(const int f_data_idx,
     VecGhostGetLocalForm(F_global_vec, &F_local_vec);
     double* F_local_soln;
     VecGetArray(F_local_vec, &F_local_soln);
-
+    
     if (close_X) X_vec.close();
     PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
     Vec X_global_vec = X_petsc_vec->vec();
@@ -1045,7 +1045,7 @@ FEDataManager::prolongData_cell(const int f_data_idx,
     VecGhostGetLocalForm(X_global_vec, &X_local_vec);
     double* X_local_soln;
     VecGetArray(X_local_vec, &X_local_soln);
-
+    
     // Loop over the patches to interpolate nodal values on the FE mesh to the
     // points of the Eulerian grid.
     TensorValue<double> dX_ds;
