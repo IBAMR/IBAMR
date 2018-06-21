@@ -2184,6 +2184,38 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                      x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]))); // In 2D this
 #endif
                     }
+                    
+                    
+#if (NDIM == 3)
+                    if (axis == 0)
+                    {
+                        rs(0) = 0.0;
+                        rs(1) = x_lower[1] + dx[1] * (static_cast<double>(i_c(1) - patch_lower[1]));
+                        rs(2) = x_lower[2] + dx[2] * (static_cast<double>(i_c(2) - patch_lower[2]) + 0.5);
+                        rss(0) = 0.0;
+                        rss(1) = x_lower[1] + dx[1] * (static_cast<double>(i_c(1) - patch_lower[1]) + 0.5);
+                        rss(2) = x_lower[2] + dx[2] * (static_cast<double>(i_c(2) - patch_lower[2]));
+                    }
+                    else if (axis == 1)
+                    {
+                        rs(0) = x_lower[0] + dx[0] * (static_cast<double>(i_c(0) - patch_lower[0]) + 0.5);
+                        rs(1) = 0.0;
+                        rs(2) = x_lower[2] + dx[2] * (static_cast<double>(i_c(2) - patch_lower[2]));
+                        rss(0) = x_lower[0] + dx[0] * (static_cast<double>(i_c(0) - patch_lower[0]));
+                        rss(1) = 0.0;
+                        rss(2) = x_lower[2] + dx[2] * (static_cast<double>(i_c(2) - patch_lower[2]) + 0.5);
+                    }
+                    else if (axis == 2)
+                    {
+                        rs(0) = x_lower[0] + dx[0] * (static_cast<double>(i_c(0) - patch_lower[0]));
+                        rs(1) = x_lower[1] + dx[1] * (static_cast<double>(i_c(1) - patch_lower[1]) + 0.5);
+                        rs(2) = 0.0;
+                        rss(0) = x_lower[0] + dx[0] * (static_cast<double>(i_c(0) - patch_lower[0]) + 0.5);
+                        rss(1) = x_lower[1] + dx[1] * (static_cast<double>(i_c(1) - patch_lower[1]));
+                        rss(2) = 0.0;
+                    }
+
+#endif
 
                     std::vector<std::pair<double, libMesh::Point> > intersections, intersectionsSide,
                         intersectionsSide2;
@@ -2778,6 +2810,8 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                     patch_lower[axis];
                                 i_side_um(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
                                                patch_lower[axis];
+                                i_s_up = i_side_up;
+                                i_s_um = i_side_um;
 
 							}
 						    else if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) < 0.5 * dx[axis] &&
@@ -2883,7 +2917,6 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                             double x_mid_side_um =
                                                 x_lower[axis] +
                                                 static_cast<double>(i_s_um(axis) - patch_lower[axis] + 0.5) * dx[axis];
-
                                             TBOX_ASSERT(xu(axis) <= x_mid_side_up);
                                             TBOX_ASSERT(xu(axis) > x_mid_side_um);
 
