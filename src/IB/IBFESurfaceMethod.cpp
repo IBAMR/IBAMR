@@ -2409,7 +2409,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                         if (found_same_intersection_point) break;
                                     }
                                     if (found_same_intersection_point) break;
-                                }
+                                 }
 
                                 if (!found_same_intersection_point)
                                 {
@@ -2495,7 +2495,8 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                 TBOX_ERROR(d_object_name << ":  Restart file version different than class version."
                                                          << std::endl);
                             }
-
+                            
+							TBOX_ASSERT(i_s_um.getAxis()==i_s_up.getAxis()==dd);
                             if (side_u_boxes[axis].contains(i_s_up) && side_u_boxes[axis].contains(i_s_um))
                             {
                                 std::vector<libMesh::Point> ref_coords(1, xui);
@@ -2568,9 +2569,9 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 
                                     // Evaluate the jump conditions and apply them
                                     // to the Eulerian grid.
-                                    if (side_u_boxes[axis].contains(i_s_um))
+                                    if (side_u_boxes[dd].contains(i_s_um) && side_u_boxes[dd].contains(i_s_up))
                                     {
-                                        TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
+                                        TBOX_ASSERT(i_s_up(dd) - i_s_um(dd) == 1);
 
                                         const double x_mid_side_up =
                                             x_lower[axis] +
@@ -2589,18 +2590,11 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                         double C_u_um = 0;
                                         double C_u_up = 0;
 
-                                        if (dd == 0)
-                                        {
-                                            interpolate(&jn(0), 0, DU_j_node[0], phi);
-                                            C_u_um = sdh_um * jn(1);
-                                            C_u_up = sdh_up * jn(1);
-                                        }
-                                        else
-                                        {
-                                            interpolate(&jn(0), 0, DU_j_node[1], phi);
-                                            C_u_um = sdh_um * jn(0);
-                                            C_u_up = sdh_up * jn(0);
-                                        }
+                      
+                                        interpolate(&jn(0), 0, DU_j_node[dd], phi);
+                                        C_u_um = sdh_um * jn(1);
+                                        C_u_up = sdh_up * jn(1);
+               
                                         
                                         const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
 
@@ -2898,7 +2892,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 											if (found_same_intersection_point) break;
 										}
 										if (found_same_intersection_point) break;
-									  }
+									 }
 
 
                                     if (!found_same_intersection_point)
