@@ -2437,7 +2437,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                     C_u_up = sdh_up * jn(axis);
                                     C_u_um = sdh_um * jn(axis);
                                     
-                                    const double sgn = n(axis) > 0.0 ? 1.0 : -1.0;
+                                    const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
 									// Note that the corrections are applied to opposite sides
                                     (*f_data)(i_s_up) -= sgn * (C_u_um / (dx[axis] * dx[axis]));
                                     (*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
@@ -2591,11 +2591,11 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 
                       
                                         interpolate(&jn(0), 0, DU_j_node[dd], phi);
-                                        C_u_um = sdh_um * jn(1);
-                                        C_u_up = sdh_up * jn(1);
+                                        C_u_um = sdh_um * jn(axis);
+                                        C_u_up = sdh_up * jn(axis);
                
                                         
-                                        const double sgn = n(axis) > 0.0 ? 1.0 : -1.0;
+                                        const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
 
                                         (*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
 
@@ -2776,7 +2776,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                             C_u_um = sdh_um * jn(axis);
                                             C_u_up = sdh_up * jn(axis);
 
-                                            const double sgn = n(axis) > 0.0 ? 1.0 : -1.0;
+                                            const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
 
                                             (*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
 
@@ -2931,7 +2931,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                             C_u_up = sdh_up * jn(axis);
 
   
-                                            const double sgn = n(axis) > 0.0 ? 1.0 : -1.0;
+                                            const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
 
                                             (*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
 
