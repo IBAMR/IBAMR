@@ -816,7 +816,6 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                 }
                 if (local_indices.empty()) continue;
                 Index<NDIM> ic_lower, ic_upper, ic_center;
-                Index<NDIM> ic_trimmed_lower, ic_trimmed_upper;
                 boost::array<boost::array<double, 2>, NDIM> w, wr;
 #if (NDIM == 2)
                 boost::array<double, NDIM> LL, LU, UL, UU;
@@ -875,9 +874,6 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                                 ic_lower[d] = ic_center[d];
                                 ic_upper[d] = ic_center[d] + 1;
                             }
-                            
-                            ic_trimmed_lower[d] = std::max(ic_lower[d],ilower[d]- u_gcw[d]);
-							ic_trimmed_upper[d] = std::min(ic_upper[d],iupper[d]+ u_gcw[d]);
 
                             if (x[d] <= x_cell[d])
                             {
@@ -892,9 +888,9 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                             wr[d][1] = -w[d][1];
                         }
                         boost::multi_array<double, NDIM + 1> Ujump(
-                            boost::extents[range(ic_trimmed_lower[0], ic_trimmed_upper[0] + 1)][range(ic_trimmed_lower[1], ic_trimmed_upper[1] + 1)]
+                            boost::extents[range(ic_lower[0], ic_upper[0] + 1)][range(ic_lower[1], ic_upper[1] + 1)]
 #if (NDIM == 3)
-                                          [range(ic_trimmed_lower[2], ic_trimmed_upper[2] + 1)]
+                                          [range(ic_lower[2], ic_upper[2] + 1)]
 #endif
                                           [range(0, NDIM)]);
 
@@ -908,10 +904,10 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                         }
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            Ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]][d] = dx[0] * w[0][0] * w[1][0] * (LL[0] * DU_j_qp[d][s * NDIM] + LL[1] * DU_j_qp[d][1 + s * NDIM]);
-                            Ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]][d] = dx[0] * w[0][1] * w[1][0] * (UL[0] * DU_j_qp[d][s * NDIM] + UL[1] * DU_j_qp[d][1 + s * NDIM]);
-                            Ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]][d] = dx[0] * w[0][1] * w[1][1] * (UU[0] * DU_j_qp[d][s * NDIM] + UU[1] * DU_j_qp[d][1 + s * NDIM]);
-                            Ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]][d] = dx[0] * w[0][0] * w[1][1] * (LU[0] * DU_j_qp[d][s * NDIM] + LU[1] * DU_j_qp[d][1 + s * NDIM]);
+                            Ujump[ic_lower[0]][ic_lower[1]][d] = dx[0] * w[0][0] * w[1][0] * (LL[0] * DU_j_qp[d][s * NDIM] + LL[1] * DU_j_qp[d][1 + s * NDIM]);
+                            Ujump[ic_upper[0]][ic_lower[1]][d] = dx[0] * w[0][1] * w[1][0] * (UL[0] * DU_j_qp[d][s * NDIM] + UL[1] * DU_j_qp[d][1 + s * NDIM]);
+                            Ujump[ic_upper[0]][ic_upper[1]][d] = dx[0] * w[0][1] * w[1][1] * (UU[0] * DU_j_qp[d][s * NDIM] + UU[1] * DU_j_qp[d][1 + s * NDIM]);
+                            Ujump[ic_lower[0]][ic_upper[1]][d] = dx[0] * w[0][0] * w[1][1] * (LU[0] * DU_j_qp[d][s * NDIM] + LU[1] * DU_j_qp[d][1 + s * NDIM]);
                         }
 #endif
 #if (NDIM == 3)
@@ -928,42 +924,42 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                         }
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            Ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]][ic_trimmed_lower[2]][d] =
+                            Ujump[ic_lower[0]][ic_lower[1]][ic_lower[2]][d] =
                                 dx[0] * w[0][0] * w[1][0] * w[2][0] *
                                 (LLL[0] * DU_j_qp[d][s * NDIM] + LLL[1] * DU_j_qp[d][1 + s * NDIM] +
                                  LLL[2] * DU_j_qp[d][2 + s * NDIM]);
 
-                            Ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]][ic_trimmed_lower[2]][d] =
+                            Ujump[ic_upper[0]][ic_lower[1]][ic_lower[2]][d] =
                                 dx[0] * w[0][1] * w[1][0] * w[2][0] *
                                 (ULL[0] * DU_j_qp[d][s * NDIM] + ULL[1] * DU_j_qp[d][1 + s * NDIM] +
                                  ULL[2] * DU_j_qp[d][2 + s * NDIM]);
 
-                            Ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]][ic_trimmed_upper[2]][d] =
+                            Ujump[ic_upper[0]][ic_lower[1]][ic_upper[2]][d] =
                                 dx[0] * w[0][1] * w[1][0] * w[2][1] *
                                 (ULU[0] * DU_j_qp[d][s * NDIM] + ULU[1] * DU_j_qp[d][1 + s * NDIM] +
                                  ULU[2] * DU_j_qp[d][2 + s * NDIM]);
 
-                            Ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]][ic_trimmed_lower[2]][d] =
+                            Ujump[ic_upper[0]][ic_upper[1]][ic_lower[2]][d] =
                                 dx[0] * w[0][1] * w[1][1] * w[2][0] *
                                 (UUL[0] * DU_j_qp[d][s * NDIM] + UUL[1] * DU_j_qp[d][1 + s * NDIM] +
                                  UUL[2] * DU_j_qp[d][2 + s * NDIM]);
 
-                            Ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]][ic_trimmed_lower[2]][d] =
+                            Ujump[ic_lower[0]][ic_upper[1]][ic_lower[2]][d] =
                                 dx[0] * w[0][0] * w[1][1] * w[2][0] *
                                 (LUL[0] * DU_j_qp[d][s * NDIM] + LUL[1] * DU_j_qp[d][1 + s * NDIM] +
                                  LUL[2] * DU_j_qp[d][2 + s * NDIM]);
 
-                            Ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]][ic_trimmed_upper[2]][d] =
+                            Ujump[ic_lower[0]][ic_upper[1]][ic_upper[2]][d] =
                                 dx[0] * w[0][0] * w[1][1] * w[2][1] *
                                 (LUU[0] * DU_j_qp[d][s * NDIM] + LUU[1] * DU_j_qp[d][1 + s * NDIM] +
                                  LUU[2] * DU_j_qp[d][2 + s * NDIM]);
 
-                            Ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]][ic_trimmed_upper[2]][d] =
+                            Ujump[ic_lower[0]][ic_lower[1]][ic_upper[2]][d] =
                                 dx[0] * w[0][0] * w[1][0] * w[2][1] *
                                 (LLU[0] * DU_j_qp[d][s * NDIM] + LLU[1] * DU_j_qp[d][1 + s * NDIM] +
                                  LLU[2] * DU_j_qp[d][2 + s * NDIM]);
 
-                            Ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]][ic_trimmed_upper[2]][d] =
+                            Ujump[ic_upper[0]][ic_upper[1]][ic_upper[2]][d] =
                                 dx[0] * w[0][1] * w[1][1] * w[2][1] *
                                 (UUU[0] * DU_j_qp[d][s * NDIM] + UUU[1] * DU_j_qp[d][1 + s * NDIM] +
                                  UUU[2] * DU_j_qp[d][2 + s * NDIM]);
@@ -971,7 +967,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 #endif
                         // Accumulate the value of U at the current location.
                         U_axis[s] = 0.0;
-                        Box<NDIM> stencil_box(ic_trimmed_lower, ic_trimmed_upper);
+                        Box<NDIM> stencil_box(ic_lower, ic_upper);
                         for (BoxIterator<NDIM> b(stencil_box); b; b++)
                         {
                             const Index<NDIM>& ic = b();
@@ -2168,6 +2164,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                 Box<NDIM> axis_box = box;
                 axis_box.lower(axis) = 0;
                 axis_box.upper(axis) = 0;
+ 
                 for (BoxIterator<NDIM> b(axis_box); b; b++)
                 {
                     const Index<NDIM>& i_c = b();
@@ -2185,7 +2182,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 #endif
                     }
                     
-                    
+
 #if (NDIM == 3)
                     if (axis == 0)
                     {
@@ -2216,6 +2213,8 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                     }
 
 #endif
+
+					
 
                     std::vector<std::pair<double, libMesh::Point> > intersections, intersectionsSide,
                         intersectionsSide2;
@@ -2438,7 +2437,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                     C_u_up = sdh_up * jn(axis);
                                     C_u_um = sdh_um * jn(axis);
                                     
-                                    const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
+                                    const double sgn = n(axis) > 0.0 ? 1.0 : -1.0;
 
                                     (*f_data)(i_s_up) -= sgn * (C_u_um / (dx[axis] * dx[axis]));
                                     (*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
@@ -2496,7 +2495,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                                          << std::endl);
                             }
                             
-							TBOX_ASSERT(i_s_um.getAxis()==i_s_up.getAxis()==dd);
+							
                             if (side_u_boxes[axis].contains(i_s_up) && side_u_boxes[axis].contains(i_s_um))
                             {
                                 std::vector<libMesh::Point> ref_coords(1, xui);
@@ -2571,7 +2570,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                     // to the Eulerian grid.
                                     if (side_u_boxes[dd].contains(i_s_um) && side_u_boxes[dd].contains(i_s_up))
                                     {
-                                        TBOX_ASSERT(i_s_up(dd) - i_s_um(dd) == 1);
+                                        TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
 
                                         const double x_mid_side_up =
                                             x_lower[axis] +
@@ -2596,7 +2595,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                         C_u_up = sdh_up * jn(1);
                
                                         
-                                        const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
+                                        const double sgn = n(axis) > 0.0 ? 1.0 : -1.0;
 
                                         (*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
 
@@ -2613,23 +2612,27 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 #endif
 
 #if (NDIM == 3)
-                        int SideDim[2];
-                        SideDim[0] = SideDim[1] = 0;
-                        if (axis == 0)
-                        {
-                            SideDim[0] = 1;
-                            SideDim[1] = 2;
-                        }
-                        else if (axis == 1)
-                        {
-                            SideDim[0] = 2;
-                            SideDim[1] = 0;
-                        }
-                        else if (axis == 2)
-                        {
-                            SideDim[0] = 0;
-                            SideDim[1] = 1;
-                        }
+
+
+                int SideDim[2];
+                        
+                if (axis == 0)
+                {
+                   SideDim[0] = 1;
+                   SideDim[1] = 2;
+                }
+                else if (axis == 1)
+                {
+                   SideDim[0] = 2;
+                   SideDim[1] = 0;
+                 }
+                 else if (axis == 2)
+                 {
+                    SideDim[0] = 0;
+                    SideDim[1] = 1;
+                 }
+                    
+
 
                         for (unsigned int k = 0; k < intersectionsSide.size(); ++k)
                         {
@@ -2771,7 +2774,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                             C_u_um = sdh_um * jn(axis);
                                             C_u_up = sdh_up * jn(axis);
 
-                                            const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
+                                            const double sgn = n(axis) > 0.0 ? 1.0 : -1.0;
 
                                             (*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
 
@@ -2897,11 +2900,12 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 
                                     if (!found_same_intersection_point)
                                     {
-
+									
                                         if (side_boxes[SideDim[1]].contains(i_s_up) && side_boxes[SideDim[1]].contains(i_s_um))
                                         {
                                             // Impose the jump conditions.
                                             // *********************************************************************************************************//
+                                           
                                             TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
 
                                             double x_mid_side_up =
@@ -2925,7 +2929,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                             C_u_up = sdh_up * jn(axis);
 
   
-                                            const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
+                                            const double sgn = n(axis) > 0.0 ? 1.0 : -1.0;
 
                                             (*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
 
