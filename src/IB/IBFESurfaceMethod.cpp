@@ -2054,9 +2054,9 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
         boost::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>
             intersection_u_normals;
 
-        boost::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM>
+        boost::array< boost::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM>, NDIM>
             intersectionSide_u_points, intersectionSide_u_ref_coords;
-        boost::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>
+        boost::array< boost::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>, NDIM>
             intersectionSide_u_normals;
 
 #if (NDIM == 3)
@@ -2164,71 +2164,117 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                 Box<NDIM> axis_box = box;
                 axis_box.lower(axis) = 0;
                 axis_box.upper(axis) = 0;
+                
+                
+                int SideDim [NDIM][NDIM - 1];
+                for (unsigned int d = 0; d < NDIM ; ++d)
+					for (unsigned int l = 0; l < NDIM - 1; ++l)
+						SideDim[d][l] = (d + 1) % NDIM; //(l == d? 0: (d + 1) % NDIM);
+				
+							
+					//~ if (axis == 0)
+					//~ {
+					   //~ SideDim[0] = 1;
+					   //~ SideDim[1] = 2;
+					//~ }
+					//~ else if (axis == 1)
+					//~ {
+					   //~ SideDim[0] = 2;
+					   //~ SideDim[1] = 0;
+					 //~ }
+					 //~ else if (axis == 2)
+					 //~ {
+						//~ SideDim[0] = 0;
+						//~ SideDim[1] = 1;
+					 //~ }
  
                 for (BoxIterator<NDIM> b(axis_box); b; b++)
                 {
                     const Index<NDIM>& i_c = b();
                     libMesh::Point r;
-                    libMesh::Point rs;
-                    libMesh::Point rss;
+                    boost::array< libMesh::Point, NDIM -1> rs;
+ 
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         r(d) = (d == axis ? 0.0 :
                                             x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]) + 0.5));
-#if (NDIM == 2)
-                        rs(d) = (d == axis ?
-                                     0.0 :
-                                     x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]))); // In 2D this
-#endif
+                                            
+                        for (unsigned int l = 0; l < NDIM - 1; ++l)
+						{
+							rs[l](d) = (d == axis ? 0.0 : d == SideDim[d][l] ?
+													x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d])) :
+													x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]) + 0.5)); // In 2D this
+							
+						}                    
+//~ #if (NDIM == 2)
+                        //~ rs(d) = (d == axis ?
+                                     //~ 0.0 :
+                                     //~ x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]))); // In 2D this
+//~ #endif
                     }
                     
+                    //~ for (unsigned int l = 0; l < NDIM - 1; ++l)
+                    //~ {
+						//~ for (unsigned int d = 0; d < NDIM; ++d)
+						//~ {
+//~ #if (NDIM == 3)
+							//~ if (axis == 0)
+							//~ {
+								//~ rs(0) = 0.0;
+								//~ rs(1) = x_lower[1] + dx[1] * (static_cast<double>(i_c(1) - patch_lower[1]));
+								//~ rs(2) = x_lower[2] + dx[2] * (static_cast<double>(i_c(2) - patch_lower[2]) + 0.5);
+								//~ rss(0) = 0.0;
+								//~ rss(1) = x_lower[1] + dx[1] * (static_cast<double>(i_c(1) - patch_lower[1]) + 0.5);
+								//~ rss(2) = x_lower[2] + dx[2] * (static_cast<double>(i_c(2) - patch_lower[2]));
+							//~ }
+							//~ else if (axis == 1)
+							//~ {
+								//~ rs(0) = x_lower[0] + dx[0] * (static_cast<double>(i_c(0) - patch_lower[0]) + 0.5);
+								//~ rs(1) = 0.0;
+								//~ rs(2) = x_lower[2] + dx[2] * (static_cast<double>(i_c(2) - patch_lower[2]));
+								//~ rss(0) = x_lower[0] + dx[0] * (static_cast<double>(i_c(0) - patch_lower[0]));
+								//~ rss(1) = 0.0;
+								//~ rss(2) = x_lower[2] + dx[2] * (static_cast<double>(i_c(2) - patch_lower[2]) + 0.5);
+							//~ }
+							//~ else if (axis == 2)
+							//~ {
+								//~ rs(0) = x_lower[0] + dx[0] * (static_cast<double>(i_c(0) - patch_lower[0]));
+								//~ rs(1) = x_lower[1] + dx[1] * (static_cast<double>(i_c(1) - patch_lower[1]) + 0.5);
+								//~ rs(2) = 0.0;
+								//~ rss(0) = x_lower[0] + dx[0] * (static_cast<double>(i_c(0) - patch_lower[0]) + 0.5);
+								//~ rss(1) = x_lower[1] + dx[1] * (static_cast<double>(i_c(1) - patch_lower[1]));
+								//~ rss(2) = 0.0;
+							//~ }
 
-#if (NDIM == 3)
-                    if (axis == 0)
-                    {
-                        rs(0) = 0.0;
-                        rs(1) = x_lower[1] + dx[1] * (static_cast<double>(i_c(1) - patch_lower[1]));
-                        rs(2) = x_lower[2] + dx[2] * (static_cast<double>(i_c(2) - patch_lower[2]) + 0.5);
-                        rss(0) = 0.0;
-                        rss(1) = x_lower[1] + dx[1] * (static_cast<double>(i_c(1) - patch_lower[1]) + 0.5);
-                        rss(2) = x_lower[2] + dx[2] * (static_cast<double>(i_c(2) - patch_lower[2]));
-                    }
-                    else if (axis == 1)
-                    {
-                        rs(0) = x_lower[0] + dx[0] * (static_cast<double>(i_c(0) - patch_lower[0]) + 0.5);
-                        rs(1) = 0.0;
-                        rs(2) = x_lower[2] + dx[2] * (static_cast<double>(i_c(2) - patch_lower[2]));
-                        rss(0) = x_lower[0] + dx[0] * (static_cast<double>(i_c(0) - patch_lower[0]));
-                        rss(1) = 0.0;
-                        rss(2) = x_lower[2] + dx[2] * (static_cast<double>(i_c(2) - patch_lower[2]) + 0.5);
-                    }
-                    else if (axis == 2)
-                    {
-                        rs(0) = x_lower[0] + dx[0] * (static_cast<double>(i_c(0) - patch_lower[0]));
-                        rs(1) = x_lower[1] + dx[1] * (static_cast<double>(i_c(1) - patch_lower[1]) + 0.5);
-                        rs(2) = 0.0;
-                        rss(0) = x_lower[0] + dx[0] * (static_cast<double>(i_c(0) - patch_lower[0]) + 0.5);
-                        rss(1) = x_lower[1] + dx[1] * (static_cast<double>(i_c(1) - patch_lower[1]));
-                        rss(2) = 0.0;
-                    }
+//~ #endif
+						//~ }
 
-#endif
+				    //~ }
 
-					
-
-                    std::vector<std::pair<double, libMesh::Point> > intersections, intersectionsSide,
-                        intersectionsSide2;
-
+                    std::vector<std::pair<double, libMesh::Point> > intersections;
+                    boost::array< std::vector<std::pair<double, libMesh::Point> >, NDIM -1>  intersectionsSide;
+                    
                     static const double tolerance = sqrt(std::numeric_limits<double>::epsilon());
+                    
+                    
 #if (NDIM == 2)
-                    intersect_line_with_edge(intersections, static_cast<Edge*>(elem), r, q, tolerance);
-                    intersect_line_with_edge(intersectionsSide, static_cast<Edge*>(elem), rs, q, tolerance);
+                    intersect_line_with_edge(intersections, static_cast<Edge*>(elem), r, q, tolerance);      
 #endif
 #if (NDIM == 3)
                     intersect_line_with_face(intersections, static_cast<Face*>(elem), r, q, tolerance);
-                    intersect_line_with_face(intersectionsSide, static_cast<Face*>(elem), rs, q, tolerance);
-                    intersect_line_with_face(intersectionsSide2, static_cast<Face*>(elem), rss, q, tolerance);
 #endif
+                    for (unsigned int l = 0; l < NDIM - 1; ++l)
+					{
+#if (NDIM == 2)
+						intersect_line_with_edge(intersectionsSide[l], static_cast<Edge*>(elem), rs[l], q, tolerance);
+#endif
+#if (NDIM == 3)
+					    intersect_line_with_face(intersectionsSide[l], static_cast<Face*>(elem), rs[l], q, tolerance);	
+#endif
+					}
+                   // intersect_line_with_face(intersectionsSide, static_cast<Face*>(elem), rs, q, tolerance);
+                  //  intersect_line_with_face(intersectionsSide2, static_cast<Face*>(elem), rss, q, tolerance);
+
 
                     if (d_use_pressure_jump_conditions)
                     {
@@ -2448,505 +2494,175 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                             intersection_u_ref_coords[axis][i_s_um].push_back(xui);
                             intersection_u_normals[axis][i_s_um].push_back(n);
                         }
-
-#if (NDIM == 2)
-
-                        for (unsigned int k = 0; k < intersectionsSide.size(); ++k)
-                        {
-                            libMesh::Point xu = rs + intersectionsSide[k].first * q;
-                            const libMesh::Point& xui = intersectionsSide[k].second;
-                            SideIndex<NDIM> i_s_up;
-                            SideIndex<NDIM> i_s_um;
-                            int dd = (axis == 0 ? 1 : 0);
-                            if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) >= 0.5 * dx[axis])
-                            {
-                                SideIndex<NDIM> i_side_um(i_c, dd, 0);
-                                Index<NDIM> i_c_neighbor = i_c;
-                                i_c_neighbor(axis) += 1;
-
-                                SideIndex<NDIM> i_side_up(i_c_neighbor, dd, 0);
-
-                                i_side_up(axis) =
-                                    static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] + 0.5)) +
-                                    patch_lower[axis];
-                                i_side_um(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
-                                                  patch_lower[axis];
-                                i_s_up = i_side_up;
-                                i_s_um = i_side_um;
-                            }
-                            else if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) < 0.5 * dx[axis] &&
-                                     fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) >= 0.0)
-                            {
-                                SideIndex<NDIM> i_side_up(i_c, dd, 0);
-                                Index<NDIM> i_c_neighbor = i_c;
-                                i_c_neighbor(axis) -= 1;
-                                SideIndex<NDIM> i_side_um(i_c_neighbor, dd, 0);
-                                i_side_up(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
-                                                  patch_lower[axis];
-                                i_side_um(axis) =
-                                    static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
-                                    patch_lower[axis];
-                                i_s_up = i_side_up;
-                                i_s_um = i_side_um;
-                            }
-                            else
-                            {
-                                TBOX_ERROR(d_object_name << ":  Restart file version different than class version."
-                                                         << std::endl);
-                            }
-                            
-							
-                            if (side_u_boxes[axis].contains(i_s_up) && side_u_boxes[axis].contains(i_s_um))
-                            {
-                                std::vector<libMesh::Point> ref_coords(1, xui);
-                                fe->reinit(elem, &ref_coords);
-                                for (unsigned int l = 0; l < NDIM - 1; ++l)
-                                {
-                                    interpolate(dx_dxi[l], 0, x_node, *dphi_dxi[l]);
-                                }
-                                if (NDIM == 2)
-                                {
-                                    dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
-                                }
-                                n = (dx_dxi[0].cross(dx_dxi[1])).unit();
-
-                                bool found_same_intersection_point = false;
-
-                                for (int shift = -1; shift <= 1; ++shift)
-                                {
-                                    SideIndex<NDIM> i_s_prime = i_s_um;
-                                    i_s_prime(dd) += shift;
-                                    const std::vector<libMesh::Point>& candidate_coords =
-                                        intersectionSide_u_points[axis][i_s_prime];
-                                    const std::vector<libMesh::Point>& candidate_ref_coords =
-                                        intersectionSide_u_ref_coords[axis][i_s_prime];
-                                    const std::vector<VectorValue<double> >& candidate_normals =
-                                        intersectionSide_u_normals[axis][i_s_prime];
-                                    std::vector<libMesh::Point>::const_iterator x_prime_it = candidate_coords.begin();
-                                    std::vector<libMesh::Point>::const_iterator xi_prime_it =
-                                        candidate_ref_coords.begin();
-                                    std::vector<VectorValue<double> >::const_iterator n_prime_it =
-                                        candidate_normals.begin();
-                                    for (; x_prime_it != candidate_coords.end();
-                                         ++x_prime_it, ++xi_prime_it, ++n_prime_it)
-                                    {
-                                        const libMesh::Point& x_prime = *x_prime_it;
-                                        const libMesh::Point& xi_prime = *xi_prime_it;
-                                        const libMesh::Point& n_prime = *n_prime_it;
-                                        if (xu.absolute_fuzzy_equals(x_prime, 1.0e-5 * dx[axis]))
-                                        {
-                                            // WARNING: This check is ONLY
-                                            // guaranteed to work at edges (where
-                                            // only two elements meet).  To avoid FE
-                                            // mesh nodes, set
-                                            // d_perturb_fe_mesh_nodes to true.
-                                            found_same_intersection_point = n(axis) * n_prime(axis) > 0.0;
-                                            if (d_do_log)
-                                            {
-                                                plog << "==========\n";
-                                                plog << "multiple intersections detected:\n";
-                                                plog << "  x    = " << xu << "\n";
-                                                plog << "  x'   = " << x_prime << "\n";
-                                                plog << "  xi   = " << xui << "\n";
-                                                plog << "  xi'  = " << xi_prime << "\n";
-                                                plog << "  n    = " << n << "\n";
-                                                plog << "  n'   = " << n_prime << "\n";
-                                                plog << "  i_s  = " << i_s_um << "\n";
-                                                plog << "  i_s' = " << i_s_prime << "\n";
-                                                plog << "  axis = " << axis << "\n";
-                                            }
-                                        }
-                                        if (found_same_intersection_point) break;
-                                    }
-                                    if (found_same_intersection_point) break;
-                                }
-
-                                if (!found_same_intersection_point)
-                                {
-                                    // Evaluate the jump conditions and apply them
-                                    // to the Eulerian grid.
-
-                                    // Evaluate the jump conditions and apply them
-                                    // to the Eulerian grid.
-                                    if (side_u_boxes[dd].contains(i_s_um) && side_u_boxes[dd].contains(i_s_up))
-                                    {
-                                        TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
-
-                                        const double x_mid_side_up =
-                                            x_lower[axis] +
-                                            static_cast<double>(i_s_up(axis) - patch_lower[axis] + 0.5) * dx[axis];
-
-                                        const double x_mid_side_um =
-                                            x_lower[axis] +
-                                            static_cast<double>(i_s_um(axis) - patch_lower[axis] + 0.5) * dx[axis];
-
-                                        TBOX_ASSERT(xu(axis) <= x_mid_side_up);
-                                        TBOX_ASSERT(xu(axis) > x_mid_side_um);
-
-                                        const double sdh_up = xu(axis) - x_mid_side_up; // Signed Distance h
-                                        const double sdh_um = xu(axis) - x_mid_side_um;
-
-                                        double C_u_um = 0;
-                                        double C_u_up = 0;
-
-                      
-                                        interpolate(&jn(0), 0, DU_j_node[dd], phi);
-                                        C_u_um = sdh_um * jn(axis);
-                                        C_u_up = sdh_up * jn(axis);
-               
-                                        
-                                        const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
-
-                                        (*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
-
-                                        (*f_data)(i_s_up) -= sgn * (C_u_um / (dx[axis] * dx[axis]));
-                                    }
-
-                                    intersectionSide_u_points[axis][i_s_um].push_back(xu);
-                                    intersectionSide_u_ref_coords[axis][i_s_um].push_back(xui);
-                                    intersectionSide_u_normals[axis][i_s_um].push_back(n);
-                                }
-                            }
-                        }
-
-#endif
-
-#if (NDIM == 3)
-
-
-                int SideDim[2];
                         
-                if (axis == 0)
-                {
-                   SideDim[0] = 1;
-                   SideDim[1] = 2;
-                }
-                else if (axis == 1)
-                {
-                   SideDim[0] = 2;
-                   SideDim[1] = 0;
-                 }
-                 else if (axis == 2)
-                 {
-                    SideDim[0] = 0;
-                    SideDim[1] = 1;
-                 }
+                        
+                        
+							
+					   for (unsigned int j = 0; j < NDIM - 1; ++j)
+					   {
+
+							for (unsigned int k = 0; k < intersectionsSide[j].size(); ++k)
+							{
+								libMesh::Point xu = rs[j] + intersectionsSide[j][k].first * q;
+								const libMesh::Point& xui = intersectionsSide[j][k].second;
+								SideIndex<NDIM> i_s_up;
+								SideIndex<NDIM> i_s_um;
+								int dd = (axis == 0 ? 1 : 0);
+								if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) >= 0.5 * dx[axis])
+								{
+									SideIndex<NDIM> i_side_um(i_c, dd, 0);
+									Index<NDIM> i_c_neighbor = i_c;
+									i_c_neighbor(axis) += 1;
+
+									SideIndex<NDIM> i_side_up(i_c_neighbor, dd, 0);
+
+									i_side_up(axis) =
+										static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] + 0.5)) +
+										patch_lower[axis];
+									i_side_um(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
+													  patch_lower[axis];
+									i_s_up = i_side_up;
+									i_s_um = i_side_um;
+								}
+								else if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) < 0.5 * dx[axis] &&
+										 fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) >= 0.0)
+								{
+									SideIndex<NDIM> i_side_up(i_c, dd, 0);
+									Index<NDIM> i_c_neighbor = i_c;
+									i_c_neighbor(axis) -= 1;
+									SideIndex<NDIM> i_side_um(i_c_neighbor, dd, 0);
+									i_side_up(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
+													  patch_lower[axis];
+									i_side_um(axis) =
+										static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
+										patch_lower[axis];
+									i_s_up = i_side_up;
+									i_s_um = i_side_um;
+								}
+								else
+								{
+									TBOX_ERROR(d_object_name << ":  Restart file version different than class version."
+															 << std::endl);
+								}
+								
+								
+								if (side_u_boxes[axis].contains(i_s_up) && side_u_boxes[axis].contains(i_s_um))
+								{
+									std::vector<libMesh::Point> ref_coords(1, xui);
+									fe->reinit(elem, &ref_coords);
+									for (unsigned int l = 0; l < NDIM - 1; ++l)
+									{
+										interpolate(dx_dxi[l], 0, x_node, *dphi_dxi[l]);
+									}
+									if (NDIM == 2)
+									{
+										dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
+									}
+									n = (dx_dxi[0].cross(dx_dxi[1])).unit();
+
+									bool found_same_intersection_point = false;
+
+									for (int shift = -1; shift <= 1; ++shift)
+									{
+										SideIndex<NDIM> i_s_prime = i_s_um;
+										i_s_prime(dd) += shift;
+										const std::vector<libMesh::Point>& candidate_coords =
+											intersectionSide_u_points[j][axis][i_s_prime];
+										const std::vector<libMesh::Point>& candidate_ref_coords =
+											intersectionSide_u_ref_coords[j][axis][i_s_prime];
+										const std::vector<VectorValue<double> >& candidate_normals =
+											intersectionSide_u_normals[j][axis][i_s_prime];
+										std::vector<libMesh::Point>::const_iterator x_prime_it = candidate_coords.begin();
+										std::vector<libMesh::Point>::const_iterator xi_prime_it =
+											candidate_ref_coords.begin();
+										std::vector<VectorValue<double> >::const_iterator n_prime_it =
+											candidate_normals.begin();
+										for (; x_prime_it != candidate_coords.end();
+											 ++x_prime_it, ++xi_prime_it, ++n_prime_it)
+										{
+											const libMesh::Point& x_prime = *x_prime_it;
+											const libMesh::Point& xi_prime = *xi_prime_it;
+											const libMesh::Point& n_prime = *n_prime_it;
+											if (xu.absolute_fuzzy_equals(x_prime, 1.0e-5 * dx[axis]))
+											{
+												// WARNING: This check is ONLY
+												// guaranteed to work at edges (where
+												// only two elements meet).  To avoid FE
+												// mesh nodes, set
+												// d_perturb_fe_mesh_nodes to true.
+												found_same_intersection_point = n(axis) * n_prime(axis) > 0.0;
+												if (d_do_log)
+												{
+													plog << "==========\n";
+													plog << "multiple intersections detected:\n";
+													plog << "  x    = " << xu << "\n";
+													plog << "  x'   = " << x_prime << "\n";
+													plog << "  xi   = " << xui << "\n";
+													plog << "  xi'  = " << xi_prime << "\n";
+													plog << "  n    = " << n << "\n";
+													plog << "  n'   = " << n_prime << "\n";
+													plog << "  i_s  = " << i_s_um << "\n";
+													plog << "  i_s' = " << i_s_prime << "\n";
+													plog << "  axis = " << axis << "\n";
+												}
+											}
+											if (found_same_intersection_point) break;
+										}
+										if (found_same_intersection_point) break;
+									}
+
+									if (!found_same_intersection_point)
+									{
+										// Evaluate the jump conditions and apply them
+										// to the Eulerian grid.
+
+										// Evaluate the jump conditions and apply them
+										// to the Eulerian grid.
+										if (side_u_boxes[dd].contains(i_s_um) && side_u_boxes[dd].contains(i_s_up))
+										{
+											TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
+
+											const double x_mid_side_up =
+												x_lower[axis] +
+												static_cast<double>(i_s_up(axis) - patch_lower[axis] + 0.5) * dx[axis];
+
+											const double x_mid_side_um =
+												x_lower[axis] +
+												static_cast<double>(i_s_um(axis) - patch_lower[axis] + 0.5) * dx[axis];
+
+											TBOX_ASSERT(xu(axis) <= x_mid_side_up);
+											TBOX_ASSERT(xu(axis) > x_mid_side_um);
+
+											const double sdh_up = xu(axis) - x_mid_side_up; // Signed Distance h
+											const double sdh_um = xu(axis) - x_mid_side_um;
+
+											double C_u_um = 0;
+											double C_u_up = 0;
+
+						  
+											interpolate(&jn(0), 0, DU_j_node[j], phi);
+											C_u_um = sdh_um * jn(axis);
+											C_u_up = sdh_up * jn(axis);
+				   
+											
+											const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
+
+											(*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
+
+											(*f_data)(i_s_up) -= sgn * (C_u_um / (dx[axis] * dx[axis]));
+										}
+
+										intersectionSide_u_points[j][axis][i_s_um].push_back(xu);
+										intersectionSide_u_ref_coords[j][axis][i_s_um].push_back(xui);
+										intersectionSide_u_normals[j][axis][i_s_um].push_back(n);
+									}
+								}
+							}
+
+						 
+						 }
+						 
                     
-
-
-                        for (unsigned int k = 0; k < intersectionsSide.size(); ++k)
-                        {
-                            libMesh::Point xu = rs + intersectionsSide[k].first * q;
-                            const libMesh::Point& xui = intersectionsSide[k].second;
-                            SideIndex<NDIM> i_s_up;
-                            SideIndex<NDIM> i_s_um;
-                            if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) >= 0.5 * dx[axis])
-                            {
-                                SideIndex<NDIM> i_side_um(i_c, SideDim[0], 0);
-                                Index<NDIM> i_c_neighbor = i_c;
-                                i_c_neighbor(axis) += 1;
-
-                                SideIndex<NDIM> i_side_up(i_c_neighbor, SideDim[0], 0);
-
-                                i_side_up(axis) =
-                                    static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] + 0.5)) +
-                                    patch_lower[axis];
-                                i_side_um(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
-                                               patch_lower[axis];
-                                i_s_up = i_side_up;
-                                i_s_um = i_side_um;
-							}
-                             else if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) < 0.5 * dx[axis] &&
-                                    fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) >= 0.0)
-                             {
-                                SideIndex<NDIM> i_side_up(i_c, SideDim[0], 0);
-                                Index<NDIM> i_c_neighbor = i_c;
-                                i_c_neighbor(axis) -= 1;
-                                SideIndex<NDIM> i_side_um(i_c_neighbor, SideDim[0], 0);
-
-                                i_side_up(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
-                                               patch_lower[axis];
-                                i_side_um(axis) =
-                                    static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
-                                    patch_lower[axis];
-                                i_s_up = i_side_up;
-                                i_s_um = i_side_um;
-							  }
-                              else
-                              {
-                                TBOX_ERROR(d_object_name << ":  Restart file version different than class version."
-                                                         << std::endl);
-                              }
-
-                              if (side_u_boxes[axis].contains(i_s_up) && side_u_boxes[axis].contains(i_s_um))
-                              {
-                                    std::vector<libMesh::Point> ref_coords(1, xui);
-                                    fe->reinit(elem, &ref_coords);
-                                    for (unsigned int l = 0; l < NDIM - 1; ++l)
-                                    {
-                                        interpolate(dx_dxi[l], 0, x_node, *dphi_dxi[l]);
-                                    }
-                                    if (NDIM == 2)
-                                    {
-                                        dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
-                                    }
-                                    n = (dx_dxi[0].cross(dx_dxi[1])).unit();
-
-                                    bool found_same_intersection_point = false;
-                                    
-                                    for (int shift = -1; shift <= 1; ++shift)
-									{
-										SideIndex<NDIM> i_s_prime = i_s_um;
-										i_s_prime(SideDim[0]) += shift;
-										const std::vector<libMesh::Point>& candidate_coords =
-											intersectionSide_u_points[axis][i_s_prime];
-										const std::vector<libMesh::Point>& candidate_ref_coords =
-											intersectionSide_u_ref_coords[axis][i_s_prime];
-										const std::vector<VectorValue<double> >& candidate_normals =
-											intersectionSide_u_normals[axis][i_s_prime];
-										std::vector<libMesh::Point>::const_iterator x_prime_it = candidate_coords.begin();
-										std::vector<libMesh::Point>::const_iterator xi_prime_it =
-											candidate_ref_coords.begin();
-										std::vector<VectorValue<double> >::const_iterator n_prime_it =
-											candidate_normals.begin();
-										for (; x_prime_it != candidate_coords.end();
-											 ++x_prime_it, ++xi_prime_it, ++n_prime_it)
-										{
-											const libMesh::Point& x_prime = *x_prime_it;
-											const libMesh::Point& xi_prime = *xi_prime_it;
-											const libMesh::Point& n_prime = *n_prime_it;
-											if (xu.absolute_fuzzy_equals(x_prime, 1.0e-5 * dx[axis]))
-											{
-												// WARNING: This check is ONLY
-												// guaranteed to work at edges (where
-												// only two elements meet).  To avoid FE
-												// mesh nodes, set
-												// d_perturb_fe_mesh_nodes to true.
-												found_same_intersection_point = n(axis) * n_prime(axis) > 0.0;
-												if (d_do_log)
-												{
-													plog << "==========\n";
-													plog << "multiple intersections detected:\n";
-													plog << "  x    = " << xu << "\n";
-													plog << "  x'   = " << x_prime << "\n";
-													plog << "  xi   = " << xui << "\n";
-													plog << "  xi'  = " << xi_prime << "\n";
-													plog << "  n    = " << n << "\n";
-													plog << "  n'   = " << n_prime << "\n";
-													plog << "  i_s  = " << i_s_um << "\n";
-													plog << "  i_s' = " << i_s_prime << "\n";
-													plog << "  axis = " << axis << "\n";
-												}
-											}
-											if (found_same_intersection_point) break;
-										}
-										if (found_same_intersection_point) break;
-									  }
-
-									TBOX_ASSERT(i_s_up.getAxis()==SideDim[0]);
-									TBOX_ASSERT(i_s_um.getAxis()==SideDim[0]);
-									
-                                    if (!found_same_intersection_point)
-                                    {
-                                        if (side_u_boxes[SideDim[0]].contains(i_s_up) && side_u_boxes[SideDim[0]].contains(i_s_um))
-                                        {
-                                            // Impose the jump conditions.
-                                            // *********************************************************************************************************//
-
-                                            TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
-
-                                            double x_mid_side_up =
-                                                x_lower[axis] +
-                                                static_cast<double>(i_s_up(axis) - patch_lower[axis] + 0.5) * dx[axis];
-
-                                            double x_mid_side_um =
-                                                x_lower[axis] +
-                                                static_cast<double>(i_s_um(axis) - patch_lower[axis] + 0.5) * dx[axis];
-
-                                            TBOX_ASSERT(xu(axis) <= x_mid_side_up);
-                                            TBOX_ASSERT(xu(axis) > x_mid_side_um);
-
-                                            double sdh_up = xu(axis) - x_mid_side_up; // Signed Distance h
-                                            double sdh_um = xu(axis) - x_mid_side_um;
-
-                                            double C_u_um, C_u_up;
-
-               
-                                            interpolate(&jn(0), 0, DU_j_node[SideDim[0]], phi);
-                                            C_u_um = sdh_um * jn(axis);
-                                            C_u_up = sdh_up * jn(axis);
-
-                                            const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
-
-                                            (*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
-
-                                            (*f_data)(i_s_up) -= sgn * (C_u_um / (dx[axis] * dx[axis]));
-                                        }
-
-                                        intersectionSide_u_points[axis][i_s_um].push_back(xu);
-                                        intersectionSide_u_ref_coords[axis][i_s_um].push_back(xui);
-                                        intersectionSide_u_normals[axis][i_s_um].push_back(n);
-                                    }
-                                }
-                         
-                         }
-                        for (unsigned int k = 0; k < intersectionsSide2.size(); ++k)
-                        {
-                            libMesh::Point xu = rss + intersectionsSide2[k].first * q;
-                            const libMesh::Point& xui = intersectionsSide2[k].second;
-                            SideIndex<NDIM> i_s_up;
-                            SideIndex<NDIM> i_s_um;
-                            if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) >= 0.5 * dx[axis])
-                            {
-                                SideIndex<NDIM> i_side_um(i_c, SideDim[1], 0);
-                                Index<NDIM> i_c_neighbor = i_c;
-                                i_c_neighbor(axis) += 1;
-
-                                SideIndex<NDIM> i_side_up(i_c_neighbor, SideDim[1], 0);
-
-                                i_side_up(axis) =
-                                    static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] + 0.5)) +
-                                    patch_lower[axis];
-                                i_side_um(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
-                                               patch_lower[axis];
-                                i_s_up = i_side_up;
-                                i_s_um = i_side_um;
-
-							}
-						    else if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) < 0.5 * dx[axis] &&
-                                     fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) >= 0.0)
-                            {
-                                SideIndex<NDIM> i_side_up(i_c, SideDim[1], 0);
-                                Index<NDIM> i_c_neighbor = i_c;
-                                i_c_neighbor(axis) -= 1;
-                                SideIndex<NDIM> i_side_um(i_c_neighbor, SideDim[1], 0);
-
-                                i_side_up(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
-                                               patch_lower[axis];
-                                i_side_um(axis) =
-                                    static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
-                                    patch_lower[axis];
-                                    
-                                i_s_up = i_side_up;
-                                i_s_um = i_side_um;
-                            }
-                            else
-                            {
-                                TBOX_ERROR(d_object_name << ": Improper side index found!" << std::endl);
-                            }
-
-                                if (side_boxes[axis].contains(i_s_up) && side_boxes[axis].contains(i_s_um))
-                                {
-                                    std::vector<libMesh::Point> ref_coords(1, xui);
-                                    fe->reinit(elem, &ref_coords);
-                                    for (unsigned int l = 0; l < NDIM - 1; ++l)
-                                    {
-                                        interpolate(dx_dxi[l], 0, x_node, *dphi_dxi[l]);
-                                    }
-                                    if (NDIM == 2)
-                                    {
-                                        dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
-                                    }
-                                    n = (dx_dxi[0].cross(dx_dxi[1])).unit();
-
-                                    bool found_same_intersection_point = false;
-                                    for (int shift = -1; shift <= 1; ++shift)
-									{
-										SideIndex<NDIM> i_s_prime = i_s_um;
-										i_s_prime(SideDim[1]) += shift;
-										const std::vector<libMesh::Point>& candidate_coords =
-											intersectionSide_u_points[axis][i_s_prime];
-										const std::vector<libMesh::Point>& candidate_ref_coords =
-											intersectionSide_u_ref_coords[axis][i_s_prime];
-										const std::vector<VectorValue<double> >& candidate_normals =
-											intersectionSide_u_normals[axis][i_s_prime];
-										std::vector<libMesh::Point>::const_iterator x_prime_it = candidate_coords.begin();
-										std::vector<libMesh::Point>::const_iterator xi_prime_it =
-											candidate_ref_coords.begin();
-										std::vector<VectorValue<double> >::const_iterator n_prime_it =
-											candidate_normals.begin();
-										for (; x_prime_it != candidate_coords.end();
-											 ++x_prime_it, ++xi_prime_it, ++n_prime_it)
-										{
-											const libMesh::Point& x_prime = *x_prime_it;
-											const libMesh::Point& xi_prime = *xi_prime_it;
-											const libMesh::Point& n_prime = *n_prime_it;
-											if (xu.absolute_fuzzy_equals(x_prime, 1.0e-5 * dx[axis]))
-											{
-												// WARNING: This check is ONLY
-												// guaranteed to work at edges (where
-												// only two elements meet).  To avoid FE
-												// mesh nodes, set
-												// d_perturb_fe_mesh_nodes to true.
-												found_same_intersection_point = n(axis) * n_prime(axis) > 0.0;
-												if (d_do_log)
-												{
-													plog << "==========\n";
-													plog << "multiple intersections detected:\n";
-													plog << "  x    = " << xu << "\n";
-													plog << "  x'   = " << x_prime << "\n";
-													plog << "  xi   = " << xui << "\n";
-													plog << "  xi'  = " << xi_prime << "\n";
-													plog << "  n    = " << n << "\n";
-													plog << "  n'   = " << n_prime << "\n";
-													plog << "  i_s  = " << i_s_um << "\n";
-													plog << "  i_s' = " << i_s_prime << "\n";
-													plog << "  axis = " << axis << "\n";
-												}
-											}
-											if (found_same_intersection_point) break;
-										}
-										if (found_same_intersection_point) break;
-									 }
-
-
-                                    if (!found_same_intersection_point)
-                                    {
-									
-                                        if (side_boxes[SideDim[1]].contains(i_s_up) && side_boxes[SideDim[1]].contains(i_s_um))
-                                        {
-                                            // Impose the jump conditions.
-                                            // *********************************************************************************************************//
-                                           
-                                            TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
-
-                                            double x_mid_side_up =
-                                                x_lower[axis] +
-                                                static_cast<double>(i_s_up(axis) - patch_lower[axis] + 0.5) * dx[axis];
-
-                                            double x_mid_side_um =
-                                                x_lower[axis] +
-                                                static_cast<double>(i_s_um(axis) - patch_lower[axis] + 0.5) * dx[axis];
-                                            TBOX_ASSERT(xu(axis) <= x_mid_side_up);
-                                            TBOX_ASSERT(xu(axis) > x_mid_side_um);
-
-                                            double sdh_up = xu(axis) - x_mid_side_up; // Signed Distance h
-                                            double sdh_um = xu(axis) - x_mid_side_um;
-
-                                            double C_u_um, C_u_up;
-
-         
-                                            interpolate(&jn(0), 0, DU_j_node[SideDim[1]], phi);
-                                            C_u_um = sdh_um * jn(axis);
-                                            C_u_up = sdh_up * jn(axis);
-
-  
-                                            const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
-
-                                            (*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
-
-                                            (*f_data)(i_s_up) -= sgn * (C_u_um / (dx[axis] * dx[axis]));
-                                        }
-
-                                        intersectionSide2_u_points[axis][i_s_um].push_back(xu);
-                                        intersectionSide2_u_ref_coords[axis][i_s_um].push_back(xui);
-                                        intersectionSide2_u_normals[axis][i_s_um].push_back(n);
-                                    }
-                                }
-
-                        }
-
-#endif
                     }
                 }
             }
