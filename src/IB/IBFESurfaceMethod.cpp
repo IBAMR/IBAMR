@@ -2438,7 +2438,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                     C_u_um = sdh_um * jn(axis);
                                     
                                     const double sgn = n(axis) > 0.0 ? 1.0 : -1.0;
-
+									// Note that the corrections are applied to opposite sides
                                     (*f_data)(i_s_up) -= sgn * (C_u_um / (dx[axis] * dx[axis]));
                                     (*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
                                 }
@@ -2743,7 +2743,9 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 										if (found_same_intersection_point) break;
 									  }
 
-
+									TBOX_ASSERT(i_s_up.getAxis()==SideDim[0]);
+									TBOX_ASSERT(i_s_um.getAxis()==SideDim[0]);
+									
                                     if (!found_same_intersection_point)
                                     {
                                         if (side_u_boxes[SideDim[0]].contains(i_s_up) && side_u_boxes[SideDim[0]].contains(i_s_um))
@@ -2770,7 +2772,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                             double C_u_um, C_u_up;
 
                
-                                            interpolate(&jn(0), 0, DU_j_node[0], phi);
+                                            interpolate(&jn(0), 0, DU_j_node[SideDim[0]], phi);
                                             C_u_um = sdh_um * jn(axis);
                                             C_u_up = sdh_up * jn(axis);
 
