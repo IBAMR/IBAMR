@@ -217,7 +217,7 @@ get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
 } // get_dirichlet_bdry_ids
 
 inline double
-get_elem_hmax(Elem* const elem, const boost::multi_array<double, 2>& X_node)
+get_elem_hmax(const Elem* const elem, const boost::multi_array<double, 2>& X_node)
 {
     double hmax_squared = 0.0;
     if (elem->dim() == 1)
@@ -416,6 +416,12 @@ FEDataManager::getActivePatchElementMap() const
     return d_active_patch_elem_map;
 } // getActivePatchElementMap
 
+const std::vector<std::vector<Node*> >&
+FEDataManager::getActivePatchNodeMap() const
+{
+    return d_active_patch_node_map;
+} // getActivePatchNodeMap
+
 void
 FEDataManager::reinitElementMappings()
 {
@@ -423,6 +429,7 @@ FEDataManager::reinitElementMappings()
 
     // Delete cached hierarchy-dependent data.
     d_active_patch_elem_map.clear();
+    d_active_patch_node_map.clear();
     d_active_patch_ghost_dofs.clear();
     for (std::map<std::string, NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
          it != d_system_ghost_vec.end();
@@ -434,6 +441,7 @@ FEDataManager::reinitElementMappings()
 
     // Reset the mappings between grid patches and active mesh elements.
     collectActivePatchElements(d_active_patch_elem_map, d_level_number, d_ghost_width);
+    collectActivePatchNodes(d_active_patch_node_map, d_active_patch_elem_map);
 
     IBTK_TIMER_STOP(t_reinit_element_mappings);
     return;
@@ -1768,7 +1776,7 @@ FEDataManager::updateQuadratureRule(UniquePtr<QBase>& qrule,
                                     Order order,
                                     bool use_adaptive_quadrature,
                                     double point_density,
-                                    Elem* const elem,
+                                    const Elem* const elem,
                                     const boost::multi_array<double, 2>& X_node,
                                     const double dx_min)
 {
@@ -1809,7 +1817,7 @@ FEDataManager::updateQuadratureRule(UniquePtr<QBase>& qrule,
 bool
 FEDataManager::updateInterpQuadratureRule(UniquePtr<QBase>& qrule,
                                           const FEDataManager::InterpSpec& spec,
-                                          Elem* const elem,
+                                          const Elem* const elem,
                                           const boost::multi_array<double, 2>& X_node,
                                           const double dx_min)
 {
@@ -1820,7 +1828,7 @@ FEDataManager::updateInterpQuadratureRule(UniquePtr<QBase>& qrule,
 bool
 FEDataManager::updateSpreadQuadratureRule(UniquePtr<QBase>& qrule,
                                           const FEDataManager::SpreadSpec& spec,
-                                          Elem* const elem,
+                                          const Elem* const elem,
                                           const boost::multi_array<double, 2>& X_node,
                                           const double dx_min)
 {
@@ -2078,7 +2086,6 @@ FEDataManager::FEDataManager(const std::string& object_name,
       d_ghost_width(ghost_width),
       d_es(NULL),
       d_level_number(-1),
-      d_active_patch_ghost_dofs(),
       d_L2_proj_solver(),
       d_L2_proj_matrix(),
       d_L2_proj_matrix_diag()
@@ -2532,13 +2539,41 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         const std::set<Elem*>& local_elems = local_patch_elems[local_patch_num];
         active_elems.resize(local_elems.size());
         int k = 0;
-        for (std::set<Elem *>::const_iterator cit = local_elems.begin(); cit != local_elems.end(); ++cit, ++k)
+        for (std::set<Elem*>::const_iterator cit = local_elems.begin(); cit != local_elems.end(); ++cit, ++k)
         {
             active_elems[k] = *cit;
         }
     }
     return;
 } // collectActivePatchElements
+
+void
+FEDataManager::collectActivePatchNodes(std::vector<std::vector<Node*> >& active_patch_nodes,
+                                       const std::vector<std::vector<Elem*> >& active_patch_elems)
+{
+    const MeshBase& mesh = d_es->get_mesh();
+    const unsigned int num_local_patches = active_patch_elems.size();
+    active_patch_nodes.resize(num_local_patches);
+    for (unsigned int k = 0; k < num_local_patches; ++k)
+    {
+        std::set<dof_id_type> active_node_ids;
+        for (unsigned int e = 0; e < active_patch_elems[k].size(); ++e)
+        {
+            const Elem* const elem = active_patch_elems[k][e];
+            for (unsigned int n = 0; n < elem->n_nodes(); ++n)
+            {
+                active_node_ids.insert(elem->node_id(n));
+            }
+        }
+        const unsigned int num_active_nodes = active_node_ids.size();
+        active_patch_nodes[k].reserve(num_active_nodes);
+        for (std::set<dof_id_type>::iterator it = active_node_ids.begin(); it != active_node_ids.end(); ++it)
+        {
+            active_patch_nodes[k].push_back(const_cast<Node*>(mesh.node_ptr(*it)));
+        }
+    }
+    return;
+}
 
 void
 FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
