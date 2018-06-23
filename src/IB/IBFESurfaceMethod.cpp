@@ -2059,12 +2059,6 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
         boost::array< boost::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>, NDIM>
             intersectionSide_u_normals;
 
-#if (NDIM == 3)
-        boost::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM>
-            intersectionSide2_u_points, intersectionSide2_u_ref_coords;
-        boost::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>
-            intersectionSide2_u_normals;
-#endif
 
         // Loop over the elements.
         for (size_t e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -2166,10 +2160,10 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                 axis_box.upper(axis) = 0;
                 
                 
-                int SideDim [NDIM][NDIM - 1];
+                unsigned int SideDim [NDIM][NDIM - 1];
                 for (unsigned int d = 0; d < NDIM ; ++d)
 					for (unsigned int l = 0; l < NDIM - 1; ++l)
-						SideDim[d][l] = (d + 1) % NDIM; //(l == d? 0: (d + 1) % NDIM);
+						SideDim[d][l] = (d + l + 1) % NDIM; //(l == d? 0: (d + 1) % NDIM);
 				
 							
 					//~ if (axis == 0)
@@ -2507,14 +2501,14 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 								const libMesh::Point& xui = intersectionsSide[j][k].second;
 								SideIndex<NDIM> i_s_up;
 								SideIndex<NDIM> i_s_um;
-								int dd = (axis == 0 ? 1 : 0);
+
 								if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) >= 0.5 * dx[axis])
 								{
-									SideIndex<NDIM> i_side_um(i_c, dd, 0);
+									SideIndex<NDIM> i_side_um(i_c, SideDim[axis][j], 0);
 									Index<NDIM> i_c_neighbor = i_c;
 									i_c_neighbor(axis) += 1;
 
-									SideIndex<NDIM> i_side_up(i_c_neighbor, dd, 0);
+									SideIndex<NDIM> i_side_up(i_c_neighbor, SideDim[axis][j], 0);
 
 									i_side_up(axis) =
 										static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] + 0.5)) +
@@ -2527,10 +2521,10 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 								else if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) < 0.5 * dx[axis] &&
 										 fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) >= 0.0)
 								{
-									SideIndex<NDIM> i_side_up(i_c, dd, 0);
+									SideIndex<NDIM> i_side_up(i_c, SideDim[axis][j], 0);
 									Index<NDIM> i_c_neighbor = i_c;
 									i_c_neighbor(axis) -= 1;
-									SideIndex<NDIM> i_side_um(i_c_neighbor, dd, 0);
+									SideIndex<NDIM> i_side_um(i_c_neighbor, SideDim[axis][j], 0);
 									i_side_up(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
 													  patch_lower[axis];
 									i_side_um(axis) =
@@ -2565,7 +2559,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 									for (int shift = -1; shift <= 1; ++shift)
 									{
 										SideIndex<NDIM> i_s_prime = i_s_um;
-										i_s_prime(dd) += shift;
+										i_s_prime(SideDim[axis][j]) += shift;
 										const std::vector<libMesh::Point>& candidate_coords =
 											intersectionSide_u_points[j][axis][i_s_prime];
 										const std::vector<libMesh::Point>& candidate_ref_coords =
@@ -2618,7 +2612,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 
 										// Evaluate the jump conditions and apply them
 										// to the Eulerian grid.
-										if (side_u_boxes[dd].contains(i_s_um) && side_u_boxes[dd].contains(i_s_up))
+										if (side_u_boxes[SideDim[axis][j]].contains(i_s_um) && side_u_boxes[SideDim[axis][j]].contains(i_s_up))
 										{
 											TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
 
@@ -2640,7 +2634,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 											double C_u_up = 0;
 
 						  
-											interpolate(&jn(0), 0, DU_j_node[j], phi);
+											interpolate(&jn(0), 0, DU_j_node[SideDim[axis][j]], phi);
 											C_u_um = sdh_um * jn(axis);
 											C_u_up = sdh_up * jn(axis);
 				   
