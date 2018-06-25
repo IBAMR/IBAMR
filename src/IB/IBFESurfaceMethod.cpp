@@ -158,6 +158,7 @@ const std::string IBFESurfaceMethod::COORD_MAPPING_SYSTEM_NAME = "IB coordinate 
 const std::string IBFESurfaceMethod::FORCE_SYSTEM_NAME = "IB force system";
 const std::string IBFESurfaceMethod::NORMAL_VELOCITY_SYSTEM_NAME = "IB normal velocity system";
 const std::string IBFESurfaceMethod::PRESSURE_JUMP_SYSTEM_NAME = "IB [[p]] system";
+const std::string IBFESurfaceMethod::WSS_O_SYSTEM_NAME = "One sided exterior shear stress system";
 const std::string IBFESurfaceMethod::TANGENTIAL_VELOCITY_SYSTEM_NAME = "IB tangential velocity system";
 const boost::array<std::string, NDIM> IBFESurfaceMethod::VELOCITY_JUMP_SYSTEM_NAME = {
     { "IB velocity [[du]] jump system",
@@ -342,6 +343,10 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
     d_DU_j_systems.resize(d_num_parts);
     d_DU_j_half_vecs.resize(d_num_parts);
     d_DU_j_IB_ghost_vecs.resize(d_num_parts);
+    
+    d_WSS_o_systems.resize(d_num_parts);
+    d_WSS_o_half_vecs.resize(d_num_parts);
+    d_WSS_o_IB_ghost_vecs.resize(d_num_parts);
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -403,6 +408,13 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
                     dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(
                         VELOCITY_JUMP_SYSTEM_NAME[d], /*localize_data*/ false));
             }
+            
+            
+                d_WSS_o_systems[part] = &d_equation_systems[part]->get_system(WSS_O_SYSTEM_NAME);
+				d_WSS_o_half_vecs[part] =
+				dynamic_cast<PetscVector<double>*>(d_WSS_o_systems[part]->current_local_solution.get());
+				d_WSS_o_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+					d_fe_data_managers[part]->buildGhostedSolutionVector(WSS_O_SYSTEM_NAME, /*localize_data*/ false));
         }
 
         // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
@@ -443,6 +455,8 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
                 d_DU_j_systems[part][d]->solution->close();
                 d_DU_j_systems[part][d]->solution->localize(*d_DU_j_half_vecs[part][d]);
             }
+            d_WSS_o_systems[part]->solution->close();
+			d_WSS_o_systems[part]->solution->localize(*d_WSS_o_half_vecs[part]);
         }
     }
     return;
@@ -504,6 +518,10 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
                 d_DU_j_systems[part][d]->solution->close();
                 d_DU_j_systems[part][d]->solution->localize(*d_DU_j_systems[part][d]->current_local_solution);
             }
+            d_WSS_o_half_vecs[part]->close();
+			*d_WSS_o_systems[part]->solution = *d_WSS_o_half_vecs[part];
+			d_WSS_o_systems[part]->solution->close();
+			d_WSS_o_systems[part]->solution->localize(*d_WSS_o_systems[part]->current_local_solution);
         }
 
         // Update the coordinate mapping dX = X - s.
@@ -542,6 +560,11 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
     d_DU_j_systems.clear();
     d_DU_j_half_vecs.clear();
     d_DU_j_IB_ghost_vecs.clear();
+    
+    
+    d_WSS_o_systems.clear();
+    d_WSS_o_half_vecs.clear();
+    d_WSS_o_IB_ghost_vecs.clear();
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -586,6 +609,8 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             X_vec = d_X_new_vecs[part];
         }
         X_vec->localize(*X_ghost_vec);
+        
+        NumericVector<double>* WSS_o_vec = d_WSS_o_half_vecs[part];
 
         // Extract the mesh.
         EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
@@ -613,6 +638,11 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         boost::array<const DofMap*, NDIM> DU_j_dof_map;
         boost::array<FEDataManager::SystemDofMapCache*, NDIM> DU_j_dof_map_cache;
         boost::array<std::vector<std::vector<unsigned int> >, NDIM> DU_j_dof_indices;
+        std::vector<std::vector<unsigned int> > WSS_o_dof_indices(NDIM);
+        System* WSS_o_system;
+        const DofMap* WSS_o_dof_map;
+        FEDataManager::SystemDofMapCache* WSS_o_dof_map_cache;
+
         if (d_use_velocity_jump_conditions)
         {
             for (unsigned int i = 0; i < NDIM; ++i)
@@ -628,6 +658,17 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                 TBOX_ASSERT(U_fe_type == DU_j_fe_type);
                 DU_j_dof_indices[i].resize(NDIM);
             }
+            
+            WSS_o_system = &equation_systems->get_system(WSS_O_SYSTEM_NAME);
+			WSS_o_dof_map = &WSS_o_system->get_dof_map();
+			WSS_o_dof_map_cache = d_fe_data_managers[part]->getDofMapCache(WSS_O_SYSTEM_NAME);
+			FEType WSS_o_fe_type = WSS_o_dof_map->variable_type(0);
+			for (unsigned int d = 0; d < NDIM; ++d)
+			{
+				TBOX_ASSERT(WSS_o_dof_map->variable_type(d) == WSS_o_fe_type);
+			}
+			
+			
         }
         FEType fe_type = U_fe_type;
         UniquePtr<FEBase> fe = FEBase::build(dim, fe_type);
@@ -654,13 +695,18 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         std::vector<DenseVector<double> > U_n_rhs_e(NDIM);
         UniquePtr<NumericVector<double> > U_t_rhs_vec = U_t_vec->zero_clone();
         std::vector<DenseVector<double> > U_t_rhs_e(NDIM);
+        
+        UniquePtr<NumericVector<double> > WSS_o_rhs_vec = WSS_o_vec->zero_clone();
+	    (*WSS_o_rhs_vec).zero();
+		std::vector<DenseVector<double> > WSS_o_rhs_e(NDIM);
+		
         boost::multi_array<double, 2> x_node;
         boost::array<boost::multi_array<double, 2>, NDIM> DU_j_node;
-        std::vector<double> U_qp, n_qp, x_qp;
+        std::vector<double> U_qp, U_o_qp, WSS_o_qp, n_qp, x_qp, x_o_qp;
         boost::array<std::vector<double>, NDIM> DU_j_qp;
-        VectorValue<double> U, U_n, U_t, n;
+        VectorValue<double> U, WSS_o, U_n, U_t, n;
         boost::array<VectorValue<double>, 2> dx_dxi;
-
+     
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
         int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -677,6 +723,13 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
+            
+            double diag_dis = 0.0;
+			for (unsigned int d = 0; d < NDIM; ++d)
+			{
+					diag_dis += patch_dx[d] * patch_dx[d];
+			}
+			const double dh = d_wss_calc_width * sqrt(diag_dis);
 
             // Setup vectors to store the values of U, DU_j, x, and n at the
             // quadrature points.
@@ -695,13 +748,18 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 
             if (!n_qpoints_patch) continue;
             U_qp.resize(NDIM * n_qpoints_patch);
+            WSS_o_qp.resize(NDIM * n_qpoints_patch);
+            U_o_qp.resize(NDIM * n_qpoints_patch);
             x_qp.resize(NDIM * n_qpoints_patch);
+            x_o_qp.resize(NDIM * n_qpoints_patch);
             n_qp.resize(NDIM * n_qpoints_patch);
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 DU_j_qp[axis].resize(NDIM * n_qpoints_patch);
             }
             std::fill(U_qp.begin(), U_qp.end(), 0.0);
+            std::fill(U_o_qp.begin(), U_o_qp.end(), 0.0);
+            std::fill(WSS_o_qp.begin(), WSS_o_qp.end(), 0.0);
 
             // Loop over the elements and compute the positions of the quadrature points.
             qrule.reset();
@@ -740,6 +798,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                     double* DU_j_begin = &DU_j_qp[axis][NDIM * qp_offset];
                     std::fill(DU_j_begin, DU_j_begin + NDIM * n_qpoints, 0.0);
                 }
+                
 
                 // Interpolate x, du, and dv at the quadrature points via
                 // accumulation, e.g., x(qp) = sum_k x_k * phi_k(qp) for each
@@ -752,6 +811,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             x_qp[NDIM * (qp_offset + qp) + d] += x_node[k][d] * p;
+                            x_o_qp[NDIM * (qp_offset + qp) + d] += x_node[k][d] * p;
                         }
                         for (unsigned int axis = 0; axis < NDIM; ++axis)
                         {
@@ -776,10 +836,12 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         n_qp[NDIM * (qp_offset + qp) + d] = n(d);
+                        x_o_qp[NDIM * (qp_offset + qp) + d] += n(d) * dh;
                     }
                 }
                 qp_offset += n_qpoints;
             }
+            
 
             // Interpolate values from the Cartesian grid patch to the
             // quadrature points.
@@ -802,6 +864,12 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             }
             else if (u_sc_data && d_use_velocity_jump_conditions)
             {
+				
+				LEInteractor::interpolate(
+                    U_o_qp, NDIM, x_o_qp, NDIM, u_sc_data, patch, interp_box, d_default_interp_spec.kernel_fcn);
+                    
+              
+                    
                 const IntVector<NDIM>& u_gcw = u_sc_data->getGhostCellWidth();
                 const int u_depth = u_sc_data->getDepth();
                 TBOX_ASSERT(u_depth == 1);
@@ -990,14 +1058,24 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 #endif
                         }
                     }
-
+                   
                     for (unsigned int k = 0; k < local_indices.size(); ++k)
                     {
                         U_qp[NDIM * local_indices[k] + axis] = U_axis[local_indices[k]];
+
+						if (dh !=0.0)
+						{
+							WSS_o_qp[NDIM * local_indices[k] + axis] = d_mu * (1.0/dh) * (U_o_qp[NDIM * local_indices[k] + axis] - U_qp[NDIM * local_indices[k] + axis]);
+						}
+						else
+						{
+							TBOX_ERROR(d_object_name << ": The width for the wall shear stress hasn't been setup!" << std::endl);
+						}
+						
+
                     }
                 }
             }
-
             // Loop over the elements and accumulate the right-hand-side values.
             qrule.reset();
             qp_offset = 0;
@@ -1011,6 +1089,11 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                     U_n_rhs_e[d].resize(static_cast<int>(U_dof_indices[d].size()));
                     U_t_rhs_e[d].resize(static_cast<int>(U_dof_indices[d].size()));
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+                    if (d_use_velocity_jump_conditions)
+                    { 
+						WSS_o_dof_map_cache->dof_indices(elem, WSS_o_dof_indices[d], d);
+						WSS_o_rhs_e[d].resize(static_cast<int>(WSS_o_dof_indices[d].size()));
+					}
                 }
                 get_values_for_interpolation(x_node, *X_ghost_vec, X_dof_indices);
                 const bool qrule_changed =
@@ -1035,6 +1118,10 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         U(d) = U_qp[NDIM * (qp_offset + qp) + d];
+						if (d_use_velocity_jump_conditions)
+						{ 
+							WSS_o(d) = WSS_o_qp[NDIM * (qp_offset + qp) + d];
+						}
                     }
                     U_n = (U * n) * n;
                     U_t = U - U_n;
@@ -1046,6 +1133,10 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                             U_rhs_e[d](k) += U(d) * p_JxW;
                             U_n_rhs_e[d](k) += U_n(d) * p_JxW;
                             U_t_rhs_e[d](k) += U_t(d) * p_JxW;
+                            if (d_use_velocity_jump_conditions)
+							{ 
+								WSS_o_rhs_e[d](k) += WSS_o(d) * p_JxW;
+							}
                         }
                     }
                 }
@@ -1057,6 +1148,11 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                     U_rhs_vec->add_vector(U_rhs_e[d], U_dof_indices[d]);
                     U_n_rhs_vec->add_vector(U_n_rhs_e[d], U_dof_indices[d]);
                     U_t_rhs_vec->add_vector(U_t_rhs_e[d], U_dof_indices[d]);
+                    if (d_use_velocity_jump_conditions)
+                    { 
+                        WSS_o_dof_map->constrain_element_vector(WSS_o_rhs_e[d], WSS_o_dof_indices[d]);
+						WSS_o_rhs_vec->add_vector(WSS_o_rhs_e[d], WSS_o_dof_indices[d]);
+					}
                 }
                 qp_offset += n_qpoints;
             }
@@ -1064,7 +1160,12 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         U_rhs_vec->close();
         U_n_rhs_vec->close();
         U_t_rhs_vec->close();
-
+		if (d_use_velocity_jump_conditions)
+        { 
+			WSS_o_rhs_vec->close();
+			d_fe_data_managers[part]->computeL2Projection(
+				*WSS_o_vec, *WSS_o_rhs_vec, WSS_O_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
+		}
         // Solve for the nodal values.
         d_fe_data_managers[part]->computeL2Projection(
             *U_vec, *U_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
@@ -1072,6 +1173,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             *U_n_vec, *U_n_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
         d_fe_data_managers[part]->computeL2Projection(
             *U_t_vec, *U_t_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
+
     }
     return;
 } // interpolateVelocity
@@ -1684,6 +1786,14 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                         DU_j_system[d]->add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
                     }
                 }
+                
+                System& WSS_o_system = equation_systems->add_system<System>(WSS_O_SYSTEM_NAME);
+				for (unsigned int d = 0; d < NDIM; ++d)
+				{
+					std::ostringstream os;
+					os << "WSS_o" << d;
+					WSS_o_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+				}
             }
         }
     }
@@ -1754,6 +1864,10 @@ IBFESurfaceMethod::initializeFEData()
                 DU_j_system[d]->assemble_before_solve = false;
                 DU_j_system[d]->assemble();
             }
+            System& WSS_o_system = equation_systems->get_system<System>(WSS_O_SYSTEM_NAME);
+            WSS_o_system.assemble_before_solve = false;
+			WSS_o_system.assemble();
+
         }
     }
     d_fe_data_initialized = true;
@@ -2747,6 +2861,7 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     const bool use_adaptive_quadrature = true;
     const int point_density = 2.0;
     d_mu = 0.0;
+    d_wss_calc_width = 0.0;
     const bool interp_use_consistent_mass_matrix = true;
     d_default_interp_spec = FEDataManager::InterpSpec(
         "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, interp_use_consistent_mass_matrix);
@@ -2918,6 +3033,10 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         if (db->isBool("perturb_fe_mesh_nodes")) d_perturb_fe_mesh_nodes = db->getBool("perturb_fe_mesh_nodes");
         if (db->isBool("normalize_pressure_jump")) d_normalize_pressure_jump = db->getBool("normalize_pressure_jump");
     }
+    if (d_use_velocity_jump_conditions)
+    {
+		if (db->isDouble("wss_calc_width")) d_wss_calc_width = db->getDouble("wss_calc_width");
+	}
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
     if (db->isBool("use_direct_forcing")) d_use_direct_forcing = db->getBool("use_direct_forcing");
