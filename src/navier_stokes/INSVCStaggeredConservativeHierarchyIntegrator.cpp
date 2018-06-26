@@ -757,11 +757,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
     // Setup the solution and right-hand-side vectors.
     setupSolverVectors(d_sol_vec, d_rhs_vec, current_time, new_time, cycle_num);
 
+    // Scale rhs if necessary
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         d_hier_sc_data_ops->resetLevels(ln, ln);
         const double A_scale = d_A_scale[ln];
-        // Scale rhs if necessary
         if (!MathUtilities<double>::equalEps(A_scale, 1.0))
         {
             d_hier_sc_data_ops->scale(d_rhs_vec->getComponentDescriptorIndex(0),
@@ -769,15 +769,17 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
                                       d_rhs_vec->getComponentDescriptorIndex(0),
                                       /*interior_only*/ true);
         }
+        d_hier_sc_data_ops->resetLevels(coarsest_ln, finest_ln);
     }
-        // Solve for u(n+1), p(n+1/2).
-        d_stokes_solver->solveSystem(*d_sol_vec, *d_rhs_vec);
 
+    // Solve for u(n+1), p(n+1/2).
+    d_stokes_solver->solveSystem(*d_sol_vec, *d_rhs_vec);
+
+    // Unscale rhs if necessary
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         d_hier_sc_data_ops->resetLevels(ln, ln);
         const double A_scale = d_A_scale[ln];
-        // Unscale rhs if necessary
         if (!MathUtilities<double>::equalEps(A_scale, 1.0))
         {
             d_hier_sc_data_ops->scale(d_rhs_vec->getComponentDescriptorIndex(0),
@@ -1436,7 +1438,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
     // Scale pressure solution if necessary
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        d_hier_sc_data_ops->resetLevels(ln, ln);
+        d_hier_cc_data_ops->resetLevels(ln, ln);
         const double A_scale = d_A_scale[ln];
         if (!MathUtilities<double>::equalEps(A_scale, 1.0))
         {
@@ -1445,7 +1447,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
                                       d_P_new_idx,
                                       /*interior_only*/ true);
         }
-        d_hier_sc_data_ops->resetLevels(coarsest_ln, finest_ln);
+        d_hier_cc_data_ops->resetLevels(coarsest_ln, finest_ln);
     }
 
     // Reset the right-hand side vector.
