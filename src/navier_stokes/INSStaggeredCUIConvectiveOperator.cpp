@@ -508,7 +508,7 @@ namespace
 // NOTE: The number of ghost cells required by the advection scheme
 // These values were chosen to work with CUI (the cubic interpolation
 // upwind method of Waterson and Deconinck).
-static const int GADVECTG = 2;
+static const int GADVECTG = 3;
 
 // Timers.
 static Timer* t_apply_convective_operator;

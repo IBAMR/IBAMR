@@ -769,10 +769,14 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
                                       d_rhs_vec->getComponentDescriptorIndex(0),
                                       /*interior_only*/ true);
         }
-
+    }
         // Solve for u(n+1), p(n+1/2).
         d_stokes_solver->solveSystem(*d_sol_vec, *d_rhs_vec);
 
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        d_hier_sc_data_ops->resetLevels(ln, ln);
+        const double A_scale = d_A_scale[ln];
         // Unscale rhs if necessary
         if (!MathUtilities<double>::equalEps(A_scale, 1.0))
         {
