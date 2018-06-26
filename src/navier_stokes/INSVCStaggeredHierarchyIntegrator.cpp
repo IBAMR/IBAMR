@@ -438,14 +438,30 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(const std::
                                  << "  valid choices are: VC_HARMONIC_INTERP, VC_AVERAGE_INTERP\n");
     }
 
-    // Get the scaling coefficient
-    d_A_scale = 1.0;
-    if (input_db->keyExists("condition_no_scaling")) d_A_scale = input_db->getDouble("condition_no_scaling");
-    if (d_A_scale <= 0.0)
+    // Get the scaling coefficients
+    if (input_db->keyExists("condition_no_scaling"))
     {
-        TBOX_ERROR(d_object_name << "::INSVCStaggeredHierarchyIntegrator():\n"
-                                 << " scaling for improving the condition number of\n"
-                                 << " the Stokes system must be positive.");
+        d_A_scale = input_db->getDoubleArray("condition_no_scaling");
+        for (int k = 0; k < d_A_scale.size(); ++k)
+        {
+            if (d_A_scale[k] <= 0.0)
+            {
+                TBOX_ERROR(d_object_name << "::INSVCStaggeredHierarchyIntegrator():\n"
+                                         << " scaling for improving the condition number of\n"
+                                         << " the Stokes system must be positive.\n"
+                                         << " condition_no_scaling["
+                                         << k
+                                         << "] = "
+                                         << d_A_scale[k]
+                                         << "\n");
+            }
+        }
+    }
+    else
+    {
+        // The default is no scaling, which will be applied to all levels of the patch hierarchy
+        d_A_scale.resizeArray(1);
+        d_A_scale[0] = 1.0;
     }
 
     // By default, reinitialize the preconditioner every time step
@@ -663,6 +679,21 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
+    const int max_levels = gridding_alg->getMaxLevels();
+
+    // Setup the condition number scaling array.
+    // Extra entries will be stripped, while unset values will be set to that of the next coarsest level.
+    const int orig_size = d_A_scale.size();
+    const int size_difference = max_levels - orig_size;
+    d_A_scale.resizeArray(max_levels);
+    if (size_difference > 0)
+    {
+        const double last_scale = d_A_scale[orig_size - 1];
+        for (int k = orig_size; k < max_levels; ++k)
+        {
+            d_A_scale[k] = last_scale;
+        }
+    }
 
     // Setup solvers.
     if (d_stokes_solver_type == StaggeredStokesSolverManager::UNDEFINED)
@@ -687,7 +718,6 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
     if (d_velocity_precond_type == SCPoissonSolverManager::UNDEFINED)
     {
-        const int max_levels = gridding_alg->getMaxLevels();
         if (max_levels == 1)
         {
             d_velocity_precond_type = DEFAULT_VC_VELOCITY_LEVEL_SOLVER;
@@ -710,7 +740,6 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
     if (d_pressure_precond_type == CCPoissonSolverManager::UNDEFINED)
     {
-        const int max_levels = gridding_alg->getMaxLevels();
         if (max_levels == 1)
         {
             d_pressure_precond_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
@@ -729,7 +758,6 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
     if (d_regrid_projection_precond_type == CCPoissonSolverManager::UNDEFINED)
     {
-        const int max_levels = gridding_alg->getMaxLevels();
         if (max_levels == 1)
         {
             d_regrid_projection_precond_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
@@ -1021,9 +1049,9 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     d_temp_cc_idx = var_db->registerVariableAndContext(d_temp_cc_var, getCurrentContext(), cell_ghosts);
 
 #if (NDIM == 2)
-    d_mu_interp_var = new NodeVariable<NDIM, double>(d_object_name + "mu_interp");
+    d_mu_interp_var = new NodeVariable<NDIM, double>(d_object_name + "::mu_interp");
 #elif (NDIM == 3)
-    d_mu_interp_var = new EdgeVariable<NDIM, double>(d_object_name + "mu_interp");
+    d_mu_interp_var = new EdgeVariable<NDIM, double>(d_object_name + "::mu_interp");
 #endif
     d_mu_interp_idx =
         var_db->registerVariableAndContext(d_mu_interp_var, getCurrentContext(), NDIM == 2 ? node_ghosts : edge_ghosts);
@@ -1095,6 +1123,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         Pointer<VCSCViscousOpPointRelaxationFACOperator> p_vc_point_fac_op =
             p_poisson_fac_pc->getFACPreconditionerStrategy();
         if (p_vc_point_fac_op) p_vc_point_fac_op->setDPatchDataInterpolationType(d_mu_vc_interp_type);
+        if (p_vc_point_fac_op) p_vc_point_fac_op->setOperatorScaling(d_A_scale);
 
         Pointer<VCSCViscousOperator> p_velocity_op = p_velocity_solver->getOperator();
         if (p_velocity_op) p_velocity_op->setDPatchDataInterpolationType(d_mu_vc_interp_type);

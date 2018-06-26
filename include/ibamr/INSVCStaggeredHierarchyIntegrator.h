@@ -366,7 +366,7 @@ public:
     /*!
      * \brief Get the scaling factor used for A, p and u_rhs
      */
-    inline double getPressureScalingFactor() const
+    inline SAMRAI::tbox::Array<double> getPressureScalingFactor() const
     {
         return d_A_scale;
     }
@@ -597,7 +597,7 @@ protected:
     /*
      * Variable to indicate the scaling factor used for A, p and u_rhs.
      */
-    double d_A_scale;
+    SAMRAI::tbox::Array<double> d_A_scale;
 
     /*
      * Variable to set how often the preconditioner is reinitialized.

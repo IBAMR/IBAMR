@@ -638,6 +638,10 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
 {
     INSVCStaggeredHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
 
+    // Get the coarsest and finest level numbers.
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
     // Check to make sure that the number of cycles is what we expect it to be.
     const int expected_num_cycles = getNumberOfCycles();
     if (d_current_num_cycles != expected_num_cycles)
@@ -753,25 +757,31 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
     // Setup the solution and right-hand-side vectors.
     setupSolverVectors(d_sol_vec, d_rhs_vec, current_time, new_time, cycle_num);
 
-    // Scale rhs if necessary
-    if (!MathUtilities<double>::equalEps(d_A_scale, 1.0))
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        d_hier_sc_data_ops->scale(d_rhs_vec->getComponentDescriptorIndex(0),
-                                  d_A_scale,
-                                  d_rhs_vec->getComponentDescriptorIndex(0),
-                                  /*interior_only*/ true);
-    }
+        d_hier_sc_data_ops->resetLevels(ln, ln);
+        const double A_scale = d_A_scale[ln];
+        // Scale rhs if necessary
+        if (!MathUtilities<double>::equalEps(A_scale, 1.0))
+        {
+            d_hier_sc_data_ops->scale(d_rhs_vec->getComponentDescriptorIndex(0),
+                                      A_scale,
+                                      d_rhs_vec->getComponentDescriptorIndex(0),
+                                      /*interior_only*/ true);
+        }
 
-    // Solve for u(n+1), p(n+1/2).
-    d_stokes_solver->solveSystem(*d_sol_vec, *d_rhs_vec);
+        // Solve for u(n+1), p(n+1/2).
+        d_stokes_solver->solveSystem(*d_sol_vec, *d_rhs_vec);
 
-    // Unscale rhs if necessary
-    if (!MathUtilities<double>::equalEps(d_A_scale, 1.0))
-    {
-        d_hier_sc_data_ops->scale(d_rhs_vec->getComponentDescriptorIndex(0),
-                                  1.0 / d_A_scale,
-                                  d_rhs_vec->getComponentDescriptorIndex(0),
-                                  /*interior_only*/ true);
+        // Unscale rhs if necessary
+        if (!MathUtilities<double>::equalEps(A_scale, 1.0))
+        {
+            d_hier_sc_data_ops->scale(d_rhs_vec->getComponentDescriptorIndex(0),
+                                      1.0 / A_scale,
+                                      d_rhs_vec->getComponentDescriptorIndex(0),
+                                      /*interior_only*/ true);
+        }
+        d_hier_sc_data_ops->resetLevels(coarsest_ln, finest_ln);
     }
 
     if (d_enable_logging)
@@ -1013,6 +1023,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     const double half_time = current_time + 0.5 * dt;
     const double mu = d_mu_is_const ? d_problem_coefs.getMu() : -1.0;
     const double lambda = d_problem_coefs.getLambda();
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     double K = 0.0;
     switch (d_viscous_time_stepping_type)
@@ -1032,42 +1044,65 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     PoissonSpecifications U_problem_coefs(d_object_name + "::U_problem_coefs");
     PoissonSpecifications P_problem_coefs(d_object_name + "::P_problem_coefs");
 
-    // C_sc = (rho / dt) + K * lambda
-    d_hier_sc_data_ops->scale(d_velocity_C_idx, d_A_scale / dt, d_rho_sc_scratch_idx, /*interior_only*/ true);
-
-    if (!MathUtilities<double>::equalEps(lambda, 0.0))
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        d_hier_sc_data_ops->addScalar(
-            d_velocity_C_idx, d_velocity_C_idx, d_A_scale * K * lambda, /*interior_only*/ true);
-    }
-    U_problem_coefs.setCPatchDataId(d_velocity_C_idx);
-
-    // D_{ec,nc} = -K * mu
-    if (d_mu_is_const)
-    {
+        // Operate on a single level at a time
+        d_hier_cc_data_ops->resetLevels(ln, ln);
+        d_hier_sc_data_ops->resetLevels(ln, ln);
 #if (NDIM == 2)
-        d_hier_nc_data_ops->setToScalar(d_velocity_D_idx, d_A_scale * (-K * mu), /*interior_only*/ false);
+        d_hier_nc_data_ops->resetLevels(ln, ln);
 #elif (NDIM == 3)
-        d_hier_ec_data_ops->setToScalar(d_velocity_D_idx, d_A_scale * (-K * mu), /*interior_only*/ false);
+        d_hier_ec_data_ops->resetLevels(ln, ln);
 #endif
-        d_hier_cc_data_ops->setToScalar(d_velocity_D_cc_idx, d_A_scale * (-K * mu), /*interior_only*/ false);
-    }
-    else
-    {
-#if (NDIM == 2)
-        d_hier_nc_data_ops->scale(d_velocity_D_idx, d_A_scale * (-K), d_mu_interp_idx, /*interior_only*/ false);
-#elif (NDIM == 3)
-        d_hier_ec_data_ops->scale(d_velocity_D_idx, d_A_scale * (-K), d_mu_interp_idx, /*interior_only*/ false);
-#endif
-        d_hier_cc_data_ops->scale(d_velocity_D_cc_idx, d_A_scale * (-K), d_mu_scratch_idx, /*interior_only*/ false);
-    }
-    U_problem_coefs.setDPatchDataId(d_velocity_D_idx);
+        // Get the condition number scaling on this level
+        const double A_scale = d_A_scale[ln];
 
-    // D_sc = -1/rho
-    P_problem_coefs.setCZero();
-    d_hier_sc_data_ops->reciprocal(d_pressure_D_idx, d_rho_sc_scratch_idx, /*interior_only*/ false);
-    d_hier_sc_data_ops->scale(d_pressure_D_idx, -1.0 / d_A_scale, d_pressure_D_idx, /*interior_only*/ false);
-    P_problem_coefs.setDPatchDataId(d_pressure_D_idx);
+        // C_sc = (rho / dt) + K * lambda
+        d_hier_sc_data_ops->scale(d_velocity_C_idx, A_scale / dt, d_rho_sc_scratch_idx, /*interior_only*/ true);
+
+        if (!MathUtilities<double>::equalEps(lambda, 0.0))
+        {
+            d_hier_sc_data_ops->addScalar(
+                d_velocity_C_idx, d_velocity_C_idx, A_scale * K * lambda, /*interior_only*/ true);
+        }
+        U_problem_coefs.setCPatchDataId(d_velocity_C_idx);
+
+        // D_{ec,nc} = -K * mu
+        if (d_mu_is_const)
+        {
+#if (NDIM == 2)
+            d_hier_nc_data_ops->setToScalar(d_velocity_D_idx, A_scale * (-K * mu), /*interior_only*/ false);
+#elif (NDIM == 3)
+            d_hier_ec_data_ops->setToScalar(d_velocity_D_idx, A_scale * (-K * mu), /*interior_only*/ false);
+#endif
+            d_hier_cc_data_ops->setToScalar(d_velocity_D_cc_idx, A_scale * (-K * mu), /*interior_only*/ false);
+        }
+        else
+        {
+#if (NDIM == 2)
+            d_hier_nc_data_ops->scale(d_velocity_D_idx, A_scale * (-K), d_mu_interp_idx, /*interior_only*/ false);
+#elif (NDIM == 3)
+            d_hier_ec_data_ops->scale(d_velocity_D_idx, A_scale * (-K), d_mu_interp_idx, /*interior_only*/ false);
+#endif
+            d_hier_cc_data_ops->scale(d_velocity_D_cc_idx, A_scale * (-K), d_mu_scratch_idx, /*interior_only*/ false);
+        }
+        U_problem_coefs.setDPatchDataId(d_velocity_D_idx);
+
+        // D_sc = -1/rho
+        P_problem_coefs.setCZero();
+        d_hier_sc_data_ops->reciprocal(d_pressure_D_idx, d_rho_sc_scratch_idx, /*interior_only*/ false);
+        d_hier_sc_data_ops->scale(d_pressure_D_idx, -1.0 / A_scale, d_pressure_D_idx, /*interior_only*/ false);
+        P_problem_coefs.setDPatchDataId(d_pressure_D_idx);
+
+        // Ensure that these objects will operate on all levels in the future
+        d_hier_cc_data_ops->resetLevels(coarsest_ln, finest_ln);
+        d_hier_sc_data_ops->resetLevels(coarsest_ln, finest_ln);
+#if (NDIM == 2)
+        d_hier_nc_data_ops->resetLevels(coarsest_ln, finest_ln);
+#elif (NDIM == 3)
+        d_hier_ec_data_ops->resetLevels(coarsest_ln, finest_ln);
+#endif
+    }
 
     // Ensure that solver components are appropriately reinitialized at the correct intervals or
     // when the time step size changes.
@@ -1340,12 +1375,18 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
     d_hier_cc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(1), d_P_new_idx);
 
     // Scale pressure approximation if necessary
-    if (!MathUtilities<double>::equalEps(d_A_scale, 1.0))
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        d_hier_cc_data_ops->scale(sol_vec->getComponentDescriptorIndex(1),
-                                  d_A_scale,
-                                  d_sol_vec->getComponentDescriptorIndex(1),
-                                  /*interior_only*/ true);
+        d_hier_cc_data_ops->resetLevels(ln, ln);
+        const double A_scale = d_A_scale[ln];
+        if (!MathUtilities<double>::equalEps(A_scale, 1.0))
+        {
+            d_hier_cc_data_ops->scale(sol_vec->getComponentDescriptorIndex(1),
+                                      A_scale,
+                                      d_sol_vec->getComponentDescriptorIndex(1),
+                                      /*interior_only*/ true);
+        }
+        d_hier_cc_data_ops->resetLevels(coarsest_ln, finest_ln);
     }
 
     // Synchronize solution and right-hand-side data before solve.
@@ -1372,6 +1413,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
     const double /*new_time*/,
     const int /*cycle_num*/)
 {
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
     // Synchronize solution data after solve.
     typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
     SynchronizationTransactionComponent sol_synch_transaction =
@@ -1386,12 +1430,18 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
     d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
 
     // Scale pressure solution if necessary
-    if (!MathUtilities<double>::equalEps(d_A_scale, 1.0))
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        d_hier_cc_data_ops->scale(d_P_new_idx,
-                                  1.0 / d_A_scale,
-                                  d_P_new_idx,
-                                  /*interior_only*/ true);
+        d_hier_sc_data_ops->resetLevels(ln, ln);
+        const double A_scale = d_A_scale[ln];
+        if (!MathUtilities<double>::equalEps(A_scale, 1.0))
+        {
+            d_hier_cc_data_ops->scale(d_P_new_idx,
+                                      1.0 / A_scale,
+                                      d_P_new_idx,
+                                      /*interior_only*/ true);
+        }
+        d_hier_sc_data_ops->resetLevels(coarsest_ln, finest_ln);
     }
 
     // Reset the right-hand side vector.
