@@ -500,42 +500,14 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
 			const int finest_ln = d_hierarchy->getFinestLevelNumber();	
 			VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 			const int p_data_idx = var_db->mapVariableAndContextToIndex(getINSHierarchyIntegrator()->getPressureVariable(),
-															   getINSHierarchyIntegrator()->getScratchContext());										   
-			const int u_data_idx = var_db->mapVariableAndContextToIndex(getINSHierarchyIntegrator()->getVelocityVariable(),
-                                                           getINSHierarchyIntegrator()->getScratchContext());                                     														
-		//	for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-		//	{
-		//			const Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);													
-		//			if (!level->checkAllocated(mask_scratch_idx)) level->allocatePatchData(mask_scratch_idx);
-		//	}
-			//HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, coarsest_ln, finest_ln);       
-			//hier_cc_data_ops.copyData(mask_scratch_idx, p_data_idx, /*interior only*/ false);
+															   getINSHierarchyIntegrator()->getScratchContext());										                     														
 			RefineAlgorithm<NDIM> ghost_fill_alg_p;
 			ghost_fill_alg_p.registerRefine(p_data_idx, p_data_idx, p_data_idx, NULL);
 			Pointer<RefineSchedule<NDIM> > ghost_fill_schd_p =
 						ghost_fill_alg_p.createSchedule(d_hierarchy->getPatchLevel(finest_ln));
 			ghost_fill_schd_p->fillData(d_half_time);
 			interpolatePressureForTraction(p_data_idx, d_half_time, part);
-
-
-			computeFluidTraction(d_half_time, part);
-			//~ RefineAlgorithm<NDIM> ghost_fill_alg_u;
-			//~ ghost_fill_alg_u.registerRefine(u_data_idx, u_data_idx, u_data_idx, NULL);
-			//~ Pointer<RefineSchedule<NDIM> > ghost_fill_schd_u =
-						//~ ghost_fill_alg_u.createSchedule(d_hierarchy->getPatchLevel(finest_ln));
-			//~ ghost_fill_schd_u->fillData(d_half_time);
-			//~ interpolatePressureForTraction(u_data_idx, d_half_time, part);
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+			computeFluidTraction(d_half_time, part);	
 		}
 
 
@@ -3129,15 +3101,6 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
         {
             diag_dis += dx[d] * dx[d];
         }
-       // const double dh = d_vel_interp_width * sqrt(diag_dis);
-
-        // Setup vectors to store the values of U and X at the quadrature
-        // points.
-        //
-        // All this loop is doing is computing the total number of quadraturee
-        // points associated with all of the elements we are currently
-        // processing.  That number is n_qp_patch.
-        
         
         unsigned int n_qp_patch = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -3173,21 +3136,9 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
         N_qp.resize(NDIM * n_qp_patch);
         std::fill(N_qp.begin(), N_qp.end(), 0.0);
         std::fill(x_qp.begin(), x_qp.end(), 0.0);
-
         std::fill(WSS_o_qp.begin(), WSS_o_qp.end(), 0.0);
-
-        //~ std::fill(du_j_qp.begin(), du_j_qp.end(), 0.0);
-        //~ std::fill(dv_j_qp.begin(), dv_j_qp.end(), 0.0);
-        
-//~ #if (NDIM == 3)
-	    //~ dw_j_qp.resize(NDIM * n_qp_patch);
-        //~ std::fill(dw_j_qp.begin(), dw_j_qp.end(), 0.0);
-//~ #endif
         std::fill(P_o_qp.begin(), P_o_qp.end(), 0.0);
-
         std::fill(P_j_qp.begin(), P_j_qp.end(), 0.0);
-        
-
         std::fill(TAU_qp.begin(), TAU_qp.end(), 0.0);
         
 
@@ -3204,12 +3155,9 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
             }
             P_o_dof_map_cache.dof_indices(elem, P_o_dof_indices);            
             P_j_dof_map_cache.dof_indices(elem, P_j_dof_indices);
-
             get_values_for_interpolation(P_j_node,  *P_j_ghost_vec, P_j_dof_indices);
-
             get_values_for_interpolation(x_node, *X_vec, X_dof_indices);
             get_values_for_interpolation(X_node, X0_vec, X_dof_indices);
-            
             get_values_for_interpolation(WSS_o_node, *WSS_o_ghost_vec, WSS_o_dof_indices);
             get_values_for_interpolation(P_o_node, *P_o_ghost_vec, P_o_dof_indices);
 
@@ -3346,153 +3294,17 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
             {
                 for (unsigned int k = 0; k < nindices; ++k)
                 {
-/*
-                    // Using tau_e - tau_i 
-                    TAU_qp[NDIM * local_indices[k] + axis] = (1.0/dA_da)*(2.0 * d_mu * WSS_o_qp[NDIM * local_indices[k] + axis] -
-                                                              P_o_qp[local_indices[k]] * N_qp[NDIM * local_indices[k] + axis] -
-                                                              d_mu * (axis == 0 ? N_qp[NDIM * local_indices[k] + 1] : -N_qp[NDIM * local_indices[k]]) *
-                                                              (dv_x_o_qp[local_indices[k]] - du_y_o_qp[local_indices[k]])) - 
-                                                              (1.0/dA_da)*(2.0 * d_mu * WSS_i_qp[NDIM * local_indices[k] + axis] -
-                                                              P_i_qp[local_indices[k]] * N_qp[NDIM * local_indices[k] + axis] -
-                                                              d_mu * (axis == 0 ? N_qp[NDIM * local_indices[k] + 1] : -N_qp[NDIM * local_indices[k]]) *
-                                                              (dv_x_i_qp[local_indices[k]] - du_y_i_qp[local_indices[k]]));
-    */                                                          
-
-       // Using the jumps and the force defined as F = [tau]..This calculation should not be used for moving objects!!
-       //~ (1.0/dA_da)*
-					//~ pout<< " da_da = " <<dA_da<<"\n\n";
-/*										
-
-			TAU_qp[NDIM * local_indices[k] + axis] =  (1.0/dA_da) * (- P_j_qp[local_indices[k]] * N_qp[NDIM * local_indices[k] + axis]);
-			
-			
-#if(NDIM == 2)			
-			switch (axis)
-			{
-			
-				case 0 :
-				
-					TAU_qp[NDIM * local_indices[k] + axis] +=  (1.0/dA_da) * (du_j_qp[NDIM * local_indices[k]]* N_qp[NDIM * local_indices[k]] 
-															   + du_j_qp[NDIM * local_indices[k]+1] * N_qp[NDIM * local_indices[k] + 1]);
-
-				case 1 :
-				
-					TAU_qp[NDIM * local_indices[k] + axis] +=  (1.0/dA_da) * (dv_j_qp[NDIM * local_indices[k]]* N_qp[NDIM * local_indices[k]] 
-															   + dv_j_qp[NDIM * local_indices[k]+1] * N_qp[NDIM * local_indices[k] + 1]); 
-							       
-		    }
-#endif
-
-
-
-#if(NDIM == 3)			
-			switch (axis)
-			{
-			
-				case 0 :
-				
-					TAU_qp[NDIM * local_indices[k] + axis] +=  (1.0/dA_da) * (du_j_qp[NDIM * local_indices[k]]* N_qp[NDIM * local_indices[k]] 
-															   + du_j_qp[NDIM * local_indices[k]+1] * N_qp[NDIM * local_indices[k] + 1] 
-															   + du_j_qp[NDIM * local_indices[k]+2] * N_qp[NDIM * local_indices[k] + 2]); 
-
-				case 1 :
-				
-					TAU_qp[NDIM * local_indices[k] + axis] +=  (1.0/dA_da) * (dv_j_qp[NDIM * local_indices[k]]* N_qp[NDIM * local_indices[k]] 
-															   + dv_j_qp[NDIM * local_indices[k]+1] * N_qp[NDIM * local_indices[k] + 1] 
-															   + dv_j_qp[NDIM * local_indices[k]+2] * N_qp[NDIM * local_indices[k] + 2]);  
-				
-				
-				case 2 :
-				
-				
-					TAU_qp[NDIM * local_indices[k] + axis] +=  (1.0/dA_da) * (dw_j_qp[NDIM * local_indices[k]]* N_qp[NDIM * local_indices[k]] 
-															   + dw_j_qp[NDIM * local_indices[k]+1] * N_qp[NDIM * local_indices[k] + 1] 
-																+ dw_j_qp[NDIM * local_indices[k]+2] * N_qp[NDIM * local_indices[k] + 2]); 
-							       
-		    }
-#endif
-
-*/			
-                   
-                
                   // Using the exterior traciton tau_e
-
-                    VectorValue<double>  omega, nn, nnxomega;
-                  
-                  
+                    VectorValue<double>  nn;
 			    	for (unsigned int dd = 0; dd < NDIM; ++dd)  nn(dd) = N_qp[NDIM * local_indices[k] + dd];
 
-//~ #if(NDIM == 2)
-					//~ nn(2) = 0.0;
-					//~ omega(0) = 0.0;
-					//~ omega(1) = 0.0;
-					//~ omega(2) = dv_o_qp[NDIM * local_indices[k]] - du_o_qp[NDIM * local_indices[k] + 1];
+					TAU_qp[NDIM * local_indices[k] + axis] = (da/dA)*(WSS_o_qp[NDIM * local_indices[k] + axis] - P_o_qp[local_indices[k]] * N_qp[NDIM * local_indices[k] + axis]);
 
-//~ #endif 	
-    	
-//~ #if(NDIM == 3)	
-					//~ omega(0) = dw_o_qp[NDIM * local_indices[k] + 1] - dv_o_qp[NDIM * local_indices[k] + 2];
-					//~ omega(1) = du_o_qp[NDIM * local_indices[k] + 2] - dw_o_qp[NDIM * local_indices[k]];
-					//~ omega(2) = dv_o_qp[NDIM * local_indices[k]] - du_o_qp[NDIM * local_indices[k] + 1];
-//~ #endif
-					//~ nnxomega = nn.cross(omega);
-
-
-
-//~ if (d_add_vorticity_term)
-//~ {
-					//~ VectorValue<double>  nn, viscterm;
-					//~ for (unsigned int dd = 0; dd < NDIM; ++dd)  nn(dd) = N_qp[NDIM * local_indices[k] + dd];
-
-//~ #if (NDIM == 2)
-					//~ TensorValue<double> DU_O(du_o_qp[NDIM * local_indices[k]], du_o_qp[NDIM * local_indices[k] + 1], 0.0,
-											 //~ dv_o_qp[NDIM * local_indices[k]], dv_o_qp[NDIM * local_indices[k] + 1], 0.0,
-											 //~ 0.0, 0.0, 0.0);
-											 
-
-					
-											 
-					//~ TensorValue<double> DTU_O(du_o_qp[NDIM * local_indices[k]], dv_o_qp[NDIM * local_indices[k]],0.0,
-											 //~ du_o_qp[NDIM * local_indices[k] + 1], dv_o_qp[NDIM * local_indices[k] + 1], 0.0,
-											 //~ 0.0, 0.0, 0.0);
-					 
-//~ #endif
-
-
-
-//~ #if(NDIM == 3)
-					//~ TensorValue<double> DU_O(du_o_qp[NDIM * local_indices[k]], du_o_qp[NDIM * local_indices[k] + 1], du_o_qp[NDIM * local_indices[k] + 2],
-											 //~ dv_o_qp[NDIM * local_indices[k]], dv_o_qp[NDIM * local_indices[k] + 1], dv_o_qp[NDIM * local_indices[k] + 2],
-											 //~ dw_o_qp[NDIM * local_indices[k]], dw_o_qp[NDIM * local_indices[k] + 1], dw_o_qp[NDIM * local_indices[k] + 2]);
-											 
-					//~ TensorValue<double> DTU_O(du_o_qp[NDIM * local_indices[k]], dv_o_qp[NDIM * local_indices[k]], dw_o_qp[NDIM * local_indices[k]],
-											 //~ du_o_qp[NDIM * local_indices[k] + 1], dv_o_qp[NDIM * local_indices[k] + 1], dw_o_qp[NDIM * local_indices[k] + 1],
-											 //~ du_o_qp[NDIM * local_indices[k] + 2], dv_o_qp[NDIM * local_indices[k] + 2], dw_o_qp[NDIM * local_indices[k] + 2]);
-//~ #endif
-					
-
-				  //~ viscterm.zero();
-				  //~ for (unsigned int ii=0; ii<NDIM; ++ii)
-					//~ for (unsigned int jj=0; jj<NDIM; ++jj)
-						//~ viscterm(ii) += (DU_O(ii,jj) + DTU_O(ii,jj)) * nn(jj);
-					
-					
-	
-            					 
-				//TAU_qp[NDIM * local_indices[k] + axis] =  (1.0/dA_da) * (- P_o_qp[local_indices[k]] * N_qp[NDIM * local_indices[k] + axis] + d_mu * viscterm(axis));
-				//~ TAU_qp[NDIM * local_indices[k] + axis] =  (da/dA) * (2.0 * d_mu * WSS_o_qp[NDIM * local_indices[k] + axis] - P_o_qp[local_indices[k]] * N_qp[NDIM * local_indices[k] + axis] - d_mu * nnxomega(axis));
- //~ }
-//~ else
-//~ {
-				TAU_qp[NDIM * local_indices[k] + axis] = (da/dA)*(d_mu * WSS_o_qp[NDIM * local_indices[k] + axis] - P_o_qp[local_indices[k]] * N_qp[NDIM * local_indices[k] + axis]);
-//~ }
 
                 }
             }
         }
         
-        
-
         // Loop over the elements and accumulate the right-hand-side values.
         qrule.reset();
         qp_offset = 0;
