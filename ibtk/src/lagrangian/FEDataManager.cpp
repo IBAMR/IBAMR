@@ -538,7 +538,6 @@ FEDataManager::spread(const int f_data_idx,
 
     // Make a copy of the Eulerian data.
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -548,6 +547,9 @@ FEDataManager::spread(const int f_data_idx,
         HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
+
+    // We spread directly to the finest level of the patch hierarchy.
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
 
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
@@ -603,8 +605,6 @@ FEDataManager::spread(const int f_data_idx,
     {
         // Multiply by the nodal volume fractions (to convert densities into
         // values) and extract local form vectors.
-        //
-        // \todo Should we cache the diagonal mass matrices?
         PetscVector<double>* F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
         Vec F_global_vec = F_petsc_vec->vec();
         Vec F_local_vec;
@@ -618,7 +618,7 @@ FEDataManager::spread(const int f_data_idx,
         VecGetArray(X_local_vec, &X_local_soln);
 
         UniquePtr<NumericVector<double> > F_dX_vec = F_vec.clone();
-        buildDiagonalL2MassMatrix(system_name)->localize(*F_dX_vec);
+        buildDiagonalL2MassMatrix(system_name)->localize(*F_dX_vec);  // \todo cache the IB form of the diagonal mass matrix
         PetscVector<double>* F_dX_petsc_vec = static_cast<PetscVector<double>*>(F_dX_vec.get());
         Vec F_dX_global_vec = F_dX_petsc_vec->vec();
         Vec F_dX_local_vec;
@@ -1118,6 +1118,9 @@ FEDataManager::interpWeighted(const int f_data_idx,
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || sc_data);
 
+    // We interpolate directly from the finest level of the patch hierarchy.
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
+
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
@@ -1134,9 +1137,19 @@ FEDataManager::interpWeighted(const int f_data_idx,
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType F_fe_type = F_dof_map.variable_type(0);
-    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
+    Order F_order = F_dof_map.variable_order(0);
+    for (unsigned i = 0; i < n_vars; ++i)
+    {
+        TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
+        TBOX_ASSERT(F_dof_map.variable_order(i) == F_order);
+    }
     FEType X_fe_type = X_dof_map.variable_type(0);
-    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
+    Order X_order = X_dof_map.variable_order(0);
+    for (unsigned d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
+        TBOX_ASSERT(X_dof_map.variable_order(d) == X_order);
+    }
     UniquePtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr;
     if (F_fe_type != X_fe_type)
     {
@@ -1148,178 +1161,276 @@ FEDataManager::interpWeighted(const int f_data_idx,
     const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
     const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
 
-    // Communicate any unsynchronized ghost data and extract the underlying
-    // solution data.
+    // Communicate any unsynchronized ghost data.
     for (unsigned int k = 0; k < f_refine_scheds.size(); ++k)
     {
         if (f_refine_scheds[k]) f_refine_scheds[k]->fillData(fill_data_time);
     }
 
     if (close_X) X_vec.close();
-    PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
-    Vec X_global_vec = X_petsc_vec->vec();
-    Vec X_local_vec;
-    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
-    double* X_local_soln;
-    VecGetArray(X_local_vec, &X_local_soln);
 
-    // Loop over the patches to interpolate values to the element quadrature
-    // points from the grid, then use these values to compute the projection of
-    // the interpolated velocity field onto the FE basis functions.
-    F_vec.zero();
-    std::vector<DenseVector<double> > F_rhs_e(n_vars);
-    boost::multi_array<double, 2> X_node;
-    std::vector<double> F_qp, X_qp;
+    // Check to see if we are using nodal quadrature.
+    const bool use_nodal_quadrature =
+        ((interp_spec.quad_type == QTRAP && F_fe_type == LAGRANGE && F_order == FIRST) ||
+         (interp_spec.quad_type == QSIMPSON && F_fe_type == LAGRANGE && F_order == SECOND)) &&
+        (F_fe_type == X_fe_type && F_order == X_order) &&
+        interp_spec.use_consistent_mass_matrix;
 
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
-    int local_patch_num = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    if (use_nodal_quadrature)
     {
-        // The relevant collection of elements.
-        const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
-        const size_t num_active_patch_elems = patch_elems.size();
-        if (!num_active_patch_elems) continue;
+        // Extract the local form vectors.
+        PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
+        Vec X_global_vec = X_petsc_vec->vec();
+        Vec X_local_vec;
+        VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        double* X_local_soln;
+        VecGetArray(X_local_vec, &X_local_soln);
 
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-        const double* const patch_dx = patch_geom->getDx();
-        const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
-
-        // Setup vectors to store the values of F and X at the quadrature
-        // points.
-        unsigned int n_qp_patch = 0;
-        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+        // Interpolate to the nodes.
+        int local_patch_num = 0;
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
-            Elem* const elem = patch_elems[e_idx];
-            for (unsigned int d = 0; d < NDIM; ++d)
+            // The relevant collection of nodes.
+            const std::vector<Node*>& patch_nodes = d_active_patch_node_map[local_patch_num];
+            const size_t num_active_patch_nodes = patch_nodes.size();
+            if (!num_active_patch_nodes) continue;
+
+            // Store the value of X at the nodes.
+            std::vector<double> F_node, X_node;
+            F_node.resize(n_vars * num_active_patch_nodes, 0.0);
+            X_node.reserve(NDIM * num_active_patch_nodes);
+            std::vector<dof_id_type> X_idxs;
+            for (unsigned int k = 0; k < num_active_patch_nodes; ++k)
             {
-                X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+                const Node* const n = patch_nodes[k];
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    X_dof_map.dof_indices(n, X_idxs, d);
+                    for (std::vector<dof_id_type>::iterator it = X_idxs.begin(); it != X_idxs.end(); ++it)
+                    {
+                        X_node.push_back(X_local_soln[X_petsc_vec->map_global_to_local_index(*it)]);
+                    }
+                }
             }
-            get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-            updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
-            n_qp_patch += qrule->n_points();
+            TBOX_ASSERT(F_node.size() == n_vars * num_active_patch_nodes);
+            TBOX_ASSERT(X_node.size() == NDIM * num_active_patch_nodes);
+
+            // Interpolate values from the Cartesian grid patch to the nodes.
+            //
+            // NOTE: Values are interpolated only to those nodes that are within
+            // the patch interior.
+            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& interp_box = patch->getBox();
+            Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
+            if (cc_data)
+            {
+                Pointer<CellData<NDIM, double> > f_cc_data = f_data;
+                LEInteractor::interpolate(
+                    F_node, n_vars, X_node, NDIM, f_cc_data, patch, interp_box, interp_spec.kernel_fcn);
+            }
+            if (sc_data)
+            {
+                Pointer<SideData<NDIM, double> > f_sc_data = f_data;
+                LEInteractor::interpolate(
+                    F_node, n_vars, X_node, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
+            }
+
+            // Insesrt the value of F at the nodes.
+            std::vector<dof_id_type> F_idxs;
+            int i = 0;
+            for (unsigned int k = 0; k < num_active_patch_nodes; ++k)
+            {
+                const Node* const n = patch_nodes[k];
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    F_dof_map.dof_indices(n, F_idxs, d);
+                    for (std::vector<dof_id_type>::iterator it = F_idxs.begin(); it != F_idxs.end(); ++it, ++i)
+                    {
+                        F_vec.add(*it, F_node[i]);
+                    }
+                }
+            }
         }
-        if (!n_qp_patch) continue;
-        F_qp.resize(n_vars * n_qp_patch);
-        X_qp.resize(NDIM * n_qp_patch);
-        std::fill(F_qp.begin(), F_qp.end(), 0.0);
 
-        // Loop over the elements and compute the positions of the quadrature points.
-        qrule.reset();
-        unsigned int qp_offset = 0;
-        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+        // Restore local form vectors.
+        VecRestoreArray(X_local_vec, &X_local_soln);
+        VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+
+        // Scale by the diagonal mass matrix.
+        F_vec.close();
+        F_vec.pointwise_mult(F_vec, *buildDiagonalL2MassMatrix(system_name));
+        if (close_F) F_vec.close();
+    }
+    else
+    {
+        // Extract local form vectors.
+        PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
+        Vec X_global_vec = X_petsc_vec->vec();
+        Vec X_local_vec;
+        VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        double* X_local_soln;
+        VecGetArray(X_local_vec, &X_local_soln);
+
+        // Loop over the patches to interpolate values to the element quadrature
+        // points from the grid, then use these values to compute the projection
+        // of the interpolated velocity field onto the FE basis functions.
+        F_vec.zero();
+        std::vector<DenseVector<double> > F_rhs_e(n_vars);
+        boost::multi_array<double, 2> X_node;
+        std::vector<double> F_qp, X_qp;
+        int local_patch_num = 0;
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
-            Elem* const elem = patch_elems[e_idx];
-            for (unsigned int d = 0; d < NDIM; ++d)
+            // The relevant collection of elements.
+            const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
+            const size_t num_active_patch_elems = patch_elems.size();
+            if (!num_active_patch_elems) continue;
+
+            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_dx = patch_geom->getDx();
+            const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
+
+            // Setup vectors to store the values of F and X at the quadrature
+            // points.
+            unsigned int n_qp_patch = 0;
+            for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
-                X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+                Elem* const elem = patch_elems[e_idx];
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+                }
+                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+                updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
+                n_qp_patch += qrule->n_points();
             }
-            get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-            const bool qrule_changed = updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
-            if (qrule_changed)
+            if (!n_qp_patch) continue;
+            F_qp.resize(n_vars * n_qp_patch);
+            X_qp.resize(NDIM * n_qp_patch);
+            std::fill(F_qp.begin(), F_qp.end(), 0.0);
+
+            // Loop over the elements and compute the positions of the
+            // quadrature points.
+            qrule.reset();
+            unsigned int qp_offset = 0;
+            for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
-                // NOTE: Because we are only using the shape function values for
-                // the FE object associated with X, we only need to reinitialize
-                // X_fe whenever the quadrature rule changes.  In particular,
-                // notice that the shape function values depend only on the
-                // element type and quadrature rule, not on the element
-                // geometry.
-                X_fe->attach_quadrature_rule(qrule.get());
-                X_fe->reinit(elem);
+                Elem* const elem = patch_elems[e_idx];
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+                }
+                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+                const bool qrule_changed = updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
+                if (qrule_changed)
+                {
+                    // NOTE: Because we are only using the shape function values
+                    // for the FE object associated with X, we only need to
+                    // reinitialize X_fe whenever the quadrature rule changes.
+                    // In particular, notice that the shape function values
+                    // depend only on the element type and quadrature rule, not
+                    // on the element geometry.
+                    X_fe->attach_quadrature_rule(qrule.get());
+                    X_fe->reinit(elem);
+                }
+                const unsigned int n_node = elem->n_nodes();
+                const unsigned int n_qp = qrule->n_points();
+                double* X_begin = &X_qp[NDIM * qp_offset];
+                std::fill(X_begin, X_begin + NDIM * n_qp, 0.0);
+                for (unsigned int k = 0; k < n_node; ++k)
+                {
+                    for (unsigned int qp = 0; qp < n_qp; ++qp)
+                    {
+                        const double& p_X = phi_X[k][qp];
+                        for (unsigned int i = 0; i < NDIM; ++i)
+                        {
+                            X_qp[NDIM * (qp_offset + qp) + i] += X_node[k][i] * p_X;
+                        }
+                    }
+                }
+                qp_offset += n_qp;
             }
-            const unsigned int n_node = elem->n_nodes();
-            const unsigned int n_qp = qrule->n_points();
-            double* X_begin = &X_qp[NDIM * qp_offset];
-            std::fill(X_begin, X_begin + NDIM * n_qp, 0.0);
-            for (unsigned int k = 0; k < n_node; ++k)
+
+            // Interpolate values from the Cartesian grid patch to the
+            // quadrature points.
+            //
+            // NOTE: Values are interpolated only to those quadrature points
+            // that are within the patch interior.
+            const Box<NDIM>& interp_box = patch->getBox();
+            Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
+            if (cc_data)
             {
+                Pointer<CellData<NDIM, double> > f_cc_data = f_data;
+                LEInteractor::interpolate(
+                    F_qp, n_vars, X_qp, NDIM, f_cc_data, patch, interp_box, interp_spec.kernel_fcn);
+            }
+            if (sc_data)
+            {
+                Pointer<SideData<NDIM, double> > f_sc_data = f_data;
+                LEInteractor::interpolate(
+                    F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
+            }
+
+            // Loop over the elements and accumulate the right-hand-side values.
+            qrule.reset();
+            qp_offset = 0;
+            for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+            {
+                Elem* const elem = patch_elems[e_idx];
+                for (unsigned int i = 0; i < n_vars; ++i)
+                {
+                    F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
+                    F_rhs_e[i].resize(static_cast<int>(F_dof_indices[i].size()));
+                }
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+                }
+                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+                const bool qrule_changed = updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
+                if (qrule_changed)
+                {
+                    // NOTE: Because we are only using the shape function values
+                    // for the FE object associated with X, we only need to
+                    // reinitialize X_fe whenever the quadrature rule changes.
+                    // In particular, notice that the shape function values
+                    // depend only on the element type and quadrature rule, not
+                    // on the element geometry.
+                    F_fe->attach_quadrature_rule(qrule.get());
+                    X_fe->attach_quadrature_rule(qrule.get());
+                    if (X_fe != F_fe) X_fe->reinit(elem);
+                }
+                F_fe->reinit(elem);
+                const unsigned int n_qp = qrule->n_points();
+                const size_t n_basis = F_dof_indices[0].size();
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
-                    const double& p_X = phi_X[k][qp];
-                    for (unsigned int i = 0; i < NDIM; ++i)
+                    const int idx = n_vars * (qp_offset + qp);
+                    for (unsigned int k = 0; k < n_basis; ++k)
                     {
-                        X_qp[NDIM * (qp_offset + qp) + i] += X_node[k][i] * p_X;
+                        const double p_JxW_F = phi_F[k][qp] * JxW_F[qp];
+                        for (unsigned int i = 0; i < n_vars; ++i)
+                        {
+                            F_rhs_e[i](k) += F_qp[idx + i] * p_JxW_F;
+                        }
                     }
                 }
-            }
-            qp_offset += n_qp;
-        }
-
-        // Interpolate values from the Cartesian grid patch to the quadrature
-        // points.
-        //
-        // NOTE: Values are interpolated only to those quadrature points that
-        // are within the patch interior.
-        const Box<NDIM>& interp_box = patch->getBox();
-        Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-
-        if (cc_data)
-        {
-            Pointer<CellData<NDIM, double> > f_cc_data = f_data;
-            LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_cc_data, patch, interp_box, interp_spec.kernel_fcn);
-        }
-        if (sc_data)
-        {
-            Pointer<SideData<NDIM, double> > f_sc_data = f_data;
-            LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
-        }
-
-        // Loop over the elements and accumulate the right-hand-side values.
-        qrule.reset();
-        qp_offset = 0;
-        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
-        {
-            Elem* const elem = patch_elems[e_idx];
-            for (unsigned int i = 0; i < n_vars; ++i)
-            {
-                F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
-                F_rhs_e[i].resize(static_cast<int>(F_dof_indices[i].size()));
-            }
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-            }
-            get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-            const bool qrule_changed = updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
-            if (qrule_changed)
-            {
-                // NOTE: Because we are only using the shape function values for
-                // the FE object associated with X, we only need to reinitialize
-                // X_fe whenever the quadrature rule changes.  In particular,
-                // notice that the shape function values depend only on the
-                // element type and quadrature rule, not on the element
-                // geometry.
-                F_fe->attach_quadrature_rule(qrule.get());
-                X_fe->attach_quadrature_rule(qrule.get());
-                if (X_fe != F_fe) X_fe->reinit(elem);
-            }
-            F_fe->reinit(elem);
-            const unsigned int n_qp = qrule->n_points();
-            const size_t n_basis = F_dof_indices[0].size();
-            for (unsigned int qp = 0; qp < n_qp; ++qp)
-            {
-                const int idx = n_vars * (qp_offset + qp);
-                for (unsigned int k = 0; k < n_basis; ++k)
+                for (unsigned int i = 0; i < n_vars; ++i)
                 {
-                    const double p_JxW_F = phi_F[k][qp] * JxW_F[qp];
-                    for (unsigned int i = 0; i < n_vars; ++i)
-                    {
-                        F_rhs_e[i](k) += F_qp[idx + i] * p_JxW_F;
-                    }
+                    F_dof_map.constrain_element_vector(F_rhs_e[i], F_dof_indices[i]);
+                    F_vec.add_vector(F_rhs_e[i], F_dof_indices[i]);
                 }
+                qp_offset += n_qp;
             }
-            for (unsigned int i = 0; i < n_vars; ++i)
-            {
-                F_dof_map.constrain_element_vector(F_rhs_e[i], F_dof_indices[i]);
-                F_vec.add_vector(F_rhs_e[i], F_dof_indices[i]);
-            }
-            qp_offset += n_qp;
         }
+
+        // Restore local form vectors.
+        VecRestoreArray(X_local_vec, &X_local_soln);
+        VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
     }
 
-    VecRestoreArray(X_local_vec, &X_local_soln);
-    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
-
+    // Accumulate data.
     if (close_F) F_vec.close();
 
     IBTK_TIMER_STOP(t_interp_weighted);
@@ -1356,7 +1467,7 @@ FEDataManager::interp(const int f_data_idx,
     interpWeighted(f_data_idx, *F_rhs_vec, X_vec, system_name, interp_spec, f_refine_scheds, fill_data_time, /*close_F*/ true, close_X);
 
     // Solve for the nodal values.
-    computeL2Projection(F_vec, *F_rhs_vec, system_name, interp_spec.use_consistent_mass_matrix);
+    computeL2Projection(F_vec, *F_rhs_vec, system_name, interp_spec.use_consistent_mass_matrix, true /*close_U*/, false /*close_F*/);
 
     IBTK_TIMER_STOP(t_interp);
     return;
@@ -1576,7 +1687,7 @@ FEDataManager::restrictData(const int f_data_idx,
 
     // Solve for the nodal values.
     F_rhs_vec->close();
-    computeL2Projection(F_vec, *F_rhs_vec, system_name, use_consistent_mass_matrix);
+    computeL2Projection(F_vec, *F_rhs_vec, system_name, use_consistent_mass_matrix, true /*close_U*/, true /*close_F*/);
 
     IBTK_TIMER_STOP(t_restrict_data);
     return;
