@@ -565,9 +565,19 @@ FEDataManager::spread(const int f_data_idx,
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType F_fe_type = F_dof_map.variable_type(0);
-    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
+    Order F_order = F_dof_map.variable_order(0);
+    for (unsigned i = 0; i < n_vars; ++i)
+    {
+        TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
+        TBOX_ASSERT(F_dof_map.variable_order(i) == F_order);
+    }
     FEType X_fe_type = X_dof_map.variable_type(0);
-    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
+    Order X_order = X_dof_map.variable_order(0);
+    for (unsigned d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
+        TBOX_ASSERT(F_dof_map.variable_order(d) == X_order);
+    }
     UniquePtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr;
     if (F_fe_type != X_fe_type)
     {
@@ -579,140 +589,259 @@ FEDataManager::spread(const int f_data_idx,
     const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
     const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
 
-    // Communicate any unsynchronized ghost data and extract the underlying
-    // solution data.
+    // Check to see if we are using nodal quadrature.
+    const bool use_nodal_quadrature =
+        ((spread_spec.quad_type == QTRAP && F_fe_type == LAGRANGE && F_order == FIRST) ||
+         (spread_spec.quad_type == QSIMPSON && F_fe_type == LAGRANGE && F_order == SECOND)) &&
+        (F_fe_type == X_fe_type && F_order == X_order);
+
+    // Communicate any unsynchronized ghost data.
     if (close_F) F_vec.close();
-    PetscVector<double>* F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
-    Vec F_global_vec = F_petsc_vec->vec();
-    Vec F_local_vec;
-    VecGhostGetLocalForm(F_global_vec, &F_local_vec);
-    double* F_local_soln;
-    VecGetArray(F_local_vec, &F_local_soln);
-
     if (close_X) X_vec.close();
-    PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
-    Vec X_global_vec = X_petsc_vec->vec();
-    Vec X_local_vec;
-    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
-    double* X_local_soln;
-    VecGetArray(X_local_vec, &X_local_soln);
 
-    // Loop over the patches to interpolate nodal values on the FE mesh to the
-    // element quadrature points, then spread those values onto the Eulerian
-    // grid.
-    boost::multi_array<double, 2> F_node, X_node;
-    std::vector<double> F_JxW_qp, X_qp;
-    int local_patch_num = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    if (use_nodal_quadrature)
     {
-        // The relevant collection of elements.
-        const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
-        const size_t num_active_patch_elems = patch_elems.size();
-        if (!num_active_patch_elems) continue;
-
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-        const double* const patch_dx = patch_geom->getDx();
-        const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
-
-        // Setup vectors to store the values of F_JxW and X at the quadrature
-        // points.
-        unsigned int n_qp_patch = 0;
-        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
-        {
-            Elem* const elem = patch_elems[e_idx];
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-            }
-            get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-            updateSpreadQuadratureRule(qrule, spread_spec, elem, X_node, patch_dx_min);
-            n_qp_patch += qrule->n_points();
-        }
-        if (!n_qp_patch) continue;
-        F_JxW_qp.resize(n_vars * n_qp_patch);
-        X_qp.resize(NDIM * n_qp_patch);
-
-        // Loop over the elements and compute the values to be spread and the
-        // positions of the quadrature points.
-        qrule.reset();
-        unsigned int qp_offset = 0;
-        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
-        {
-            Elem* const elem = patch_elems[e_idx];
-            for (unsigned int i = 0; i < n_vars; ++i)
-            {
-                F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
-            }
-            get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, F_dof_indices);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-            }
-            get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-            const bool qrule_changed = updateSpreadQuadratureRule(qrule, spread_spec, elem, X_node, patch_dx_min);
-            if (qrule_changed)
-            {
-                // NOTE: Because we are only using the shape function values for
-                // the FE object associated with X, we only need to reinitialize
-                // X_fe whenever the quadrature rule changes.  In particular,
-                // notice that the shape function values depend only on the
-                // element type and quadrature rule, not on the element
-                // geometry.
-                F_fe->attach_quadrature_rule(qrule.get());
-                X_fe->attach_quadrature_rule(qrule.get());
-                if (X_fe != F_fe) X_fe->reinit(elem);
-            }
-            F_fe->reinit(elem);
-            const unsigned int n_qp = qrule->n_points();
-            double* F_begin = &F_JxW_qp[n_vars * qp_offset];
-            double* X_begin = &X_qp[NDIM * qp_offset];
-            std::fill(F_begin, F_begin + n_vars * n_qp, 0.0);
-            std::fill(X_begin, X_begin + NDIM * n_qp, 0.0);
-            for (unsigned int k = 0; k < F_dof_indices[0].size(); ++k)
-            {
-                for (unsigned int qp = 0; qp < n_qp; ++qp)
-                {
-                    for (unsigned int i = 0; i < n_vars; ++i)
-                    {
-                        F_JxW_qp[n_vars * (qp_offset + qp) + i] += F_node[k][i] * phi_F[k][qp] * JxW_F[qp];
-                    }
-                }
-            }
-            for (unsigned int k = 0; k < X_dof_indices[0].size(); ++k)
-            {
-                for (unsigned int qp = 0; qp < n_qp; ++qp)
-                {
-                    for (unsigned int i = 0; i < NDIM; ++i)
-                    {
-                        X_qp[NDIM * (qp_offset + qp) + i] += X_node[k][i] * phi_X[k][qp];
-                    }
-                }
-            }
-            qp_offset += n_qp;
-        }
-
-        // Spread values from the quadrature points to the Cartesian grid patch.
+        // Multiply by the nodal volume fractions (to convert densities into
+        // values) and extract local form vectors.
         //
-        // NOTE: Values are spread only from those quadrature points that are
-        // within the ghost cell width of the patch interior.
-        const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), d_ghost_width);
-        Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-        if (cc_data)
+        // \todo Should we cache the diagonal mass matrices?
+        PetscVector<double>* F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
+        Vec F_global_vec = F_petsc_vec->vec();
+        Vec F_local_vec;
+        VecGhostGetLocalForm(F_global_vec, &F_local_vec);
+
+        PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
+        Vec X_global_vec = X_petsc_vec->vec();
+        Vec X_local_vec;
+        VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        double* X_local_soln;
+        VecGetArray(X_local_vec, &X_local_soln);
+
+        UniquePtr<NumericVector<double> > F_dX_vec = F_vec.clone();
+        buildDiagonalL2MassMatrix(system_name)->localize(*F_dX_vec);
+        PetscVector<double>* F_dX_petsc_vec = static_cast<PetscVector<double>*>(F_dX_vec.get());
+        Vec F_dX_global_vec = F_dX_petsc_vec->vec();
+        Vec F_dX_local_vec;
+        VecGhostGetLocalForm(F_dX_global_vec, &F_dX_local_vec);
+        VecPointwiseMult(F_dX_local_vec, F_local_vec, F_dX_local_vec);
+        double* F_dX_local_soln;
+        VecGetArray(F_dX_local_vec, &F_dX_local_soln);
+        VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
+
+        // Spread from the nodes.
+        int local_patch_num = 0;
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
-            Pointer<CellData<NDIM, double> > f_cc_data = f_data;
-            LEInteractor::spread(f_cc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
+            // The relevant collection of nodes.
+            const std::vector<Node*>& patch_nodes = d_active_patch_node_map[local_patch_num];
+            const size_t num_active_patch_nodes = patch_nodes.size();
+            if (!num_active_patch_nodes) continue;
+
+            // Store the values of F_JxW and X at the nodes.
+            std::vector<double> F_dX_node, X_node;
+            F_dX_node.reserve(n_vars * num_active_patch_nodes);
+            X_node.reserve(NDIM * num_active_patch_nodes);
+            std::vector<dof_id_type> F_idxs, X_idxs;
+            for (unsigned int k = 0; k < num_active_patch_nodes; ++k)
+            {
+                const Node* const n = patch_nodes[k];
+                for (unsigned int i = 0; i < n_vars; ++i)
+                {
+                    F_dof_map.dof_indices(n, F_idxs, i);
+                    for (std::vector<dof_id_type>::iterator it = F_idxs.begin(); it != F_idxs.end(); ++it)
+                    {
+                        F_dX_node.push_back(F_dX_local_soln[F_dX_petsc_vec->map_global_to_local_index(*it)]);
+                    }
+                }
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    X_dof_map.dof_indices(n, X_idxs, d);
+                    for (std::vector<dof_id_type>::iterator it = X_idxs.begin(); it != X_idxs.end(); ++it)
+                    {
+                        X_node.push_back(X_local_soln[X_petsc_vec->map_global_to_local_index(*it)]);
+                    }
+                }
+            }
+            TBOX_ASSERT(F_dX_node.size() == n_vars * num_active_patch_nodes);
+            TBOX_ASSERT(X_node.size() == NDIM * num_active_patch_nodes);
+
+            // Spread values from the nodes to the Cartesian grid patch.
+            //
+            // NOTE: Values are spread only from those nodes that are within the
+            // ghost cell width of the patch interior.
+            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), d_ghost_width);
+            Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
+            if (cc_data)
+            {
+                Pointer<CellData<NDIM, double> > f_cc_data = f_data;
+                LEInteractor::spread(
+                    f_cc_data, F_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_spec.kernel_fcn);
+            }
+            if (sc_data)
+            {
+                Pointer<SideData<NDIM, double> > f_sc_data = f_data;
+                LEInteractor::spread(
+                    f_sc_data, F_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_spec.kernel_fcn);
+            }
+            if (f_phys_bdry_op)
+            {
+                f_phys_bdry_op->setPatchDataIndex(f_data_idx);
+                f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, fill_data_time, f_data->getGhostCellWidth());
+            }
         }
-        if (sc_data)
+
+        // Restore local form vectors.
+        VecRestoreArray(F_dX_local_vec, &F_dX_local_soln);
+        VecGhostRestoreLocalForm(F_dX_global_vec, &F_dX_local_vec);
+
+        VecRestoreArray(X_local_vec, &X_local_soln);
+        VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+    }
+    else
+    {
+        // Extract local form vectors.
+        PetscVector<double>* F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
+        Vec F_global_vec = F_petsc_vec->vec();
+        Vec F_local_vec;
+        VecGhostGetLocalForm(F_global_vec, &F_local_vec);
+        double* F_local_soln;
+        VecGetArray(F_local_vec, &F_local_soln);
+
+        PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
+        Vec X_global_vec = X_petsc_vec->vec();
+        Vec X_local_vec;
+        VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        double* X_local_soln;
+        VecGetArray(X_local_vec, &X_local_soln);
+
+        // Loop over the patches to interpolate nodal values on the FE mesh to
+        // the element quadrature points, then spread those values onto the
+        // Eulerian grid.
+        boost::multi_array<double, 2> F_node, X_node;
+        std::vector<double> F_JxW_qp, X_qp;
+        int local_patch_num = 0;
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
-            Pointer<SideData<NDIM, double> > f_sc_data = f_data;
-            LEInteractor::spread(f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
+            // The relevant collection of elements.
+            const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
+            const size_t num_active_patch_elems = patch_elems.size();
+            if (!num_active_patch_elems) continue;
+
+            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_dx = patch_geom->getDx();
+            const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
+
+            // Setup vectors to store the values of F_JxW and X at the
+            // quadrature points.
+            unsigned int n_qp_patch = 0;
+            for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+            {
+                Elem* const elem = patch_elems[e_idx];
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+                }
+                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+                updateSpreadQuadratureRule(qrule, spread_spec, elem, X_node, patch_dx_min);
+                n_qp_patch += qrule->n_points();
+            }
+            if (!n_qp_patch) continue;
+            F_JxW_qp.resize(n_vars * n_qp_patch);
+            X_qp.resize(NDIM * n_qp_patch);
+
+            // Loop over the elements and compute the values to be spread and
+            // the positions of the quadrature points.
+            qrule.reset();
+            unsigned int qp_offset = 0;
+            for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+            {
+                Elem* const elem = patch_elems[e_idx];
+                for (unsigned int i = 0; i < n_vars; ++i)
+                {
+                    F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
+                }
+                get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, F_dof_indices);
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+                }
+                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+                const bool qrule_changed = updateSpreadQuadratureRule(qrule, spread_spec, elem, X_node, patch_dx_min);
+                if (qrule_changed)
+                {
+                    // NOTE: Because we are only using the shape function values
+                    // for the FE object associated with X, we only need to
+                    // reinitialize X_fe whenever the quadrature rule changes.
+                    // In particular, notice that the shape function values
+                    // depend only on the element type and quadrature rule, not
+                    // on the element geometry.
+                    F_fe->attach_quadrature_rule(qrule.get());
+                    X_fe->attach_quadrature_rule(qrule.get());
+                    if (X_fe != F_fe) X_fe->reinit(elem);
+                }
+                F_fe->reinit(elem);
+                const unsigned int n_qp = qrule->n_points();
+                double* F_begin = &F_JxW_qp[n_vars * qp_offset];
+                double* X_begin = &X_qp[NDIM * qp_offset];
+                std::fill(F_begin, F_begin + n_vars * n_qp, 0.0);
+                std::fill(X_begin, X_begin + NDIM * n_qp, 0.0);
+                for (unsigned int k = 0; k < F_dof_indices[0].size(); ++k)
+                {
+                    for (unsigned int qp = 0; qp < n_qp; ++qp)
+                    {
+                        for (unsigned int i = 0; i < n_vars; ++i)
+                        {
+                            F_JxW_qp[n_vars * (qp_offset + qp) + i] += F_node[k][i] * phi_F[k][qp] * JxW_F[qp];
+                        }
+                    }
+                }
+                for (unsigned int k = 0; k < X_dof_indices[0].size(); ++k)
+                {
+                    for (unsigned int qp = 0; qp < n_qp; ++qp)
+                    {
+                        for (unsigned int i = 0; i < NDIM; ++i)
+                        {
+                            X_qp[NDIM * (qp_offset + qp) + i] += X_node[k][i] * phi_X[k][qp];
+                        }
+                    }
+                }
+                qp_offset += n_qp;
+            }
+
+            // Spread values from the quadrature points to the Cartesian grid
+            // patch.
+            //
+            // NOTE: Values are spread only from those quadrature points that
+            // are within the ghost cell width of the patch interior.
+            const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), d_ghost_width);
+            Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
+            if (cc_data)
+            {
+                Pointer<CellData<NDIM, double> > f_cc_data = f_data;
+                LEInteractor::spread(
+                    f_cc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
+            }
+            if (sc_data)
+            {
+                Pointer<SideData<NDIM, double> > f_sc_data = f_data;
+                LEInteractor::spread(
+                    f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
+            }
+            if (f_phys_bdry_op)
+            {
+                f_phys_bdry_op->setPatchDataIndex(f_data_idx);
+                f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, fill_data_time, f_data->getGhostCellWidth());
+            }
         }
-        if (f_phys_bdry_op)
-        {
-            f_phys_bdry_op->setPatchDataIndex(f_data_idx);
-            f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, fill_data_time, f_data->getGhostCellWidth());
-        }
+
+        // Restore local form vectors.
+        VecRestoreArray(F_local_vec, &F_local_soln);
+        VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
+
+        VecRestoreArray(X_local_vec, &X_local_soln);
+        VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
     }
 
     // Accumulate data.
@@ -724,12 +853,6 @@ FEDataManager::spread(const int f_data_idx,
         level->deallocatePatchData(f_copy_data_idx);
     }
     var_db->removePatchDataIndex(f_copy_data_idx);
-
-    VecRestoreArray(F_local_vec, &F_local_soln);
-    VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
-
-    VecRestoreArray(X_local_vec, &X_local_soln);
-    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
 
     IBTK_TIMER_STOP(t_spread);
     return;
