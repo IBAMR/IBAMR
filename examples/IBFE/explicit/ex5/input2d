@@ -23,6 +23,8 @@ SPLIT_FORCES               = TRUE             // whether to split interior and b
 USE_PRESSURE_JUMP_CONDITIONS        = TRUE             // whether to impose pressure jumps at fluid-structure interfaces
 USE_VELOCITY_JUMP_CONDITIONS = TRUE
 USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or lumped mass matrix
+WSS_CALC_WIDTH 				= 1.0
+P_CALC_WIDTH 			   = 1.5
 IB_POINT_DENSITY           = 4.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
 CFL_MAX                    = 0.2               // maximum CFL number
@@ -112,6 +114,9 @@ IBFESurfaceMethod {
    use_velocity_jump_conditions   = USE_VELOCITY_JUMP_CONDITIONS
    use_consistent_mass_matrix  = USE_CONSISTENT_MASS_MATRIX
    IB_point_density            = IB_POINT_DENSITY
+   p_calc_width				   = P_CALC_WIDTH
+   wss_calc_width			  = WSS_CALC_WIDTH
+   min_ghost_cell_width = 5
 }
 
 INSCollocatedHierarchyIntegrator {

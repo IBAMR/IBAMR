@@ -500,16 +500,25 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
 			const int finest_ln = d_hierarchy->getFinestLevelNumber();	
 			VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 			const int p_data_idx = var_db->mapVariableAndContextToIndex(getINSHierarchyIntegrator()->getPressureVariable(),
-															   getINSHierarchyIntegrator()->getScratchContext());										                     														
+															   getINSHierarchyIntegrator()->getScratchContext());
+			for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+			{
+				const Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);													
+				if (!level->checkAllocated(mask_scratch_idx)) level->allocatePatchData(mask_scratch_idx);
+			}
+
+			HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, coarsest_ln, finest_ln);       
+			hier_cc_data_ops.copyData(mask_scratch_idx, p_data_idx, /*interior only*/ false);
+											                     														
 			RefineAlgorithm<NDIM> ghost_fill_alg_p;
-			ghost_fill_alg_p.registerRefine(p_data_idx, p_data_idx, p_data_idx, NULL);
+			ghost_fill_alg_p.registerRefine(mask_scratch_idx, mask_scratch_idx, mask_scratch_idx, NULL);
 			Pointer<RefineSchedule<NDIM> > ghost_fill_schd_p =
 						ghost_fill_alg_p.createSchedule(d_hierarchy->getPatchLevel(finest_ln));
 			ghost_fill_schd_p->fillData(d_half_time);
-			interpolatePressureForTraction(p_data_idx, d_half_time, part);
+			
+			interpolatePressureForTraction(mask_scratch_idx, d_half_time, part);
 			computeFluidTraction(d_half_time, part);	
 		}
-
 
         // Reset time-dependent Lagrangian data.
         d_X_new_vecs[part]->close();
@@ -761,9 +770,9 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         UniquePtr<NumericVector<double> > U_t_rhs_vec = U_t_vec->zero_clone();
         std::vector<DenseVector<double> > U_t_rhs_e(NDIM);
         
-        UniquePtr<NumericVector<double> > WSS_o_rhs_vec = WSS_o_vec->zero_clone();
+	    UniquePtr<NumericVector<double> > WSS_o_rhs_vec = (*WSS_o_vec).zero_clone();
 	    (*WSS_o_rhs_vec).zero();
-		std::vector<DenseVector<double> > WSS_o_rhs_e(NDIM);
+		DenseVector<double> WSS_o_rhs_e[NDIM];
 		
         boost::multi_array<double, 2> x_node;
         boost::array<boost::multi_array<double, 2>, NDIM> DU_j_node;
@@ -2052,7 +2061,15 @@ IBFESurfaceMethod::initializeFEData()
 void
 IBFESurfaceMethod::registerEulerianVariables()
 {
-    // intentionally blank
+    const IntVector<NDIM> ghosts = 5;
+    mask_var = new CellVariable<NDIM, double>(d_object_name + "::mask");
+    registerVariable(mask_current_idx,
+                     mask_new_idx,
+                     mask_scratch_idx,
+                     mask_var,
+                     ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE");                     
     return;
 } // registerEulerianVariables
 
@@ -3295,8 +3312,6 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
                 for (unsigned int k = 0; k < nindices; ++k)
                 {
                   // Using the exterior traciton tau_e
-                    VectorValue<double>  nn;
-			    	for (unsigned int dd = 0; dd < NDIM; ++dd)  nn(dd) = N_qp[NDIM * local_indices[k] + dd];
 
 					TAU_qp[NDIM * local_indices[k] + axis] = (da/dA)*(WSS_o_qp[NDIM * local_indices[k] + axis] - P_o_qp[local_indices[k]] * N_qp[NDIM * local_indices[k] + axis]);
 

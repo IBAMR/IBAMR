@@ -176,7 +176,7 @@ tether_force_function(VectorValue<double>& F,
 using namespace ModelData;
 
 // Function prototypes
-static ofstream drag_stream, lift_stream, U_L1_norm_stream, U_L2_norm_stream, U_max_norm_stream;
+static ofstream drag_F_stream, lift_F_stream, drag_TAU_stream, lift_TAU_stream, U_L1_norm_stream, U_L2_norm_stream, U_max_norm_stream;
 void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                       Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       Mesh& mesh,
@@ -502,14 +502,18 @@ run_example(int argc, char** argv)
         // velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
-            lift_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
+            drag_F_stream.open("C_F_D.curve", ios_base::out | ios_base::trunc);
+            lift_F_stream.open("C_F_L.curve", ios_base::out | ios_base::trunc);
+            drag_TAU_stream.open("C_T_D.curve", ios_base::out | ios_base::trunc);
+            lift_TAU_stream.open("C_T_L.curve", ios_base::out | ios_base::trunc);
             U_L1_norm_stream.open("U_L1.curve", ios_base::out | ios_base::trunc);
             U_L2_norm_stream.open("U_L2.curve", ios_base::out | ios_base::trunc);
             U_max_norm_stream.open("U_max.curve", ios_base::out | ios_base::trunc);
 
-            drag_stream.precision(10);
-            lift_stream.precision(10);
+            drag_F_stream.precision(10);
+            lift_F_stream.precision(10);
+            drag_TAU_stream.precision(10);
+            lift_TAU_stream.precision(10);
             U_L1_norm_stream.precision(10);
             U_L2_norm_stream.precision(10);
             U_max_norm_stream.precision(10);
@@ -582,8 +586,10 @@ run_example(int argc, char** argv)
         // Close the logging streams.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_stream.close();
-            lift_stream.close();
+            drag_F_stream.close();
+            lift_F_stream.close();
+            drag_TAU_stream.close();
+            lift_TAU_stream.close();
             U_L1_norm_stream.close();
             U_L2_norm_stream.close();
             U_max_norm_stream.close();
@@ -610,15 +616,18 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
 {
     const unsigned int dim = mesh.mesh_dimension();
     double F_integral[NDIM];
+    double T_integral[NDIM];
     for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
     
     System* x_system;
     System* U_system;
+    System* TAU_system;
     
     if (use_boundary_mesh)
 	{
 		x_system = &equation_systems->get_system(IBFESurfaceMethod::COORDS_SYSTEM_NAME);
 		U_system = &equation_systems->get_system(IBFESurfaceMethod::VELOCITY_SYSTEM_NAME);
+		TAU_system = &equation_systems->get_system(IBFESurfaceMethod::TAU_SYSTEM_NAME);
 	}
 	else
 	{
@@ -636,7 +645,11 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     
     NumericVector<double>& X0_vec = x_system->get_vector("INITIAL_COORDINATES");
     
-    
+
+	NumericVector<double>* TAU_vec = TAU_system->solution.get();
+	NumericVector<double>* TAU_ghost_vec = TAU_system->current_local_solution.get();
+	TAU_vec->localize(*TAU_ghost_vec);
+
 
     libMesh::UniquePtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
     libMesh::UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
@@ -662,8 +675,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     void* force_fcn_ctx = NULL;
 
     TensorValue<double> FF, FF_inv_trans;
-    boost::multi_array<double, 2> x_node, X0_node, U_node;
-    VectorValue<double> F, N, U, n, x, X;
+    boost::multi_array<double, 2> x_node, X0_node, U_node, TAU_node;
+    VectorValue<double> F, N, U, n, x, X, TAU;
 
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
@@ -677,6 +690,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         }
         get_values_for_interpolation(x_node, *x_ghost_vec, dof_indices);
         get_values_for_interpolation(U_node, *U_ghost_vec, dof_indices);
+        get_values_for_interpolation(TAU_node, *TAU_ghost_vec, dof_indices);
         get_values_for_interpolation(X0_node, X0_vec, dof_indices);
 
         const unsigned int n_qp = qrule->n_points();
@@ -686,6 +700,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
             interpolate(x, qp, x_node, phi);
             jacobian(FF, qp, x_node, dphi);
             interpolate(U, qp, U_node, phi);
+            interpolate(TAU, qp, TAU_node, phi);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 U_qp_vec[d] = U(d);
@@ -700,6 +715,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
             for (int d = 0; d < NDIM; ++d)
             {
                 F_integral[d] += F(d) * JxW[qp];
+                T_integral[d] += TAU(d) * JxW[qp];
             }
         }
         if (!use_boundary_mesh)
@@ -727,6 +743,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
 					for (int d = 0; d < NDIM; ++d)
 					{
 						F_integral[d] += F(d) * JxW_face[qp];
+						
 					}
 				}
 			}
@@ -738,8 +755,10 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     static const double D = 1.0;
     if (SAMRAI_MPI::getRank() == 0)
     {
-        drag_stream << loop_time << " " << -F_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
-        lift_stream << loop_time << " " << -F_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
+        drag_F_stream << loop_time << " " << -F_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
+        lift_F_stream << loop_time << " " << -F_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
+        drag_TAU_stream << loop_time << " " << T_integral[0]  << endl;
+        lift_TAU_stream << loop_time << " " << T_integral[1]  << endl;
     }
     return;
 } // postprocess_data

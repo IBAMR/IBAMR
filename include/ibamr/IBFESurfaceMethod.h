@@ -115,6 +115,9 @@ public:
     static const std::string WSS_O_SYSTEM_NAME;
     static const std::string P_O_SYSTEM_NAME;
     static const std::string TAU_SYSTEM_NAME;
+    
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > mask_var;
+    int mask_current_idx, mask_new_idx, mask_scratch_idx;
 
     /*!
      * \brief Constructor.
