@@ -1111,19 +1111,6 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
         }
         U_problem_coefs.setDPatchDataId(d_velocity_D_idx);
 
-        // D_sc = -1/rho if nonzero, otherwise -1.0
-        P_problem_coefs.setCZero();
-        if (d_rho_is_const)
-        {
-            P_problem_coefs.setDConstant(rho == 0.0 ? -1.0 : -1.0 / (rho * A_scale));
-        }
-        else
-        {
-            d_hier_sc_data_ops->reciprocal(d_pressure_D_idx, d_rho_interp_idx, /*interior_only*/ false);
-            d_hier_sc_data_ops->scale(d_pressure_D_idx, -1.0 / A_scale, d_pressure_D_idx, /*interior_only*/ false);
-            P_problem_coefs.setDPatchDataId(d_pressure_D_idx);
-        }
-
         // Ensure that these objects will operate on all levels in the future
         d_hier_cc_data_ops->resetLevels(coarsest_ln, finest_ln);
         d_hier_sc_data_ops->resetLevels(coarsest_ln, finest_ln);
@@ -1132,6 +1119,19 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
 #elif (NDIM == 3)
         d_hier_ec_data_ops->resetLevels(coarsest_ln, finest_ln);
 #endif
+    }
+
+    // D_sc = -1/rho if nonzero, otherwise -1.0
+    P_problem_coefs.setCZero();
+    if (d_rho_is_const)
+    {
+        P_problem_coefs.setDConstant(rho == 0.0 ? -1.0 : -1.0 / rho);
+    }
+    else
+    {
+        d_hier_sc_data_ops->reciprocal(d_pressure_D_idx, d_rho_interp_idx, /*interior_only*/ false);
+        d_hier_sc_data_ops->scale(d_pressure_D_idx, -1.0, d_pressure_D_idx, /*interior_only*/ false);
+        P_problem_coefs.setDPatchDataId(d_pressure_D_idx);
     }
 
     // Ensure that solver components are appropriately reinitialized at the correct intervals or

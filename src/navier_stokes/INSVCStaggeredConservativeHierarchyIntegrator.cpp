@@ -1094,12 +1094,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
         }
         U_problem_coefs.setDPatchDataId(d_velocity_D_idx);
 
-        // D_sc = -1/rho
-        P_problem_coefs.setCZero();
-        d_hier_sc_data_ops->reciprocal(d_pressure_D_idx, d_rho_sc_scratch_idx, /*interior_only*/ false);
-        d_hier_sc_data_ops->scale(d_pressure_D_idx, -1.0 / A_scale, d_pressure_D_idx, /*interior_only*/ false);
-        P_problem_coefs.setDPatchDataId(d_pressure_D_idx);
-
         // Ensure that these objects will operate on all levels in the future
         d_hier_cc_data_ops->resetLevels(coarsest_ln, finest_ln);
         d_hier_sc_data_ops->resetLevels(coarsest_ln, finest_ln);
@@ -1109,6 +1103,12 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
         d_hier_ec_data_ops->resetLevels(coarsest_ln, finest_ln);
 #endif
     }
+
+    // D_sc = -1/rho
+    P_problem_coefs.setCZero();
+    d_hier_sc_data_ops->reciprocal(d_pressure_D_idx, d_rho_sc_scratch_idx, /*interior_only*/ false);
+    d_hier_sc_data_ops->scale(d_pressure_D_idx, -1.0, d_pressure_D_idx, /*interior_only*/ false);
+    P_problem_coefs.setDPatchDataId(d_pressure_D_idx);
 
     // Ensure that solver components are appropriately reinitialized at the correct intervals or
     // when the time step size changes.
