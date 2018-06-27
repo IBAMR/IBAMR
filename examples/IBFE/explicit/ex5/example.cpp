@@ -617,7 +617,12 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     const unsigned int dim = mesh.mesh_dimension();
     double F_integral[NDIM];
     double T_integral[NDIM];
-    for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+		F_integral[d] = 0.0;
+		T_integral[d] = 0.0;
+	}
+ 
     
     System* x_system;
     System* U_system;
@@ -750,6 +755,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
 		}
     }
     SAMRAI_MPI::sumReduction(F_integral, NDIM);
+    SAMRAI_MPI::sumReduction(T_integral, NDIM);
     static const double rho = 1.0;
     static const double U_max = 1.0;
     static const double D = 1.0;
@@ -757,8 +763,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     {
         drag_F_stream << loop_time << " " << -F_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
         lift_F_stream << loop_time << " " << -F_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
-        drag_TAU_stream << loop_time << " " << T_integral[0]  << endl;
-        lift_TAU_stream << loop_time << " " << T_integral[1]  << endl;
+        drag_TAU_stream << loop_time << " " << T_integral[0]/ (0.5 * rho * U_max * U_max * D)  << endl;
+        lift_TAU_stream << loop_time << " " << T_integral[1]/ (0.5 * rho * U_max * U_max * D) << endl;
     }
     return;
 } // postprocess_data

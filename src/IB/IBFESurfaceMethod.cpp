@@ -2918,7 +2918,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
         P_o_rhs_vec->close();
 
         d_fe_data_managers[part]->computeL2Projection(
-            *P_o_vec, *P_o_rhs_vec, P_O_SYSTEM_NAME, d_use_consistent_mass_matrix);
+            *P_o_vec, *P_o_rhs_vec, P_O_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
 
         d_X_half_vecs[part]->close();
         d_X_current_vecs[part]->close();
@@ -3357,10 +3357,10 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
                     }
                 }
             }
-            for (unsigned int i = 0; i < NDIM; ++i)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
-                TAU_dof_map.constrain_element_vector(TAU_rhs_e[i], TAU_dof_indices[i]);
-                TAU_rhs_vec->add_vector(TAU_rhs_e[i], TAU_dof_indices[i]);
+                TAU_dof_map.constrain_element_vector(TAU_rhs_e[d], TAU_dof_indices[d]);
+                TAU_rhs_vec->add_vector(TAU_rhs_e[d], TAU_dof_indices[d]);
             }
             qp_offset += n_qp;
         }
@@ -3370,7 +3370,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
 
 
     d_fe_data_managers[part]->computeL2Projection(
-        *TAU_vec, *TAU_rhs_vec, TAU_SYSTEM_NAME, d_use_consistent_mass_matrix);
+        *TAU_vec, *TAU_rhs_vec, TAU_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
        
 
     d_X_half_vecs[part]->close();
