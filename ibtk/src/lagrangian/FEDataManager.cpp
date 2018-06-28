@@ -604,11 +604,18 @@ FEDataManager::spread(const int f_data_idx,
     if (use_nodal_quadrature)
     {
         // Multiply by the nodal volume fractions (to convert densities into
-        // values) and extract local form vectors.
-        PetscVector<double>* F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
-        Vec F_global_vec = F_petsc_vec->vec();
-        Vec F_local_vec;
-        VecGhostGetLocalForm(F_global_vec, &F_local_vec);
+        // values).
+        UniquePtr<NumericVector<double> > F_dX_vec = F_vec.clone();
+        F_dX_vec->pointwise_mult(F_vec, *buildDiagonalL2MassMatrix(system_name));
+        F_dX_vec->close();
+
+        // Extract local form vectors.
+        PetscVector<double>* F_dX_petsc_vec = static_cast<PetscVector<double>*>(F_dX_vec.get());
+        Vec F_dX_global_vec = F_dX_petsc_vec->vec();
+        Vec F_dX_local_vec;
+        VecGhostGetLocalForm(F_dX_global_vec, &F_dX_local_vec);
+        double* F_dX_local_soln;
+        VecGetArray(F_dX_local_vec, &F_dX_local_soln);
 
         PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
         Vec X_global_vec = X_petsc_vec->vec();
@@ -616,17 +623,6 @@ FEDataManager::spread(const int f_data_idx,
         VecGhostGetLocalForm(X_global_vec, &X_local_vec);
         double* X_local_soln;
         VecGetArray(X_local_vec, &X_local_soln);
-
-        UniquePtr<NumericVector<double> > F_dX_vec = F_vec.clone();
-        buildDiagonalL2MassMatrix(system_name)->localize(*F_dX_vec);  // \todo cache the IB form of the diagonal mass matrix
-        PetscVector<double>* F_dX_petsc_vec = static_cast<PetscVector<double>*>(F_dX_vec.get());
-        Vec F_dX_global_vec = F_dX_petsc_vec->vec();
-        Vec F_dX_local_vec;
-        VecGhostGetLocalForm(F_dX_global_vec, &F_dX_local_vec);
-        VecPointwiseMult(F_dX_local_vec, F_local_vec, F_dX_local_vec);
-        double* F_dX_local_soln;
-        VecGetArray(F_dX_local_vec, &F_dX_local_soln);
-        VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
 
         // Spread from the nodes.
         int local_patch_num = 0;
@@ -669,6 +665,11 @@ FEDataManager::spread(const int f_data_idx,
             //
             // NOTE: Values are spread only from those nodes that are within the
             // ghost cell width of the patch interior.
+            //
+            // \todo Fix this for FE structures with periodic boundaries.  Nodes
+            // on periodic boundaries will be "double counted".
+            //
+            // \todo Add warnings for FE structures with periodic boundaries.
             const Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), d_ghost_width);
             Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
@@ -1195,32 +1196,57 @@ FEDataManager::interpWeighted(const int f_data_idx,
             const size_t num_active_patch_nodes = patch_nodes.size();
             if (!num_active_patch_nodes) continue;
 
-            // Store the value of X at the nodes.
+            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_x_lower = patch_geom->getXLower();
+            const double* const patch_x_upper = patch_geom->getXUpper();
+            boost::array<bool, NDIM> touches_upper_regular_bdry;
+            for (unsigned int d = 0; d < NDIM; ++d)
+                touches_upper_regular_bdry[d] = patch_geom->getTouchesRegularBoundary(d, 1);
+
+            // Store the value of X at the nodes that are inside the current
+            // patch.
+            std::vector<dof_id_type> F_node_idxs;
             std::vector<double> F_node, X_node;
-            F_node.resize(n_vars * num_active_patch_nodes, 0.0);
+            F_node_idxs.reserve(n_vars * num_active_patch_nodes);
+            F_node.reserve(n_vars * num_active_patch_nodes);
             X_node.reserve(NDIM * num_active_patch_nodes);
-            std::vector<dof_id_type> X_idxs;
+            std::vector<dof_id_type> F_idxs, X_idxs;
             for (unsigned int k = 0; k < num_active_patch_nodes; ++k)
             {
                 const Node* const n = patch_nodes[k];
+                IBTK::Point X;
+                bool inside_patch = true;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     X_dof_map.dof_indices(n, X_idxs, d);
-                    for (std::vector<dof_id_type>::iterator it = X_idxs.begin(); it != X_idxs.end(); ++it)
+                    X[d] = X_local_soln[X_petsc_vec->map_global_to_local_index(X_idxs[0])];
+                    inside_patch = inside_patch && (X[d] >= patch_x_lower[d]) &&
+                                   ((touches_upper_regular_bdry[d] && X[d] <= patch_x_upper[d]) ||
+                                    (!touches_upper_regular_bdry[d] && X[d] < patch_x_upper[d]));
+                }
+                if (inside_patch)
+                {
+                    F_node.resize(F_node.size() + n_vars);
+                    X_node.insert(X_node.end(), &X[0], &X[0] + NDIM);
+                    for (unsigned int i = 0; i < n_vars; ++i)
                     {
-                        X_node.push_back(X_local_soln[X_petsc_vec->map_global_to_local_index(*it)]);
+                        F_dof_map.dof_indices(n, F_idxs, i);
+                        F_node_idxs.insert(F_node_idxs.end(), F_idxs.begin(), F_idxs.end());
                     }
                 }
             }
-            TBOX_ASSERT(F_node.size() == n_vars * num_active_patch_nodes);
-            TBOX_ASSERT(X_node.size() == NDIM * num_active_patch_nodes);
+            TBOX_ASSERT(F_node.size() <= n_vars * num_active_patch_nodes);
+            TBOX_ASSERT(X_node.size() <= NDIM * num_active_patch_nodes);
+            TBOX_ASSERT(F_node_idxs.size() <= n_vars * num_active_patch_nodes);
 
             // Interpolate values from the Cartesian grid patch to the nodes.
             //
-            // NOTE: Values are interpolated only to those nodes that are within
-            // the patch interior.
-            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& interp_box = patch->getBox();
+            // NOTE: The only nodes that are treated here are the nodes that are
+            // inside of the patch.  The interpolation box is grown by a ghost
+            // cell width of 1 to ensure that roundoff errors do not
+            // inadvertently exclude the selected points.
+            const Box<NDIM>& interp_box = Box<NDIM>::grow(patch->getBox(), IntVector<NDIM>(1));
             Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
             if (cc_data)
             {
@@ -1235,21 +1261,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     F_node, n_vars, X_node, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
             }
 
-            // Insesrt the value of F at the nodes.
-            std::vector<dof_id_type> F_idxs;
-            int i = 0;
-            for (unsigned int k = 0; k < num_active_patch_nodes; ++k)
-            {
-                const Node* const n = patch_nodes[k];
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    F_dof_map.dof_indices(n, F_idxs, d);
-                    for (std::vector<dof_id_type>::iterator it = F_idxs.begin(); it != F_idxs.end(); ++it, ++i)
-                    {
-                        F_vec.add(*it, F_node[i]);
-                    }
-                }
-            }
+            // Insesrt the values of F at the nodes.
+            F_vec.insert(F_node, F_node_idxs);
         }
 
         // Restore local form vectors.
