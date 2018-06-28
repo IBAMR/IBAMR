@@ -2270,7 +2270,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
     NumericVector<double>* X_vec = NULL;
     NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
 
-    AutoPtr<NumericVector<double> > P_o_rhs_vec = (*P_o_vec).zero_clone();
+    UniquePtr<NumericVector<double> > P_o_rhs_vec = (*P_o_vec).zero_clone();
     (*P_o_rhs_vec).zero();
     DenseVector<double> P_o_rhs_e;
 
@@ -2972,7 +2972,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
         DU_j_vec[d]->localize(*DU_j_ghost_vec[d]);
     }
 
-    AutoPtr<NumericVector<double> > TAU_rhs_vec = (*TAU_vec).zero_clone();
+    UniquePtr<NumericVector<double> > TAU_rhs_vec = (*TAU_vec).zero_clone();
     (*TAU_rhs_vec).zero();
     DenseVector<double> TAU_rhs_e[NDIM];
 
