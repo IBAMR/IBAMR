@@ -802,7 +802,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                 diag_dis += patch_dx[d] * patch_dx[d];
             }
             const double dh = d_wss_calc_width * sqrt(diag_dis);
-            const int u_ghost_num = static_cast<int>(ceil(dh / patch_dx_min));
+            const int u_ghost_num = static_cast<int>(ceil(2.0 * dh / patch_dx_min));
             boost::array<double, NDIM> x_lower_gh, x_upper_gh;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
