@@ -33,7 +33,7 @@ START_TIME                 = 0.0e0             // initial simulation time
 END_TIME                   = 100            // final simulation time
 GROW_DT                    = 2.0e0             // growth factor for timesteps
 CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH" // convective time stepping type
-CONVECTIVE_OP_TYPE         = "PPM"             // convective differencing discretization type
+CONVECTIVE_OP_TYPE         = "STABILIZED_PPM"              // convective differencing discretization type
 CONVECTIVE_FORM            = "ADVECTIVE"       // how to compute the convective terms
 NORMALIZE_PRESSURE         = FALSE             // whether to explicitly force the pressure to have mean zero
 ERROR_ON_DT_CHANGE         = TRUE              // whether to emit an error message if the time step size changes
@@ -50,8 +50,8 @@ ENABLE_LOGGING             = TRUE
 // model parameters
 KAPPA_S_BODY = 0.0 //2.5*DX/DT^2
 ETA_S_BODY = 0.0 //1.5*DX/DT
-KAPPA_S_SURFACE = 0.03*DX/DT^2 //100 //0.05 *DX/DT^2
-ETA_S_SURFACE = 0.0*DX/DT
+KAPPA_S_SURFACE =100  //0.03*DX/DT^2 //100 //0.05 *DX/DT^2
+ETA_S_SURFACE = 0.5 //0.0*DX/DT
 C1_S = 0.0
 
 // collocated solver parameters
@@ -72,7 +72,7 @@ VelocityBcCoefs_0 {
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = "(tanh((t-t_half)/tau)+tanh(t_half/tau))/(1+tanh(t_half/tau))"
+   gcoef_function_0 = "(tanh(t/2-t_half/tau)+tanh(t_half/tau))/(1+tanh(t_half/tau))"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
@@ -171,13 +171,13 @@ Main {
    solver_type = SOLVER_TYPE
 
 // log file parameters
-   log_file_name               = "II_2d_pu_nointerp.log"
+   log_file_name               = "IB_2d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
    viz_dump_interval           = int(1/DT)
-   viz_dump_dirname            = "viz_II2d_pu_nointerp"
+   viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
