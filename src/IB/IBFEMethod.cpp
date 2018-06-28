@@ -3363,11 +3363,17 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     // Set some default values.
     const bool use_adaptive_quadrature = true;
     const int point_density = 2.0;
+    const bool use_nodal_quadrature = false;
     const bool interp_use_consistent_mass_matrix = true;
-    d_default_interp_spec = FEDataManager::InterpSpec(
-        "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, interp_use_consistent_mass_matrix);
-    d_default_spread_spec =
-        FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density);
+    d_default_interp_spec = FEDataManager::InterpSpec("IB_4",
+                                                      QGAUSS,
+                                                      INVALID_ORDER,
+                                                      use_adaptive_quadrature,
+                                                      point_density,
+                                                      interp_use_consistent_mass_matrix,
+                                                      use_nodal_quadrature);
+    d_default_spread_spec = FEDataManager::SpreadSpec(
+        "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, use_nodal_quadrature);
     d_ghosts = 0;
     d_split_normal_force = false;
     d_split_tangential_force = false;
@@ -3516,6 +3522,11 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     else if (db->isBool("IB_use_consistent_mass_matrix"))
         d_default_interp_spec.use_consistent_mass_matrix = db->getBool("IB_use_consistent_mass_matrix");
 
+    if (db->isBool("interp_use_nodal_quadrature"))
+        d_default_interp_spec.use_nodal_quadrature = db->getBool("interp_use_nodal_quadrature");
+    else if (db->isBool("IB_use_nodal_quadrature"))
+        d_default_interp_spec.use_nodal_quadrature = db->getBool("IB_use_nodal_quadrature");
+
     // Spreading settings.
     if (db->isString("spread_delta_fcn"))
         d_default_spread_spec.kernel_fcn = db->getString("spread_delta_fcn");
@@ -3545,6 +3556,11 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_default_spread_spec.point_density = db->getDouble("spread_point_density");
     else if (db->isDouble("IB_point_density"))
         d_default_spread_spec.point_density = db->getDouble("IB_point_density");
+
+    if (db->isBool("spread_use_nodal_quadrature"))
+        d_default_spread_spec.use_nodal_quadrature = db->getBool("spread_use_nodal_quadrature");
+    else if (db->isBool("IB_use_nodal_quadrature"))
+        d_default_spread_spec.use_nodal_quadrature = db->getBool("IB_use_nodal_quadrature");
 
     // Force computation settings.
     if (db->isBool("split_normal_force"))

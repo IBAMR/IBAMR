@@ -155,13 +155,15 @@ public:
                    const libMesh::Order& quad_order,
                    bool use_adaptive_quadrature,
                    double point_density,
-                   bool use_consistent_mass_matrix)
+                   bool use_consistent_mass_matrix,
+                   bool use_nodal_quadrature)
             : kernel_fcn(kernel_fcn),
               quad_type(quad_type),
               quad_order(quad_order),
               use_adaptive_quadrature(use_adaptive_quadrature),
               point_density(point_density),
-              use_consistent_mass_matrix(use_consistent_mass_matrix)
+              use_consistent_mass_matrix(use_consistent_mass_matrix),
+              use_nodal_quadrature(use_nodal_quadrature)
         {
         }
 
@@ -171,6 +173,7 @@ public:
         bool use_adaptive_quadrature;
         double point_density;
         bool use_consistent_mass_matrix;
+        bool use_nodal_quadrature;
     };
 
     /*!
@@ -188,12 +191,14 @@ public:
                    const libMesh::QuadratureType& quad_type,
                    const libMesh::Order& quad_order,
                    bool use_adaptive_quadrature,
-                   double point_density)
+                   double point_density,
+                   bool use_nodal_quadrature)
             : kernel_fcn(kernel_fcn),
               quad_type(quad_type),
               quad_order(quad_order),
               use_adaptive_quadrature(use_adaptive_quadrature),
-              point_density(point_density)
+              point_density(point_density),
+              use_nodal_quadrature(use_nodal_quadrature)
         {
         }
 
@@ -202,6 +207,7 @@ public:
         libMesh::Order quad_order;
         bool use_adaptive_quadrature;
         double point_density;
+        bool use_nodal_quadrature;
     };
 
     /*!

@@ -593,9 +593,7 @@ FEDataManager::spread(const int f_data_idx,
 
     // Check to see if we are using nodal quadrature.
     const bool use_nodal_quadrature =
-        ((spread_spec.quad_type == QTRAP && F_fe_type == LAGRANGE && F_order == FIRST) ||
-         (spread_spec.quad_type == QSIMPSON && F_fe_type == LAGRANGE && F_order == SECOND)) &&
-        (F_fe_type == X_fe_type && F_order == X_order);
+        spread_spec.use_nodal_quadrature && (F_fe_type == X_fe_type && F_order == X_order);
 
     // Communicate any unsynchronized ghost data.
     if (close_F) F_vec.close();
@@ -1172,10 +1170,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
 
     // Check to see if we are using nodal quadrature.
     const bool use_nodal_quadrature =
-        ((interp_spec.quad_type == QTRAP && F_fe_type == LAGRANGE && F_order == FIRST) ||
-         (interp_spec.quad_type == QSIMPSON && F_fe_type == LAGRANGE && F_order == SECOND)) &&
-        (F_fe_type == X_fe_type && F_order == X_order) &&
-        interp_spec.use_consistent_mass_matrix;
+        interp_spec.use_nodal_quadrature && (F_fe_type == X_fe_type && F_order == X_order);
 
     if (use_nodal_quadrature)
     {
