@@ -111,6 +111,8 @@ namespace ModelData
 {
 // Tether (penalty) stress function.
 bool use_boundary_mesh = false;
+bool use_velocity_jump_conditions = false;
+bool use_pressure_jump_conditions = false;
 static double c1_s = 1.0e5;
 void
 PK1_stress_function(TensorValue<double>& PP,
@@ -300,6 +302,8 @@ run_example(int argc, char** argv)
         boundary_mesh.prepare_for_use();
 
         use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
+        use_pressure_jump_conditions = input_db->getBoolWithDefault("USE_PRESSURE_JUMP_CONDITIONS", false);
+        use_velocity_jump_conditions = input_db->getBoolWithDefault("USE_VELOCITY_JUMP_CONDITIONS", false);
         Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
 
         c1_s = input_db->getDouble("C1_S");
@@ -626,13 +630,12 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
 
     System* x_system;
     System* U_system;
-    System* TAU_system;
 
     if (use_boundary_mesh)
     {
         x_system = &equation_systems->get_system(IBFESurfaceMethod::COORDS_SYSTEM_NAME);
         U_system = &equation_systems->get_system(IBFESurfaceMethod::VELOCITY_SYSTEM_NAME);
-        TAU_system = &equation_systems->get_system(IBFESurfaceMethod::TAU_SYSTEM_NAME);
+        
     }
     else
     {
@@ -649,10 +652,17 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 
     NumericVector<double>& X0_vec = x_system->get_vector("INITIAL_COORDINATES");
-
-    NumericVector<double>* TAU_vec = TAU_system->solution.get();
-    NumericVector<double>* TAU_ghost_vec = TAU_system->current_local_solution.get();
-    TAU_vec->localize(*TAU_ghost_vec);
+    
+    std::vector<std::vector<unsigned int> > WSS_o_dof_indices(NDIM);
+    System* TAU_system;
+    NumericVector<double>* TAU_vec;
+	NumericVector<double>* TAU_ghost_vec;
+    if (use_pressure_jump_conditions && use_velocity_jump_conditions)
+    {		
+		TAU_system = &equation_systems->get_system(IBFESurfaceMethod::TAU_SYSTEM_NAME);
+		TAU_vec = TAU_system->solution.get();
+		TAU_ghost_vec = TAU_system->current_local_solution.get();	
+	}
 
     libMesh::UniquePtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
     libMesh::UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
@@ -693,8 +703,10 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         }
         get_values_for_interpolation(x_node, *x_ghost_vec, dof_indices);
         get_values_for_interpolation(U_node, *U_ghost_vec, dof_indices);
-        get_values_for_interpolation(TAU_node, *TAU_ghost_vec, dof_indices);
         get_values_for_interpolation(X0_node, X0_vec, dof_indices);
+        if (use_pressure_jump_conditions && use_velocity_jump_conditions)
+			get_values_for_interpolation(TAU_node, *TAU_ghost_vec, dof_indices);
+
 
         const unsigned int n_qp = qrule->n_points();
         for (unsigned int qp = 0; qp < n_qp; ++qp)
@@ -703,7 +715,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
             interpolate(x, qp, x_node, phi);
             jacobian(FF, qp, x_node, dphi);
             interpolate(U, qp, U_node, phi);
-            interpolate(TAU, qp, TAU_node, phi);
+            if (use_pressure_jump_conditions && use_velocity_jump_conditions)
+				interpolate(TAU, qp, TAU_node, phi);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 U_qp_vec[d] = U(d);
@@ -716,7 +729,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
             for (int d = 0; d < NDIM; ++d)
             {
                 F_integral[d] += F(d) * JxW[qp];
-                T_integral[d] += TAU(d) * JxW[qp];
+                if (use_pressure_jump_conditions && use_velocity_jump_conditions)
+					T_integral[d] += TAU(d) * JxW[qp];
             }
         }
         if (!use_boundary_mesh)
@@ -768,8 +782,11 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     {
         drag_F_stream << loop_time << " " << -F_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
         lift_F_stream << loop_time << " " << -F_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
-        drag_TAU_stream << loop_time << " " << T_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
-        lift_TAU_stream << loop_time << " " << T_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
+        if (use_pressure_jump_conditions && use_velocity_jump_conditions)
+        {
+			drag_TAU_stream << loop_time << " " << T_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
+			lift_TAU_stream << loop_time << " " << T_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
+		}
     }
     return;
 } // postprocess_data

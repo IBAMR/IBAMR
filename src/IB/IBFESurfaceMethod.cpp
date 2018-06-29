@@ -767,9 +767,9 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         std::vector<DenseVector<double> > U_n_rhs_e(NDIM);
         UniquePtr<NumericVector<double> > U_t_rhs_vec = U_t_vec->zero_clone();
         std::vector<DenseVector<double> > U_t_rhs_e(NDIM);
-
-        UniquePtr<NumericVector<double> > WSS_o_rhs_vec = (*WSS_o_vec).zero_clone();
-        (*WSS_o_rhs_vec).zero();
+        
+		UniquePtr<NumericVector<double> > WSS_o_rhs_vec = 
+			(d_use_velocity_jump_conditions ? WSS_o_vec->zero_clone() : UniquePtr<NumericVector<double> >());
         DenseVector<double> WSS_o_rhs_e[NDIM];
 
         boost::multi_array<double, 2> x_node;
@@ -894,13 +894,16 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                             x_qp[NDIM * (qp_offset + qp) + d] += x_node[k][d] * p;
                             x_o_qp[NDIM * (qp_offset + qp) + d] += x_node[k][d] * p;
                         }
-                        for (unsigned int axis = 0; axis < NDIM; ++axis)
-                        {
-                            for (unsigned int d = 0; d < NDIM; ++d)
-                            {
-                                DU_j_qp[axis][NDIM * (qp_offset + qp) + d] += DU_j_node[axis][k][d] * p;
-                            }
-                        }
+                        if (d_use_velocity_jump_conditions)
+						{
+							for (unsigned int axis = 0; axis < NDIM; ++axis)
+							{
+								for (unsigned int d = 0; d < NDIM; ++d)
+								{
+									DU_j_qp[axis][NDIM * (qp_offset + qp) + d] += DU_j_node[axis][k][d] * p;
+								}
+							}
+						}
                     }
                 }
                 for (unsigned int qp = 0; qp < n_qpoints; ++qp)
