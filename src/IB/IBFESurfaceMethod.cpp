@@ -950,8 +950,8 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             }
             else if (u_sc_data && d_use_velocity_jump_conditions)
             {
-                //~ LEInteractor::interpolate(
-                //~ U_o_qp, NDIM, x_o_qp, NDIM, u_sc_data, patch, ghost_box, d_default_interp_spec.kernel_fcn);
+                LEInteractor::interpolate(
+                      U_o_qp, NDIM, x_o_qp, NDIM, u_sc_data, patch, ghost_box, d_default_interp_spec.kernel_fcn);
 
                 const IntVector<NDIM>& u_gcw = u_sc_data->getGhostCellWidth();
                 const int u_depth = u_sc_data->getDepth();
@@ -969,15 +969,14 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                     const Index<NDIM> io = IndexUtilities::getCellIndex(
                         xo, x_lower_ghost, x_upper_ghost, patch_geom->getDx(), ghost_box.lower(), ghost_box.upper());
 
-                    if (!ghost_box.contains(io) && patch_box.contains(i))
-                        TBOX_ERROR(d_object_name << "::IBFESurfaceMethod():\n"
-                                                 << " the velocity interpolation ghost width hasn't beeen properly set"
-                                                 << std::endl);
+                    //~ if (!ghost_box.contains(io) && patch_box.contains(i))
+                        //~ TBOX_ERROR(d_object_name << "::IBFESurfaceMethod():\n"
+                                                 //~ << " the velocity interpolation ghost width hasn't beeen properly set"
+                                                 //~ << std::endl);
                 }
                 if (local_indices.empty()) continue;
                 Index<NDIM> ic_lower, ic_upper, ic_center;
-                Index<NDIM> ic_lower_o, ic_upper_o, ic_center_o;
-                boost::array<boost::array<double, 2>, NDIM> w, wr, wo, wro;
+                boost::array<boost::array<double, 2>, NDIM> w, wr;
 #if (NDIM == 2)
                 boost::array<double, NDIM> LL, LU, UL, UU;
 #endif
@@ -987,33 +986,25 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                 std::vector<double> U_axis(n_qpoints_patch, 0.0);
                 std::vector<double> U_axis_o(n_qpoints_patch, 0.0);
                 Box<NDIM> side_boxes[NDIM];
-                Box<NDIM> side_boxes_o[NDIM];
+
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
                     side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-                    side_boxes_o[axis] = SideGeometry<NDIM>::toSideBox(ghost_box, axis);
                 }
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     IBTK::Point x_lower_axis, x_upper_axis;
-                    IBTK::Point x_lower_axis_o, x_upper_axis_o;
-                    Index<NDIM> ic_lower_o, ic_upper_o, ic_center_o;
+
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         x_lower_axis[d] = patch_x_lower[d];
                         x_upper_axis[d] = patch_x_upper[d];
-                        x_lower_axis_o[d] = patch_x_lower[d] - static_cast<double>(u_ghost_num) * patch_dx[d];
-                        x_upper_axis_o[d] = patch_x_upper[d] + static_cast<double>(u_ghost_num) * patch_dx[d];
                     }
                     x_lower_axis[axis] -= 0.5 * patch_dx[axis];
                     x_upper_axis[axis] += 0.5 * patch_dx[axis];
-                    x_lower_axis_o[axis] -= 0.5 * patch_dx[axis];
-                    x_upper_axis_o[axis] += 0.5 * patch_dx[axis];
 
                     const Index<NDIM>& ilower = side_boxes[axis].lower();
                     const Index<NDIM>& iupper = side_boxes[axis].upper();
-                    const IntVector<NDIM>& ilower_o = side_boxes_o[axis].lower();
-                    const IntVector<NDIM>& iupper_o = side_boxes_o[axis].upper();
 
                     typedef boost::multi_array_types::extent_range range;
                     boost::const_multi_array_ref<double, NDIM> u_sc_data_array(
@@ -1058,33 +1049,6 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                             w[d][1] = 1.0 - w[d][0];
                             wr[d][0] = +w[d][0];
                             wr[d][1] = -w[d][1];
-
-                            xo[d] = x_o_qp[s * NDIM + d];
-                            ic_center_o[d] =
-                                ilower_o[d] + boost::math::iround((xo[d] - x_lower_axis_o[d]) / dx[d] - 0.5);
-                            x_cell_o[d] = x_lower_axis_o[d] + ((ic_center_o[d] - ilower_o[d]) + 0.5) * dx[d];
-                            if (xo[d] <= x_cell_o[d])
-                            {
-                                ic_lower_o[d] = ic_center_o[d] - 1;
-                                ic_upper_o[d] = ic_center_o[d];
-                            }
-                            else
-                            {
-                                ic_lower_o[d] = ic_center_o[d];
-                                ic_upper_o[d] = ic_center_o[d] + 1;
-                            }
-
-                            if (xo[d] <= x_cell_o[d])
-                            {
-                                wo[d][0] = (x_cell_o[d] - xo[d]) / dx[d];
-                            }
-                            else
-                            {
-                                wo[d][0] = 1.0 + (x_cell_o[d] - xo[d]) / dx[d];
-                            }
-                            wo[d][1] = 1.0 - wo[d][0];
-                            wro[d][0] = +wo[d][0];
-                            wro[d][1] = -wo[d][1];
                         }
                         boost::multi_array<double, NDIM + 1> Ujump(
                             boost::extents[range(ic_lower[0], ic_upper[0] + 1)][range(ic_lower[1], ic_upper[1] + 1)]
@@ -1213,23 +1177,6 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                             U_axis[s] -= CC / d_mu;
 #endif
                         }
-                        U_axis_o[s] = 0.0;
-                        Box<NDIM> stencil_box_o(ic_lower_o, ic_upper_o);
-                        for (BoxIterator<NDIM> b(stencil_box_o); b; b++)
-                        {
-                            const Index<NDIM>& ic = b();
-#if (NDIM == 2)
-
-                            U_axis_o[s] += wo[0][ic[0] - ic_lower_o[0]] * wo[1][ic[1] - ic_lower_o[1]] *
-                                           u_sc_data_array[ic[0]][ic[1]];
-
-#endif
-#if (NDIM == 3)
-                            U_axis_o[s] += wo[0][ic[0] - ic_lower_o[0]] * wo[1][ic[1] - ic_lower_o[1]] *
-                                           wo[2][ic[2] - ic_lower_o[2]] * u_sc_data_array[ic[0]][ic[1]][ic[2]];
-
-#endif
-                        }
                     }
 
                     for (unsigned int k = 0; k < local_indices.size(); ++k)
@@ -1238,8 +1185,8 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 
                         if (dh != 0.0)
                         {
-                            WSS_o_qp[NDIM * local_indices[k] + axis] =
-                                d_mu * (1.0 / dh) * (U_axis_o[local_indices[k]] - U_axis[local_indices[k]]);
+                              WSS_o_qp[NDIM * local_indices[k] + axis] =
+                                d_mu * (1.0 / dh) * (U_qp[NDIM * local_indices[k] + axis] - U_o_qp[NDIM * local_indices[k] + axis]);
                         }
                         else
                         {
