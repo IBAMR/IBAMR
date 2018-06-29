@@ -53,7 +53,6 @@ CHECK_BUILTIN_PREFETCH
 # Checks for optional and required third-party libraries.
 ###########################################################################
 PACKAGE_INITIALIZE_ENVIRONMENT
-CONFIGURE_LIBMESH # must configure libMesh first to scope its configuration
 echo
 echo "=================================="
 echo "Configuring required package Boost"
@@ -63,6 +62,7 @@ BOOST_REQUIRE([1.57.0],[
   AC_MSG_WARN([could not find system Boost library, using bundled Boost library])
   USING_BUNDLED_BOOST=yes])
 CONFIGURE_BOOST("$ABSOLUTE_SRCDIR/ibtk/contrib/boost","\$(abs_top_builddir)/ibtk/contrib/boost")
+CONFIGURE_LIBMESH
 CONFIGURE_EIGEN("$ABSOLUTE_SRCDIR/ibtk/contrib/eigen","\$(abs_top_builddir)/ibtk/contrib/eigen")
 CONFIGURE_HDF5
 CONFIGURE_HYPRE
@@ -126,6 +126,7 @@ AC_CONFIG_FILES([
   examples/IBFE/explicit/ex6/Makefile
   examples/IBFE/explicit/ex7/Makefile
   examples/IBFE/explicit/ex8/Makefile
+  examples/IBFE/explicit/ex9/Makefile
   examples/IMP/Makefile
   examples/IMP/explicit/Makefile
   examples/IMP/explicit/ex0/Makefile
@@ -137,6 +138,9 @@ AC_CONFIG_FILES([
   examples/level_set/Makefile
   examples/level_set/ex0/Makefile
   examples/level_set/ex1/Makefile
+  examples/multiphase_flow/Makefile
+  examples/multiphase_flow/ex0/Makefile
+  examples/multiphase_flow/ex1/Makefile
   examples/navier_stokes/Makefile
   examples/navier_stokes/ex0/Makefile
   examples/navier_stokes/ex1/Makefile
@@ -145,7 +149,9 @@ AC_CONFIG_FILES([
   examples/navier_stokes/ex4/Makefile
   examples/navier_stokes/ex5/Makefile
   examples/navier_stokes/ex6/Makefile
-  ibtk/Makefile
+  examples/vc_navier_stokes/Makefile
+  examples/vc_navier_stokes/ex0/Makefile
+  examples/vc_navier_stokes/ex1/Makefile
   ibtk/examples/Makefile
   ibtk/examples/CCLaplace/Makefile
   ibtk/examples/CCPoisson/Makefile

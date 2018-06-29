@@ -245,11 +245,12 @@ run_example(int argc, char* argv[])
         ib_method_ops->registerConstraintIBKinematics(ibkinematics_ops_vec);
         ib_method_ops->initializeHierarchyOperatorsandData();
 
-	// Create hydrodynamic force evaluator object.
+        // Create hydrodynamic force evaluator object.
         double rho_fluid = input_db->getDouble("RHO");
         double mu_fluid = input_db->getDouble("MU");
+        double start_time = time_integrator->getIntegratorTime();
         Pointer<IBHydrodynamicForceEvaluator> hydro_force =
-            new IBHydrodynamicForceEvaluator("IBHydrodynamicForce", rho_fluid, mu_fluid, true);
+            new IBHydrodynamicForceEvaluator("IBHydrodynamicForce", rho_fluid, mu_fluid, start_time, true);
 
         // Get the initial box position and velocity from input
         const string init_hydro_force_box_db_name = "InitHydroForceBox_0";
@@ -259,12 +260,12 @@ run_example(int argc, char* argv[])
         input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("upper_right_corner", &box_X_upper[0], 3);
         input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("init_velocity", &box_init_vel[0], 3);
 
-	// Register control volume
+        // Register control volume
         hydro_force->registerStructure(box_X_lower, box_X_upper, patch_hierarchy, box_init_vel, 0);
 
         // Get the center of mass of the plate
         IBTK::Vector3d Plate_COM;
-        std::vector<std::vector<double> > structure_COM = ib_method_ops->getStructureCOM();
+        std::vector<std::vector<double> > structure_COM = ib_method_ops->getCurrentStructureCOM();
 
         // Register optional plot data
         hydro_force->registerStructurePlotData(visit_data_writer, patch_hierarchy, 0);
@@ -277,8 +278,8 @@ run_example(int argc, char* argv[])
         // Print the input database contents to the log file.
         plog << "Input database:\n";
         input_db->printClassData(plog);
-        
-         // Setup data to compute hydrodynamic traction.
+
+        // Setup data to compute hydrodynamic traction.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
         const Pointer<Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
@@ -303,13 +304,13 @@ run_example(int argc, char* argv[])
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
-	double current_time, new_time;
+        double current_time, new_time;
+
         double box_disp = 0.0;
         while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
             current_time = loop_time = time_integrator->getIntegratorTime();
-	    
 
             pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
@@ -318,7 +319,7 @@ run_example(int argc, char* argv[])
 
             dt = time_integrator->getMaximumTimeStepSize();
             loop_time += dt;
-	    new_time = loop_time;
+            new_time = loop_time;
 
             // Regrid the hierarchy if necessary.
             if (time_integrator->atRegridPoint()) time_integrator->regridHierarchy();
@@ -332,11 +333,12 @@ run_example(int argc, char* argv[])
             Pointer<PatchLevel<NDIM> > coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
             const Pointer<CartesianGridGeometry<NDIM> > coarsest_grid_geom = coarsest_level->getGridGeometry();
             const double* const DX = coarsest_grid_geom->getDx();
-	    
-	    // Set the box velocity to ensure that the immersed body remains inside the control volume at all times.
-	    // If the body's COM has moved 0.9 coarse mesh widths in the x-direction, set the CV velocity such that 
-	    // the CV will translate by 1 coarse mesh width in the direction of translation (positive x-direction). 
-	    // Otherwise, keep the CV in place by setting its velocity to zero.
+
+            // Set the box velocity to ensure that the immersed body remains inside the control volume at all times.
+            // If the body's COM has moved 0.9 coarse mesh widths in the x-direction, set the CV velocity such that
+            // the CV will translate by 1 coarse mesh width in the direction of translation (positive x-direction).
+            // Otherwise, keep the CV in place by setting its velocity to zero.
+
             box_disp += box_vel[0] * dt;
             if (box_disp >= 0.9 * DX[0])
             {
@@ -397,7 +399,7 @@ run_example(int argc, char* argv[])
             hydro_force->updateStructurePlotData(patch_hierarchy, 0);
 
             // Set the torque origin for the next time step
-            structure_COM = ib_method_ops->getStructureCOM();
+            structure_COM = ib_method_ops->getCurrentStructureCOM();
             for (int d = 0; d < 3; ++d) Plate_COM[d] = structure_COM[0][d];
 
             // Set the torque evaluation axis to point from newest COM

@@ -188,8 +188,8 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         const ConvectiveDifferencingType difference_form =
             IBAMR::string_to_enum<ConvectiveDifferencingType>(main_db->getStringWithDefault(
                 "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
-        pout << "solving the advection equation in " << enum_to_string<ConvectiveDifferencingType>(difference_form)
-             << " form.\n";
+        pout << "solving the advection equation in "
+             << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
         Pointer<CellVariable<NDIM, double> > Q_var = new CellVariable<NDIM, double>("Q");
         LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
             "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));
@@ -238,8 +238,11 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         Pointer<FastSweepingLSMethod> level_set_ops =
             new FastSweepingLSMethod("FastSweepingLSMethod", app_initializer->getComponentDatabase("LevelSet"));
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&circular_interface_neighborhood, (void*)&circle);
-        level_set_ops->initializeLSData(
-            Q_scratch_idx, hier_math_ops, time_integrator->getIntegratorTime(), /*initial_time*/ true);
+        level_set_ops->initializeLSData(Q_scratch_idx,
+                                        hier_math_ops,
+                                        time_integrator->getIntegratorStep(),
+                                        time_integrator->getIntegratorTime(),
+                                        /*initial_time*/ true);
 
         HierarchyCellDataOpsReal<NDIM, double> cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         cc_data_ops.copyData(Q_current_idx, Q_scratch_idx);

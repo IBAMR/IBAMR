@@ -180,6 +180,13 @@ public:
     virtual unsigned int getNumberOfNodes(const unsigned int part) const = 0;
 
     /*!
+     * \brief Set the initial center of mass location for the structures.
+     *
+     * \param part The rigid body for which we are setting the initial center of mass position.
+     */
+    void setInitialCenterOfMass(const unsigned int part, const Eigen::Vector3d& XCOM_0);
+
+    /*!
      * \brief Set what rigid DOFs need to be solved for this
      * particular structure.
      *
@@ -237,7 +244,7 @@ public:
      *
      * \param all_dofs Boolean indicating if the rigid body velocity
      * is to be set for all parts. The corresponding size of U_sub would be
-     * \f$ U_{sub} \eq NDIM * (NDIM + 1) / 2 \f$.
+     * \f$ U_{sub} = NDIM * (NDIM + 1) / 2 \f$.
      *
      * \note User is responsible for setting correct number of subvecs in U
      * that corresponds to the particular combination of booleans.
@@ -589,6 +596,9 @@ protected:
     // Center of mass.
     std::vector<Eigen::Vector3d> d_center_of_mass_initial, d_center_of_mass_current, d_center_of_mass_half,
         d_center_of_mass_new;
+
+    // User-defined (initial) center of mass.
+    std::vector<bool> d_compute_center_of_mass_initial;
 
     // Quaternion of the body.
     std::vector<Eigen::Quaterniond> d_quaternion_current, d_quaternion_half, d_quaternion_new;

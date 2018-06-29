@@ -213,6 +213,12 @@ protected:
     bool atRegridPointSpecialized() const;
 
     /*!
+     * Initialize data after the entire hierarchy has been constructed.
+     *
+     */
+    void initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time);
+
+    /*!
      * Initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.
      */

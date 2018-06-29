@@ -331,25 +331,32 @@ run_example(int argc, char* argv[])
         // Set up the hydro force objects
         double rho_fluid = input_db->getDouble("RHO");
         double mu_fluid = input_db->getDouble("MU");
+        double start_time = time_integrator->getIntegratorTime();
         Pointer<IBHydrodynamicForceEvaluator> hydro_force =
-            new IBHydrodynamicForceEvaluator("IBHydrodynamicForce", rho_fluid, mu_fluid, true);
+            new IBHydrodynamicForceEvaluator("IBHydrodynamicForce", rho_fluid, mu_fluid, start_time, true);
 
         // Get the initial box position and velocity from input
         const string init_hydro_force_box_out_db_name = "InitHydroForceBox_0";
         IBTK::Vector3d box_X_lower_out, box_X_upper_out, box_init_vel_out;
-	
-	input_db->getDatabase(init_hydro_force_box_out_db_name)->getDoubleArray("lower_left_corner",&box_X_lower_out[0], 3);
-	input_db->getDatabase(init_hydro_force_box_out_db_name)->getDoubleArray("upper_right_corner",&box_X_upper_out[0], 3);
-	input_db->getDatabase(init_hydro_force_box_out_db_name)->getDoubleArray("init_velocity",&box_init_vel_out[0], 3);
+
+        input_db->getDatabase(init_hydro_force_box_out_db_name)
+            ->getDoubleArray("lower_left_corner", &box_X_lower_out[0], 3);
+        input_db->getDatabase(init_hydro_force_box_out_db_name)
+            ->getDoubleArray("upper_right_corner", &box_X_upper_out[0], 3);
+        input_db->getDatabase(init_hydro_force_box_out_db_name)
+            ->getDoubleArray("init_velocity", &box_init_vel_out[0], 3);
 
         const string init_hydro_force_box_in_db_name = "InitHydroForceBox_1";
         IBTK::Vector3d box_X_lower_in, box_X_upper_in, box_init_vel_in;
-	
-	input_db->getDatabase(init_hydro_force_box_out_db_name)->getDoubleArray("lower_left_corner",&box_X_lower_in[0], 3);
-	input_db->getDatabase(init_hydro_force_box_out_db_name)->getDoubleArray("upper_right_corner",&box_X_upper_in[0], 3);
-	input_db->getDatabase(init_hydro_force_box_out_db_name)->getDoubleArray("init_velocity",&box_init_vel_in[0], 3);
-	
-	// Register the control volumes
+
+        input_db->getDatabase(init_hydro_force_box_out_db_name)
+            ->getDoubleArray("lower_left_corner", &box_X_lower_in[0], 3);
+        input_db->getDatabase(init_hydro_force_box_out_db_name)
+            ->getDoubleArray("upper_right_corner", &box_X_upper_in[0], 3);
+        input_db->getDatabase(init_hydro_force_box_out_db_name)
+            ->getDoubleArray("init_velocity", &box_init_vel_in[0], 3);
+
+        // Register the control volumes
         hydro_force->registerStructure(box_X_lower_out, box_X_upper_out, patch_hierarchy, box_init_vel_out, 0);
         hydro_force->registerStructure(box_X_lower_in, box_X_upper_in, patch_hierarchy, box_init_vel_in, 1);
 
@@ -359,8 +366,10 @@ run_example(int argc, char* argv[])
 
         // Set the origin of the torque evaluation
         IBTK::Vector3d torque_origin_out, torque_origin_in;
-	input_db->getDatabase(init_hydro_force_box_out_db_name)->getDoubleArray("torque_origin",&torque_origin_out[0], 3);
-	input_db->getDatabase(init_hydro_force_box_out_db_name)->getDoubleArray("torque_origin",&torque_origin_in[0], 3);
+        input_db->getDatabase(init_hydro_force_box_out_db_name)
+            ->getDoubleArray("torque_origin", &torque_origin_out[0], 3);
+        input_db->getDatabase(init_hydro_force_box_out_db_name)
+            ->getDoubleArray("torque_origin", &torque_origin_in[0], 3);
 
         hydro_force->setTorqueOrigin(torque_origin_out, 0);
         hydro_force->setTorqueOrigin(torque_origin_in, 1);

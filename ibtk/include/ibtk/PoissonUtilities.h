@@ -35,10 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <map>
 #include <vector>
 
-#include "PoissonSpecifications.h"
 #include "BoundaryBox.h"
+#include "PoissonSpecifications.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/ibtk_enums.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -109,6 +112,25 @@ public:
                                           double data_time);
 
     /*!
+     * Compute the matrix coefficients corresponding to a side-centered
+     * discretization of the divergence of the viscous stress tensor.
+     *
+     * \note The scaling factors of \f$ C \f$ and \f$ D \f$ variables in
+     * the PoissonSpecification object are passed separately and are denoted
+     * by \f$ \beta \f$ and \f$ \alpha \f$, respectively.
+     */
+    static void computeVCSCViscousOpMatrixCoefficients(
+        SAMRAI::pdat::SideData<NDIM, double>& matrix_coefficients,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        const std::vector<std::map<SAMRAI::hier::Index<NDIM>, int, IndexFortranOrder> >& stencil_map_vec,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        double alpha,
+        double beta,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        double data_time,
+        VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
+
+    /*!
      * Modify the right-hand side entries to account for physical boundary
      * conditions corresponding to a cell-centered discretization of the
      * Laplacian.
@@ -145,6 +167,24 @@ public:
                                             bool homogeneous_bc);
 
     /*!
+     * Modify the right-hand side entries to account for physical boundary
+     * conditions corresponding to a side-centered discretization of the
+     * variable-coefficient viscous operator.
+     *
+     * \note The scaling factors of \f$ D \f$ variable in the PoissonSpecification object
+     * is passed separately and is denoted \f$ \alpha \f$.
+     */
+    static void
+    adjustVCSCViscousOpRHSAtPhysicalBoundary(SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
+                                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                             const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                                             double alpha,
+                                             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                             double data_time,
+                                             bool homogeneous_bc,
+                                             VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
+
+    /*!
      * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
      * cell-centered discretization of the Laplacian.
      *
@@ -173,6 +213,26 @@ public:
                                   SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                                   const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                   const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& type1_cf_bdry);
+
+    /*!
+     * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
+     * side-centered discretization of the variable coefficient viscous operator.
+     *
+     * \note This function simply uses ghost cell values in sol_data to provide Dirichlet boundary values at coarse-fine
+     * interfaces.  A more complete implementation would employ the interpolation stencil used at coarse-fine interfaces
+     * to modify both the matrix coefficients and RHS values at coarse-fine interfaces.
+     *
+     * \note The scaling factors of \f$ D \f$ variable in the PoissonSpecification object
+     * is passed separately and is denoted \f$ \alpha \f$.
+     */
+    static void adjustVCSCViscousOpRHSAtCoarseFineBoundary(
+        SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
+        const SAMRAI::pdat::SideData<NDIM, double>& sol_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        double alpha,
+        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& type1_cf_bdry,
+        VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
 protected:
 private:

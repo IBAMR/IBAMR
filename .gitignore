@@ -5,6 +5,11 @@ ibtk/contrib/autotools/include
 ibtk/contrib/autotools/lib
 ibtk/contrib/autotools/share
 
+### Generated project files
+#
+# To regenerate: intercept-build --override-compiler make CC=intercept-cc CXX=intercept-c++
+compile_commands.json
+
 # Created by https://www.gitignore.io/api/linux,osx,c,c++,fortran
 
 ### Linux ###

@@ -773,14 +773,10 @@ LIBHDF5
 HAVE_LIBHDF5
 USING_BUNDLED_EIGEN_FALSE
 USING_BUNDLED_EIGEN_TRUE
-BOOST_CPPFLAGS
-DISTCHECK_CONFIGURE_FLAGS
-BOOST_ROOT
 PACKAGE_LIBS
 PACKAGE_FCFLAGS
 PACKAGE_CFLAGS
 PACKAGE_CXXFLAGS
-PACKAGE_CPPFLAGS
 LIBMESH_OPROF_PREFIX
 LTLIBMESH_OPROF
 LIBMESH_OPROF
@@ -808,6 +804,10 @@ HAVE_LIBNETCDF
 LIBMESH_CONFIG
 LIBMESH_ENABLED_FALSE
 LIBMESH_ENABLED_TRUE
+PACKAGE_CPPFLAGS
+BOOST_CPPFLAGS
+DISTCHECK_CONFIGURE_FLAGS
+BOOST_ROOT
 M4
 LT_SYS_LIBRARY_PATH
 OTOOL64
@@ -863,7 +863,6 @@ am__nodep
 AMDEPBACKSLASH
 AMDEP_FALSE
 AMDEP_TRUE
-am__quote
 am__include
 DEPDIR
 OBJEXT
@@ -923,6 +922,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -941,7 +941,8 @@ PACKAGE_VERSION
 PACKAGE_TARNAME
 PACKAGE_NAME
 PATH_SEPARATOR
-SHELL'
+SHELL
+am__quote'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
@@ -957,11 +958,11 @@ with_gnu_ld
 with_sysroot
 enable_libtool_lock
 with_M4
+with_boost
 enable_libmesh
 with_libmesh
 with_libmesh_method
 enable_rpath
-with_boost
 with_eigen
 with_hdf5
 with_hypre
@@ -1036,6 +1037,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1288,6 +1290,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1425,7 +1436,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1578,6 +1589,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1656,12 +1668,12 @@ Optional Packages:
   --with-sysroot[=DIR]    Search for dependent libraries within DIR (or the
                           compiler's sysroot if not specified).
   --with-M4=ARG           manually set M4 to ARG
+  --with-boost=DIR        prefix of Boost 1.57.0 [guess]
   --with-libmesh=PATH     location of optional libMesh installation
   --with-libmesh-method=METHOD
                           libMesh compile mode options include opt, devel,
                           dbg, prof, oprof [default=opt]
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
-  --with-boost=DIR        prefix of Boost 1.57.0 [guess]
   --with-eigen=PATH       location of required Eigen installation
   --with-hdf5=PATH        location of required HDF5 installation
   --with-hypre=PATH       location of required hypre installation
@@ -2768,7 +2780,7 @@ ac_config_headers="$ac_config_headers config/IBAMR_config.h.tmp"
 
 ac_config_commands="$ac_config_commands config/IBAMR_config.h"
 
-am__api_version='1.15'
+am__api_version='1.16'
 
 # Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
@@ -3284,8 +3296,8 @@ MAKEINFO=${MAKEINFO-"${am_missing_run}makeinfo"}
 
 # For better backward compatibility.  To be removed once Automake 1.9.x
 # dies out for good.  For more background, see:
-# <http://lists.gnu.org/archive/html/automake/2012-07/msg00001.html>
-# <http://lists.gnu.org/archive/html/automake/2012-07/msg00014.html>
+# <https://lists.gnu.org/archive/html/automake/2012-07/msg00001.html>
+# <https://lists.gnu.org/archive/html/automake/2012-07/msg00014.html>
 mkdir_p='$(MKDIR_P)'
 
 # We need awk for the "check" target (and possibly the TAP driver).  The
@@ -3336,7 +3348,7 @@ END
 Aborting the configuration process, to ensure you take notice of the issue.
 
 You can download and install GNU coreutils to get an 'rm' implementation
-that behaves properly: <http://www.gnu.org/software/coreutils/>.
+that behaves properly: <https://www.gnu.org/software/coreutils/>.
 
 If you want to complete the configuration process using your problematic
 'rm' anyway, export the environment variable ACCEPT_INFERIOR_RM_PROGRAM
@@ -4273,45 +4285,45 @@ DEPDIR="${am__leading_dot}deps"
 
 ac_config_commands="$ac_config_commands depfiles"
 
-
-am_make=${MAKE-make}
-cat > confinc << 'END'
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether ${MAKE-make} supports the include directive" >&5
+$as_echo_n "checking whether ${MAKE-make} supports the include directive... " >&6; }
+cat > confinc.mk << 'END'
 am__doit:
-	@echo this is the am__doit target
+	@echo this is the am__doit target >confinc.out
 .PHONY: am__doit
 END
-# If we don't find an include directive, just comment out the code.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for style of include used by $am_make" >&5
-$as_echo_n "checking for style of include used by $am_make... " >&6; }
 am__include="#"
 am__quote=
-_am_result=none
-# First try GNU make style include.
-echo "include confinc" > confmf
-# Ignore all kinds of additional output from 'make'.
-case `$am_make -s -f confmf 2> /dev/null` in #(
-*the\ am__doit\ target*)
-  am__include=include
-  am__quote=
-  _am_result=GNU
-  ;;
-esac
-# Now try BSD make style include.
-if test "$am__include" = "#"; then
-   echo '.include "confinc"' > confmf
-   case `$am_make -s -f confmf 2> /dev/null` in #(
-   *the\ am__doit\ target*)
-     am__include=.include
-     am__quote="\""
-     _am_result=BSD
+# BSD make does it like this.
+echo '.include "confinc.mk" # ignored' > confmf.BSD
+# Other make implementations (GNU, Solaris 10, AIX) do it like this.
+echo 'include confinc.mk # ignored' > confmf.GNU
+_am_result=no
+for s in GNU BSD; do
+  { echo "$as_me:$LINENO: ${MAKE-make} -f confmf.$s && cat confinc.out" >&5
+   (${MAKE-make} -f confmf.$s && cat confinc.out) >&5 2>&5
+   ac_status=$?
+   echo "$as_me:$LINENO: \$? = $ac_status" >&5
+   (exit $ac_status); }
+  case $?:`cat confinc.out 2>/dev/null` in #(
+  '0:this is the am__doit target') :
+    case $s in #(
+  BSD) :
+    am__include='.include' am__quote='"' ;; #(
+  *) :
+    am__include='include' am__quote='' ;;
+esac ;; #(
+  *) :
      ;;
-   esac
-fi
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $_am_result" >&5
-$as_echo "$_am_result" >&6; }
-rm -f confinc confmf
+esac
+  if test "$am__include" != "#"; then
+    _am_result="yes ($s style)"
+    break
+  fi
+done
+rm -f confinc.* confmf.*
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ${_am_result}" >&5
+$as_echo "${_am_result}" >&6; }
 
 # Check whether --enable-dependency-tracking was given.
 if test "${enable_dependency_tracking+set}" = set; then :
@@ -9376,7 +9388,7 @@ linux* | k*bsd*-gnu | kopensolaris*-gnu | gnu*)
   lt_cv_deplibs_check_method=pass_all
   ;;
 
-netbsd*)
+netbsd* | netbsdelf*-gnu)
   if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
     lt_cv_deplibs_check_method='match_pattern /lib[^/]+(\.so\.[0-9]+\.[0-9]+|_pic\.a)$'
   else
@@ -12835,6 +12847,9 @@ $as_echo_n "checking whether the $compiler linker ($LD) supports shared librarie
   openbsd* | bitrig*)
     with_gnu_ld=no
     ;;
+  linux* | k*bsd*-gnu | gnu*)
+    link_all_deplibs=no
+    ;;
   esac
 
   ld_shlibs=yes
@@ -13089,7 +13104,7 @@ _LT_EOF
       fi
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
 	wlarc=
@@ -13775,6 +13790,7 @@ $as_echo "$lt_cv_irix_exported_symbol" >&6; }
 	if test yes = "$lt_cv_irix_exported_symbol"; then
           archive_expsym_cmds='$CC -shared $pic_flag $libobjs $deplibs $compiler_flags $wl-soname $wl$soname `test -n "$verstring" && func_echo_all "$wl-set_version $wl$verstring"` $wl-update_registry $wl$output_objdir/so_locations $wl-exports_file $wl$export_symbols -o $lib'
 	fi
+	link_all_deplibs=no
       else
 	archive_cmds='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && func_echo_all "-set_version $verstring"` -update_registry $output_objdir/so_locations -o $lib'
 	archive_expsym_cmds='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && func_echo_all "-set_version $verstring"` -update_registry $output_objdir/so_locations -exports_file $export_symbols -o $lib'
@@ -13796,7 +13812,7 @@ $as_echo "$lt_cv_irix_exported_symbol" >&6; }
       esac
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
       else
@@ -14917,6 +14933,18 @@ fi
   # people can always --disable-shared, the test was removed, and we
   # assume the GNU/Linux dynamic linker is in use.
   dynamic_linker='GNU/Linux ld.so'
+  ;;
+
+netbsdelf*-gnu)
+  version_type=linux
+  need_lib_prefix=no
+  need_version=no
+  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major ${libname}${shared_ext}'
+  soname_spec='${libname}${release}${shared_ext}$major'
+  shlibpath_var=LD_LIBRARY_PATH
+  shlibpath_overrides_runpath=no
+  hardcode_into_libs=yes
+  dynamic_linker='NetBSD ld.elf_so'
   ;;
 
 netbsd*)
@@ -17869,7 +17897,7 @@ lt_prog_compiler_static_CXX=
 	    ;;
 	esac
 	;;
-      netbsd*)
+      netbsd* | netbsdelf*-gnu)
 	;;
       *qnx* | *nto*)
         # QNX uses GNU C++, but need to define -shared option too, otherwise
@@ -18243,6 +18271,9 @@ $as_echo_n "checking whether the $compiler linker ($LD) supports shared librarie
       exclude_expsyms_CXX='[_]+GLOBAL_OFFSET_TABLE_|[_]+GLOBAL__[FID]_.*|[_]+head_[A-Za-z0-9_]+_dll|[A-Za-z0-9_]+_dll_iname'
       ;;
     esac
+    ;;
+  linux* | k*bsd*-gnu | gnu*)
+    link_all_deplibs_CXX=no
     ;;
   *)
     export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
@@ -18943,6 +18974,18 @@ fi
   # people can always --disable-shared, the test was removed, and we
   # assume the GNU/Linux dynamic linker is in use.
   dynamic_linker='GNU/Linux ld.so'
+  ;;
+
+netbsdelf*-gnu)
+  version_type=linux
+  need_lib_prefix=no
+  need_version=no
+  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major ${libname}${shared_ext}'
+  soname_spec='${libname}${release}${shared_ext}$major'
+  shlibpath_var=LD_LIBRARY_PATH
+  shlibpath_overrides_runpath=no
+  hardcode_into_libs=yes
+  dynamic_linker='NetBSD ld.elf_so'
   ;;
 
 netbsd*)
@@ -20213,6 +20256,9 @@ $as_echo_n "checking whether the $compiler linker ($LD) supports shared librarie
   openbsd* | bitrig*)
     with_gnu_ld=no
     ;;
+  linux* | k*bsd*-gnu | gnu*)
+    link_all_deplibs_FC=no
+    ;;
   esac
 
   ld_shlibs_FC=yes
@@ -20467,7 +20513,7 @@ _LT_EOF
       fi
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	archive_cmds_FC='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
 	wlarc=
@@ -21087,6 +21133,7 @@ $as_echo "$lt_cv_irix_exported_symbol" >&6; }
 	if test yes = "$lt_cv_irix_exported_symbol"; then
           archive_expsym_cmds_FC='$CC -shared $pic_flag $libobjs $deplibs $compiler_flags $wl-soname $wl$soname `test -n "$verstring" && func_echo_all "$wl-set_version $wl$verstring"` $wl-update_registry $wl$output_objdir/so_locations $wl-exports_file $wl$export_symbols -o $lib'
 	fi
+	link_all_deplibs_FC=no
       else
 	archive_cmds_FC='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && func_echo_all "-set_version $verstring"` -update_registry $output_objdir/so_locations -o $lib'
 	archive_expsym_cmds_FC='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && func_echo_all "-set_version $verstring"` -update_registry $output_objdir/so_locations -exports_file $export_symbols -o $lib'
@@ -21108,7 +21155,7 @@ $as_echo "$lt_cv_irix_exported_symbol" >&6; }
       esac
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	archive_cmds_FC='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
       else
@@ -22045,6 +22092,18 @@ fi
   dynamic_linker='GNU/Linux ld.so'
   ;;
 
+netbsdelf*-gnu)
+  version_type=linux
+  need_lib_prefix=no
+  need_version=no
+  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major ${libname}${shared_ext}'
+  soname_spec='${libname}${release}${shared_ext}$major'
+  shlibpath_var=LD_LIBRARY_PATH
+  shlibpath_overrides_runpath=no
+  hardcode_into_libs=yes
+  dynamic_linker='NetBSD ld.elf_so'
+  ;;
+
 netbsd*)
   version_type=sunos
   need_lib_prefix=no
@@ -22691,6 +22750,280 @@ PACKAGE_LDFLAGS=""
 PACKAGE_LIBS=""
 PACKAGE_FCLIBS=""
 PACKAGE_CONTRIB_LIBS=""
+
+echo
+echo "=================================="
+echo "Configuring required package Boost"
+echo "=================================="
+{ $as_echo "$as_me:${as_lineno-$LINENO}: first check for a system Boost library; if not found, revert to bundled Boost library" >&5
+$as_echo "$as_me: first check for a system Boost library; if not found, revert to bundled Boost library" >&6;}
+echo "$as_me: this is boost.m4 serial 26" >&5
+boost_save_IFS=$IFS
+boost_version_req=1.57.0
+IFS=.
+set x $boost_version_req 0 0 0
+IFS=$boost_save_IFS
+shift
+boost_version_req=`expr "$1" '*' 100000 + "$2" '*' 100 + "$3"`
+boost_version_req_string=$1.$2.$3
+
+# Check whether --with-boost was given.
+if test "${with_boost+set}" = set; then :
+  withval=$with_boost;
+fi
+# If BOOST_ROOT is set and the user has not provided a value to
+# --with-boost, then treat BOOST_ROOT as if it the user supplied it.
+if test x"$BOOST_ROOT" != x; then
+  if test x"$with_boost" = x; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: Detected BOOST_ROOT; continuing with --with-boost=$BOOST_ROOT" >&5
+$as_echo "$as_me: Detected BOOST_ROOT; continuing with --with-boost=$BOOST_ROOT" >&6;}
+    with_boost=$BOOST_ROOT
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: Detected BOOST_ROOT=$BOOST_ROOT, but overridden by --with-boost=$with_boost" >&5
+$as_echo "$as_me: Detected BOOST_ROOT=$BOOST_ROOT, but overridden by --with-boost=$with_boost" >&6;}
+  fi
+fi
+DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS '--with-boost=$with_boost'"
+boost_save_CPPFLAGS=$CPPFLAGS
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Boost headers version >= $boost_version_req_string" >&5
+$as_echo_n "checking for Boost headers version >= $boost_version_req_string... " >&6; }
+if ${boost_cv_inc_path+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  boost_cv_inc_path=no
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <boost/version.hpp>
+#if !defined BOOST_VERSION
+# error BOOST_VERSION is not defined
+#elif BOOST_VERSION < $boost_version_req
+# error Boost headers version < $boost_version_req
+#endif
+
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
+#endif
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+    # If the user provided a value to --with-boost, use it and only it.
+    case $with_boost in #(
+      ''|yes) set x '' /opt/local/include /usr/local/include /opt/include \
+                 /usr/include C:/Boost/include;; #(
+      *)      set x "$with_boost/include" "$with_boost";;
+    esac
+    shift
+    for boost_dir
+    do
+    # Without --layout=system, Boost (or at least some versions) installs
+    # itself in <prefix>/include/boost-<version>.  This inner loop helps to
+    # find headers in such directories.
+    #
+    # Any ${boost_dir}/boost-x_xx directories are searched in reverse version
+    # order followed by ${boost_dir}.  The final '.' is a sentinel for
+    # searching $boost_dir" itself.  Entries are whitespace separated.
+    #
+    # I didn't indent this loop on purpose (to avoid over-indented code)
+    boost_layout_system_search_list=`cd "$boost_dir" 2>/dev/null \
+        && ls -1 | "${GREP}" '^boost-' | sort -rn -t- -k2 \
+        && echo .`
+    for boost_inc in $boost_layout_system_search_list
+    do
+      if test x"$boost_inc" != x.; then
+        boost_inc="$boost_dir/$boost_inc"
+      else
+        boost_inc="$boost_dir" # Uses sentinel in boost_layout_system_search_list
+      fi
+      if test x"$boost_inc" != x; then
+        # We are going to check whether the version of Boost installed
+        # in $boost_inc is usable by running a compilation that
+        # #includes it.  But if we pass a -I/some/path in which Boost
+        # is not installed, the compiler will just skip this -I and
+        # use other locations (either from CPPFLAGS, or from its list
+        # of system include directories).  As a result we would use
+        # header installed on the machine instead of the /some/path
+        # specified by the user.  So in that precise case (trying
+        # $boost_inc), make sure the version.hpp exists.
+        #
+        # Use test -e as there can be symlinks.
+        test -e "$boost_inc/boost/version.hpp" || continue
+        CPPFLAGS="$CPPFLAGS -I$boost_inc"
+      fi
+      if ac_fn_cxx_try_compile "$LINENO"; then :
+  boost_cv_inc_path=yes
+else
+  boost_cv_version=no
+fi
+rm -f core conftest.err conftest.$ac_objext
+      if test x"$boost_cv_inc_path" = xyes; then
+        if test x"$boost_inc" != x; then
+          boost_cv_inc_path=$boost_inc
+        fi
+        break 2
+      fi
+    done
+    done
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $boost_cv_inc_path" >&5
+$as_echo "$boost_cv_inc_path" >&6; }
+    case $boost_cv_inc_path in #(
+      no)
+        boost_errmsg="cannot find Boost headers version >= $boost_version_req_string"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: $boost_errmsg" >&5
+$as_echo "$as_me: $boost_errmsg" >&6;}
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: could not find system Boost library, using bundled Boost library" >&5
+$as_echo "$as_me: WARNING: could not find system Boost library, using bundled Boost library" >&2;}
+  USING_BUNDLED_BOOST=yes
+        ;;#(
+      yes)
+        BOOST_CPPFLAGS=
+        ;;#(
+      *)
+        BOOST_CPPFLAGS="-I$boost_cv_inc_path"
+        ;;
+    esac
+  if test x"$boost_cv_inc_path" != xno; then
+
+$as_echo "#define HAVE_BOOST 1" >>confdefs.h
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Boost's header version" >&5
+$as_echo_n "checking for Boost's header version... " >&6; }
+if ${boost_cv_lib_version+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+       ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <boost/version.hpp>
+boost-lib-version = BOOST_LIB_VERSION
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  grep -v '#' |
+  grep -v '^[[:space:]]*$' |
+  tr -d '\r' |
+  tr -s '\n' ' ' |
+  $SED -n -e "/^boost-lib-version = /{s///;s/[\" ]//g;p;q;}" >conftest.i 2>&1; then :
+  boost_cv_lib_version=`cat conftest.i`
+fi
+rm -rf conftest*
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $boost_cv_lib_version" >&5
+$as_echo "$boost_cv_lib_version" >&6; }
+    # e.g. "134" for 1_34_1 or "135" for 1_35
+    boost_major_version=`echo "$boost_cv_lib_version" | sed 's/_//;s/_.*//'`
+    case $boost_major_version in #(
+      '' | *[!0-9]*)
+        as_fn_error $? "invalid value: boost_major_version='$boost_major_version'" "$LINENO" 5
+        ;;
+    esac
+fi
+CPPFLAGS=$boost_save_CPPFLAGS
+
+
+#echo
+#echo "=================================="
+#echo "Configuring required package Boost"
+#echo "=================================="
+
+PACKAGE_save_CFLAGS=$CFLAGS
+PACKAGE_save_CPPFLAGS=$CPPFLAGS
+PACKAGE_save_CXXFLAGS=$CXXFLAGS
+PACKAGE_save_FCFLAGS=$FCFLAGS
+PACKAGE_save_LDFLAGS=$LDFLAGS
+PACKAGE_save_LIBS=$LIBS
+PACKAGE_save_FCLIBS=$FCLIBS
+PACKAGE_save_CONTRIB_LIBS=$CONTRIB_LIBS
+CFLAGS="$PACKAGE_CFLAGS $CFLAGS"
+CPPFLAGS="$PACKAGE_CPPFLAGS $CPPFLAGS"
+CXXFLAGS="$PACKAGE_CXXFLAGS $CXXFLAGS"
+FCFLAGS="$PACKAGE_FCFLAGS $FCFLAGS"
+LDFLAGS="$PACKAGE_LDFLAGS $LDFLAGS"
+LIBS="$PACKAGE_LIBS $LIBS"
+FCLIBS="$PACKAGE_FCLIBS $FCLIBS"
+CONTRIB_LIBS="$PACKAGE_CONTRIB_LIBS $CONTRIB_LIBS"
+
+CONTRIB_SRCDIR="$ABSOLUTE_SRCDIR/ibtk/contrib/boost"
+
+#AC_MSG_NOTICE([first check for a system Boost library; if not found, revert to bundled Boost library])
+#$as_unset boost_cv_inc_path
+#$as_unset boost_cv_lib_version
+#$as_unset boost_cv_version
+#BOOST_REQUIRE([1.57.0],[AC_MSG_WARN([could not find system Boost library, using bundled Boost library])])
+if test x"$USING_BUNDLED_BOOST" = xyes ; then
+  if test "$LIBMESH_ENABLED" = yes ; then
+    as_fn_error $? "IBAMR is configured to use a bundled Boost library, but when IBAMR is also configured to use libMesh, IBAMR and libMesh both must use the same (external) Boost library" "$LINENO" 5
+  fi
+  { $as_echo "$as_me:${as_lineno-$LINENO}: configuring bundled Boost library" >&5
+$as_echo "$as_me: configuring bundled Boost library" >&6;}
+  BOOST_CPPFLAGS="-I$CONTRIB_SRCDIR"
+
+$as_echo "#define HAVE_BOOST 1" >>confdefs.h
+
+else
+  USING_BUNDLED_BOOST=no
+fi
+CPPFLAGS="$BOOST_CPPFLAGS $CPPFLAGS"
+
+ac_fn_cxx_check_header_mongrel "$LINENO" "boost/array.hpp" "ac_cv_header_boost_array_hpp" "$ac_includes_default"
+if test "x$ac_cv_header_boost_array_hpp" = xyes; then :
+
+else
+  as_fn_error $? "cannot find working boost/array.hpp" "$LINENO" 5
+fi
+
+
+ac_fn_cxx_check_header_mongrel "$LINENO" "boost/multi_array.hpp" "ac_cv_header_boost_multi_array_hpp" "$ac_includes_default"
+if test "x$ac_cv_header_boost_multi_array_hpp" = xyes; then :
+
+else
+  as_fn_error $? "cannot find working boost/multi_array.hpp" "$LINENO" 5
+fi
+
+
+PACKAGE_CPPFLAGS=""$BOOST_CPPFLAGS" $PACKAGE_CPPFLAGS"
+
+
+CFLAGS=$PACKAGE_save_CFLAGS
+CPPFLAGS=$PACKAGE_save_CPPFLAGS
+CXXFLAGS=$PACKAGE_save_CXXFLAGS
+FCFLAGS=$PACKAGE_save_FCFLAGS
+LDFLAGS=$PACKAGE_save_LDFLAGS
+LIBS=$PACKAGE_save_LIBS
+FCLIBS=$PACKAGE_save_FCLIBS
+CONTRIB_LIBS=$PACKAGE_save_CONTRIB_LIBS
+
 
 
       if test "X$prefix" = "XNONE"; then
@@ -26562,280 +26895,6 @@ FCLIBS=$PACKAGE_save_FCLIBS
 CONTRIB_LIBS=$PACKAGE_save_CONTRIB_LIBS
 
 
- # must configure libMesh first to scope its configuration
-echo
-echo "=================================="
-echo "Configuring required package Boost"
-echo "=================================="
-{ $as_echo "$as_me:${as_lineno-$LINENO}: first check for a system Boost library; if not found, revert to bundled Boost library" >&5
-$as_echo "$as_me: first check for a system Boost library; if not found, revert to bundled Boost library" >&6;}
-echo "$as_me: this is boost.m4 serial 26" >&5
-boost_save_IFS=$IFS
-boost_version_req=1.57.0
-IFS=.
-set x $boost_version_req 0 0 0
-IFS=$boost_save_IFS
-shift
-boost_version_req=`expr "$1" '*' 100000 + "$2" '*' 100 + "$3"`
-boost_version_req_string=$1.$2.$3
-
-# Check whether --with-boost was given.
-if test "${with_boost+set}" = set; then :
-  withval=$with_boost;
-fi
-# If BOOST_ROOT is set and the user has not provided a value to
-# --with-boost, then treat BOOST_ROOT as if it the user supplied it.
-if test x"$BOOST_ROOT" != x; then
-  if test x"$with_boost" = x; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: Detected BOOST_ROOT; continuing with --with-boost=$BOOST_ROOT" >&5
-$as_echo "$as_me: Detected BOOST_ROOT; continuing with --with-boost=$BOOST_ROOT" >&6;}
-    with_boost=$BOOST_ROOT
-  else
-    { $as_echo "$as_me:${as_lineno-$LINENO}: Detected BOOST_ROOT=$BOOST_ROOT, but overridden by --with-boost=$with_boost" >&5
-$as_echo "$as_me: Detected BOOST_ROOT=$BOOST_ROOT, but overridden by --with-boost=$with_boost" >&6;}
-  fi
-fi
-DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS '--with-boost=$with_boost'"
-boost_save_CPPFLAGS=$CPPFLAGS
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Boost headers version >= $boost_version_req_string" >&5
-$as_echo_n "checking for Boost headers version >= $boost_version_req_string... " >&6; }
-if ${boost_cv_inc_path+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  boost_cv_inc_path=no
-ac_ext=cpp
-ac_cpp='$CXXCPP $CPPFLAGS'
-ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <boost/version.hpp>
-#if !defined BOOST_VERSION
-# error BOOST_VERSION is not defined
-#elif BOOST_VERSION < $boost_version_req
-# error Boost headers version < $boost_version_req
-#endif
-
-#ifdef FC_DUMMY_MAIN
-#ifndef FC_DUMMY_MAIN_EQ_F77
-#  ifdef __cplusplus
-     extern "C"
-#  endif
-   int FC_DUMMY_MAIN() { return 1; }
-#endif
-#endif
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-    # If the user provided a value to --with-boost, use it and only it.
-    case $with_boost in #(
-      ''|yes) set x '' /opt/local/include /usr/local/include /opt/include \
-                 /usr/include C:/Boost/include;; #(
-      *)      set x "$with_boost/include" "$with_boost";;
-    esac
-    shift
-    for boost_dir
-    do
-    # Without --layout=system, Boost (or at least some versions) installs
-    # itself in <prefix>/include/boost-<version>.  This inner loop helps to
-    # find headers in such directories.
-    #
-    # Any ${boost_dir}/boost-x_xx directories are searched in reverse version
-    # order followed by ${boost_dir}.  The final '.' is a sentinel for
-    # searching $boost_dir" itself.  Entries are whitespace separated.
-    #
-    # I didn't indent this loop on purpose (to avoid over-indented code)
-    boost_layout_system_search_list=`cd "$boost_dir" 2>/dev/null \
-        && ls -1 | "${GREP}" '^boost-' | sort -rn -t- -k2 \
-        && echo .`
-    for boost_inc in $boost_layout_system_search_list
-    do
-      if test x"$boost_inc" != x.; then
-        boost_inc="$boost_dir/$boost_inc"
-      else
-        boost_inc="$boost_dir" # Uses sentinel in boost_layout_system_search_list
-      fi
-      if test x"$boost_inc" != x; then
-        # We are going to check whether the version of Boost installed
-        # in $boost_inc is usable by running a compilation that
-        # #includes it.  But if we pass a -I/some/path in which Boost
-        # is not installed, the compiler will just skip this -I and
-        # use other locations (either from CPPFLAGS, or from its list
-        # of system include directories).  As a result we would use
-        # header installed on the machine instead of the /some/path
-        # specified by the user.  So in that precise case (trying
-        # $boost_inc), make sure the version.hpp exists.
-        #
-        # Use test -e as there can be symlinks.
-        test -e "$boost_inc/boost/version.hpp" || continue
-        CPPFLAGS="$CPPFLAGS -I$boost_inc"
-      fi
-      if ac_fn_cxx_try_compile "$LINENO"; then :
-  boost_cv_inc_path=yes
-else
-  boost_cv_version=no
-fi
-rm -f core conftest.err conftest.$ac_objext
-      if test x"$boost_cv_inc_path" = xyes; then
-        if test x"$boost_inc" != x; then
-          boost_cv_inc_path=$boost_inc
-        fi
-        break 2
-      fi
-    done
-    done
-ac_ext=cpp
-ac_cpp='$CXXCPP $CPPFLAGS'
-ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $boost_cv_inc_path" >&5
-$as_echo "$boost_cv_inc_path" >&6; }
-    case $boost_cv_inc_path in #(
-      no)
-        boost_errmsg="cannot find Boost headers version >= $boost_version_req_string"
-        { $as_echo "$as_me:${as_lineno-$LINENO}: $boost_errmsg" >&5
-$as_echo "$as_me: $boost_errmsg" >&6;}
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: could not find system Boost library, using bundled Boost library" >&5
-$as_echo "$as_me: WARNING: could not find system Boost library, using bundled Boost library" >&2;}
-  USING_BUNDLED_BOOST=yes
-        ;;#(
-      yes)
-        BOOST_CPPFLAGS=
-        ;;#(
-      *)
-        BOOST_CPPFLAGS="-I$boost_cv_inc_path"
-        ;;
-    esac
-  if test x"$boost_cv_inc_path" != xno; then
-
-$as_echo "#define HAVE_BOOST 1" >>confdefs.h
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Boost's header version" >&5
-$as_echo_n "checking for Boost's header version... " >&6; }
-if ${boost_cv_lib_version+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-       ac_ext=cpp
-ac_cpp='$CXXCPP $CPPFLAGS'
-ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <boost/version.hpp>
-boost-lib-version = BOOST_LIB_VERSION
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  grep -v '#' |
-  grep -v '^[[:space:]]*$' |
-  tr -d '\r' |
-  tr -s '\n' ' ' |
-  $SED -n -e "/^boost-lib-version = /{s///;s/[\" ]//g;p;q;}" >conftest.i 2>&1; then :
-  boost_cv_lib_version=`cat conftest.i`
-fi
-rm -rf conftest*
-ac_ext=cpp
-ac_cpp='$CXXCPP $CPPFLAGS'
-ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $boost_cv_lib_version" >&5
-$as_echo "$boost_cv_lib_version" >&6; }
-    # e.g. "134" for 1_34_1 or "135" for 1_35
-    boost_major_version=`echo "$boost_cv_lib_version" | sed 's/_//;s/_.*//'`
-    case $boost_major_version in #(
-      '' | *[!0-9]*)
-        as_fn_error $? "invalid value: boost_major_version='$boost_major_version'" "$LINENO" 5
-        ;;
-    esac
-fi
-CPPFLAGS=$boost_save_CPPFLAGS
-
-
-#echo
-#echo "=================================="
-#echo "Configuring required package Boost"
-#echo "=================================="
-
-PACKAGE_save_CFLAGS=$CFLAGS
-PACKAGE_save_CPPFLAGS=$CPPFLAGS
-PACKAGE_save_CXXFLAGS=$CXXFLAGS
-PACKAGE_save_FCFLAGS=$FCFLAGS
-PACKAGE_save_LDFLAGS=$LDFLAGS
-PACKAGE_save_LIBS=$LIBS
-PACKAGE_save_FCLIBS=$FCLIBS
-PACKAGE_save_CONTRIB_LIBS=$CONTRIB_LIBS
-CFLAGS="$PACKAGE_CFLAGS $CFLAGS"
-CPPFLAGS="$PACKAGE_CPPFLAGS $CPPFLAGS"
-CXXFLAGS="$PACKAGE_CXXFLAGS $CXXFLAGS"
-FCFLAGS="$PACKAGE_FCFLAGS $FCFLAGS"
-LDFLAGS="$PACKAGE_LDFLAGS $LDFLAGS"
-LIBS="$PACKAGE_LIBS $LIBS"
-FCLIBS="$PACKAGE_FCLIBS $FCLIBS"
-CONTRIB_LIBS="$PACKAGE_CONTRIB_LIBS $CONTRIB_LIBS"
-
-CONTRIB_SRCDIR="$ABSOLUTE_SRCDIR/ibtk/contrib/boost"
-
-#AC_MSG_NOTICE([first check for a system Boost library; if not found, revert to bundled Boost library])
-#$as_unset boost_cv_inc_path
-#$as_unset boost_cv_lib_version
-#$as_unset boost_cv_version
-#BOOST_REQUIRE([1.57.0],[AC_MSG_WARN([could not find system Boost library, using bundled Boost library])])
-if test x"$USING_BUNDLED_BOOST" = xyes ; then
-  if test "$LIBMESH_ENABLED" = yes ; then
-    as_fn_error $? "IBAMR is configured to use a bundled Boost library, but when IBAMR is also configured to use libMesh, IBAMR and libMesh both must use the same (external) Boost library" "$LINENO" 5
-  fi
-  { $as_echo "$as_me:${as_lineno-$LINENO}: configuring bundled Boost library" >&5
-$as_echo "$as_me: configuring bundled Boost library" >&6;}
-  BOOST_CPPFLAGS="-I$CONTRIB_SRCDIR"
-  CPPFLAGS="$BOOST_CPPFLAGS $CPPFLAGS"
-
-
-$as_echo "#define HAVE_BOOST 1" >>confdefs.h
-
-else
-  USING_BUNDLED_BOOST=no
-fi
-ac_fn_cxx_check_header_mongrel "$LINENO" "boost/array.hpp" "ac_cv_header_boost_array_hpp" "$ac_includes_default"
-if test "x$ac_cv_header_boost_array_hpp" = xyes; then :
-
-else
-  as_fn_error $? "cannot find working boost/array.hpp" "$LINENO" 5
-fi
-
-
-ac_fn_cxx_check_header_mongrel "$LINENO" "boost/multi_array.hpp" "ac_cv_header_boost_multi_array_hpp" "$ac_includes_default"
-if test "x$ac_cv_header_boost_multi_array_hpp" = xyes; then :
-
-else
-  as_fn_error $? "cannot find working boost/multi_array.hpp" "$LINENO" 5
-fi
-
-
-PACKAGE_CPPFLAGS=""$BOOST_CPPFLAGS" $PACKAGE_CPPFLAGS"
-
-
-CFLAGS=$PACKAGE_save_CFLAGS
-CPPFLAGS=$PACKAGE_save_CPPFLAGS
-CXXFLAGS=$PACKAGE_save_CXXFLAGS
-FCFLAGS=$PACKAGE_save_FCFLAGS
-LDFLAGS=$PACKAGE_save_LDFLAGS
-LIBS=$PACKAGE_save_LIBS
-FCLIBS=$PACKAGE_save_FCLIBS
-CONTRIB_LIBS=$PACKAGE_save_CONTRIB_LIBS
-
 
 
 echo
@@ -30218,8 +30277,8 @@ fi
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PETSc version 3.7 or 3.8" >&5
-$as_echo_n "checking for PETSc version 3.7 or 3.8... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PETSc version 3.7, 3.8, or 3.9" >&5
+$as_echo_n "checking for PETSc version 3.7, 3.8, or 3.9... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -30242,7 +30301,7 @@ int
 main ()
 {
 
-#if ((PETSC_VERSION_GE(3,7,0) && PETSC_VERSION_LT(3,9,0)) || !PETSC_VERSION_RELEASE)
+#if ((PETSC_VERSION_GE(3,7,0) && PETSC_VERSION_LT(3,10,0)) || !PETSC_VERSION_RELEASE)
 #else
 asdf
 #endif
@@ -30260,7 +30319,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${PETSC_VERSION_VALID}" >&5
 $as_echo "${PETSC_VERSION_VALID}" >&6; }
 if test "$PETSC_VERSION_VALID" = no; then
-  as_fn_error $? "invalid PETSc version detected: please use PETSc 3.7 or 3.8" "$LINENO" 5
+  as_fn_error $? "invalid PETSc version detected: please use PETSc 3.7, 3.8, or 3.9" "$LINENO" 5
 fi
 
 LIBS="$PETSC_EXTERNAL_LIB_BASIC $LIBS"
@@ -44824,7 +44883,7 @@ echo
 echo "================"
 echo "Outputting files"
 echo "================"
-ac_config_files="$ac_config_files Makefile config/make.inc examples/Makefile examples/CIB/Makefile examples/CIB/ex0/Makefile examples/CIB/ex1/Makefile examples/CIB/ex2/Makefile examples/CIB/ex3/Makefile examples/CIB/ex4/Makefile examples/CIBFE/Makefile examples/CIBFE/ex0/Makefile examples/CIBFE/ex1/Makefile examples/ConstraintIB/Makefile examples/ConstraintIB/eel2d/Makefile examples/ConstraintIB/eel3d/Makefile examples/ConstraintIB/falling_sphere/Makefile examples/ConstraintIB/flow_past_cylinder/Makefile examples/ConstraintIB/flow_past_cylinder_HF/Makefile examples/ConstraintIB/impulsively_started_cylinder/Makefile examples/ConstraintIB/knifefish/Makefile examples/ConstraintIB/moving_plate/Makefile examples/ConstraintIB/oscillating_rigid_cylinder/Makefile examples/ConstraintIB/stokes_first_problem/Makefile examples/IB/Makefile examples/IB/explicit/Makefile examples/IB/explicit/ex0/Makefile examples/IB/explicit/ex1/Makefile examples/IB/explicit/ex2/Makefile examples/IB/explicit/ex3/Makefile examples/IB/explicit/ex4/Makefile examples/IB/explicit/ex5/Makefile examples/IB/explicit/ex6/Makefile examples/IBFE/Makefile examples/IBFE/explicit/Makefile examples/IBFE/explicit/ex0/Makefile examples/IBFE/explicit/ex1/Makefile examples/IBFE/explicit/ex2/Makefile examples/IBFE/explicit/ex3/Makefile examples/IBFE/explicit/ex4/Makefile examples/IBFE/explicit/ex5/Makefile examples/IBFE/explicit/ex6/Makefile examples/IBFE/explicit/ex7/Makefile examples/IBFE/explicit/ex8/Makefile examples/IMP/Makefile examples/IMP/explicit/Makefile examples/IMP/explicit/ex0/Makefile examples/adv_diff/Makefile examples/adv_diff/ex0/Makefile examples/adv_diff/ex1/Makefile examples/adv_diff/ex2/Makefile examples/advect/Makefile examples/level_set/Makefile examples/level_set/ex0/Makefile examples/level_set/ex1/Makefile examples/navier_stokes/Makefile examples/navier_stokes/ex0/Makefile examples/navier_stokes/ex1/Makefile examples/navier_stokes/ex2/Makefile examples/navier_stokes/ex3/Makefile examples/navier_stokes/ex4/Makefile examples/navier_stokes/ex5/Makefile examples/navier_stokes/ex6/Makefile ibtk/Makefile ibtk/examples/Makefile ibtk/examples/CCLaplace/Makefile ibtk/examples/CCPoisson/Makefile ibtk/examples/PETScOps/Makefile ibtk/examples/PETScOps/ProlongationMat/Makefile ibtk/examples/PhysBdryOps/Makefile ibtk/examples/SCLaplace/Makefile ibtk/examples/SCPoisson/Makefile ibtk/examples/VCLaplace/Makefile ibtk/lib/Makefile ibtk/scripts/Makefile ibtk/src/Makefile ibtk/src/boundary/Makefile ibtk/src/boundary/cf_interface/Makefile ibtk/src/boundary/cf_interface/fortran/Makefile ibtk/src/boundary/physical_boundary/Makefile ibtk/src/boundary/physical_boundary/fortran/Makefile ibtk/src/coarsen_ops/Makefile ibtk/src/coarsen_ops/fortran/Makefile ibtk/src/fortran/Makefile ibtk/src/lagrangian/Makefile ibtk/src/lagrangian/fortran/Makefile ibtk/src/math/Makefile ibtk/src/math/fortran/Makefile ibtk/src/refine_ops/Makefile ibtk/src/refine_ops/fortran/Makefile ibtk/src/solvers/Makefile ibtk/src/solvers/impls/Makefile ibtk/src/solvers/impls/fortran/Makefile ibtk/src/solvers/interfaces/Makefile ibtk/src/solvers/wrappers/Makefile ibtk/src/utilities/Makefile ibtk/contrib/Makefile lib/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/level_set/Makefile src/level_set/fortran/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/tools/Makefile tests/Makefile tests/Stokes/Makefile tests/Stokes/test0/Makefile tests/Stokes-IB/Makefile tests/Stokes-IB/test0/Makefile tests/Stokes-IB/test1/Makefile tests/Stokes-IB/test2/Makefile"
+ac_config_files="$ac_config_files Makefile config/make.inc examples/Makefile examples/CIB/Makefile examples/CIB/ex0/Makefile examples/CIB/ex1/Makefile examples/CIB/ex2/Makefile examples/CIB/ex3/Makefile examples/CIB/ex4/Makefile examples/CIBFE/Makefile examples/CIBFE/ex0/Makefile examples/CIBFE/ex1/Makefile examples/ConstraintIB/Makefile examples/ConstraintIB/eel2d/Makefile examples/ConstraintIB/eel3d/Makefile examples/ConstraintIB/falling_sphere/Makefile examples/ConstraintIB/flow_past_cylinder/Makefile examples/ConstraintIB/flow_past_cylinder_HF/Makefile examples/ConstraintIB/impulsively_started_cylinder/Makefile examples/ConstraintIB/knifefish/Makefile examples/ConstraintIB/moving_plate/Makefile examples/ConstraintIB/oscillating_rigid_cylinder/Makefile examples/ConstraintIB/stokes_first_problem/Makefile examples/IB/Makefile examples/IB/explicit/Makefile examples/IB/explicit/ex0/Makefile examples/IB/explicit/ex1/Makefile examples/IB/explicit/ex2/Makefile examples/IB/explicit/ex3/Makefile examples/IB/explicit/ex4/Makefile examples/IB/explicit/ex5/Makefile examples/IB/explicit/ex6/Makefile examples/IBFE/Makefile examples/IBFE/explicit/Makefile examples/IBFE/explicit/ex0/Makefile examples/IBFE/explicit/ex1/Makefile examples/IBFE/explicit/ex2/Makefile examples/IBFE/explicit/ex3/Makefile examples/IBFE/explicit/ex4/Makefile examples/IBFE/explicit/ex5/Makefile examples/IBFE/explicit/ex6/Makefile examples/IBFE/explicit/ex7/Makefile examples/IBFE/explicit/ex8/Makefile examples/IBFE/explicit/ex9/Makefile examples/IMP/Makefile examples/IMP/explicit/Makefile examples/IMP/explicit/ex0/Makefile examples/adv_diff/Makefile examples/adv_diff/ex0/Makefile examples/adv_diff/ex1/Makefile examples/adv_diff/ex2/Makefile examples/advect/Makefile examples/level_set/Makefile examples/level_set/ex0/Makefile examples/level_set/ex1/Makefile examples/multiphase_flow/Makefile examples/multiphase_flow/ex0/Makefile examples/multiphase_flow/ex1/Makefile examples/navier_stokes/Makefile examples/navier_stokes/ex0/Makefile examples/navier_stokes/ex1/Makefile examples/navier_stokes/ex2/Makefile examples/navier_stokes/ex3/Makefile examples/navier_stokes/ex4/Makefile examples/navier_stokes/ex5/Makefile examples/navier_stokes/ex6/Makefile examples/vc_navier_stokes/Makefile examples/vc_navier_stokes/ex0/Makefile examples/vc_navier_stokes/ex1/Makefile ibtk/examples/Makefile ibtk/examples/CCLaplace/Makefile ibtk/examples/CCPoisson/Makefile ibtk/examples/PETScOps/Makefile ibtk/examples/PETScOps/ProlongationMat/Makefile ibtk/examples/PhysBdryOps/Makefile ibtk/examples/SCLaplace/Makefile ibtk/examples/SCPoisson/Makefile ibtk/examples/VCLaplace/Makefile ibtk/lib/Makefile ibtk/scripts/Makefile ibtk/src/Makefile ibtk/src/boundary/Makefile ibtk/src/boundary/cf_interface/Makefile ibtk/src/boundary/cf_interface/fortran/Makefile ibtk/src/boundary/physical_boundary/Makefile ibtk/src/boundary/physical_boundary/fortran/Makefile ibtk/src/coarsen_ops/Makefile ibtk/src/coarsen_ops/fortran/Makefile ibtk/src/fortran/Makefile ibtk/src/lagrangian/Makefile ibtk/src/lagrangian/fortran/Makefile ibtk/src/math/Makefile ibtk/src/math/fortran/Makefile ibtk/src/refine_ops/Makefile ibtk/src/refine_ops/fortran/Makefile ibtk/src/solvers/Makefile ibtk/src/solvers/impls/Makefile ibtk/src/solvers/impls/fortran/Makefile ibtk/src/solvers/interfaces/Makefile ibtk/src/solvers/wrappers/Makefile ibtk/src/utilities/Makefile ibtk/contrib/Makefile lib/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/level_set/Makefile src/level_set/fortran/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/tools/Makefile tests/Makefile tests/Stokes/Makefile tests/Stokes/test0/Makefile tests/Stokes-IB/Makefile tests/Stokes-IB/test0/Makefile tests/Stokes-IB/test1/Makefile tests/Stokes-IB/test2/Makefile"
 
 if test "$USING_BUNDLED_MUPARSER" = yes ; then
 
@@ -45597,7 +45656,7 @@ cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
 # INIT-COMMANDS
 #
 PACKAGE="$PACKAGE"
-AMDEP_TRUE="$AMDEP_TRUE" ac_aux_dir="$ac_aux_dir"
+AMDEP_TRUE="$AMDEP_TRUE" MAKE="${MAKE-make}"
 
 
 # The HP-UX ksh and POSIX shell print the target directory to stdout
@@ -46121,6 +46180,7 @@ do
     "examples/IBFE/explicit/ex6/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IBFE/explicit/ex6/Makefile" ;;
     "examples/IBFE/explicit/ex7/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IBFE/explicit/ex7/Makefile" ;;
     "examples/IBFE/explicit/ex8/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IBFE/explicit/ex8/Makefile" ;;
+    "examples/IBFE/explicit/ex9/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IBFE/explicit/ex9/Makefile" ;;
     "examples/IMP/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IMP/Makefile" ;;
     "examples/IMP/explicit/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IMP/explicit/Makefile" ;;
     "examples/IMP/explicit/ex0/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IMP/explicit/ex0/Makefile" ;;
@@ -46132,6 +46192,9 @@ do
     "examples/level_set/Makefile") CONFIG_FILES="$CONFIG_FILES examples/level_set/Makefile" ;;
     "examples/level_set/ex0/Makefile") CONFIG_FILES="$CONFIG_FILES examples/level_set/ex0/Makefile" ;;
     "examples/level_set/ex1/Makefile") CONFIG_FILES="$CONFIG_FILES examples/level_set/ex1/Makefile" ;;
+    "examples/multiphase_flow/Makefile") CONFIG_FILES="$CONFIG_FILES examples/multiphase_flow/Makefile" ;;
+    "examples/multiphase_flow/ex0/Makefile") CONFIG_FILES="$CONFIG_FILES examples/multiphase_flow/ex0/Makefile" ;;
+    "examples/multiphase_flow/ex1/Makefile") CONFIG_FILES="$CONFIG_FILES examples/multiphase_flow/ex1/Makefile" ;;
     "examples/navier_stokes/Makefile") CONFIG_FILES="$CONFIG_FILES examples/navier_stokes/Makefile" ;;
     "examples/navier_stokes/ex0/Makefile") CONFIG_FILES="$CONFIG_FILES examples/navier_stokes/ex0/Makefile" ;;
     "examples/navier_stokes/ex1/Makefile") CONFIG_FILES="$CONFIG_FILES examples/navier_stokes/ex1/Makefile" ;;
@@ -46140,7 +46203,9 @@ do
     "examples/navier_stokes/ex4/Makefile") CONFIG_FILES="$CONFIG_FILES examples/navier_stokes/ex4/Makefile" ;;
     "examples/navier_stokes/ex5/Makefile") CONFIG_FILES="$CONFIG_FILES examples/navier_stokes/ex5/Makefile" ;;
     "examples/navier_stokes/ex6/Makefile") CONFIG_FILES="$CONFIG_FILES examples/navier_stokes/ex6/Makefile" ;;
-    "ibtk/Makefile") CONFIG_FILES="$CONFIG_FILES ibtk/Makefile" ;;
+    "examples/vc_navier_stokes/Makefile") CONFIG_FILES="$CONFIG_FILES examples/vc_navier_stokes/Makefile" ;;
+    "examples/vc_navier_stokes/ex0/Makefile") CONFIG_FILES="$CONFIG_FILES examples/vc_navier_stokes/ex0/Makefile" ;;
+    "examples/vc_navier_stokes/ex1/Makefile") CONFIG_FILES="$CONFIG_FILES examples/vc_navier_stokes/ex1/Makefile" ;;
     "ibtk/examples/Makefile") CONFIG_FILES="$CONFIG_FILES ibtk/examples/Makefile" ;;
     "ibtk/examples/CCLaplace/Makefile") CONFIG_FILES="$CONFIG_FILES ibtk/examples/CCLaplace/Makefile" ;;
     "ibtk/examples/CCPoisson/Makefile") CONFIG_FILES="$CONFIG_FILES ibtk/examples/CCPoisson/Makefile" ;;
@@ -46883,29 +46948,35 @@ fi
   # Older Autoconf quotes --file arguments for eval, but not when files
   # are listed without --file.  Let's play safe and only enable the eval
   # if we detect the quoting.
-  case $CONFIG_FILES in
-  *\'*) eval set x "$CONFIG_FILES" ;;
-  *)   set x $CONFIG_FILES ;;
-  esac
+  # TODO: see whether this extra hack can be removed once we start
+  # requiring Autoconf 2.70 or later.
+  case $CONFIG_FILES in #(
+  *\'*) :
+    eval set x "$CONFIG_FILES" ;; #(
+  *) :
+    set x $CONFIG_FILES ;; #(
+  *) :
+     ;;
+esac
   shift
-  for mf
+  # Used to flag and report bootstrapping failures.
+  am_rc=0
+  for am_mf
   do
     # Strip MF so we end up with the name of the file.
-    mf=`echo "$mf" | sed -e 's/:.*$//'`
-    # Check whether this is an Automake generated Makefile or not.
-    # We used to match only the files named 'Makefile.in', but
-    # some people rename them; so instead we look at the file content.
-    # Grep'ing the first line is not enough: some people post-process
-    # each Makefile.in and add a new line on top of each file to say so.
-    # Grep'ing the whole file is not good either: AIX grep has a line
+    am_mf=`$as_echo "$am_mf" | sed -e 's/:.*$//'`
+    # Check whether this is an Automake generated Makefile which includes
+    # dependency-tracking related rules and includes.
+    # Grep'ing the whole file directly is not great: AIX grep has a line
     # limit of 2048, but all sed's we know have understand at least 4000.
-    if sed -n 's,^#.*generated by automake.*,X,p' "$mf" | grep X >/dev/null 2>&1; then
-      dirpart=`$as_dirname -- "$mf" ||
-$as_expr X"$mf" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
-	 X"$mf" : 'X\(//\)[^/]' \| \
-	 X"$mf" : 'X\(//\)$' \| \
-	 X"$mf" : 'X\(/\)' \| . 2>/dev/null ||
-$as_echo X"$mf" |
+    sed -n 's,^am--depfiles:.*,X,p' "$am_mf" | grep X >/dev/null 2>&1 \
+      || continue
+    am_dirpart=`$as_dirname -- "$am_mf" ||
+$as_expr X"$am_mf" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
+	 X"$am_mf" : 'X\(//\)[^/]' \| \
+	 X"$am_mf" : 'X\(//\)$' \| \
+	 X"$am_mf" : 'X\(/\)' \| . 2>/dev/null ||
+$as_echo X"$am_mf" |
     sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{
 	    s//\1/
 	    q
@@ -46923,53 +46994,48 @@ $as_echo X"$mf" |
 	    q
 	  }
 	  s/.*/./; q'`
-    else
-      continue
-    fi
-    # Extract the definition of DEPDIR, am__include, and am__quote
-    # from the Makefile without running 'make'.
-    DEPDIR=`sed -n 's/^DEPDIR = //p' < "$mf"`
-    test -z "$DEPDIR" && continue
-    am__include=`sed -n 's/^am__include = //p' < "$mf"`
-    test -z "$am__include" && continue
-    am__quote=`sed -n 's/^am__quote = //p' < "$mf"`
-    # Find all dependency output files, they are included files with
-    # $(DEPDIR) in their names.  We invoke sed twice because it is the
-    # simplest approach to changing $(DEPDIR) to its actual value in the
-    # expansion.
-    for file in `sed -n "
-      s/^$am__include $am__quote\(.*(DEPDIR).*\)$am__quote"'$/\1/p' <"$mf" | \
-	 sed -e 's/\$(DEPDIR)/'"$DEPDIR"'/g'`; do
-      # Make sure the directory exists.
-      test -f "$dirpart/$file" && continue
-      fdir=`$as_dirname -- "$file" ||
-$as_expr X"$file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
-	 X"$file" : 'X\(//\)[^/]' \| \
-	 X"$file" : 'X\(//\)$' \| \
-	 X"$file" : 'X\(/\)' \| . 2>/dev/null ||
-$as_echo X"$file" |
-    sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{
+    am_filepart=`$as_basename -- "$am_mf" ||
+$as_expr X/"$am_mf" : '.*/\([^/][^/]*\)/*$' \| \
+	 X"$am_mf" : 'X\(//\)$' \| \
+	 X"$am_mf" : 'X\(/\)' \| . 2>/dev/null ||
+$as_echo X/"$am_mf" |
+    sed '/^.*\/\([^/][^/]*\)\/*$/{
 	    s//\1/
 	    q
 	  }
-	  /^X\(\/\/\)[^/].*/{
+	  /^X\/\(\/\/\)$/{
 	    s//\1/
 	    q
 	  }
-	  /^X\(\/\/\)$/{
-	    s//\1/
-	    q
-	  }
-	  /^X\(\/\).*/{
+	  /^X\/\(\/\).*/{
 	    s//\1/
 	    q
 	  }
 	  s/.*/./; q'`
-      as_dir=$dirpart/$fdir; as_fn_mkdir_p
-      # echo "creating $dirpart/$file"
-      echo '# dummy' > "$dirpart/$file"
-    done
+    { echo "$as_me:$LINENO: cd "$am_dirpart" \
+      && sed -e '/# am--include-marker/d' "$am_filepart" \
+        | $MAKE -f - am--depfiles" >&5
+   (cd "$am_dirpart" \
+      && sed -e '/# am--include-marker/d' "$am_filepart" \
+        | $MAKE -f - am--depfiles) >&5 2>&5
+   ac_status=$?
+   echo "$as_me:$LINENO: \$? = $ac_status" >&5
+   (exit $ac_status); } || am_rc=$?
   done
+  if test $am_rc -ne 0; then
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "Something went wrong bootstrapping makefile fragments
+    for automatic dependency tracking.  Try re-running configure with the
+    '--disable-dependency-tracking' option to at least be able to build
+    the package (albeit without support for automatic dependency tracking).
+See \`config.log' for more details" "$LINENO" 5; }
+  fi
+  { am_dirpart=; unset am_dirpart;}
+  { am_filepart=; unset am_filepart;}
+  { am_mf=; unset am_mf;}
+  { am_rc=; unset am_rc;}
+  rm -f conftest-deps.mk
 }
  ;;
     "libtool":C)

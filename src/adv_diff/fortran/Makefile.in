@@ -436,8 +436,12 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXTRA_DIST = adv_diff_consdiff2d.f.m4 adv_diff_consdiff3d.f.m4
-BUILT_SOURCES = adv_diff_consdiff2d.f adv_diff_consdiff3d.f
+EXTRA_DIST = adv_diff_consdiff2d.f.m4 adv_diff_consdiff3d.f.m4 \
+adv_diff_wp_convective_op2d.f.m4 adv_diff_wp_convective_op3d.f.m4
+
+BUILT_SOURCES = adv_diff_consdiff2d.f adv_diff_consdiff3d.f \
+adv_diff_wp_convective_op2d.f adv_diff_wp_convective_op3d.f
+
 CLEANFILES = ${BUILT_SOURCES}
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am

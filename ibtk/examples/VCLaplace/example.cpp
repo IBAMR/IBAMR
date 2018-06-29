@@ -46,6 +46,7 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/ibtk_enums.h>
 #include <ibtk/muParserCartGridFunction.h>
 
 // Set up application namespace declarations
@@ -111,10 +112,16 @@ run_example(int argc, char* argv[])
         const int f_cell_idx = var_db->registerVariableAndContext(f_cell_var, ctx, IntVector<NDIM>(0));
         const int e_cell_idx = var_db->registerVariableAndContext(e_cell_var, ctx, IntVector<NDIM>(0));
 
+#if (NDIM == 2)
         Pointer<NodeVariable<NDIM, double> > mu_node_var = new NodeVariable<NDIM, double>("mu_node");
-
         const int mu_node_idx = var_db->registerVariableAndContext(mu_node_var, ctx, IntVector<NDIM>(1));
-
+#endif
+#if (NDIM == 3)
+        Pointer<EdgeVariable<NDIM, double> > mu_edge_var = new EdgeVariable<NDIM, double>("mu_edge");
+        const int mu_edge_idx = var_db->registerVariableAndContext(mu_edge_var, ctx, IntVector<NDIM>(1));
+        Pointer<CellVariable<NDIM, double> > mu_cell_var = new CellVariable<NDIM, double>("mu_cell");
+        const int mu_cell_idx = var_db->registerVariableAndContext(mu_cell_var, ctx, IntVector<NDIM>(0));
+#endif
         // Register variables for plotting.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
         TBOX_ASSERT(visit_data_writer);
@@ -143,8 +150,9 @@ run_example(int argc, char* argv[])
             visit_data_writer->registerPlotQuantity(e_cell_var->getName() + stream.str(), "SCALAR", e_cell_idx, d);
         }
 
+#if (NDIM == 2)
         visit_data_writer->registerPlotQuantity(mu_node_var->getName(), "SCALAR", mu_node_idx);
-
+#endif
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
         int tag_buffer = 1;
@@ -170,7 +178,13 @@ run_example(int argc, char* argv[])
             level->allocatePatchData(u_cell_idx, data_time);
             level->allocatePatchData(f_cell_idx, data_time);
             level->allocatePatchData(e_cell_idx, data_time);
+#if (NDIM == 2)
             level->allocatePatchData(mu_node_idx, data_time);
+#endif
+#if (NDIM == 3)
+            level->allocatePatchData(mu_edge_idx, data_time);
+            level->allocatePatchData(mu_cell_idx, data_time);
+#endif
         }
 
         // Setup exact solution data.
@@ -180,26 +194,44 @@ run_example(int argc, char* argv[])
 
         u_fcn.setDataOnPatchHierarchy(u_side_idx, u_side_var, patch_hierarchy, data_time);
         f_fcn.setDataOnPatchHierarchy(e_side_idx, e_side_var, patch_hierarchy, data_time);
+#if (NDIM == 2)
         mu_fcn.setDataOnPatchHierarchy(mu_node_idx, mu_node_var, patch_hierarchy, data_time);
-
+#endif
+#if (NDIM == 3)
+        mu_fcn.setDataOnPatchHierarchy(mu_edge_idx, mu_edge_var, patch_hierarchy, data_time);
+#endif
         // Create an object to communicate ghost cell data.
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
         InterpolationTransactionComponent u_transaction(
-            u_side_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false);
+            u_side_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false);
+#if (NDIM == 2)
         InterpolationTransactionComponent mu_transaction(
-            mu_node_idx, "LINEAR_REFINE", false, "CONSTANT_COARSEN", "LINEAR", false);
+            mu_node_idx, "LINEAR_REFINE", false, "CONSTANT_COARSEN", "QUADRATIC", false);
         vector<InterpolationTransactionComponent> transactions(2);
         transactions[0] = u_transaction;
         transactions[1] = mu_transaction;
         Pointer<HierarchyGhostCellInterpolation> bdry_fill_op = new HierarchyGhostCellInterpolation();
         bdry_fill_op->initializeOperatorState(transactions, patch_hierarchy);
+#endif
+#if (NDIM == 3)
+        InterpolationTransactionComponent mu_transaction(
+            mu_edge_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false);
+        vector<InterpolationTransactionComponent> transactions(2);
+        transactions[0] = u_transaction;
+        transactions[1] = mu_transaction;
+        Pointer<HierarchyGhostCellInterpolation> bdry_fill_op = new HierarchyGhostCellInterpolation();
+        bdry_fill_op->initializeOperatorState(transactions, patch_hierarchy);
+#endif
+        // Fill ghost cells
+        bdry_fill_op->fillData(0.0);
 
         // Create the math operations object and get the patch data index for
         // the side-centered weighting factor.
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
         const int dx_side_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
-        // Compute (f0,f1) := div mu (grad(u0,u1) + grad(u0,u1)^T).
+#if (NDIM == 2)
+        // Compute f := div mu (grad(u) + grad(u)^T).
         hier_math_ops.vc_laplace(f_side_idx,
                                  f_side_var,
                                  1.0,
@@ -209,8 +241,24 @@ run_example(int argc, char* argv[])
                                  u_side_idx,
                                  u_side_var,
                                  bdry_fill_op,
-                                 data_time);
+                                 data_time,
+                                 VC_AVERAGE_INTERP);
+#endif
 
+#if (NDIM == 3)
+        // Compute f := div mu (grad(u) + grad(u)^T).
+        hier_math_ops.vc_laplace(f_side_idx,
+                                 f_side_var,
+                                 1.0,
+                                 0.0,
+                                 mu_edge_idx,
+                                 mu_edge_var,
+                                 u_side_idx,
+                                 u_side_var,
+                                 bdry_fill_op,
+                                 data_time,
+                                 VC_AVERAGE_INTERP);
+#endif
         // Compute error and print error norms.
         Pointer<HierarchyDataOpsReal<NDIM, double> > hier_side_data_ops =
             HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(u_side_var, patch_hierarchy, true);
@@ -224,6 +272,36 @@ run_example(int argc, char* argv[])
         hier_math_ops.interp(u_cell_idx, u_cell_var, u_side_idx, u_side_var, NULL, data_time, synch_cf_interface);
         hier_math_ops.interp(f_cell_idx, f_cell_var, f_side_idx, f_side_var, NULL, data_time, synch_cf_interface);
         hier_math_ops.interp(e_cell_idx, e_cell_var, e_side_idx, e_side_var, NULL, data_time, synch_cf_interface);
+
+#if (NDIM == 3)
+        // Interpolate the edge-centered data to cell centers for output.
+        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Box<NDIM>& box = patch->getBox();
+                Pointer<EdgeData<NDIM, double> > mu_ec_data = patch->getPatchData(mu_edge_idx);
+                Pointer<CellData<NDIM, double> > mu_cc_data = patch->getPatchData(mu_cell_idx);
+                for (Box<NDIM>::Iterator it(CellGeometry<NDIM>::toCellBox(box)); it; it++)
+                {
+                    CellIndex<NDIM> ci(it());
+                    Box<NDIM> edge_box(ci, ci);
+                    double avg_mu = 0.0;
+                    for (int axis = 0; axis < NDIM; ++axis)
+                    {
+                        for(EdgeIterator<NDIM> e(edge_box, axis); e; e++)
+                        {
+                            EdgeIndex<NDIM> ei(e());
+                            avg_mu += (*mu_ec_data)(ei);
+                        }
+                    }
+                    (*mu_cc_data)(ci) = avg_mu/12.0;
+                }
+            }
+        }
+#endif
 
         // Output data for plotting.
         visit_data_writer->writePlotData(patch_hierarchy, 0, data_time);

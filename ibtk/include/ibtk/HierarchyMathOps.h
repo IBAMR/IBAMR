@@ -60,6 +60,7 @@
 #include "VariableContext.h"
 #include "ibtk/PatchMathOps.h"
 #include "petscsys.h"
+#include "ibtk/ibtk_enums.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
@@ -771,6 +772,145 @@ public:
                 double src_ghost_fill_time);
 
     /*!
+     * \brief Interpolate to a cell-centered vector/tensor field from a
+     * node-centered vector/tensor field.
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void interp(int dst_idx,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                int src_idx,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src_var,
+                SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                double src_ghost_fill_time);
+
+    /*!
+     * \brief Interpolate to a cell-centered vector/tensor field from an
+     * edge-centered vector/tensor field.
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void interp(int dst_idx,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                int src_idx,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > src_var,
+                SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                double src_ghost_fill_time);
+
+    /*!
+     * \brief Interpolate to a node-centered vector/tensor field from a
+     * cell-centered vector/tensor field.
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * of the node centered variable are computed as averages of the cell centered
+     * variable
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void interp(int dst_idx,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                bool dst_ghost_interp,
+                int src_idx,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
+                SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                double src_ghost_fill_time);
+
+    /*!
+     * \brief Interpolate to a edge-centered vector/tensor field from a
+     * cell-centered vector/tensor field.
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * of the edge centered variable are computed as averages of the cell centered
+     * variable
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void interp(int dst_idx,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
+                bool dst_ghost_interp,
+                int src_idx,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
+                SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                double src_ghost_fill_time);
+
+    /*!
+     * \brief Harmonically interpolate to a side-centered normal vector/tensor field from a
+     * cell-centered vector/tensor field. This should be used when the gradients in the src
+     * quantity are large
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) harmonic averaging.  When the interpolation occurs
+     * over multiple levels of the hierarchy, second order interpolation is used
+     * at the coarse-fine interface to correct fine values along the interface.
+     * When specified, coarse values on each coarse-fine interface are
+     * synchronized after performing the interpolation.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void harmonic_interp(int dst_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+                         bool dst_cf_bdry_synch,
+                         int src_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
+                         SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                         double src_ghost_fill_time);
+
+    /*!
+     * \brief Harmonically interpolate to a node-centered vector/tensor field from a
+     * cell-centered vector/tensor field. This should be used when the gradients in the src
+     * quantity are large
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * of the node centered variable are computed as averages of the cell centered
+     * variable
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void harmonic_interp(int dst_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                         bool dst_ghost_interp,
+                         int src_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
+                         SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                         double src_ghost_fill_time);
+
+    /*!
+     * \brief Harmonically interpolate to a edge-centered vector/tensor field from a
+     * cell-centered vector/tensor field. This should be used when the gradients in the src
+     * quantity are large
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * of the edge centered variable are computed as averages of the cell centered
+     * variable
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void harmonic_interp(int dst_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
+                         bool dst_ghost_interp,
+                         int src_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
+                         SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                         double src_ghost_fill_time);
+
+    /*!
      * \brief Compute the Laplacian of a scalar quantity using centered
      * differences.
      *
@@ -829,9 +969,14 @@ public:
                  SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = NULL);
 
     /*!
-     * \brief Compute dst = alpha div coef ((grad src1) + (grad src1)^T) + beta
+     * \brief Compute dst = alpha div coef1 ((grad src1) + (grad src1)^T) + beta coef2
      * src1 + gamma src2, the variable coefficient generalized Laplacian of
      * src1.
+     *
+     * \note This routine is only appropriate for NDIM == 2 and uses node centered coef1.
+     * Interally, coef1 will be interpolated onto cell centers when needed. Harmonic interpolation
+     * is used by default, but coef1_interp_type = VC_AVERAGE_INTERP will apply arithmetic averaging
+     * from nodes to cells
      *
      * \see setPatchHierarchy
      * \see resetLevels
@@ -840,12 +985,45 @@ public:
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
                     double alpha,
                     double beta,
-                    int coef_idx,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > coef_var,
+                    int coef1_idx,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > coef1_var,
                     int src1_idx,
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
                     SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                     double src1_ghost_fill_time,
+                    IBTK::VCInterpType coef1_interp_type = VC_HARMONIC_INTERP,
+                    int coef2_idx = -1,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > coef2_var = NULL,
+                    double gamma = 0.0,
+                    int src2_idx = -1,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = NULL);
+
+    /*!
+     * \brief Compute dst = alpha div coef1 ((grad src1) + (grad src1)^T) + beta coef2
+     * src1 + gamma src2, the variable coefficient generalized Laplacian of
+     * src1.
+     *
+     * \note This routine is only appropriate for NDIM == 3 and uses edge centered coef1.
+     * Interally, coef1 will be interpolated onto cell centers when needed. Harmonic interpolation
+     * is used by default, but coef1_interp_type = VC_AVERAGE_INTERP will apply arithmetic averaging
+     * from edges to cells
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void vc_laplace(int dst_idx,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+                    double alpha,
+                    double beta,
+                    int coef1_idx,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > coef1_var,
+                    int src1_idx,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
+                    SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                    double src1_ghost_fill_time,
+                    IBTK::VCInterpType coef1_interp_type = VC_HARMONIC_INTERP,
+                    int coef2_idx = -1,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > coef2_var = NULL,
                     double gamma = 0.0,
                     int src2_idx = -1,
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = NULL);
@@ -1273,7 +1451,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_sc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OuterfaceVariable<NDIM, double> > d_of_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideVariable<NDIM, double> > d_os_var;
-    int d_fc_idx, d_sc_idx, d_of_idx, d_os_idx;
+    int d_fc_idx, d_sc_idx, d_nc_idx, d_ec_idx, d_of_idx, d_os_idx;
 
     // Communications operators, algorithms, and schedules.
     std::string d_coarsen_op_name;

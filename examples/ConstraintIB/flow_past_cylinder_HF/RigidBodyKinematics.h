@@ -34,15 +34,15 @@
 
 ///////////////////////////// INCLUDES ///////////////////////////////////////
 #include <iostream>
-#include <vector>
 #include <map>
+#include <vector>
 
 #include "Eigen/Core"
+#include "PatchHierarchy.h"
 #include "ibamr/ConstraintIBKinematics.h"
+#include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
-#include "tbox/Array.h"
-#include "PatchHierarchy.h"
 
 //////////////////////////// CLASS DEFORMATIONAL KINEMATICS //////////////////
 
@@ -161,7 +161,7 @@ private:
      * Current time (t) and new time (t+dt).
      */
     double d_current_time, d_new_time;
-    
+
     /*!
      * \brief Kinematics data.
      */

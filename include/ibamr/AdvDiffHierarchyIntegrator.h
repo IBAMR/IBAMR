@@ -1,7 +1,7 @@
 // Filename: AdvDiffHierarchyIntegrator.h
 // Created on 21 May 2012 by Boyce Griffith
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith, Amneet Bhalla and Nishant Nangia
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -440,6 +440,47 @@ public:
     void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
+    /*!
+     * Prepare to advance the data from current_time to new_time.
+     */
+    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+
+    /*!
+     * \brief Function to reset variables registered by this integrator
+     */
+    typedef void (*ResetPropertiesFcnPtr)(int property_idx,
+                                          SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                          int integrator_step,
+                                          double time,
+                                          bool initial_time,
+                                          bool regrid_time,
+                                          void* ctx);
+
+    /*!
+     * \brief Register a reset callback function for a specified variable.
+     */
+    void registerResetFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var, ResetPropertiesFcnPtr callback, void* ctx);
+
+    /*
+     * \brief Set a reset priority for a particular variable.
+     *
+     * \note Variables will be reset sequentially accordint to their priority, from lowest to highest.
+     * The reset functions registered to each variable will be called according to the order in which they were registered.
+     * If no priority is set for a variable, its reset functions will be called after those with priority, in no particular order.
+     */
+    void setResetPriority(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var, int priority);
+
+    /*!
+     * \brief Get the reset callback functions registered with this variable.
+     */
+    std::vector<ResetPropertiesFcnPtr>
+    getResetFunctions(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+
+    /*!
+     * \brief Get the reset priority for a particular variable.
+     */
+    int getResetPriority(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+
 protected:
     /*!
      * The constructor for class AdvDiffHierarchyIntegrator sets some default
@@ -455,6 +496,15 @@ protected:
      * Return the maximum stable time step size.
      */
     double getMaximumTimeStepSizeSpecialized();
+
+    /*!
+     * Initialize composite hierarchy data.
+     *
+     * The method initializes variables that may require the full grid hierarchy to be already created.
+     */
+    void initializeCompositeHierarchyDataSpecialized(
+        double init_data_time,
+        bool initial_time);
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -543,6 +593,13 @@ protected:
              SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_Q_init;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
              std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coef;
+
+    /*!
+     * Objects to keep track of the resetting functions.
+     */
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<ResetPropertiesFcnPtr> > d_Q_reset_fcns;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<void *> > d_Q_reset_fcns_ctx;
+    std::vector<int> d_Q_reset_priority;
 
     /*
      * Hierarchy operations objects.

@@ -250,15 +250,15 @@ run_example(int argc, char* argv[])
         const string init_hydro_force_box_db_name = "InitHydroForceBox_0";
         IBTK::Vector3d box_X_lower, box_X_upper, box_init_vel;
 
-	input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("lower_left_corner", &box_X_lower[0], 3);
-	input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("upper_right_corner", &box_X_upper[0], 3);
-	input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("init_velocity", &box_init_vel[0], 3);
-	
-	// Register control volume
+        input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("lower_left_corner", &box_X_lower[0], 3);
+        input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("upper_right_corner", &box_X_upper[0], 3);
+        input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("init_velocity", &box_init_vel[0], 3);
+
+        // Register control volume
         hydro_force->registerStructure(box_X_lower, box_X_upper, patch_hierarchy, box_init_vel, 0);
 
         // Create COM variable
-        std::vector<std::vector<double> > structure_COM = ib_method_ops->getStructureCOM();
+        std::vector<std::vector<double> > structure_COM = ib_method_ops->getCurrentStructureCOM();
         IBTK::Vector3d eel_COM;
         for (int d = 0; d < 3; ++d) eel_COM[d] = structure_COM[0][d];
 
@@ -325,7 +325,7 @@ run_example(int argc, char* argv[])
             // Set the box velocity to nonzero only if the eel has moved sufficiently far.
             IBTK::Vector3d box_vel;
             box_vel.setZero();
-	    
+
             // Velocity due to free-swimming
             std::vector<std::vector<double> > COM_vel = ib_method_ops->getCurrentCOMVelocity();
             for (int d = 0; d < NDIM; ++d) box_vel(d) = COM_vel[0][d];
@@ -334,11 +334,12 @@ run_example(int argc, char* argv[])
             Pointer<PatchLevel<NDIM> > coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
             const Pointer<CartesianGridGeometry<NDIM> > coarsest_grid_geom = coarsest_level->getGridGeometry();
             const double* const DX = coarsest_grid_geom->getDx();
-	    
-	    // Set the box velocity to ensure that the immersed body remains inside the control volume at all times.
-	    // If the body's COM has moved 0.9 coarse mesh widths in the x-direction, set the CV velocity such that 
-	    // the CV will translate by 1 coarse mesh width in the direction of swimming (negative x-direction). 
-	    // Otherwise, keep the CV in place by setting its velocity to zero.
+
+            // Set the box velocity to ensure that the immersed body remains inside the control volume at all times.
+            // If the body's COM has moved 0.9 coarse mesh widths in the x-direction, set the CV velocity such that
+            // the CV will translate by 1 coarse mesh width in the direction of swimming (negative x-direction).
+            // Otherwise, keep the CV in place by setting its velocity to zero.
+
             box_disp += box_vel[0] * dt;
             if (abs(box_disp) >= abs(0.9 * DX[0]))
             {
@@ -397,7 +398,7 @@ run_example(int argc, char* argv[])
             hydro_force->updateStructurePlotData(patch_hierarchy, 0);
 
             // Set the torque origin for the next time step
-            structure_COM = ib_method_ops->getStructureCOM();
+            structure_COM = ib_method_ops->getCurrentStructureCOM();
             for (int d = 0; d < 3; ++d) eel_COM[d] = structure_COM[0][d];
 
             // Set the torque evaluation axis to point from newest COM
