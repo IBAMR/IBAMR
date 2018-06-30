@@ -851,7 +851,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
         }
     }
 
-    // Re-update density and viscosity is they are maintained by the integrator
+    // Re-update viscosity if it is maintained by the integrator
     // using the newest available data from INS and advection-diffusion solvers
     if (d_current_num_cycles == cycle_num + 1)
     {
@@ -1034,7 +1034,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
     ComponentSelector scratch_idxs;
     scratch_idxs.setFlag(d_U_scratch_idx);
     scratch_idxs.setFlag(d_P_scratch_idx);
-    scratch_idxs.setFlag(d_rho_sc_scratch_idx);
+    scratch_idxs.setFlag(d_pressure_D_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1067,9 +1067,19 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
                             d_integrator_time,
                             d_reset_rho_fcns_ctx[k]);
     }
-    d_hier_sc_data_ops->reciprocal(d_rho_sc_scratch_idx, d_rho_sc_current_idx);
-    d_hier_sc_data_ops->scale(d_rho_sc_scratch_idx, -1.0, d_rho_sc_scratch_idx);
-    regrid_projection_spec.setDPatchDataId(d_rho_sc_scratch_idx);
+    d_hier_sc_data_ops->reciprocal(d_pressure_D_idx, d_rho_sc_current_idx);
+    d_hier_sc_data_ops->scale(d_pressure_D_idx, -1.0, d_pressure_D_idx);
+
+    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    SynchronizationTransactionComponent p_coef_synch_transaction =
+        SynchronizationTransactionComponent(d_pressure_D_idx, "CONSERVATIVE_COARSEN");
+    d_side_synch_op->resetTransactionComponent(p_coef_synch_transaction);
+    d_side_synch_op->synchronizeData(d_integrator_time);
+    SynchronizationTransactionComponent default_synch_transaction =
+        SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+    d_side_synch_op->resetTransactionComponent(default_synch_transaction);
+
+    regrid_projection_spec.setDPatchDataId(d_pressure_D_idx);
 
     LocationIndexRobinBcCoefs<NDIM> Phi_bc_coef;
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -1129,8 +1139,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
     d_hier_math_ops->grad(d_U_current_idx,
                           d_U_var,
                           /*synch_cf_bdry*/ true,
-                          d_rho_sc_scratch_idx,
-                          d_rho_sc_var,
+                          d_pressure_D_idx,
+                          d_pressure_D_var,
                           d_P_scratch_idx,
                           d_P_var,
                           d_no_fill_op,
@@ -1244,6 +1254,16 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     P_problem_coefs.setCZero();
     d_hier_sc_data_ops->reciprocal(d_pressure_D_idx, d_rho_sc_scratch_idx, /*interior_only*/ false);
     d_hier_sc_data_ops->scale(d_pressure_D_idx, -1.0, d_pressure_D_idx, /*interior_only*/ false);
+
+    // Synchronize pressure patch data coefficient
+    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    SynchronizationTransactionComponent p_coef_synch_transaction =
+        SynchronizationTransactionComponent(d_pressure_D_idx, "CONSERVATIVE_COARSEN");
+    d_side_synch_op->resetTransactionComponent(p_coef_synch_transaction);
+    d_side_synch_op->synchronizeData(d_integrator_time);
+    SynchronizationTransactionComponent default_synch_transaction =
+        SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+    d_side_synch_op->resetTransactionComponent(default_synch_transaction);
     P_problem_coefs.setDPatchDataId(d_pressure_D_idx);
 
     // Ensure that solver components are appropriately reinitialized at the correct intervals or

@@ -424,9 +424,9 @@ protected:
     virtual void setupPlotDataSpecialized();
 
     /*!
-     * Virtual method to project the velocity field following a regridding operation.
+     * Pure virtual method to project the velocity field following a regridding operation.
      */
-    virtual void regridProjection();
+    virtual void regridProjection() = 0;
 
     /*!
      * Copy data from a side-centered variable to a face-centered variable.
