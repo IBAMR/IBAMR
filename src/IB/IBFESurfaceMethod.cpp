@@ -923,6 +923,16 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                 // Zero out the values prior to accumulation.
                 double* x_begin = &x_qp[NDIM * qp_offset];
                 std::fill(x_begin, x_begin + NDIM * n_qpoints, 0.0);
+                
+                double* x_o_begin = &x_o_qp[NDIM * qp_offset];
+                std::fill(x_o_begin, x_o_begin + NDIM * n_qpoints, 0.0);
+                
+                double* x_i_begin = &x_i_qp[NDIM * qp_offset];
+                std::fill(x_i_begin, x_i_begin + NDIM * n_qpoints, 0.0);
+                
+                double* n_begin = &n_qp[NDIM * qp_offset];
+                std::fill(n_begin, n_begin + NDIM * n_qpoints, 0.0);
+                
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     double* DU_j_begin = &DU_j_qp[axis][NDIM * qp_offset];
