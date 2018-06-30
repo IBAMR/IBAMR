@@ -153,6 +153,16 @@ namespace
 {
 // Number of ghost cells used for each variable quantity.
 static const int SIDEG = 1;
+
+// Types of refining and coarsening to perform prior to setting coarse-fine
+// boundary and physical boundary ghost cell values.
+static const std::string DATA_REFINE_TYPE = "NONE";
+static const bool USE_CF_INTERPOLATION = true;
+static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+
+// Whether to enforce consistent interpolated values at Type 2 coarse-fine
+// interface ghost cells.
+static const bool CONSISTENT_TYPE_2_BDRY = false;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -1008,7 +1018,133 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupPlotDataSpecialized()
 void
 INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
 {
-    INSVCStaggeredHierarchyIntegrator::regridProjection();
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+    const double volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
+
+    // Setup the solver vectors.
+    SAMRAIVectorReal<NDIM, double> sol_vec(d_object_name + "::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
+    sol_vec.addComponent(d_P_var, d_P_scratch_idx, wgt_cc_idx, d_hier_cc_data_ops);
+
+    SAMRAIVectorReal<NDIM, double> rhs_vec(d_object_name + "::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
+    rhs_vec.addComponent(d_Div_U_var, d_Div_U_idx, wgt_cc_idx, d_hier_cc_data_ops);
+
+    // Allocate temporary data.
+    ComponentSelector scratch_idxs;
+    scratch_idxs.setFlag(d_U_scratch_idx);
+    scratch_idxs.setFlag(d_P_scratch_idx);
+    scratch_idxs.setFlag(d_rho_sc_scratch_idx);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(scratch_idxs, d_integrator_time);
+    }
+
+    // Setup the regrid Poisson solver.
+    Pointer<PoissonSolver> regrid_projection_solver =
+        CCPoissonSolverManager::getManager()->allocateSolver(d_regrid_projection_solver_type,
+                                                             d_object_name + "::regrid_projection_solver",
+                                                             d_regrid_projection_solver_db,
+                                                             "regrid_projection_",
+                                                             d_regrid_projection_precond_type,
+                                                             d_object_name + "::regrid_projection_precond",
+                                                             d_regrid_projection_precond_db,
+                                                             "regrid_projection_pc_");
+    PoissonSpecifications regrid_projection_spec(d_object_name + "::regrid_projection_spec");
+    regrid_projection_spec.setCZero();
+
+    // Get the current value of density
+    for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
+    {
+        const double apply_time = d_integrator_time;
+        d_reset_rho_fcns[k](d_rho_sc_current_idx,
+                            d_rho_sc_var,
+                            d_hier_math_ops,
+                            -1 /*cycle_num*/,
+                            apply_time,
+                            d_integrator_time,
+                            d_integrator_time,
+                            d_reset_rho_fcns_ctx[k]);
+    }
+    d_hier_sc_data_ops->reciprocal(d_rho_sc_scratch_idx, d_rho_sc_current_idx);
+    d_hier_sc_data_ops->scale(d_rho_sc_scratch_idx, -1.0, d_rho_sc_scratch_idx);
+    regrid_projection_spec.setDPatchDataId(d_rho_sc_scratch_idx);
+
+    LocationIndexRobinBcCoefs<NDIM> Phi_bc_coef;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        Phi_bc_coef.setBoundarySlope(2 * d, 0.0);
+        Phi_bc_coef.setBoundarySlope(2 * d + 1, 0.0);
+    }
+    regrid_projection_solver->setPoissonSpecifications(regrid_projection_spec);
+    regrid_projection_solver->setPhysicalBcCoef(&Phi_bc_coef);
+    regrid_projection_solver->setHomogeneousBc(true);
+    regrid_projection_solver->setSolutionTime(d_integrator_time);
+    regrid_projection_solver->setTimeInterval(d_integrator_time, d_integrator_time);
+    LinearSolver* p_regrid_projection_solver = dynamic_cast<LinearSolver*>(regrid_projection_solver.getPointer());
+    if (p_regrid_projection_solver)
+    {
+        p_regrid_projection_solver->setInitialGuessNonzero(false);
+        p_regrid_projection_solver->setNullspace(true);
+    }
+
+    // Setup the right-hand-side vector for the projection-Poisson solve.
+    d_hier_math_ops->div(d_Div_U_idx,
+                         d_Div_U_var,
+                         -1.0,
+                         d_U_current_idx,
+                         d_U_var,
+                         d_no_fill_op,
+                         d_integrator_time,
+                         /*synch_cf_bdry*/ false,
+                         +1.0,
+                         d_Q_current_idx,
+                         d_Q_var);
+    const double Div_U_mean = (1.0 / volume) * d_hier_cc_data_ops->integral(d_Div_U_idx, wgt_cc_idx);
+    d_hier_cc_data_ops->addScalar(d_Div_U_idx, d_Div_U_idx, -Div_U_mean);
+
+    // Solve the projection pressure-Poisson problem.
+    regrid_projection_solver->solveSystem(sol_vec, rhs_vec);
+    if (d_enable_logging)
+        plog << d_object_name << "::regridProjection(): regrid projection solve number of iterations = "
+             << regrid_projection_solver->getNumIterations() << "\n";
+    if (d_enable_logging)
+        plog << d_object_name << "::regridProjection(): regrid projection solve residual norm        = "
+             << regrid_projection_solver->getResidualNorm() << "\n";
+
+    // Fill ghost cells for Phi, compute Grad Phi, and set U := U - 1/rho * Grad Phi
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    InterpolationTransactionComponent Phi_bc_component(d_P_scratch_idx,
+                                                       DATA_REFINE_TYPE,
+                                                       USE_CF_INTERPOLATION,
+                                                       DATA_COARSEN_TYPE,
+                                                       d_bdry_extrap_type,
+                                                       CONSISTENT_TYPE_2_BDRY,
+                                                       &Phi_bc_coef);
+    Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
+    Phi_bdry_bc_fill_op->setHomogeneousBc(true);
+    Phi_bdry_bc_fill_op->fillData(d_integrator_time);
+    d_hier_math_ops->grad(d_U_current_idx,
+                          d_U_var,
+                          /*synch_cf_bdry*/ true,
+                          d_rho_sc_scratch_idx,
+                          d_rho_sc_var,
+                          d_P_scratch_idx,
+                          d_P_var,
+                          d_no_fill_op,
+                          d_integrator_time,
+                          +1.0,
+                          d_U_current_idx,
+                          d_U_var);
+
+    // Deallocate scratch data.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(scratch_idxs);
+    }
     return;
 } // regridProjection
 
