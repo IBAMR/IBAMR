@@ -213,6 +213,12 @@ public:
      */
     void setCycleNumber(int cycle_num);
 
+    /*!
+     * \brief Set the previous time step value between times n - 1 (old) and n (current). This is used during velocity
+     * extrapolation.
+     */
+    void setPreviousTimeStepSize(double dt_prev);
+
 private:
     /*!
      * \brief Default constructor.
@@ -336,19 +342,22 @@ private:
     LimiterType d_velocity_convective_limiter;
     LimiterType d_density_convective_limiter;
 
-    // The required number of ghost cells for the chosen interpolation
+    // The required number of ghost cells for the chosen interpolation.
     int d_velocity_limiter_gcw, d_density_limiter_gcw;
 
     // Variable to indicate the density update time-stepping type.
     TimeSteppingType d_density_time_stepping_type;
 
-    // Source term variable and function for the mass density update
+    // Source term variable and function for the mass density update.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_S_var;
     int d_S_scratch_idx;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
 
-    // Variable to indicate the cycle number
+    // Variable to indicate the cycle number.
     int d_cycle_num;
+
+    // Variable to indicated previous time step size.
+    double d_dt_prev;
 };
 } // namespace IBAMR
 

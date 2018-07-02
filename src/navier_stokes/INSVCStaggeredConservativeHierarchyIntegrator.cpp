@@ -609,7 +609,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
             const int ins_cycle_num = 0;
             p_vc_convective_op->setCycleNumber(ins_cycle_num);
 
-            // Set the velocities used to update the density
+            // Set the velocities used to update the density and the previous time step size
             if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
             {
                 p_vc_convective_op->setFluidVelocityPatchDataIndices(
@@ -619,6 +619,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
             {
                 p_vc_convective_op->setFluidVelocityPatchDataIndices(
                     /*old*/ d_U_old_current_idx, /*current*/ d_U_current_idx, /*new*/ -1);
+                p_vc_convective_op->setPreviousTimeStepSize(d_dt_previous[0]);
             }
         }
         else
@@ -1491,6 +1492,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
                 {
                     p_vc_convective_op->setFluidVelocityPatchDataIndices(
                         /*old*/ d_U_old_current_idx, /*current*/ d_U_current_idx, /*new*/ d_U_new_idx);
+                    p_vc_convective_op->setPreviousTimeStepSize(d_dt_previous[0]);
                 }
             }
             else

@@ -1003,7 +1003,8 @@ INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvecti
       d_S_var(NULL),
       d_S_scratch_idx(-1),
       d_S_fcn(NULL),
-      d_cycle_num(-1)
+      d_cycle_num(-1),
+      d_dt_prev(-1.0)
 {
     if (d_difference_form != CONSERVATIVE)
     {
@@ -1252,6 +1253,14 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
 
     // Get the time step size
     const double dt = getDt();
+    if (d_V_old_idx == d_V_current_idx)
+    {
+#if !defined(NDEBUG)
+        TBOX_ASSERT(d_dt_prev <= 0.0);
+#endif
+        // Ensure that previous time step is set for initial times
+        d_dt_prev = dt;
+    }
 #if !defined(NDEBUG)
     if (!(dt > 0.0))
     {
@@ -1260,13 +1269,20 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     }
 #endif
 
-// Get the cycle number
+// Assertions for velocity interpolation and extrapolation
 #if !defined(NDEBUG)
     if (d_cycle_num < 0)
     {
         TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
                    << "  invalid cycle number = "
                    << d_cycle_num
+                   << "\n");
+    }
+    if (d_dt_prev <= 0.0 && d_density_time_stepping_type != FORWARD_EULER)
+    {
+        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
+                   << "  invalid previous time step size = "
+                   << d_dt_prev
                    << "\n");
     }
 #endif
@@ -1339,6 +1355,9 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
         double w0 = std::numeric_limits<double>::quiet_NaN();
         double w1 = std::numeric_limits<double>::quiet_NaN();
         double w2 = std::numeric_limits<double>::quiet_NaN();
+        const double omega = dt / d_dt_prev;
+        const double sum_dt = dt + d_dt_prev;
+
         switch (step)
         {
         case 0:
@@ -1352,18 +1371,20 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
             }
             else
             {
-                w0 = -1.0, w1 = 2.0, w2 = 0.0;
+                w0 = -1.0 * omega, w1 = 1.0 + omega, w2 = 0.0;
             }
             break;
         case 2:
             eval_time = d_current_time + dt / 2.0;
             if (d_cycle_num > 0)
             {
-                w0 = -0.125, w1 = 0.75, w2 = 0.375;
+                w0 = -0.25 * dt * dt / (d_dt_prev * sum_dt);
+                w1 = 0.25 * (2.0 + omega);
+                w2 = 0.25 * (dt + 2.0 * d_dt_prev) / sum_dt;
             }
             else
             {
-                w0 = -0.5, w1 = 1.5, w2 = 0.0;
+                w0 = -0.5 * omega, w1 = 1.0 + 0.5 * omega, w2 = 0.0;
             }
             break;
         default:
@@ -1581,6 +1602,7 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     d_V_new_idx = -1;
     d_V_current_is_set = false;
     d_cycle_num = -1;
+    d_dt_prev = -1.0;
 
     IBAMR_TIMER_STOP(t_apply_convective_operator);
     return;
@@ -1790,6 +1812,16 @@ INSVCStaggeredConservativeConvectiveOperator::setCycleNumber(int cycle_num)
     TBOX_ASSERT(cycle_num >= 0);
 #endif
     d_cycle_num = cycle_num;
+    return;
+}
+
+void
+INSVCStaggeredConservativeConvectiveOperator::setPreviousTimeStepSize(double dt_prev)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(dt_prev > 0.0);
+#endif
+    d_dt_prev = dt_prev;
     return;
 }
 
