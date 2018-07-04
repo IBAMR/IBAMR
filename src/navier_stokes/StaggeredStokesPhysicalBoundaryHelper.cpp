@@ -161,7 +161,8 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
 void
 StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(const int u_data_idx,
                                                                                 const int coarsest_ln,
-                                                                                const int finest_ln) const
+                                                                                const int finest_ln,
+                                                                                bool enforce_at_all_phy_bdrys) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
@@ -176,7 +177,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
                 Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_data_idx);
-                enforceDivergenceFreeConditionAtBoundary(u_data, patch);
+                enforceDivergenceFreeConditionAtBoundary(u_data, patch, enforce_at_all_phy_bdrys);
             }
         }
     }
@@ -185,7 +186,8 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
 
 void
 StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(Pointer<SideData<NDIM, double> > u_data,
-                                                                                Pointer<Patch<NDIM> > patch) const
+                                                                                Pointer<Patch<NDIM> > patch,
+                                                                                bool enforce_at_all_phy_bdrys) const
 {
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return;
     const int ln = patch->getPatchLevelNumber();
@@ -207,7 +209,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
         for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
         {
             const Index<NDIM>& i = it();
-            if (!bdry_locs_data(i, 0))
+            if (!bdry_locs_data(i, 0) || enforce_at_all_phy_bdrys)
             {
                 // Place i_g in the ghost cell abutting the boundary.
                 Index<NDIM> i_g = i;

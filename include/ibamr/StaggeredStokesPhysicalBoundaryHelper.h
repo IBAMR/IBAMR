@@ -92,16 +92,26 @@ public:
      * \brief At open boundaries, set normal velocity ghost cell values to
      * enforce the discrete divergence-free condition in the ghost cell abutting
      * the physical boundary.
+     *
+     * \note If enforce_at_all_phy_bdrys = true, then the discrete divergence-free condition will be enforced
+     * at all boundaries.
      */
-    void enforceDivergenceFreeConditionAtBoundary(int u_data_idx, int coarsest_ln = -1, int finest_ln = -1) const;
+    void enforceDivergenceFreeConditionAtBoundary(int u_data_idx,
+                                                  int coarsest_ln = -1,
+                                                  int finest_ln = -1,
+                                                  bool enforce_at_all_phy_bdrys = false) const;
 
     /*!
      * \brief At open boundaries, set normal velocity ghost cell values to
      * enforce the discrete divergence-free condition in the ghost cell abutting
      * the physical boundary.
+     *
+     * \note If enforce_at_all_phy_bdrys = true, then the discrete divergence-free condition will be enforced
+     * at all boundaries.
      */
     void enforceDivergenceFreeConditionAtBoundary(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > u_data,
-                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                                  bool enforce_at_all_phy_bdrys = false) const;
 
     /*!
      * \brief Setup physical boundary condition specification objects for

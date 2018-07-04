@@ -1322,6 +1322,7 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
 
     // Fill ghost cells for the velocity used to compute the density update
+    // Note, enforce divergence free condition on all physical boundaries to ensure boundedness of density update
     d_hier_sc_data_ops->copyData(d_V_scratch_idx, d_V_current_idx, /*interior_only*/ true);
     std::vector<InterpolationTransactionComponent> v_transaction_comps(1);
     v_transaction_comps[0] = InterpolationTransactionComponent(d_V_scratch_idx,
@@ -1335,6 +1336,8 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_bc_coefs, NULL, d_V_scratch_idx, -1, homogeneous_bc);
     d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_v_bdry_fill->fillData(d_current_time);
+    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
+        d_V_scratch_idx, d_coarsest_ln, d_finest_ln, /*enforce_at_all_phy_bdrys*/ true);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, NULL);
     d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
 
@@ -1410,6 +1413,8 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
         if (step > 0)
         {
             // Compute an approximation to velocity at eval_time
+            // Note, enforce divergence free condition on all physical boundaries to ensure boundedness of density
+            // update
             d_hier_sc_data_ops->linearSum(
                 d_V_scratch_idx, w0, d_V_old_idx, w1, d_V_current_idx, /*interior_only*/ true);
             d_hier_sc_data_ops->axpy(d_V_scratch_idx, w2, d_V_new_idx, d_V_scratch_idx, /*interior_only*/ true);
@@ -1426,6 +1431,8 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                 d_bc_coefs, NULL, d_V_scratch_idx, -1, homogeneous_bc);
             d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
             d_hier_v_bdry_fill->fillData(eval_time);
+            d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
+                d_V_scratch_idx, d_coarsest_ln, d_finest_ln, /*enforce_at_all_phy_bdrys*/ true);
             StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, NULL);
             d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
         }
