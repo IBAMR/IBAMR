@@ -618,6 +618,7 @@ INSStaggeredCUIConvectiveOperator::applyConvectiveOperator(const int U_idx, cons
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_bc_coefs, NULL, d_U_scratch_idx, -1, homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
+    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, NULL);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
