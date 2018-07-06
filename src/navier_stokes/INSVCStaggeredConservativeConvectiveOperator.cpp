@@ -959,6 +959,9 @@ static const int GMGAMMAG = 3;
 static const int GPPMG = 4;
 static const int NOGHOSTS = 0;
 
+// Number of ghost cells to fill at coarse fine interface to enforce divergence free condition
+static const int CF_GHOST_WIDTH = 1;
+
 // Timers.
 static Timer* t_apply_convective_operator;
 static Timer* t_apply;
@@ -1148,15 +1151,20 @@ INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvecti
     if (d_V_var)
     {
         d_V_scratch_idx = var_db->mapVariableAndContextToIndex(d_V_var, var_db->getContext(V_var_name + "::SCRATCH"));
+        d_V_composite_idx =
+            var_db->mapVariableAndContextToIndex(d_V_var, var_db->getContext(V_var_name + "::COMPOSITE"));
     }
     else
     {
         d_V_var = new SideVariable<NDIM, double>(V_var_name);
         d_V_scratch_idx = var_db->registerVariableAndContext(
             d_V_var, var_db->getContext(V_var_name + "::SCRATCH"), IntVector<NDIM>(d_velocity_limiter_gcw));
+        d_V_composite_idx = var_db->registerVariableAndContext(
+            d_V_var, var_db->getContext(V_var_name + "::COMPOSITE"), IntVector<NDIM>(NOGHOSTS));
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_V_scratch_idx >= 0);
+    TBOX_ASSERT(d_V_composite_idx >= 0);
 #endif
 
     const std::string rho_sc_name = "INSVCStaggeredConservativeConvectiveOperator::RHO_SIDE_CENTERED";
@@ -1323,9 +1331,10 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
 
     // Fill ghost cells for the velocity used to compute the density update
     // Note, enforce divergence free condition on all physical boundaries to ensure boundedness of density update
-    d_hier_sc_data_ops->copyData(d_V_scratch_idx, d_V_current_idx, /*interior_only*/ true);
+    d_hier_sc_data_ops->copyData(d_V_composite_idx, d_V_current_idx, /*interior_only*/ true);
     std::vector<InterpolationTransactionComponent> v_transaction_comps(1);
     v_transaction_comps[0] = InterpolationTransactionComponent(d_V_scratch_idx,
+                                                               d_V_composite_idx,
                                                                "CONSERVATIVE_LINEAR_REFINE",
                                                                false,
                                                                "CONSERVATIVE_COARSEN",
@@ -1338,6 +1347,7 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     d_hier_v_bdry_fill->fillData(d_current_time);
     d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
         d_V_scratch_idx, d_coarsest_ln, d_finest_ln, /*enforce_at_all_phy_bdrys*/ true);
+    enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, NULL);
     d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
 
@@ -1409,17 +1419,16 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
             d_hier_rho_bdry_fill->setHomogeneousBc(homogeneous_bc);
             d_hier_rho_bdry_fill->fillData(eval_time);
             d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
-        }
-        if (step > 0)
-        {
+
             // Compute an approximation to velocity at eval_time
             // Note, enforce divergence free condition on all physical boundaries to ensure boundedness of density
             // update
             d_hier_sc_data_ops->linearSum(
-                d_V_scratch_idx, w0, d_V_old_idx, w1, d_V_current_idx, /*interior_only*/ true);
-            d_hier_sc_data_ops->axpy(d_V_scratch_idx, w2, d_V_new_idx, d_V_scratch_idx, /*interior_only*/ true);
+                d_V_composite_idx, w0, d_V_old_idx, w1, d_V_current_idx, /*interior_only*/ true);
+            d_hier_sc_data_ops->axpy(d_V_composite_idx, w2, d_V_new_idx, d_V_composite_idx, /*interior_only*/ true);
             std::vector<InterpolationTransactionComponent> v_update_transaction_comps(1);
             v_update_transaction_comps[0] = InterpolationTransactionComponent(d_V_scratch_idx,
+                                                                              d_V_composite_idx,
                                                                               "CONSERVATIVE_LINEAR_REFINE",
                                                                               false,
                                                                               "CONSERVATIVE_COARSEN",
@@ -1433,6 +1442,7 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
             d_hier_v_bdry_fill->fillData(eval_time);
             d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
                 d_V_scratch_idx, d_coarsest_ln, d_finest_ln, /*enforce_at_all_phy_bdrys*/ true);
+            enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
             StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, NULL);
             d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
         }
@@ -1658,6 +1668,7 @@ INSVCStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMR
 
     d_v_transaction_comps.resize(1);
     d_v_transaction_comps[0] = InterpolationTransactionComponent(d_V_scratch_idx,
+                                                                 d_V_composite_idx,
                                                                  "CONSERVATIVE_LINEAR_REFINE",
                                                                  false,
                                                                  "CONSERVATIVE_COARSEN",
@@ -1677,12 +1688,21 @@ INSVCStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMR
     d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
     d_bc_helper->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
 
+    // Create the coarse-fine boundary boxes.
+    d_cf_boundary.resize(d_finest_ln + 1);
+    const IntVector<NDIM>& max_ghost_width = CF_GHOST_WIDTH;
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        d_cf_boundary[ln] = new CoarseFineBoundary<NDIM>(*d_hierarchy, ln, max_ghost_width);
+    }
+
     // Allocate data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_U_scratch_idx)) level->allocatePatchData(d_U_scratch_idx);
         if (!level->checkAllocated(d_V_scratch_idx)) level->allocatePatchData(d_V_scratch_idx);
+        if (!level->checkAllocated(d_V_composite_idx)) level->allocatePatchData(d_V_composite_idx);
         if (!level->checkAllocated(d_rho_sc_scratch_idx)) level->allocatePatchData(d_rho_sc_scratch_idx);
         if (!level->checkAllocated(d_rho_sc_new_idx)) level->allocatePatchData(d_rho_sc_new_idx);
         if (!level->checkAllocated(d_S_scratch_idx)) level->allocatePatchData(d_S_scratch_idx);
@@ -1723,10 +1743,19 @@ INSVCStaggeredConservativeConvectiveOperator::deallocateOperatorState()
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_U_scratch_idx)) level->deallocatePatchData(d_U_scratch_idx);
         if (level->checkAllocated(d_V_scratch_idx)) level->deallocatePatchData(d_V_scratch_idx);
+        if (level->checkAllocated(d_V_composite_idx)) level->deallocatePatchData(d_V_composite_idx);
         if (level->checkAllocated(d_rho_sc_scratch_idx)) level->deallocatePatchData(d_rho_sc_scratch_idx);
         if (level->checkAllocated(d_rho_sc_new_idx)) level->deallocatePatchData(d_rho_sc_new_idx);
         if (level->checkAllocated(d_S_scratch_idx)) level->deallocatePatchData(d_S_scratch_idx);
     }
+
+    // Deallocate coarse-fine boundary object.
+    for (std::vector<CoarseFineBoundary<NDIM>*>::iterator it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
+    {
+        delete (*it);
+        (*it) = NULL;
+    }
+    d_cf_boundary.clear();
 
     // Deallocate hierarchy math operations object.
     if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
@@ -2667,124 +2696,69 @@ INSVCStaggeredConservativeConvectiveOperator::computeDensityUpdate(
     }
 } // computeDensityUpdate
 
-#if 0
-            // Correct density for inflow conditions.
-            if (patch_geom->getTouchesRegularBoundary())
+void
+INSVCStaggeredConservativeConvectiveOperator::enforceDivergenceFreeConditionAtCoarseFineInterface(int U_idx)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_hierarchy);
+#endif
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(U_idx);
+            const int patch_ln = patch->getPatchLevelNumber();
+            const int patch_num = patch->getPatchNumber();
+            const Array<BoundaryBox<NDIM> >& cf_bdry_codim1_boxes =
+                d_cf_boundary[patch_ln]->getBoundaries(patch_num, 1);
+            const int n_cf_bdry_codim1_boxes = cf_bdry_codim1_boxes.size();
+            if (n_cf_bdry_codim1_boxes == 0) continue;
+
+            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const double* const dx = pgeom->getDx();
+            const Box<NDIM>& patch_box = patch->getBox();
+            const IntVector<NDIM> ghost_width_to_fill = CF_GHOST_WIDTH;
+            for (int n = 0; n < n_cf_bdry_codim1_boxes; ++n)
             {
-                // Compute the co-dimension one boundary boxes.
-                const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
-                PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
-                
-                // There is nothing to do if the patch does not have any co-dimension one
-                // boundary boxes.
-                if (physical_codim1_boxes.size() == 0) break;
-                
-                // Created shifted patch geometry.
-                const double* const patch_x_lower = patch_geom->getXLower();
-                const double* const patch_x_upper = patch_geom->getXUpper();
-                const IntVector<NDIM>& ratio_to_level_zero = patch_geom->getRatio();
-                Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
-                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[n];
+                const unsigned int location_index = bdry_box.getLocationIndex();
+                const unsigned int bdry_normal_axis = location_index / 2;
+                const bool is_lower = location_index % 2 == 0;
+                const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
+                for (Box<NDIM>::Iterator b(bc_fill_box); b; b++)
                 {
-                    touches_regular_bdry[axis].resizeArray(2);
-                    touches_periodic_bdry[axis].resizeArray(2);
-                    for (int upperlower = 0; upperlower < 2; ++upperlower)
+                    // Place i_s on the c-f interface.
+                    Index<NDIM> i_s = b();
+
+                    // Work out from the coarse-fine interface to fill the ghost cell
+                    // values so that the velocity field satisfies the discrete
+                    // divergence-free condition.
+                    for (int k = 0; k < u_data->getGhostCellWidth()(bdry_normal_axis);
+                         ++k, i_s(bdry_normal_axis) += (is_lower ? -1 : +1))
                     {
-                        touches_regular_bdry[axis][upperlower] = patch_geom->getTouchesRegularBoundary(axis, upperlower);
-                        touches_periodic_bdry[axis][upperlower] = patch_geom->getTouchesPeriodicBoundary(axis, upperlower);
-                    }
-                }
-                
-                // Set the mass influx at inflow boundaries.
-                for (unsigned int axis = 0; axis < NDIM; ++axis)
-                {
-                    for (int n = 0; n < physical_codim1_boxes.size(); ++n)
-                    {
-                        const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-                        const unsigned int location_index = bdry_box.getLocationIndex();
-                        const unsigned int bdry_normal_axis = location_index / 2;
-                        const bool is_lower = location_index % 2 == 0;
-                        
-                        static const IntVector<NDIM> gcw_to_fill = 1;
-                        const Box<NDIM> bc_fill_box = patch_geom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
-                        const BoundaryBox<NDIM> trimmed_bdry_box(
-                                                                 bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
-                        const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-                        
-                        Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                        Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                        Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                        
-                        
-                        if (axis != bdry_normal_axis)
+                        // Determine the ghost cell value so that the divergence of
+                        // the velocity field is zero in the ghost cell.
+                        SideIndex<NDIM> i_g_s(
+                            i_s, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
+                        (*u_data)(i_g_s) = 0.0;
+                        double div_u_g = 0.0;
+                        for (unsigned int axis = 0; axis < NDIM; ++axis)
                         {
-                            // Temporarily reset the patch geometry object associated with the
-                            // patch so that boundary conditions are set at the correct spatial
-                            // locations.
-                            boost::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
-                            for (unsigned int d = 0; d < NDIM; ++d)
-                            {
-                                shifted_patch_x_lower[d] = patch_x_lower[d];
-                                shifted_patch_x_upper[d] = patch_x_upper[d];
-                            }
-                            shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
-                            shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
-                            patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
-                                                                                     touches_regular_bdry,
-                                                                                     touches_periodic_bdry,
-                                                                                     dx,
-                                                                                     shifted_patch_x_lower.data(),
-                                                                                     shifted_patch_x_upper.data()));
+                            const SideIndex<NDIM> i_g_s_upper(i_s, axis, SideIndex<NDIM>::Upper);
+                            const SideIndex<NDIM> i_g_s_lower(i_s, axis, SideIndex<NDIM>::Lower);
+                            div_u_g +=
+                                ((*u_data)(i_g_s_upper) - (*u_data)(i_g_s_lower)) * dx[bdry_normal_axis] / dx[axis];
                         }
-    
-                        d_rho_interp_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data,Pointer<Variable<NDIM> >(NULL), *patch, trimmed_bdry_box, d_current_time);
-                        
-                        // Restore the original patch geometry object.
-                        patch->setPatchGeometry(patch_geom);
-                        
-                        for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
-                        {
-                            const Index<NDIM>& i = b();
-                            const FaceIndex<NDIM> i_f(i, bdry_normal_axis, FaceIndex<NDIM>::Lower);
-                            const double inflow_vel = (*U_half_data[axis])(i_f);
-                            //const SideIndex<NDIM> i_s(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                            //const double inflow_vel = (*U_data)(i_s);
-                            
-                            bool is_inflow_bdry = (is_lower && inflow_vel > 0.0) || (!is_lower && inflow_vel < 0.0);
-                            if (is_inflow_bdry)
-                            {
-                                const double& a = (*acoef_data)(i, 0);
-                                const double& b = (*bcoef_data)(i, 0);
-                                const double& g = (*gcoef_data)(i, 0);
-                                const double& h = dx[bdry_normal_axis];
-                                TBOX_ASSERT(MathUtilities<double>::equalEps(b, 0));
-                                TBOX_ASSERT(MathUtilities<double>::equalEps(a, 1.0));
-                                
-                                Index<NDIM> i_intr(i);
-                                if (is_lower)
-                                {
-                                    // intentionally left blank
-                                }
-                                else
-                                {
-                                    i_intr(bdry_normal_axis) -= 1;
-                                }
-                                
-                                
-                                const FaceIndex<NDIM> i_f_intr(
-                                                               i_intr, bdry_normal_axis, (is_lower ? FaceIndex<NDIM>::Upper : FaceIndex<NDIM>::Lower));
-                                const FaceIndex<NDIM> i_f_bdry(
-                                                               i_intr, bdry_normal_axis, (is_lower ? FaceIndex<NDIM>::Lower : FaceIndex<NDIM>::Upper));
-                                
-                                const double& P_adv_i = (*P_adv_data[axis])(i_f_intr, /*depth*/0);
-                                const double P_adv_b = (b * P_adv_i + g * inflow_vel * h) / (a * h + b);
-                                (*P_adv_data[axis])(i_f_bdry, /*depth*/0) = P_adv_b;
-                            }
-                        }
+                        (*u_data)(i_g_s) = (is_lower ? +1.0 : -1.0) * div_u_g;
                     }
                 }
             }
-#endif
+        }
+    }
+    return;
+} // enforceDivergenceFreeConditionAtCoarseFineInterface
 
 //////////////////////////////////////////////////////////////////////////////
 

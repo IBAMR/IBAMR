@@ -38,6 +38,7 @@
 #include <string>
 #include <vector>
 
+#include "CoarseFineBoundary.h"
 #include "HierarchySideDataOpsReal.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
@@ -298,6 +299,11 @@ private:
         const double& dt,
         const double* const dx);
 
+    /*!
+     * \brief Enforce divergence free condition at the coarse-fine interface to ensure conservation of mass.
+     */
+    void enforceDivergenceFreeConditionAtCoarseFineInterface(const int U_idx);
+
     // Boundary condition helper object.
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
@@ -331,7 +337,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
     int d_U_scratch_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_V_var;
-    int d_V_scratch_idx, d_V_old_idx, d_V_current_idx, d_V_new_idx;
+    int d_V_scratch_idx, d_V_old_idx, d_V_current_idx, d_V_new_idx, d_V_composite_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var;
     int d_rho_sc_current_idx, d_rho_sc_scratch_idx, d_rho_sc_new_idx;
 
@@ -358,6 +364,9 @@ private:
 
     // Variable to indicated previous time step size.
     double d_dt_prev;
+
+    // Coarse-fine boundary object
+    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM>*> d_cf_boundary;
 };
 } // namespace IBAMR
 
