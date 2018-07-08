@@ -812,39 +812,39 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
     d_has_stress_normalization_parts = true;
     d_is_stress_normalization_part[part] = true;
     System& Phi_system = d_equation_systems[part]->add_system<TransientLinearImplicitSystem>(PHI_SYSTEM_NAME);
-    d_equation_systems[part]->parameters.set<Real>("Phi_epsilon") = d_epsilon;
-    d_equation_systems[part]->parameters.set<Real>("ipdg_jump0_penalty") = ipdg_jump0_penalty;
-    d_equation_systems[part]->parameters.set<Real>("ipdg_jump1_penalty") = ipdg_jump1_penalty;
-    d_equation_systems[part]->parameters.set<Real>("ipdg_beta0") = ipdg_beta0;
-    d_equation_systems[part]->parameters.set<Real>("ipdg_beta1") = ipdg_beta1;
-    d_equation_systems[part]->parameters.set<Real>("cg_penalty") = cg_penalty;
-    d_equation_systems[part]->parameters.set<std::string>("Phi_solver") = Phi_solver;
-    d_equation_systems[part]->parameters.set<Real>("dt") = Phi_dt;
-    d_equation_systems[part]->parameters.set<Real>("Phi_diffusion") = Phi_diffusion;
+    d_equation_systems[part]->parameters.set<Real>("Phi_epsilon") = d_phi_epsilon;
+    d_equation_systems[part]->parameters.set<Real>("ipdg_jump0_penalty") = d_ipdg_jump0_penalty;
+    d_equation_systems[part]->parameters.set<Real>("ipdg_jump1_penalty") = d_ipdg_jump1_penalty;
+    d_equation_systems[part]->parameters.set<Real>("ipdg_beta0") = d_ipdg_beta0;
+    d_equation_systems[part]->parameters.set<Real>("ipdg_beta1") = d_ipdg_beta1;
+    d_equation_systems[part]->parameters.set<Real>("cg_penalty") = d_cg_penalty;
+    d_equation_systems[part]->parameters.set<std::string>("Phi_solver") = d_phi_solver;
+    d_equation_systems[part]->parameters.set<Real>("dt") = d_phi_dt;
+    d_equation_systems[part]->parameters.set<Real>("Phi_diffusion") = d_phi_diffusion;
 
     // assign function for building Phi linear system.  defaults to CG discretization
-    if (Phi_solver.compare("CG") == 0)
+    if (d_phi_solver.compare("CG") == 0)
     {
         Phi_system.attach_assemble_function(assemble_cg_poisson);
-        Phi_system.add_variable("Phi_CG", d_fe_order[part], d_fe_family[part]);
+        Phi_system.add_variable("Phi_CG", d_phi_fe_order, d_fe_family[part]);
     }
-    else if (Phi_solver.compare("IPDG") == 0)
+    else if (d_phi_solver.compare("IPDG") == 0)
     {
         Phi_system.attach_assemble_function(assemble_ipdg_poisson);
-        Phi_system.add_variable("Phi_IPDG", Phi_fe_order, MONOMIAL);
+        Phi_system.add_variable("Phi_IPDG", d_phi_fe_order, MONOMIAL);
     }
-    else if (Phi_solver.compare("CG_HEAT") == 0)
+    else if (d_phi_solver.compare("CG_HEAT") == 0)
     {
         // here we attach first the assemble function for poisson to have the
         // initial conditions for the heat equation be computed as the solution
         // to the steady state heat equation
         Phi_system.attach_assemble_function(assemble_cg_poisson);
-        Phi_system.add_variable("Phi_Heat", d_fe_order[part], d_fe_family[part]);
+        Phi_system.add_variable("Phi_Heat", d_phi_fe_order, d_fe_family[part]);
     }
     else
     {
         Phi_system.attach_assemble_function(assemble_cg_poisson);
-        Phi_system.add_variable("Phi_CG", d_fe_order[part], d_fe_family[part]);
+        Phi_system.add_variable("Phi_CG", d_phi_fe_order, d_fe_family[part]);
     }
 
     return;
@@ -1437,7 +1437,7 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
 
-        if (Phi_solver.compare("CG_HEAT") == 0)
+        if (d_phi_solver.compare("CG_HEAT") == 0)
         {
             EquationSystems* equation_systems = d_equation_systems[part];
             d_equation_systems[part]->parameters.set<Real>("dt") = dt;
@@ -1881,7 +1881,7 @@ IBFEMethod::initializeFEData()
             TransientLinearImplicitSystem& Phi_system =
                 equation_systems->get_system<TransientLinearImplicitSystem>(PHI_SYSTEM_NAME);
 
-            if (Phi_solver.compare("CG_HEAT") == 0)
+            if (d_phi_solver.compare("CG_HEAT") == 0)
             {
                 // attach assemble function for computing initial condition as solution to
                 // steady state heat equation
@@ -2169,7 +2169,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
 
     // things for building RHS of Phi linear system based on poisson solver.
     const Real cg_penalty = equation_systems->parameters.get<Real>("cg_penalty");
-    const Real ipdg_jump0_penalty = equation_systems->parameters.get<Real>("ipdg_jump0_penalty");
+    const Real ipdg_jump0_penalty = equation_systems->parameters.get<Real>("d_ipdg_jump0_penalty");
     const Real ipdg_beta0 = equation_systems->parameters.get<Real>("ipdg_beta0");
     const std::string Phi_solver = equation_systems->parameters.get<std::string>("Phi_solver");
     const Real diffusion = equation_systems->parameters.get<Real>("Phi_diffusion");
@@ -2320,7 +2320,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                                                            PK1_grad_var_data[k],
                                                            data_time,
                                                            d_PK1_stress_fcn_data[part][k].ctx);
-                        if (scale_Phi_by_J)
+                        if (d_scale_phi_by_J)
                         {
                             Phi += n * ((PP * FF_trans) * n) / J;
                         }
@@ -2350,7 +2350,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                                                            surface_force_grad_var_data,
                                                            data_time,
                                                            d_lag_surface_force_fcn_data[part].ctx);
-                    if (scale_Phi_by_J)
+                    if (d_scale_phi_by_J)
                     {
                         Phi -= n * F_s * dA_da;
                     }
@@ -2383,7 +2383,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                                                               surface_pressure_grad_var_data,
                                                               data_time,
                                                               d_lag_surface_pressure_fcn_data[part].ctx);
-                    if (scale_Phi_by_J)
+                    if (d_scale_phi_by_J)
                     {
                         Phi += P;
                     }
@@ -2759,7 +2759,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                 // Compute the value of the first Piola-Kirchhoff stress tensor
                 // at the quadrature point and add the corresponding forces to
                 // the right-hand-side vector.
-                if (scale_Phi_by_J)
+                if (d_scale_phi_by_J)
                 {
                     Phi_vol = -J * Phi * FF_inv_trans;
                 }
@@ -2902,7 +2902,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                         (d_split_normal_force && !at_dirichlet_bdry) || (!d_split_normal_force && at_dirichlet_bdry);
                     const bool integrate_tangential_force = (d_split_tangential_force && !at_dirichlet_bdry) ||
                                                             (!d_split_tangential_force && at_dirichlet_bdry);
-                    if (scale_Phi_by_J)
+                    if (d_scale_phi_by_J)
                     {
                         PP = -J * Phi * FF_inv_trans;
                     }
@@ -3410,7 +3410,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                         // Compute the value of the first Piola-Kirchhoff stress tensor
                         // at the quadrature point and add the corresponding forces to
                         // the right-hand-side vector.
-                        if (scale_Phi_by_J)
+                        if (d_scale_phi_by_J)
                         {
                             F += J * Phi * FF_inv_trans * normal_face[qp] * JxW_face[qp];
                         }
@@ -4048,16 +4048,16 @@ IBFEMethod::commonConstructor(const std::string& object_name,
 
     // Indicate that all of the parts do NOT use stress normalization by default
     // and set some default values.
-    d_epsilon = 0.0;
-    ipdg_jump0_penalty = 2.0;
-    ipdg_jump1_penalty = 0.0;
-    ipdg_beta0 = 1.0;
-    ipdg_beta1 = 1.0;
-    Phi_fe_order = static_cast<libMesh::Order>(1);
-    cg_penalty = 1e10;
-    Phi_solver = "CG";
-    Phi_diffusion = 1.0;
-    scale_Phi_by_J = true;
+    d_phi_epsilon = 0.0;
+    d_ipdg_jump0_penalty = 2.0;
+    d_ipdg_jump1_penalty = 0.0;
+    d_ipdg_beta0 = 1.0;
+    d_ipdg_beta1 = 1.0;
+    d_phi_fe_order = static_cast<libMesh::Order>(1);
+    d_cg_penalty = 1e10;
+    d_phi_solver = "CG";
+    d_phi_diffusion = 1.0;
+    d_scale_phi_by_J = true;
     d_has_stress_normalization_parts = false;
     d_is_stress_normalization_part.resize(d_num_parts, false);
 
@@ -4259,18 +4259,18 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     else if (db->keyExists("enable_logging"))
         d_do_log = db->getBool("enable_logging");
 
-    // get info for stress normalization
-    if (db->isDouble("Phi_epsilon")) d_epsilon = db->getDouble("Phi_epsilon");
-    Phi_diffusion = db->getDouble("Phi_diffusion");
-    Phi_solver = db->getString("Phi_solver");
-    scale_Phi_by_J = db->getBool("scale_Phi_by_J");
-    ipdg_jump0_penalty = db->getDouble("ipdg_jump0_penalty");
-    ipdg_jump1_penalty = db->getDouble("ipdg_jump1_penalty");
-    ipdg_beta0 = db->getDouble("ipdg_beta0");
-    ipdg_beta1 = db->getDouble("ipdg_beta1");
-    cg_penalty = db->getDouble("cg_penalty");
-    Phi_dt = db->getDouble("Phi_dt");
-    Phi_fe_order = static_cast<Order>(db->getIntegerWithDefault("Phi_fe_order", 1));
+    // settings for stress normalization
+    if (db->isDouble("Phi_epsilon")) d_phi_epsilon = db->getDouble("Phi_epsilon");
+    d_phi_diffusion = db->getDouble("Phi_diffusion");
+    d_phi_solver = db->getString("Phi_solver");
+    d_scale_phi_by_J = db->getBool("scale_Phi_by_J");
+    d_ipdg_jump0_penalty = db->getDouble("ipdg_jump0_penalty");
+    d_ipdg_jump1_penalty = db->getDouble("ipdg_jump1_penalty");
+    d_ipdg_beta0 = db->getDouble("ipdg_beta0");
+    d_ipdg_beta1 = db->getDouble("ipdg_beta1");
+    d_cg_penalty = db->getDouble("cg_penalty");
+    d_phi_dt = db->getDouble("Phi_dt");
+    d_phi_fe_order = static_cast<Order>(db->getIntegerWithDefault("Phi_fe_order", 1));
 
     return;
 } // getFromInput

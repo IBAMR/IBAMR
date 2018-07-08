@@ -748,17 +748,17 @@ protected:
     /*
      * Data related to handling stress normalization.
      */
-    double d_epsilon;
-    double ipdg_jump0_penalty;
-    double ipdg_jump1_penalty;
-    double ipdg_beta0;
-    double ipdg_beta1;
-    libMesh::Order Phi_fe_order;
-    double cg_penalty;
-    double Phi_dt;
-    double Phi_diffusion;
-    std::string Phi_solver;
-    bool scale_Phi_by_J;
+    double d_phi_epsilon;
+    double d_ipdg_jump0_penalty;
+    double d_ipdg_jump1_penalty;
+    double d_ipdg_beta0;
+    double d_ipdg_beta1;
+    libMesh::Order d_phi_fe_order;
+    double d_cg_penalty;
+    double d_phi_dt;
+    double d_phi_diffusion;
+    std::string d_phi_solver;
+    bool d_scale_phi_by_J;
     bool d_has_stress_normalization_parts;
     std::vector<bool> d_is_stress_normalization_part;
 
