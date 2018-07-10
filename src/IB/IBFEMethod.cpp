@@ -1565,7 +1565,10 @@ IBFEMethod::spreadForce(const int f_data_idx,
         PetscVector<double>* Phi_ghost_vec = d_Phi_half_vecs[part];
         X_vec->localize(*X_ghost_vec);
         F_vec->localize(*F_ghost_vec);
-        Phi_vec->localize(*Phi_ghost_vec);
+        if(d_is_stress_normalization_part[part])
+        {
+            Phi_vec->localize(*Phi_ghost_vec);
+        }
     }
 
     // Spread interior force density values.
