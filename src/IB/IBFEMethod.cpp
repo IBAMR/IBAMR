@@ -2169,7 +2169,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
 
     // things for building RHS of Phi linear system based on poisson solver.
     const Real cg_penalty = equation_systems->parameters.get<Real>("cg_penalty");
-    const Real ipdg_jump0_penalty = equation_systems->parameters.get<Real>("d_ipdg_jump0_penalty");
+    const Real ipdg_jump0_penalty = equation_systems->parameters.get<Real>("ipdg_jump0_penalty");
     const Real ipdg_beta0 = equation_systems->parameters.get<Real>("ipdg_beta0");
     const std::string Phi_solver = equation_systems->parameters.get<std::string>("Phi_solver");
     const Real diffusion = equation_systems->parameters.get<Real>("Phi_diffusion");
