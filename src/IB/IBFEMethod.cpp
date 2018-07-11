@@ -1143,8 +1143,14 @@ IBFEMethod::computeLagrangianForce(const double data_time)
         computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
         if (d_direct_forcing_kinematics_data[part])
         {
+            int ierr;
+            PetscVector<double>* F_half_df = static_cast<PetscVector<double>*>(
+                d_F_half_vecs[part]->zero_clone().release()); // WARNING: must be manually deleted
             d_direct_forcing_kinematics_data[part]->computeLagrangianForce(
-                *d_F_half_vecs[part], *d_X_half_vecs[part], *d_U_half_vecs[part], data_time);
+                *F_half_df, *d_X_half_vecs[part], *d_U_half_vecs[part], data_time);
+            ierr = VecAXPY(d_F_half_vecs[part]->vec(), 1.0, F_half_df->vec());
+            IBTK_CHKERRQ(ierr);
+            delete F_half_df;
         }
     }
     if (d_has_overlap_force_parts)

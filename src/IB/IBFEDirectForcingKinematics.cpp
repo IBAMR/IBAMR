@@ -711,9 +711,6 @@ IBFEDirectForcingKinematics::computeImposedLagrangianForceDensity(PetscVector<do
                                                                   const double /*data_time*/)
 {
     const Eigen::Vector3d& X_com = d_center_of_mass_half;
-    PetscVector<double>* F_df_petsc =
-        dynamic_cast<PetscVector<double>*>(F_petsc.zero_clone().release()); //// WARNING: must be manually deleted
-
     EquationSystems* equation_systems = d_ibfe_method_ops->getFEDataManager(d_part)->getEquationSystems();
     System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
     System& U_system = equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
@@ -775,25 +772,19 @@ IBFEDirectForcingKinematics::computeImposedLagrangianForceDensity(PetscVector<do
         WxR = W * R;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            F_df_petsc->set(nodal_indices[d][k], d_trans_vel_half[d] + WxR[d]);
+            F_petsc.set(nodal_indices[d][k], d_trans_vel_half[d] + WxR[d]);
         }
     }
-    F_df_petsc->close();
+    F_petsc.close();
 
     // Compute the direct forcing as F_df = rho/dt * (U_b - U)
     const double dt = d_new_time - d_current_time;
     int ierr;
-    ierr = VecAXPY(F_df_petsc->vec(), -1.0, U_petsc.vec());
+    ierr = VecAXPY(F_petsc.vec(), -1.0, U_petsc.vec());
     IBTK_CHKERRQ(ierr);
     PetscScalar alpha = d_rho / dt;
-    ierr = VecScale(F_df_petsc->vec(), alpha);
+    ierr = VecScale(F_petsc.vec(), alpha);
     IBTK_CHKERRQ(ierr);
-
-    // F += F_df
-    ierr = VecAXPY(F_petsc.vec(), 1.0, F_df_petsc->vec());
-    IBTK_CHKERRQ(ierr);
-
-    delete F_df_petsc;
 
     return;
 } // computeImposedLagrangianForceDensity
