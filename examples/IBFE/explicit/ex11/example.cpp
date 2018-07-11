@@ -489,7 +489,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     const DofMap& dof_map = F_system.get_dof_map();
     FEType fe_type = dof_map.variable_type(0);
     libMesh::UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
-    UniquePtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+    libMesh::UniquePtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
     fe->attach_quadrature_rule(qrule.get());
     const vector<double>& JxW = fe->get_JxW();
     const vector<vector<double> >& phi = fe->get_phi();
