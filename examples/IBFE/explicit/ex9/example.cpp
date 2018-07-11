@@ -43,18 +43,22 @@
 
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
+#include <libmesh/boundary_mesh.h>
 #include <libmesh/equation_systems.h>
+#include <libmesh/explicit_system.h>
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
+#include <libmesh/mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
-#include <ibamr/IBFECentroidPostProcessor.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/LEInteractor.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -65,50 +69,48 @@
 // Elasticity model data.
 namespace ModelData
 {
-// Stress tensor functions.
-static double c1_s = 0.05;
-static double p0_s = 0.0;
-static double beta_s = 0.0;
+// Tether (penalty) force functions.
+static double kappa_s = 1.0e6;
+static double eta_s = 0.0;
+System* x_solid_system, * u_solid_system;
 void
-PK1_dev_stress_function(TensorValue<double>& PP,
-                        const TensorValue<double>& FF,
-                        const libMesh::Point& /*X*/,
-                        const libMesh::Point& /*s*/,
-                        Elem* const /*elem*/,
-                        const std::vector<const std::vector<double>*>& /*var_data*/,
-                        const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
-                        double /*time*/,
-                        void* /*ctx*/)
+tether_force_function(VectorValue<double>& F,
+                      const TensorValue<double>& /*FF*/,
+                      const libMesh::Point& x_bndry,  // x_bndry gives current   coordinates on the boundary mesh
+                      const libMesh::Point& X_bndry,  // X_bndry gives reference coordinates on the boundary mesh
+                      Elem* const elem,
+                      const vector<const vector<double>*>& var_data,
+                      const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                      double /*time*/,
+                      void* /*ctx*/)
 {
-    PP = 2.0 * c1_s * FF;
-    return;
-} // PK1_dev_stress_function
+    // tether_force_function() is called on elements of the boundary mesh.  Here
+    // we look up the element in the solid mesh that the current boundary
+    // element was extracted from.
+    const Elem* const interior_parent = elem->interior_parent();
 
-void
-PK1_dil_stress_function(TensorValue<double>& PP,
-                        const TensorValue<double>& FF,
-                        const libMesh::Point& /*X*/,
-                        const libMesh::Point& /*s*/,
-                        Elem* const /*elem*/,
-                        const std::vector<const std::vector<double>*>& /*var_data*/,
-                        const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
-                        double /*time*/,
-                        void* /*ctx*/)
-{
-    PP = 2.0 * (-p0_s + beta_s * log(FF.det())) * tensor_inverse_transpose(FF, NDIM);
+    // We define "arbitrary" velocity and displacement fields on the solid mesh.
+    // Here we look up their values.
+    std::vector<double> x_solid(NDIM, 0.0), u_solid(NDIM, 0.0);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        x_solid[d] = x_solid_system->point_value(d, X_bndry, interior_parent);
+        u_solid[d] = u_solid_system->point_value(d, X_bndry, interior_parent);
+    }
+
+    // Look up the velocity of the boundary mesh.
+    const std::vector<double>& u_bndry = *var_data[0];
+
+    // The tether force is proportional to the mismatch between the positions
+    // and velocities.
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        F(d) = kappa_s * (x_solid[d] - x_bndry(d)) + eta_s * (u_solid[d] - u_bndry[d]);
+    }
     return;
-} // PK1_dil_stress_function
+} // tether_force_function
 }
 using namespace ModelData;
-
-// Function prototypes
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                 Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-                 Mesh& mesh,
-                 EquationSystems* equation_systems,
-                 const int iteration_num,
-                 const double loop_time,
-                 const string& data_dump_dirname);
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -143,7 +145,8 @@ bool run_example(int argc, char** argv)
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
         const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
         const bool uses_exodus = dump_viz_data && !app_initializer->getExodusIIFilename().empty();
-        const string exodus_filename = app_initializer->getExodusIIFilename();
+        const string exodus_solid_filename = "solid_output.ex2"; // app_initializer->getExodusIIFilename();
+        const string exodus_bndry_filename = "bndry_output.ex2"; // app_initializer->getExodusIIFilename();
 
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
@@ -161,46 +164,65 @@ bool run_example(int argc, char** argv)
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
         // Create a simple FE mesh.
-        //
-        // Note that boundary condition data must be registered with each FE
-        // system before calling IBFEMethod::initializeFEData().
-        Mesh mesh(init.comm(), NDIM);
+        Mesh solid_mesh(init.comm(), NDIM);
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
-        MeshTools::Generation::build_square(mesh,
-                                            static_cast<int>(ceil(2.0 / ds)),
-                                            static_cast<int>(ceil(0.5 / ds)),
-                                            0.0,
-                                            2.0,
-                                            0.0,
-                                            0.5,
-                                            Utility::string_to_enum<ElemType>(elem_type));
-        const MeshBase::const_element_iterator end_el = mesh.elements_end();
-        for (MeshBase::const_element_iterator el = mesh.elements_begin(); el != end_el; ++el)
+        const double R = 0.5;
+        if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
+        {
+#ifdef LIBMESH_HAVE_TRIANGLE
+            const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
+            for (int k = 0; k < num_circum_nodes; ++k)
+            {
+                const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_circum_nodes);
+                solid_mesh.add_point(libMesh::Point(R * cos(theta), R * sin(theta)));
+            }
+            TriangleInterface triangle(solid_mesh);
+            triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
+            triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
+            triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
+            triangle.insert_extra_points() = true;
+            triangle.smooth_after_generating() = true;
+            triangle.triangulate();
+#else
+            TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
+                       << "       but Triangle is required for TRI3 or TRI6 elements.\n");
+#endif
+        }
+        else
+        {
+            // NOTE: number of segments along boundary is 4*2^r.
+            const double num_circum_segments = 2.0 * M_PI * R / ds;
+            const int r = log2(0.25 * num_circum_segments);
+            MeshTools::Generation::build_sphere(solid_mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
+        }
+
+        // Ensure nodes on the surface are on the analytic boundary.
+        MeshBase::element_iterator el_end = solid_mesh.elements_end();
+        for (MeshBase::element_iterator el = solid_mesh.elements_begin(); el != el_end; ++el)
         {
             Elem* const elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 const bool at_mesh_bdry = !elem->neighbor(side);
-                if (at_mesh_bdry)
+                if (!at_mesh_bdry) continue;
+                for (unsigned int k = 0; k < elem->n_nodes(); ++k)
                 {
-                    BoundaryInfo* boundary_info = mesh.boundary_info.get();
-                    if (!boundary_info->has_boundary_id(elem, side, 2))
-                    {
-#if (NDIM == 2)
-                        boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
-#endif
-#if (NDIM == 3)
-                        boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID);
-#endif
-                    }
+                    if (!elem->is_node_on_side(k, side)) continue;
+                    Node& n = *elem->get_node(k);
+                    n = R * n.unit();
                 }
             }
         }
-        c1_s = input_db->getDouble("C1_S");
-        p0_s = input_db->getDouble("P0_S");
-        beta_s = input_db->getDouble("BETA_S");
+        solid_mesh.prepare_for_use();
+
+        BoundaryMesh bndry_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension() - 1);
+        solid_mesh.boundary_info->sync(bndry_mesh);
+        bndry_mesh.prepare_for_use();
+
+        kappa_s = input_db->getDouble("KAPPA_S");
+        eta_s = input_db->getDouble("ETA_S");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -227,7 +249,7 @@ bool run_example(int argc, char** argv)
         Pointer<IBFEMethod> ib_method_ops =
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
-                           &mesh,
+                           &bndry_mesh,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
@@ -252,55 +274,67 @@ bool run_example(int argc, char** argv)
                                         load_balancer);
 
         // Configure the IBFE solver.
-        IBFEMethod::PK1StressFcnData PK1_dev_stress_data(PK1_dev_stress_function);
-        IBFEMethod::PK1StressFcnData PK1_dil_stress_data(PK1_dil_stress_function);
-        PK1_dev_stress_data.quad_order =
-            Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER", "THIRD"));
-        PK1_dil_stress_data.quad_order =
-            Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER", "FIRST"));
-        ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
-        ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
         ib_method_ops->initializeFEEquationSystems();
-        FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
-        EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
+        std::vector<int> vars(NDIM);
+        for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
+        vector<SystemData> sys_data(1, SystemData(IBFEMethod::VELOCITY_SYSTEM_NAME, vars));
+        IBFEMethod::LagBodyForceFcnData body_fcn_data(tether_force_function, sys_data);
+        ib_method_ops->registerLagBodyForceFunction(body_fcn_data);
+        EquationSystems* bndry_equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
-        // Set up post processor to recover computed stresses.
-        Pointer<IBFEPostProcessor> ib_post_processor =
-            new IBFECentroidPostProcessor("IBFEPostProcessor", fe_data_manager);
+        // Setup solid systems.
+        libMesh::UniquePtr<EquationSystems> solid_equation_systems(new EquationSystems(solid_mesh));
+        x_solid_system = &solid_equation_systems->add_system<ExplicitSystem>("position");
+        u_solid_system = &solid_equation_systems->add_system<ExplicitSystem>("velocity");
+        Order order = SECOND;
+        FEFamily family = LAGRANGE;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            std::ostringstream os;
+            os << "X_" << d;
+            x_solid_system->add_variable(os.str(), order, family);
+        }
+        for (int d = 0; d < NDIM; ++d)
+        {
+            std::ostringstream os;
+            os << "U_" << d;
+            u_solid_system->add_variable(os.str(), order, family);
+        }
+        solid_equation_systems->init();
 
-        ib_post_processor->registerTensorVariable("FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
+        // Set up the position vector.
+        //
+        // \todo There needs to be an API so that this can be handled by the IBFEMethod class implementation.
+        {
+            MeshBase& mesh = solid_equation_systems->get_mesh();
+            System& X_system = solid_equation_systems->get_system("position");
+            const unsigned int X_sys_num = X_system.number();
+            NumericVector<double>& X_coords = *X_system.solution;
+            for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+            {
+                Node* n = *it;
+                if (n->n_vars(X_sys_num))
+                {
+                    TBOX_ASSERT(n->n_vars(X_sys_num) == NDIM);
+                    const libMesh::Point& X = *n;
+                    libMesh::Point x = X;
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        const int dof_index = n->dof_number(X_sys_num, d, 0);
+                        X_coords.set(dof_index, x(d));
+                    }
+                }
+            }
+            X_coords.close();
+            X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
+            X_system.solution->localize(*X_system.current_local_solution);
+        }
 
-        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function,
-                                                                         static_cast<void*>(NULL));
-        ib_post_processor->registerTensorVariable("sigma_dev",
-                                                  MONOMIAL,
-                                                  CONSTANT,
-                                                  IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  std::vector<SystemData>(),
-                                                  &PK1_dev_stress_fcn_data);
+        x_solid_system->assemble_before_solve = false;
+        x_solid_system->assemble();
 
-        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function,
-                                                                         static_cast<void*>(NULL));
-        ib_post_processor->registerTensorVariable("sigma_dil",
-                                                  MONOMIAL,
-                                                  CONSTANT,
-                                                  IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  std::vector<SystemData>(),
-                                                  &PK1_dil_stress_fcn_data);
-
-        Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
-        Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
-        HierarchyGhostCellInterpolation::InterpolationTransactionComponent p_ghostfill(
-            /*data_idx*/ -1, "LINEAR_REFINE", /*use_cf_bdry_interpolation*/ false, "CONSERVATIVE_COARSEN", "LINEAR");
-        FEDataManager::InterpSpec p_interp_spec("PIECEWISE_LINEAR",
-                                                QGAUSS,
-                                                FIFTH,
-                                                /*use_adaptive_quadrature*/ false,
-                                                /*point_density*/ 2.0,
-                                                /*use_consistent_mass_matrix*/ true,
-                                                /*use_nodal_quadrature*/ false);
-        ib_post_processor->registerInterpolatedScalarEulerianVariable(
-            "p_f", LAGRANGE, FIRST, p_var, p_current_ctx, p_ghostfill, p_interp_spec);
+        u_solid_system->assemble_before_solve = false;
+        u_solid_system->assemble();
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -318,21 +352,32 @@ bool run_example(int argc, char** argv)
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).
+        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
-        for (unsigned int d = 0; d < NDIM; ++d)
+        if (periodic_shift.min() > 0)
         {
-            ostringstream bc_coefs_name_stream;
-            bc_coefs_name_stream << "u_bc_coefs_" << d;
-            const string bc_coefs_name = bc_coefs_name_stream.str();
-
-            ostringstream bc_coefs_db_name_stream;
-            bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
-            const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
-
-            u_bc_coefs[d] = new muParserRobinBcCoefs(
-                bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                u_bc_coefs[d] = NULL;
+            }
         }
-        navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
+        else
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                ostringstream bc_coefs_name_stream;
+                bc_coefs_name_stream << "u_bc_coefs_" << d;
+                const string bc_coefs_name = bc_coefs_name_stream.str();
+
+                ostringstream bc_coefs_db_name_stream;
+                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
+                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+
+                u_bc_coefs[d] = new muParserRobinBcCoefs(
+                    bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
+            }
+            navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
+        }
 
         // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
@@ -348,11 +393,11 @@ bool run_example(int argc, char** argv)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        libMesh::UniquePtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        libMesh::UniquePtr<ExodusII_IO> exodus_solid_io(uses_exodus ? new ExodusII_IO(solid_mesh) : NULL);
+        libMesh::UniquePtr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(bndry_mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
-        if (ib_post_processor) ib_post_processor->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
@@ -375,9 +420,10 @@ bool run_example(int argc, char** argv)
             }
             if (uses_exodus)
             {
-                if (ib_post_processor) ib_post_processor->postProcessData(loop_time);
-                exodus_io->write_timestep(
-                    exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                exodus_solid_io->write_timestep(
+                    exodus_solid_filename, *solid_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                exodus_bndry_io->write_timestep(
+                    exodus_bndry_filename, *bndry_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
             }
         }
 
@@ -388,6 +434,42 @@ bool run_example(int argc, char** argv)
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
+
+            // Setup the position and velocity vector.
+            //
+            // \todo There needs to be an API so that this can be handled by the IBFEMethod class implementation.
+            {
+                DenseVector<double> U(NDIM);
+                U(1) = -1.0;
+                MeshBase& mesh = solid_equation_systems->get_mesh();
+                System& X_system = solid_equation_systems->get_system("position");
+                const unsigned int X_sys_num = X_system.number();
+                NumericVector<double>& X_coords = *X_system.solution;
+                System& U_system = solid_equation_systems->get_system("velocity");
+                const unsigned int U_sys_num = U_system.number();
+                NumericVector<double>& U_coords = *U_system.solution;
+                for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+                {
+                    Node* n = *it;
+                    if (n->n_vars(X_sys_num))
+                    {
+                        TBOX_ASSERT(n->n_vars(X_sys_num) == NDIM);
+                        const libMesh::Point& X = *n;
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            const int dof_index = n->dof_number(U_sys_num, d, 0);
+                            X_coords.set(dof_index, X(d) + loop_time * U(d));
+                            U_coords.set(dof_index, U(d));
+                        }
+                    }
+                }
+                X_coords.close();
+                X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
+                X_system.solution->localize(*X_system.current_local_solution);
+                U_coords.close();
+                U_system.get_dof_map().enforce_constraints_exactly(U_system, &U_coords);
+                U_system.solution->localize(*U_system.current_local_solution);
+            }
 
             pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
@@ -419,9 +501,10 @@ bool run_example(int argc, char** argv)
                 }
                 if (uses_exodus)
                 {
-                    if (ib_post_processor) ib_post_processor->postProcessData(loop_time);
-                    exodus_io->write_timestep(
-                        exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                    exodus_solid_io->write_timestep(
+                        exodus_solid_filename, *solid_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                    exodus_bndry_io->write_timestep(
+                        exodus_bndry_filename, *bndry_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
@@ -434,17 +517,6 @@ bool run_example(int argc, char** argv)
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
-            if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
-            {
-                pout << "\nWriting state data...\n\n";
-                output_data(patch_hierarchy,
-                            navier_stokes_integrator,
-                            mesh,
-                            equation_systems,
-                            iteration_num,
-                            loop_time,
-                            postproc_data_dump_dirname);
-            }
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
@@ -456,46 +528,3 @@ bool run_example(int argc, char** argv)
     SAMRAIManager::shutdown();
     return true;
 } // run_example
-
-void
-output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-            Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-            Mesh& mesh,
-            EquationSystems* equation_systems,
-            const int iteration_num,
-            const double loop_time,
-            const string& data_dump_dirname)
-{
-    plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
-    plog << "simulation time is " << loop_time << endl;
-
-    // Write Cartesian data.
-    string file_name = data_dump_dirname + "/" + "hier_data.";
-    char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
-    file_name += temp_buf;
-    Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
-    hier_db->create(file_name);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    ComponentSelector hier_data;
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
-                                                           navier_stokes_integrator->getCurrentContext()));
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(),
-                                                           navier_stokes_integrator->getCurrentContext()));
-    patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
-    hier_db->putDouble("loop_time", loop_time);
-    hier_db->putInteger("iteration_num", iteration_num);
-    hier_db->close();
-
-    // Write Lagrangian data.
-    file_name = data_dump_dirname + "/" + "fe_mesh.";
-    sprintf(temp_buf, "%05d", iteration_num);
-    file_name += temp_buf;
-    file_name += ".xda";
-    mesh.write(file_name);
-    file_name = data_dump_dirname + "/" + "fe_equation_systems.";
-    sprintf(temp_buf, "%05d", iteration_num);
-    file_name += temp_buf;
-    equation_systems->write(file_name, (EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA));
-    return;
-} // output_data

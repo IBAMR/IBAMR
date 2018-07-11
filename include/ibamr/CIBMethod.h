@@ -42,21 +42,6 @@
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 
-namespace mu
-{
-class Parser;
-} // namespace mu
-
-namespace IBTK
-{
-class HierarchyMathsOps;
-} // namespace IBTK
-namespace IBAMR
-{
-class CIBStandardInitializer;
-class CIBStaggeredStokesOperator;
-} // namespace IBAMR
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -450,33 +435,6 @@ public:
 protected:
     //////////////////////////////////////////////////////////////////////////////
 
-private:
-    /*!
-     * \brief Set additional values from input database.
-     */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
-
-    /*!
-     * \brief Get values from restart file.
-     */
-    void getFromRestart();
-
-    /*!
-     * \brief Compute center of mass of structures.
-     */
-    void computeCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass,
-                                std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data);
-
-    /*!
-     * \brief Set regularization weight for Lagrangian markers.
-     */
-    void setRegularizationWeight(const int level_number);
-
-    /*!
-     * \brief Set initial Lambda for Lagrangian markers.
-     */
-    void setInitialLambda(const int level_number);
-
     /*!
      * Functions to set constrained velocities of the structures.
      */
@@ -539,6 +497,33 @@ private:
 
     // Fluid density
     double d_rho;
+
+private:
+    /*!
+     * \brief Set additional values from input database.
+     */
+    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+
+    /*!
+     * \brief Get values from restart file.
+     */
+    void getFromRestart();
+
+    /*!
+     * \brief Compute center of mass of structures.
+     */
+    void computeCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass,
+                                std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data);
+
+    /*!
+     * \brief Set regularization weight for Lagrangian markers.
+     */
+    void setRegularizationWeight(const int level_number);
+
+    /*!
+     * \brief Set initial Lambda for Lagrangian markers.
+     */
+    void setInitialLambda(const int level_number);
 
 }; // CIBMethod
 } // namespace IBAMR
