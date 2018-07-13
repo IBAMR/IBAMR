@@ -89,8 +89,11 @@ c
       REAL function S_eps(x,eps)
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
-      REAL H_eps
       REAL x,eps
+c
+c     Prevent compiler warning about unused variables.
+c
+      eps = eps
 
 C       S_eps = two*H_eps(x,eps) - one
 C       S_eps = x/sqrt(x**2+eps**2)
