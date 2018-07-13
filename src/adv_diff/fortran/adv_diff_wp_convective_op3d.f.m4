@@ -154,6 +154,10 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       INTEGER i0, i1, i2
       REAL WENO5_interp
+c
+c     Prevent compiler warning about unused variables.
+c
+      k = k
 
 c     X-Direction
       do i2 = ilower2, iupper2; do i1 = ilower1, iupper1
