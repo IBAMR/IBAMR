@@ -1,0 +1,1 @@
+This example tests FSI of cylinder in a shear-driven channel flow at Re = 40 using IBFEDirectForcingKinematics.

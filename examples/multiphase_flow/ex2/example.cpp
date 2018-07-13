@@ -43,11 +43,20 @@
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
 
+// Headers for basic libMesh objects
+#include <libmesh/equation_systems.h>
+#include <libmesh/exodusII_io.h>
+#include <libmesh/matlab_io.h>
+#include <libmesh/mesh.h>
+#include <libmesh/mesh_generation.h>
+#include <libmesh/mesh_triangle_interface.h>
+
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
-#include <ibamr/ConstraintIBMethod.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IBFEDirectForcingKinematics.h>
+#include <ibamr/IBFEMethod.h>
 #include <ibamr/IBHydrodynamicSurfaceForceEvaluator.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
@@ -67,11 +76,31 @@
 #include "GravityForcing.h"
 #include "LSLocateCircularInterface.h"
 #include "LSLocateGasInterface.h"
-#include "RigidBodyKinematics.h"
 #include "SetFluidGasSolidDensity.h"
 #include "SetFluidGasSolidViscosity.h"
 #include "SetLSProperties.h"
 #include "TagLSRefinementCells.h"
+
+static double shift_x, shift_y;
+void
+coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
+{
+    X(0) = s(0) + shift_x;
+    X(1) = s(1) + shift_y;
+    ;
+    return;
+} // coordinate_mapping_function
+
+void
+cylinder_kinematics(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* /*ctx*/)
+{
+    U_com.setZero();
+    W_com.setZero();
+
+    U_com[1] = -1.0;
+
+    return;
+} // cylinder_kinematics
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
@@ -95,8 +124,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 bool
 run_example(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
+    // Initialize libMesh, PETSc, MPI, and SAMRAI.
+    LibMeshInit init(argc, argv);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
@@ -116,6 +145,8 @@ run_example(int argc, char* argv[])
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
         const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
+        const bool uses_exodus = dump_viz_data && !app_initializer->getExodusIIFilename().empty();
+        const string exodus_filename = app_initializer->getExodusIIFilename();
 
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
@@ -131,6 +162,64 @@ run_example(int argc, char* argv[])
 
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
+
+        // Setup solid information
+        CircularInterface circle;
+        circle.R = input_db->getDouble("R");
+        circle.X0[0] = input_db->getDouble("XCOM");
+        circle.X0[1] = input_db->getDouble("YCOM");
+#if (NDIM == 3)
+        circle.X0[2] = input_db->getDouble("ZCOM");
+#endif
+
+        // Create a simple FE mesh.
+        Mesh solid_mesh(init.comm(), NDIM);
+        const double dx = input_db->getDouble("DX");
+        const double ds = input_db->getDouble("MFAC") * dx;
+        string elem_type = input_db->getString("ELEM_TYPE");
+        shift_x = circle.X0[0];
+        shift_y = circle.X0[1];
+        if (input_db->keyExists("XDA_FILENAME"))
+        {
+            TBOX_ASSERT(elem_type == "TRI3" || elem_type == "TRI6");
+
+            std::string filename = input_db->getString("XDA_FILENAME");
+            MatlabIO distmesh(solid_mesh);
+            distmesh.read(filename);
+
+            if (elem_type == "TRI6") solid_mesh.all_second_order();
+        }
+        else if (elem_type == "TRI3" || elem_type == "TRI6")
+        {
+#ifdef LIBMESH_HAVE_TRIANGLE
+            const int num_circum_nodes = ceil(2.0 * M_PI * circle.R / ds);
+            for (int k = 0; k < num_circum_nodes; ++k)
+            {
+                const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_circum_nodes);
+                solid_mesh.add_point(libMesh::Point(circle.R * cos(theta), circle.R * sin(theta)));
+            }
+            TriangleInterface triangle(solid_mesh);
+            triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
+            triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
+            triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
+            triangle.insert_extra_points() = true;
+            triangle.smooth_after_generating() = true;
+            triangle.triangulate();
+#else
+            TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
+                       << "       but Triangle is required for TRI3 or TRI6 elements.\n");
+#endif
+        }
+        else
+        {
+            // NOTE: number of segments along boundary is 4*2^r.
+            const double num_circum_segments = 2.0 * M_PI * circle.R / ds;
+            const int r = log2(0.25 * num_circum_segments);
+            MeshTools::Generation::build_sphere(solid_mesh, circle.R, r, Utility::string_to_enum<ElemType>(elem_type));
+        }
+
+        solid_mesh.prepare_for_use();
+        Mesh& mesh = solid_mesh;
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -184,9 +273,11 @@ run_example(int argc, char* argv[])
         }
         navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
 
-        const int num_structures = input_db->getIntegerWithDefault("num_structures", 1);
-        Pointer<ConstraintIBMethod> ib_method_ops = new ConstraintIBMethod(
-            "ConstraintIBMethod", app_initializer->getComponentDatabase("ConstraintIBMethod"), num_structures);
+        Pointer<IBFEMethod> ib_method_ops =
+            new IBFEMethod("IBFEMethod",
+                           app_initializer->getComponentDatabase("IBFEMethod"),
+                           &mesh,
+                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -211,23 +302,7 @@ run_example(int argc, char* argv[])
                                         box_generator,
                                         load_balancer);
 
-        // Configure the IB solver.
-        Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
-            "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
-        ib_method_ops->registerLInitStrategy(ib_initializer);
-        Pointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
-        ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);
-
-        // Setup level set information
-        CircularInterface circle;
-        circle.R = input_db->getDouble("R");
-        circle.X0[0] = input_db->getDouble("XCOM");
-        circle.X0[1] = input_db->getDouble("YCOM");
-#if (NDIM == 3)
-        circle.X0[2] = input_db->getDouble("ZCOM");
-#endif
-        const double fluid_height = input_db->getDouble("GAS_LS_INIT");
-
+        // Create level sets for solid interface.
         const string& ls_name_solid = "level_set_solid";
         Pointer<CellVariable<NDIM, double> > phi_var_solid = new CellVariable<NDIM, double>(ls_name_solid);
         Pointer<RelaxationLSMethod> level_set_solid_ops =
@@ -237,6 +312,8 @@ run_example(int argc, char* argv[])
         level_set_solid_ops->registerInterfaceNeighborhoodLocatingFcn(
             &callLSLocateCircularInterfaceCallbackFunction, static_cast<void*>(ptr_LSLocateCircularInterface));
 
+        // Create level sets for gas/liquid interface.
+        const double fluid_height = input_db->getDouble("GAS_LS_INIT");
         const string& ls_name_gas = "level_set_gas";
         Pointer<CellVariable<NDIM, double> > phi_var_gas = new CellVariable<NDIM, double>(ls_name_gas);
         Pointer<RelaxationLSMethod> level_set_gas_ops =
@@ -246,6 +323,7 @@ run_example(int argc, char* argv[])
         level_set_gas_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateGasInterfaceCallbackFunction,
                                                                     static_cast<void*>(ptr_LSLocateGasInterface));
 
+        // Register the level sets with advection diffusion integrator.
         adv_diff_integrator->registerTransportedQuantity(phi_var_solid);
         adv_diff_integrator->setDiffusionCoefficient(phi_var_solid, 0.0);
         adv_diff_integrator->setAdvectionVelocity(phi_var_solid,
@@ -264,8 +342,9 @@ run_example(int argc, char* argv[])
         adv_diff_integrator->registerResetFunction(
             phi_var_gas, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
 
-        // Setup the advected and diffused quantities.
-        Pointer<Variable<NDIM> > rho_var;
+        // Setup the advected and diffused fluid quantities.
+        Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
+        Pointer<hier::Variable<NDIM> > rho_var;
         if (conservative_form)
         {
             rho_var = new SideVariable<NDIM, double>("rho");
@@ -279,8 +358,6 @@ run_example(int argc, char* argv[])
             TBOX_ERROR("This statement should not be reached");
         }
         navier_stokes_integrator->registerMassDensityVariable(rho_var);
-
-        Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
         navier_stokes_integrator->registerViscosityVariable(mu_var);
 
         // Array for input into callback function
@@ -424,49 +501,48 @@ run_example(int argc, char* argv[])
         eul_forces->addFunction(surface_tension_force);
         time_integrator->registerBodyForceFunction(eul_forces);
 
-        // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
-        Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
-        if (uses_visit)
-        {
-            ib_initializer->registerLSiloDataWriter(silo_data_writer);
-            ib_method_ops->registerLSiloDataWriter(silo_data_writer);
-            time_integrator->registerVisItDataWriter(visit_data_writer);
-        }
+        // Create IBFE direct forcing kinematics object.
+        Pointer<IBFEDirectForcingKinematics> df_kinematics_ops = new IBFEDirectForcingKinematics(
+            "cylinder_dfk",
+            app_initializer->getComponentDatabase("CylinderIBFEDirectForcingKinematics"),
+            ib_method_ops,
+            /*part*/ 0,
+            /*register_for_restart*/ true);
+        ib_method_ops->registerDirectForcingKinematics(df_kinematics_ops, /*part*/ 0);
 
-        // Initialize hierarchy configuration and data on all patches.
-        time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
-
-        // Create ConstraintIBKinematics objects
-        vector<Pointer<ConstraintIBKinematics> > ibkinematics_ops_vec;
-        Pointer<ConstraintIBKinematics> ib_kinematics_op;
-        // struct_0
-        ib_kinematics_op = new RigidBodyKinematics(
-            "Cylinder",
-            app_initializer->getComponentDatabase("ConstraintIBKinematics")->getDatabase("Cylinder"),
-            ib_method_ops->getLDataManager(),
-            patch_hierarchy);
-        ibkinematics_ops_vec.push_back(ib_kinematics_op);
-
-        // Register ConstraintIBKinematics, physical boundary operators and
-        // other things with ConstraintIBMethod.
-        ib_method_ops->registerConstraintIBKinematics(ibkinematics_ops_vec);
-        const double vol_elem = input_db->getDoubleWithDefault("VOL_ELEM", -1.0);
-        if (vol_elem > 0.0) ib_method_ops->setVolumeElement(vol_elem, 0);
-        ib_method_ops->setVelocityPhysBdryOp(time_integrator->getVelocityPhysBdryOp());
-        ib_method_ops->initializeHierarchyOperatorsandData();
+        // Specify structure kinematics
+        FreeRigidDOFVector solve_dofs;
+        solve_dofs.setZero();
+        input_db->getIntegerArray("FREE_DOFS", &solve_dofs[0], s_max_free_dofs);
+        df_kinematics_ops->setSolveRigidBodyVelocity(solve_dofs);
+        df_kinematics_ops->registerKinematicsFunction(&cylinder_kinematics, NULL);
 
         // Create the surface force evaluator object
         Pointer<IBHydrodynamicSurfaceForceEvaluator> hydro_force_evaluator =
-            new IBHydrodynamicSurfaceForceEvaluator("Cylinder",
+            new IBHydrodynamicSurfaceForceEvaluator("Cylinder_Hydroforce",
                                                     phi_var_solid,
                                                     adv_diff_integrator,
                                                     navier_stokes_integrator,
                                                     input_db->getDatabase("IBHydrodynamicSurfaceForceEvaluator"));
 
+        // Configure the IBFE solver.
+        ib_method_ops->initializeFEEquationSystems();
+        ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
+        EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
+
+        // Set up visualization plot file writers.
+        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        if (uses_visit)
+        {
+            time_integrator->registerVisItDataWriter(visit_data_writer);
+        }
+        libMesh::UniquePtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+
+        // Initialize hierarchy configuration and data on all patches.
+        ib_method_ops->initializeFEData();
+        time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
+
         // Deallocate initialization objects.
-        ib_method_ops->freeLInitStrategy();
-        ib_initializer.setNull();
         app_initializer.setNull();
 
         // Print the input database contents to the log file.
@@ -476,12 +552,19 @@ run_example(int argc, char* argv[])
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
-        if (dump_viz_data && uses_visit)
+        if (dump_viz_data)
         {
             pout << "\n\nWriting visualization files...\n\n";
-            time_integrator->setupPlotData();
-            visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-            silo_data_writer->writePlotData(iteration_num, loop_time);
+            if (uses_visit)
+            {
+                time_integrator->setupPlotData();
+                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+            }
+            if (uses_exodus)
+            {
+                exodus_io->write_timestep(
+                    exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+            }
         }
 
         // File to write to for fluid mass data
@@ -506,9 +589,9 @@ run_example(int argc, char* argv[])
             loop_time += dt;
 
             // Update the center of mass of the circle.
-            const std::vector<std::vector<double> >& structure_COM = ib_method_ops->getCurrentStructureCOM();
-            circle.X0(0) = structure_COM[0][0];
-            circle.X0(1) = structure_COM[0][1];
+            const Eigen::Vector3d& structure_COM = df_kinematics_ops->getStructureCOM();
+            circle.X0(0) = structure_COM[0];
+            circle.X0(1) = structure_COM[1];
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";
@@ -544,12 +627,19 @@ run_example(int argc, char* argv[])
             // processing.
             iteration_num += 1;
             const bool last_step = !time_integrator->stepsRemaining();
-            if (dump_viz_data && uses_visit && (iteration_num % viz_dump_interval == 0 || last_step))
+            if (dump_viz_data && (iteration_num % viz_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting visualization files...\n\n";
-                time_integrator->setupPlotData();
-                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-                silo_data_writer->writePlotData(iteration_num, loop_time);
+                if (uses_visit)
+                {
+                    time_integrator->setupPlotData();
+                    visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+                }
+                if (uses_exodus)
+                {
+                    exodus_io->write_timestep(
+                        exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
             {
@@ -560,15 +650,6 @@ run_example(int argc, char* argv[])
             {
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
-            }
-            if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
-            {
-                output_data(patch_hierarchy,
-                            navier_stokes_integrator,
-                            ib_method_ops->getLDataManager(),
-                            iteration_num,
-                            loop_time,
-                            postproc_data_dump_dirname);
             }
         }
 
@@ -592,50 +673,3 @@ run_example(int argc, char* argv[])
     PetscFinalize();
     return true;
 } // run_example
-
-void
-output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-            Pointer<INSVCStaggeredHierarchyIntegrator> navier_stokes_integrator,
-            LDataManager* l_data_manager,
-            const int iteration_num,
-            const double loop_time,
-            const string& data_dump_dirname)
-{
-    plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
-    plog << "simulation time is " << loop_time << endl;
-
-    // Write Cartesian data.
-    string file_name = data_dump_dirname + "/" + "hier_data.";
-    char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
-    file_name += temp_buf;
-    Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
-    hier_db->create(file_name);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    ComponentSelector hier_data;
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
-                                                           navier_stokes_integrator->getCurrentContext()));
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(),
-                                                           navier_stokes_integrator->getCurrentContext()));
-    patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
-    hier_db->putDouble("loop_time", loop_time);
-    hier_db->putInteger("iteration_num", iteration_num);
-    hier_db->close();
-
-    // Write Lagrangian data.
-    const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-    Pointer<LData> X_data = l_data_manager->getLData("X", finest_hier_level);
-    Vec X_petsc_vec = X_data->getVec();
-    Vec X_lag_vec;
-    VecDuplicate(X_petsc_vec, &X_lag_vec);
-    l_data_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
-    file_name = data_dump_dirname + "/" + "X.";
-    sprintf(temp_buf, "%05d", iteration_num);
-    file_name += temp_buf;
-    PetscViewer viewer;
-    PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
-    VecView(X_lag_vec, viewer);
-    PetscViewerDestroy(&viewer);
-    VecDestroy(&X_lag_vec);
-    return;
-} // output_data

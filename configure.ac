@@ -127,6 +127,8 @@ AC_CONFIG_FILES([
   examples/IBFE/explicit/ex7/Makefile
   examples/IBFE/explicit/ex8/Makefile
   examples/IBFE/explicit/ex9/Makefile
+  examples/IBFE/explicit/ex10/Makefile
+  examples/IBFE/explicit/ex11/Makefile
   examples/IMP/Makefile
   examples/IMP/explicit/Makefile
   examples/IMP/explicit/ex0/Makefile
@@ -141,6 +143,7 @@ AC_CONFIG_FILES([
   examples/multiphase_flow/Makefile
   examples/multiphase_flow/ex0/Makefile
   examples/multiphase_flow/ex1/Makefile
+  examples/multiphase_flow/ex2/Makefile
   examples/navier_stokes/Makefile
   examples/navier_stokes/ex0/Makefile
   examples/navier_stokes/ex1/Makefile
