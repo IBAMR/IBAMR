@@ -604,7 +604,9 @@ FEDataManager::spread(const int f_data_idx,
         // Multiply by the nodal volume fractions (to convert densities into
         // values).
         UniquePtr<NumericVector<double> > F_dX_vec = F_vec.clone();
-        F_dX_vec->pointwise_mult(F_vec, *buildDiagonalL2MassMatrix(system_name));
+        UniquePtr<NumericVector<double> > dX_vec = F_vec.clone();
+        buildDiagonalL2MassMatrix(system_name)->localize(*dX_vec);
+        F_dX_vec->pointwise_mult(F_vec, *dX_vec);
         F_dX_vec->close();
 
         // Extract local form vectors.
@@ -1266,7 +1268,9 @@ FEDataManager::interpWeighted(const int f_data_idx,
 
         // Scale by the diagonal mass matrix.
         F_vec.close();
-        F_vec.pointwise_mult(F_vec, *buildDiagonalL2MassMatrix(system_name));
+        UniquePtr<NumericVector<double> > dX_vec = F_vec.clone();
+        buildDiagonalL2MassMatrix(system_name)->localize(*dX_vec);
+        F_vec.pointwise_mult(F_vec, *dX_vec);
         if (close_F) F_vec.close();
     }
     else
