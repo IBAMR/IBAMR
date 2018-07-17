@@ -398,8 +398,8 @@ c
       subroutine lagrangian_ib_4_table_init(ib_4_table,NTABLE)
 c
       implicit none
-      double precision lagrangian_ib_4_delta,ib_4_table(0:NTABLE),x
       integer NTABLE,k
+      double precision lagrangian_ib_4_delta,ib_4_table(0:NTABLE),x
 c
       do k = 0,NTABLE
          x = 2.d0*dble(k)/dble(NTABLE)
@@ -583,8 +583,8 @@ c
       subroutine lagrangian_ib_6_table_init(ib_6_table,NTABLE)
 c
       implicit none
-      double precision lagrangian_ib_6_delta,ib_6_table(0:NTABLE),x
       integer NTABLE,k
+      double precision lagrangian_ib_6_delta,ib_6_table(0:NTABLE),x
 c
       do k = 0,NTABLE
          x = 3.d0*dble(k)/dble(NTABLE)

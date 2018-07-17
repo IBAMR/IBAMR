@@ -122,7 +122,7 @@ public:
      * Typedef specifying interface for specifying constrained body velocities.
      */
     typedef void (*ConstrainedNodalVelocityFcnPtr)(libMesh::NumericVector<double>& U_k,
-                                                   const RigidDOFVector& U,
+    const IBTK::RigidDOFVector& U,
                                                    libMesh::NumericVector<double>& X,
                                                    const Eigen::Vector3d& X_com,
                                                    libMesh::EquationSystems* equation_systems,
@@ -320,7 +320,7 @@ public:
     /*!
      * \brief Compute total force and torque on the rigid structure(s).
      */
-    virtual void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, RigidDOFVector& F);
+    virtual void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, IBTK::RigidDOFVector& F);
 
     // \see CIBStrategy::copyVecToArray() method.
     /*!
@@ -348,7 +348,7 @@ public:
      * contained in the Vec V.
      *
      */
-    virtual void setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U, Vec V);
+    virtual void setRigidBodyVelocity(const unsigned int part, const IBTK::RigidDOFVector& U, Vec V);
 
     // \}
 

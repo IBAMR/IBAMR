@@ -511,7 +511,7 @@ assemble_ipdg_poisson(EquationSystems& es, const std::string& system_name)
 
                         // rearrange ref points on the neighbor side for boundary integration
                         // to be consistent with those on the element side
-                        for (int ii = 0; ii < qface_point.size(); ii++)
+                        for (unsigned int ii = 0; ii < qface_point.size(); ii++)
                         {
                             for (int jj = 0; jj < qface_neighbor_point.size(); ++jj)
                             {
@@ -858,6 +858,13 @@ IBFEMethod::registerInitialCoordinateMappingFunction(const CoordinateMappingFcnD
     return;
 } // registerInitialCoordinateMappingFunction
 
+IBFEMethod::CoordinateMappingFcnData
+IBFEMethod::getInitialCoordinateMappingFunction(unsigned int part) const
+{
+    TBOX_ASSERT(part < d_num_parts);
+    return d_coordinate_mapping_fcn_data[part];
+} // getInitialCoordinateMappingFunction
+
 void
 IBFEMethod::registerInitialVelocityFunction(const InitialVelocityFcnData& data, const unsigned int part)
 {
@@ -865,6 +872,13 @@ IBFEMethod::registerInitialVelocityFunction(const InitialVelocityFcnData& data, 
     d_initial_velocity_fcn_data[part] = data;
     return;
 } // registerInitialVelocityFunction
+
+IBFEMethod::InitialVelocityFcnData
+IBFEMethod::getInitialVelocityFunction(unsigned int part) const
+{
+    TBOX_ASSERT(part < d_num_parts);
+    return d_initial_velocity_fcn_data[part];
+} // getInitialVelocityFunction
 
 void
 IBFEMethod::registerPK1StressFunction(const PK1StressFcnData& data, const unsigned int part)
@@ -882,6 +896,13 @@ IBFEMethod::registerPK1StressFunction(const PK1StressFcnData& data, const unsign
     return;
 } // registerPK1StressFunction
 
+std::vector<IBFEMethod::PK1StressFcnData>
+IBFEMethod::getPK1StressFunction(unsigned int part) const
+{
+    TBOX_ASSERT(part < d_num_parts);
+    return d_PK1_stress_fcn_data[part];
+} // getPK1StressFunction
+
 void
 IBFEMethod::registerLagBodyForceFunction(const LagBodyForceFcnData& data, const unsigned int part)
 {
@@ -889,6 +910,13 @@ IBFEMethod::registerLagBodyForceFunction(const LagBodyForceFcnData& data, const 
     d_lag_body_force_fcn_data[part] = data;
     return;
 } // registerLagBodyForceFunction
+
+IBFEMethod::LagBodyForceFcnData
+IBFEMethod::getLagBodyForceFunction(unsigned int part) const
+{
+    TBOX_ASSERT(part < d_num_parts);
+    return d_lag_body_force_fcn_data[part];
+} // getLagBodyForceFunction
 
 void
 IBFEMethod::registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& data, const unsigned int part)
@@ -898,6 +926,13 @@ IBFEMethod::registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& 
     return;
 } // registerLagSurfacePressureFunction
 
+IBFEMethod::LagSurfacePressureFcnData
+IBFEMethod::getLagSurfacePressureFunction(unsigned int part) const
+{
+    TBOX_ASSERT(part < d_num_parts);
+    return d_lag_surface_pressure_fcn_data[part];
+} // getLagSurfacePressureFunction
+
 void
 IBFEMethod::registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, const unsigned int part)
 {
@@ -905,6 +940,13 @@ IBFEMethod::registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, 
     d_lag_surface_force_fcn_data[part] = data;
     return;
 } // registerLagSurfaceForceFunction
+
+IBFEMethod::LagSurfaceForceFcnData
+IBFEMethod::getLagSurfaceForceFunction(unsigned int part) const
+{
+    TBOX_ASSERT(part < d_num_parts);
+    return d_lag_surface_force_fcn_data[part];
+} // getLagSurfaceForceFunction
 
 void
 IBFEMethod::registerLagBodySourceFunction(const LagBodySourceFcnData& data, const unsigned int part)
@@ -918,6 +960,13 @@ IBFEMethod::registerLagBodySourceFunction(const LagBodySourceFcnData& data, cons
     Q_system.add_variable("Q", d_fe_order[part], d_fe_family[part]);
     return;
 } // registerLagBodySourceFunction
+
+IBFEMethod::LagBodySourceFcnData
+IBFEMethod::getLagBodySourceFunction(unsigned int part) const
+{
+    TBOX_ASSERT(part < d_num_parts);
+    return d_lag_body_source_fcn_data[part];
+} // getLagBodySourceFunction
 
 void
 IBFEMethod::registerOverlappingVelocityReset(const unsigned int part1, const unsigned int part2)
@@ -1139,6 +1188,15 @@ IBFEMethod::registerOverlappingForceConstraint(const unsigned int part1,
     }
 }
 
+void
+IBFEMethod::registerDirectForcingKinematics(Pointer<IBFEDirectForcingKinematics> data, unsigned int part)
+{
+    TBOX_ASSERT(part < d_num_parts);
+    d_direct_forcing_kinematics_data[part] = data;
+    return;
+} // registerDirectForcingKinematics
+
+
 const IntVector<NDIM>&
 IBFEMethod::getMinimumGhostCellWidth() const
 {
@@ -1170,7 +1228,7 @@ IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDI
 } // setupTagBuffer
 
 void
-IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
+IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
     d_current_time = current_time;
     d_new_time = new_time;
@@ -1263,6 +1321,11 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
             d_Phi_systems[part]->solution->close();
             d_Phi_systems[part]->solution->localize(*d_Phi_half_vecs[part]);
         }
+
+        if (d_direct_forcing_kinematics_data[part])
+        {
+            d_direct_forcing_kinematics_data[part]->preprocessIntegrateData(current_time, new_time, num_cycles);
+        }
     }
 
     // Update the mask data.
@@ -1271,7 +1334,7 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
 } // preprocessIntegrateData
 
 void
-IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
+IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
@@ -1309,6 +1372,11 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
             *d_Phi_systems[part]->solution = *d_Phi_half_vecs[part];
             d_Phi_systems[part]->solution->close();
             d_Phi_systems[part]->solution->localize(*d_Phi_systems[part]->current_local_solution);
+        }
+
+        if (d_direct_forcing_kinematics_data[part])
+        {
+            d_direct_forcing_kinematics_data[part]->postprocessIntegrateData(current_time, new_time, num_cycles);
         }
 
         // Update the coordinate mapping dX = X - s.
@@ -1446,6 +1514,12 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
             Phi_system.time = new_time;
             *Phi_system.old_local_solution = *Phi_system.current_local_solution;
         }
+
+        if (d_direct_forcing_kinematics_data[part])
+        {
+            d_direct_forcing_kinematics_data[part]->forwardEulerStep(
+            current_time, new_time, *d_X_current_vecs[part], *d_X_half_vecs[part], *d_X_new_vecs[part]);
+        }
     }
 
     // Account for any velocity constraints.
@@ -1471,6 +1545,11 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
+        if (d_direct_forcing_kinematics_data[part])
+        {
+            d_direct_forcing_kinematics_data[part]->midpointStep(
+                current_time, new_time, *d_X_current_vecs[part], *d_X_half_vecs[part], *d_X_new_vecs[part]);
+        }
     }
 
     // Account for any velocity constraints.
@@ -1499,6 +1578,11 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
+        if (d_direct_forcing_kinematics_data[part])
+        {
+            d_direct_forcing_kinematics_data[part]->trapezoidalStep(
+                current_time, new_time, *d_X_current_vecs[part], *d_X_half_vecs[part], *d_X_new_vecs[part]);
+        }
     }
 
     // Account for any velocity constraints.
@@ -1520,7 +1604,20 @@ IBFEMethod::computeLagrangianForce(const double data_time)
         {
             computeStressNormalization(*d_Phi_half_vecs[part], *d_X_half_vecs[part], data_time, part);
         }
+        // Zero-out force vector
+        d_F_half_vecs[part]->zero();
         computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
+        if (d_direct_forcing_kinematics_data[part])
+        {
+            int ierr;
+            PetscVector<double>* F_half_df = static_cast<PetscVector<double>*>(
+                d_F_half_vecs[part]->zero_clone().release()); // WARNING: must be manually deleted
+            d_direct_forcing_kinematics_data[part]->computeLagrangianForce(
+                *F_half_df, *d_X_half_vecs[part], *d_U_half_vecs[part], data_time);
+            ierr = VecAXPY(d_F_half_vecs[part]->vec(), 1.0, F_half_df->vec());
+            IBTK_CHKERRQ(ierr);
+            delete F_half_df;
+        }
     }
     if (d_has_overlap_force_parts)
     {
@@ -1904,6 +2001,12 @@ IBFEMethod::initializeFEData()
             }
             Phi_system.assemble_before_solve = false;
             Phi_system.assemble();
+        }
+
+        bool initial_time = !from_restart;
+        if (d_direct_forcing_kinematics_data[part])
+        {
+            d_direct_forcing_kinematics_data[part]->initializeKinematicsData(initial_time);
         }
 
         // Set up boundary conditions.  Specifically, add appropriate boundary
@@ -4032,11 +4135,17 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     // Set some default values.
     const bool use_adaptive_quadrature = true;
     const int point_density = 2.0;
+    const bool use_nodal_quadrature = false;
     const bool interp_use_consistent_mass_matrix = true;
-    d_default_interp_spec = FEDataManager::InterpSpec(
-        "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, interp_use_consistent_mass_matrix);
-    d_default_spread_spec =
-        FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density);
+    d_default_interp_spec = FEDataManager::InterpSpec("IB_4",
+                                                      QGAUSS,
+                                                      INVALID_ORDER,
+                                                      use_adaptive_quadrature,
+                                                      point_density,
+                                                      interp_use_consistent_mass_matrix,
+                                                      use_nodal_quadrature);
+    d_default_spread_spec = FEDataManager::SpreadSpec(
+        "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, use_nodal_quadrature);
     d_ghosts = 0;
     d_split_normal_force = false;
     d_split_tangential_force = false;
@@ -4088,6 +4197,7 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     d_has_lag_body_source_parts = false;
     d_lag_body_source_part.resize(d_num_parts, false);
     d_lag_body_source_fcn_data.resize(d_num_parts);
+    d_direct_forcing_kinematics_data.resize(d_num_parts, Pointer<IBFEDirectForcingKinematics>(NULL));
 
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.
@@ -4194,6 +4304,11 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     else if (db->isBool("IB_use_consistent_mass_matrix"))
         d_default_interp_spec.use_consistent_mass_matrix = db->getBool("IB_use_consistent_mass_matrix");
 
+    if (db->isBool("interp_use_nodal_quadrature"))
+        d_default_interp_spec.use_nodal_quadrature = db->getBool("interp_use_nodal_quadrature");
+    else if (db->isBool("IB_use_nodal_quadrature"))
+        d_default_interp_spec.use_nodal_quadrature = db->getBool("IB_use_nodal_quadrature");
+
     // Spreading settings.
     if (db->isString("spread_delta_fcn"))
         d_default_spread_spec.kernel_fcn = db->getString("spread_delta_fcn");
@@ -4223,6 +4338,11 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_default_spread_spec.point_density = db->getDouble("spread_point_density");
     else if (db->isDouble("IB_point_density"))
         d_default_spread_spec.point_density = db->getDouble("IB_point_density");
+
+    if (db->isBool("spread_use_nodal_quadrature"))
+        d_default_spread_spec.use_nodal_quadrature = db->getBool("spread_use_nodal_quadrature");
+    else if (db->isBool("IB_use_nodal_quadrature"))
+        d_default_spread_spec.use_nodal_quadrature = db->getBool("IB_use_nodal_quadrature");
 
     // Force computation settings.
     if (db->isBool("split_normal_force"))

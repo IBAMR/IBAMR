@@ -274,7 +274,8 @@ bool run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<
                                                     FIFTH,
                                                     /*use_adaptive_quadrature*/ false,
                                                     /*point_density*/ 2.0,
-                                                    /*use_consistent_mass_matrix*/ true);
+                                                    /*use_consistent_mass_matrix*/ true,
+                                                    /*use_nodal_quadrature*/ false);
             ib_post_processor->registerInterpolatedScalarEulerianVariable(
                 "p_f", LAGRANGE, FIRST, p_var, p_current_ctx, p_ghostfill, p_interp_spec);
         }
@@ -513,8 +514,8 @@ bool run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<
             double J_integral = 0.0;
             DofMap& X_dof_map = X_system.get_dof_map();
             std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-            UniquePtr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
-            UniquePtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
+            libMesh::UniquePtr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
+            libMesh::UniquePtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
             fe->attach_quadrature_rule(qrule.get());
             const std::vector<double>& JxW = fe->get_JxW();
             const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
@@ -575,7 +576,7 @@ bool run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<
                      << std::setprecision(10) << hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx) << "\n"
                      << "  L2-norm:  " << hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx) << "\n"
                      << "  max-norm: " << hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx) << "\n";
-                     
+
                      u_err[0] = hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx);
                      u_err[1] = hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx);
                      u_err[2] = hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx);
@@ -587,14 +588,14 @@ bool run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<
                 HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
                 hier_sc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
                 pout << "Error in u at time " << loop_time << ":\n"
-                     << "  L1-norm:  " 
-                     << std::setprecision(10) << hier_sc_data_ops.L1Norm(u_cloned_idx, wgt_sc_idx) << "\n"
+                     << "  L1-norm:  " << std::setprecision(10) << hier_sc_data_ops.L1Norm(u_cloned_idx, wgt_sc_idx)
+                     << "\n"
                      << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx) << "\n"
                      << "  max-norm: " << hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx) << "\n";
-                     
-                     u_err[0] = hier_sc_data_ops.L1Norm(u_cloned_idx, wgt_sc_idx);
-                     u_err[1] = hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx);
-                     u_err[2] = hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx);
+
+                u_err[0] = hier_sc_data_ops.L1Norm(u_cloned_idx, wgt_sc_idx);
+                u_err[1] = hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx);
+                u_err[2] = hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx);
             }
 
             HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
@@ -612,15 +613,14 @@ bool run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<
             hier_cc_data_ops.subtract(p_cloned_idx, p_idx, p_cloned_idx);
 
             pout << "Error in p at time " << loop_time - 0.5 * dt << ":\n"
-                 << "  L1-norm:  " 
-                 << std::setprecision(10) << hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx) << "\n"
+                 << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx) << "\n"
                  << "  L2-norm:  " << hier_cc_data_ops.L2Norm(p_cloned_idx, wgt_cc_idx) << "\n"
                  << "  max-norm: " << hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx) << "\n"
                  << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-                 
-                 p_err[0] = hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx);
-                 p_err[1] = hier_cc_data_ops.L2Norm(p_cloned_idx, wgt_cc_idx);
-                 p_err[2] = hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx);
+            
+            p_err[0] = hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx);
+            p_err[1] = hier_cc_data_ops.L2Norm(p_cloned_idx, wgt_cc_idx);
+            p_err[2] = hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx);
         }
 
         // write out errors to file
@@ -643,7 +643,7 @@ bool run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<
 
     SAMRAIManager::shutdown();
     return true;
-} 
+}
 
 void
 output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,

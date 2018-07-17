@@ -73,7 +73,7 @@ public:
      * \brief Typedef specifying interface for specifying constrained body velocities.
      */
     typedef void (*ConstrainedNodalVelocityFcnPtr)(Vec U_k,
-                                                   const RigidDOFVector& U,
+                                                   const IBTK::RigidDOFVector& U,
                                                    Vec X,
                                                    const Eigen::Vector3d& X_com,
                                                    const Eigen::Matrix3d& rotation_mat,
@@ -350,13 +350,13 @@ public:
      * \brief Set the rigid body velocity at the nodal points
      * contained in the Vec V.
      */
-    void setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U, Vec V);
+    void setRigidBodyVelocity(const unsigned int part, const IBTK::RigidDOFVector& U, Vec V);
 
     // \see CIBStrategy::computeNetRigidGeneralizedForce() method.
     /*!
      * \brief Compute total force and torque on the rigid structure(s).
      */
-    void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, RigidDOFVector& F);
+    void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, IBTK::RigidDOFVector& F);
 
     // \see CIBStrategy::copyVecToArray() method.
     /*!

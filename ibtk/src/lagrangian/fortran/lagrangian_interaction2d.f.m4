@@ -1196,11 +1196,15 @@ c
       INTEGER ig_lower(0:NDIM-1),ig_upper(0:NDIM-1)
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER istart0,istop0,istart1,istop1
-      INTEGER d,k,l,s
+      INTEGER d,l,s
 
       REAL X_o_dx,q0,q1,r0,r1
-      REAL w0(0:3),w1(0:3),f(0:3)
+      REAL w0(0:3),w1(0:3)
       REAL w(0:3,0:3),wy
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
 c
 c     Compute the extents of the ghost box.
 c
@@ -1313,11 +1317,15 @@ c
       INTEGER ig_lower(0:NDIM-1),ig_upper(0:NDIM-1)
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER istart0,istop0,istart1,istop1
-      INTEGER d,k,l,s
+      INTEGER d,l,s
 
       REAL X_o_dx,q0,q1,r0,r1
-      REAL w0(0:3),w1(0:3),f(0:3)
+      REAL w0(0:3),w1(0:3)
       REAL w(0:3,0:3),wy
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
 c
 c     Compute the extents of the ghost box.
 c
@@ -3288,4 +3296,3 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
