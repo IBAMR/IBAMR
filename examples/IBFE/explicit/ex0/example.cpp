@@ -146,7 +146,6 @@ bool run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
-        Pointer<Database> ibfe_db = app_initializer->getComponentDatabase("IBFEMethod");
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -555,6 +554,8 @@ bool run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<
                 Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
                 if (!level->checkAllocated(u_cloned_idx)) level->allocatePatchData(u_cloned_idx);
                 if (!level->checkAllocated(p_cloned_idx)) level->allocatePatchData(p_cloned_idx);
+                if (!level->checkAllocated(phi_cloned_idx)) level->allocatePatchData(phi_cloned_idx);
+                if (!level->checkAllocated(p_plus_phi_idx)) level->allocatePatchData(p_plus_phi_idx);
             }
 
             pout << "\n"

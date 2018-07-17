@@ -4264,16 +4264,16 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 
     // settings for stress normalization
     if (db->isDouble("Phi_epsilon")) d_phi_epsilon = db->getDouble("Phi_epsilon");
-    d_phi_diffusion = db->getDouble("Phi_diffusion");
-    d_phi_solver = db->getString("Phi_solver");
-    d_scale_phi_by_J = db->getBool("scale_Phi_by_J");
-    d_ipdg_jump0_penalty = db->getDouble("ipdg_jump0_penalty");
-    d_ipdg_jump1_penalty = db->getDouble("ipdg_jump1_penalty");
-    d_ipdg_beta0 = db->getDouble("ipdg_beta0");
-    d_ipdg_beta1 = db->getDouble("ipdg_beta1");
-    d_cg_penalty = db->getDouble("cg_penalty");
+    d_phi_diffusion = db->getDoubleWithDefault("Phi_diffusion", 1.0);
+    d_phi_solver = db->getStringWithDefault("Phi_solver", "CG");
+    d_scale_phi_by_J = db->getBoolWithDefault("scale_Phi_by_J", true);
+    d_ipdg_jump0_penalty = db->getDoubleWithDefault("ipdg_jump0_penalty", 2.0);
+    d_ipdg_jump1_penalty = db->getDoubleWithDefault("ipdg_jump1_penalty", 2.0);
+    d_ipdg_beta0 = db->getDoubleWithDefault("ipdg_beta0", 2.0);
+    d_ipdg_beta1 = db->getDoubleWithDefault("ipdg_beta1", 2.0);
+    d_cg_penalty = db->getDoubleWithDefault("cg_penalty", 1.0e10);
     d_phi_dt = db->getDouble("Phi_dt");
-    d_phi_fe_order = static_cast<Order>(db->getIntegerWithDefault("Phi_fe_order", 1));
+    d_phi_fe_order = static_cast<Order>(db->getIntegerWithDefault("Phi_fe_order", 2));
 
     return;
 } // getFromInput
