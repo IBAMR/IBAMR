@@ -202,10 +202,12 @@ RigidBodyKinematics::setRigidBodySpecificVelocity(const double time,
     for (int d = 0; d < NDIM; ++d) d_parser_posn[d] = center_of_mass[d];
     for (int d = 0; d < NDIM; ++d) vel_parser[d] = d_kinematicsvel_parsers[d]->Eval();
     const StructureParameters& struct_param = getStructureParameters();
-    const int finest_ln = struct_param.getFinestLevelNumber();
-    const int coarsest_ln = struct_param.getCoarsestLevelNumber();
 #if !defined(NDEBUG)
-    TBOX_ASSERT(finest_ln == coarsest_ln);
+    {
+        const int finest_ln = struct_param.getFinestLevelNumber();
+        const int coarsest_ln = struct_param.getCoarsestLevelNumber();
+        TBOX_ASSERT(finest_ln == coarsest_ln);
+    }
 #endif
     const std::vector<std::pair<int, int> >& idx_range = struct_param.getLagIdxRange();
     const int nodes_this_ln = idx_range[0].second - idx_range[0].first;

@@ -931,6 +931,8 @@ CIBMethod::setConstraintForce(Vec L, const double data_time, const double scale)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+#else
+    NULL_USE(data_time);
 #endif
 
     const int struct_ln = getStructuresLevelNumber();
@@ -954,6 +956,8 @@ CIBMethod::getConstraintForce(Vec* L, const double data_time)
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_current_time) ||
                 MathUtilities<double>::equalEps(data_time, d_new_time));
+#else
+    NULL_USE(data_time);
 #endif
     const int struct_ln = getStructuresLevelNumber();
     Pointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", struct_ln);
@@ -1047,6 +1051,8 @@ CIBMethod::setInterpolatedVelocityVector(Vec /*V*/, const double data_time)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+#else
+    NULL_USE(data_time);
 #endif
     d_lag_velvec_is_initialized = true;
 
@@ -1058,6 +1064,8 @@ CIBMethod::getInterpolatedVelocity(Vec V, const double data_time, const double s
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+#else
+    NULL_USE(data_time);
 #endif
 
     const int struct_ln = getStructuresLevelNumber();
