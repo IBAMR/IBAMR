@@ -117,11 +117,11 @@ run_example(int argc, char* argv[])
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
-                const Index<NDIM>& patch_lower = patch_box.lower();
+                const hier::Index<NDIM>& patch_lower = patch_box.lower();
                 Pointer<CellData<NDIM, double> > data = patch->getPatchData(idx);
                 for (Box<NDIM>::Iterator b(patch_box); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const hier::Index<NDIM>& i = b();
                     (*data)(i) = 0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -152,7 +152,7 @@ run_example(int argc, char* argv[])
                 bool warning = false;
                 for (Box<NDIM>::Iterator b(data->getGhostBox()); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const hier::Index<NDIM>& i = b();
                     double val = 0;
                     for (int d = 0; d < NDIM; ++d)
                     {
@@ -185,7 +185,7 @@ run_example(int argc, char* argv[])
                 const double shift = 3.14159;
                 for (Box<NDIM>::Iterator b(patch_box); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const hier::Index<NDIM>& i = b();
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -216,7 +216,7 @@ run_example(int argc, char* argv[])
                 warning = false;
                 for (Box<NDIM>::Iterator b(data->getGhostBox()); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const hier::Index<NDIM>& i = b();
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -259,7 +259,7 @@ run_example(int argc, char* argv[])
                 warning = false;
                 for (Box<NDIM>::Iterator b(data->getGhostBox()); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const hier::Index<NDIM>& i = b();
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
