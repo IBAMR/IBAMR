@@ -607,7 +607,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
     }
     const double h_finest = *std::min_element(dx_finest.begin(), dx_finest.end());
 
-    for (int jj = 0; jj < d_num_meters; ++jj)
+    for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
         // set the quadrature rule adaptively according to the fluid mesh size
         if (d_use_adaptive_quadrature)

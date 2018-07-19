@@ -573,7 +573,7 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     std::vector<Pointer<LData> > X0_unshifted_data_vec(finest_ln + 1, Pointer<LData>(NULL));
     X0_unshifted_data_vec[finest_ln] = d_l_data_manager->getLData("X0_unshifted", finest_ln);
     computeCOMOfStructures(X0_com, X0_unshifted_data_vec);
-    for (int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
+    for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
     {
         if (!d_compute_center_of_mass_initial[struct_no]) continue;
         d_center_of_mass_initial[struct_no] = X0_com[struct_no];
