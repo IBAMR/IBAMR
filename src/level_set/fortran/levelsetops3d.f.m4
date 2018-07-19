@@ -415,6 +415,20 @@ c
       REAL    U_wall_coef
       REAL    h_wall_coef
 
+c     Carry out a single sweep
+      if (U(i0,i1,i2) .eq. zero) then
+        sgn = zero
+      else
+        sgn = sign(one,U(i0,i1,i2))
+      endif
+
+      hx = dx(0)
+      hy = dx(1)
+      hz = dx(2)
+      a  = sgn*dmin1(sgn*U(i0-1,i1,i2),sgn*U(i0+1,i1,i2))
+      b  = sgn*dmin1(sgn*U(i0,i1-1,i2),sgn*U(i0,i1+1,i2))
+      c  = sgn*dmin1(sgn*U(i0,i1,i2-1),sgn*U(i0,i1,i2+1))
+
       if (patch_touches_bdry .eq. 1) then
         if ((i0 .eq. dlower0) .and.
      &     touches_wall_loc_idx(0) .eq. 1) then
@@ -444,24 +458,7 @@ c
            U_wall_coef   = one
            h_wall_coef   = one
         endif
-      endif
-      
-c     Carry out a single sweep
-      if (U(i0,i1,i2) .eq. zero) then
-        sgn = zero
-      else
-        sgn = sign(one,U(i0,i1,i2))
-      endif
-
-      hx = dx(0)
-      hy = dx(1)
-      hz = dx(2)
-      a  = sgn*dmin1(sgn*U(i0-1,i1,i2),sgn*U(i0+1,i1,i2))
-      b  = sgn*dmin1(sgn*U(i0,i1-1,i2),sgn*U(i0,i1+1,i2))
-      c  = sgn*dmin1(sgn*U(i0,i1,i2-1),sgn*U(i0,i1,i2+1))
-
 c     Take care of physical boundaries.
-      if (patch_touches_bdry .eq. 1) then
         if (i0 .eq. dlower0) then 
           a  = U(i0+1,i1,i2)*U_wall_coef   
           hx = hx*h_wall_coef                
