@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <vector>
 
 #include "boost/array.hpp"
@@ -102,8 +102,8 @@ public:
      * \brief Alternate constructor.
      */
     IBRodForceSpec(int master_idx,
-                   const std::vector<int>& next_idxs,
-                   const std::vector<boost::array<double, NUM_MATERIAL_PARAMS> >& material_params);
+                   std::vector<int> next_idxs,
+                   std::vector<boost::array<double, NUM_MATERIAL_PARAMS> > material_params);
 
     /*!
      * \brief Destructor.
@@ -175,7 +175,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBRodForceSpec(const IBRodForceSpec& from);
+    IBRodForceSpec(const IBRodForceSpec& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -186,12 +186,12 @@ private:
      *
      * \return A reference to this object.
      */
-    IBRodForceSpec& operator=(const IBRodForceSpec& that);
+    IBRodForceSpec& operator=(const IBRodForceSpec& that) = delete;
 
     /*!
      * Data required to define the spring forces.
      */
-    int d_master_idx;
+    int d_master_idx = -1;
     std::vector<int> d_next_idxs;
     std::vector<boost::array<double, NUM_MATERIAL_PARAMS> > d_material_params;
 
@@ -241,7 +241,7 @@ private:
          *
          * \param from The value to copy to this object.
          */
-        Factory(const Factory& from);
+        Factory(const Factory& from) = delete;
 
         /*!
          * \brief Assignment operator.
@@ -252,7 +252,7 @@ private:
          *
          * \return A reference to this object.
          */
-        Factory& operator=(const Factory& that);
+        Factory& operator=(const Factory& that) = delete;
 
         friend class IBRodForceSpec;
     };

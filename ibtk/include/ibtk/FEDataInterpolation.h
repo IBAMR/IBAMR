@@ -222,7 +222,7 @@ public:
     size_t registerInterpolatedSystem(const libMesh::System& system,
                                       const std::vector<int>& vars = std::vector<int>(1, 0),
                                       const std::vector<int>& grad_vars = std::vector<int>(),
-                                      libMesh::NumericVector<double>* system_data = NULL);
+                                      libMesh::NumericVector<double>* system_data = nullptr);
 
     /*!
      * \brief Get the variable data for all of the systems.
@@ -273,8 +273,8 @@ public:
      * NOTE: Nodal values are set by calling collectDataForInterpolation().
      */
     void reinit(const libMesh::Elem* elem,
-                const std::vector<libMesh::Point>* const points = NULL,
-                const std::vector<double>* weights = NULL);
+                const std::vector<libMesh::Point>* const points = nullptr,
+                const std::vector<double>* weights = nullptr);
 
     /*!
      * \brief Reinitialize the FE shape functions, quadrature rules, etc. for the specified side of the specificed
@@ -285,8 +285,8 @@ public:
     void reinit(const libMesh::Elem* elem,
                 unsigned int side,
                 double tol = libMesh::TOLERANCE,
-                const std::vector<libMesh::Point>* points = NULL,
-                const std::vector<double>* weights = NULL);
+                const std::vector<libMesh::Point>* points = nullptr,
+                const std::vector<double>* weights = nullptr);
 
     /*!
      * \brief Get the local (element) data to be interpolated from the global vectors.
@@ -312,9 +312,9 @@ public:
     void interpolate(const libMesh::Elem* elem, unsigned int side);
 
 private:
-    FEDataInterpolation();
-    FEDataInterpolation(const FEDataInterpolation&);
-    FEDataInterpolation& operator=(const FEDataInterpolation&);
+    FEDataInterpolation() = delete;
+    FEDataInterpolation(const FEDataInterpolation&) = delete;
+    FEDataInterpolation& operator=(const FEDataInterpolation&) = delete;
 
     size_t getFETypeIndex(const libMesh::FEType& fe_type) const;
 

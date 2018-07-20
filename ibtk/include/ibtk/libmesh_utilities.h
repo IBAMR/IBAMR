@@ -34,6 +34,7 @@
 #define included_IBTK_libmesh_utilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include <utility>
 
 #include "libmesh/dof_map.h"
 #include "libmesh/dof_object.h"
@@ -59,11 +60,14 @@ namespace IBTK
  */
 struct SystemData
 {
-    SystemData(const std::string& system_name = "",
-               const std::vector<int>& vars = std::vector<int>(),
-               const std::vector<int>& grad_vars = std::vector<int>(),
-               libMesh::NumericVector<double>* const system_vec = NULL)
-        : system_name(system_name), vars(vars), grad_vars(grad_vars), system_vec(system_vec)
+    SystemData(std::string system_name = "",
+               std::vector<int> vars = std::vector<int>(),
+               std::vector<int> grad_vars = std::vector<int>(),
+               libMesh::NumericVector<double>* const system_vec = nullptr)
+        : system_name(std::move(system_name)),
+          vars(std::move(vars)),
+          grad_vars(std::move(grad_vars)),
+          system_vec(system_vec)
     {
     }
 
@@ -197,7 +201,7 @@ get_values_for_interpolation(MultiArray& U_node,
                              libMesh::NumericVector<double>& U_vec,
                              const std::vector<unsigned int>& dof_indices)
 {
-    libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
+    auto U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
     Vec U_global_vec = U_petsc_vec->vec();
     Vec U_local_vec;
     VecGhostGetLocalForm(U_global_vec, &U_local_vec);
@@ -215,7 +219,7 @@ get_values_for_interpolation(MultiArray& U_node,
                              libMesh::NumericVector<double>& U_vec,
                              const std::vector<std::vector<unsigned int> >& dof_indices)
 {
-    libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
+    auto U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
     Vec U_global_vec = U_petsc_vec->vec();
     Vec U_local_vec;
     VecGhostGetLocalForm(U_global_vec, &U_local_vec);
@@ -231,7 +235,7 @@ template <class MultiArray>
 inline void
 interpolate(double& U, const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
 {
-    const int n_nodes = static_cast<int>(U_node.shape()[0]);
+    const auto n_nodes = static_cast<int>(U_node.shape()[0]);
     U = 0.0;
     for (int k = 0; k < n_nodes; ++k)
     {
@@ -244,7 +248,7 @@ template <class MultiArray>
 inline double
 interpolate(const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
 {
-    const int n_nodes = static_cast<int>(U_node.shape()[0]);
+    const auto n_nodes = static_cast<int>(U_node.shape()[0]);
     double U = 0.0;
     for (int k = 0; k < n_nodes; ++k)
     {
@@ -257,8 +261,8 @@ template <class MultiArray>
 inline void
 interpolate(double* const U, const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
 {
-    const int n_nodes = static_cast<int>(U_node.shape()[0]);
-    const int n_vars = static_cast<int>(U_node.shape()[1]);
+    const auto n_nodes = static_cast<int>(U_node.shape()[0]);
+    const auto n_vars = static_cast<int>(U_node.shape()[1]);
     std::fill(U, U + n_vars, 0.0);
     for (int k = 0; k < n_nodes; ++k)
     {
@@ -278,8 +282,8 @@ interpolate(libMesh::TypeVector<double>& U,
             const MultiArray& U_node,
             const std::vector<std::vector<double> >& phi)
 {
-    const int n_nodes = static_cast<int>(U_node.shape()[0]);
-    const int n_vars = static_cast<int>(U_node.shape()[1]);
+    const auto n_nodes = static_cast<int>(U_node.shape()[0]);
+    const auto n_vars = static_cast<int>(U_node.shape()[1]);
     U.zero();
     for (int k = 0; k < n_nodes; ++k)
     {
@@ -299,8 +303,8 @@ jacobian(libMesh::TypeTensor<double>& dX_ds,
          const MultiArray& X_node,
          const std::vector<std::vector<libMesh::VectorValue<double> > >& dphi)
 {
-    const int n_nodes = static_cast<int>(X_node.shape()[0]);
-    const int dim = static_cast<int>(X_node.shape()[1]);
+    const auto n_nodes = static_cast<int>(X_node.shape()[0]);
+    const auto dim = static_cast<int>(X_node.shape()[1]);
     dX_ds.zero();
     for (int k = 0; k < n_nodes; ++k)
     {

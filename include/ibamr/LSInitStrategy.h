@@ -84,7 +84,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    LSInitStrategy(const std::string& object_name, bool register_for_restart = true);
+    LSInitStrategy(std::string object_name, bool register_for_restart = true);
 
     /*!
      * \brief Virtual destructor.
@@ -161,7 +161,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LSInitStrategy(const LSInitStrategy& from);
+    LSInitStrategy(const LSInitStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -172,7 +172,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LSInitStrategy& operator=(const LSInitStrategy& that);
+    LSInitStrategy& operator=(const LSInitStrategy& that) = delete;
 };
 } // namespace IBAMR
 

@@ -96,7 +96,7 @@ public:
      * \brief Constructor.
      */
     RelaxationLSMethod(const std::string& object_name,
-                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = NULL,
+                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = nullptr,
                        bool register_for_restart = true);
 
     /*!
@@ -256,7 +256,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    RelaxationLSMethod(const RelaxationLSMethod& from);
+    RelaxationLSMethod(const RelaxationLSMethod& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -267,7 +267,7 @@ private:
      *
      * \return A reference to this object.
      */
-    RelaxationLSMethod& operator=(const RelaxationLSMethod& that);
+    RelaxationLSMethod& operator=(const RelaxationLSMethod& that) = delete;
 };
 } // namespace IBAMR
 

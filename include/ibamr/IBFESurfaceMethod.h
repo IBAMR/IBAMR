@@ -36,9 +36,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <set>
-#include <stdbool.h>
-#include <stddef.h>
+
+#include <cstddef>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "GriddingAlgorithm.h"
@@ -50,7 +51,9 @@
 #include "ibtk/libmesh_utilities.h"
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
+#include "libmesh/enum_point_locator_type.h"
 #include "libmesh/enum_quadrature_type.h"
+#include "libmesh/enum_xdr_mode.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK
@@ -155,7 +158,7 @@ public:
      */
     struct CoordinateMappingFcnData
     {
-        CoordinateMappingFcnData(CoordinateMappingFcnPtr fcn = NULL, void* ctx = NULL) : fcn(fcn), ctx(ctx)
+        CoordinateMappingFcnData(CoordinateMappingFcnPtr fcn = nullptr, void* ctx = nullptr) : fcn(fcn), ctx(ctx)
         {
         }
 
@@ -183,7 +186,7 @@ public:
      */
     struct InitialVelocityFcnData
     {
-        InitialVelocityFcnData(InitialVelocityFcnPtr fcn = NULL, void* ctx = NULL) : fcn(fcn), ctx(ctx)
+        InitialVelocityFcnData(InitialVelocityFcnPtr fcn = nullptr, void* ctx = nullptr) : fcn(fcn), ctx(ctx)
         {
         }
 
@@ -211,10 +214,10 @@ public:
      */
     struct LagSurfacePressureFcnData
     {
-        LagSurfacePressureFcnData(LagSurfacePressureFcnPtr fcn = NULL,
-                                  const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                                  void* const ctx = NULL)
-            : fcn(fcn), system_data(system_data), ctx(ctx)
+        LagSurfacePressureFcnData(LagSurfacePressureFcnPtr fcn = nullptr,
+                                  std::vector<IBTK::SystemData> system_data = std::vector<IBTK::SystemData>(),
+                                  void* const ctx = nullptr)
+            : fcn(fcn), system_data(std::move(system_data)), ctx(ctx)
         {
         }
 
@@ -243,10 +246,10 @@ public:
      */
     struct LagSurfaceForceFcnData
     {
-        LagSurfaceForceFcnData(LagSurfaceForceFcnPtr fcn = NULL,
-                               const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                               void* const ctx = NULL)
-            : fcn(fcn), system_data(system_data), ctx(ctx)
+        LagSurfaceForceFcnData(LagSurfaceForceFcnPtr fcn = nullptr,
+                               std::vector<IBTK::SystemData> system_data = std::vector<IBTK::SystemData>(),
+                               void* const ctx = nullptr)
+            : fcn(fcn), system_data(std::move(system_data)), ctx(ctx)
         {
         }
 

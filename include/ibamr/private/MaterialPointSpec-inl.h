@@ -34,6 +34,7 @@
 #define included_IBAMR_MaterialPointSpec_inl
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include <utility>
 
 #include "ibamr/MaterialPointSpec.h"
 #include "ibtk/StreamableManager.h"
@@ -57,8 +58,8 @@ MaterialPointSpec::getIsRegisteredWithStreamableManager()
 inline MaterialPointSpec::MaterialPointSpec(const int point_idx,
                                             const double weight,
                                             const libMesh::subdomain_id_type subdomain_id,
-                                            const std::vector<double>& internal_vars)
-    : d_point_idx(point_idx), d_weight(weight), d_subdomain_id(subdomain_id), d_internal_vars(internal_vars)
+                                            std::vector<double> internal_vars)
+    : d_point_idx(point_idx), d_weight(weight), d_subdomain_id(subdomain_id), d_internal_vars(std::move(internal_vars))
 {
 #if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
@@ -145,7 +146,7 @@ MaterialPointSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
     stream.pack(&d_weight, 1);
     const int subdomain_id = d_subdomain_id;
     stream.pack(&subdomain_id, 1);
-    const int n_internal_vars = static_cast<int>(d_internal_vars.size());
+    const auto n_internal_vars = static_cast<int>(d_internal_vars.size());
     stream.pack(&n_internal_vars);
     if (n_internal_vars) stream.pack(&d_internal_vars[0], n_internal_vars);
     return;

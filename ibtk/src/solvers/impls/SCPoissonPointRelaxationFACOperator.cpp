@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
+#include <cstddef>
 #include <map>
 #include <ostream>
 #include <string>
@@ -269,7 +269,7 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
           SIDEG,
           input_db,
           default_options_prefix),
-      d_coarse_solver(NULL),
+      d_coarse_solver(nullptr),
       d_coarse_solver_db(),
       d_patch_bc_box_overlap(),
       d_patch_neighbor_overlap()
@@ -511,12 +511,10 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                 {
                     const std::map<int, Box<NDIM> > neighbor_overlap =
                         d_patch_neighbor_overlap[level_num][patch_counter][axis];
-                    for (std::map<int, Box<NDIM> >::const_iterator cit = neighbor_overlap.begin();
-                         cit != neighbor_overlap.end();
-                         ++cit)
+                    for (const auto& cit : neighbor_overlap)
                     {
-                        const int src_patch_num = cit->first;
-                        const Box<NDIM>& overlap = cit->second;
+                        const int src_patch_num = cit.first;
+                        const Box<NDIM>& overlap = cit.second;
                         Pointer<Patch<NDIM> > src_patch = level->getPatch(src_patch_num);
                         Pointer<SideData<NDIM, double> > src_error_data = error.getComponentPatchData(0, *src_patch);
                         error_data->getArrayData(axis)
@@ -660,7 +658,7 @@ SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, d
         d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
         d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
         d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
-        LinearSolver* p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
+        auto p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
         if (p_coarse_solver) p_coarse_solver->setInitialGuessNonzero(true);
         d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln),
                                      *getLevelSAMRAIVectorReal(residual, d_coarsest_ln));
@@ -736,7 +734,7 @@ SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
             new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
     d_level_math_ops[finest_level_num]->laplace(
-        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_solution_time);
+        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, nullptr, d_solution_time);
     HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     hier_sc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
 
@@ -825,7 +823,7 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     }
     else
     {
-        d_op_stencil_fill_pattern = NULL;
+        d_op_stencil_fill_pattern = nullptr;
     }
     d_synch_fill_pattern = new SideSynchCopyFillPattern();
 

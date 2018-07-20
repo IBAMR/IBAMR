@@ -57,9 +57,9 @@ RefinePatchStrategySet::~RefinePatchStrategySet()
     if (d_managed)
     {
         typedef std::vector<RefinePatchStrategy<NDIM>*> refine_strategy_set;
-        for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+        for (auto& it : d_strategy_set)
         {
-            delete (*it);
+            delete it;
         }
     }
     return;
@@ -71,9 +71,9 @@ RefinePatchStrategySet::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
                                                       const IntVector<NDIM>& ghost_width_to_fill)
 {
     typedef std::vector<RefinePatchStrategy<NDIM>*> refine_strategy_set;
-    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto& it : d_strategy_set)
     {
-        (*it)->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
+        it->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
     }
     return;
 } // setPhysicalBoundaryConditions
@@ -83,9 +83,9 @@ RefinePatchStrategySet::getRefineOpStencilWidth() const
 {
     IntVector<NDIM> width = 0;
     typedef std::vector<RefinePatchStrategy<NDIM>*> refine_strategy_set;
-    for (refine_strategy_set::const_iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it : d_strategy_set)
     {
-        width = IntVector<NDIM>::max(width, (*it)->getRefineOpStencilWidth());
+        width = IntVector<NDIM>::max(width, it->getRefineOpStencilWidth());
     }
     return width;
 } // getRefineOpStencilWidth()
@@ -97,9 +97,9 @@ RefinePatchStrategySet::preprocessRefine(Patch<NDIM>& fine,
                                          const IntVector<NDIM>& ratio)
 {
     typedef std::vector<RefinePatchStrategy<NDIM>*> refine_strategy_set;
-    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto& it : d_strategy_set)
     {
-        (*it)->preprocessRefine(fine, coarse, fine_box, ratio);
+        it->preprocessRefine(fine, coarse, fine_box, ratio);
     }
     return;
 } // preprocessRefine
@@ -111,9 +111,9 @@ RefinePatchStrategySet::postprocessRefine(Patch<NDIM>& fine,
                                           const IntVector<NDIM>& ratio)
 {
     typedef std::vector<RefinePatchStrategy<NDIM>*> refine_strategy_set;
-    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto& it : d_strategy_set)
     {
-        (*it)->postprocessRefine(fine, coarse, fine_box, ratio);
+        it->postprocessRefine(fine, coarse, fine_box, ratio);
     }
     return;
 } // postprocessRefine
@@ -125,9 +125,9 @@ RefinePatchStrategySet::preprocessRefineBoxes(Patch<NDIM>& fine,
                                               const IntVector<NDIM>& ratio)
 {
     typedef std::vector<RefinePatchStrategy<NDIM>*> refine_strategy_set;
-    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto& it : d_strategy_set)
     {
-        (*it)->preprocessRefineBoxes(fine, coarse, fine_boxes, ratio);
+        it->preprocessRefineBoxes(fine, coarse, fine_boxes, ratio);
     }
     return;
 } // preprocessRefineBoxes
@@ -139,9 +139,9 @@ RefinePatchStrategySet::postprocessRefineBoxes(Patch<NDIM>& fine,
                                                const IntVector<NDIM>& ratio)
 {
     typedef std::vector<RefinePatchStrategy<NDIM>*> refine_strategy_set;
-    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto& it : d_strategy_set)
     {
-        (*it)->postprocessRefineBoxes(fine, coarse, fine_boxes, ratio);
+        it->postprocessRefineBoxes(fine, coarse, fine_boxes, ratio);
     }
     return;
 } // postprocessRefineBoxes

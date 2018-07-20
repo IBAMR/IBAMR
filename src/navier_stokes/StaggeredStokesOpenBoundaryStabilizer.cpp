@@ -196,7 +196,7 @@ StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
         if (d_open_bdry[location_index] && pgeom->getTouchesRegularBoundary(axis, side))
         {
             Box<NDIM> bdry_box = domain_box;
-            const int offset = static_cast<int>(d_width[location_index] / dx[axis]);
+            const auto offset = static_cast<int>(d_width[location_index] / dx[axis]);
             if (is_lower)
             {
                 bdry_box.upper(axis) = domain_box.lower(axis) + offset;

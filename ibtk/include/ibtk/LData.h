@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -74,10 +74,10 @@ public:
      * object.  Data management for this PETSc Vec object is handled by the
      * LData object.
      */
-    LData(const std::string& name,
+    LData(std::string name,
           unsigned int num_local_nodes,
           unsigned int depth,
-          const std::vector<int>& nonlocal_petsc_indices = std::vector<int>(0));
+          std::vector<int> nonlocal_petsc_indices = std::vector<int>(0));
 
     /*!
      * \brief Constructor.
@@ -92,9 +92,9 @@ public:
      * appropriately.  Its value is used to determine the data depth (i.e., the
      * number of data components per node).
      */
-    LData(const std::string& name,
+    LData(std::string name,
           Vec vec,
-          const std::vector<int>& nonlocal_petsc_indices = std::vector<int>(0),
+          std::vector<int> nonlocal_petsc_indices = std::vector<int>(0),
           const bool manage_petsc_vec = true);
 
     /*!
@@ -105,7 +105,7 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~LData();
+    ~LData() override;
 
     /*!
      * \brief Reset data items.
@@ -295,7 +295,7 @@ public:
     /*!
      * \brief Write out object state to the given database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 private:
     /*!
@@ -303,7 +303,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LData();
+    LData() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -312,7 +312,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LData(const LData& from);
+    LData(const LData& from) = delete;
 
     /*
      * Extract the array data.

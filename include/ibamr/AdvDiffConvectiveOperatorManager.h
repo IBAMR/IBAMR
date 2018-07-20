@@ -138,7 +138,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffConvectiveOperatorManager(const AdvDiffConvectiveOperatorManager& from);
+    AdvDiffConvectiveOperatorManager(const AdvDiffConvectiveOperatorManager& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -149,7 +149,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffConvectiveOperatorManager& operator=(const AdvDiffConvectiveOperatorManager& that);
+    AdvDiffConvectiveOperatorManager& operator=(const AdvDiffConvectiveOperatorManager& that) = delete;
 
     /*!
      * Static data members used to control access to and destruction of

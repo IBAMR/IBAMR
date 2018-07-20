@@ -35,9 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "BoxGeometryFillPattern.h"
@@ -109,19 +110,19 @@ public:
          */
         inline InterpolationTransactionComponent(
             int data_idx = -1,
-            const std::string& refine_op_name = "NONE",
+            std::string refine_op_name = "NONE",
             bool use_cf_bdry_interpolation = false,
-            const std::string& coarsen_op_name = "NONE",
-            const std::string& phys_bdry_extrap_type = "NONE",
+            std::string coarsen_op_name = "NONE",
+            std::string phys_bdry_extrap_type = "NONE",
             bool consistent_type_2_bdry = false,
-            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* robin_bc_coef = NULL,
-            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = NULL)
+            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* robin_bc_coef = nullptr,
+            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = nullptr)
             : d_dst_data_idx(data_idx),
               d_src_data_idx(data_idx),
-              d_refine_op_name(refine_op_name),
+              d_refine_op_name(std::move(refine_op_name)),
               d_use_cf_bdry_interpolation(use_cf_bdry_interpolation),
-              d_coarsen_op_name(coarsen_op_name),
-              d_phys_bdry_extrap_type(phys_bdry_extrap_type),
+              d_coarsen_op_name(std::move(coarsen_op_name)),
+              d_phys_bdry_extrap_type(std::move(phys_bdry_extrap_type)),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
               d_robin_bc_coefs(robin_bc_coef ? std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1, robin_bc_coef) :
                                                std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>()),
@@ -136,21 +137,21 @@ public:
          */
         inline InterpolationTransactionComponent(
             int data_idx,
-            const std::string& refine_op_name,
+            std::string refine_op_name,
             bool use_cf_bdry_interpolation,
-            const std::string& coarsen_op_name,
-            const std::string& phys_bdry_extrap_type,
+            std::string coarsen_op_name,
+            std::string phys_bdry_extrap_type,
             bool consistent_type_2_bdry,
-            const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs,
-            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = NULL)
+            std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> robin_bc_coefs,
+            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = nullptr)
             : d_dst_data_idx(data_idx),
               d_src_data_idx(data_idx),
-              d_refine_op_name(refine_op_name),
+              d_refine_op_name(std::move(refine_op_name)),
               d_use_cf_bdry_interpolation(use_cf_bdry_interpolation),
-              d_coarsen_op_name(coarsen_op_name),
-              d_phys_bdry_extrap_type(phys_bdry_extrap_type),
+              d_coarsen_op_name(std::move(coarsen_op_name)),
+              d_phys_bdry_extrap_type(std::move(phys_bdry_extrap_type)),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
-              d_robin_bc_coefs(robin_bc_coefs),
+              d_robin_bc_coefs(std::move(robin_bc_coefs)),
               d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>())
         {
             // intentionally blank
@@ -163,19 +164,19 @@ public:
         inline InterpolationTransactionComponent(
             int dst_data_idx,
             int src_data_idx,
-            const std::string& refine_op_name,
+            std::string refine_op_name,
             bool use_cf_bdry_interpolation,
-            const std::string& coarsen_op_name,
-            const std::string& phys_bdry_extrap_type,
+            std::string coarsen_op_name,
+            std::string phys_bdry_extrap_type,
             bool consistent_type_2_bdry,
             SAMRAI::solv::RobinBcCoefStrategy<NDIM>* robin_bc_coef,
-            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = NULL)
+            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = nullptr)
             : d_dst_data_idx(dst_data_idx),
               d_src_data_idx(src_data_idx),
-              d_refine_op_name(refine_op_name),
+              d_refine_op_name(std::move(refine_op_name)),
               d_use_cf_bdry_interpolation(use_cf_bdry_interpolation),
-              d_coarsen_op_name(coarsen_op_name),
-              d_phys_bdry_extrap_type(phys_bdry_extrap_type),
+              d_coarsen_op_name(std::move(coarsen_op_name)),
+              d_phys_bdry_extrap_type(std::move(phys_bdry_extrap_type)),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
               d_robin_bc_coefs(robin_bc_coef ? std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1, robin_bc_coef) :
                                                std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>()),
@@ -191,21 +192,21 @@ public:
         inline InterpolationTransactionComponent(
             int dst_data_idx,
             int src_data_idx,
-            const std::string& refine_op_name,
+            std::string refine_op_name,
             bool use_cf_bdry_interpolation,
-            const std::string& coarsen_op_name,
-            const std::string& phys_bdry_extrap_type,
+            std::string coarsen_op_name,
+            std::string phys_bdry_extrap_type,
             bool consistent_type_2_bdry,
-            const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs,
-            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = NULL)
+            std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> robin_bc_coefs,
+            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = nullptr)
             : d_dst_data_idx(dst_data_idx),
               d_src_data_idx(src_data_idx),
-              d_refine_op_name(refine_op_name),
+              d_refine_op_name(std::move(refine_op_name)),
               d_use_cf_bdry_interpolation(use_cf_bdry_interpolation),
-              d_coarsen_op_name(coarsen_op_name),
-              d_phys_bdry_extrap_type(phys_bdry_extrap_type),
+              d_coarsen_op_name(std::move(coarsen_op_name)),
+              d_phys_bdry_extrap_type(std::move(phys_bdry_extrap_type)),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
-              d_robin_bc_coefs(robin_bc_coefs),
+              d_robin_bc_coefs(std::move(robin_bc_coefs)),
               d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>())
         {
             // intentionally blank
@@ -284,7 +285,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~HierarchyGhostCellInterpolation();
+    ~HierarchyGhostCellInterpolation() override;
 
     /*!
      * \brief Specify whether the boundary conditions are homogeneous.
@@ -346,7 +347,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    HierarchyGhostCellInterpolation(const HierarchyGhostCellInterpolation& from);
+    HierarchyGhostCellInterpolation(const HierarchyGhostCellInterpolation& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -357,14 +358,14 @@ private:
      *
      * \return A reference to this object.
      */
-    HierarchyGhostCellInterpolation& operator=(const HierarchyGhostCellInterpolation& that);
+    HierarchyGhostCellInterpolation& operator=(const HierarchyGhostCellInterpolation& that) = delete;
 
     // Boolean indicating whether the operator is initialized.
-    bool d_is_initialized;
+    bool d_is_initialized = false;
 
     // Boolean indicating whether the operator should use homogeneous Robin
     // boundary conditions (when applicable).
-    bool d_homogeneous_bc;
+    bool d_homogeneous_bc = false;
 
     // The component interpolation operations to perform.
     std::vector<InterpolationTransactionComponent> d_transaction_comps;
@@ -372,15 +373,15 @@ private:
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = -1, d_finest_ln = -1;
 
     // Cached communications algorithms and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;
-    SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* d_coarsen_strategy;
+    SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* d_coarsen_strategy = nullptr;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds;
 
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_refine_alg;
-    SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_refine_strategy;
+    SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_refine_strategy = nullptr;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_refine_scheds;
 
     // Cached coarse-fine boundary and physical boundary condition handlers.

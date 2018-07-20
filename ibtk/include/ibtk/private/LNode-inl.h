@@ -34,6 +34,7 @@
 #define included_IBTK_LNode_inl_h
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include <utility>
 
 #include "ibtk/LNode.h"
 #include "ibtk/StreamableManager.h"
@@ -55,7 +56,7 @@ inline LNode::LNode(const int lagrangian_nidx,
                     const SAMRAI::hier::IntVector<NDIM>& current_periodic_offset,
                     const Vector& initial_periodic_displacement,
                     const Vector& current_periodic_displacement,
-                    const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
+                    std::vector<SAMRAI::tbox::Pointer<Streamable> > node_data)
     : LNodeIndex(lagrangian_nidx,
                  global_petsc_nidx,
                  local_petsc_nidx,
@@ -63,7 +64,7 @@ inline LNode::LNode(const int lagrangian_nidx,
                  current_periodic_offset,
                  initial_periodic_displacement,
                  current_periodic_displacement),
-      d_node_data(node_data)
+      d_node_data(std::move(node_data))
 {
     setupNodeDataTypeArray();
     return;
@@ -102,8 +103,7 @@ inline void
 LNode::registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement)
 {
     LNodeIndex::registerPeriodicShift(offset, displacement);
-    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::iterator it = d_node_data.begin(); it != d_node_data.end();
-         ++it)
+    for (auto it = d_node_data.begin(); it != d_node_data.end(); ++it)
     {
         (*it)->registerPeriodicShift(offset, displacement);
     }
@@ -139,8 +139,7 @@ LNode::appendNodeDataItem(const SAMRAI::tbox::Pointer<Streamable>& node_data_ite
 inline void
 LNode::removeNodeDataItem(const SAMRAI::tbox::Pointer<Streamable>& node_data_item)
 {
-    std::vector<SAMRAI::tbox::Pointer<Streamable> >::iterator it =
-        std::find(d_node_data.begin(), d_node_data.end(), node_data_item);
+    auto it = std::find(d_node_data.begin(), d_node_data.end(), node_data_item);
     if (it != d_node_data.end())
     {
         d_node_data.erase(it);
@@ -160,7 +159,7 @@ LNode::getNodeDataItem() const
     else
     {
         const size_t node_data_sz = d_node_data.size();
-        T* ret_val = NULL;
+        T* ret_val = nullptr;
         Streamable* it_val;
         size_t k;
         for (k = 0; k < node_data_sz && !ret_val; ++k)
@@ -200,7 +199,7 @@ LNode::copySourceItem(const SAMRAI::hier::Index<NDIM>& src_index,
                       const LNodeIndex& src_item)
 {
     LNodeIndex::copySourceItem(src_index, src_offset, src_item);
-    const LNode* const p_src_item = dynamic_cast<const LNode*>(&src_item);
+    auto const p_src_item = dynamic_cast<const LNode*>(&src_item);
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_src_item);
 #endif
@@ -245,7 +244,7 @@ LNode::assignThatToThis(const LNode& that)
 inline void
 LNode::setupNodeDataTypeArray()
 {
-    std::fill(d_node_data_type_arr, d_node_data_type_arr + MAX_SIZE, static_cast<Streamable*>(NULL));
+    std::fill(d_node_data_type_arr, d_node_data_type_arr + MAX_SIZE, static_cast<Streamable*>(nullptr));
     Streamable* it_val;
     int class_id;
     for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit = d_node_data.begin();

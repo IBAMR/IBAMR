@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <iosfwd>
 #include <vector>
 
@@ -80,8 +80,8 @@ public:
         /*!
          * \brief Default constructor.
          */
-        inline LTransactionComponent(const typename LSet<T>::value_type& item = NULL, const Point& posn = Point::Zero())
-            : item(item), posn(posn)
+        inline LTransactionComponent(const typename LSet<T>::value_type& item = nullptr, Point posn = Point::Zero())
+            : item(item), posn(std::move(posn))
         {
             // intentionally blank
             return;
@@ -137,13 +137,13 @@ public:
     /*!
      * \brief Class constructor.
      */
-    LTransaction(int src_proc, int dst_proc, const std::vector<LTransactionComponent>& src_item_set);
+    LTransaction(const int src_proc, const int dst_proc, std::vector<LTransactionComponent> src_item_set);
 
     /*!
      * \brief The virtual destructor for the copy transaction releases all
      * memory associated with the transaction.
      */
-    virtual ~LTransaction();
+    ~LTransaction() override;
 
     /*!
      * \brief Return a constant reference to the source data.
@@ -168,7 +168,7 @@ public:
      * If this evaluates to false, then a different communication protocol kicks
      * in and the message size is transmitted between sides.
      */
-    virtual bool canEstimateIncomingMessageSize();
+    bool canEstimateIncomingMessageSize() override;
 
     /*!
      * \brief Return the integer buffer space (in bytes) needed for the incoming
@@ -179,45 +179,45 @@ public:
      *
      * \see canEstimateIncomingMessageSize()
      */
-    virtual int computeIncomingMessageSize();
+    int computeIncomingMessageSize() override;
 
     /*!
      * \brief Return the integer buffer space (in bytes) needed for the outgoing
      * message.
      */
-    virtual int computeOutgoingMessageSize();
+    int computeOutgoingMessageSize() override;
 
     /*!
      * \brief Return the sending processor number for the communications
      * transaction.
      */
-    virtual int getSourceProcessor();
+    int getSourceProcessor() override;
 
     /*!
      * \brief Return the receiving processor number for the communications
      * transaction.
      */
-    virtual int getDestinationProcessor();
+    int getDestinationProcessor() override;
 
     /*!
      * \brief Pack the transaction data into the message stream.
      */
-    virtual void packStream(SAMRAI::tbox::AbstractStream& stream);
+    void packStream(SAMRAI::tbox::AbstractStream& stream) override;
 
     /*!
      * \brief Unpack the transaction data from the message stream.
      */
-    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream);
+    void unpackStream(SAMRAI::tbox::AbstractStream& stream) override;
 
     /*!
      * \brief Perform the local data copy for the transaction.
      */
-    virtual void copyLocalData();
+    void copyLocalData() override;
 
     /*!
      * \brief Print out transaction information.
      */
-    virtual void printClassData(std::ostream& stream) const;
+    void printClassData(std::ostream& stream) const override;
 
 private:
     /*!
@@ -225,7 +225,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LTransaction();
+    LTransaction() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -234,7 +234,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LTransaction(const LTransaction& from);
+    LTransaction(const LTransaction& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -245,7 +245,7 @@ private:
      *
      * \return A reference to this object.
      */
-    void operator=(const LTransaction& that);
+    void operator=(const LTransaction& that) = delete;
 
     std::vector<LTransactionComponent> d_src_item_set;
     int d_src_proc;

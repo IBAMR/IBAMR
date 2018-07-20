@@ -78,12 +78,12 @@ public:
     /*!
      * \brief Constructor.
      */
-    FACPreconditionerStrategy(const std::string& object_name, bool homogeneous_bc = false);
+    FACPreconditionerStrategy(std::string object_name, bool homogeneous_bc = false);
 
     /*!
      * \brief Empty virtual desctructor.
      */
-    virtual ~FACPreconditionerStrategy();
+    ~FACPreconditionerStrategy() override;
 
     /*!
      * \brief Return the object name.
@@ -270,7 +270,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    FACPreconditionerStrategy();
+    FACPreconditionerStrategy() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -279,7 +279,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FACPreconditionerStrategy(const FACPreconditionerStrategy& from);
+    FACPreconditionerStrategy(const FACPreconditionerStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -290,7 +290,7 @@ private:
      *
      * \return A reference to this object.
      */
-    FACPreconditionerStrategy& operator=(const FACPreconditionerStrategy& that);
+    FACPreconditionerStrategy& operator=(const FACPreconditionerStrategy& that) = delete;
 };
 } // namespace IBTK
 

@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <map>
 #include <string>
 #include <vector>
@@ -86,7 +86,7 @@ public:
     /*!
      * \brief Empty destructor.
      */
-    ~muParserCartGridFunction();
+    ~muParserCartGridFunction() override;
 
     /*!
      * \name Methods to set patch interior data.
@@ -97,7 +97,7 @@ public:
      * \brief Indicates whether the concrete CartGridFunction object is
      * time-dependent.
      */
-    bool isTimeDependent() const;
+    bool isTimeDependent() const override;
 
     /*!
      * \brief Virtual function to evaluate the function on the patch interior.
@@ -108,7 +108,7 @@ public:
                         double data_time,
                         bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr)) override;
 
     //\}
 
@@ -119,7 +119,7 @@ private:
      * \note This constructor is not implemented and should not be
      * used.
      */
-    muParserCartGridFunction();
+    muParserCartGridFunction() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -128,7 +128,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    muParserCartGridFunction(const muParserCartGridFunction& from);
+    muParserCartGridFunction(const muParserCartGridFunction& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -139,7 +139,7 @@ private:
      *
      * \return A reference to this object.
      */
-    muParserCartGridFunction& operator=(const muParserCartGridFunction& that);
+    muParserCartGridFunction& operator=(const muParserCartGridFunction& that) = delete;
 
     /*!
      * The Cartesian grid geometry object provides the extents of the

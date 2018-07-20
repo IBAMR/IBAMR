@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <string>
 
 #include "PatchLevel.h"
@@ -69,12 +69,12 @@ public:
     /*!
      * \brief The default constructor sets the name of the strategy object.
      */
-    CartGridFunction(const std::string& object_name = "");
+    CartGridFunction(std::string object_name = "");
 
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual ~CartGridFunction();
+    ~CartGridFunction() override;
 
     /*!
      * \name Methods to set patch interior data.
@@ -123,8 +123,8 @@ public:
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                                 double data_time,
                                 bool initial_time = false,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >
-                                    patch_level = SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) = 0;
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr)) = 0;
 
     //\}
 
@@ -142,7 +142,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartGridFunction(const CartGridFunction& from);
+    CartGridFunction(const CartGridFunction& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -153,7 +153,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartGridFunction& operator=(const CartGridFunction& that);
+    CartGridFunction& operator=(const CartGridFunction& that) = delete;
 };
 } // namespace IBTK
 

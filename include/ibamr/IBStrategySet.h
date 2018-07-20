@@ -345,7 +345,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBStrategySet(const IBStrategySet& from);
+    IBStrategySet(const IBStrategySet& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -356,7 +356,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBStrategySet& operator=(const IBStrategySet& that);
+    IBStrategySet& operator=(const IBStrategySet& that) = delete;
 
     /*!
      * \brief The set of IBStrategy objects.

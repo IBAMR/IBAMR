@@ -87,7 +87,7 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~StreamableFactory();
+    ~StreamableFactory() override;
 
     /*!
      * \brief Return the unique class identifier used to specify the
@@ -117,7 +117,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StreamableFactory(const StreamableFactory& from);
+    StreamableFactory(const StreamableFactory& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -128,7 +128,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StreamableFactory& operator=(const StreamableFactory& that);
+    StreamableFactory& operator=(const StreamableFactory& that) = delete;
 };
 } // namespace IBTK
 

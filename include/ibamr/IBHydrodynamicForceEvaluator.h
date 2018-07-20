@@ -264,7 +264,7 @@ public:
                                           double dt,
                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_src_bc_coef =
                                               std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
-                                          SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_src_bc_coef = NULL);
+                                          SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_src_bc_coef = nullptr);
 
     /*!
      * \brief Postprocess data for the next timestep.
@@ -301,7 +301,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBHydrodynamicForceEvaluator(const IBHydrodynamicForceEvaluator& from);
+    IBHydrodynamicForceEvaluator(const IBHydrodynamicForceEvaluator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -312,7 +312,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBHydrodynamicForceEvaluator& operator=(const IBHydrodynamicForceEvaluator& that);
+    IBHydrodynamicForceEvaluator& operator=(const IBHydrodynamicForceEvaluator& that) = delete;
 
     /*!
      * \brief Reset weight of the cell face to face area.

@@ -32,9 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <cstddef>
 #include <limits>
 #include <ostream>
-#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -1077,19 +1077,19 @@ INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvecti
     const std::string& object_name,
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+    std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
     : ConvectiveOperator(object_name, difference_form),
-      d_bc_coefs(bc_coefs),
+      d_bc_coefs(std::move(bc_coefs)),
       d_bdry_extrap_type("CONSTANT"),
-      d_hierarchy(NULL),
+      d_hierarchy(nullptr),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
       d_rho_is_set(false),
       d_num_steps(1),
-      d_rho_sc_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
-      d_U_var(NULL),
+      d_rho_sc_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr)),
+      d_U_var(nullptr),
       d_U_scratch_idx(-1),
-      d_rho_sc_var(NULL),
+      d_rho_sc_var(nullptr),
       d_rho_sc_current_idx(-1),
       d_rho_sc_scratch_idx(-1),
       d_rho_sc_new_idx(-1),
@@ -1098,9 +1098,9 @@ INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvecti
       d_velocity_limiter_gcw(1),
       d_density_limiter_gcw(1),
       d_density_time_stepping_type(FORWARD_EULER),
-      d_S_var(NULL),
+      d_S_var(nullptr),
       d_S_scratch_idx(-1),
-      d_S_fcn(NULL)
+      d_S_fcn(nullptr)
 {
     if (d_difference_form != CONSERVATIVE)
     {
@@ -1321,7 +1321,7 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
 
     // Fill ghost cell values for velocity
     static const bool homogeneous_bc = false;
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps(1);
     transaction_comps[0] = InterpolationTransactionComponent(d_U_scratch_idx,
                                                              U_idx,
@@ -1333,9 +1333,9 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                                              d_bc_coefs);
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_bc_coefs, NULL, d_U_scratch_idx, -1, homogeneous_bc);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_bc_coefs, nullptr, d_U_scratch_idx, -1, homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
-    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, NULL);
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, nullptr);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Fill ghost cells for current density
@@ -1566,7 +1566,7 @@ INSVCStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMR
 #endif
 
     // Setup the interpolation transaction information.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_transaction_comps.resize(1);
     d_transaction_comps[0] = InterpolationTransactionComponent(d_U_scratch_idx,
                                                                in.getComponentDescriptorIndex(0),

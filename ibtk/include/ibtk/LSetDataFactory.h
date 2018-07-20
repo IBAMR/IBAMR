@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "Box.h"
 #include "CellGeometry.h" // IWYU pragma: keep
@@ -87,7 +87,7 @@ public:
     /*!
      * Virtual destructor for the data factory class.
      */
-    virtual ~LSetDataFactory();
+    ~LSetDataFactory() override;
 
     /*!
      * Virtual factory function to allocate a concrete data object.  The default
@@ -96,7 +96,8 @@ public:
      * some default memory pool.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
-    allocate(const SAMRAI::hier::Box<NDIM>& box, SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = NULL) const;
+    allocate(const SAMRAI::hier::Box<NDIM>& box,
+             SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = nullptr) const override;
 
     /*!
      * Virtual factory function to allocate a concrete data object.  The default
@@ -105,13 +106,14 @@ public:
      * some default memory pool.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
-    allocate(const SAMRAI::hier::Patch<NDIM>& patch, SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = NULL) const;
+    allocate(const SAMRAI::hier::Patch<NDIM>& patch,
+             SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = nullptr) const override;
 
     /*!
      * Calculate the amount of memory needed to store the data object, including
      * object data but not dynamically allocated data.
      */
-    size_t getSizeOfMemory(const SAMRAI::hier::Box<NDIM>& box) const;
+    size_t getSizeOfMemory(const SAMRAI::hier::Box<NDIM>& box) const override;
 
     /*!
      * Virtual function to clone the data factory.  This will return a new
@@ -120,14 +122,14 @@ public:
      * modifying the original.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >
-    cloneFactory(const SAMRAI::hier::IntVector<NDIM>& ghosts);
+    cloneFactory(const SAMRAI::hier::IntVector<NDIM>& ghosts) override;
 
     /*!
      * Return whether it is valid to copy this LSetDataFactory to the supplied
      * destination patch data factory. It will return true if dst_pdf is a
      * LSetDataFactory, false otherwise.
      */
-    bool validCopyTo(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >& dst_pdf) const;
+    bool validCopyTo(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >& dst_pdf) const override;
 
 private:
     /*!
@@ -135,7 +137,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LSetDataFactory();
+    LSetDataFactory() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -144,7 +146,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LSetDataFactory(const LSetDataFactory<T>& from);
+    LSetDataFactory(const LSetDataFactory<T>& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -155,7 +157,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LSetDataFactory& operator=(const LSetDataFactory<T>& that);
+    LSetDataFactory& operator=(const LSetDataFactory<T>& that) = delete;
 };
 } // namespace IBTK
 

@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -455,15 +455,15 @@ protected:
      * step to time step and, if the necessary coarsen and refine operators are
      * specified, as the patch hierarchy evolves.
      */
-    void registerVariable(
-        int& current_idx,
-        int& new_idx,
-        int& scratch_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
-        const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts = SAMRAI::hier::IntVector<NDIM>(0),
-        const std::string& coarsen_name = "NO_COARSEN",
-        const std::string& refine_name = "NO_REFINE",
-        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> init_fcn = SAMRAI::tbox::Pointer<IBTK::CartGridFunction>(NULL));
+    void registerVariable(int& current_idx,
+                          int& new_idx,
+                          int& scratch_idx,
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
+                          const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts = SAMRAI::hier::IntVector<NDIM>(0),
+                          const std::string& coarsen_name = "NO_COARSEN",
+                          const std::string& refine_name = "NO_REFINE",
+                          SAMRAI::tbox::Pointer<IBTK::CartGridFunction> init_fcn =
+                              SAMRAI::tbox::Pointer<IBTK::CartGridFunction>(nullptr));
 
     /*!
      * Register a variable with the integrator that may not be maintained from
@@ -476,28 +476,28 @@ protected:
                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
                           const SAMRAI::hier::IntVector<NDIM>& ghosts = SAMRAI::hier::IntVector<NDIM>(0),
                           SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx =
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(NULL));
+                              SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(nullptr));
 
     /*!
      * Register a ghost cell-filling refine algorithm.
      */
     void registerGhostfillRefineAlgorithm(const std::string& name,
                                           SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > ghostfill_alg,
-                                          SAMRAI::xfer::RefinePatchStrategy<NDIM>* ghostfill_patch_strategy = NULL);
+                                          SAMRAI::xfer::RefinePatchStrategy<NDIM>* ghostfill_patch_strategy = nullptr);
 
     /*!
      * Register a data-prolonging refine algorithm.
      */
     void registerProlongRefineAlgorithm(const std::string& name,
                                         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > prolong_alg,
-                                        SAMRAI::xfer::RefinePatchStrategy<NDIM>* prolong_patch_strategy = NULL);
+                                        SAMRAI::xfer::RefinePatchStrategy<NDIM>* prolong_patch_strategy = nullptr);
 
     /*!
      * Register a coarsen algorithm.
      */
     void registerCoarsenAlgorithm(const std::string& name,
                                   SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > coarsen_alg,
-                                  SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy = NULL);
+                                  SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy = nullptr);
 
     /*!
      * Get ghost cell-filling refine algorithm.
@@ -541,12 +541,12 @@ protected:
     /*!
      * The IBHierarchyIntegrator object that is using this strategy class.
      */
-    IBHierarchyIntegrator* d_ib_solver;
+    IBHierarchyIntegrator* d_ib_solver = nullptr;
 
     /*!
      * Whether to use "fixed" Lagrangian-Eulerian coupling operators.
      */
-    bool d_use_fixed_coupling_ops;
+    bool d_use_fixed_coupling_ops = false;
 
 private:
     /*!
@@ -556,7 +556,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBStrategy(const IBStrategy& from);
+    IBStrategy(const IBStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -567,7 +567,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBStrategy& operator=(const IBStrategy& that);
+    IBStrategy& operator=(const IBStrategy& that) = delete;
 };
 } // namespace IBAMR
 

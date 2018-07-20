@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -85,7 +85,7 @@ public:
      * \brief This constructor creates Variable and VariableContext objects for
      * storing the stochastic fluxes at the faces of the Cartesian grid.
      */
-    AdvDiffStochasticForcing(const std::string& object_name,
+    AdvDiffStochasticForcing(std::string object_name,
                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > C_var,
                              const AdvDiffSemiImplicitHierarchyIntegrator* adv_diff_solver);
@@ -127,7 +127,7 @@ public:
                         const double data_time,
                         const bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr));
 
     //\}
 
@@ -143,7 +143,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvDiffStochasticForcing();
+    AdvDiffStochasticForcing() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -152,7 +152,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffStochasticForcing(const AdvDiffStochasticForcing& from);
+    AdvDiffStochasticForcing(const AdvDiffStochasticForcing& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -163,7 +163,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffStochasticForcing& operator=(const AdvDiffStochasticForcing& that);
+    AdvDiffStochasticForcing& operator=(const AdvDiffStochasticForcing& that) = delete;
 
     /*!
      * Pointer to the concentration variable associated with this source term

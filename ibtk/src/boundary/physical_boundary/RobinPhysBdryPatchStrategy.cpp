@@ -65,7 +65,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-RobinPhysBdryPatchStrategy::RobinPhysBdryPatchStrategy() : d_patch_data_indices(), d_bc_coefs(), d_homogeneous_bc(false)
+RobinPhysBdryPatchStrategy::RobinPhysBdryPatchStrategy() : d_patch_data_indices(), d_bc_coefs()
 {
     // intentionally blank
     return;

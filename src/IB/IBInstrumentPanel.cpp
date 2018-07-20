@@ -32,10 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
 #include <algorithm>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
 #include <fstream>
 #include <limits>
 #include <map>
@@ -130,8 +130,8 @@ void init_meter_elements(boost::multi_array<Point, 2>& X_web,
     TBOX_ASSERT(X_web.shape()[0] == X_perimeter.shape()[0]);
     TBOX_ASSERT(dA_web.shape()[0] == X_perimeter.shape()[0]);
 #endif
-    const int num_perimeter_nodes = static_cast<int>(X_web.shape()[0]);
-    const int num_web_nodes = static_cast<int>(X_web.shape()[1]);
+    const auto num_perimeter_nodes = static_cast<int>(X_web.shape()[0]);
+    const auto num_web_nodes = static_cast<int>(X_web.shape()[1]);
     for (int m = 0; m < num_perimeter_nodes; ++m)
     {
         const Point& X_perimeter0(X_perimeter[m]);
@@ -211,7 +211,7 @@ compute_flow_correction(const boost::multi_array<Vector, 1>& U_perimeter,
     NULL_USE(X_centroid);
 #endif
 #if (NDIM == 3)
-    const int num_perimeter_nodes = static_cast<int>(X_perimeter.shape()[0]);
+    const auto num_perimeter_nodes = static_cast<int>(X_perimeter.shape()[0]);
     for (int m = 0; m < num_perimeter_nodes; ++m)
     {
         const Vector& U_perimeter0(U_perimeter[m]);
@@ -246,7 +246,7 @@ build_meter_web(DBfile* dbfile,
                 const int timestep,
                 const double simulation_time)
 {
-    const int npoints = static_cast<int>(X_web.num_elements());
+    const auto npoints = static_cast<int>(X_web.num_elements());
 
     std::vector<float> block_X(NDIM * npoints);
     std::vector<float> block_dA(NDIM * npoints);
@@ -275,7 +275,7 @@ build_meter_web(DBfile* dbfile,
 
     // Write out the variables.
     int cycle = timestep;
-    float time = float(simulation_time);
+    auto time = float(simulation_time);
     double dtime = simulation_time;
 
     static const int MAX_OPTS = 3;
@@ -512,8 +512,8 @@ linear_interp(const Point& X,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBInstrumentPanel::IBInstrumentPanel(const std::string& object_name, Pointer<Database> input_db)
-    : d_object_name(object_name),
+IBInstrumentPanel::IBInstrumentPanel(std::string object_name, Pointer<Database> input_db)
+    : d_object_name(std::move(object_name)),
       d_initialized(false),
       d_num_meters(0),
       d_num_perimeter_nodes(),
@@ -631,9 +631,8 @@ IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarc
         {
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            for (auto node_idx : local_nodes)
             {
-                const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
                 if (spec)
                 {
@@ -657,7 +656,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarc
     {
         d_num_perimeter_nodes[m] = max_node_index[m] + 1;
     }
-    SAMRAI_MPI::maxReduction(d_num_meters > 0 ? &d_num_perimeter_nodes[0] : NULL, d_num_meters);
+    SAMRAI_MPI::maxReduction(d_num_meters > 0 ? &d_num_perimeter_nodes[0] : nullptr, d_num_meters);
 #if !defined(NDEBUG)
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
@@ -776,9 +775,8 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
             // Store the local positions of the perimeter nodes.
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            for (auto node_idx : local_nodes)
             {
-                const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
                 if (spec)
                 {
@@ -896,7 +894,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
         }
 
         Pointer<PatchLevel<NDIM> > finer_level =
-            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel<NDIM> >(NULL));
+            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel<NDIM> >(nullptr));
         const IntVector<NDIM>& finer_ratio = (ln < finest_ln ? finer_level->getRatio() : IntVector<NDIM>(1));
         const Box<NDIM> finer_domain_box_level = Box<NDIM>::refine(domain_box, finer_ratio);
         const Index<NDIM>& finer_domain_box_level_lower = finer_domain_box_level.lower();
@@ -1039,7 +1037,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                            );
                     if (U_cc_data)
                     {
-                        for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
+                        for (auto it = patch_range.first; it != patch_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
@@ -1051,7 +1049,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                     }
                     if (U_sc_data)
                     {
-                        for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
+                        for (auto it = patch_range.first; it != patch_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
@@ -1063,7 +1061,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                     }
                     if (P_cc_data)
                     {
-                        for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
+                        for (auto it = patch_range.first; it != patch_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
@@ -1089,8 +1087,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                            );
                     if (P_cc_data)
                     {
-                        for (WebCentroidMap::const_iterator it = centroid_range.first; it != centroid_range.second;
-                             ++it)
+                        for (auto it = centroid_range.first; it != centroid_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
@@ -1141,9 +1138,8 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
             // Store the local velocities of the perimeter nodes.
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            for (auto node_idx : local_nodes)
             {
-                const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
                 if (spec)
                 {
@@ -1279,7 +1275,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
     current_file_name += temp_buf;
     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
-    if (!(dbfile = DBCreate(current_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)))
+    if (!(dbfile = DBCreate(current_file_name.c_str(), DB_CLOBBER, DB_LOCAL, nullptr, DB_PDB)))
     {
         TBOX_ERROR(d_object_name + "::writePlotData():\n"
                    << "  Could not create DBfile named "
@@ -1313,7 +1309,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
         sprintf(temp_buf, "%06d", d_instrument_read_timestep_num);
         std::string summary_file_name =
             dump_dirname + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
-        if (!(dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)))
+        if (!(dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, nullptr, DB_PDB)))
         {
             TBOX_ERROR(d_object_name + "::writePlotData():\n"
                        << "  Could not create DBfile named "
@@ -1322,7 +1318,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
         }
 
         int cycle = timestep_num;
-        float time = float(simulation_time);
+        auto time = float(simulation_time);
         double dtime = simulation_time;
 
         static const int MAX_OPTS = 3;
@@ -1340,7 +1336,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
             current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
             std::string meshname = current_file_name + ":" + d_instrument_names[meter] + "/mesh";
-            char* meshname_ptr = const_cast<char*>(meshname.c_str());
+            auto meshname_ptr = const_cast<char*>(meshname.c_str());
             int meshtype = DB_POINTMESH;
 
             std::string meter_name = d_instrument_names[meter];
@@ -1356,7 +1352,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
             }
 
             std::string varname = current_file_name + ":" + d_instrument_names[meter] + "/scaled_normal";
-            char* varname_ptr = const_cast<char*>(varname.c_str());
+            auto varname_ptr = const_cast<char*>(varname.c_str());
             int vartype = DB_POINTVAR;
 
             std::string var_name = d_instrument_names[meter] + "_normal";

@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -299,25 +299,24 @@ static Timer* t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(
-    const std::string& object_name,
-    Pointer<CellVariable<NDIM, double> > Q_var,
-    Pointer<Database> input_db,
-    const ConvectiveDifferencingType difference_form,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(const std::string& object_name,
+                                                                     Pointer<CellVariable<NDIM, double> > Q_var,
+                                                                     Pointer<Database> input_db,
+                                                                     const ConvectiveDifferencingType difference_form,
+                                                                     std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
     : ConvectiveOperator(object_name, difference_form),
-      d_ghostfill_alg(NULL),
+      d_ghostfill_alg(nullptr),
       d_ghostfill_scheds(),
-      d_bc_coefs(bc_coefs),
+      d_bc_coefs(std::move(bc_coefs)),
       d_outflow_bdry_extrap_type("CONSTANT"),
-      d_hierarchy(NULL),
+      d_hierarchy(nullptr),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
       d_Q_var(Q_var),
       d_Q_data_depth(0),
       d_Q_scratch_idx(-1),
-      d_q_extrap_var(NULL),
-      d_q_flux_var(NULL),
+      d_q_extrap_var(nullptr),
+      d_q_flux_var(nullptr),
       d_q_extrap_idx(-1),
       d_q_flux_idx(-1)
 {

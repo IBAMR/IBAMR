@@ -45,7 +45,6 @@
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/libmesh_utilities.h"
-#include "libmesh/auto_ptr.h"
 #include "libmesh/dof_map.h"
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
@@ -64,6 +63,7 @@
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
 #include "tbox/Utilities.h"
+#include <memory>
 
 namespace libMesh
 {
@@ -172,14 +172,14 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
     const int dim = mesh.mesh_dimension();
-    UniquePtr<QBase> qrule = QBase::build(QGAUSS, NDIM, CONSTANT);
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, NDIM, CONSTANT);
 
     // Set up all system data required to evaluate the mesh functions.
     FEDataInterpolation fe(dim, d_fe_data_manager);
     fe.attachQuadratureRule(qrule.get());
     fe.evalQuadraturePoints();
 
-    System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+    auto& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
     X_system.solution->localize(*X_system.current_local_solution);
     NumericVector<double>& X_data = *(X_system.current_local_solution);
     X_data.close();

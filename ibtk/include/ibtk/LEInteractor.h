@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <iosfwd>
 #include <string>
 #include <vector>
@@ -1219,14 +1219,14 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LEInteractor();
+    LEInteractor() = delete;
 
     /*!
      * \brief Default destructor constructor.
      *
      * \note This destructor is not implemented and should not be used.
      */
-    ~LEInteractor();
+    ~LEInteractor() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -1235,7 +1235,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LEInteractor(const LEInteractor& from);
+    LEInteractor(const LEInteractor& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -1246,7 +1246,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LEInteractor& operator=(const LEInteractor& that);
+    LEInteractor& operator=(const LEInteractor& that) = delete;
 
     /*!
      * Implementation of the IB interpolation operation.

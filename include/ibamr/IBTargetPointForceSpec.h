@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
@@ -97,7 +97,7 @@ public:
     IBTargetPointForceSpec(int master_idx = -1,
                            double kappa_target = 0.0,
                            double eta_target = 0.0,
-                           const IBTK::Point& X_target = IBTK::Point::Zero());
+                           IBTK::Point X_target = IBTK::Point::Zero());
 
     /*!
      * \brief Destructor.
@@ -176,7 +176,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBTargetPointForceSpec(const IBTargetPointForceSpec& from);
+    IBTargetPointForceSpec(const IBTargetPointForceSpec& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -187,7 +187,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBTargetPointForceSpec& operator=(const IBTargetPointForceSpec& that);
+    IBTargetPointForceSpec& operator=(const IBTargetPointForceSpec& that) = delete;
 
     /*!
      * Data required to define the target point penalty forces.
@@ -242,7 +242,7 @@ private:
          *
          * \param from The value to copy to this object.
          */
-        Factory(const Factory& from);
+        Factory(const Factory& from) = delete;
 
         /*!
          * \brief Assignment operator.
@@ -253,7 +253,7 @@ private:
          *
          * \return A reference to this object.
          */
-        Factory& operator=(const Factory& that);
+        Factory& operator=(const Factory& that) = delete;
 
         friend class IBTargetPointForceSpec;
     };

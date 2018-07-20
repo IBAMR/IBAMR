@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -77,13 +77,11 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SideDataSynchronization::SideDataSynchronization()
-    : d_is_initialized(false),
-      d_transaction_comps(),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_coarsen_alg(NULL),
+    : d_transaction_comps(),
+
+      d_coarsen_alg(nullptr),
       d_coarsen_scheds(),
-      d_refine_alg(NULL),
+      d_refine_alg(nullptr),
       d_refine_scheds()
 {
     // intentionally blank
@@ -128,12 +126,12 @@ SideDataSynchronization::initializeOperatorState(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (auto& d_transaction_comp : d_transaction_comps)
     {
-        const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
+        const std::string& coarsen_op_name = d_transaction_comp.d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
         {
-            const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
+            const int data_idx = d_transaction_comp.d_data_idx;
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
 #if !defined(NDEBUG)
@@ -150,7 +148,7 @@ SideDataSynchronization::initializeOperatorState(
         }
     }
 
-    CoarsenPatchStrategy<NDIM>* coarsen_strategy = NULL;
+    CoarsenPatchStrategy<NDIM>* coarsen_strategy = nullptr;
     d_coarsen_scheds.resize(d_finest_ln + 1);
     if (registered_coarsen_op)
     {
@@ -164,9 +162,9 @@ SideDataSynchronization::initializeOperatorState(
 
     // Setup cached refine algorithms and schedules.
     d_refine_alg = new RefineAlgorithm<NDIM>();
-    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (auto& d_transaction_comp : d_transaction_comps)
     {
-        const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
+        const int data_idx = d_transaction_comp.d_data_idx;
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(data_idx, var);
         Pointer<SideVariable<NDIM, double> > sc_var = var;
@@ -176,7 +174,7 @@ SideDataSynchronization::initializeOperatorState(
                        << "  only double-precision side-centered data is supported."
                        << std::endl);
         }
-        Pointer<RefineOperator<NDIM> > refine_op = NULL;
+        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();
         d_refine_alg->registerRefine(data_idx, // destination
                                      data_idx, // source
@@ -234,12 +232,12 @@ SideDataSynchronization::resetTransactionComponents(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (auto& d_transaction_comp : d_transaction_comps)
     {
-        const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
+        const std::string& coarsen_op_name = d_transaction_comp.d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
         {
-            const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
+            const int data_idx = d_transaction_comp.d_data_idx;
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
 #if !defined(NDEBUG)
@@ -266,9 +264,9 @@ SideDataSynchronization::resetTransactionComponents(
 
     // Reset cached refine algorithms and schedules.
     d_refine_alg = new RefineAlgorithm<NDIM>();
-    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (auto& d_transaction_comp : d_transaction_comps)
     {
-        const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
+        const int data_idx = d_transaction_comp.d_data_idx;
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(data_idx, var);
         Pointer<SideVariable<NDIM, double> > sc_var = var;
@@ -278,7 +276,7 @@ SideDataSynchronization::resetTransactionComponents(
                        << "  only double-precision side-centered data is supported."
                        << std::endl);
         }
-        Pointer<RefineOperator<NDIM> > refine_op = NULL;
+        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();
         d_refine_alg->registerRefine(data_idx, // destination
                                      data_idx, // source

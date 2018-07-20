@@ -33,7 +33,7 @@
 #ifndef included_IBAMR_INSStaggeredStochasticForcing
 #define included_IBAMR_INSStaggeredStochasticForcing
 
-#include <stddef.h>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -87,7 +87,7 @@ public:
      * storing the stochastic stresses at the centers and nodes of the Cartesian
      * grid.
      */
-    INSStaggeredStochasticForcing(const std::string& object_name,
+    INSStaggeredStochasticForcing(std::string object_name,
                                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                   const INSStaggeredHierarchyIntegrator* fluid_solver);
 
@@ -128,7 +128,7 @@ public:
                         const double data_time,
                         const bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr));
 
     //\}
 
@@ -144,7 +144,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredStochasticForcing();
+    INSStaggeredStochasticForcing() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -153,7 +153,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredStochasticForcing(const INSStaggeredStochasticForcing& from);
+    INSStaggeredStochasticForcing(const INSStaggeredStochasticForcing& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -164,7 +164,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredStochasticForcing& operator=(const INSStaggeredStochasticForcing& that);
+    INSStaggeredStochasticForcing& operator=(const INSStaggeredStochasticForcing& that) = delete;
 
     /*!
      * Pointer to the fluid solver object that is using this stochastic force

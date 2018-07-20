@@ -115,18 +115,18 @@ protected:
     /*
      * Problem coefficients.
      */
-    const StokesSpecifications* d_problem_coefs;
+    const StokesSpecifications* d_problem_coefs = nullptr;
 
     /*!
      * Patch data indices.
      */
-    int d_u_target_data_idx, d_p_target_data_idx;
+    int d_u_target_data_idx = -1, d_p_target_data_idx = -1;
 
     /*
      * The type of traction boundary conditions.  Supported options are:
      * TRACTION_BOUNDARY_CONDITIONS and PSEUDO_TRACTION_BOUNDARY_CONDITIONS.
      */
-    TractionBcType d_traction_bc_type;
+    TractionBcType d_traction_bc_type = TRACTION;
 
 private:
     /*!
@@ -136,7 +136,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StokesBcCoefStrategy(const StokesBcCoefStrategy& from);
+    StokesBcCoefStrategy(const StokesBcCoefStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -147,7 +147,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StokesBcCoefStrategy& operator=(const StokesBcCoefStrategy& that);
+    StokesBcCoefStrategy& operator=(const StokesBcCoefStrategy& that) = delete;
 };
 } // namespace IBAMR
 

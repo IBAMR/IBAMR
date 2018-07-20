@@ -69,7 +69,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~PETScMatLOWrapper();
+    ~PETScMatLOWrapper() override;
 
     /*!
      * \name Functions to access the underlying PETSc object.
@@ -110,7 +110,8 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
     /*!
      * \brief Compute z=Ax+y.
@@ -137,7 +138,7 @@ public:
      */
     void applyAdd(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& z);
+                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& z) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
@@ -170,7 +171,7 @@ public:
      * \param out output vector
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -182,7 +183,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void deallocateOperatorState();
+    void deallocateOperatorState() override;
 
     //\}
 
@@ -192,7 +193,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PETScMatLOWrapper();
+    PETScMatLOWrapper() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -201,7 +202,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScMatLOWrapper(const PETScMatLOWrapper& from);
+    PETScMatLOWrapper(const PETScMatLOWrapper& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -212,7 +213,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScMatLOWrapper& operator=(const PETScMatLOWrapper& that);
+    PETScMatLOWrapper& operator=(const PETScMatLOWrapper& that) = delete;
 
     const Mat d_petsc_mat;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_y, d_z;

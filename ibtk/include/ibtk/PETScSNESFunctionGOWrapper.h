@@ -71,7 +71,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~PETScSNESFunctionGOWrapper();
+    ~PETScSNESFunctionGOWrapper() override;
 
     /*!
      * \name Functions to access the underlying PETSc function.
@@ -124,7 +124,8 @@ public:
      * \param x input
      * \param y output: y=F[x]
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=F[x].
@@ -156,7 +157,7 @@ public:
      * \param out output vector
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -168,7 +169,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void deallocateOperatorState();
+    void deallocateOperatorState() override;
 
     //\}
 
@@ -178,7 +179,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PETScSNESFunctionGOWrapper();
+    PETScSNESFunctionGOWrapper() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -187,7 +188,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScSNESFunctionGOWrapper(const PETScSNESFunctionGOWrapper& from);
+    PETScSNESFunctionGOWrapper(const PETScSNESFunctionGOWrapper& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -198,7 +199,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScSNESFunctionGOWrapper& operator=(const PETScSNESFunctionGOWrapper& that);
+    PETScSNESFunctionGOWrapper& operator=(const PETScSNESFunctionGOWrapper& that) = delete;
 
     const SNES d_petsc_snes;
     PetscErrorCode (*const d_petsc_snes_form_func)(SNES, Vec, Vec, void*);

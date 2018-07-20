@@ -255,7 +255,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSCollocatedVelocityBcCoef();
+    INSCollocatedVelocityBcCoef() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -264,7 +264,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSCollocatedVelocityBcCoef(const INSCollocatedVelocityBcCoef& from);
+    INSCollocatedVelocityBcCoef(const INSCollocatedVelocityBcCoef& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -275,7 +275,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSCollocatedVelocityBcCoef& operator=(const INSCollocatedVelocityBcCoef& that);
+    INSCollocatedVelocityBcCoef& operator=(const INSCollocatedVelocityBcCoef& that) = delete;
 
     /*
      * Component of the velocity which this boundary condition specification is

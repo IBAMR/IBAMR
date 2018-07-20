@@ -34,6 +34,7 @@
 #define included_IBTK_LNodeIndex_inl_h
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include <utility>
 
 #include "ibtk/LNodeIndex.h"
 #include "tbox/AbstractStream.h"
@@ -49,15 +50,15 @@ inline LNodeIndex::LNodeIndex(const int lagrangian_nidx,
                               const int local_petsc_nidx,
                               const SAMRAI::hier::IntVector<NDIM>& initial_periodic_offset,
                               const SAMRAI::hier::IntVector<NDIM>& current_periodic_offset,
-                              const Vector& initial_periodic_displacement,
-                              const Vector& current_periodic_displacement)
+                              Vector initial_periodic_displacement,
+                              Vector current_periodic_displacement)
     : d_lagrangian_nidx(lagrangian_nidx),
       d_global_petsc_nidx(global_petsc_nidx),
       d_local_petsc_nidx(local_petsc_nidx),
       d_offset_0(initial_periodic_offset),
       d_offset(current_periodic_offset),
-      d_displacement_0(initial_periodic_displacement),
-      d_displacement(current_periodic_displacement)
+      d_displacement_0(std::move(initial_periodic_displacement)),
+      d_displacement(std::move(current_periodic_displacement))
 {
     // intentionally blank
     return;

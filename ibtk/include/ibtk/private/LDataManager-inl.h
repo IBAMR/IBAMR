@@ -165,7 +165,7 @@ LDataManager::getLagrangianStructureNames(const int level_number) const
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 #endif
     std::vector<std::string> ret_val;
-    for (std::map<int, std::string>::const_iterator cit(d_strct_id_to_strct_name_map[level_number].begin());
+    for (auto cit(d_strct_id_to_strct_name_map[level_number].begin());
          cit != d_strct_id_to_strct_name_map[level_number].end();
          ++cit)
     {
@@ -181,7 +181,7 @@ LDataManager::getLagrangianStructureIDs(const int level_number) const
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 #endif
     std::vector<int> ret_val;
-    for (std::map<std::string, int>::const_iterator cit(d_strct_name_to_strct_id_map[level_number].begin());
+    for (auto cit(d_strct_name_to_strct_id_map[level_number].begin());
          cit != d_strct_name_to_strct_id_map[level_number].end();
          ++cit)
     {
@@ -196,7 +196,7 @@ LDataManager::getLagrangianStructureID(const int lagrangian_index, const int lev
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 #endif
-    std::map<int, int>::const_iterator cit = d_last_lag_idx_to_strct_id_map[level_number].lower_bound(lagrangian_index);
+    auto cit = d_last_lag_idx_to_strct_id_map[level_number].lower_bound(lagrangian_index);
     if (UNLIKELY(cit == d_last_lag_idx_to_strct_id_map[level_number].end())) return -1;
     const int strct_id = cit->second;
 #if !defined(NDEBUG)
@@ -212,7 +212,7 @@ LDataManager::getLagrangianStructureID(const std::string& structure_name, const 
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 #endif
-    std::map<std::string, int>::const_iterator cit = d_strct_name_to_strct_id_map[level_number].find(structure_name);
+    auto cit = d_strct_name_to_strct_id_map[level_number].find(structure_name);
     if (UNLIKELY(cit == d_strct_name_to_strct_id_map[level_number].end())) return -1;
     return cit->second;
 } // getLagrangianStructureID
@@ -223,7 +223,7 @@ LDataManager::getLagrangianStructureName(const int structure_id, const int level
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 #endif
-    std::map<int, std::string>::const_iterator cit = d_strct_id_to_strct_name_map[level_number].find(structure_id);
+    auto cit = d_strct_id_to_strct_name_map[level_number].find(structure_id);
     if (UNLIKELY(cit == d_strct_id_to_strct_name_map[level_number].end())) return std::string("UNKNOWN");
     return cit->second;
 } // getLagrangianStructureName
@@ -234,8 +234,7 @@ LDataManager::getLagrangianStructureIndexRange(const int structure_id, const int
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 #endif
-    std::map<int, std::pair<int, int> >::const_iterator cit =
-        d_strct_id_to_lag_idx_range_map[level_number].find(structure_id);
+    auto cit = d_strct_id_to_lag_idx_range_map[level_number].find(structure_id);
     if (UNLIKELY(cit == d_strct_id_to_lag_idx_range_map[level_number].end())) return std::make_pair(-1, -1);
     return cit->second;
 } // getLagrangianStructureIndexRange
@@ -246,7 +245,7 @@ LDataManager::getLagrangianStructureIsActivated(const int structure_id, const in
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 #endif
-    std::set<int>::const_iterator cit = d_inactive_strcts[level_number].getSet().find(structure_id);
+    auto cit = d_inactive_strcts[level_number].getSet().find(structure_id);
     return (cit == d_inactive_strcts[level_number].getSet().end());
 } // getLagrangianStructureIsActivated
 

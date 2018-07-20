@@ -84,7 +84,7 @@ public:
      * \brief Constructor.
      */
     FastSweepingLSMethod(const std::string& object_name,
-                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = NULL,
+                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = nullptr,
                          bool register_for_restart = true);
 
     /*!
@@ -137,7 +137,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FastSweepingLSMethod(const FastSweepingLSMethod& from);
+    FastSweepingLSMethod(const FastSweepingLSMethod& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -148,7 +148,7 @@ private:
      *
      * \return A reference to this object.
      */
-    FastSweepingLSMethod& operator=(const FastSweepingLSMethod& that);
+    FastSweepingLSMethod& operator=(const FastSweepingLSMethod& that) = delete;
 };
 } // namespace IBAMR
 

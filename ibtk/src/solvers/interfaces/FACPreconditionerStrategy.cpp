@@ -54,8 +54,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FACPreconditionerStrategy::FACPreconditionerStrategy(const std::string& object_name, bool homogeneous_bc)
-    : d_object_name(object_name),
+FACPreconditionerStrategy::FACPreconditionerStrategy(std::string object_name, bool homogeneous_bc)
+    : d_object_name(std::move(object_name)),
       d_is_initialized(false),
       d_homogeneous_bc(homogeneous_bc),
       d_solution_time(std::numeric_limits<double>::quiet_NaN()),

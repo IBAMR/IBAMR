@@ -155,7 +155,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvDiffPredictorCorrectorHyperbolicPatchOps();
+    AdvDiffPredictorCorrectorHyperbolicPatchOps() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -164,7 +164,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffPredictorCorrectorHyperbolicPatchOps(const AdvDiffPredictorCorrectorHyperbolicPatchOps& from);
+    AdvDiffPredictorCorrectorHyperbolicPatchOps(const AdvDiffPredictorCorrectorHyperbolicPatchOps& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -175,7 +175,8 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffPredictorCorrectorHyperbolicPatchOps& operator=(const AdvDiffPredictorCorrectorHyperbolicPatchOps& that);
+    AdvDiffPredictorCorrectorHyperbolicPatchOps&
+    operator=(const AdvDiffPredictorCorrectorHyperbolicPatchOps& that) = delete;
 };
 } // namespace IBAMR
 

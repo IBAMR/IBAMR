@@ -214,7 +214,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSVCStaggeredNonConservativeHierarchyIntegrator();
+    INSVCStaggeredNonConservativeHierarchyIntegrator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -223,7 +223,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSVCStaggeredNonConservativeHierarchyIntegrator(const INSVCStaggeredNonConservativeHierarchyIntegrator& from);
+    INSVCStaggeredNonConservativeHierarchyIntegrator(const INSVCStaggeredNonConservativeHierarchyIntegrator& from) =
+        delete;
 
     /*!
      * \brief Assignment operator.
@@ -235,7 +236,7 @@ private:
      * \return A reference to this object.
      */
     INSVCStaggeredNonConservativeHierarchyIntegrator&
-    operator=(const INSVCStaggeredNonConservativeHierarchyIntegrator& that);
+    operator=(const INSVCStaggeredNonConservativeHierarchyIntegrator& that) = delete;
 
     /*!
      * Determine the convective time stepping type for the current time step and

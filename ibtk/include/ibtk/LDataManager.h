@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <map>
 #include <ostream>
 #include <string>
@@ -842,8 +842,8 @@ public:
                              bool can_be_refined,
                              bool initial_time,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
-                             bool allocate_data = true);
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(nullptr),
+                             bool allocate_data = true) override;
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
@@ -862,7 +862,7 @@ public:
      */
     void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                      int coarsest_ln,
-                                     int finest_ln);
+                                     int finest_ln) override;
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -887,14 +887,14 @@ public:
                                double error_data_time,
                                int tag_index,
                                bool initial_time,
-                               bool uses_richardson_extrapolation_too);
+                               bool uses_richardson_extrapolation_too) override;
 
     /*!
      * Write out object state to the given database.
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*!
      * Register user defined Lagrangian data to be maintained
@@ -908,8 +908,8 @@ protected:
      * \brief Constructor.
      */
     LDataManager(const std::string& object_name,
-                 const std::string& default_interp_kernel_fcn,
-                 const std::string& default_spread_kernel_fcn,
+                 std::string default_interp_kernel_fcn,
+                 std::string default_spread_kernel_fcn,
                  bool error_if_points_leave_domain,
                  const SAMRAI::hier::IntVector<NDIM>& ghost_width,
                  bool register_for_restart = true);
@@ -918,7 +918,7 @@ protected:
      * \brief The LDataManager destructor cleans up any remaining PETSc AO
      * objects.
      */
-    ~LDataManager();
+    ~LDataManager() override;
 
 private:
     /*!

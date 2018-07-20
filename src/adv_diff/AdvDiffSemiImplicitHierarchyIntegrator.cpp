@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
+#include <cstddef>
 #include <deque>
 #include <map>
 #include <ostream>
@@ -253,7 +253,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(Pointer<Cell
     d_Q_init_convective_time_stepping_type[Q_var] = d_default_init_convective_time_stepping_type;
     d_Q_convective_op_type[Q_var] = d_default_convective_op_type;
     d_Q_convective_op_input_db[Q_var] = d_default_convective_op_input_db;
-    d_Q_convective_op[Q_var] = NULL;
+    d_Q_convective_op[Q_var] = nullptr;
     d_Q_convective_op_needs_init[Q_var] = false;
     return;
 } // registerTransportedQuantity
@@ -378,9 +378,9 @@ AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperator(Pointer<CellVariab
 void
 AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorsNeedInit()
 {
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::iterator it = d_Q_var.begin(); it != d_Q_var.end(); ++it)
+    for (auto& Q_var : d_Q_var)
     {
-        setConvectiveOperatorNeedsInit(*it);
+        setConvectiveOperatorNeedsInit(Q_var);
     }
     return;
 }
@@ -465,11 +465,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::getNumberOfCycles() const
     int num_cycles = d_num_cycles;
     if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
     {
-        for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin();
-             cit != d_Q_var.end();
-             ++cit)
+        for (auto Q_var : d_Q_var)
         {
-            Pointer<CellVariable<NDIM, double> > Q_var = *cit;
             if (!d_Q_u_map.find(Q_var)->second) continue;
             if (is_multistep_time_stepping_type(d_Q_convective_time_stepping_type.find(Q_var)->second) &&
                 d_Q_init_convective_time_stepping_type.find(Q_var)->second != FORWARD_EULER)
@@ -906,9 +903,9 @@ AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
     // Determine the CFL number.
     double cfl_max = 0.0;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    for (unsigned int k = 0; k < d_u_var.size(); ++k)
+    for (const auto& u_var : d_u_var)
     {
-        const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_var[k], getNewContext());
+        const int u_new_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
         PatchFaceDataOpsReal<NDIM, double> patch_fc_ops;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {

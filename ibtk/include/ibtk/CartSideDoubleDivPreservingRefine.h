@@ -78,7 +78,7 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~CartSideDoubleDivPreservingRefine();
+    ~CartSideDoubleDivPreservingRefine() override;
 
     /*!
      * \brief The number of required ghost cells.
@@ -107,16 +107,16 @@ public:
      *all
      *registered scratch components.
      */
-    virtual void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
-                                               double fill_time,
-                                               const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+    void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+                                       double fill_time,
+                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    virtual SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const;
+    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const override;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -135,10 +135,10 @@ public:
      *fine
      *patches.
      */
-    virtual void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
-                                  const SAMRAI::hier::Patch<NDIM>& coarse,
-                                  const SAMRAI::hier::Box<NDIM>& fine_box,
-                                  const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
+                          const SAMRAI::hier::Patch<NDIM>& coarse,
+                          const SAMRAI::hier::Box<NDIM>& fine_box,
+                          const SAMRAI::hier::IntVector<NDIM>& ratio) override;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -157,10 +157,10 @@ public:
      *fine
      *patches.
      */
-    virtual void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
-                                   const SAMRAI::hier::Patch<NDIM>& coarse,
-                                   const SAMRAI::hier::Box<NDIM>& fine_box,
-                                   const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
+                           const SAMRAI::hier::Patch<NDIM>& coarse,
+                           const SAMRAI::hier::Box<NDIM>& fine_box,
+                           const SAMRAI::hier::IntVector<NDIM>& ratio) override;
 
     //\}
 
@@ -171,7 +171,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CartSideDoubleDivPreservingRefine();
+    CartSideDoubleDivPreservingRefine() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -180,7 +180,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartSideDoubleDivPreservingRefine(const CartSideDoubleDivPreservingRefine& from);
+    CartSideDoubleDivPreservingRefine(const CartSideDoubleDivPreservingRefine& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -191,7 +191,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartSideDoubleDivPreservingRefine& operator=(const CartSideDoubleDivPreservingRefine& that);
+    CartSideDoubleDivPreservingRefine& operator=(const CartSideDoubleDivPreservingRefine& that) = delete;
 
     /*!
      * Patch data indices.

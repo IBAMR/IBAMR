@@ -150,7 +150,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PETScVecUtilities();
+    PETScVecUtilities() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -159,7 +159,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScVecUtilities(const PETScVecUtilities& from);
+    PETScVecUtilities(const PETScVecUtilities& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -170,7 +170,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScVecUtilities& operator=(const PETScVecUtilities& that);
+    PETScVecUtilities& operator=(const PETScVecUtilities& that) = delete;
 
     /*!
      * \brief Implementation of copyToPatchLevelVec() for cell-centered data.

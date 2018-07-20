@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <vector>
 
 #include "IntVector.h"
@@ -77,15 +77,15 @@ public:
      * \note Any nonzero periodic offset/displacement must already be registered
      * with any provided node data items.
      */
-    LNode(int lagrangian_nidx = -1,
-          int global_petsc_nidx = -1,
-          int local_petsc_nidx = -1,
-          const SAMRAI::hier::IntVector<NDIM>& initial_periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
-          const SAMRAI::hier::IntVector<NDIM>& current_periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
-          const Vector& initial_periodic_displacement = Vector::Zero(),
-          const Vector& current_periodic_displacement = Vector::Zero(),
-          const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data =
-              std::vector<SAMRAI::tbox::Pointer<Streamable> >());
+    LNode(
+        int lagrangian_nidx = -1,
+        int global_petsc_nidx = -1,
+        int local_petsc_nidx = -1,
+        const SAMRAI::hier::IntVector<NDIM>& initial_periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
+        const SAMRAI::hier::IntVector<NDIM>& current_periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
+        const Vector& initial_periodic_displacement = Vector::Zero(),
+        const Vector& current_periodic_displacement = Vector::Zero(),
+        std::vector<SAMRAI::tbox::Pointer<Streamable> > node_data = std::vector<SAMRAI::tbox::Pointer<Streamable> >());
 
     /*!
      * \brief Copy constructor.
@@ -102,7 +102,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~LNode();
+    ~LNode() override;
 
     /*!
      * \brief Assignment operator.
@@ -175,7 +175,7 @@ public:
      * \brief Indicate that the LNode object has been shifted across a periodic
      * boundary.
      */
-    void registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement);
+    void registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement) override;
 
     /*!
      * \brief Copy data from the source.
@@ -184,23 +184,23 @@ public:
      */
     void copySourceItem(const SAMRAI::hier::Index<NDIM>& src_index,
                         const SAMRAI::hier::IntVector<NDIM>& src_offset,
-                        const LNodeIndex& src_item);
+                        const LNodeIndex& src_item) override;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    size_t getDataStreamSize() const;
+    size_t getDataStreamSize() const override;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    void packStream(SAMRAI::tbox::AbstractStream& stream);
+    void packStream(SAMRAI::tbox::AbstractStream& stream) override;
 
     /*!
      * \brief Unpack data from the input stream.
      */
-    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset);
+    void unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset) override;
 
 private:
     /*!

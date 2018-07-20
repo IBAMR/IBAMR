@@ -68,12 +68,12 @@ LSetData<T>::data_begin(const SAMRAI::hier::Box<NDIM>& box)
         }
         else
         {
-            it.d_node_set = NULL;
+            it.d_node_set = nullptr;
         }
     }
     else
     {
-        it.d_node_set = NULL;
+        it.d_node_set = nullptr;
     }
     return it;
 } // data_begin
@@ -83,7 +83,7 @@ inline typename LSetData<T>::DataIterator
 LSetData<T>::data_end()
 {
     typename LSetData<T>::DataIterator it;
-    it.d_node_set = NULL;
+    it.d_node_set = nullptr;
     return it;
 } // data_end
 

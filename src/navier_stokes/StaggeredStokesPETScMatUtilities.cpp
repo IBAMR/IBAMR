@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
+#include <cstddef>
 #include <numeric>
 #include <ostream>
 #include <set>
@@ -237,9 +237,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        nlocal ? &d_nnz[0] : NULL,
+                        nlocal ? &d_nnz[0] : nullptr,
                         0,
-                        nlocal ? &o_nnz[0] : NULL,
+                        nlocal ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -369,15 +369,14 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
-                ExtendedRobinBcCoefStrategy* extended_bc_coef =
-                    dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
+                auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
                 if (extended_bc_coef)
                 {
                     extended_bc_coef->clearTargetPatchDataIndex();
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
                 u_bc_coefs[axis]->setBcCoefs(
-                    acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+                    acoef_data, bcoef_data, gcoef_data, nullptr, *patch, trimmed_bdry_box, data_time);
                 if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 // Restore the original patch geometry object.
@@ -472,15 +471,14 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
-                ExtendedRobinBcCoefStrategy* extended_bc_coef =
-                    dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
+                auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
                 if (extended_bc_coef)
                 {
                     extended_bc_coef->clearTargetPatchDataIndex();
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
                 u_bc_coefs[axis]->setBcCoefs(
-                    acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+                    acoef_data, bcoef_data, gcoef_data, nullptr, *patch, trimmed_bdry_box, data_time);
                 if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 // Modify the matrix coefficients to account for homogeneous
@@ -617,14 +615,14 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
                                                                    Pointer<CoarseFineBoundary<NDIM> > /*cf_boundary*/)
 {
     // Clear previously stored index sets.
-    for (unsigned int k = 0; k < is_overlap.size(); ++k)
+    for (auto& k : is_overlap)
     {
-        is_overlap[k].clear();
+        k.clear();
     }
     is_overlap.clear();
-    for (unsigned int k = 0; k < is_nonoverlap.size(); ++k)
+    for (auto& k : is_nonoverlap)
     {
-        is_nonoverlap[k].clear();
+        k.clear();
     }
     is_nonoverlap.clear();
 
@@ -652,7 +650,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
     // Synchronize the patch number at patch boundaries to determine which patch
     // owns a given DOF along patch boundaries.
     RefineAlgorithm<NDIM> bdry_synch_alg;
-    bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
+    bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, nullptr, new SideSynchCopyFillPattern());
     bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
 
     // For a single patch in a periodic domain, the far side DOFs are not master.
@@ -734,7 +732,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
         TBOX_ASSERT(u_dof_data->getGhostCellWidth().min() >= overlap_size.max());
         TBOX_ASSERT(p_dof_data->getGhostCellWidth().min() >= overlap_size.max());
 #endif
-        int n_patch_subdomains = static_cast<int>(nonoverlap_boxes[patch_counter].size());
+        auto n_patch_subdomains = static_cast<int>(nonoverlap_boxes[patch_counter].size());
         for (int k = 0; k < n_patch_subdomains; ++k, ++subdomain_counter)
         {
             // The nonoverlapping subdomains.
@@ -766,7 +764,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
                 const int dof_idx = (*p_dof_data)(i);
                 if (dof_idx >= 0) is_nonoverlap[subdomain_counter].insert(dof_idx);
             }
-            const int n_nonoverlap = static_cast<int>(is_nonoverlap[subdomain_counter].size());
+            const auto n_nonoverlap = static_cast<int>(is_nonoverlap[subdomain_counter].size());
             nonoverlap_dof_counter += n_nonoverlap;
 
             // The overlapping subdomains.
@@ -815,9 +813,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level)
 {
     // Destroy the previously stored IS'es
-    for (unsigned int k = 0; k < is_field.size(); ++k)
+    for (auto& k : is_field)
     {
-        is_field[k].clear();
+        k.clear();
     }
     is_field.clear();
     is_field_name.clear();
@@ -903,7 +901,7 @@ StaggeredStokesPETScMatUtilities::constructProlongationOp(Mat& mat,
                                                           const int p_coarse_ao_offset)
 {
     int ierr;
-    Mat p_prolong_mat = NULL;
+    Mat p_prolong_mat = nullptr;
     PETScMatUtilities::constructProlongationOp(mat,
                                                u_op_type,
                                                u_dof_index_idx,

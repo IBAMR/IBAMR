@@ -471,7 +471,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvectorPredictorCorrectorHyperbolicPatchOps();
+    AdvectorPredictorCorrectorHyperbolicPatchOps() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -480,7 +480,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvectorPredictorCorrectorHyperbolicPatchOps(const AdvectorPredictorCorrectorHyperbolicPatchOps& from);
+    AdvectorPredictorCorrectorHyperbolicPatchOps(const AdvectorPredictorCorrectorHyperbolicPatchOps& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -491,7 +491,8 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvectorPredictorCorrectorHyperbolicPatchOps& operator=(const AdvectorPredictorCorrectorHyperbolicPatchOps& that);
+    AdvectorPredictorCorrectorHyperbolicPatchOps&
+    operator=(const AdvectorPredictorCorrectorHyperbolicPatchOps& that) = delete;
 
     /*
      * Set physical boundary conditions at inflow boundaries for predicted

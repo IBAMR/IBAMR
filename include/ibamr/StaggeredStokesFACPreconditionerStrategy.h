@@ -522,7 +522,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    StaggeredStokesFACPreconditionerStrategy();
+    StaggeredStokesFACPreconditionerStrategy() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -531,7 +531,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesFACPreconditionerStrategy(const StaggeredStokesFACPreconditionerStrategy& from);
+    StaggeredStokesFACPreconditionerStrategy(const StaggeredStokesFACPreconditionerStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -542,7 +542,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesFACPreconditionerStrategy& operator=(const StaggeredStokesFACPreconditionerStrategy& that);
+    StaggeredStokesFACPreconditionerStrategy& operator=(const StaggeredStokesFACPreconditionerStrategy& that) = delete;
 
     /*
      * Combined U & P physical boundary operator.

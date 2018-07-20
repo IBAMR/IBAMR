@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <vector>
 
 #include "ibtk/Streamable.h"
@@ -96,7 +96,7 @@ public:
     MaterialPointSpec(int point_idx = -1,
                       double weight = 0.0,
                       libMesh::subdomain_id_type subdomain_id = 0,
-                      const std::vector<double>& internal_vars = std::vector<double>());
+                      std::vector<double> internal_vars = std::vector<double>());
 
     /*!
      * \brief Destructor.
@@ -175,7 +175,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    MaterialPointSpec(const MaterialPointSpec& from);
+    MaterialPointSpec(const MaterialPointSpec& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -186,7 +186,7 @@ private:
      *
      * \return A reference to this object.
      */
-    MaterialPointSpec& operator=(const MaterialPointSpec& that);
+    MaterialPointSpec& operator=(const MaterialPointSpec& that) = delete;
 
     /*!
      * Material point data.
@@ -242,7 +242,7 @@ private:
          *
          * \param from The value to copy to this object.
          */
-        Factory(const Factory& from);
+        Factory(const Factory& from) = delete;
 
         /*!
          * \brief Assignment operator.
@@ -253,7 +253,7 @@ private:
          *
          * \return A reference to this object.
          */
-        Factory& operator=(const Factory& that);
+        Factory& operator=(const Factory& that) = delete;
 
         friend class MaterialPointSpec;
     };

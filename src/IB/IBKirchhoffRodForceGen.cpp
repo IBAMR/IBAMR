@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
+#include <cstddef>
 #include <ostream>
 #include <vector>
 
@@ -99,19 +99,19 @@ IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(Pointer<Database> input_db)
 IBKirchhoffRodForceGen::~IBKirchhoffRodForceGen()
 {
     int ierr;
-    for (std::vector<Mat>::iterator it = d_D_next_mats.begin(); it != d_D_next_mats.end(); ++it)
+    for (auto& d_D_next_mat : d_D_next_mats)
     {
-        if (*it)
+        if (d_D_next_mat)
         {
-            ierr = MatDestroy(&*it);
+            ierr = MatDestroy(&d_D_next_mat);
             IBTK_CHKERRQ(ierr);
         }
     }
-    for (std::vector<Mat>::iterator it = d_X_next_mats.begin(); it != d_X_next_mats.end(); ++it)
+    for (auto& d_X_next_mat : d_X_next_mats)
     {
-        if (*it)
+        if (d_X_next_mat)
         {
-            ierr = MatDestroy(&*it);
+            ierr = MatDestroy(&d_X_next_mat);
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -175,9 +175,8 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
 
     // Determine the "next" node indices for all rods associated with the
     // present MPI process.
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (auto node_idx : local_nodes)
     {
-        const LNode* const node_idx = *cit;
         const IBRodForceSpec* const force_spec = node_idx->getNodeDataItem<IBRodForceSpec>();
         if (force_spec)
         {
@@ -211,7 +210,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
     const int num_local_nodes = l_data_manager->getNumberOfLocalNodes(level_num);
 
     // Determine the non-zero structure for the matrices.
-    const int local_sz = static_cast<int>(petsc_curr_node_idxs.size());
+    const auto local_sz = static_cast<int>(petsc_curr_node_idxs.size());
 
     std::vector<int> next_d_nz(local_sz, 1), next_o_nz(local_sz, 0);
     for (int k = 0; k < local_sz; ++k)
@@ -237,9 +236,9 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
                              PETSC_DETERMINE,
                              PETSC_DETERMINE,
                              0,
-                             local_sz ? &next_d_nz[0] : NULL,
+                             local_sz ? &next_d_nz[0] : nullptr,
                              0,
-                             local_sz ? &next_o_nz[0] : NULL,
+                             local_sz ? &next_o_nz[0] : nullptr,
                              &D_next_mat);
         IBTK_CHKERRQ(ierr);
 
@@ -255,7 +254,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
 
         int i_offset;
 
-        ierr = MatGetOwnershipRange(D_next_mat, &i_offset, NULL);
+        ierr = MatGetOwnershipRange(D_next_mat, &i_offset, nullptr);
         IBTK_CHKERRQ(ierr);
         i_offset /= 3 * 3;
 
@@ -279,9 +278,9 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
                              PETSC_DETERMINE,
                              PETSC_DETERMINE,
                              0,
-                             local_sz ? &next_d_nz[0] : NULL,
+                             local_sz ? &next_d_nz[0] : nullptr,
                              0,
-                             local_sz ? &next_o_nz[0] : NULL,
+                             local_sz ? &next_o_nz[0] : nullptr,
                              &X_next_mat);
         IBTK_CHKERRQ(ierr);
 
@@ -295,7 +294,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
 
         int i_offset;
 
-        ierr = MatGetOwnershipRange(X_next_mat, &i_offset, NULL);
+        ierr = MatGetOwnershipRange(X_next_mat, &i_offset, nullptr);
         IBTK_CHKERRQ(ierr);
         i_offset /= NDIM;
 

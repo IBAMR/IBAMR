@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <map>
 #include <set>
 #include <vector>
@@ -107,7 +107,7 @@ public:
      */
     void registerSpringForceFunction(int force_fcn_index,
                                      const SpringForceFcnPtr spring_force_fcn_ptr,
-                                     const SpringForceDerivFcnPtr spring_force_deriv_fcn_ptr = NULL);
+                                     const SpringForceDerivFcnPtr spring_force_deriv_fcn_ptr = nullptr);
 
     /*!
      * \brief Setup the data needed to compute the forces on the specified level
@@ -183,7 +183,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBStandardForceGen(const IBStandardForceGen& from);
+    IBStandardForceGen(const IBStandardForceGen& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -194,7 +194,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBStandardForceGen& operator=(const IBStandardForceGen& that);
+    IBStandardForceGen& operator=(const IBStandardForceGen& that) = delete;
 
     /*!
      * \name Data maintained separately for each level of the patch hierarchy.

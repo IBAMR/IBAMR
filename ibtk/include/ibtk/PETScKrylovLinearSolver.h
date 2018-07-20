@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <iosfwd>
 #include <string>
 #include <vector>
@@ -147,7 +147,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~PETScKrylovLinearSolver();
+    ~PETScKrylovLinearSolver() override;
 
     /*!
      * \brief Static function to construct a PETScKrylovLinearSolver.
@@ -190,7 +190,7 @@ public:
     /*!
      * \brief Set the linear operator used when solving \f$Ax=b\f$.
      */
-    void setOperator(SAMRAI::tbox::Pointer<LinearOperator> A);
+    void setOperator(SAMRAI::tbox::Pointer<LinearOperator> A) override;
 
     /*!
      * \brief Set the preconditioner used by the Krylov subspace method when
@@ -198,7 +198,7 @@ public:
      *
      * \note If the preconditioner is NULL, no preconditioning is performed.
      */
-    void setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = NULL);
+    void setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = nullptr) override;
 
     /*!
      * \brief Set the nullspace of the linear system.
@@ -209,7 +209,7 @@ public:
     void setNullspace(
         bool contains_constant_vec,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs =
-            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >());
+            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >()) override;
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -248,7 +248,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -292,7 +293,7 @@ public:
      * \see deallocateSolverState
      */
     void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -307,7 +308,7 @@ public:
      *
      * \see initializeSolverState
      */
-    void deallocateSolverState();
+    void deallocateSolverState() override;
 
     //\}
 
@@ -317,7 +318,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PETScKrylovLinearSolver();
+    PETScKrylovLinearSolver() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -326,7 +327,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScKrylovLinearSolver(const PETScKrylovLinearSolver& from);
+    PETScKrylovLinearSolver(const PETScKrylovLinearSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -337,7 +338,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScKrylovLinearSolver& operator=(const PETScKrylovLinearSolver& that);
+    PETScKrylovLinearSolver& operator=(const PETScKrylovLinearSolver& that) = delete;
 
     /*!
      * \brief Common routine used by all class constructors.

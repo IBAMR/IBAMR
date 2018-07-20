@@ -34,6 +34,7 @@
 #define included_IBTK_LMarker_inl_h
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include <utility>
 
 #include "ibtk/LMarker.h"
 #include "tbox/AbstractStream.h"
@@ -44,11 +45,8 @@ namespace IBTK
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline LMarker::LMarker(const int idx,
-                        const Point& X,
-                        const Vector& U,
-                        const SAMRAI::hier::IntVector<NDIM>& periodic_offset)
-    : d_idx(idx), d_X(X), d_U(U), d_offset(periodic_offset)
+inline LMarker::LMarker(const int idx, Point X, Vector U, const SAMRAI::hier::IntVector<NDIM>& periodic_offset)
+    : d_idx(idx), d_X(std::move(X)), d_U(std::move(U)), d_offset(periodic_offset)
 {
     // intentionally blank
     return;

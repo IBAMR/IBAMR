@@ -85,14 +85,12 @@ public:
      * \param register_for_restart  Boolean indicating whether to register this object with the
      *restart manager.
      */
-    LSiloDataWriter(const std::string& object_name,
-                    const std::string& dump_directory_name,
-                    bool register_for_restart = true);
+    LSiloDataWriter(std::string object_name, std::string dump_directory_name, bool register_for_restart = true);
 
     /*!
      * \brief Destructor.
      */
-    ~LSiloDataWriter();
+    ~LSiloDataWriter() override;
 
     /*!
      * \name Methods to set the hierarchy and range of levels.
@@ -209,7 +207,7 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
 private:
@@ -218,7 +216,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LSiloDataWriter();
+    LSiloDataWriter() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -227,7 +225,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LSiloDataWriter(const LSiloDataWriter& from);
+    LSiloDataWriter(const LSiloDataWriter& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -238,7 +236,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LSiloDataWriter& operator=(const LSiloDataWriter& that);
+    LSiloDataWriter& operator=(const LSiloDataWriter& that) = delete;
 
     /*!
      * \brief Build the VecScatter objects required to communicate data for

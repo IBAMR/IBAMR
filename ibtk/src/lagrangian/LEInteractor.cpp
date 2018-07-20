@@ -1740,9 +1740,9 @@ LEInteractor::interpolate(double* const Q_data,
                         periodic_shifts,
                         interp_fcn,
                         axis);
-            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            for (int local_index : local_indices)
             {
-                Q_data[NDIM * local_indices[k] + axis] = Q_data_axis[local_indices[k]];
+                Q_data[NDIM * local_index + axis] = Q_data_axis[local_index];
             }
         }
     }
@@ -1832,9 +1832,9 @@ LEInteractor::interpolate(double* const Q_data,
                         periodic_shifts,
                         interp_fcn,
                         axis);
-            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            for (int local_index : local_indices)
             {
-                Q_data[NDIM * local_indices[k] + axis] = Q_data_axis[local_indices[k]];
+                Q_data[NDIM * local_index + axis] = Q_data_axis[local_index];
             }
         }
     }
@@ -2139,7 +2139,7 @@ LEInteractor::interpolate(double* const Q_data,
     std::vector<double> periodic_shifts(NDIM * local_indices.size());
 
     // Interpolate.
-    const int nindices = static_cast<int>(local_indices.size());
+    const auto nindices = static_cast<int>(local_indices.size());
     if (nindices)
     {
         IntVector<NDIM> stencil_lower, stencil_upper;
@@ -2327,9 +2327,9 @@ LEInteractor::interpolate(double* const Q_data,
                         periodic_shifts,
                         interp_fcn,
                         axis);
-            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            for (int local_index : local_indices)
             {
-                Q_data[NDIM * local_indices[k] + axis] = Q_data_axis[local_indices[k]];
+                Q_data[NDIM * local_index + axis] = Q_data_axis[local_index];
             }
         }
     }
@@ -2427,7 +2427,7 @@ LEInteractor::interpolate(double* const Q_data,
     std::vector<double> periodic_shifts(NDIM * local_indices.size());
 
     // Interpolate.
-    const int nindices = static_cast<int>(local_indices.size());
+    const auto nindices = static_cast<int>(local_indices.size());
     if (nindices)
     {
         boost::array<double, NDIM> x_lower_axis, x_upper_axis;
@@ -2561,9 +2561,9 @@ LEInteractor::interpolate(double* const Q_data,
                         periodic_shifts,
                         interp_fcn,
                         axis);
-            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            for (int local_index : local_indices)
             {
-                Q_data[NDIM * local_indices[k] + axis] = Q_data_axis[local_indices[k]];
+                Q_data[NDIM * local_index + axis] = Q_data_axis[local_index];
             }
         }
     }
@@ -2920,9 +2920,9 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
             }
             x_lower_axis[axis] -= 0.5 * dx[axis];
             x_upper_axis[axis] += 0.5 * dx[axis];
-            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            for (int local_index : local_indices)
             {
-                Q_data_axis[local_indices[k]] = Q_data[NDIM * local_indices[k] + axis];
+                Q_data_axis[local_index] = Q_data[NDIM * local_index + axis];
             }
             spread(q_data->getPointer(axis),
                    SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis),
@@ -3012,9 +3012,9 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
                     x_upper_axis[d] += 0.5 * dx[d];
                 }
             }
-            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            for (int local_index : local_indices)
             {
-                Q_data_axis[local_indices[k]] = Q_data[NDIM * local_indices[k] + axis];
+                Q_data_axis[local_index] = Q_data[NDIM * local_index + axis];
             }
             spread(q_data->getPointer(axis),
                    EdgeGeometry<NDIM>::toEdgeBox(q_data->getBox(), axis),
@@ -3335,7 +3335,7 @@ LEInteractor::spread(Pointer<CellData<NDIM, double> > mask_data,
     std::vector<double> periodic_shifts(NDIM * local_indices.size());
 
     // Spread.
-    const int nindices = static_cast<int>(local_indices.size());
+    const auto nindices = static_cast<int>(local_indices.size());
     if (nindices)
     {
         IntVector<NDIM> stencil_lower, stencil_upper;
@@ -3503,9 +3503,9 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
             }
             x_lower_axis[axis] -= 0.5 * dx[axis];
             x_upper_axis[axis] += 0.5 * dx[axis];
-            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            for (int local_index : local_indices)
             {
-                Q_data_axis[local_indices[k]] = Q_data[NDIM * local_indices[k] + axis];
+                Q_data_axis[local_index] = Q_data[NDIM * local_index + axis];
             }
             spread(q_data->getPointer(axis),
                    SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis),
@@ -3618,7 +3618,7 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
     std::vector<double> periodic_shifts(NDIM * local_indices.size());
 
     // Spread.
-    const int nindices = static_cast<int>(local_indices.size());
+    const auto nindices = static_cast<int>(local_indices.size());
     if (nindices)
     {
         boost::array<double, NDIM> x_lower_axis, x_upper_axis;
@@ -3730,9 +3730,9 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
                     x_upper_axis[axis] += 0.5 * dx[axis];
                 }
             }
-            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            for (int local_index : local_indices)
             {
-                Q_data_axis[local_indices[k]] = Q_data[NDIM * local_indices[k] + axis];
+                Q_data_axis[local_index] = Q_data[NDIM * local_index + axis];
             }
             spread(q_data->getPointer(axis),
                    EdgeGeometry<NDIM>::toEdgeBox(q_data->getBox(), axis),
@@ -3797,7 +3797,7 @@ LEInteractor::interpolate(double* const Q_data,
                    << "\n");
     }
     if (local_indices.empty()) return;
-    const int local_indices_size = static_cast<int>(local_indices.size());
+    const auto local_indices_size = static_cast<int>(local_indices.size());
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
     if (interp_fcn == "PIECEWISE_CONSTANT")
@@ -4287,7 +4287,7 @@ LEInteractor::spread(double* const q_data,
                    << "\n");
     }
     if (local_indices.empty()) return;
-    const int local_indices_size = static_cast<int>(local_indices.size());
+    const auto local_indices_size = static_cast<int>(local_indices.size());
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
     if (spread_fcn == "PIECEWISE_CONSTANT")
@@ -4799,7 +4799,7 @@ LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
                 }
             }
             const LSet<T>& idx_set = it.getItem();
-            for (typename LSet<T>::const_iterator n = idx_set.begin(); n != idx_set.end(); ++n)
+            for (auto n = idx_set.begin(); n != idx_set.end(); ++n)
             {
                 const typename LSet<T>::value_type& idx = *n;
                 local_indices.push_back(idx->getLocalPETScIndex());

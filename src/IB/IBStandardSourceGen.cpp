@@ -178,9 +178,8 @@ IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*
     std::fill(d_num_perimeter_nodes[level_number].begin(), d_num_perimeter_nodes[level_number].end(), 0);
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (auto node_idx : local_nodes)
     {
-        const LNode* const node_idx = *cit;
         const IBSourceSpec* const spec = node_idx->getNodeDataItem<IBSourceSpec>();
         if (!spec) continue;
         const int source_idx = spec->getSourceIndex();
@@ -227,9 +226,8 @@ IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
     const double* const X_node = X_data->getLocalFormVecArray()->data();
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (auto node_idx : local_nodes)
     {
-        const LNode* const node_idx = *cit;
         const IBSourceSpec* const spec = node_idx->getNodeDataItem<IBSourceSpec>();
         if (!spec) continue;
         const int& petsc_idx = node_idx->getLocalPETScIndex();
@@ -289,7 +287,7 @@ IBStandardSourceGen::putToDatabase(Pointer<Database> db)
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
-    const int s_num_sources_sz = static_cast<int>(s_num_sources.size());
+    const auto s_num_sources_sz = static_cast<int>(s_num_sources.size());
     db->putInteger("s_num_sources.size()", s_num_sources_sz);
     db->putIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources_sz);
     for (unsigned int ln = 0; ln < s_num_sources.size(); ++ln)
@@ -304,7 +302,7 @@ IBStandardSourceGen::putToDatabase(Pointer<Database> db)
         }
     }
 
-    const int d_n_src_sz = static_cast<int>(d_n_src.size());
+    const auto d_n_src_sz = static_cast<int>(d_n_src.size());
     db->putInteger("finest_hier_level", d_n_src_sz - 1);
     db->putIntegerArray("d_n_src", &d_n_src[0], d_n_src_sz);
     for (unsigned int ln = 0; ln < d_n_src.size(); ++ln)

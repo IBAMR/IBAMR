@@ -448,7 +448,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBStandardInitializer();
+    IBStandardInitializer() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -457,7 +457,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBStandardInitializer(const IBStandardInitializer& from);
+    IBStandardInitializer(const IBStandardInitializer& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -468,7 +468,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBStandardInitializer& operator=(const IBStandardInitializer& that);
+    IBStandardInitializer& operator=(const IBStandardInitializer& that) = delete;
 
     /*!
      * \brief Read the vertex data from one or more input files.

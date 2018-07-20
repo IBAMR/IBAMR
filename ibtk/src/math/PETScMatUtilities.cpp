@@ -94,7 +94,7 @@ namespace
 bool inline is_cf_bdry_idx(const Index<NDIM>& idx, const std::vector<Box<NDIM> >& cf_bdry_boxes)
 {
     bool contains_idx = false;
-    int n_cf_bdry_boxes = static_cast<int>(cf_bdry_boxes.size());
+    auto n_cf_bdry_boxes = static_cast<int>(cf_bdry_boxes.size());
     for (int k = 0; !contains_idx || k < n_cf_bdry_boxes; ++k)
     {
         contains_idx = contains_idx || cf_bdry_boxes[k].contains(idx);
@@ -156,7 +156,7 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
         IBTK_CHKERRQ(ierr);
     }
 
-    const int depth = static_cast<int>(bc_coefs.size());
+    const auto depth = static_cast<int>(bc_coefs.size());
 
     // Setup the finite difference stencil.
     static const int stencil_sz = 2 * NDIM + 1;
@@ -226,9 +226,9 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        n_local ? &d_nnz[0] : NULL,
+                        n_local ? &d_nnz[0] : nullptr,
                         0,
-                        n_local ? &o_nnz[0] : NULL,
+                        n_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -376,9 +376,9 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        n_local ? &d_nnz[0] : NULL,
+                        n_local ? &d_nnz[0] : nullptr,
                         0,
-                        n_local ? &o_nnz[0] : NULL,
+                        n_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -597,9 +597,9 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        n_local ? &d_nnz[0] : NULL,
+                        n_local ? &d_nnz[0] : nullptr,
                         0,
-                        n_local ? &o_nnz[0] : NULL,
+                        n_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -952,9 +952,9 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        m_local ? &d_nnz[0] : NULL,
+                        m_local ? &d_nnz[0] : nullptr,
                         0,
-                        m_local ? &o_nnz[0] : NULL,
+                        m_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -972,7 +972,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
 
         // Construct the interpolation weights for this IB point.
         std::vector<double> w[NDIM];
-        for (int d = 0; d < NDIM; ++d) w[d].resize(interp_stencil);
+        for (auto& d : w) d.resize(interp_stencil);
         int stencil_box_nvals = 1;
         for (unsigned int d = 0; d < NDIM; ++d) stencil_box_nvals *= interp_stencil;
         std::vector<double> stencil_box_vals(stencil_box_nvals);
@@ -1148,7 +1148,7 @@ PETScMatUtilities::constructRestrictionScalingOp(Mat& P, Vec& L)
         ierr = VecDestroy(&L);
         IBTK_CHKERRQ(ierr);
     }
-    ierr = MatCreateVecs(P, &L, NULL);
+    ierr = MatCreateVecs(P, &L, nullptr);
     IBTK_CHKERRQ(ierr);
     PetscInt ilower, iupper, num_elems;
     ierr = VecGetOwnershipRange(L, &ilower, &iupper);
@@ -1186,15 +1186,15 @@ PETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<IS>& is_overlap,
                                                     Pointer<CoarseFineBoundary<NDIM> > cf_boundary)
 {
     int ierr;
-    for (unsigned int k = 0; k < is_overlap.size(); ++k)
+    for (auto& k : is_overlap)
     {
-        ierr = ISDestroy(&is_overlap[k]);
+        ierr = ISDestroy(&k);
         IBTK_CHKERRQ(ierr);
     }
     is_overlap.clear();
-    for (unsigned int k = 0; k < is_nonoverlap.size(); ++k)
+    for (auto& k : is_nonoverlap)
     {
-        ierr = ISDestroy(&is_nonoverlap[k]);
+        ierr = ISDestroy(&k);
         IBTK_CHKERRQ(ierr);
     }
     is_nonoverlap.clear();
@@ -1335,9 +1335,9 @@ PETScMatUtilities::constructConservativeProlongationOp_cell(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        m_local ? &d_nnz[0] : NULL,
+                        m_local ? &d_nnz[0] : nullptr,
                         0,
-                        m_local ? &o_nnz[0] : NULL,
+                        m_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -1558,9 +1558,9 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        m_local ? &d_nnz[0] : NULL,
+                        m_local ? &d_nnz[0] : nullptr,
                         0,
-                        m_local ? &o_nnz[0] : NULL,
+                        m_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -1634,7 +1634,7 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
                         if (samrai_petsc_map[d * n_interpolants + ip] < 0) continue;
                         col.push_back(samrai_petsc_map[d * n_interpolants + ip]);
                     }
-                    int col_size = static_cast<int>(col.size());
+                    auto col_size = static_cast<int>(col.size());
                     TBOX_ASSERT(col_size >= 1);
 
                     // w_L = 1 - [i(axis) - refine(I_L,ratio)(axis)]/ratio(axis)
@@ -1931,9 +1931,9 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        m_local ? &d_nnz[0] : NULL,
+                        m_local ? &d_nnz[0] : nullptr,
                         0,
-                        m_local ? &o_nnz[0] : NULL,
+                        m_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -2428,7 +2428,7 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& is_ove
                     box_local_dofs.insert((*dof_data)(i, d));
                 }
             }
-            const int n_local = static_cast<int>(box_local_dofs.size());
+            const auto n_local = static_cast<int>(box_local_dofs.size());
             PetscInt* box_local_dof_arr;
             PetscMalloc1(n_local, &box_local_dof_arr);
             std::copy(box_local_dofs.begin(), box_local_dofs.end(), box_local_dof_arr);
@@ -2461,7 +2461,7 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& is_ove
                         }
                     }
                 }
-                const int n_overlap = static_cast<int>(box_overlap_dofs.size());
+                const auto n_overlap = static_cast<int>(box_overlap_dofs.size());
                 PetscInt* box_overlap_dof_arr;
                 PetscMalloc1(n_overlap, &box_overlap_dof_arr);
                 std::copy(box_overlap_dofs.begin(), box_overlap_dofs.end(), box_overlap_dof_arr);
@@ -2563,7 +2563,7 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& is_ove
             }
         }
 
-        int n_patch_subdomains = static_cast<int>(nonoverlap_boxes[patch_counter].size());
+        auto n_patch_subdomains = static_cast<int>(nonoverlap_boxes[patch_counter].size());
         for (int k = 0; k < n_patch_subdomains; ++k, ++subdomain_counter)
         {
             // The nonoverlapping subdomains.
@@ -2595,7 +2595,7 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& is_ove
                     }
                 }
             }
-            const int n_local = static_cast<int>(box_local_dofs.size());
+            const auto n_local = static_cast<int>(box_local_dofs.size());
             PetscInt* box_local_dof_arr;
             PetscMalloc1(n_local, &box_local_dof_arr);
             std::copy(box_local_dofs.begin(), box_local_dofs.end(), box_local_dof_arr);
@@ -2629,7 +2629,7 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& is_ove
                     }
                 }
             }
-            const int n_overlap = static_cast<int>(box_overlap_dofs.size());
+            const auto n_overlap = static_cast<int>(box_overlap_dofs.size());
             PetscInt* box_overlap_dof_arr;
             PetscMalloc1(n_overlap, &box_overlap_dof_arr);
             std::copy(box_overlap_dofs.begin(), box_overlap_dofs.end(), box_overlap_dof_arr);

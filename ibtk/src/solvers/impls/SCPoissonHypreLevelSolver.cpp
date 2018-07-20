@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
+#include <cstddef>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -97,14 +97,14 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(const std::string& object_n
                                                      const std::string& /*default_options_prefix*/)
     : d_hierarchy(),
       d_level_num(-1),
-      d_grid(NULL),
+      d_grid(nullptr),
       d_stencil(),
-      d_graph(NULL),
-      d_matrix(NULL),
-      d_rhs_vec(NULL),
-      d_sol_vec(NULL),
-      d_solver(NULL),
-      d_precond(NULL),
+      d_graph(nullptr),
+      d_matrix(nullptr),
+      d_rhs_vec(nullptr),
+      d_sol_vec(nullptr),
+      d_solver(nullptr),
+      d_precond(nullptr),
       d_solver_type("Split"),
       d_precond_type("none"),
       d_split_solver_type("PFMG"),
@@ -428,7 +428,7 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients()
     {
         Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const int stencil_sz = static_cast<int>(d_stencil_offsets.size());
+        const auto stencil_sz = static_cast<int>(d_stencil_offsets.size());
         SideData<NDIM, double> matrix_coefs(patch_box, stencil_sz, IntVector<NDIM>(0));
         PoissonUtilities::computeMatrixCoefficients(
             matrix_coefs, patch, d_stencil_offsets, d_poisson_spec, d_bc_coefs, d_solution_time);
@@ -576,7 +576,7 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
         }
         else if (d_precond_type == "none")
         {
-            d_precond = NULL;
+            d_precond = nullptr;
         }
         else
         {
@@ -603,7 +603,7 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
         }
         else if (d_precond_type == "none")
         {
-            d_precond = NULL;
+            d_precond = nullptr;
         }
         else
         {
@@ -630,7 +630,7 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
         }
         else if (d_precond_type == "none")
         {
-            d_precond = NULL;
+            d_precond = nullptr;
         }
         else
         {
@@ -657,7 +657,7 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
         }
         else if (d_precond_type == "none")
         {
-            d_precond = NULL;
+            d_precond = nullptr;
         }
         else
         {
@@ -684,7 +684,7 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
         }
         else if (d_precond_type == "none")
         {
-            d_precond = NULL;
+            d_precond = nullptr;
         }
         else
         {
@@ -945,8 +945,8 @@ SCPoissonHypreLevelSolver::destroyHypreSolver()
     }
 
     // Set the solver and preconditioner pointers to NULL.
-    d_solver = NULL;
-    d_precond = NULL;
+    d_solver = nullptr;
+    d_precond = nullptr;
     return;
 } // destroyHypreSolver
 
@@ -954,22 +954,22 @@ void
 SCPoissonHypreLevelSolver::deallocateHypreData()
 {
     if (d_graph) HYPRE_SStructGraphDestroy(d_graph);
-    for (int var = 0; var < NVARS; ++var)
+    for (auto& var : d_stencil)
     {
-        if (d_stencil[var]) HYPRE_SStructStencilDestroy(d_stencil[var]);
+        if (var) HYPRE_SStructStencilDestroy(var);
     }
     if (d_grid) HYPRE_SStructGridDestroy(d_grid);
     if (d_matrix) HYPRE_SStructMatrixDestroy(d_matrix);
     if (d_sol_vec) HYPRE_SStructVectorDestroy(d_sol_vec);
     if (d_rhs_vec) HYPRE_SStructVectorDestroy(d_rhs_vec);
-    d_grid = NULL;
-    for (int var = 0; var < NVARS; ++var)
+    d_grid = nullptr;
+    for (auto& var : d_stencil)
     {
-        d_stencil[var] = NULL;
+        var = nullptr;
     }
-    d_matrix = NULL;
-    d_sol_vec = NULL;
-    d_rhs_vec = NULL;
+    d_matrix = nullptr;
+    d_sol_vec = nullptr;
+    d_rhs_vec = nullptr;
     return;
 } // deallocateHypreData
 

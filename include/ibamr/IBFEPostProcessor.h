@@ -116,7 +116,7 @@ public:
         void* ctx)
     {
         TBOX_ASSERT(ctx);
-        IBFEMethod::PK1StressFcnData* PK1_stress_fcn_data = static_cast<IBFEMethod::PK1StressFcnData*>(ctx);
+        auto PK1_stress_fcn_data = static_cast<IBFEMethod::PK1StressFcnData*>(ctx);
         TBOX_ASSERT(PK1_stress_fcn_data);
         IBTK::TensorMeshFcnPtr PK1_stress_fcn = PK1_stress_fcn_data->fcn;
         void* PK1_stress_fcn_ctx = PK1_stress_fcn_data->ctx;
@@ -196,7 +196,7 @@ public:
     /*!
      * Constructor.
      */
-    IBFEPostProcessor(const std::string& name, IBTK::FEDataManager* fe_data_manager);
+    IBFEPostProcessor(std::string name, IBTK::FEDataManager* fe_data_manager);
 
     /*!
      * Virtual destructor.
@@ -212,7 +212,7 @@ public:
                            libMesh::Order fe_order,
                            IBTK::ScalarMeshFcnPtr fcn,
                            const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                           void* var_fcn_ctx = NULL);
+                           void* var_fcn_ctx = nullptr);
 
     /*!
      * Register a vector-valued variable for reconstruction.
@@ -223,7 +223,7 @@ public:
                            libMesh::Order var_fe_order,
                            IBTK::VectorMeshFcnPtr var_fcn,
                            const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                           void* var_fcn_ctx = NULL,
+                           void* var_fcn_ctx = nullptr,
                            unsigned int var_dim = NDIM);
 
     /*!
@@ -235,7 +235,7 @@ public:
                            libMesh::Order var_fe_order,
                            IBTK::TensorMeshFcnPtr var_fcn,
                            const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                           void* var_fcn_ctx = NULL,
+                           void* var_fcn_ctx = nullptr,
                            unsigned int var_dim = NDIM);
 
     /*!

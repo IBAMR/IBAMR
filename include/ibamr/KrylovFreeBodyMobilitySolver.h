@@ -175,7 +175,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovFreeBodyMobilitySolver(const KrylovFreeBodyMobilitySolver& from);
+    KrylovFreeBodyMobilitySolver(const KrylovFreeBodyMobilitySolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -186,7 +186,7 @@ private:
      *
      * \return A reference to this object.
      */
-    KrylovFreeBodyMobilitySolver& operator=(const KrylovFreeBodyMobilitySolver& that);
+    KrylovFreeBodyMobilitySolver& operator=(const KrylovFreeBodyMobilitySolver& that) = delete;
 
     /*!
      * \brief Report the KSPConvergedReason.

@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <cmath>
+#include <cstddef>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -484,17 +484,17 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
     const std::string& object_name,
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+    std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
     : ConvectiveOperator(object_name, difference_form),
       d_stabilization_type("UPWIND"),
       d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
       d_width(array_constant<double, 2 * NDIM>(0.0)),
-      d_bc_coefs(bc_coefs),
+      d_bc_coefs(std::move(bc_coefs)),
       d_bdry_extrap_type("CONSTANT"),
-      d_hierarchy(NULL),
+      d_hierarchy(nullptr),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
-      d_U_var(NULL),
+      d_U_var(nullptr),
       d_U_scratch_idx(-1)
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
@@ -590,7 +590,7 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
 
     // Fill ghost cell values for all components.
     static const bool homogeneous_bc = false;
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps(1);
     transaction_comps[0] = InterpolationTransactionComponent(d_U_scratch_idx,
                                                              U_idx,
@@ -602,9 +602,9 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
                                                              d_bc_coefs);
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_bc_coefs, NULL, d_U_scratch_idx, -1, homogeneous_bc);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_bc_coefs, nullptr, d_U_scratch_idx, -1, homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
-    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, NULL);
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, nullptr);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the convective derivative.
@@ -1227,7 +1227,7 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
                         {
                             Box<NDIM> bdry_box = domain_box;
                             const double width = d_width[location_index];
-                            const int offset = static_cast<int>(width / dx[axis]);
+                            const auto offset = static_cast<int>(width / dx[axis]);
                             if (is_lower)
                             {
                                 bdry_box.upper(axis) = domain_box.lower(axis) + offset;
@@ -1286,7 +1286,7 @@ INSStaggeredStabilizedPPMConvectiveOperator::initializeOperatorState(const SAMRA
 #endif
 
     // Setup the interpolation transaction information.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_transaction_comps.resize(1);
     d_transaction_comps[0] = InterpolationTransactionComponent(d_U_scratch_idx,
                                                                in.getComponentDescriptorIndex(0),

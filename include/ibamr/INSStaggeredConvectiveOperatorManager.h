@@ -137,7 +137,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredConvectiveOperatorManager(const INSStaggeredConvectiveOperatorManager& from);
+    INSStaggeredConvectiveOperatorManager(const INSStaggeredConvectiveOperatorManager& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -148,7 +148,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredConvectiveOperatorManager& operator=(const INSStaggeredConvectiveOperatorManager& that);
+    INSStaggeredConvectiveOperatorManager& operator=(const INSStaggeredConvectiveOperatorManager& that) = delete;
 
     /*!
      * Static data members used to control access to and destruction of

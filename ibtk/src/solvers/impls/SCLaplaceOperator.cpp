@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -102,18 +102,18 @@ static Timer* t_deallocate_operator_state;
 SCLaplaceOperator::SCLaplaceOperator(const std::string& object_name, const bool homogeneous_bc)
     : LaplaceOperator(object_name, homogeneous_bc),
       d_ncomp(0),
-      d_fill_pattern(NULL),
+      d_fill_pattern(nullptr),
       d_transaction_comps(),
-      d_hier_bdry_fill(NULL),
-      d_no_fill(NULL),
-      d_x(NULL),
-      d_b(NULL),
+      d_hier_bdry_fill(nullptr),
+      d_no_fill(nullptr),
+      d_x(nullptr),
+      d_b(nullptr),
       d_hierarchy(),
       d_coarsest_ln(-1),
       d_finest_ln(-1)
 {
     // Setup the operator to use default vector-valued boundary conditions.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)));
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr)));
 
     // Setup Timers.
     IBTK_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBTK::SCLaplaceOperator::apply()");
@@ -255,7 +255,7 @@ SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
     }
 
     // Setup the interpolation transaction information.
-    d_fill_pattern = NULL;
+    d_fill_pattern = nullptr;
     if (d_poisson_spec.dIsConstant())
     {
         d_fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);

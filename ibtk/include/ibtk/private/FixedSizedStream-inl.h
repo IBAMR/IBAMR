@@ -111,7 +111,7 @@ FixedSizedStream::pack(const bool* data, const int n)
 {
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofBool(n);
     void* ptr = getPointerAndAdvanceCursor(bytes);
-    char* c_ptr = static_cast<char*>(ptr);
+    auto c_ptr = static_cast<char*>(ptr);
     for (int i = 0; i < n; i++)
     {
         c_ptr[i] = (data[i] ? 1 : 0);
@@ -124,7 +124,7 @@ FixedSizedStream::unpack(bool* data, const int n)
 {
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofBool(n);
     void* ptr = getPointerAndAdvanceCursor(bytes);
-    const char* c_ptr = static_cast<const char*>(ptr);
+    const auto c_ptr = static_cast<const char*>(ptr);
     for (int i = 0; i < n; i++)
     {
         data[i] = (c_ptr[i] == 1);

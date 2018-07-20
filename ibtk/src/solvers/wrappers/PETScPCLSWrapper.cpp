@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <ostream>
 #include <string>
 
@@ -60,7 +60,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScPCLSWrapper::PETScPCLSWrapper(const std::string& object_name, const PC& petsc_pc)
-    : d_petsc_pc(petsc_pc), d_x(NULL), d_b(NULL), d_petsc_x(NULL), d_petsc_b(NULL)
+    : d_petsc_pc(petsc_pc), d_x(nullptr), d_b(nullptr), d_petsc_x(nullptr), d_petsc_b(nullptr)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
     return;

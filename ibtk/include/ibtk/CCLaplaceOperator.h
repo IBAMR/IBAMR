@@ -68,7 +68,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~CCLaplaceOperator();
+    ~CCLaplaceOperator() override;
 
     /*!
      * \name Linear operator functionality.
@@ -101,7 +101,8 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
     /*!
      * \brief Compute hierarchy-dependent data required for computing y=Ax (and
@@ -113,7 +114,7 @@ public:
      * \see KrylovLinearSolver::initializeSolverState
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
 
     /*!
      * \brief Remove all hierarchy-dependent data computed by
@@ -126,7 +127,7 @@ public:
      * \see initializeOperatorState
      * \see KrylovLinearSolver::deallocateSolverState
      */
-    void deallocateOperatorState();
+    void deallocateOperatorState() override;
 
     //\}
 
@@ -136,7 +137,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CCLaplaceOperator();
+    CCLaplaceOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -145,7 +146,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CCLaplaceOperator(const CCLaplaceOperator& from);
+    CCLaplaceOperator(const CCLaplaceOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -156,7 +157,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CCLaplaceOperator& operator=(const CCLaplaceOperator& that);
+    CCLaplaceOperator& operator=(const CCLaplaceOperator& that) = delete;
 
     // Operator parameters.
     int d_ncomp;

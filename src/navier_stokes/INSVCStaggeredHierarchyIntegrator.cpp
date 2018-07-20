@@ -34,10 +34,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <deque>
 #include <limits>
 #include <ostream>
-#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -329,10 +329,10 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(const std::
                              new SideVariable<NDIM, double>(object_name + "::F"),
                              new CellVariable<NDIM, double>(object_name + "::Q"),
                              register_for_restart),
-      d_rho_init_fcn(NULL),
-      d_mu_init_fcn(NULL),
-      d_mu_bc_coef(NULL),
-      d_mu_adv_diff_var(NULL)
+      d_rho_init_fcn(nullptr),
+      d_mu_init_fcn(nullptr),
+      d_mu_bc_coef(nullptr),
+      d_mu_adv_diff_var(nullptr)
 {
     // Set some default values
     d_rho_scale = 1.0;
@@ -538,25 +538,25 @@ INSVCStaggeredHierarchyIntegrator::~INSVCStaggeredHierarchyIntegrator()
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         delete d_U_bc_coefs[d];
-        d_U_bc_coefs[d] = NULL;
+        d_U_bc_coefs[d] = nullptr;
     }
     delete d_P_bc_coef;
-    d_P_bc_coef = NULL;
+    d_P_bc_coef = nullptr;
     delete d_fill_after_regrid_phys_bdry_bc_op;
-    d_fill_after_regrid_phys_bdry_bc_op = NULL;
+    d_fill_after_regrid_phys_bdry_bc_op = nullptr;
     d_velocity_solver.setNull();
     d_pressure_solver.setNull();
     if (d_U_rhs_vec) d_U_rhs_vec->freeVectorComponents();
     if (d_U_adv_vec) d_U_adv_vec->freeVectorComponents();
     if (d_N_vec) d_N_vec->freeVectorComponents();
     if (d_P_rhs_vec) d_P_rhs_vec->freeVectorComponents();
-    for (unsigned int k = 0; k < d_nul_vecs.size(); ++k)
+    for (auto& nul_vec : d_nul_vecs)
     {
-        if (d_nul_vecs[k]) d_nul_vecs[k]->freeVectorComponents();
+        if (nul_vec) nul_vec->freeVectorComponents();
     }
-    for (unsigned int k = 0; k < d_U_nul_vecs.size(); ++k)
+    for (auto& U_nul_vec : d_U_nul_vecs)
     {
-        if (d_U_nul_vecs[k]) d_U_nul_vecs[k]->freeVectorComponents();
+        if (U_nul_vec) U_nul_vec->freeVectorComponents();
     }
 
     return;
@@ -843,7 +843,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
             TBOX_ASSERT(!d_mu_var);
             TBOX_ASSERT(!d_mu_init_fcn);
 #endif
-            d_mu_var = Pointer<CellVariable<NDIM, double> >(NULL);
+            d_mu_var = Pointer<CellVariable<NDIM, double> >(nullptr);
             // Ensure that boundary conditions are provided by the advection-diffusion integrator
             d_mu_bc_coef = (d_adv_diff_hier_integrator->getPhysicalBcCoefs(d_mu_adv_diff_var)).front();
         }
@@ -882,7 +882,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     {
         d_mu_current_idx = -1;
         d_mu_new_idx = -1;
-        d_mu_init_fcn = NULL;
+        d_mu_init_fcn = nullptr;
 
         Pointer<CellVariable<NDIM, double> > mu_cc_scratch_var =
             new CellVariable<NDIM, double>(d_object_name + "_mu_cc_scratch_var", /*depth*/ 1);
@@ -1087,8 +1087,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     }
 
     // Set the velocity subdomain solver interpolation type if necessary
-    IBTK::PETScKrylovLinearSolver* p_velocity_solver =
-        dynamic_cast<IBTK::PETScKrylovLinearSolver*>(d_velocity_solver.getPointer());
+    auto p_velocity_solver = dynamic_cast<IBTK::PETScKrylovLinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver)
     {
         Pointer<PoissonFACPreconditioner> p_poisson_fac_pc = p_velocity_solver->getPreconditioner();
@@ -1364,11 +1363,11 @@ void
 INSVCStaggeredHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec)
 {
     if (d_nul_vecs.empty()) return;
-    for (size_t k = 0; k < d_nul_vecs.size(); ++k)
+    for (auto& nul_vec : d_nul_vecs)
     {
-        const double sol_dot_nul = sol_vec->dot(d_nul_vecs[k]);
-        const double nul_L2_norm = sqrt(d_nul_vecs[k]->dot(d_nul_vecs[k]));
-        sol_vec->axpy(-sol_dot_nul / nul_L2_norm, d_nul_vecs[k], sol_vec);
+        const double sol_dot_nul = sol_vec->dot(nul_vec);
+        const double nul_L2_norm = sqrt(nul_vec->dot(nul_vec));
+        sol_vec->axpy(-sol_dot_nul / nul_L2_norm, nul_vec, sol_vec);
     }
     return;
 } // removeNullSpace
@@ -1562,9 +1561,9 @@ INSVCStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
             // location in the new patch level that is a copy of a location from
             // the old patch level.
             RefineAlgorithm<NDIM> copy_data;
-            copy_data.registerRefine(d_U_regrid_idx, d_U_regrid_idx, d_U_regrid_idx, NULL);
-            copy_data.registerRefine(d_U_src_idx, d_U_src_idx, d_U_src_idx, NULL);
-            copy_data.registerRefine(d_indicator_idx, d_indicator_idx, d_indicator_idx, NULL);
+            copy_data.registerRefine(d_U_regrid_idx, d_U_regrid_idx, d_U_regrid_idx, nullptr);
+            copy_data.registerRefine(d_U_src_idx, d_U_src_idx, d_U_src_idx, nullptr);
+            copy_data.registerRefine(d_indicator_idx, d_indicator_idx, d_indicator_idx, nullptr);
             ComponentSelector bc_fill_data;
             bc_fill_data.setFlag(d_U_regrid_idx);
             bc_fill_data.setFlag(d_U_src_idx);
@@ -1576,7 +1575,7 @@ INSVCStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
         // algorithm and refine the velocity data.
         RefineAlgorithm<NDIM> fill_div_free_prolongation;
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-        fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, NULL);
+        fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, nullptr);
         Pointer<RefineOperator<NDIM> > refine_op =
             grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
         Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
@@ -1616,8 +1615,8 @@ INSVCStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
                 hier_ops_manager->getOperationsDouble(d_U_var, d_hierarchy, true);
             hier_sc_data_ops->resetLevels(0, level_number);
             hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
-            typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
-                InterpolationTransactionComponent;
+            using InterpolationTransactionComponent =
+                HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
             InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
                                                              DATA_REFINE_TYPE,
                                                              USE_CF_INTERPOLATION,
@@ -1694,7 +1693,7 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_hier_ec_data_ops->resetLevels(0, finest_hier_level);
 
     // Setup the patch boundary filling objects.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
                                                      DATA_REFINE_TYPE,
                                                      USE_CF_INTERPOLATION,
@@ -1742,7 +1741,7 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     }
 
     // Setup the patch boundary synchronization objects.
-    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent synch_transaction =
         SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
     d_side_synch_op = new SideDataSynchronization();
@@ -1946,7 +1945,7 @@ INSVCStaggeredHierarchyIntegrator::regridProjection()
     regrid_projection_solver->setHomogeneousBc(true);
     regrid_projection_solver->setSolutionTime(d_integrator_time);
     regrid_projection_solver->setTimeInterval(d_integrator_time, d_integrator_time);
-    LinearSolver* p_regrid_projection_solver = dynamic_cast<LinearSolver*>(regrid_projection_solver.getPointer());
+    auto p_regrid_projection_solver = dynamic_cast<LinearSolver*>(regrid_projection_solver.getPointer());
     if (p_regrid_projection_solver)
     {
         p_regrid_projection_solver->setInitialGuessNonzero(false);
@@ -1988,7 +1987,7 @@ INSVCStaggeredHierarchyIntegrator::regridProjection()
              << regrid_projection_solver->getResidualNorm() << "\n";
 
     // Fill ghost cells for Phi, compute Grad Phi, and set U := U - Grad Phi
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent Phi_bc_component(d_P_scratch_idx,
                                                        DATA_REFINE_TYPE,
                                                        USE_CF_INTERPOLATION,
@@ -2119,16 +2118,16 @@ INSVCStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double cu
         const int P_rhs_idx = d_P_rhs_vec->getComponentDescriptorIndex(0);
         d_rhs_vec->addComponent(d_P_var, P_rhs_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
-        for (unsigned int k = 0; k < d_nul_vecs.size(); ++k)
+        for (auto& nul_vec : d_nul_vecs)
         {
-            if (d_nul_vecs[k]) d_nul_vecs[k]->freeVectorComponents();
+            if (nul_vec) nul_vec->freeVectorComponents();
         }
         const int n_nul_vecs = (has_pressure_nullspace ? 1 : 0) + (has_velocity_nullspace ? NDIM : 0);
         d_nul_vecs.resize(n_nul_vecs);
 
-        for (unsigned int k = 0; k < d_U_nul_vecs.size(); ++k)
+        for (auto& U_nul_vec : d_U_nul_vecs)
         {
-            if (d_U_nul_vecs[k]) d_U_nul_vecs[k]->freeVectorComponents();
+            if (U_nul_vec) U_nul_vec->freeVectorComponents();
         }
         const int n_U_nul_vecs = (has_velocity_nullspace ? NDIM : 0);
         d_U_nul_vecs.resize(n_U_nul_vecs);
@@ -2176,13 +2175,13 @@ INSVCStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double cu
     // Setup boundary conditions objects.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        INSVCStaggeredVelocityBcCoef* U_bc_coef = dynamic_cast<INSVCStaggeredVelocityBcCoef*>(d_U_bc_coefs[d]);
+        auto U_bc_coef = dynamic_cast<INSVCStaggeredVelocityBcCoef*>(d_U_bc_coefs[d]);
         U_bc_coef->setStokesSpecifications(&d_problem_coefs);
         U_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_bc_coef->setSolutionTime(new_time);
         U_bc_coef->setTimeInterval(current_time, new_time);
     }
-    INSVCStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSVCStaggeredPressureBcCoef*>(d_P_bc_coef);
+    auto P_bc_coef = dynamic_cast<INSVCStaggeredPressureBcCoef*>(d_P_bc_coef);
     P_bc_coef->setStokesSpecifications(&d_problem_coefs);
     P_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     P_bc_coef->setSolutionTime(new_time);
@@ -2190,13 +2189,12 @@ INSVCStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double cu
     P_bc_coef->setViscosityInterpolationType(d_mu_vc_interp_type);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        INSIntermediateVelocityBcCoef* U_star_bc_coef =
-            dynamic_cast<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);
+        auto U_star_bc_coef = dynamic_cast<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);
         U_star_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_star_bc_coef->setSolutionTime(new_time);
         U_star_bc_coef->setTimeInterval(current_time, new_time);
     }
-    INSProjectionBcCoef* Phi_bc_coef = dynamic_cast<INSProjectionBcCoef*>(d_Phi_bc_coef);
+    auto Phi_bc_coef = dynamic_cast<INSProjectionBcCoef*>(d_Phi_bc_coef);
     Phi_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     Phi_bc_coef->setSolutionTime(0.5 * (current_time + new_time));
     Phi_bc_coef->setTimeInterval(current_time, new_time);

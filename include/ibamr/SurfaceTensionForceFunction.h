@@ -179,7 +179,7 @@ public:
                         double data_time,
                         bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr));
 
     //\}
 
@@ -189,7 +189,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    SurfaceTensionForceFunction();
+    SurfaceTensionForceFunction() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -198,7 +198,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SurfaceTensionForceFunction(const SurfaceTensionForceFunction& from);
+    SurfaceTensionForceFunction(const SurfaceTensionForceFunction& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -209,7 +209,7 @@ private:
      *
      * \return A reference to this object.
      */
-    SurfaceTensionForceFunction& operator=(const SurfaceTensionForceFunction& that);
+    SurfaceTensionForceFunction& operator=(const SurfaceTensionForceFunction& that) = delete;
 
     /*!
      * Convert the level set variable to a smoothed heaviside function.

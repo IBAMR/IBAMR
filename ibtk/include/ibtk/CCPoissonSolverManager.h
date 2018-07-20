@@ -159,7 +159,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CCPoissonSolverManager(const CCPoissonSolverManager& from);
+    CCPoissonSolverManager(const CCPoissonSolverManager& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -170,7 +170,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CCPoissonSolverManager& operator=(const CCPoissonSolverManager& that);
+    CCPoissonSolverManager& operator=(const CCPoissonSolverManager& that) = delete;
 
     /*!
      * Static data members used to control access to and destruction of

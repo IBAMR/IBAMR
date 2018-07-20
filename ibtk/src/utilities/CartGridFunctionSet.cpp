@@ -101,9 +101,9 @@ CartGridFunctionSet::addFunction(Pointer<CartGridFunction> fcn)
 bool
 CartGridFunctionSet::isTimeDependent() const
 {
-    for (unsigned int k = 0; k < d_fcns.size(); ++k)
+    for (const auto& d_fcn : d_fcns)
     {
-        if (d_fcns[k]->isTimeDependent()) return true;
+        if (d_fcn->isTimeDependent()) return true;
     }
     return false;
 } // isTimeDependent

@@ -126,7 +126,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovLinearSolverStaggeredStokesSolverInterface(const KrylovLinearSolverStaggeredStokesSolverInterface& from);
+    KrylovLinearSolverStaggeredStokesSolverInterface(const KrylovLinearSolverStaggeredStokesSolverInterface& from) =
+        delete;
 
     /*!
      * \brief Assignment operator.
@@ -138,7 +139,7 @@ private:
      * \return A reference to this object.
      */
     KrylovLinearSolverStaggeredStokesSolverInterface&
-    operator=(const KrylovLinearSolverStaggeredStokesSolverInterface& that);
+    operator=(const KrylovLinearSolverStaggeredStokesSolverInterface& that) = delete;
 };
 } // namespace IBAMR
 

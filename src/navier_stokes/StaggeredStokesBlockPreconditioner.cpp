@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -79,14 +79,14 @@ StaggeredStokesBlockPreconditioner::StaggeredStokesBlockPreconditioner(bool need
       d_P_problem_coefs("P_problem_coefs"),
       d_needs_pressure_solver(needs_pressure_solver),
       d_pressure_solver(),
-      d_hierarchy(NULL),
+      d_hierarchy(nullptr),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
-      d_velocity_data_ops(NULL),
-      d_pressure_data_ops(NULL),
+      d_velocity_data_ops(nullptr),
+      d_pressure_data_ops(nullptr),
       d_velocity_wgt_idx(-1),
       d_pressure_wgt_idx(-1),
-      d_hier_math_ops(NULL)
+      d_hier_math_ops(nullptr)
 {
     // intentionally blank
     return;
@@ -214,17 +214,17 @@ void
 StaggeredStokesBlockPreconditioner::correctNullspace(Pointer<SAMRAIVectorReal<NDIM, double> > U_vec,
                                                      Pointer<SAMRAIVectorReal<NDIM, double> > P_vec)
 {
-    LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+    auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver)
     {
         const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& U_nul_vecs =
             p_velocity_solver->getNullspaceBasisVectors();
         if (!U_nul_vecs.empty())
         {
-            for (unsigned int k = 0; k < U_nul_vecs.size(); ++k)
+            for (const auto& U_nul_vec : U_nul_vecs)
             {
-                const double alpha = U_vec->dot(U_nul_vecs[k]) / U_nul_vecs[k]->dot(U_nul_vecs[k]);
-                U_vec->axpy(-alpha, U_nul_vecs[k], U_vec);
+                const double alpha = U_vec->dot(U_nul_vec) / U_nul_vec->dot(U_nul_vec);
+                U_vec->axpy(-alpha, U_nul_vec, U_vec);
             }
         }
 #if !defined(NDEBUG)
@@ -232,7 +232,7 @@ StaggeredStokesBlockPreconditioner::correctNullspace(Pointer<SAMRAIVectorReal<ND
 #endif
     }
 
-    LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+    auto p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
     if (p_pressure_solver)
     {
         if (p_pressure_solver->getNullspaceContainsConstantVector())

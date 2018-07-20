@@ -142,7 +142,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~CCPoissonHypreLevelSolver();
+    ~CCPoissonHypreLevelSolver() override;
 
     /*!
      * \brief Static function to construct a CCPoissonHypreLevelSolver.
@@ -196,7 +196,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -236,7 +237,7 @@ public:
      * \see deallocateSolverState
      */
     void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -247,7 +248,7 @@ public:
      *
      * \see initializeSolverState
      */
-    void deallocateSolverState();
+    void deallocateSolverState() override;
 
     //\}
 
@@ -257,7 +258,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CCPoissonHypreLevelSolver();
+    CCPoissonHypreLevelSolver() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -266,7 +267,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CCPoissonHypreLevelSolver(const CCPoissonHypreLevelSolver& from);
+    CCPoissonHypreLevelSolver(const CCPoissonHypreLevelSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -277,7 +278,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CCPoissonHypreLevelSolver& operator=(const CCPoissonHypreLevelSolver& that);
+    CCPoissonHypreLevelSolver& operator=(const CCPoissonHypreLevelSolver& that) = delete;
 
     /*!
      * \brief Functions to allocate, initialize, access, and deallocate hypre

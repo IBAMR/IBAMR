@@ -34,10 +34,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <deque>
 #include <limits>
 #include <ostream>
-#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -162,8 +162,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::INSVCStaggeredNonConservativeH
     Pointer<Database> input_db,
     bool register_for_restart)
     : INSVCStaggeredHierarchyIntegrator(object_name, input_db, register_for_restart),
-      d_rho_bc_coef(NULL),
-      d_rho_adv_diff_var(NULL)
+      d_rho_bc_coef(nullptr),
+      d_rho_adv_diff_var(nullptr)
 {
     switch (d_convective_time_stepping_type)
     {
@@ -241,7 +241,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
             TBOX_ASSERT(!d_rho_var);
             TBOX_ASSERT(!d_rho_init_fcn);
 #endif
-            d_rho_var = Pointer<CellVariable<NDIM, double> >(NULL);
+            d_rho_var = Pointer<CellVariable<NDIM, double> >(nullptr);
             // Ensure that boundary conditions are provided by the advection-diffusion integrator
             d_rho_bc_coef = (d_adv_diff_hier_integrator->getPhysicalBcCoefs(d_rho_adv_diff_var)).front();
         }
@@ -280,7 +280,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         d_rho_current_idx = -1;
         d_rho_new_idx = -1;
-        d_rho_init_fcn = NULL;
+        d_rho_init_fcn = nullptr;
 
         Pointer<CellVariable<NDIM, double> > rho_cc_scratch_var =
             new CellVariable<NDIM, double>(d_object_name + "_rho_cc_scratch_var", /*depth*/ 1);
@@ -471,13 +471,13 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
     const Pointer<SideVariable<NDIM, double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs,
-                                                              /*P_bc_coef*/ NULL,
+                                                              /*P_bc_coef*/ nullptr,
                                                               d_U_scratch_idx,
                                                               /*P_data_idx*/ -1,
                                                               /*homogeneous_bc*/ false);
     d_U_bdry_bc_fill_op->fillData(current_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
-                                                              /*P_bc_coef*/ NULL);
+                                                              /*P_bc_coef*/ nullptr);
     d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
     // RHS^n = (C_rhs*I + L(D_rhs))*U^n
     d_hier_math_ops->vc_laplace(U_rhs_idx,
@@ -486,9 +486,9 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
                                 0.0,
                                 U_rhs_problem_coefs.getDPatchDataId(),
 #if (NDIM == 2)
-                                Pointer<NodeVariable<NDIM, double> >(NULL),
+                                Pointer<NodeVariable<NDIM, double> >(nullptr),
 #elif (NDIM == 3)
-                                Pointer<EdgeVariable<NDIM, double> >(NULL),
+                                Pointer<EdgeVariable<NDIM, double> >(nullptr),
 #endif
                                 d_U_scratch_idx,
                                 d_U_var,
@@ -939,7 +939,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetHierarchyConfigurationSpe
     INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
         base_hierarchy, coarsest_level, finest_level);
 
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     if (!d_rho_is_const)
     {
         // These options are chosen to ensure that information is propagated conservatively from the coarse cells only
@@ -1129,7 +1129,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
                      << "::updateOperatorsAndSolvers`(): initializing "
                         "velocity subdomain solver"
                      << std::endl;
-            LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+            auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
             if (p_velocity_solver)
             {
                 p_velocity_solver->setInitialGuessNonzero(false);
@@ -1153,7 +1153,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
                      << "::updateOperatorsAndSolvers(): initializing "
                         "pressure subdomain solver"
                      << std::endl;
-            LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+            auto p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
             if (p_pressure_solver)
             {
                 p_pressure_solver->setInitialGuessNonzero(false);
@@ -1172,23 +1172,20 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
     d_stokes_solver->setTimeInterval(current_time, new_time);
     d_stokes_solver->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
 
-    LinearSolver* p_stokes_linear_solver = dynamic_cast<LinearSolver*>(d_stokes_solver.getPointer());
+    auto p_stokes_linear_solver = dynamic_cast<LinearSolver*>(d_stokes_solver.getPointer());
     if (!p_stokes_linear_solver)
     {
-        NewtonKrylovSolver* p_stokes_newton_solver = dynamic_cast<NewtonKrylovSolver*>(d_stokes_solver.getPointer());
+        auto p_stokes_newton_solver = dynamic_cast<NewtonKrylovSolver*>(d_stokes_solver.getPointer());
         if (p_stokes_newton_solver) p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver().getPointer();
     }
     if (p_stokes_linear_solver)
     {
-        StaggeredStokesBlockPreconditioner* p_stokes_block_pc =
-            dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_linear_solver);
-        StaggeredStokesFACPreconditioner* p_stokes_fac_pc =
-            dynamic_cast<StaggeredStokesFACPreconditioner*>(p_stokes_linear_solver);
-        VCStaggeredStokesProjectionPreconditioner* p_vc_stokes_proj_pc =
-            dynamic_cast<VCStaggeredStokesProjectionPreconditioner*>(p_stokes_linear_solver);
+        auto p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_linear_solver);
+        auto p_stokes_fac_pc = dynamic_cast<StaggeredStokesFACPreconditioner*>(p_stokes_linear_solver);
+        auto p_vc_stokes_proj_pc = dynamic_cast<VCStaggeredStokesProjectionPreconditioner*>(p_stokes_linear_solver);
         if (!(p_stokes_block_pc || p_stokes_fac_pc))
         {
-            KrylovLinearSolver* p_stokes_krylov_solver = dynamic_cast<KrylovLinearSolver*>(p_stokes_linear_solver);
+            auto p_stokes_krylov_solver = dynamic_cast<KrylovLinearSolver*>(p_stokes_linear_solver);
             if (p_stokes_krylov_solver)
             {
                 p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(
@@ -1403,7 +1400,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
     }
 
     // Synchronize solution and right-hand-side data before solve.
-    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent sol_synch_transaction =
         SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
     d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
@@ -1430,7 +1427,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetSolverVectors(
     const double rho = d_rho_is_const ? d_problem_coefs.getRho() : -1.0;
 
     // Synchronize solution data after solve.
-    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent sol_synch_transaction =
         SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
     d_side_synch_op->synchronizeData(current_time);

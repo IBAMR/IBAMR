@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
+#include <cstddef>
 #include <numeric>
 #include <ostream>
 #include <string>
@@ -167,7 +167,7 @@ PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
         {
             Pointer<RefineClasses<NDIM> > data_synch_config = data_synch_sched->getEquivalenceClasses();
             RefineAlgorithm<NDIM> data_synch_alg;
-            data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
+            data_synch_alg.registerRefine(data_idx, data_idx, data_idx, nullptr, new SideSynchCopyFillPattern());
             data_synch_alg.resetSchedule(data_synch_sched);
             data_synch_sched->fillData(0.0);
             data_synch_sched->reset(data_synch_config);
@@ -184,7 +184,7 @@ PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     {
         Pointer<RefineClasses<NDIM> > ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
         RefineAlgorithm<NDIM> ghost_fill_alg;
-        ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
+        ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, nullptr);
         ghost_fill_alg.resetSchedule(ghost_fill_sched);
         ghost_fill_sched->fillData(0.0);
         ghost_fill_sched->reset(ghost_fill_config);
@@ -211,7 +211,7 @@ PETScVecUtilities::constructDataSynchSchedule(const int data_idx, Pointer<PatchL
     else if (data_sc_var)
     {
         RefineAlgorithm<NDIM> data_synch_alg;
-        data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
+        data_synch_alg.registerRefine(data_idx, data_idx, data_idx, nullptr, new SideSynchCopyFillPattern());
         data_synch_sched = data_synch_alg.createSchedule(patch_level);
     }
     else
@@ -228,7 +228,7 @@ Pointer<RefineSchedule<NDIM> >
 PETScVecUtilities::constructGhostFillSchedule(const int data_idx, Pointer<PatchLevel<NDIM> > patch_level)
 {
     RefineAlgorithm<NDIM> ghost_fill_alg;
-    ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
+    ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, nullptr);
     return ghost_fill_alg.createSchedule(patch_level);
 } // constructGhostFillSchedule
 
@@ -502,7 +502,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs
 
     // Communicate ghost DOF indices.
     RefineAlgorithm<NDIM> ghost_fill_alg;
-    ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL);
+    ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, nullptr);
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
     return;
 } // constructPatchLevelDOFIndices_cell
@@ -552,8 +552,8 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
     // boundaries to determine which patch owns a given DOF along patch
     // boundaries.
     RefineAlgorithm<NDIM> bdry_synch_alg;
-    bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
-    bdry_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL, new SideSynchCopyFillPattern());
+    bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, nullptr, new SideSynchCopyFillPattern());
+    bdry_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, nullptr, new SideSynchCopyFillPattern());
     bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
 
     // Determine the number of local DOFs.
@@ -636,10 +636,10 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
 
     // Communicate ghost DOF indices.
     RefineAlgorithm<NDIM> dof_synch_alg;
-    dof_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL, new SideSynchCopyFillPattern());
+    dof_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, nullptr, new SideSynchCopyFillPattern());
     dof_synch_alg.createSchedule(patch_level)->fillData(0.0);
     RefineAlgorithm<NDIM> ghost_fill_alg;
-    ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL);
+    ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, nullptr);
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
     return;
 } // constructPatchLevelDOFIndices_side

@@ -214,9 +214,9 @@ public:
      * \note A null argument is simply skipped with no corresponding solver
      * return.
      */
-    void getMobilitySolvers(IBAMR::KrylovMobilitySolver** km_solver = NULL,
-                            IBAMR::DirectMobilitySolver** dm_solver = NULL,
-                            IBAMR::KrylovFreeBodyMobilitySolver** fbm_solver = NULL);
+    void getMobilitySolvers(IBAMR::KrylovMobilitySolver** km_solver = nullptr,
+                            IBAMR::DirectMobilitySolver** dm_solver = nullptr,
+                            IBAMR::KrylovFreeBodyMobilitySolver** fbm_solver = nullptr);
 
     /////////////////////////////// PRIVATE //////////////////////////////////////
 private:

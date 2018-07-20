@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
 #include <algorithm>
+#include <cmath>
 #include <ostream>
 
 #include "IntVector.h"
@@ -236,7 +236,7 @@ PETScSAMRAIVectorReal::~PETScSAMRAIVectorReal()
 {
     if (!d_vector_created_via_duplicate)
     {
-        d_petsc_vector->ops->destroy = 0;
+        d_petsc_vector->ops->destroy = nullptr;
         int ierr = VecDestroy(&d_petsc_vector);
         IBTK_CHKERRQ(ierr);
     }

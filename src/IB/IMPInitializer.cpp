@@ -32,10 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include <cmath>
+
 #include <algorithm>
+#include <cstddef>
 #include <map>
 #include <ostream>
 #include <string>
@@ -65,7 +65,6 @@
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/ibtk_utilities.h"
-#include "libmesh/auto_ptr.h"
 #include "libmesh/elem.h"
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
@@ -84,6 +83,7 @@
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+#include <memory>
 
 namespace IBTK
 {
@@ -120,7 +120,7 @@ IMPInitializer::IMPInitializer(const std::string& object_name,
       d_vertex_posn(d_gridding_alg->getMaxLevels()),
       d_vertex_wgt(d_gridding_alg->getMaxLevels()),
       d_vertex_subdomain_id(d_gridding_alg->getMaxLevels()),
-      d_silo_writer(NULL)
+      d_silo_writer(nullptr)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
@@ -147,7 +147,7 @@ IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     const int max_levels = d_gridding_alg->getMaxLevels();
     if (level_number < 0) level_number = max_levels - 1;
     level_number = std::min(level_number, max_levels - 1);
-    const unsigned int mesh_idx = static_cast<unsigned int>(d_meshes[level_number].size());
+    const auto mesh_idx = static_cast<unsigned int>(d_meshes[level_number].size());
     d_meshes[level_number].push_back(mesh);
 
     // Compute the Cartesian grid spacing on the specified level of the mesh.
@@ -166,8 +166,8 @@ IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     // and weighting factors.
     const int dim = mesh->mesh_dimension();
     FEType fe_type(FIRST, LAGRANGE);
-    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
-    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<libMesh::Point>& q_point = fe->get_xyz();
     const std::vector<double>& JxW = fe->get_JxW();

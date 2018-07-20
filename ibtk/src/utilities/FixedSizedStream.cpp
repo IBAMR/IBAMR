@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string.h>
+#include <cstring>
 #include <vector>
 
 #include "ibtk/FixedSizedStream.h"

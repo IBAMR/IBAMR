@@ -59,14 +59,14 @@ public:
     /*!
      * Virtual destructor for LIndexSetVariable objects.
      */
-    virtual ~LIndexSetVariable();
+    ~LIndexSetVariable() override;
 
     /*!
      * Return false since the LIndexSet data index space matches the
      * cell-centered index space for AMR patches.  Thus, LIndexSet data does not
      * live on patch borders.
      */
-    bool dataLivesOnPatchBorder() const;
+    bool dataLivesOnPatchBorder() const override;
 
     /*!
      * Return true so that the LIndexSet data quantities will always be treated
@@ -76,7 +76,7 @@ public:
      * data does not live on patch borders and so there is no ambiguity
      * regarding coarse-fine interface values.
      */
-    bool fineBoundaryRepresentsVariable() const;
+    bool fineBoundaryRepresentsVariable() const override;
 
 private:
     /*!
@@ -84,7 +84,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LIndexSetVariable();
+    LIndexSetVariable() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -93,8 +93,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LIndexSetVariable(const LIndexSetVariable<T>& from);
-
+    LIndexSetVariable(const LIndexSetVariable<T>& from) = delete;
     /*!
      * \brief Assignment operator.
      *
@@ -104,7 +103,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LIndexSetVariable<T>& operator=(const LIndexSetVariable<T>& that);
+    LIndexSetVariable<T>& operator=(const LIndexSetVariable<T>& that) = delete;
 };
 } // namespace IBTK
 

@@ -32,9 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <ios>
 #include <iosfwd>
 #include <istream>
@@ -134,7 +134,7 @@ IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Poi
       d_use_file_batons(true),
       d_max_levels(-1),
       d_level_is_initialized(),
-      d_silo_writer(NULL),
+      d_silo_writer(nullptr),
       d_base_filename(),
       d_length_scale_factor(1.0),
       d_posn_shift(Vector::Zero()),
@@ -601,7 +601,7 @@ IBStandardInitializer::readSpringFiles(const std::string& extension, const bool 
                     bool found_connection = false;
                     std::pair<std::multimap<int, Edge>::iterator, std::multimap<int, Edge>::iterator> range =
                         d_spring_edge_map[ln][j].equal_range(e.first);
-                    for (std::multimap<int, Edge>::iterator it = range.first; it != range.second; ++it)
+                    for (auto it = range.first; it != range.second; ++it)
                     {
                         if (it->second == e) found_connection = true;
                     }
@@ -860,7 +860,7 @@ IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool
                     bool found_connection = false;
                     std::pair<std::multimap<int, Edge>::iterator, std::multimap<int, Edge>::iterator> range =
                         d_xspring_edge_map[ln][j].equal_range(e.first);
-                    for (std::multimap<int, Edge>::iterator it = range.first; it != range.second; ++it)
+                    for (auto it = range.first; it != range.second; ++it)
                     {
                         if (it->second == e) found_connection = true;
                     }
@@ -1125,7 +1125,7 @@ IBStandardInitializer::readBeamFiles(const std::string& extension, const bool in
                     bool found_connection = false;
                     std::pair<std::multimap<int, BeamSpec>::iterator, std::multimap<int, BeamSpec>::iterator> range =
                         d_beam_spec_data[ln][j].equal_range(curr_idx);
-                    for (std::multimap<int, BeamSpec>::iterator it = range.first; it != range.second; ++it)
+                    for (auto it = range.first; it != range.second; ++it)
                     {
                         const BeamSpec& spec_data = it->second;
                         if (spec_data.neighbor_idxs == std::make_pair(next_idx, prev_idx)) found_connection = true;
@@ -1498,7 +1498,7 @@ IBStandardInitializer::readRodFiles(const std::string& extension, const bool inp
                     bool found_connection = false;
                     std::pair<std::multimap<int, Edge>::iterator, std::multimap<int, Edge>::iterator> range =
                         d_rod_edge_map[ln][j].equal_range(curr_idx);
-                    for (std::multimap<int, Edge>::iterator it = range.first; it != range.second; ++it)
+                    for (auto it = range.first; it != range.second; ++it)
                     {
                         if (it->second == e) found_connection = true;
                     }
@@ -2413,8 +2413,7 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
 
                 // Ensure that a complete range of instrument indices were found
                 // in the input file.
-                for (std::vector<bool>::iterator meter_it = encountered_instrument_idx.begin();
-                     meter_it != encountered_instrument_idx.end();
+                for (auto meter_it = encountered_instrument_idx.begin(); meter_it != encountered_instrument_idx.end();
                      ++meter_it)
                 {
                     const size_t meter_idx = std::distance(encountered_instrument_idx.begin(), meter_it);
@@ -2429,9 +2428,7 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
                     }
 
                     std::vector<bool>& meter_node_idxs = encountered_node_idx[meter_idx];
-                    for (std::vector<bool>::iterator node_it = meter_node_idxs.begin();
-                         node_it != meter_node_idxs.end();
-                         ++node_it)
+                    for (auto node_it = meter_node_idxs.begin(); node_it != meter_node_idxs.end(); ++node_it)
                     {
                         const size_t node_idx = std::distance(meter_node_idxs.begin(), node_it);
                         if ((*node_it) == false)
@@ -2728,8 +2725,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
         std::vector<std::vector<double> > parameters;
         if (d_enable_springs[level_number][j])
         {
-            for (std::multimap<int, Edge>::const_iterator it =
-                     d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
+            for (auto it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
                  it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx);
                  ++it)
             {
@@ -2757,8 +2753,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             if (!d_enable_xsprings[level_number][j]) continue;
-            for (std::multimap<int, Edge>::const_iterator it =
-                     d_xspring_edge_map[level_number][j].lower_bound(mastr_idx);
+            for (auto it = d_xspring_edge_map[level_number][j].lower_bound(mastr_idx);
                  it != d_xspring_edge_map[level_number][j].upper_bound(mastr_idx);
                  ++it)
             {
@@ -2794,7 +2789,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
         std::vector<std::pair<int, int> > beam_neighbor_idxs;
         std::vector<double> beam_bend_rigidity;
         std::vector<Vector> beam_mesh_dependent_curvature;
-        for (std::multimap<int, BeamSpec>::const_iterator it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx);
+        for (auto it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx);
              it != d_beam_spec_data[level_number][j].upper_bound(mastr_idx);
              ++it)
         {
@@ -2815,7 +2810,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
     {
         std::vector<int> rod_next_idxs;
         std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
-        for (std::multimap<int, Edge>::const_iterator it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
+        for (auto it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
              it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx);
              ++it)
         {

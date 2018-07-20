@@ -89,7 +89,7 @@ public:
     INSStaggeredWavePropConvectiveOperator(const std::string& object_name,
                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                            ConvectiveDifferencingType difference_form,
-                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+                                           std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -170,7 +170,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredWavePropConvectiveOperator();
+    INSStaggeredWavePropConvectiveOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -179,7 +179,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredWavePropConvectiveOperator(const INSStaggeredWavePropConvectiveOperator& from);
+    INSStaggeredWavePropConvectiveOperator(const INSStaggeredWavePropConvectiveOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -190,7 +190,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredWavePropConvectiveOperator& operator=(const INSStaggeredWavePropConvectiveOperator& that);
+    INSStaggeredWavePropConvectiveOperator& operator=(const INSStaggeredWavePropConvectiveOperator& that) = delete;
 
     // Boundary condition helper object.
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;

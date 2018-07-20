@@ -57,7 +57,7 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-RelaxationLSBcCoefs::RelaxationLSBcCoefs(const std::string& object_name) : d_object_name(object_name), d_phi_idx(-1)
+RelaxationLSBcCoefs::RelaxationLSBcCoefs(std::string object_name) : d_object_name(std::move(object_name)), d_phi_idx(-1)
 {
     // intentionally blank
     return;

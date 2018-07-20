@@ -33,9 +33,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
+#include <cstddef>
 #include <map>
 #include <ostream>
-#include <stddef.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -511,7 +511,7 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
             TBOX_ASSERT(error_data->getDepth() == residual_data->getDepth());
             TBOX_ASSERT(error_data->getDepth() == mu_data->getDepth());
 #endif
-            Pointer<SideData<NDIM, double> > C_data = NULL;
+            Pointer<SideData<NDIM, double> > C_data = nullptr;
             if (d_poisson_spec.cIsVariable())
             {
                 C_data = patch->getPatchData(d_poisson_spec.getCPatchDataId());
@@ -529,12 +529,10 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
                 {
                     const std::map<int, Box<NDIM> > neighbor_overlap =
                         d_patch_neighbor_overlap[level_num][patch_counter][axis];
-                    for (std::map<int, Box<NDIM> >::const_iterator cit = neighbor_overlap.begin();
-                         cit != neighbor_overlap.end();
-                         ++cit)
+                    for (const auto& cit : neighbor_overlap)
                     {
-                        const int src_patch_num = cit->first;
-                        const Box<NDIM>& overlap = cit->second;
+                        const int src_patch_num = cit.first;
+                        const Box<NDIM>& overlap = cit.second;
                         Pointer<Patch<NDIM> > src_patch = level->getPatch(src_patch_num);
                         Pointer<SideData<NDIM, double> > src_error_data = error.getComponentPatchData(0, *src_patch);
                         error_data->getArrayData(axis).copy(
@@ -599,10 +597,10 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
 #endif
                 const int mu_ghosts = (mu_data->getGhostCellWidth()).max();
 
-                const double* C0 = NULL;
-                const double* C1 = NULL;
+                const double* C0 = nullptr;
+                const double* C1 = nullptr;
 #if (NDIM == 3)
-                const double* C2 = NULL;
+                const double* C2 = nullptr;
 #endif
                 int C_ghosts = 0;
                 if (d_poisson_spec.cIsVariable())
@@ -838,7 +836,7 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
 
     // Fill ghost-cell values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    Pointer<SideNoCornersFillPattern> fill_pattern = NULL;
+    Pointer<SideNoCornersFillPattern> fill_pattern = nullptr;
     InterpolationTransactionComponent transaction_comp(sol_idx,
                                                        DATA_REFINE_TYPE,
                                                        USE_CF_INTERPOLATION,
@@ -891,14 +889,14 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
                                                    beta,
                                                    d_poisson_spec.getDPatchDataId(),
 #if (NDIM == 2)
-                                                   Pointer<NodeVariable<NDIM, double> >(NULL),
+                                                   Pointer<NodeVariable<NDIM, double> >(nullptr),
 #endif
 #if (NDIM == 3)
-                                                   Pointer<EdgeVariable<NDIM, double> >(NULL),
+                                                   Pointer<EdgeVariable<NDIM, double> >(nullptr),
 #endif
                                                    sol_idx,
                                                    sol_var,
-                                                   Pointer<HierarchyGhostCellInterpolation>(NULL),
+                                                   Pointer<HierarchyGhostCellInterpolation>(nullptr),
                                                    d_solution_time,
                                                    d_D_interp_type,
                                                    d_poisson_spec.cIsVariable() ? d_poisson_spec.getCPatchDataId() :
@@ -938,7 +936,7 @@ VCSCViscousOpPointRelaxationFACOperator::initializeOperatorStateSpecialized(
 
     // Set stencil fill pattern to NULL if the base class
     // has set it to non-null.
-    d_op_stencil_fill_pattern = NULL;
+    d_op_stencil_fill_pattern = nullptr;
 
     return;
 } // initializeOperatorStateSpecialized

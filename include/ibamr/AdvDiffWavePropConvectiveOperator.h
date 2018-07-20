@@ -124,7 +124,7 @@ public:
                                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
                                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                       const ConvectiveDifferencingType difference_form,
-                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& conc_bc_coefs);
+                                      std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> conc_bc_coefs);
     /*!
      * \brief Destructor.
      */
@@ -198,7 +198,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvDiffWavePropConvectiveOperator();
+    AdvDiffWavePropConvectiveOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -207,7 +207,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffWavePropConvectiveOperator(const AdvDiffWavePropConvectiveOperator& from);
+    AdvDiffWavePropConvectiveOperator(const AdvDiffWavePropConvectiveOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -218,7 +218,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffWavePropConvectiveOperator& operator=(const AdvDiffWavePropConvectiveOperator& that);
+    AdvDiffWavePropConvectiveOperator& operator=(const AdvDiffWavePropConvectiveOperator& that) = delete;
 
     // Data communication algorithms, operators, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg_Q;

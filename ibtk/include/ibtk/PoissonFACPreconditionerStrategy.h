@@ -125,7 +125,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~PoissonFACPreconditionerStrategy();
+    ~PoissonFACPreconditionerStrategy() override;
 
     /*!
      * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
@@ -246,7 +246,7 @@ public:
     /*!
      * \brief Zero the supplied vector.
      */
-    void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num);
+    void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num) override;
 
     /*!
      * \brief Restrict the residual quantity to the specified level from the
@@ -258,7 +258,7 @@ public:
      */
     void restrictResidual(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
                           SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
-                          int dst_ln);
+                          int dst_ln) override;
 
     /*!
      * \brief Prolong the error quantity to the specified level from the next
@@ -270,7 +270,7 @@ public:
      */
     void prolongError(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
-                      int dst_ln);
+                      int dst_ln) override;
 
     /*!
      * \brief Prolong the error quantity to the specified level from the next
@@ -282,7 +282,7 @@ public:
      */
     void prolongErrorAndCorrect(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
                                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
-                                int dst_ln);
+                                int dst_ln) override;
 
     /*!
      * \brief Compute hierarchy-dependent data.
@@ -299,7 +299,7 @@ public:
      * \param rhs right hand side vector f
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs) override;
 
     /*!
      * \brief Remove all hierarchy-dependent data.
@@ -308,7 +308,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void deallocateOperatorState();
+    void deallocateOperatorState() override;
 
     //\}
 
@@ -485,7 +485,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PoissonFACPreconditionerStrategy();
+    PoissonFACPreconditionerStrategy() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -494,7 +494,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PoissonFACPreconditionerStrategy(const PoissonFACPreconditionerStrategy& from);
+    PoissonFACPreconditionerStrategy(const PoissonFACPreconditionerStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -505,7 +505,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PoissonFACPreconditionerStrategy& operator=(const PoissonFACPreconditionerStrategy& that);
+    PoissonFACPreconditionerStrategy& operator=(const PoissonFACPreconditionerStrategy& that) = delete;
 
     /*!
      * \name Various refine and coarsen objects.

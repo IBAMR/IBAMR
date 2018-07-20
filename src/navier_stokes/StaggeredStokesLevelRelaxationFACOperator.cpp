@@ -263,13 +263,13 @@ StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, do
         level_solver->setSolutionTime(d_solution_time);
         level_solver->setTimeInterval(d_current_time, d_new_time);
         level_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
-        LinearSolver* p_level_solver = dynamic_cast<LinearSolver*>(level_solver.getPointer());
+        auto p_level_solver = dynamic_cast<LinearSolver*>(level_solver.getPointer());
         if (p_level_solver)
         {
             bool initial_guess_nonzero = true;
 
-            PETScKrylovLinearSolver* p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_level_solver);
-            PETScLevelSolver* p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_level_solver);
+            auto p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_level_solver);
+            auto p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_level_solver);
 
             if (p_petsc_solver || p_petsc_level_solver)
             {

@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <ostream>
 #include <vector>
 
@@ -57,9 +57,9 @@ namespace IBAMR
 
 StaggeredStokesSolver::StaggeredStokesSolver()
     : d_U_problem_coefs("U_problem_coefs"),
-      d_default_U_bc_coef(new LocationIndexRobinBcCoefs<NDIM>("default_U_bc_coef", Pointer<Database>(NULL))),
+      d_default_U_bc_coef(new LocationIndexRobinBcCoefs<NDIM>("default_U_bc_coef", Pointer<Database>(nullptr))),
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef)),
-      d_default_P_bc_coef(new LocationIndexRobinBcCoefs<NDIM>("default_P_bc_coef", Pointer<Database>(NULL))),
+      d_default_P_bc_coef(new LocationIndexRobinBcCoefs<NDIM>("default_P_bc_coef", Pointer<Database>(nullptr))),
       d_P_bc_coef(d_default_P_bc_coef)
 {
     // Set some default values.
@@ -71,12 +71,10 @@ StaggeredStokesSolver::StaggeredStokesSolver()
     // boundary conditions for the pressure.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        LocationIndexRobinBcCoefs<NDIM>* p_default_U_bc_coef =
-            dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_U_bc_coef);
+        auto p_default_U_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_U_bc_coef);
         p_default_U_bc_coef->setBoundaryValue(2 * d, 0.0);
         p_default_U_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
-        LocationIndexRobinBcCoefs<NDIM>* p_default_P_bc_coef =
-            dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_P_bc_coef);
+        auto p_default_P_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_P_bc_coef);
         p_default_P_bc_coef->setBoundarySlope(2 * d, 0.0);
         p_default_P_bc_coef->setBoundarySlope(2 * d + 1, 0.0);
     }
@@ -89,9 +87,9 @@ StaggeredStokesSolver::StaggeredStokesSolver()
 StaggeredStokesSolver::~StaggeredStokesSolver()
 {
     delete d_default_U_bc_coef;
-    d_default_U_bc_coef = NULL;
+    d_default_U_bc_coef = nullptr;
     delete d_default_P_bc_coef;
-    d_default_P_bc_coef = NULL;
+    d_default_P_bc_coef = nullptr;
     return;
 } // ~StaggeredStokesSolver()
 

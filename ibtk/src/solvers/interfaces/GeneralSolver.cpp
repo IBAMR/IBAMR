@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -62,19 +62,14 @@ namespace IBTK
 
 GeneralSolver::GeneralSolver()
     : d_object_name("unitialized"),
-      d_is_initialized(false),
-      d_homogeneous_bc(false),
+
       d_solution_time(std::numeric_limits<double>::quiet_NaN()),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
-      d_rel_residual_tol(0.0),
-      d_abs_residual_tol(0.0),
-      d_max_iterations(100),
-      d_current_iterations(0),
+
       d_current_residual_norm(std::numeric_limits<double>::quiet_NaN()),
-      d_hier_math_ops(NULL),
-      d_hier_math_ops_external(false),
-      d_enable_logging(false)
+      d_hier_math_ops(nullptr)
+
 {
     // intentionally blank
     return;

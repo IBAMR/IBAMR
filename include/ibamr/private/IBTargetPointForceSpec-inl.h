@@ -34,6 +34,7 @@
 #define included_IBAMR_IBTargetPointForceSpec_inl
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include <utility>
 
 #include "ibamr/IBTargetPointForceSpec.h"
 #include "ibtk/StreamableManager.h"
@@ -57,8 +58,8 @@ IBTargetPointForceSpec::getIsRegisteredWithStreamableManager()
 inline IBTargetPointForceSpec::IBTargetPointForceSpec(const int master_idx,
                                                       const double kappa_target,
                                                       const double eta_target,
-                                                      const IBTK::Point& X_target)
-    : d_master_idx(master_idx), d_kappa_target(kappa_target), d_eta_target(eta_target), d_X_target(X_target)
+                                                      IBTK::Point X_target)
+    : d_master_idx(master_idx), d_kappa_target(kappa_target), d_eta_target(eta_target), d_X_target(std::move(X_target))
 {
 #if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())

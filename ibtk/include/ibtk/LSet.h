@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <vector>
 
 #include "IntVector.h"
@@ -131,7 +131,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~LSet();
+    ~LSet() override;
 
     /*!
      * \brief Assignment operator.
@@ -273,7 +273,7 @@ private:
     /*!
      * \brief The collection of data items.
      */
-    typename LSet<T>::DataSet d_set;
+    typename LSet<T>::DataSet d_set = 0;
 
     /*!
      * \brief The periodic offset.

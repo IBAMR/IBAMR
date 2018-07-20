@@ -88,7 +88,7 @@ EdgeSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry
 #endif
     if (box_geom_overlap->isOverlapEmpty()) return box_geom_overlap;
 
-    const EdgeGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const EdgeGeometry<NDIM>*>(&dst_geometry);
+    auto const t_dst_geometry = dynamic_cast<const EdgeGeometry<NDIM>*>(&dst_geometry);
 #if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
 #endif

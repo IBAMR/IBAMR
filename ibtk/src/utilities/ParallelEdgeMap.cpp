@@ -172,7 +172,7 @@ ParallelEdgeMap::communicateData()
         bool found_link = false;
 
         std::pair<multimap_iterator, multimap_iterator> range = d_edge_map.equal_range(mastr_idx);
-        for (multimap_iterator it = range.first; it != range.second && !found_link; ++it)
+        for (auto it = range.first; it != range.second && !found_link; ++it)
         {
             if (it->second == link)
             {
@@ -195,7 +195,7 @@ ParallelEdgeMap::communicateData()
             }
 
             std::pair<multimap_iterator, multimap_iterator> range = d_edge_map.equal_range(mastr_idx);
-            for (multimap_iterator it = range.first; it != range.second && !found_link; ++it)
+            for (auto it = range.first; it != range.second && !found_link; ++it)
             {
                 if (it->second == link)
                 {

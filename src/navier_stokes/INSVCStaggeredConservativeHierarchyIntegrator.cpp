@@ -34,10 +34,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <deque>
 #include <limits>
 #include <ostream>
-#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -162,8 +162,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
     Pointer<Database> input_db,
     bool register_for_restart)
     : INSVCStaggeredHierarchyIntegrator(object_name, input_db, register_for_restart),
-      d_rho_sc_bc_coefs(NDIM, NULL),
-      d_S_fcn(NULL)
+      d_rho_sc_bc_coefs(NDIM, nullptr),
+      d_S_fcn(nullptr)
 {
     if (!(d_convective_difference_form == CONSERVATIVE))
     {
@@ -277,8 +277,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     }
 
     // Set the optional density source function.
-    INSVCStaggeredConservativeConvectiveOperator* p_vc_convective_op =
-        dynamic_cast<INSVCStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
+    auto p_vc_convective_op = dynamic_cast<INSVCStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
     if (p_vc_convective_op)
     {
         p_vc_convective_op->setSideCenteredDensityBoundaryConditions(d_rho_sc_bc_coefs);
@@ -476,13 +475,13 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     const Pointer<SideVariable<NDIM, double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs,
-                                                              /*P_bc_coef*/ NULL,
+                                                              /*P_bc_coef*/ nullptr,
                                                               d_U_scratch_idx,
                                                               /*P_data_idx*/ -1,
                                                               /*homogeneous_bc*/ false);
     d_U_bdry_bc_fill_op->fillData(current_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
-                                                              /*P_bc_coef*/ NULL);
+                                                              /*P_bc_coef*/ nullptr);
     d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
     // RHS^n = (C_rhs*I + L(D_rhs))*U^n
     d_hier_math_ops->vc_laplace(U_rhs_idx,
@@ -491,9 +490,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
                                 0.0,
                                 U_rhs_problem_coefs.getDPatchDataId(),
 #if (NDIM == 2)
-                                Pointer<NodeVariable<NDIM, double> >(NULL),
+                                Pointer<NodeVariable<NDIM, double> >(nullptr),
 #elif (NDIM == 3)
-                                Pointer<EdgeVariable<NDIM, double> >(NULL),
+                                Pointer<EdgeVariable<NDIM, double> >(nullptr),
 #endif
                                 d_U_scratch_idx,
                                 d_U_var,
@@ -575,7 +574,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
 
         // For conservative momentum discretization, an approximation to rho^{n+1}
         // will be computed from rho^{n}, which requires additional options to be set.
-        INSVCStaggeredConservativeConvectiveOperator* p_vc_convective_op =
+        auto p_vc_convective_op =
             dynamic_cast<INSVCStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
         if (p_vc_convective_op)
         {
@@ -643,8 +642,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
 
     // In the special case of a conservative discretization form, the updated density is previously calculated by
     // application of the convective operator
-    INSVCStaggeredConservativeConvectiveOperator* p_vc_convective_op =
-        dynamic_cast<INSVCStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
+    auto p_vc_convective_op = dynamic_cast<INSVCStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
     if (p_vc_convective_op)
     {
         const int rho_sc_new_idx = p_vc_convective_op->getUpdatedSideCenteredDensityPatchDataIndex();
@@ -1070,7 +1068,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
                      << "::updateOperatorsAndSolvers`(): initializing "
                         "velocity subdomain solver"
                      << std::endl;
-            LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+            auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
             if (p_velocity_solver)
             {
                 p_velocity_solver->setInitialGuessNonzero(false);
@@ -1094,7 +1092,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
                      << "::updateOperatorsAndSolvers(): initializing "
                         "pressure subdomain solver"
                      << std::endl;
-            LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+            auto p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
             if (p_pressure_solver)
             {
                 p_pressure_solver->setInitialGuessNonzero(false);
@@ -1113,23 +1111,20 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     d_stokes_solver->setTimeInterval(current_time, new_time);
     d_stokes_solver->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
 
-    LinearSolver* p_stokes_linear_solver = dynamic_cast<LinearSolver*>(d_stokes_solver.getPointer());
+    auto p_stokes_linear_solver = dynamic_cast<LinearSolver*>(d_stokes_solver.getPointer());
     if (!p_stokes_linear_solver)
     {
-        NewtonKrylovSolver* p_stokes_newton_solver = dynamic_cast<NewtonKrylovSolver*>(d_stokes_solver.getPointer());
+        auto p_stokes_newton_solver = dynamic_cast<NewtonKrylovSolver*>(d_stokes_solver.getPointer());
         if (p_stokes_newton_solver) p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver().getPointer();
     }
     if (p_stokes_linear_solver)
     {
-        StaggeredStokesBlockPreconditioner* p_stokes_block_pc =
-            dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_linear_solver);
-        StaggeredStokesFACPreconditioner* p_stokes_fac_pc =
-            dynamic_cast<StaggeredStokesFACPreconditioner*>(p_stokes_linear_solver);
-        VCStaggeredStokesProjectionPreconditioner* p_vc_stokes_proj_pc =
-            dynamic_cast<VCStaggeredStokesProjectionPreconditioner*>(p_stokes_linear_solver);
+        auto p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_linear_solver);
+        auto p_stokes_fac_pc = dynamic_cast<StaggeredStokesFACPreconditioner*>(p_stokes_linear_solver);
+        auto p_vc_stokes_proj_pc = dynamic_cast<VCStaggeredStokesProjectionPreconditioner*>(p_stokes_linear_solver);
         if (!(p_stokes_block_pc || p_stokes_fac_pc))
         {
-            KrylovLinearSolver* p_stokes_krylov_solver = dynamic_cast<KrylovLinearSolver*>(p_stokes_linear_solver);
+            auto p_stokes_krylov_solver = dynamic_cast<KrylovLinearSolver*>(p_stokes_linear_solver);
             if (p_stokes_krylov_solver)
             {
                 p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(
@@ -1242,7 +1237,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
             d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
             d_convective_op->setSolutionTime(apply_time);
 
-            INSVCStaggeredConservativeConvectiveOperator* p_vc_convective_op =
+            auto p_vc_convective_op =
                 dynamic_cast<INSVCStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
             if (p_vc_convective_op)
             {
@@ -1302,7 +1297,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
     }
 
     // Synchronize solution and right-hand-side data before solve.
-    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent sol_synch_transaction =
         SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
     d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
@@ -1326,7 +1321,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
     const int /*cycle_num*/)
 {
     // Synchronize solution data after solve.
-    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent sol_synch_transaction =
         SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
     d_side_synch_op->synchronizeData(current_time);

@@ -90,7 +90,7 @@ public:
     /*!
      * \brief Class destructor.
      */
-    virtual ~LSetDataIterator();
+    ~LSetDataIterator() override;
 
     /*!
      * \brief Assignment operator.

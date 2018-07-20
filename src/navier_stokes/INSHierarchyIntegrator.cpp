@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
+#include <cstddef>
 #include <deque>
 #include <limits>
 #include <ostream>
@@ -91,10 +91,10 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         delete d_U_star_bc_coefs[d];
-        d_U_star_bc_coefs[d] = NULL;
+        d_U_star_bc_coefs[d] = nullptr;
     }
     delete d_Phi_bc_coef;
-    d_Phi_bc_coef = NULL;
+    d_Phi_bc_coef = nullptr;
     return;
 } // ~INSHierarchyIntegrator
 
@@ -424,13 +424,13 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
       d_P_var(P_var),
       d_F_var(F_var),
       d_Q_var(Q_var),
-      d_U_init(NULL),
-      d_P_init(NULL),
-      d_default_bc_coefs(d_object_name + "::default_bc_coefs", Pointer<Database>(NULL)),
-      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_U_init(nullptr),
+      d_P_init(nullptr),
+      d_default_bc_coefs(d_object_name + "::default_bc_coefs", Pointer<Database>(nullptr)),
+      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr)),
       d_traction_bc_type(TRACTION),
-      d_F_fcn(NULL),
-      d_Q_fcn(NULL)
+      d_F_fcn(nullptr),
+      d_Q_fcn(nullptr)
 {
     // Set some default values.
     d_integrator_is_initialized = false;
@@ -463,8 +463,8 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
     d_output_Div_U = true;
     d_output_EE = false;
     d_use_div_sink_drag_term = false;
-    d_velocity_solver = NULL;
-    d_pressure_solver = NULL;
+    d_velocity_solver = nullptr;
+    d_pressure_solver = nullptr;
 
     // Setup default boundary condition objects that specify homogeneous
     // Dirichlet (solid-wall) boundary conditions for the velocity.

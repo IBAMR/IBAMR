@@ -91,11 +91,11 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBHydrodynamicSurfaceForceEvaluator(const std::string& object_name,
+    IBHydrodynamicSurfaceForceEvaluator(std::string object_name,
                                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_solid_var,
                                         SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
                                         SAMRAI::tbox::Pointer<IBAMR::INSHierarchyIntegrator> fluid_solver,
-                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = NULL);
+                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = nullptr);
 
     /*!
      * \brief Virtual destructor.
@@ -115,7 +115,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBHydrodynamicSurfaceForceEvaluator(const IBHydrodynamicSurfaceForceEvaluator& from);
+    IBHydrodynamicSurfaceForceEvaluator(const IBHydrodynamicSurfaceForceEvaluator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -126,7 +126,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBHydrodynamicSurfaceForceEvaluator& operator=(const IBHydrodynamicSurfaceForceEvaluator& that);
+    IBHydrodynamicSurfaceForceEvaluator& operator=(const IBHydrodynamicSurfaceForceEvaluator& that) = delete;
 
     /*!
      * Read input values from a given database.

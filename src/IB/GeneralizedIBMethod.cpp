@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stddef.h>
+#include <cmath>
+#include <cstddef>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -181,12 +181,12 @@ GeneralizedIBMethod::registerEulerianCommunicationAlgorithms()
     Pointer<RefineOperator<NDIM> > refine_op;
 
     refine_alg = new RefineAlgorithm<NDIM>();
-    refine_op = NULL;
+    refine_op = nullptr;
     refine_alg->registerRefine(d_w_idx, d_w_idx, d_w_idx, refine_op);
     registerGhostfillRefineAlgorithm(d_object_name + "::w", refine_alg);
 
     refine_alg = new RefineAlgorithm<NDIM>();
-    refine_op = NULL;
+    refine_op = nullptr;
     refine_alg->registerRefine(d_n_idx, d_n_idx, d_n_idx, refine_op);
     registerGhostfillRefineAlgorithm(d_object_name + "::n", refine_alg);
     return;
@@ -279,7 +279,7 @@ GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
     IBMethod::interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);
 
     // Interpolate the angular velocities.
-    std::vector<Pointer<LData> >* W_data = NULL;
+    std::vector<Pointer<LData> >* W_data = nullptr;
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         W_data = &d_W_current_data;
@@ -302,12 +302,12 @@ GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
     if (u_cc_var)
     {
         Pointer<CellVariable<NDIM, double> > w_cc_var = d_w_var;
-        getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, NULL, data_time);
+        getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, nullptr, data_time);
     }
     else if (u_sc_var)
     {
         Pointer<SideVariable<NDIM, double> > w_sc_var = d_w_var;
-        getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, NULL, data_time);
+        getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, nullptr, data_time);
     }
     else
     {
@@ -465,10 +465,10 @@ GeneralizedIBMethod::computeLagrangianForce(const double data_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     int ierr;
-    std::vector<Pointer<LData> >* F_data = NULL;
-    std::vector<Pointer<LData> >* N_data = NULL;
-    std::vector<Pointer<LData> >* X_data = NULL;
-    std::vector<Pointer<LData> >* D_data = NULL;
+    std::vector<Pointer<LData> >* F_data = nullptr;
+    std::vector<Pointer<LData> >* N_data = nullptr;
+    std::vector<Pointer<LData> >* X_data = nullptr;
+    std::vector<Pointer<LData> >* D_data = nullptr;
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         d_F_current_needs_ghost_fill = true;
@@ -524,8 +524,8 @@ GeneralizedIBMethod::spreadForce(const int f_data_idx,
 {
     IBMethod::spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
 
-    std::vector<Pointer<LData> >* N_data = NULL;
-    bool* N_needs_ghost_fill = NULL;
+    std::vector<Pointer<LData> >* N_data = nullptr;
+    bool* N_needs_ghost_fill = nullptr;
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         N_data = &d_N_current_data;
@@ -574,13 +574,13 @@ GeneralizedIBMethod::spreadForce(const int f_data_idx,
     {
         Pointer<CellVariable<NDIM, double> > f_cc_var = d_f_var;
         Pointer<CellVariable<NDIM, double> > n_cc_var = d_n_var;
-        getHierarchyMathOps()->curl(d_f_idx, f_cc_var, d_n_idx, n_cc_var, NULL, data_time);
+        getHierarchyMathOps()->curl(d_f_idx, f_cc_var, d_n_idx, n_cc_var, nullptr, data_time);
     }
     else if (u_sc_var)
     {
         Pointer<SideVariable<NDIM, double> > f_sc_var = d_f_var;
         Pointer<SideVariable<NDIM, double> > n_sc_var = d_n_var;
-        getHierarchyMathOps()->curl(d_f_idx, f_sc_var, d_n_idx, n_sc_var, NULL, data_time);
+        getHierarchyMathOps()->curl(d_f_idx, f_sc_var, d_n_idx, n_sc_var, nullptr, data_time);
     }
     else
     {
@@ -635,12 +635,12 @@ GeneralizedIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hie
         if (u_cc_var)
         {
             Pointer<CellVariable<NDIM, double> > w_cc_var = d_w_var;
-            getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, NULL, init_data_time);
+            getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, nullptr, init_data_time);
         }
         else if (u_sc_var)
         {
             Pointer<SideVariable<NDIM, double> > w_sc_var = d_w_var;
-            getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, NULL, init_data_time);
+            getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, nullptr, init_data_time);
         }
         else
         {

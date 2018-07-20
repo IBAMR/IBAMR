@@ -33,13 +33,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
 #include <fstream>
 #include <limits>
 #include <map>
-#include <math.h>
 #include <sstream>
-#include <stddef.h>
-#include <stdio.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -430,11 +430,8 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     // on all the processes.
     for (int jj = 0; jj < d_nodeset_IDs_for_meters.size(); ++jj)
     {
-        for (std::set<dof_id_type>::iterator it = temp_node_dof_ID_sets[jj].begin();
-             it != temp_node_dof_ID_sets[jj].end();
-             ++it)
+        for (unsigned int node_id : temp_node_dof_ID_sets[jj])
         {
-            const dof_id_type node_id = *it;
             temp_node_dof_IDs[jj].push_back(node_id);
             const Node* node = &mesh->node_ref(node_id);
             temp_nodes[jj].push_back(*node);
@@ -528,12 +525,11 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
         d_meter_systems.push_back(new EquationSystems(*d_meter_meshes[jj]));
-        LinearImplicitSystem& velocity_sys =
-            d_meter_systems[jj]->add_system<LinearImplicitSystem>(IBFEMethod::VELOCITY_SYSTEM_NAME);
+        auto& velocity_sys = d_meter_systems[jj]->add_system<LinearImplicitSystem>(IBFEMethod::VELOCITY_SYSTEM_NAME);
         velocity_sys.add_variable("U_0", static_cast<Order>(1), LAGRANGE);
         velocity_sys.add_variable("U_1", static_cast<Order>(1), LAGRANGE);
         velocity_sys.add_variable("U_2", static_cast<Order>(1), LAGRANGE);
-        LinearImplicitSystem& displacement_sys =
+        auto& displacement_sys =
             d_meter_systems[jj]->add_system<LinearImplicitSystem>(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
         displacement_sys.add_variable("dX_0", static_cast<Order>(1), LAGRANGE);
         displacement_sys.add_variable("dX_1", static_cast<Order>(1), LAGRANGE);
@@ -643,7 +639,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
         }
 
         Pointer<PatchLevel<NDIM> > finer_level =
-            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel<NDIM> >(NULL));
+            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel<NDIM> >(nullptr));
         const IntVector<NDIM>& finer_ratio = (ln < finest_ln ? finer_level->getRatio() : IntVector<NDIM>(1));
         const Box<NDIM> finer_domain_box_level = Box<NDIM>::refine(domain_box, finer_ratio);
         const Index<NDIM>& finer_domain_box_level_lower = finer_domain_box_level.lower();
@@ -663,8 +659,8 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
             FEType fe_type = displacement_sys.variable_type(0);
 
             // set up FE objects
-            UniquePtr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
-            UniquePtr<QBase> qrule(QBase::build(d_quad_type, NDIM - 1, d_quad_order[jj]));
+            std::unique_ptr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
+            std::unique_ptr<QBase> qrule(QBase::build(d_quad_type, NDIM - 1, d_quad_order[jj]));
             fe_elem->attach_quadrature_rule(qrule.get());
             //  for evaluating the displacement system
             const std::vector<Real>& JxW = fe_elem->get_JxW();
@@ -805,7 +801,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                     );
                     if (U_cc_data)
                     {
-                        for (QuadPointMap::const_iterator it = qp_range.first; it != qp_range.second; ++it)
+                        for (auto it = qp_range.first; it != qp_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const double& JxW = it->second.JxW;
@@ -818,7 +814,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                     }
                     if (U_sc_data)
                     {
-                        for (QuadPointMap::const_iterator it = qp_range.first; it != qp_range.second; ++it)
+                        for (auto it = qp_range.first; it != qp_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const double& JxW = it->second.JxW;
@@ -831,7 +827,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                     }
                     if (P_cc_data)
                     {
-                        for (QuadPointMap::const_iterator it = qp_range.first; it != qp_range.second; ++it)
+                        for (auto it = qp_range.first; it != qp_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const double& JxW = it->second.JxW;
@@ -883,7 +879,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
         FEType fe_type = velocity_sys.variable_type(0);
 
         // set up FE objects
-        UniquePtr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
+        std::unique_ptr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
         QGauss qrule(NDIM - 1, fe_type.default_quadrature_order());
         fe_elem->attach_quadrature_rule(&qrule);
 
@@ -996,13 +992,13 @@ IBFEInstrumentPanel::initializeSystemDependentData(IBFEMethod* ib_method_ops, co
     U_system.update_global_solution(U_coords_parent);
 
     // get displacement and velocity systems for meter mesh
-    LinearImplicitSystem& velocity_sys =
+    auto& velocity_sys =
         d_meter_systems[meter_mesh_number]->get_system<LinearImplicitSystem>(IBFEMethod::VELOCITY_SYSTEM_NAME);
     const unsigned int velocity_sys_num = velocity_sys.number();
     NumericVector<double>& velocity_solution = *velocity_sys.solution;
     NumericVector<double>& velocity_coords = velocity_sys.get_vector("serial solution");
 
-    LinearImplicitSystem& displacement_sys =
+    auto& displacement_sys =
         d_meter_systems[meter_mesh_number]->get_system<LinearImplicitSystem>(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
     const unsigned int displacement_sys_num = displacement_sys.number();
     NumericVector<double>& displacement_solution = *displacement_sys.solution;
@@ -1151,9 +1147,9 @@ IBFEInstrumentPanel::outputNodes()
         if (SAMRAI_MPI::getRank() == 0)
         {
             stuff_stream.open(node_output.str().c_str());
-            for (unsigned int dd = 0; dd < d_nodes[ii].size(); ++dd)
+            for (auto& node : d_nodes[ii])
             {
-                stuff_stream << d_nodes[ii][dd](0) << " " << d_nodes[ii][dd](1) << " " << d_nodes[ii][dd](2) << "\n";
+                stuff_stream << node(0) << " " << node(1) << " " << node(2) << "\n";
             }
             stuff_stream.close();
         }

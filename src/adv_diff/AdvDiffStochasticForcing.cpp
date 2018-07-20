@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stddef.h>
+#include <cmath>
+#include <cstddef>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -101,11 +101,11 @@ genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_name,
+AdvDiffStochasticForcing::AdvDiffStochasticForcing(std::string object_name,
                                                    Pointer<Database> input_db,
                                                    Pointer<CellVariable<NDIM, double> > C_var,
                                                    const AdvDiffSemiImplicitHierarchyIntegrator* const adv_diff_solver)
-    : d_object_name(object_name),
+    : d_object_name(std::move(object_name)),
       d_C_var(C_var),
       d_f_parser(),
       d_adv_diff_solver(adv_diff_solver),
@@ -114,12 +114,12 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_nam
       d_weights(),
       d_dirichlet_bc_scaling(sqrt(2.0)),
       d_neumann_bc_scaling(0.0),
-      d_context(NULL),
-      d_C_cc_var(NULL),
+      d_context(nullptr),
+      d_C_cc_var(nullptr),
       d_C_current_cc_idx(-1),
       d_C_half_cc_idx(-1),
       d_C_new_cc_idx(-1),
-      d_F_sc_var(NULL),
+      d_F_sc_var(nullptr),
       d_F_sc_idx(-1),
       d_F_sc_idxs()
 {
@@ -223,7 +223,7 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int C_current_idx = var_db->mapVariableAndContextToIndex(d_C_var, d_adv_diff_solver->getCurrentContext());
         const int C_new_idx = var_db->mapVariableAndContextToIndex(d_C_var, d_adv_diff_solver->getNewContext());
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_fill_components(1);
         HierarchyGhostCellInterpolation ghost_fill_op;
         const std::vector<RobinBcCoefStrategy<NDIM>*>& C_bc_coef = d_adv_diff_solver->getPhysicalBcCoefs(d_C_var);
@@ -375,7 +375,7 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         }
 
         // Synchronize side-centered values.
-        typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+        using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
         SynchronizationTransactionComponent synch_component(d_F_sc_idx);
         SideDataSynchronization synch_data_op;
         synch_data_op.initializeOperatorState(synch_component, hierarchy);

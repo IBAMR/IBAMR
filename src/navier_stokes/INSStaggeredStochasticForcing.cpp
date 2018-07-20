@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stddef.h>
+#include <cmath>
+#include <cstddef>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -180,10 +180,10 @@ genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& object_name,
+INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(std::string object_name,
                                                              Pointer<Database> input_db,
                                                              const INSStaggeredHierarchyIntegrator* const fluid_solver)
-    : d_object_name(object_name),
+    : d_object_name(std::move(object_name)),
       d_fluid_solver(fluid_solver),
       d_stress_tensor_type(UNCORRELATED),
       d_std(std::numeric_limits<double>::quiet_NaN()),
@@ -191,17 +191,17 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& 
       d_weights(),
       d_velocity_bc_scaling(NDIM == 2 ? 2.0 : 5.0 / 3.0),
       d_traction_bc_scaling(0.0),
-      d_context(NULL),
-      d_W_cc_var(NULL),
+      d_context(nullptr),
+      d_W_cc_var(nullptr),
       d_W_cc_idx(-1),
       d_W_cc_idxs(),
 #if (NDIM == 2)
-      d_W_nc_var(NULL),
+      d_W_nc_var(nullptr),
       d_W_nc_idx(-1),
       d_W_nc_idxs()
 #endif
 #if (NDIM == 3)
-          d_W_ec_var(NULL),
+          d_W_ec_var(nullptr),
       d_W_ec_idx(-1),
       d_W_ec_idxs()
 #endif
@@ -621,7 +621,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 
 #if (NDIM == 2)
         // Synchronize node-centered values.
-        typedef NodeDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+        using SynchronizationTransactionComponent = NodeDataSynchronization::SynchronizationTransactionComponent;
         SynchronizationTransactionComponent synch_component(d_W_nc_idx);
         NodeDataSynchronization synch_data_op;
         synch_data_op.initializeOperatorState(synch_component, hierarchy);
@@ -629,7 +629,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
 #if (NDIM == 3)
         // Synchronize edge-centered values.
-        typedef EdgeDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+        using SynchronizationTransactionComponent = EdgeDataSynchronization::SynchronizationTransactionComponent;
         SynchronizationTransactionComponent synch_component(d_W_ec_idx);
         EdgeDataSynchronization synch_data_op;
         synch_data_op.initializeOperatorState(synch_component, hierarchy);
@@ -637,14 +637,14 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
 
         // Communicate ghost-cell data.
-        LocationIndexRobinBcCoefs<NDIM> bc_coef(d_object_name + "::bc_coef", Pointer<Database>(NULL));
+        LocationIndexRobinBcCoefs<NDIM> bc_coef(d_object_name + "::bc_coef", Pointer<Database>(nullptr));
         for (int d = 0; d < NDIM; ++d)
         {
             bc_coef.setBoundarySlope(2 * d, 0.0);
             bc_coef.setBoundarySlope(2 * d + 1, 0.0);
         }
         std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, &bc_coef);
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_fill_components(1);
         ghost_fill_components[0] =
             InterpolationTransactionComponent(d_W_cc_idx, "NONE", false, "NONE", "NONE", false, bc_coefs);

@@ -97,7 +97,7 @@ public:
     INSVCStaggeredConservativeConvectiveOperator(const std::string& object_name,
                                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                                  ConvectiveDifferencingType difference_form,
-                                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+                                                 std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -202,7 +202,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSVCStaggeredConservativeConvectiveOperator();
+    INSVCStaggeredConservativeConvectiveOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -211,7 +211,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSVCStaggeredConservativeConvectiveOperator(const INSVCStaggeredConservativeConvectiveOperator& from);
+    INSVCStaggeredConservativeConvectiveOperator(const INSVCStaggeredConservativeConvectiveOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -222,7 +222,8 @@ private:
      *
      * \return A reference to this object.
      */
-    INSVCStaggeredConservativeConvectiveOperator& operator=(const INSVCStaggeredConservativeConvectiveOperator& that);
+    INSVCStaggeredConservativeConvectiveOperator&
+    operator=(const INSVCStaggeredConservativeConvectiveOperator& that) = delete;
 
     /*!
      * \brief Compute the advection velocity using simple averages

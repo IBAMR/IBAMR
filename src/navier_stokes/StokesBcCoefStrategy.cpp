@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <ostream>
 
 #include "ibamr/StokesBcCoefStrategy.h"
@@ -54,7 +54,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StokesBcCoefStrategy::StokesBcCoefStrategy()
-    : d_problem_coefs(NULL), d_u_target_data_idx(-1), d_p_target_data_idx(-1), d_traction_bc_type(TRACTION)
+
 {
     // intentionally blank
     return;

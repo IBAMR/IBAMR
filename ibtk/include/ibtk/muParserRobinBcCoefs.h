@@ -95,7 +95,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~muParserRobinBcCoefs();
+    ~muParserRobinBcCoefs() override;
 
     /*!
      * \name Implementation of SAMRAI::solv::RobinBcCoefStrategy interface.
@@ -136,7 +136,7 @@ public:
                     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
                     const SAMRAI::hier::Patch<NDIM>& patch,
                     const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-                    double fill_time = 0.0) const;
+                    double fill_time = 0.0) const override;
 
     /*
      * \brief Return how many cells past the edge or corner of the patch the
@@ -153,7 +153,7 @@ public:
      * The boundary box that setBcCoefs() is required to fill should not extend
      * past the limits returned by this function.
      */
-    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const;
+    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const override;
 
     //\}
 
@@ -163,7 +163,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    muParserRobinBcCoefs();
+    muParserRobinBcCoefs() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -172,7 +172,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    muParserRobinBcCoefs(const muParserRobinBcCoefs& from);
+    muParserRobinBcCoefs(const muParserRobinBcCoefs& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -183,7 +183,7 @@ private:
      *
      * \return A reference to this object.
      */
-    muParserRobinBcCoefs& operator=(const muParserRobinBcCoefs& that);
+    muParserRobinBcCoefs& operator=(const muParserRobinBcCoefs& that) = delete;
 
     /*!
      * The Cartesian grid geometry object provides the extents of the

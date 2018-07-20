@@ -96,7 +96,7 @@ FastSweepingLSMethod::FastSweepingLSMethod(const std::string& object_name,
     d_abs_tol = 1e-5;
     d_enable_logging = false;
     d_consider_phys_bdry_wall = false;
-    for (int k = 0; k < 2 * NDIM; ++k) d_wall_location_idx[k] = 0;
+    for (int& k : d_wall_location_idx) k = 0;
 
     if (d_registered_for_restart) getFromRestart();
     if (!db.isNull()) getFromInput(db);
@@ -162,7 +162,7 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     }
 
     // Set hierarchy objects.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(
         D_scratch_idx, "LINEAR_REFINE", true, "NONE", "LINEAR", false, d_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();

@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
+#include <cstddef>
 #include <deque>
 #include <map>
 #include <ostream>
@@ -126,10 +126,10 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchy
     Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
     bool register_for_restart)
     : AdvDiffHierarchyIntegrator(object_name, input_db, register_for_restart),
-      d_hyp_level_integrator(NULL),
-      d_hyp_level_integrator_db(NULL),
-      d_hyp_patch_ops(NULL),
-      d_hyp_patch_ops_db(NULL),
+      d_hyp_level_integrator(nullptr),
+      d_hyp_level_integrator_db(nullptr),
+      d_hyp_patch_ops(nullptr),
+      d_hyp_patch_ops_db(nullptr),
       d_explicit_predictor(explicit_predictor)
 {
 #if !defined(NDEBUG)
@@ -677,9 +677,9 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(cons
     // Determine the CFL number.
     double cfl_max = 0.0;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    for (unsigned int k = 0; k < d_u_var.size(); ++k)
+    for (const auto& u_var : d_u_var)
     {
-        const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_var[k], getNewContext());
+        const int u_new_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
         PatchFaceDataOpsReal<NDIM, double> patch_fc_ops;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {

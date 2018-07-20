@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "IntVector.h"
 #include "SAMRAIVectorReal.h"
@@ -68,12 +68,12 @@ public:
     /*!
      * \brief Empty destructor.
      */
-    ~KrylovLinearSolver();
+    ~KrylovLinearSolver() override;
 
     /*!
      * \brief Set the HierarchyMathOps object used by the solver.
      */
-    void setHierarchyMathOps(SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
+    void setHierarchyMathOps(SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops) override;
 
     /*!
      * \name General-purpose solver functionality.
@@ -83,17 +83,17 @@ public:
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
      */
-    void setHomogeneousBc(bool homogeneous_bc);
+    void setHomogeneousBc(bool homogeneous_bc) override;
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
      */
-    void setSolutionTime(double solution_time);
+    void setSolutionTime(double solution_time) override;
 
     /*!
      * \brief Set the current time interval.
      */
-    void setTimeInterval(double current_time, double new_time);
+    void setTimeInterval(double current_time, double new_time) override;
 
     //\}
 
@@ -118,7 +118,7 @@ public:
      *
      * \note If the preconditioner is NULL, no preconditioning is performed.
      */
-    virtual void setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = NULL);
+    virtual void setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = nullptr);
 
     /*!
      * \brief Retrieve the preconditioner used by the Krylov subspace method
@@ -142,7 +142,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovLinearSolver(const KrylovLinearSolver& from);
+    KrylovLinearSolver(const KrylovLinearSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -153,7 +153,7 @@ private:
      *
      * \return A reference to this object.
      */
-    KrylovLinearSolver& operator=(const KrylovLinearSolver& that);
+    KrylovLinearSolver& operator=(const KrylovLinearSolver& that) = delete;
 };
 } // namespace IBTK
 

@@ -217,7 +217,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovMobilitySolver(const KrylovMobilitySolver& from);
+    KrylovMobilitySolver(const KrylovMobilitySolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -228,7 +228,7 @@ private:
      *
      * \return A reference to this object.
      */
-    KrylovMobilitySolver& operator=(const KrylovMobilitySolver& that);
+    KrylovMobilitySolver& operator=(const KrylovMobilitySolver& that) = delete;
 
     /*!
      * \brief Get solver settings from the input file.

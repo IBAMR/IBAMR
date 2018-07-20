@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "IntVector.h"
 #include "ibtk/ibtk_utilities.h"
@@ -69,8 +69,8 @@ public:
      * \brief Default constructor.
      */
     LMarker(int idx = -1,
-            const Point& X = Point::Zero(),
-            const Vector& U = Vector::Zero(),
+            Point X = Point::Zero(),
+            Vector U = Vector::Zero(),
             const SAMRAI::hier::IntVector<NDIM>& periodic_offset = SAMRAI::hier::IntVector<NDIM>(0));
 
     /*!
@@ -88,7 +88,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~LMarker();
+    ~LMarker() override;
 
     /*!
      * \brief Assignment operator.

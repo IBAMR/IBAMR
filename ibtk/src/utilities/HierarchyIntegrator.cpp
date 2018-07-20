@@ -33,13 +33,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
+#include <cstddef>
 #include <deque>
 #include <limits>
 #include <list>
 #include <map>
 #include <ostream>
 #include <set>
-#include <stddef.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -121,13 +121,13 @@ HierarchyIntegrator::HierarchyIntegrator(const std::string& object_name,
     }
 
     // Initialize state variables.
-    d_hierarchy = NULL;
-    d_gridding_alg = NULL;
+    d_hierarchy = nullptr;
+    d_gridding_alg = nullptr;
     d_hierarchy_is_initialized = false;
     d_regridding_hierarchy = false;
     d_at_regrid_time_step = false;
-    d_visit_writer = NULL;
-    d_parent_integrator = NULL;
+    d_visit_writer = nullptr;
+    d_parent_integrator = nullptr;
     d_current_num_cycles = -1;
     d_current_cycle_num = -1;
     d_current_dt = std::numeric_limits<double>::quiet_NaN();
@@ -173,7 +173,7 @@ HierarchyIntegrator::HierarchyIntegrator(const std::string& object_name,
     // Create default communications algorithms.
     d_coarsen_algs[SYNCH_CURRENT_DATA_ALG] = new CoarsenAlgorithm<NDIM>();
     d_coarsen_algs[SYNCH_NEW_DATA_ALG] = new CoarsenAlgorithm<NDIM>();
-    d_fill_after_regrid_phys_bdry_bc_op = NULL;
+    d_fill_after_regrid_phys_bdry_bc_op = nullptr;
     return;
 } // HierarchyIntegrator
 
@@ -185,19 +185,19 @@ HierarchyIntegrator::~HierarchyIntegrator()
         d_registered_for_restart = false;
     }
 
-    for (RefinePatchStrategyMap::iterator it = d_ghostfill_strategies.begin(); it != d_ghostfill_strategies.end(); ++it)
+    for (auto& d_ghostfill_strategie : d_ghostfill_strategies)
     {
-        delete it->second;
+        delete d_ghostfill_strategie.second;
     }
 
-    for (RefinePatchStrategyMap::iterator it = d_prolong_strategies.begin(); it != d_prolong_strategies.end(); ++it)
+    for (auto& d_prolong_strategie : d_prolong_strategies)
     {
-        delete it->second;
+        delete d_prolong_strategie.second;
     }
 
-    for (CoarsenPatchStrategyMap::iterator it = d_coarsen_strategies.begin(); it != d_coarsen_strategies.end(); ++it)
+    for (auto& d_coarsen_strategie : d_coarsen_strategies)
     {
-        delete it->second;
+        delete d_coarsen_strategie.second;
     }
     return;
 } // ~HierarchyIntegrator
@@ -397,10 +397,9 @@ double
 HierarchyIntegrator::getMinimumTimeStepSize()
 {
     double dt = getMinimumTimeStepSizeSpecialized();
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto d_child_integrator : d_child_integrators)
     {
-        dt = std::max(dt, (*it)->getMinimumTimeStepSize());
+        dt = std::max(dt, d_child_integrator->getMinimumTimeStepSize());
     }
     return std::min(dt, d_end_time - d_integrator_time);
 } // getMinimumTimeStepSize
@@ -409,10 +408,9 @@ double
 HierarchyIntegrator::getMaximumTimeStepSize()
 {
     double dt = getMaximumTimeStepSizeSpecialized();
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto d_child_integrator : d_child_integrators)
     {
-        dt = std::min(dt, (*it)->getMaximumTimeStepSize());
+        dt = std::min(dt, d_child_integrator->getMaximumTimeStepSize());
     }
     return std::min(dt, d_end_time - d_integrator_time);
 } // getMaximumTimeStepSize
@@ -421,10 +419,9 @@ void
 HierarchyIntegrator::synchronizeHierarchyData(VariableContextType ctx_type)
 {
     synchronizeHierarchyDataSpecialized(ctx_type);
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto d_child_integrator : d_child_integrators)
     {
-        (*it)->synchronizeHierarchyData(ctx_type);
+        d_child_integrator->synchronizeHierarchyData(ctx_type);
     }
     return;
 } // synchronizeHierarchyData
@@ -433,10 +430,9 @@ void
 HierarchyIntegrator::resetTimeDependentHierarchyData(const double new_time)
 {
     resetTimeDependentHierarchyDataSpecialized(new_time);
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto d_child_integrator : d_child_integrators)
     {
-        (*it)->resetTimeDependentHierarchyData(new_time);
+        d_child_integrator->resetTimeDependentHierarchyData(new_time);
     }
     return;
 } // resetTimeDependentHierarchyData
@@ -445,10 +441,9 @@ void
 HierarchyIntegrator::resetIntegratorToPreadvanceState()
 {
     resetIntegratorToPreadvanceStateSpecialized();
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto d_child_integrator : d_child_integrators)
     {
-        (*it)->resetIntegratorToPreadvanceState();
+        d_child_integrator->resetIntegratorToPreadvanceState();
     }
     return;
 } // resetIntegratorToPreadvanceState
@@ -504,9 +499,7 @@ bool
 HierarchyIntegrator::atRegridPoint() const
 {
     bool regrid_hierarchy = atRegridPointSpecialized();
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin();
-         it != d_child_integrators.end() && !regrid_hierarchy;
-         ++it)
+    for (auto it = d_child_integrators.begin(); it != d_child_integrators.end() && !regrid_hierarchy; ++it)
     {
         regrid_hierarchy = regrid_hierarchy || (*it)->atRegridPoint();
     }
@@ -566,10 +559,9 @@ void
 HierarchyIntegrator::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > visit_writer)
 {
     d_visit_writer = visit_writer;
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto d_child_integrator : d_child_integrators)
     {
-        (*it)->registerVisItDataWriter(visit_writer);
+        d_child_integrator->registerVisItDataWriter(visit_writer);
     }
     return;
 } // registerVisItDataWriter
@@ -584,10 +576,9 @@ void
 HierarchyIntegrator::setupPlotData()
 {
     setupPlotDataSpecialized();
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto d_child_integrator : d_child_integrators)
     {
-        (*it)->setupPlotData();
+        d_child_integrator->setupPlotData();
     }
     return;
 } // setupPlotData
@@ -719,10 +710,9 @@ HierarchyIntegrator::initializeCompositeHierarchyData(double init_data_time, boo
     initializeCompositeHierarchyDataSpecialized(init_data_time, initial_time);
 
     // Initialize data associated with any child integrators.
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto d_child_integrator : d_child_integrators)
     {
-        (*it)->initializeCompositeHierarchyData(init_data_time, initial_time);
+        d_child_integrator->initializeCompositeHierarchyData(init_data_time, initial_time);
     }
     return;
 } // initializeCompositeHierarchyData
@@ -827,10 +817,9 @@ HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> 
         base_hierarchy, level_number, init_data_time, can_be_refined, initial_time, base_old_level, allocate_data);
 
     // Initialize data associated with any child integrators.
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto d_child_integrator : d_child_integrators)
     {
-        (*it)->initializeLevelData(
+        d_child_integrator->initializeLevelData(
             base_hierarchy, level_number, init_data_time, can_be_refined, initial_time, base_old_level, allocate_data);
     }
     return;
@@ -919,10 +908,9 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
     resetHierarchyConfigurationSpecialized(base_hierarchy, coarsest_level, finest_level);
 
     // Reset data associated with any child integrators.
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto d_child_integrator : d_child_integrators)
     {
-        (*it)->resetHierarchyConfiguration(base_hierarchy, coarsest_level, finest_level);
+        d_child_integrator->resetHierarchyConfiguration(base_hierarchy, coarsest_level, finest_level);
     }
     return;
 } // resetHierarchyConfiguration
@@ -960,10 +948,9 @@ HierarchyIntegrator::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM
         hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
 
     // ALlow child integrators to tag cells for refinement.
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto d_child_integrator : d_child_integrators)
     {
-        (*it)->applyGradientDetector(
+        d_child_integrator->applyGradientDetector(
             hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     }
     return;
@@ -1148,7 +1135,7 @@ HierarchyIntegrator::putToDatabase(Pointer<Database> db)
     db->putDouble("d_integrator_time", d_integrator_time);
     db->putDouble("d_start_time", d_start_time);
     db->putDouble("d_end_time", d_end_time);
-    const int dt_previous_size = static_cast<int>(d_dt_previous.size());
+    const auto dt_previous_size = static_cast<int>(d_dt_previous.size());
     db->putInteger("d_dt_previous_size", dt_previous_size);
     if (dt_previous_size > 0)
     {
@@ -1453,7 +1440,7 @@ HierarchyIntegrator::registerCoarsenAlgorithm(const std::string& name,
 Pointer<RefineAlgorithm<NDIM> >
 HierarchyIntegrator::getGhostfillRefineAlgorithm(const std::string& name) const
 {
-    RefineAlgorithmMap::const_iterator alg_it = d_ghostfill_algs.find(name);
+    auto alg_it = d_ghostfill_algs.find(name);
 #if !defined(NDEBUG)
     TBOX_ASSERT(alg_it != d_ghostfill_algs.end());
 #endif
@@ -1463,7 +1450,7 @@ HierarchyIntegrator::getGhostfillRefineAlgorithm(const std::string& name) const
 Pointer<RefineAlgorithm<NDIM> >
 HierarchyIntegrator::getProlongRefineAlgorithm(const std::string& name) const
 {
-    RefineAlgorithmMap::const_iterator alg_it = d_prolong_algs.find(name);
+    auto alg_it = d_prolong_algs.find(name);
 #if !defined(NDEBUG)
     TBOX_ASSERT(alg_it != d_prolong_algs.end());
 #endif
@@ -1473,7 +1460,7 @@ HierarchyIntegrator::getProlongRefineAlgorithm(const std::string& name) const
 Pointer<CoarsenAlgorithm<NDIM> >
 HierarchyIntegrator::getCoarsenAlgorithm(const std::string& name) const
 {
-    CoarsenAlgorithmMap::const_iterator alg_it = d_coarsen_algs.find(name);
+    auto alg_it = d_coarsen_algs.find(name);
 #if !defined(NDEBUG)
     TBOX_ASSERT(alg_it != d_coarsen_algs.end());
 #endif
@@ -1483,7 +1470,7 @@ HierarchyIntegrator::getCoarsenAlgorithm(const std::string& name) const
 const std::vector<Pointer<RefineSchedule<NDIM> > >&
 HierarchyIntegrator::getGhostfillRefineSchedules(const std::string& name) const
 {
-    RefineScheduleMap::const_iterator sched_it = d_ghostfill_scheds.find(name);
+    auto sched_it = d_ghostfill_scheds.find(name);
 #if !defined(NDEBUG)
     TBOX_ASSERT(sched_it != d_ghostfill_scheds.end());
 #endif
@@ -1493,7 +1480,7 @@ HierarchyIntegrator::getGhostfillRefineSchedules(const std::string& name) const
 const std::vector<Pointer<RefineSchedule<NDIM> > >&
 HierarchyIntegrator::getProlongRefineSchedules(const std::string& name) const
 {
-    RefineScheduleMap::const_iterator sched_it = d_prolong_scheds.find(name);
+    auto sched_it = d_prolong_scheds.find(name);
 #if !defined(NDEBUG)
     TBOX_ASSERT(sched_it != d_prolong_scheds.end());
 #endif
@@ -1503,7 +1490,7 @@ HierarchyIntegrator::getProlongRefineSchedules(const std::string& name) const
 const std::vector<Pointer<CoarsenSchedule<NDIM> > >&
 HierarchyIntegrator::getCoarsenSchedules(const std::string& name) const
 {
-    CoarsenScheduleMap::const_iterator sched_it = d_coarsen_scheds.find(name);
+    auto sched_it = d_coarsen_scheds.find(name);
 #if !defined(NDEBUG)
     TBOX_ASSERT(sched_it != d_coarsen_scheds.end());
 #endif

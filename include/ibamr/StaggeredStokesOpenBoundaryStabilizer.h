@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <string>
 
 #include "CartesianGridGeometry.h"
@@ -108,7 +108,7 @@ public:
                         double data_time,
                         bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr));
 
     //\}
 
@@ -118,7 +118,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    StaggeredStokesOpenBoundaryStabilizer();
+    StaggeredStokesOpenBoundaryStabilizer() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -127,7 +127,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesOpenBoundaryStabilizer(const StaggeredStokesOpenBoundaryStabilizer& from);
+    StaggeredStokesOpenBoundaryStabilizer(const StaggeredStokesOpenBoundaryStabilizer& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -138,7 +138,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesOpenBoundaryStabilizer& operator=(const StaggeredStokesOpenBoundaryStabilizer& that);
+    StaggeredStokesOpenBoundaryStabilizer& operator=(const StaggeredStokesOpenBoundaryStabilizer& that) = delete;
 
     boost::array<bool, 2 * NDIM> d_open_bdry, d_inflow_bdry, d_outflow_bdry;
     boost::array<double, 2 * NDIM> d_width;

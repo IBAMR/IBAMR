@@ -81,7 +81,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBInstrumentPanel(const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    IBInstrumentPanel(std::string object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -183,7 +183,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBInstrumentPanel();
+    IBInstrumentPanel() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -192,7 +192,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBInstrumentPanel(const IBInstrumentPanel& from);
+    IBInstrumentPanel(const IBInstrumentPanel& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -203,7 +203,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBInstrumentPanel& operator=(const IBInstrumentPanel& that);
+    IBInstrumentPanel& operator=(const IBInstrumentPanel& that) = delete;
 
     /*!
      * Read input values, indicated above, from given database.

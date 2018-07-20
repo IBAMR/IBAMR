@@ -120,7 +120,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~SCPoissonPETScLevelSolver();
+    ~SCPoissonPETScLevelSolver() override;
 
     /*!
      * \brief Static function to construct a SCPoissonPETScLevelSolver.
@@ -136,28 +136,29 @@ protected:
     /*!
      * \brief Generate IS/subdomains for Schwartz type preconditioners.
      */
-    void generateASMSubdomains(std::vector<std::set<int> >& overlap_is, std::vector<std::set<int> >& nonoverlap_is);
+    void generateASMSubdomains(std::vector<std::set<int> >& overlap_is,
+                               std::vector<std::set<int> >& nonoverlap_is) override;
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */
     void initializeSolverStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
      * initializeSolverStateSpecialized().
      */
-    void deallocateSolverStateSpecialized();
+    void deallocateSolverStateSpecialized() override;
 
     /*!
      * \brief Copy a generic vector to the PETSc representation.
      */
-    void copyToPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x);
+    void copyToPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x) override;
 
     /*!
      * \brief Copy a generic vector from the PETSc representation.
      */
-    void copyFromPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x);
+    void copyFromPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x) override;
 
     /*!
      * \brief Copy solution and right-hand-side data to the PETSc
@@ -167,7 +168,7 @@ protected:
     void setupKSPVecs(Vec& petsc_x,
                       Vec& petsc_b,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \name PETSc objects.
@@ -186,7 +187,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    SCPoissonPETScLevelSolver();
+    SCPoissonPETScLevelSolver() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -195,7 +196,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SCPoissonPETScLevelSolver(const SCPoissonPETScLevelSolver& from);
+    SCPoissonPETScLevelSolver(const SCPoissonPETScLevelSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -206,7 +207,7 @@ private:
      *
      * \return A reference to this object.
      */
-    SCPoissonPETScLevelSolver& operator=(const SCPoissonPETScLevelSolver& that);
+    SCPoissonPETScLevelSolver& operator=(const SCPoissonPETScLevelSolver& that) = delete;
 };
 } // namespace IBTK
 

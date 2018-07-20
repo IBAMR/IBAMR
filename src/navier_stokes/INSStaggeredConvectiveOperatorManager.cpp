@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <map>
 #include <ostream>
 #include <string>
@@ -78,7 +78,7 @@ const std::string INSStaggeredConvectiveOperatorManager::STABILIZED_PPM = "STABI
 const std::string INSStaggeredConvectiveOperatorManager::VC_CONSERVATIVE_OP = "VC_CONSERVATIVE_OP";
 const std::string INSStaggeredConvectiveOperatorManager::WAVE_PROP = "WAVE_PROP";
 
-INSStaggeredConvectiveOperatorManager* INSStaggeredConvectiveOperatorManager::s_operator_manager_instance = NULL;
+INSStaggeredConvectiveOperatorManager* INSStaggeredConvectiveOperatorManager::s_operator_manager_instance = nullptr;
 bool INSStaggeredConvectiveOperatorManager::s_registered_callback = false;
 unsigned char INSStaggeredConvectiveOperatorManager::s_shutdown_priority = 200;
 
@@ -101,7 +101,7 @@ void
 INSStaggeredConvectiveOperatorManager::freeManager()
 {
     delete s_operator_manager_instance;
-    s_operator_manager_instance = NULL;
+    s_operator_manager_instance = nullptr;
     return;
 } // freeManager
 
@@ -114,7 +114,7 @@ INSStaggeredConvectiveOperatorManager::allocateOperator(const std::string& opera
                                                         const ConvectiveDifferencingType difference_form,
                                                         const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs) const
 {
-    std::map<std::string, OperatorMaker>::const_iterator it = d_operator_maker_map.find(operator_type);
+    auto it = d_operator_maker_map.find(operator_type);
     if (it == d_operator_maker_map.end())
     {
         TBOX_ERROR("INSStaggeredConvectiveOperatorManager::allocateOperator():\n"

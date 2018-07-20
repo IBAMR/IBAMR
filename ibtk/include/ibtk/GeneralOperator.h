@@ -67,12 +67,12 @@ public:
     /*!
      * \brief Constructor.
      */
-    GeneralOperator(const std::string& object_name, bool homogeneous_bc = false);
+    GeneralOperator(std::string object_name, bool homogeneous_bc = false);
 
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual ~GeneralOperator();
+    ~GeneralOperator() override;
 
     /*!
      * \name General operator functionality.
@@ -321,7 +321,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    GeneralOperator();
+    GeneralOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -330,7 +330,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    GeneralOperator(const GeneralOperator& from);
+    GeneralOperator(const GeneralOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -341,7 +341,7 @@ private:
      *
      * \return A reference to this object.
      */
-    GeneralOperator& operator=(const GeneralOperator& that);
+    GeneralOperator& operator=(const GeneralOperator& that) = delete;
 };
 } // namespace IBTK
 

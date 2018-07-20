@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <ostream>
 #include <set>
 #include <string>
@@ -362,9 +362,8 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (int patch_data_idx : d_patch_data_indices)
     {
-        const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(patch_data_idx, var);
@@ -375,13 +374,11 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+        for (const auto& bdry_fill_boxe : bdry_fill_boxes)
         {
-            const Box<NDIM>& bdry_fill_box = it->first;
-            const unsigned int location_index = it->second.first;
-            const int codim = it->second.second;
+            const Box<NDIM>& bdry_fill_box = bdry_fill_boxe.first;
+            const unsigned int location_index = bdry_fill_boxe.second.first;
+            const int codim = bdry_fill_boxe.second.second;
 #if (NDIM == 2)
             const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(
@@ -467,9 +464,8 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (int patch_data_idx : d_patch_data_indices)
     {
-        const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(patch_data_idx, var);
@@ -479,13 +475,11 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+        for (const auto& bdry_fill_boxe : bdry_fill_boxes)
         {
-            const Box<NDIM>& bdry_fill_box = it->first;
-            const unsigned int location_index = it->second.first;
-            const int codim = it->second.second;
+            const Box<NDIM>& bdry_fill_box = bdry_fill_boxe.first;
+            const unsigned int location_index = bdry_fill_boxe.second.first;
+            const int codim = bdry_fill_boxe.second.second;
 #if (NDIM == 2)
             const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(
@@ -579,9 +573,8 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (int patch_data_idx : d_patch_data_indices)
     {
-        const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(patch_data_idx, var);
@@ -591,13 +584,11 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+        for (const auto& bdry_fill_boxe : bdry_fill_boxes)
         {
-            const Box<NDIM>& bdry_fill_box = it->first;
-            const unsigned int location_index = it->second.first;
-            const int codim = it->second.second;
+            const Box<NDIM>& bdry_fill_box = bdry_fill_boxe.first;
+            const unsigned int location_index = bdry_fill_boxe.second.first;
+            const int codim = bdry_fill_boxe.second.second;
 #if (NDIM == 2)
             const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(
@@ -683,9 +674,8 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (int patch_data_idx : d_patch_data_indices)
     {
-        const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(patch_data_idx, var);
@@ -695,13 +685,11 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+        for (const auto& bdry_fill_boxe : bdry_fill_boxes)
         {
-            const Box<NDIM>& bdry_fill_box = it->first;
-            const unsigned int location_index = it->second.first;
-            const int codim = it->second.second;
+            const Box<NDIM>& bdry_fill_box = bdry_fill_boxe.first;
+            const unsigned int location_index = bdry_fill_boxe.second.first;
+            const int codim = bdry_fill_boxe.second.second;
 #if (NDIM == 2)
             const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(

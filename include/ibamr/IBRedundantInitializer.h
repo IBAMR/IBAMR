@@ -171,11 +171,11 @@ public:
      */
     struct SpringSpec
     {
-        SpringSpec() : parameters(), force_fcn_idx(0)
+        SpringSpec() : parameters()
         {
         }
         std::vector<double> parameters;
-        int force_fcn_idx;
+        int force_fcn_idx = 0;
     };
 
     /*!
@@ -203,11 +203,11 @@ public:
      */
     struct XSpringSpec
     {
-        XSpringSpec() : parameters(), force_fcn_idx(0)
+        XSpringSpec() : parameters()
         {
         }
         std::vector<double> parameters;
-        int force_fcn_idx;
+        int force_fcn_idx = 0;
     };
 
     /*!
@@ -236,11 +236,11 @@ public:
      */
     struct BeamSpec
     {
-        BeamSpec() : neighbor_idxs(), bend_rigidity(-1.0), curvature(IBTK::Vector::Zero())
+        BeamSpec() : neighbor_idxs(), curvature(IBTK::Vector::Zero())
         {
         }
         std::pair<int, int> neighbor_idxs;
-        double bend_rigidity;
+        double bend_rigidity = -1.0;
         IBTK::Vector curvature;
     };
 

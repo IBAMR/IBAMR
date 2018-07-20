@@ -32,9 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <functional>
 #include <limits>
 #include <numeric>
@@ -153,14 +153,14 @@ IBMethod::IBMethod(const std::string& object_name, Pointer<Database> input_db, b
     }
 
     // Ensure all pointers to helper objects are NULL.
-    d_l_initializer = NULL;
-    d_ib_force_fcn = NULL;
+    d_l_initializer = nullptr;
+    d_ib_force_fcn = nullptr;
     d_ib_force_fcn_needs_init = true;
-    d_ib_source_fcn = NULL;
+    d_ib_source_fcn = nullptr;
     d_ib_source_fcn_needs_init = true;
     d_normalize_source_strength = false;
-    d_post_processor = NULL;
-    d_silo_writer = NULL;
+    d_post_processor = nullptr;
+    d_silo_writer = nullptr;
 
     // Set some default values.
     d_interp_kernel_fcn = "IB_4";
@@ -199,7 +199,7 @@ IBMethod::IBMethod(const std::string& object_name, Pointer<Database> input_db, b
     d_instrument_panel =
         new IBInstrumentPanel(d_object_name + "::IBInstrumentPanel",
                               (input_db->isDatabase("IBInstrumentPanel") ? input_db->getDatabase("IBInstrumentPanel") :
-                                                                           Pointer<Database>(NULL)));
+                                                                           Pointer<Database>(nullptr)));
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -218,7 +218,7 @@ IBMethod::IBMethod(const std::string& object_name, Pointer<Database> input_db, b
     d_F_half_needs_ghost_fill = true;
 
     // Indicate that the Jacobian matrix has not been allocated.
-    d_force_jac = NULL;
+    d_force_jac = nullptr;
     return;
 } // IBMethod
 
@@ -505,12 +505,12 @@ IBMethod::createSolverVecs(Vec* X_vec, Vec* F_vec)
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
-    if (X_vec != NULL)
+    if (X_vec != nullptr)
     {
         ierr = VecDuplicate(d_X_current_data[level_num]->getVec(), X_vec);
         IBTK_CHKERRQ(ierr);
     }
-    if (F_vec != NULL)
+    if (F_vec != nullptr)
     {
         ierr = VecDuplicate(d_X_current_data[level_num]->getVec(), F_vec);
         IBTK_CHKERRQ(ierr);
@@ -523,12 +523,12 @@ IBMethod::setupSolverVecs(Vec* X_vec, Vec* F_vec)
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
-    if (X_vec != NULL)
+    if (X_vec != nullptr)
     {
         ierr = VecCopy(d_X_current_data[level_num]->getVec(), *X_vec);
         IBTK_CHKERRQ(ierr);
     }
-    if (F_vec != NULL)
+    if (F_vec != nullptr)
     {
         ierr = VecSet(*F_vec, 0.0);
         IBTK_CHKERRQ(ierr);
@@ -570,7 +570,7 @@ IBMethod::setLinearizedPosition(Vec& X_vec, const double data_time)
     {
         ierr = MatDestroy(&d_force_jac);
         IBTK_CHKERRQ(ierr);
-        d_force_jac = NULL;
+        d_force_jac = nullptr;
     }
     d_force_jac_data_time = data_time;
     int n_local, n_global;
@@ -589,7 +589,7 @@ IBMethod::setLinearizedPosition(Vec& X_vec, const double data_time)
         IBTK_CHKERRQ(ierr);
         ierr = MatSetFromOptions(d_force_jac);
         IBTK_CHKERRQ(ierr);
-        ierr = MatMFFDSetBase(d_force_jac, (*X_jac_data)[level_num]->getVec(), NULL);
+        ierr = MatMFFDSetBase(d_force_jac, (*X_jac_data)[level_num]->getVec(), nullptr);
         IBTK_CHKERRQ(ierr);
         ierr = MatAssemblyBegin(d_force_jac, MAT_FINAL_ASSEMBLY);
         IBTK_CHKERRQ(ierr);
@@ -616,9 +616,9 @@ IBMethod::setLinearizedPosition(Vec& X_vec, const double data_time)
                             n_global,
                             n_global,
                             0,
-                            n_local ? &d_nnz_unblocked[0] : NULL,
+                            n_local ? &d_nnz_unblocked[0] : nullptr,
                             0,
-                            n_local ? &o_nnz_unblocked[0] : NULL,
+                            n_local ? &o_nnz_unblocked[0] : nullptr,
                             &d_force_jac);
         IBTK_CHKERRQ(ierr);
         ierr = MatSetBlockSize(d_force_jac, NDIM);
@@ -628,7 +628,7 @@ IBMethod::setLinearizedPosition(Vec& X_vec, const double data_time)
                                                        1.0,
                                                        (*X_jac_data)[level_num],
                                                        0.0,
-                                                       Pointer<IBTK::LData>(NULL),
+                                                       Pointer<IBTK::LData>(nullptr),
                                                        d_hierarchy,
                                                        level_num,
                                                        data_time,
@@ -927,9 +927,9 @@ IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type, const doubl
                                  PETSC_DETERMINE,
                                  PETSC_DETERMINE,
                                  0,
-                                 num_local_nodes ? &d_nnz[0] : NULL,
+                                 num_local_nodes ? &d_nnz[0] : nullptr,
                                  0,
-                                 num_local_nodes ? &o_nnz[0] : NULL,
+                                 num_local_nodes ? &o_nnz[0] : nullptr,
                                  &A);
             IBTK_CHKERRQ(ierr);
         }
@@ -950,9 +950,9 @@ IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type, const doubl
                                 PETSC_DETERMINE,
                                 PETSC_DETERMINE,
                                 0,
-                                num_local_nodes ? &d_nnz_unblocked[0] : NULL,
+                                num_local_nodes ? &d_nnz_unblocked[0] : nullptr,
                                 0,
-                                num_local_nodes ? &o_nnz_unblocked[0] : NULL,
+                                num_local_nodes ? &o_nnz_unblocked[0] : nullptr,
                                 &A);
             IBTK_CHKERRQ(ierr);
         }
@@ -982,7 +982,7 @@ IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type, const doubl
                                                        1.0,
                                                        (*X_LE_data)[finest_ln],
                                                        0.0,
-                                                       Pointer<IBTK::LData>(NULL),
+                                                       Pointer<IBTK::LData>(nullptr),
                                                        d_hierarchy,
                                                        finest_ln,
                                                        data_time,
@@ -1172,9 +1172,9 @@ IBMethod::spreadFluidSource(const int q_data_idx,
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Q_sum = std::accumulate(d_Q_src[ln].begin(), d_Q_src[ln].end(), Q_sum);
-        for (unsigned int k = 0; k < d_Q_src[ln].size(); ++k)
+        for (double k : d_Q_src[ln])
         {
-            Q_max = std::max(Q_max, std::abs(d_Q_src[ln][k]));
+            Q_max = std::max(Q_max, std::abs(k));
         }
     }
     const double q_total = getPressureHierarchyDataOps()->integral(q_data_idx, wgt_idx);
@@ -1217,7 +1217,7 @@ IBMethod::spreadFluidSource(const int q_data_idx,
         }
         BoxList<NDIM> bdry_boxes;
         bdry_boxes.removeIntersections(domain_box, interior_box);
-        double vol = static_cast<double>(bdry_boxes.getTotalSizeOfBoxes());
+        auto vol = static_cast<double>(bdry_boxes.getTotalSizeOfBoxes());
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             vol *= dx_coarsest[d];
@@ -1556,9 +1556,8 @@ IBMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
 
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (auto node_idx : local_nodes)
         {
-            const LNode* const node_idx = *cit;
             const IBAnchorPointSpec* const anchor_point_spec = node_idx->getNodeDataItem<IBAnchorPointSpec>();
             if (anchor_point_spec)
             {
@@ -1714,11 +1713,11 @@ IBMethod::putToDatabase(Pointer<Database> db)
     const std::vector<std::string>& instrument_names = IBInstrumentationSpec::getInstrumentNames();
     if (!instrument_names.empty())
     {
-        const int instrument_names_sz = static_cast<int>(instrument_names.size());
+        const auto instrument_names_sz = static_cast<int>(instrument_names.size());
         db->putInteger("instrument_names_sz", instrument_names_sz);
         db->putStringArray("instrument_names", &instrument_names[0], instrument_names_sz);
     }
-    const int d_total_flow_volume_sz = static_cast<int>(d_total_flow_volume.size());
+    const auto d_total_flow_volume_sz = static_cast<int>(d_total_flow_volume.size());
     db->putInteger("d_total_flow_volume_sz", d_total_flow_volume_sz);
     if (!d_total_flow_volume.empty())
     {
@@ -1929,11 +1928,8 @@ IBMethod::resetAnchorPointValues(std::vector<Pointer<LData> > U_data, const int 
         double* U_arr;
         ierr = VecGetArray(U_vec, &U_arr);
         IBTK_CHKERRQ(ierr);
-        for (std::set<int>::const_iterator cit = d_anchor_point_local_idxs[ln].begin();
-             cit != d_anchor_point_local_idxs[ln].end();
-             ++cit)
+        for (int i : d_anchor_point_local_idxs[ln])
         {
-            const int& i = *cit;
             for (int d = 0; d < depth; ++d)
             {
                 U_arr[depth * i + d] = 0.0;
@@ -2152,7 +2148,7 @@ PetscErrorCode
 IBMethod::computeForce_SAMRAI(void* ctx, Vec X, Vec F)
 {
     PetscErrorCode ierr;
-    IBMethod* ib_method_ops = static_cast<IBMethod*>(ctx);
+    auto ib_method_ops = static_cast<IBMethod*>(ctx);
     ierr = ib_method_ops->computeForce(X, F);
     CHKERRQ(ierr);
     return ierr;

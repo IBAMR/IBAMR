@@ -72,7 +72,7 @@ public:
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual ~GeneralSolver();
+    ~GeneralSolver() override;
 
     /*!
      * \name General-purpose solver functionality.
@@ -329,23 +329,23 @@ protected:
 
     // Boolean value to indicate whether the preconditioner is presently
     // initialized.
-    bool d_is_initialized;
+    bool d_is_initialized = false;
 
     // Solver configuration.
-    bool d_homogeneous_bc;
+    bool d_homogeneous_bc = false;
     double d_solution_time, d_current_time, d_new_time;
-    double d_rel_residual_tol;
-    double d_abs_residual_tol;
-    int d_max_iterations;
-    int d_current_iterations;
+    double d_rel_residual_tol = 0.0;
+    double d_abs_residual_tol = 0.0;
+    int d_max_iterations = 100;
+    int d_current_iterations = 0;
     double d_current_residual_norm;
 
     // Mathematical operators.
     SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
-    bool d_hier_math_ops_external;
+    bool d_hier_math_ops_external = false;
 
     // Logging configuration.
-    bool d_enable_logging;
+    bool d_enable_logging = false;
 
 private:
     /*!
@@ -355,7 +355,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    GeneralSolver(const GeneralSolver& from);
+    GeneralSolver(const GeneralSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -366,7 +366,7 @@ private:
      *
      * \return A reference to this object.
      */
-    GeneralSolver& operator=(const GeneralSolver& that);
+    GeneralSolver& operator=(const GeneralSolver& that) = delete;
 };
 } // namespace IBTK
 

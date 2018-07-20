@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
@@ -146,7 +146,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBSourceSpec(const IBSourceSpec& from);
+    IBSourceSpec(const IBSourceSpec& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -157,7 +157,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBSourceSpec& operator=(const IBSourceSpec& that);
+    IBSourceSpec& operator=(const IBSourceSpec& that) = delete;
 
     /*!
      * Data required to define the source.
@@ -210,7 +210,7 @@ private:
          *
          * \param from The value to copy to this object.
          */
-        Factory(const Factory& from);
+        Factory(const Factory& from) = delete;
 
         /*!
          * \brief Assignment operator.
@@ -221,7 +221,7 @@ private:
          *
          * \return A reference to this object.
          */
-        Factory& operator=(const Factory& that);
+        Factory& operator=(const Factory& that) = delete;
 
         friend class IBSourceSpec;
     };

@@ -122,7 +122,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovLinearSolverManager(const KrylovLinearSolverManager& from);
+    KrylovLinearSolverManager(const KrylovLinearSolverManager& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -133,7 +133,7 @@ private:
      *
      * \return A reference to this object.
      */
-    KrylovLinearSolverManager& operator=(const KrylovLinearSolverManager& that);
+    KrylovLinearSolverManager& operator=(const KrylovLinearSolverManager& that) = delete;
 
     /*!
      * Static data members used to control access to and destruction of

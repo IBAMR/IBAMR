@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <unistd.h>
 #include <vector>
 
@@ -82,7 +82,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBKirchhoffRodForceGen(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = NULL);
+    IBKirchhoffRodForceGen(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr);
 
     /*!
      * \brief Destructor.
@@ -123,7 +123,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBKirchhoffRodForceGen(const IBKirchhoffRodForceGen& from);
+    IBKirchhoffRodForceGen(const IBKirchhoffRodForceGen& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -134,7 +134,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBKirchhoffRodForceGen& operator=(const IBKirchhoffRodForceGen& that);
+    IBKirchhoffRodForceGen& operator=(const IBKirchhoffRodForceGen& that) = delete;
 
     /*!
      * \brief Read input values, indicated above, from given database.

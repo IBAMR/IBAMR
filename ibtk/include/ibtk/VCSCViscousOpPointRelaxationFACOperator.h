@@ -88,7 +88,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~VCSCViscousOpPointRelaxationFACOperator();
+    ~VCSCViscousOpPointRelaxationFACOperator() override;
 
     /*!
      * \brief Static function to construct a PoissonFACPreconditioner with a
@@ -128,7 +128,7 @@ public:
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
-                     bool performing_post_sweeps);
+                     bool performing_post_sweeps) override;
 
     /*!
      * \brief Compute composite grid residual on the specified range of levels.
@@ -143,7 +143,7 @@ public:
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
                          int coarsest_level_num,
-                         int finest_level_num);
+                         int finest_level_num) override;
 
     //\}
 
@@ -165,7 +165,7 @@ protected:
     void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
                                             int coarsest_reset_ln,
-                                            int finest_reset_ln);
+                                            int finest_reset_ln) override;
 
 private:
     /*!
@@ -173,7 +173,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCSCViscousOpPointRelaxationFACOperator();
+    VCSCViscousOpPointRelaxationFACOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -182,7 +182,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCSCViscousOpPointRelaxationFACOperator(const VCSCViscousOpPointRelaxationFACOperator& from);
+    VCSCViscousOpPointRelaxationFACOperator(const VCSCViscousOpPointRelaxationFACOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -193,7 +193,7 @@ private:
      *
      * \return A reference to this object.
      */
-    VCSCViscousOpPointRelaxationFACOperator& operator=(const VCSCViscousOpPointRelaxationFACOperator& that);
+    VCSCViscousOpPointRelaxationFACOperator& operator=(const VCSCViscousOpPointRelaxationFACOperator& that) = delete;
 
     /*
      * The interpolation type to be used in computing the variable coefficient viscous Laplacian.

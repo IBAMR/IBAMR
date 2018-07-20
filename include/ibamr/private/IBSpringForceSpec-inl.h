@@ -34,6 +34,7 @@
 #define included_IBAMR_IBSpringForceSpec_inl
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include <utility>
 
 #include "ibamr/IBSpringForceSpec.h"
 #include "ibtk/StreamableManager.h"
@@ -55,7 +56,7 @@ IBSpringForceSpec::getIsRegisteredWithStreamableManager()
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline IBSpringForceSpec::IBSpringForceSpec(const unsigned int num_springs)
-    : d_master_idx(-1), d_slave_idxs(num_springs), d_force_fcn_idxs(num_springs), d_parameters(num_springs)
+    : d_slave_idxs(num_springs), d_force_fcn_idxs(num_springs), d_parameters(num_springs)
 {
 #if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
@@ -69,10 +70,13 @@ inline IBSpringForceSpec::IBSpringForceSpec(const unsigned int num_springs)
 } // IBSpringForceSpec
 
 inline IBSpringForceSpec::IBSpringForceSpec(const int master_idx,
-                                            const std::vector<int>& slave_idxs,
-                                            const std::vector<int>& force_fcn_idxs,
-                                            const std::vector<std::vector<double> >& parameters)
-    : d_master_idx(master_idx), d_slave_idxs(slave_idxs), d_force_fcn_idxs(force_fcn_idxs), d_parameters(parameters)
+                                            std::vector<int> slave_idxs,
+                                            std::vector<int> force_fcn_idxs,
+                                            std::vector<std::vector<double> > parameters)
+    : d_master_idx(master_idx),
+      d_slave_idxs(std::move(slave_idxs)),
+      d_force_fcn_idxs(std::move(force_fcn_idxs)),
+      d_parameters(std::move(parameters))
 {
 #if !defined(NDEBUG)
     const size_t num_springs = d_slave_idxs.size();
@@ -97,7 +101,7 @@ inline IBSpringForceSpec::~IBSpringForceSpec()
 inline unsigned int
 IBSpringForceSpec::getNumberOfSprings() const
 {
-    const unsigned int num_springs = static_cast<unsigned int>(d_slave_idxs.size());
+    const auto num_springs = static_cast<unsigned int>(d_slave_idxs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
     TBOX_ASSERT(num_springs == d_parameters.size());
@@ -179,7 +183,7 @@ IBSpringForceSpec::getDataStreamSize() const
 inline void
 IBSpringForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
-    const unsigned int num_springs = static_cast<unsigned int>(d_slave_idxs.size());
+    const auto num_springs = static_cast<unsigned int>(d_slave_idxs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
     TBOX_ASSERT(num_springs == d_parameters.size());
@@ -190,7 +194,7 @@ IBSpringForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
     stream.pack(&d_force_fcn_idxs[0], num_springs);
     for (unsigned int k = 0; k < num_springs; ++k)
     {
-        const int num_parameters = static_cast<int>(d_parameters[k].size());
+        const auto num_parameters = static_cast<int>(d_parameters[k].size());
         stream << num_parameters;
         stream.pack(&d_parameters[k][0], num_parameters);
     }

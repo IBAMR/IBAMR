@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -77,7 +77,7 @@ public:
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual ~CartGridFunctionSet();
+    ~CartGridFunctionSet() override;
 
     /*!
      * \brief Add a CartGridFunction to the set of functions grouped together by
@@ -94,7 +94,7 @@ public:
      * \brief Indicates whether the concrete CartGridFunctionSet object is
      * time-dependent.
      */
-    bool isTimeDependent() const;
+    bool isTimeDependent() const override;
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
@@ -107,7 +107,7 @@ public:
                                  double data_time,
                                  bool initial_time = false,
                                  int coarsest_ln = -1,
-                                 int finest_ln = -1);
+                                 int finest_ln = -1) override;
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
@@ -118,7 +118,7 @@ public:
                              SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
                              double data_time,
-                             bool initial_time = false);
+                             bool initial_time = false) override;
 
     /*!
      * \brief Evaluate the function on the patch interior using the
@@ -131,7 +131,7 @@ public:
                         double data_time,
                         bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr)) override;
 
     //\}
 
@@ -149,7 +149,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartGridFunctionSet(const CartGridFunctionSet& from);
+    CartGridFunctionSet(const CartGridFunctionSet& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -160,7 +160,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartGridFunctionSet& operator=(const CartGridFunctionSet& that);
+    CartGridFunctionSet& operator=(const CartGridFunctionSet& that) = delete;
 };
 } // namespace IBTK
 

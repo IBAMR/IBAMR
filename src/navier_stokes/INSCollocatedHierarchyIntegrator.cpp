@@ -32,9 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <deque>
 #include <limits>
 #include <ostream>
@@ -438,16 +438,16 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::st
 INSCollocatedHierarchyIntegrator::~INSCollocatedHierarchyIntegrator()
 {
     delete d_fill_after_regrid_phys_bdry_bc_op;
-    d_fill_after_regrid_phys_bdry_bc_op = NULL;
+    d_fill_after_regrid_phys_bdry_bc_op = nullptr;
     d_velocity_solver.setNull();
     d_pressure_solver.setNull();
     if (d_U_rhs_vec) d_U_rhs_vec->freeVectorComponents();
     if (d_U_adv_vec) d_U_adv_vec->freeVectorComponents();
     if (d_N_vec) d_N_vec->freeVectorComponents();
     if (d_Phi_rhs_vec) d_Phi_rhs_vec->freeVectorComponents();
-    for (unsigned int k = 0; k < d_U_nul_vecs.size(); ++k)
+    for (auto& d_U_nul_vec : d_U_nul_vecs)
     {
-        if (d_U_nul_vecs[k]) d_U_nul_vecs[k]->freeVectorComponents();
+        if (d_U_nul_vec) d_U_nul_vec->freeVectorComponents();
     }
     return;
 } // ~INSCollocatedHierarchyIntegrator
@@ -956,7 +956,7 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
                                  current_time,
                                  0.0,
                                  -1,
-                                 Pointer<CellVariable<NDIM, double> >(NULL),
+                                 Pointer<CellVariable<NDIM, double> >(nullptr),
                                  axis,
                                  axis);
     }
@@ -1611,7 +1611,7 @@ INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
             hier_ops_manager->getOperationsDouble(d_U_var, d_hierarchy, true);
         hier_cc_data_ops->resetLevels(0, level_number);
         hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
                                                          DATA_REFINE_TYPE,
                                                          USE_CF_INTERPOLATION,
@@ -1693,7 +1693,7 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_hier_fc_data_ops->resetLevels(0, finest_hier_level);
 
     // Setup the patch boundary filling objects.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
                                                      DATA_REFINE_TYPE,
                                                      USE_CF_INTERPOLATION,
@@ -1904,7 +1904,7 @@ INSCollocatedHierarchyIntegrator::regridProjection()
     regrid_projection_solver->setHomogeneousBc(true);
     regrid_projection_solver->setSolutionTime(d_integrator_time);
     regrid_projection_solver->setTimeInterval(d_integrator_time, d_integrator_time);
-    LinearSolver* p_regrid_projection_solver = dynamic_cast<LinearSolver*>(regrid_projection_solver.getPointer());
+    auto p_regrid_projection_solver = dynamic_cast<LinearSolver*>(regrid_projection_solver.getPointer());
     if (p_regrid_projection_solver)
     {
         p_regrid_projection_solver->setInitialGuessNonzero(false);
@@ -1958,7 +1958,7 @@ INSCollocatedHierarchyIntegrator::regridProjection()
              << regrid_projection_solver->getResidualNorm() << "\n";
 
     // Fill ghost cells for Phi, compute Grad Phi, and set U := U - Grad Phi.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent Phi_bc_component(d_Phi_idx,
                                                        DATA_REFINE_TYPE,
                                                        USE_CF_INTERPOLATION,
@@ -2106,9 +2106,9 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
         d_N_vec = d_U_scratch_vec->cloneVector(d_object_name + "::N_vec");
         d_Phi_rhs_vec = d_Phi_vec->cloneVector(d_object_name + "::Phi_rhs_vec");
 
-        for (unsigned int k = 0; k < d_U_nul_vecs.size(); ++k)
+        for (auto& d_U_nul_vec : d_U_nul_vecs)
         {
-            if (d_U_nul_vecs[k]) d_U_nul_vecs[k]->freeVectorComponents();
+            if (d_U_nul_vec) d_U_nul_vec->freeVectorComponents();
         }
         const int n_U_nul_vecs = (has_velocity_nullspace ? NDIM : 0);
         d_U_nul_vecs.resize(n_U_nul_vecs);
@@ -2142,13 +2142,12 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
     // Setup boundary conditions objects.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        INSIntermediateVelocityBcCoef* U_star_bc_coef =
-            dynamic_cast<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);
+        auto U_star_bc_coef = dynamic_cast<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);
         U_star_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_star_bc_coef->setSolutionTime(new_time);
         U_star_bc_coef->setTimeInterval(current_time, new_time);
     }
-    INSProjectionBcCoef* Phi_bc_coef = dynamic_cast<INSProjectionBcCoef*>(d_Phi_bc_coef);
+    auto Phi_bc_coef = dynamic_cast<INSProjectionBcCoef*>(d_Phi_bc_coef);
     Phi_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     Phi_bc_coef->setSolutionTime(0.5 * (current_time + new_time));
     Phi_bc_coef->setTimeInterval(current_time, new_time);
@@ -2170,7 +2169,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
         d_velocity_solver->setPhysicalBcCoefs(d_U_star_bc_coefs);
         d_velocity_solver->setSolutionTime(new_time);
         d_velocity_solver->setTimeInterval(current_time, new_time);
-        LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+        auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
         if (d_velocity_solver_needs_init)
         {
             if (d_enable_logging)
@@ -2193,7 +2192,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
         d_pressure_solver->setPhysicalBcCoef(d_Phi_bc_coef);
         d_pressure_solver->setSolutionTime(half_time);
         d_pressure_solver->setTimeInterval(current_time, new_time);
-        LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+        auto p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
         if (d_pressure_solver_needs_init)
         {
             if (d_enable_logging)

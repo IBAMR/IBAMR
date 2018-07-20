@@ -35,8 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stdbool.h>
-#include <stddef.h>
+#include <cstddef>
 #include <map>
 #include <ostream>
 #include <string>
@@ -113,9 +112,7 @@ public:
         {
         }
 
-        inline ~SystemDofMapCache()
-        {
-        }
+        ~SystemDofMapCache() = default;
 
         inline void
         dof_indices(const libMesh::Elem* const elem, std::vector<unsigned int>& dof_indices, const unsigned int var = 0)
@@ -146,18 +143,16 @@ public:
      */
     struct InterpSpec
     {
-        InterpSpec()
-        {
-        }
+        InterpSpec() = default;
 
-        InterpSpec(const std::string& kernel_fcn,
+        InterpSpec(std::string kernel_fcn,
                    const libMesh::QuadratureType& quad_type,
                    const libMesh::Order& quad_order,
                    bool use_adaptive_quadrature,
                    double point_density,
                    bool use_consistent_mass_matrix,
                    bool use_nodal_quadrature)
-            : kernel_fcn(kernel_fcn),
+            : kernel_fcn(std::move(kernel_fcn)),
               quad_type(quad_type),
               quad_order(quad_order),
               use_adaptive_quadrature(use_adaptive_quadrature),
@@ -183,17 +178,15 @@ public:
      */
     struct SpreadSpec
     {
-        SpreadSpec()
-        {
-        }
+        SpreadSpec() = default;
 
-        SpreadSpec(const std::string& kernel_fcn,
+        SpreadSpec(std::string kernel_fcn,
                    const libMesh::QuadratureType& quad_type,
                    const libMesh::Order& quad_order,
                    bool use_adaptive_quadrature,
                    double point_density,
                    bool use_nodal_quadrature)
-            : kernel_fcn(kernel_fcn),
+            : kernel_fcn(std::move(kernel_fcn)),
               quad_type(quad_type),
               quad_order(quad_order),
               use_adaptive_quadrature(use_adaptive_quadrature),
@@ -530,7 +523,7 @@ public:
      * reinitialization (e.g. because the element type or p_level changed);
      * false otherwise.
      */
-    static bool updateQuadratureRule(libMesh::UniquePtr<libMesh::QBase>& qrule,
+    static bool updateQuadratureRule(std::unique_ptr<libMesh::QBase>& qrule,
                                      libMesh::QuadratureType quad_type,
                                      libMesh::Order quad_order,
                                      bool use_adaptive_quadrature,
@@ -548,7 +541,7 @@ public:
      * reinitialization (e.g. because the element type or p_level changed);
      * false otherwise.
      */
-    static bool updateInterpQuadratureRule(libMesh::UniquePtr<libMesh::QBase>& qrule,
+    static bool updateInterpQuadratureRule(std::unique_ptr<libMesh::QBase>& qrule,
                                            const InterpSpec& spec,
                                            const libMesh::Elem* elem,
                                            const boost::multi_array<double, 2>& X_node,
@@ -563,7 +556,7 @@ public:
      * reinitialization (e.g. because the element type or p_level changed);
      * false otherwise.
      */
-    static bool updateSpreadQuadratureRule(libMesh::UniquePtr<libMesh::QBase>& qrule,
+    static bool updateSpreadQuadratureRule(std::unique_ptr<libMesh::QBase>& qrule,
                                            const SpreadSpec& spec,
                                            const libMesh::Elem* elem,
                                            const boost::multi_array<double, 2>& X_node,
@@ -605,8 +598,8 @@ public:
                              bool can_be_refined,
                              bool initial_time,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
-                             bool allocate_data = true);
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(nullptr),
+                             bool allocate_data = true) override;
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
@@ -625,7 +618,7 @@ public:
      */
     void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                      int coarsest_ln,
-                                     int finest_ln);
+                                     int finest_ln) override;
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -650,29 +643,29 @@ public:
                                double error_data_time,
                                int tag_index,
                                bool initial_time,
-                               bool uses_richardson_extrapolation_too);
+                               bool uses_richardson_extrapolation_too) override;
 
     /*!
      * Write out object state to the given database.
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     /*!
      * \brief Constructor.
      */
     FEDataManager(const std::string& object_name,
-                  const InterpSpec& default_interp_spec,
-                  const SpreadSpec& default_spread_spec,
+                  InterpSpec default_interp_spec,
+                  SpreadSpec default_spread_spec,
                   const SAMRAI::hier::IntVector<NDIM>& ghost_width,
                   bool register_for_restart = true);
 
     /*!
      * \brief The FEDataManager destructor cleans up any allocated data objects.
      */
-    ~FEDataManager();
+    ~FEDataManager() override;
 
 private:
     /*!
@@ -680,7 +673,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    FEDataManager();
+    FEDataManager() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -689,7 +682,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FEDataManager(const FEDataManager& from);
+    FEDataManager(const FEDataManager& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -700,7 +693,7 @@ private:
      *
      * \return A reference to this object.
      */
-    FEDataManager& operator=(const FEDataManager& that);
+    FEDataManager& operator=(const FEDataManager& that) = delete;
 
     /*!
      * Compute the quadrature point counts in each cell of the level in which

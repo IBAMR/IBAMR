@@ -34,6 +34,7 @@
 
 #include <ostream>
 #include <string>
+#include <utility>
 
 #include "IntVector.h"
 #include "Patch.h"
@@ -53,7 +54,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartGridFunction::CartGridFunction(const std::string& object_name) : d_object_name(object_name)
+CartGridFunction::CartGridFunction(std::string object_name) : d_object_name(std::move(object_name))
 {
     // intentionally blank
     return;

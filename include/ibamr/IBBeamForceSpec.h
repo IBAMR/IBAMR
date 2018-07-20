@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <cstddef>
 #include <utility>
 #include <vector>
 
@@ -111,9 +111,9 @@ public:
      * \brief Alternative constructor.
      */
     IBBeamForceSpec(int master_idx,
-                    const std::vector<NeighborIdxs>& neighbor_idxs,
-                    const std::vector<double>& bend_rigidities,
-                    const std::vector<IBTK::Vector>& mesh_dependent_curvatures);
+                    std::vector<NeighborIdxs> neighbor_idxs,
+                    std::vector<double> bend_rigidities,
+                    std::vector<IBTK::Vector> mesh_dependent_curvatures);
 
     /*!
      * \brief Destructor.
@@ -197,7 +197,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBBeamForceSpec(const IBBeamForceSpec& from);
+    IBBeamForceSpec(const IBBeamForceSpec& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -208,12 +208,12 @@ private:
      *
      * \return A reference to this object.
      */
-    IBBeamForceSpec& operator=(const IBBeamForceSpec& that);
+    IBBeamForceSpec& operator=(const IBBeamForceSpec& that) = delete;
 
     /*!
      * Data required to compute the beam forces.
      */
-    int d_master_idx;
+    int d_master_idx = -1;
     std::vector<NeighborIdxs> d_neighbor_idxs;
     std::vector<double> d_bend_rigidities;
     std::vector<IBTK::Vector> d_mesh_dependent_curvatures;
@@ -264,7 +264,7 @@ private:
          *
          * \param from The value to copy to this object.
          */
-        Factory(const Factory& from);
+        Factory(const Factory& from) = delete;
 
         /*!
          * \brief Assignment operator.
@@ -275,7 +275,7 @@ private:
          *
          * \return A reference to this object.
          */
-        Factory& operator=(const Factory& that);
+        Factory& operator=(const Factory& that) = delete;
 
         friend class IBBeamForceSpec;
     };

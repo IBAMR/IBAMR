@@ -32,8 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stdbool.h>
-#include <stddef.h>
+#include <cstddef>
 #include <ostream>
 #include <set>
 #include <string>
@@ -54,13 +53,13 @@
 #include "ibtk/FEDataManager.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/libmesh_utilities.h"
-#include "libmesh/auto_ptr.h"
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/system.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+#include <memory>
 
 namespace libMesh
 {
@@ -78,8 +77,8 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBFEPostProcessor::IBFEPostProcessor(const std::string& name, FEDataManager* fe_data_manager)
-    : d_name(name),
+IBFEPostProcessor::IBFEPostProcessor(std::string name, FEDataManager* fe_data_manager)
+    : d_name(std::move(name)),
       d_mesh(&fe_data_manager->getEquationSystems()->get_mesh()),
       d_fe_data_manager(fe_data_manager),
       d_fe_data_initialized(false)
@@ -103,7 +102,7 @@ IBFEPostProcessor::registerScalarVariable(const std::string& name,
                                           void* fcn_ctx)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    System& system = equation_systems->add_system<System>(name + " reconstruction system");
+    auto& system = equation_systems->add_system<System>(name + " reconstruction system");
     system.add_variable(name, fe_order, fe_family);
     d_scalar_var_systems.push_back(&system);
     d_scalar_var_fcns.push_back(fcn);
@@ -123,7 +122,7 @@ IBFEPostProcessor::registerVectorVariable(const std::string& name,
                                           unsigned int dim)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    System& system = equation_systems->add_system<System>(name + " reconstruction system");
+    auto& system = equation_systems->add_system<System>(name + " reconstruction system");
     for (unsigned int i = 0; i < dim; ++i)
     {
         std::ostringstream os;
@@ -149,7 +148,7 @@ IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
                                           unsigned int var_dim)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    System& system = equation_systems->add_system<System>(var_name + " reconstruction system");
+    auto& system = equation_systems->add_system<System>(var_name + " reconstruction system");
     for (unsigned int i = 0; i < var_dim; ++i)
     {
         for (unsigned int j = 0; j < var_dim; ++j)
@@ -198,7 +197,7 @@ IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     const FEDataManager::InterpSpec& interp_spec)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    System& system = equation_systems->add_system<System>(var_name + " interpolation system");
+    auto& system = equation_systems->add_system<System>(var_name + " interpolation system");
     system.add_variable(var_name, var_fe_order, var_fe_family);
     d_scalar_interp_var_systems.push_back(&system);
     d_scalar_interp_vars.push_back(var);
@@ -214,9 +213,9 @@ void
 IBFEPostProcessor::initializeFEData()
 {
     if (d_fe_data_initialized) return;
-    for (unsigned int k = 0; k < d_var_systems.size(); ++k)
+    for (auto& d_var_system : d_var_systems)
     {
-        System& system = *d_var_systems[k];
+        System& system = *d_var_system;
         system.assemble_before_solve = false;
         system.assemble();
     }

@@ -65,7 +65,7 @@ public:
      * Destructor for class AppInitializer frees the SAMRAI manager objects
      * used to set up input and restart databases.
      */
-    ~AppInitializer();
+    ~AppInitializer() override;
 
     /*!
      * Return a pointer to the input database.
@@ -208,7 +208,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AppInitializer(const AppInitializer& from);
+    AppInitializer(const AppInitializer& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -219,7 +219,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AppInitializer& operator=(const AppInitializer& that);
+    AppInitializer& operator=(const AppInitializer& that) = delete;
 
     /*!
      * The input database.

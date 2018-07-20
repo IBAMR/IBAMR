@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
+#include <cstddef>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -133,15 +133,15 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
     : FACPreconditionerStrategy(object_name),
       d_U_problem_coefs(object_name + "::U_problem_coefs"),
       d_default_U_bc_coef(
-          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_U_bc_coef", Pointer<Database>(NULL))),
+          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_U_bc_coef", Pointer<Database>(nullptr))),
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef)),
       d_default_P_bc_coef(
-          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_P_bc_coef", Pointer<Database>(NULL))),
+          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_P_bc_coef", Pointer<Database>(nullptr))),
       d_P_bc_coef(d_default_P_bc_coef),
-      d_bc_helper(NULL),
+      d_bc_helper(nullptr),
       d_gcw(ghost_cell_width),
-      d_solution(NULL),
-      d_rhs(NULL),
+      d_solution(nullptr),
+      d_rhs(nullptr),
       d_hierarchy(),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
@@ -163,7 +163,7 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
       d_coarse_solver_max_iterations(10),
       d_coarse_solver(),
       d_coarse_solver_db(),
-      d_context(NULL),
+      d_context(nullptr),
       d_side_scratch_idx(-1),
       d_cell_scratch_idx(-1),
       d_U_cf_bdry_op(),
@@ -262,9 +262,9 @@ StaggeredStokesFACPreconditionerStrategy::~StaggeredStokesFACPreconditionerStrat
                                  << std::endl);
     }
     delete d_default_U_bc_coef;
-    d_default_U_bc_coef = NULL;
+    d_default_U_bc_coef = nullptr;
     delete d_default_P_bc_coef;
-    d_default_P_bc_coef = NULL;
+    d_default_P_bc_coef = nullptr;
     return;
 } // ~StaggeredStokesFACPreconditionerStrategy
 
@@ -550,13 +550,13 @@ StaggeredStokesFACPreconditionerStrategy::solveCoarsestLevel(SAMRAIVectorReal<ND
         d_coarse_solver->setSolutionTime(d_solution_time);
         d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
         d_coarse_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
-        LinearSolver* p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
+        auto p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
 
         if (p_coarse_solver)
         {
             bool initial_guess_nonzero = true;
-            PETScKrylovLinearSolver* p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_coarse_solver);
-            PETScLevelSolver* p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_coarse_solver);
+            auto p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_coarse_solver);
+            auto p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_coarse_solver);
             if (p_petsc_solver || p_petsc_level_solver)
             {
                 const KSP& petsc_ksp =
@@ -599,7 +599,7 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
     const Pointer<CellVariable<NDIM, double> > P_rhs_cc_var = rhs.getComponentVariable(1);
 
     // Fill ghost-cell values.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(d_gcw, false, false, true);
     Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(d_gcw, false, false, true);
     InterpolationTransactionComponent U_scratch_component(U_sol_idx,
@@ -670,14 +670,14 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
                                              1.0,
                                              P_sol_idx,
                                              P_sol_cc_var,
-                                             NULL,
+                                             nullptr,
                                              d_new_time);
     d_level_math_ops[finest_level_num]->laplace(U_res_idx,
                                                 U_res_sc_var,
                                                 d_U_problem_coefs,
                                                 U_sol_idx,
                                                 U_sol_sc_var,
-                                                NULL,
+                                                nullptr,
                                                 d_new_time,
                                                 1.0,
                                                 U_res_idx,
@@ -689,7 +689,7 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
                                             -1.0,
                                             U_sol_idx,
                                             U_sol_sc_var,
-                                            NULL,
+                                            nullptr,
                                             d_new_time,
                                             /*cf_bdry_synch*/ true);
     HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
@@ -771,8 +771,8 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     initializeOperatorStateSpecialized(solution, rhs, coarsest_reset_ln, finest_reset_ln);
 
     // Setup level operators.
-    d_level_bdry_fill_ops.resize(d_finest_ln + 1, NULL);
-    d_level_math_ops.resize(d_finest_ln + 1, NULL);
+    d_level_bdry_fill_ops.resize(d_finest_ln + 1, nullptr);
+    d_level_math_ops.resize(d_finest_ln + 1, nullptr);
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
         d_level_bdry_fill_ops[ln].setNull();
