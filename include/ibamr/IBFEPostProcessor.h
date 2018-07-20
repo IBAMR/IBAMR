@@ -201,7 +201,7 @@ public:
     /*!
      * Virtual destructor.
      */
-    virtual ~IBFEPostProcessor();
+    virtual ~IBFEPostProcessor() = default;
 
     /*!
      * Register a scalar-valued variable for reconstruction.

@@ -207,12 +207,6 @@ SurfaceTensionForceFunction::SurfaceTensionForceFunction(const std::string& obje
     return;
 } // SurfaceTensionForceFunction
 
-SurfaceTensionForceFunction::~SurfaceTensionForceFunction()
-{
-    // intentionally blank
-    return;
-} // ~SurfaceTensionForceFunction
-
 void
 SurfaceTensionForceFunction::setSmoother(const std::string& kernel_fcn)
 {

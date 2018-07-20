@@ -153,12 +153,6 @@ INSStaggeredConvectiveOperatorManager::INSStaggeredConvectiveOperatorManager() :
     return;
 } // INSStaggeredConvectiveOperatorManager
 
-INSStaggeredConvectiveOperatorManager::~INSStaggeredConvectiveOperatorManager()
-{
-    // intentionally blank
-    return;
-} // ~INSStaggeredConvectiveOperatorManager
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

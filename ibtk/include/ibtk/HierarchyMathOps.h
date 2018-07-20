@@ -114,7 +114,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~HierarchyMathOps() override;
+    ~HierarchyMathOps() override = default;
 
     /*!
      * \name Methods to set the hierarchy and range of levels.

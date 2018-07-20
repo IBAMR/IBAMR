@@ -61,18 +61,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovLinearSolverPoissonSolverInterface::KrylovLinearSolverPoissonSolverInterface()
-{
-    // intentionally blank
-    return;
-} // KrylovLinearSolverPoissonSolverInterface
-
-KrylovLinearSolverPoissonSolverInterface::~KrylovLinearSolverPoissonSolverInterface()
-{
-    // intentionally blank
-    return;
-} // ~KrylovLinearSolverPoissonSolverInterface
-
 void
 KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {

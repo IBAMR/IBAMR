@@ -63,12 +63,6 @@ NewtonKrylovSolver::NewtonKrylovSolver()
     return;
 } // NewtonKrylovSolver()
 
-NewtonKrylovSolver::~NewtonKrylovSolver()
-{
-    // intentionally blank
-    return;
-} // ~NewtonKrylovSolver()
-
 void
 NewtonKrylovSolver::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
 {

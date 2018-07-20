@@ -87,7 +87,7 @@ public:
     /*!
      * Virtual destructor for the data factory class.
      */
-    ~LSetDataFactory() override;
+    ~LSetDataFactory() override = default;
 
     /*!
      * Virtual factory function to allocate a concrete data object.  The default

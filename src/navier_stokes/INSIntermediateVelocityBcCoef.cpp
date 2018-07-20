@@ -77,12 +77,6 @@ INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(const int comp_idx,
     return;
 } // INSIntermediateVelocityBcCoef
 
-INSIntermediateVelocityBcCoef::~INSIntermediateVelocityBcCoef()
-{
-    // intentionally blank
-    return;
-} // ~INSIntermediateVelocityBcCoef
-
 void
 INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {

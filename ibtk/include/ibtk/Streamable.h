@@ -79,12 +79,12 @@ public:
     /*!
      * \brief Default empty constructor.
      */
-    Streamable();
+    Streamable() = default;
 
     /*!
      * \brief Virtual destructor.
      */
-    ~Streamable() override;
+    ~Streamable() override = default;
 
     /*!
      * \brief Return the unique class identifier used to specify the

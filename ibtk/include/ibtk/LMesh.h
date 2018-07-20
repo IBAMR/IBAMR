@@ -63,7 +63,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~LMesh() override;
+    ~LMesh() override = default;
 
     /*!
      * \brief Return a const reference to the set of local LNode objects.

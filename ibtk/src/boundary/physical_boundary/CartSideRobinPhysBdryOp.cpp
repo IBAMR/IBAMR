@@ -350,12 +350,6 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(const ComponentSelector& patch_
     return;
 } // CartSideRobinPhysBdryOp
 
-CartSideRobinPhysBdryOp::~CartSideRobinPhysBdryOp()
-{
-    // intentionally blank
-    return;
-} // ~CartSideRobinPhysBdryOp
-
 void
 CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
                                                        const double fill_time,

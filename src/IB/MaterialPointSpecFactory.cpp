@@ -62,12 +62,6 @@ MaterialPointSpec::Factory::Factory()
     return;
 } // Factory
 
-MaterialPointSpec::Factory::~Factory()
-{
-    // intentionally blank
-    return;
-} // ~Factory
-
 int
 MaterialPointSpec::Factory::getStreamableClassID() const
 {

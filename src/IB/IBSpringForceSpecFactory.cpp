@@ -62,12 +62,6 @@ IBSpringForceSpec::Factory::Factory()
     return;
 } // Factory
 
-IBSpringForceSpec::Factory::~Factory()
-{
-    // intentionally blank
-    return;
-} // ~Factory
-
 int
 IBSpringForceSpec::Factory::getStreamableClassID() const
 {

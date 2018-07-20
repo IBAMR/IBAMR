@@ -78,12 +78,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    LInitStrategy();
+    LInitStrategy() = default;
 
     /*!
      * \brief Destructor.
      */
-    ~LInitStrategy() override;
+    ~LInitStrategy() override = default;
 
     /*!
      * \return A boolean value indicating whether Lagrangian data is associated

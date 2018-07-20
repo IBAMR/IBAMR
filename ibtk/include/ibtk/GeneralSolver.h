@@ -72,7 +72,7 @@ public:
     /*!
      * \brief Empty virtual destructor.
      */
-    ~GeneralSolver() override;
+    ~GeneralSolver() override = default;
 
     /*!
      * \name General-purpose solver functionality.

@@ -62,12 +62,6 @@ ParallelSet::ParallelSet(const ParallelSet& from)
     return;
 } // ParallelSet
 
-ParallelSet::~ParallelSet()
-{
-    // intentionally blank
-    return;
-} // ~ParallelSet
-
 ParallelSet& ParallelSet::operator=(const ParallelSet& that)
 {
     if (this != &that)

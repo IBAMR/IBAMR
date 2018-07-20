@@ -59,7 +59,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~ParallelEdgeMap() override;
+    ~ParallelEdgeMap() override = default;
 
     /*!
      * \brief Add an edge to the edge map.

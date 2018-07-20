@@ -50,12 +50,6 @@ KrylovLinearSolver::KrylovLinearSolver() : d_A(nullptr), d_pc_solver(nullptr), d
     return;
 } // KrylovLinearSolver()
 
-KrylovLinearSolver::~KrylovLinearSolver()
-{
-    // intentionally blank
-    return;
-} // ~KrylovLinearSolver()
-
 void
 KrylovLinearSolver::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
 {

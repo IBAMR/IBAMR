@@ -68,7 +68,7 @@ public:
     /*!
      * \brief Empty destructor.
      */
-    ~KrylovLinearSolver() override;
+    ~KrylovLinearSolver() override = default;
 
     /*!
      * \brief Set the HierarchyMathOps object used by the solver.

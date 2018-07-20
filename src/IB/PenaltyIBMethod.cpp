@@ -94,15 +94,6 @@ PenaltyIBMethod::PenaltyIBMethod(const std::string& object_name, Pointer<Databas
     return;
 } // PenaltyIBMethod
 
-PenaltyIBMethod::~PenaltyIBMethod()
-{
-    // intentionally blank
-    //
-    // NOTE: Parent class constructor unregisters class with the restart
-    // manager.
-    return;
-} // ~PenaltyIBMethod
-
 void
 PenaltyIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {

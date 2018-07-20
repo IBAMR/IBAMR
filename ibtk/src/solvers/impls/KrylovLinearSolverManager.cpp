@@ -125,12 +125,6 @@ KrylovLinearSolverManager::KrylovLinearSolverManager() : d_solver_maker_map()
     return;
 } // KrylovLinearSolverManager
 
-KrylovLinearSolverManager::~KrylovLinearSolverManager()
-{
-    // intentionally blank
-    return;
-} // ~KrylovLinearSolverManager
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

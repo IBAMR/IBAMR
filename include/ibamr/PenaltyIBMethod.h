@@ -93,7 +93,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~PenaltyIBMethod();
+    ~PenaltyIBMethod() = default;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.

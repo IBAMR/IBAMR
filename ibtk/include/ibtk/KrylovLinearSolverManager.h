@@ -112,7 +112,7 @@ protected:
     /*!
      * \brief Destructor.
      */
-    ~KrylovLinearSolverManager();
+    ~KrylovLinearSolverManager() = default;
 
 private:
     /*!

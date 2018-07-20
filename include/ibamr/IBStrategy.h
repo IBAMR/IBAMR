@@ -124,12 +124,12 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBStrategy();
+    IBStrategy() = default;
 
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBStrategy();
+    virtual ~IBStrategy() = default;
 
     /*!
      * Register the IBHierarchyIntegrator object that is using this strategy

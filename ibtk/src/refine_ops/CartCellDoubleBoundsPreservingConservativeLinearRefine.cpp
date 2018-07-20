@@ -80,12 +80,6 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::CartCellDoubleBoundsPres
     return;
 } // CartCellDoubleBoundsPreservingConservativeLinearRefine
 
-CartCellDoubleBoundsPreservingConservativeLinearRefine::~CartCellDoubleBoundsPreservingConservativeLinearRefine()
-{
-    // intentionally blank
-    return;
-} // ~CartCellDoubleBoundsPreservingConservativeLinearRefine
-
 bool
 CartCellDoubleBoundsPreservingConservativeLinearRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
                                                                            const std::string& op_name) const

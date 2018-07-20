@@ -143,7 +143,7 @@ public:
      * \brief The virtual destructor for the copy transaction releases all
      * memory associated with the transaction.
      */
-    ~LTransaction() override;
+    ~LTransaction() override = default;
 
     /*!
      * \brief Return a constant reference to the source data.

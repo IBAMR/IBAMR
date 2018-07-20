@@ -78,7 +78,7 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    ~CartSideDoubleDivPreservingRefine() override;
+    ~CartSideDoubleDivPreservingRefine() override = default;
 
     /*!
      * \brief The number of required ghost cells.

@@ -102,7 +102,7 @@ public:
      * The destructor for AdvDiffPredictorCorrectorHyperbolicPatchOps unregisters the patch
      * strategy object with the restart manager when so registered.
      */
-    ~AdvDiffPredictorCorrectorHyperbolicPatchOps();
+    ~AdvDiffPredictorCorrectorHyperbolicPatchOps() = default;
 
     /*!
      * Update solution variables by performing a conservative difference using

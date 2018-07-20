@@ -109,7 +109,7 @@ public:
      * The destructor for class IBHierarchyIntegrator unregisters the integrator
      * object with the restart manager when the object is so registered.
      */
-    ~IBHierarchyIntegrator();
+    ~IBHierarchyIntegrator() = default;
 
     /*!
      * Return a pointer to the IBStrategy object registered with this
@@ -358,7 +358,7 @@ protected:
         /*!
          * \brief Destructor.
          */
-        ~IBEulerianForceFunction();
+        ~IBEulerianForceFunction() = default;
 
         /*!
          * \name Methods to set the data.
@@ -444,7 +444,7 @@ protected:
         /*!
          * \brief Destructor.
          */
-        ~IBEulerianSourceFunction();
+        ~IBEulerianSourceFunction() = default;
 
         /*!
          * \name Methods to set the data.

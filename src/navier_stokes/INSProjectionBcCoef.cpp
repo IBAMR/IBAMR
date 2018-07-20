@@ -79,12 +79,6 @@ INSProjectionBcCoef::INSProjectionBcCoef(const std::vector<RobinBcCoefStrategy<N
     return;
 } // INSProjectionBcCoef
 
-INSProjectionBcCoef::~INSProjectionBcCoef()
-{
-    // intentionally blank
-    return;
-} // ~INSProjectionBcCoef
-
 void
 INSProjectionBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {

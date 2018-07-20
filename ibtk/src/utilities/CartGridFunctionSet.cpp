@@ -82,12 +82,6 @@ CartGridFunctionSet::CartGridFunctionSet(const std::string& object_name) : CartG
     return;
 } // CartGridFunctionSet
 
-CartGridFunctionSet::~CartGridFunctionSet()
-{
-    // intentionally blank
-    return;
-} // ~CartGridFunctionSet
-
 void
 CartGridFunctionSet::addFunction(Pointer<CartGridFunction> fcn)
 {

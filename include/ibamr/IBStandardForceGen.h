@@ -92,7 +92,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~IBStandardForceGen();
+    ~IBStandardForceGen() = default;
 
     /*!
      * \brief Register a spring force specification function with the force

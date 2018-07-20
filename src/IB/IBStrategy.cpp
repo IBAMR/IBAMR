@@ -91,18 +91,6 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBStrategy::IBStrategy()
-{
-    // intentionally blank
-    return;
-} // IBStrategy
-
-IBStrategy::~IBStrategy()
-{
-    // intentionally blank
-    return;
-} // ~IBStrategy
-
 void
 IBStrategy::registerIBHierarchyIntegrator(IBHierarchyIntegrator* ib_solver)
 {

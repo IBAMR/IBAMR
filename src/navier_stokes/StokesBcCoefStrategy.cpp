@@ -53,19 +53,6 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-StokesBcCoefStrategy::StokesBcCoefStrategy()
-
-{
-    // intentionally blank
-    return;
-} // StokesBcCoefStrategy
-
-StokesBcCoefStrategy::~StokesBcCoefStrategy()
-{
-    // intentionally blank
-    return;
-} // ~StokesBcCoefStrategy
-
 void
 StokesBcCoefStrategy::setStokesSpecifications(const StokesSpecifications* const problem_coefs)
 {

@@ -71,12 +71,6 @@ RobinPhysBdryPatchStrategy::RobinPhysBdryPatchStrategy() : d_patch_data_indices(
     return;
 } // RobinPhysBdryPatchStrategy
 
-RobinPhysBdryPatchStrategy::~RobinPhysBdryPatchStrategy()
-{
-    // intentionally blank
-    return;
-} // ~RobinPhysBdryPatchStrategy
-
 void
 RobinPhysBdryPatchStrategy::setPatchDataIndex(const int patch_data_index)
 {

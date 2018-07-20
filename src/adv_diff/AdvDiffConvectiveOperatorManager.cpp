@@ -148,12 +148,6 @@ AdvDiffConvectiveOperatorManager::AdvDiffConvectiveOperatorManager() : d_operato
     return;
 } // AdvDiffConvectiveOperatorManager
 
-AdvDiffConvectiveOperatorManager::~AdvDiffConvectiveOperatorManager()
-{
-    // intentionally blank
-    return;
-} // ~AdvDiffConvectiveOperatorManager
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

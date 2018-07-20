@@ -68,7 +68,7 @@ public:
     /*!
      * \brief Empty virtual destructor.
      */
-    ~NewtonKrylovSolver() override;
+    ~NewtonKrylovSolver() override = default;
 
     /*!
      * \brief Set the HierarchyMathOps object used by the solver.

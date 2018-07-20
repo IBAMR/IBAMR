@@ -216,12 +216,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
     return;
 } // INSVCStaggeredConservativeHierarchyIntegrator
 
-INSVCStaggeredConservativeHierarchyIntegrator::~INSVCStaggeredConservativeHierarchyIntegrator()
-{
-    // intentionally blank
-    return;
-} // ~INSVCStaggeredConservativeHierarchyIntegrator
-
 void
 INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<PatchHierarchy<NDIM> > hierarchy,

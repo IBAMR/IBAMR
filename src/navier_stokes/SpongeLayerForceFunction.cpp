@@ -124,12 +124,6 @@ SpongeLayerForceFunction::SpongeLayerForceFunction(const std::string& object_nam
     return;
 } // SpongeLayerForceFunction
 
-SpongeLayerForceFunction::~SpongeLayerForceFunction()
-{
-    // intentionally blank
-    return;
-} // ~SpongeLayerForceFunction
-
 bool
 SpongeLayerForceFunction::isTimeDependent() const
 {

@@ -182,12 +182,6 @@ CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const ComponentSelector& patch_data_i
     return;
 } // CartExtrapPhysBdryOp
 
-CartExtrapPhysBdryOp::~CartExtrapPhysBdryOp()
-{
-    // intentionally blank
-    return;
-} // ~CartExtrapPhysBdryOp
-
 void
 CartExtrapPhysBdryOp::setPatchDataIndex(const int patch_data_index)
 {

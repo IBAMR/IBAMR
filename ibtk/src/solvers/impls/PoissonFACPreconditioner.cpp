@@ -66,12 +66,6 @@ PoissonFACPreconditioner::PoissonFACPreconditioner(const std::string& object_nam
     return;
 } // PoissonFACPreconditioner
 
-PoissonFACPreconditioner::~PoissonFACPreconditioner()
-{
-    // intentionally blank
-    return;
-} // ~PoissonFACPreconditioner
-
 void
 PoissonFACPreconditioner::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {

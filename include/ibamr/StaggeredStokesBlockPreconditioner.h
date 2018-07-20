@@ -77,7 +77,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~StaggeredStokesBlockPreconditioner();
+    ~StaggeredStokesBlockPreconditioner() = default;
 
     /*!
      * \brief Indicate whether the preconditioner needs a velocity subdomain

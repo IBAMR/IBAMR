@@ -77,7 +77,7 @@ public:
     /*!
      * \brief Empty virtual destructor.
      */
-    ~CartGridFunctionSet() override;
+    ~CartGridFunctionSet() override = default;
 
     /*!
      * \brief Add a CartGridFunction to the set of functions grouped together by

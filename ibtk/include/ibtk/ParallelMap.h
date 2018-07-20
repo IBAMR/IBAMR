@@ -72,7 +72,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~ParallelMap() override;
+    ~ParallelMap() override = default;
 
     /*!
      * \brief Assignment operator.

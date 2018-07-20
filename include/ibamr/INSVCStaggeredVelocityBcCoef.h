@@ -103,7 +103,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~INSVCStaggeredVelocityBcCoef();
+    ~INSVCStaggeredVelocityBcCoef() = default;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify

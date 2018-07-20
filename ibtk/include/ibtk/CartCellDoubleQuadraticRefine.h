@@ -68,12 +68,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    CartCellDoubleQuadraticRefine();
+    CartCellDoubleQuadraticRefine() = default;
 
     /*!
      * \brief Destructor.
      */
-    ~CartCellDoubleQuadraticRefine() override;
+    ~CartCellDoubleQuadraticRefine() override = default;
 
     /*!
      * \name Implementation of SAMRAI::xfer::RefineOperator interface.

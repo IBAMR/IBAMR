@@ -80,7 +80,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~IBStandardSourceGen();
+    ~IBStandardSourceGen() = default;
 
     /*!
      * \brief Returns a boolean indicating whether the class has been registered

@@ -147,7 +147,7 @@ protected:
     /*!
      * \brief Destructor.
      */
-    ~SCPoissonSolverManager();
+    ~SCPoissonSolverManager() = default;
 
 private:
     /*!

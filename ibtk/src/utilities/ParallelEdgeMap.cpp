@@ -57,12 +57,6 @@ ParallelEdgeMap::ParallelEdgeMap() : d_edge_map(), d_pending_additions(), d_pend
     return;
 } // ParallelEdgeMap
 
-ParallelEdgeMap::~ParallelEdgeMap()
-{
-    // intentionally blank
-    return;
-} // ~ParallelEdgeMap
-
 int
 ParallelEdgeMap::addEdge(const std::pair<int, int>& link, int mastr_idx)
 {

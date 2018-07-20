@@ -87,7 +87,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~StaggeredStokesOpenBoundaryStabilizer();
+    ~StaggeredStokesOpenBoundaryStabilizer() = default;
 
     /*!
      * \name Methods to set the data.

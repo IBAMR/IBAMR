@@ -121,12 +121,6 @@ CartSideDoubleRT0Coarsen::CartSideDoubleRT0Coarsen(const IntVector<NDIM>& gcw) :
     return;
 } // CartSideDoubleRT0Coarsen
 
-CartSideDoubleRT0Coarsen::~CartSideDoubleRT0Coarsen()
-{
-    // intentionally blank
-    return;
-} // ~CartSideDoubleRT0Coarsen
-
 bool
 CartSideDoubleRT0Coarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
 {

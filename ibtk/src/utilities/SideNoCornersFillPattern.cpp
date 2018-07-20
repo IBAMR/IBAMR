@@ -76,12 +76,6 @@ SideNoCornersFillPattern::SideNoCornersFillPattern(const int stencil_width,
     return;
 } // SideNoCornersFillPattern
 
-SideNoCornersFillPattern::~SideNoCornersFillPattern()
-{
-    // intentionally blank
-    return;
-} // SideNoCornersFillPattern
-
 Pointer<BoxOverlap<NDIM> >
 SideNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
                                            const BoxGeometry<NDIM>& src_geometry,

@@ -82,7 +82,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~CartSideDoubleCubicCoarsen() override;
+    ~CartSideDoubleCubicCoarsen() override = default;
 
     /*!
      * \name Implementation of SAMRAI::xfer::CoarsenOperator interface.

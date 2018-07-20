@@ -74,7 +74,7 @@ public:
     /*!
      * \brief Empty virtual destructor.
      */
-    ~CartGridFunction() override;
+    ~CartGridFunction() override = default;
 
     /*!
      * \name Methods to set patch interior data.

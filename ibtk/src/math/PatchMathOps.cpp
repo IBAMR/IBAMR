@@ -1447,18 +1447,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PatchMathOps::PatchMathOps()
-{
-    // intentionally blank
-    return;
-} // PatchMathOps
-
-PatchMathOps::~PatchMathOps()
-{
-    // intentionally blank
-    return;
-} // ~PatchMathOps
-
 void
 PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
                    const Pointer<CellData<NDIM, double> > src,

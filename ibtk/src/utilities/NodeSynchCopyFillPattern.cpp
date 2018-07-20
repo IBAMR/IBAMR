@@ -67,12 +67,6 @@ NodeSynchCopyFillPattern::NodeSynchCopyFillPattern(const unsigned int axis) : d_
     return;
 } // NodeSynchCopyFillPattern
 
-NodeSynchCopyFillPattern::~NodeSynchCopyFillPattern()
-{
-    // intentionally blank
-    return;
-} // NodeSynchCopyFillPattern
-
 Pointer<BoxOverlap<NDIM> >
 NodeSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
                                            const BoxGeometry<NDIM>& src_geometry,

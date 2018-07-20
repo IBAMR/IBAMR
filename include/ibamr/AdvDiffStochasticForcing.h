@@ -93,7 +93,7 @@ public:
     /*!
      * \brief Empty destructor.
      */
-    ~AdvDiffStochasticForcing();
+    ~AdvDiffStochasticForcing() = default;
 
     /*!
      * \name Methods to set patch data.

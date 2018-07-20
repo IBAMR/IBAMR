@@ -57,7 +57,7 @@ public:
     /*!
      * Destructor.
      */
-    ~IBFECentroidPostProcessor();
+    ~IBFECentroidPostProcessor() = default;
 
     /*!
      * Register a scalar-valued variable for reconstruction.

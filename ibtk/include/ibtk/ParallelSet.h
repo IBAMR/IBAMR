@@ -66,7 +66,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~ParallelSet() override;
+    ~ParallelSet() override = default;
 
     /*!
      * \brief Assignment operator.

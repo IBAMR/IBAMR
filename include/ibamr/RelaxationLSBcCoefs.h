@@ -84,7 +84,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~RelaxationLSBcCoefs();
+    virtual ~RelaxationLSBcCoefs() = default;
 
     /*!
      * \brief Set the level set field to extract boundary condition value.

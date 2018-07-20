@@ -75,7 +75,7 @@ public:
     /*!
      * \brief Destructor
      */
-    ~FaceSynchCopyFillPattern() override;
+    ~FaceSynchCopyFillPattern() override = default;
 
     /*!
      * Calculate overlaps between the destination and source geometries according

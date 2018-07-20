@@ -108,7 +108,7 @@ public:
      * unregisters the integrator object with the restart manager when the
      * object is so registered.
      */
-    ~IBImplicitStaggeredHierarchyIntegrator();
+    ~IBImplicitStaggeredHierarchyIntegrator() = default;
 
     /*!
      * Prepare to advance the data from current_time to new_time.

@@ -143,12 +143,6 @@ INSCollocatedConvectiveOperatorManager::INSCollocatedConvectiveOperatorManager()
     return;
 } // INSCollocatedConvectiveOperatorManager
 
-INSCollocatedConvectiveOperatorManager::~INSCollocatedConvectiveOperatorManager()
-{
-    // intentionally blank
-    return;
-} // ~INSCollocatedConvectiveOperatorManager
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

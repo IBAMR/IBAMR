@@ -75,12 +75,6 @@ GeneralSolver::GeneralSolver()
     return;
 } // GeneralSolver()
 
-GeneralSolver::~GeneralSolver()
-{
-    // intentionally blank
-    return;
-} // ~GeneralSolver()
-
 const std::string&
 GeneralSolver::getName() const
 {

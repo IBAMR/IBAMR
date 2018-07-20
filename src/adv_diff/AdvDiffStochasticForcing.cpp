@@ -168,12 +168,6 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(std::string object_name,
     return;
 } // AdvDiffStochasticForcing
 
-AdvDiffStochasticForcing::~AdvDiffStochasticForcing()
-{
-    // intentionally blank
-    return;
-} // ~AdvDiffStochasticForcing
-
 bool
 AdvDiffStochasticForcing::isTimeDependent() const
 {

@@ -77,7 +77,7 @@ public:
     /*!
      * The virtual destructor for an LIndexSetData object.
      */
-    ~LIndexSetData() override;
+    ~LIndexSetData() override = default;
 
     /*!
      * \brief Update the cached indexing data.

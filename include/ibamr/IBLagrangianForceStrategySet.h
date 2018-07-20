@@ -81,7 +81,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~IBLagrangianForceStrategySet();
+    ~IBLagrangianForceStrategySet() = default;
 
     /*!
      * \brief Set the current and new times for the present timestep.

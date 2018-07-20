@@ -82,12 +82,6 @@ CopyToRootTransaction::CopyToRootTransaction(const int src_proc,
     return;
 } // CopyToRootTransaction
 
-CopyToRootTransaction::~CopyToRootTransaction()
-{
-    // intentionally blank
-    return;
-} // CopyToRootTransaction
-
 Pointer<PatchData<NDIM> >
 CopyToRootTransaction::getRootPatchData() const
 {

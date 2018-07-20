@@ -192,12 +192,6 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::AdvDiffPredictorCorrectorHyperbolic
     return;
 } // AdvDiffPredictorCorrectorHyperbolicPatchOps
 
-AdvDiffPredictorCorrectorHyperbolicPatchOps::~AdvDiffPredictorCorrectorHyperbolicPatchOps()
-{
-    // intentionally blank
-    return;
-} // ~AdvDiffPredictorCorrectorHyperbolicPatchOps
-
 void
 AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch<NDIM>& patch,
                                                                            const double /*time*/,

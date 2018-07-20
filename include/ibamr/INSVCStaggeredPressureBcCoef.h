@@ -100,7 +100,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~INSVCStaggeredPressureBcCoef();
+    ~INSVCStaggeredPressureBcCoef() = default;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify

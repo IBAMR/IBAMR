@@ -62,18 +62,6 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovLinearSolverStaggeredStokesSolverInterface::KrylovLinearSolverStaggeredStokesSolverInterface()
-{
-    // intentionally blank
-    return;
-} // KrylovLinearSolverStaggeredStokesSolverInterface
-
-KrylovLinearSolverStaggeredStokesSolverInterface::~KrylovLinearSolverStaggeredStokesSolverInterface()
-{
-    // intentionally blank
-    return;
-} // ~KrylovLinearSolverStaggeredStokesSolverInterface
-
 void
 KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifications(
     const PoissonSpecifications& U_problem_coefs)

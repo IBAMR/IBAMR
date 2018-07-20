@@ -82,7 +82,7 @@ public:
     /*!
      * \brief Destructor
      */
-    ~SideNoCornersFillPattern() override;
+    ~SideNoCornersFillPattern() override = default;
 
     /*!
      * Calculate overlaps between the destination and source geometries according

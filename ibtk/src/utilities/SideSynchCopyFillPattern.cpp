@@ -67,12 +67,6 @@ SideSynchCopyFillPattern::SideSynchCopyFillPattern() : d_stencil_width(1)
     return;
 } // SideSynchCopyFillPattern
 
-SideSynchCopyFillPattern::~SideSynchCopyFillPattern()
-{
-    // intentionally blank
-    return;
-} // SideSynchCopyFillPattern
-
 Pointer<BoxOverlap<NDIM> >
 SideSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
                                            const BoxGeometry<NDIM>& src_geometry,

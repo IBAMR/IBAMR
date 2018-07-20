@@ -75,12 +75,6 @@ StaggeredPhysicalBoundaryHelper::StaggeredPhysicalBoundaryHelper() : d_hierarchy
     return;
 } // StaggeredPhysicalBoundaryHelper
 
-StaggeredPhysicalBoundaryHelper::~StaggeredPhysicalBoundaryHelper()
-{
-    // intentionally blank
-    return;
-} // ~StaggeredPhysicalBoundaryHelper
-
 void
 StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(const int u_out_data_idx,
                                                                const int u_in_data_idx,

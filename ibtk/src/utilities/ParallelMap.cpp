@@ -69,12 +69,6 @@ ParallelMap::ParallelMap(const ParallelMap& from)
     return;
 } // ParallelMap
 
-ParallelMap::~ParallelMap()
-{
-    // intentionally blank
-    return;
-} // ~ParallelMap
-
 ParallelMap& ParallelMap::operator=(const ParallelMap& that)
 {
     if (this != &that)

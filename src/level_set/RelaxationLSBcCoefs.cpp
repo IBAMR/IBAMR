@@ -63,12 +63,6 @@ RelaxationLSBcCoefs::RelaxationLSBcCoefs(std::string object_name) : d_object_nam
     return;
 } // RelaxationLSBcCoefs
 
-RelaxationLSBcCoefs::~RelaxationLSBcCoefs()
-{
-    // intentionally blank
-    return;
-} // ~RelaxationLSBcCoefs
-
 void
 RelaxationLSBcCoefs::setLSPatchDataIndex(int phi_idx)
 {

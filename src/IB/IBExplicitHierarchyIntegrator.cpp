@@ -115,12 +115,6 @@ IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(const std::string& 
     return;
 } // IBExplicitHierarchyIntegrator
 
-IBExplicitHierarchyIntegrator::~IBExplicitHierarchyIntegrator()
-{
-    // intentionally blank
-    return;
-} // ~IBExplicitHierarchyIntegrator
-
 void
 IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                             const double new_time,

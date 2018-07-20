@@ -87,12 +87,6 @@ IBFEPostProcessor::IBFEPostProcessor(std::string name, FEDataManager* fe_data_ma
     return;
 } // IBFEPostProcessor
 
-IBFEPostProcessor::~IBFEPostProcessor()
-{
-    // intentionally blank
-    return;
-} // ~IBFEPostProcessor
-
 void
 IBFEPostProcessor::registerScalarVariable(const std::string& name,
                                           libMesh::FEFamily fe_family,

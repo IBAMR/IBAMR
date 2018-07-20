@@ -43,18 +43,6 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBMethodPostProcessStrategy::IBMethodPostProcessStrategy()
-{
-    // intentionally blank
-    return;
-} // IBMethodPostProcessStrategy
-
-IBMethodPostProcessStrategy::~IBMethodPostProcessStrategy()
-{
-    // intentionally blank
-    return;
-} // ~IBMethodPostProcessStrategy
-
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////

@@ -62,7 +62,7 @@ public:
     /*!
      * \brief Empty virtual destructor.
      */
-    ~LinearSolver() override;
+    ~LinearSolver() override = default;
 
     /*!
      * \name Linear solver functionality.

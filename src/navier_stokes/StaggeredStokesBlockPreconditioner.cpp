@@ -92,12 +92,6 @@ StaggeredStokesBlockPreconditioner::StaggeredStokesBlockPreconditioner(bool need
     return;
 } // StaggeredStokesBlockPreconditioner()
 
-StaggeredStokesBlockPreconditioner::~StaggeredStokesBlockPreconditioner()
-{
-    // intentionally blank
-    return;
-} // ~StaggeredStokesBlockPreconditioner()
-
 bool
 StaggeredStokesBlockPreconditioner::needsVelocitySubdomainSolver() const
 {

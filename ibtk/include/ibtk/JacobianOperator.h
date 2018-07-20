@@ -69,7 +69,7 @@ public:
     /*!
      * \brief Empty destructor.
      */
-    ~JacobianOperator() override;
+    ~JacobianOperator() override = default;
 
     /*!
      * \name General Jacobian functionality.

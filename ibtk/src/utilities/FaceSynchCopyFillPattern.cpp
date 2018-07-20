@@ -67,12 +67,6 @@ FaceSynchCopyFillPattern::FaceSynchCopyFillPattern() : d_stencil_width(1)
     return;
 } // FaceSynchCopyFillPattern
 
-FaceSynchCopyFillPattern::~FaceSynchCopyFillPattern()
-{
-    // intentionally blank
-    return;
-} // FaceSynchCopyFillPattern
-
 Pointer<BoxOverlap<NDIM> >
 FaceSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
                                            const BoxGeometry<NDIM>& src_geometry,

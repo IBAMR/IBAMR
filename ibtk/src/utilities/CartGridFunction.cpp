@@ -60,12 +60,6 @@ CartGridFunction::CartGridFunction(std::string object_name) : d_object_name(std:
     return;
 } // CartGridFunction
 
-CartGridFunction::~CartGridFunction()
-{
-    // intentionally blank
-    return;
-} // ~CartGridFunction
-
 void
 CartGridFunction::setDataOnPatchHierarchy(const int data_idx,
                                           Pointer<Variable<NDIM> > var,

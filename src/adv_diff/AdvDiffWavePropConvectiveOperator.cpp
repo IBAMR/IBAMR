@@ -113,7 +113,6 @@ AdvDiffWavePropConvectiveOperator::AdvDiffWavePropConvectiveOperator(
 AdvDiffWavePropConvectiveOperator::~AdvDiffWavePropConvectiveOperator()
 {
     deallocateOperatorState();
-    // intentionally blank
     return;
 }
 

@@ -43,18 +43,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CoarseFineBoundaryRefinePatchStrategy::CoarseFineBoundaryRefinePatchStrategy()
-{
-    // intentionally blank
-    return;
-} // CoarseFineBoundaryRefinePatchStrategy
-
-CoarseFineBoundaryRefinePatchStrategy::~CoarseFineBoundaryRefinePatchStrategy()
-{
-    // intentionally blank
-    return;
-} // ~CoarseFineBoundaryRefinePatchStrategy
-
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////

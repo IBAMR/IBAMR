@@ -77,7 +77,7 @@ public:
     /*!
      * \brief Destructor
      */
-    ~CopyToRootTransaction() override;
+    ~CopyToRootTransaction() override = default;
 
     /*!
      * Return a pointer to the data on the root process.

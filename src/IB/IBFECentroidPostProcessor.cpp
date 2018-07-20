@@ -114,12 +114,6 @@ IBFECentroidPostProcessor::IBFECentroidPostProcessor(const std::string& name, FE
     return;
 } // IBFECentroidPostProcessor
 
-IBFECentroidPostProcessor::~IBFECentroidPostProcessor()
-{
-    // intentionally blank
-    return;
-} // ~IBFECentroidPostProcessor
-
 void
 IBFECentroidPostProcessor::registerScalarVariable(const std::string& name,
                                                   libMesh::FEFamily fe_family,

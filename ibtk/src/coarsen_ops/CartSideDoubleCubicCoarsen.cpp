@@ -122,12 +122,6 @@ CartSideDoubleCubicCoarsen::CartSideDoubleCubicCoarsen() : d_weighted_average_co
     return;
 } // CartSideDoubleCubicCoarsen
 
-CartSideDoubleCubicCoarsen::~CartSideDoubleCubicCoarsen()
-{
-    // intentionally blank
-    return;
-} // ~CartSideDoubleCubicCoarsen
-
 bool
 CartSideDoubleCubicCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
 {

@@ -142,12 +142,6 @@ IBStandardForceGen::IBStandardForceGen(Pointer<Database> input_db)
     return;
 } // IBStandardForceGen
 
-IBStandardForceGen::~IBStandardForceGen()
-{
-    // intentionally blank
-    return;
-} // ~IBStandardForceGen
-
 void
 IBStandardForceGen::registerSpringForceFunction(const int force_fcn_index,
                                                 const SpringForceFcnPtr spring_force_fcn_ptr,

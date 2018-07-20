@@ -80,7 +80,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~RobinPhysBdryPatchStrategy() override;
+    ~RobinPhysBdryPatchStrategy() override = default;
 
     /*!
      * \brief Reset the patch data index operated upon by this class.

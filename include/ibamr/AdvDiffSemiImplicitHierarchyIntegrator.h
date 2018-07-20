@@ -117,7 +117,7 @@ public:
      * unregisters the integrator object with the restart manager when the
      * object is so registered.
      */
-    ~AdvDiffSemiImplicitHierarchyIntegrator();
+    ~AdvDiffSemiImplicitHierarchyIntegrator() = default;
 
     /*!
      * Set the default convective time stepping method to use with registered

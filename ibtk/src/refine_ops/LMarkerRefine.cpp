@@ -78,18 +78,6 @@ static const int REFINE_OP_STENCIL_WIDTH = 0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LMarkerRefine::LMarkerRefine()
-{
-    // intentionally blank
-    return;
-} // LMarkerRefine
-
-LMarkerRefine::~LMarkerRefine()
-{
-    // intentionally blank
-    return;
-} // ~LMarkerRefine
-
 bool
 LMarkerRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
 {

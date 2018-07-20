@@ -203,12 +203,6 @@ StaggeredStokesSolverManager::StaggeredStokesSolverManager() : d_solver_maker_ma
     return;
 } // StaggeredStokesSolverManager
 
-StaggeredStokesSolverManager::~StaggeredStokesSolverManager()
-{
-    // intentionally blank
-    return;
-} // ~StaggeredStokesSolverManager
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

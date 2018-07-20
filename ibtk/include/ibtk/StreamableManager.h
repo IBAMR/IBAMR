@@ -171,7 +171,7 @@ protected:
     /*!
      * \brief Destructor.
      */
-    ~StreamableManager();
+    ~StreamableManager() = default;
 
     /*!
      * Generate a unique ID number.

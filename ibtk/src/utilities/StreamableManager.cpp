@@ -121,12 +121,6 @@ StreamableManager::StreamableManager() : d_factory_map()
     return;
 } // StreamableManager
 
-StreamableManager::~StreamableManager()
-{
-    d_factory_map.clear();
-    return;
-} // ~StreamableManager
-
 int
 StreamableManager::createUniqueID()
 {

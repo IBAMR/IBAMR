@@ -63,12 +63,6 @@ IBRodForceSpec::Factory::Factory()
     return;
 } // Factory
 
-IBRodForceSpec::Factory::~Factory()
-{
-    // intentionally blank
-    return;
-} // ~Factory
-
 int
 IBRodForceSpec::Factory::getStreamableClassID() const
 {

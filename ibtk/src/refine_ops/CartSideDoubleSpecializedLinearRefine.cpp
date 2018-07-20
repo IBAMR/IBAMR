@@ -136,18 +136,6 @@ static const int REFINE_OP_STENCIL_WIDTH = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartSideDoubleSpecializedLinearRefine::CartSideDoubleSpecializedLinearRefine()
-{
-    // intentionally blank
-    return;
-} // CartSideDoubleSpecializedLinearRefine
-
-CartSideDoubleSpecializedLinearRefine::~CartSideDoubleSpecializedLinearRefine()
-{
-    // intentionally blank
-    return;
-} // ~CartSideDoubleSpecializedLinearRefine
-
 bool
 CartSideDoubleSpecializedLinearRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
                                                           const std::string& op_name) const

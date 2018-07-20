@@ -185,7 +185,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~CartCellRobinPhysBdryOp() override;
+    ~CartCellRobinPhysBdryOp() override = default;
 
     /*!
      * \name Implementation of SAMRAI::xfer::RefinePatchStrategy interface.

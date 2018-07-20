@@ -76,7 +76,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~CartCellDoubleBoundsPreservingConservativeLinearRefine() override;
+    ~CartCellDoubleBoundsPreservingConservativeLinearRefine() override = default;
 
     /*!
      * \name Implementation of SAMRAI::xfer::RefineOperator interface.

@@ -257,12 +257,6 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(std::string object_
     return;
 } // INSStaggeredStochasticForcing
 
-INSStaggeredStochasticForcing::~INSStaggeredStochasticForcing()
-{
-    // intentionally blank
-    return;
-} // ~INSStaggeredStochasticForcing
-
 bool
 INSStaggeredStochasticForcing::isTimeDependent() const
 {

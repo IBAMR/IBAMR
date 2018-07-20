@@ -75,12 +75,12 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBImplicitStrategy();
+    IBImplicitStrategy() = default;
 
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBImplicitStrategy();
+    virtual ~IBImplicitStrategy() = default;
 
     /*!
      * Create solution and rhs data.

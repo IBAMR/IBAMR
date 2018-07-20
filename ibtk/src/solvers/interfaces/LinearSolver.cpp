@@ -58,12 +58,6 @@ LinearSolver::LinearSolver() : d_nullspace_basis_vecs()
     return;
 } // LinearSolver()
 
-LinearSolver::~LinearSolver()
-{
-    // intentionally blank
-    return;
-} // ~LinearSolver()
-
 void
 LinearSolver::setNullspace(const bool nullspace_containsconstant_vec,
                            const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs)

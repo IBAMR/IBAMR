@@ -113,7 +113,7 @@ protected:
     /*!
      * \brief Destructor.
      */
-    ~NewtonKrylovSolverManager();
+    ~NewtonKrylovSolverManager() = default;
 
 private:
     /*!

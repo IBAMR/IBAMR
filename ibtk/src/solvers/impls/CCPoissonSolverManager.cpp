@@ -197,12 +197,6 @@ CCPoissonSolverManager::CCPoissonSolverManager() : d_solver_maker_map()
     return;
 } // CCPoissonSolverManager
 
-CCPoissonSolverManager::~CCPoissonSolverManager()
-{
-    // intentionally blank
-    return;
-} // ~CCPoissonSolverManager
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

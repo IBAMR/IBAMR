@@ -83,7 +83,7 @@ public:
     /*!
      * \brief Empty virtual desctructor.
      */
-    ~FACPreconditionerStrategy() override;
+    ~FACPreconditionerStrategy() override = default;
 
     /*!
      * \brief Return the object name.

@@ -52,12 +52,6 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBLagrangianForceStrategySet::~IBLagrangianForceStrategySet()
-{
-    // intentionally blank
-    return;
-} // ~IBLagrangianForceStrategySet
-
 void
 IBLagrangianForceStrategySet::setTimeInterval(const double current_time, const double new_time)
 {

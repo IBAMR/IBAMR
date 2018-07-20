@@ -102,7 +102,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~GeneralizedIBMethod();
+    ~GeneralizedIBMethod() = default;
 
     /*!
      * Supply a Lagrangian force object.

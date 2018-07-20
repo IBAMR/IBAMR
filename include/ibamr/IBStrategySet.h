@@ -108,7 +108,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~IBStrategySet();
+    ~IBStrategySet() = default;
 
     /*!
      * Register the IBHierarchyIntegrator object that is using this strategy

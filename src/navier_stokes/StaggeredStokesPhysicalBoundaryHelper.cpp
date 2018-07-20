@@ -70,18 +70,6 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-StaggeredStokesPhysicalBoundaryHelper::StaggeredStokesPhysicalBoundaryHelper()
-{
-    // intentionally blank
-    return;
-} // StaggeredStokesPhysicalBoundaryHelper
-
-StaggeredStokesPhysicalBoundaryHelper::~StaggeredStokesPhysicalBoundaryHelper()
-{
-    // intentionally blank
-    return;
-} // ~StaggeredStokesPhysicalBoundaryHelper
-
 void
 StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
     const int u_data_idx,

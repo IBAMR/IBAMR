@@ -94,7 +94,7 @@ public:
     /*!
      * \brief Empty destructor.
      */
-    ~INSStaggeredStochasticForcing();
+    ~INSStaggeredStochasticForcing() = default;
 
     /*!
      * \name Methods to set patch data.
