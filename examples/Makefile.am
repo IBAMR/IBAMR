@@ -7,20 +7,14 @@ all:
 	  $(MAKE) examples ; \
 	fi ;
 
-## Standard make targets.
-examples:
-	@(cd IB               && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd IBFE             && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-##	@(cd IMP              && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd adv_diff         && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd advect           && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd navier_stokes    && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd ConstraintIB     && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd CIB              && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-##	@(cd CIBFE            && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd level_set        && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd multiphase_flow  && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd vc_navier_stokes && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+COMPLETE_EXAMPLES = IB IBFE adv_diff advect navier_stokes ConstraintIB CIB level_set multiphase_flow vc_navier_stokes
+# Not all examples can be compiled at the present time
+INCOMPLETE_EXAMPLES = IMP CIBFE
+.PHONY: examples $(COMPLETE_EXAMPLES)
+examples: $(COMPLETE_EXAMPLES)
+
+$(COMPLETE_EXAMPLES):
+	cd $@ && $(MAKE) $(AM_MAKEFLAGS) examples
 
 if GTEST_ENABLED
 gtest:
