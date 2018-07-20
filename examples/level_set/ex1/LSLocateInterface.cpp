@@ -13,7 +13,7 @@ circular_interface_neighborhood(int D_idx,
                                 Pointer<HierarchyMathOps> hier_math_ops,
                                 double /*time*/,
                                 bool /*initial_time*/,
-                                void* ctx)
+                                void* /*ctx*/)
 {
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;

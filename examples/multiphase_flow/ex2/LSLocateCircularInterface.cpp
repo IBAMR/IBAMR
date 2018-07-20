@@ -43,8 +43,8 @@ LSLocateCircularInterface::~LSLocateCircularInterface()
 void
 LSLocateCircularInterface::setLevelSetPatchData(int D_idx,
                                                 Pointer<HierarchyMathOps> hier_math_ops,
-                                                double time,
-                                                bool initial_time)
+                                                double /*time*/,
+                                                bool /*initial_time*/)
 {
     // In this version of this class, the initial level set location is set to be
     // exact since we always know the radius of the ball
