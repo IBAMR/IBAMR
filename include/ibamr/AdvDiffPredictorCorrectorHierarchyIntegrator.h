@@ -116,7 +116,7 @@ public:
      * the integrator object with the restart manager when the object is so
      * registered.
      */
-    ~AdvDiffPredictorCorrectorHierarchyIntegrator();
+    ~AdvDiffPredictorCorrectorHierarchyIntegrator() = default;
 
     /*!
      * Return a pointer to the level integrator object used to integrate the
