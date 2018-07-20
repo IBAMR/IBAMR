@@ -78,7 +78,7 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const string& data_dump_dirname);
 
 void
-COMTransVelocity(const double time, Eigen::Vector3d& trans_vel)
+COMTransVelocity(const double /*time*/, Eigen::Vector3d& trans_vel)
 {
     trans_vel.setZero();
     trans_vel[0] = 0.0;
