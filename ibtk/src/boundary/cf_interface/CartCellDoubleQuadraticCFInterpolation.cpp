@@ -160,9 +160,9 @@ coarsen(const Index<NDIM>& index, const IntVector<NDIM>& ratio)
 inline bool
 bdry_boxes_contain_index(const Index<NDIM>& i, const std::vector<const BoundaryBox<NDIM>*>& patch_cf_bdry_boxes)
 {
-    for (auto patch_cf_bdry_boxe : patch_cf_bdry_boxes)
+    for (auto patch_cf_bdry_box : patch_cf_bdry_boxes)
     {
-        const BoundaryBox<NDIM>& bdry_box = *patch_cf_bdry_boxe;
+        const BoundaryBox<NDIM>& bdry_box = *patch_cf_bdry_box;
         if (bdry_box.getBox().contains(i)) return true;
     }
     return false;
@@ -378,10 +378,10 @@ CartCellDoubleQuadraticCFInterpolation::clearPatchHierarchy()
         it = NULL;
     }
     d_cf_boundary.clear();
-    for (auto& d_domain_boxe : d_domain_boxes)
+    for (auto& d_domain_box : d_domain_boxes)
     {
-        delete d_domain_boxe;
-        d_domain_boxe = NULL;
+        delete d_domain_box;
+        d_domain_box = NULL;
     }
     d_domain_boxes.clear();
     d_periodic_shift.clear();

@@ -185,19 +185,19 @@ HierarchyIntegrator::~HierarchyIntegrator()
         d_registered_for_restart = false;
     }
 
-    for (auto& d_ghostfill_strategie : d_ghostfill_strategies)
+    for (auto& ghostfill_strategy : d_ghostfill_strategies)
     {
-        delete d_ghostfill_strategie.second;
+        delete ghostfill_strategy.second;
     }
 
-    for (auto& d_prolong_strategie : d_prolong_strategies)
+    for (auto& prolong_strategy : d_prolong_strategies)
     {
-        delete d_prolong_strategie.second;
+        delete prolong_strategy.second;
     }
 
-    for (auto& d_coarsen_strategie : d_coarsen_strategies)
+    for (auto& coarsen_strategy : d_coarsen_strategies)
     {
-        delete d_coarsen_strategie.second;
+        delete coarsen_strategy.second;
     }
     return;
 } // ~HierarchyIntegrator
@@ -397,9 +397,9 @@ double
 HierarchyIntegrator::getMinimumTimeStepSize()
 {
     double dt = getMinimumTimeStepSizeSpecialized();
-    for (auto d_child_integrator : d_child_integrators)
+    for (auto child_integrator : d_child_integrators)
     {
-        dt = std::max(dt, d_child_integrator->getMinimumTimeStepSize());
+        dt = std::max(dt, child_integrator->getMinimumTimeStepSize());
     }
     return std::min(dt, d_end_time - d_integrator_time);
 } // getMinimumTimeStepSize
@@ -408,9 +408,9 @@ double
 HierarchyIntegrator::getMaximumTimeStepSize()
 {
     double dt = getMaximumTimeStepSizeSpecialized();
-    for (auto d_child_integrator : d_child_integrators)
+    for (auto child_integrator : d_child_integrators)
     {
-        dt = std::min(dt, d_child_integrator->getMaximumTimeStepSize());
+        dt = std::min(dt, child_integrator->getMaximumTimeStepSize());
     }
     return std::min(dt, d_end_time - d_integrator_time);
 } // getMaximumTimeStepSize
@@ -419,9 +419,9 @@ void
 HierarchyIntegrator::synchronizeHierarchyData(VariableContextType ctx_type)
 {
     synchronizeHierarchyDataSpecialized(ctx_type);
-    for (auto d_child_integrator : d_child_integrators)
+    for (auto child_integrator : d_child_integrators)
     {
-        d_child_integrator->synchronizeHierarchyData(ctx_type);
+        child_integrator->synchronizeHierarchyData(ctx_type);
     }
     return;
 } // synchronizeHierarchyData
@@ -430,9 +430,9 @@ void
 HierarchyIntegrator::resetTimeDependentHierarchyData(const double new_time)
 {
     resetTimeDependentHierarchyDataSpecialized(new_time);
-    for (auto d_child_integrator : d_child_integrators)
+    for (auto child_integrator : d_child_integrators)
     {
-        d_child_integrator->resetTimeDependentHierarchyData(new_time);
+        child_integrator->resetTimeDependentHierarchyData(new_time);
     }
     return;
 } // resetTimeDependentHierarchyData
@@ -441,9 +441,9 @@ void
 HierarchyIntegrator::resetIntegratorToPreadvanceState()
 {
     resetIntegratorToPreadvanceStateSpecialized();
-    for (auto d_child_integrator : d_child_integrators)
+    for (auto child_integrator : d_child_integrators)
     {
-        d_child_integrator->resetIntegratorToPreadvanceState();
+        child_integrator->resetIntegratorToPreadvanceState();
     }
     return;
 } // resetIntegratorToPreadvanceState
@@ -559,9 +559,9 @@ void
 HierarchyIntegrator::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > visit_writer)
 {
     d_visit_writer = visit_writer;
-    for (auto d_child_integrator : d_child_integrators)
+    for (auto child_integrator : d_child_integrators)
     {
-        d_child_integrator->registerVisItDataWriter(visit_writer);
+        child_integrator->registerVisItDataWriter(visit_writer);
     }
     return;
 } // registerVisItDataWriter
@@ -576,9 +576,9 @@ void
 HierarchyIntegrator::setupPlotData()
 {
     setupPlotDataSpecialized();
-    for (auto d_child_integrator : d_child_integrators)
+    for (auto child_integrator : d_child_integrators)
     {
-        d_child_integrator->setupPlotData();
+        child_integrator->setupPlotData();
     }
     return;
 } // setupPlotData
@@ -710,9 +710,9 @@ HierarchyIntegrator::initializeCompositeHierarchyData(double init_data_time, boo
     initializeCompositeHierarchyDataSpecialized(init_data_time, initial_time);
 
     // Initialize data associated with any child integrators.
-    for (auto d_child_integrator : d_child_integrators)
+    for (auto child_integrator : d_child_integrators)
     {
-        d_child_integrator->initializeCompositeHierarchyData(init_data_time, initial_time);
+        child_integrator->initializeCompositeHierarchyData(init_data_time, initial_time);
     }
     return;
 } // initializeCompositeHierarchyData
@@ -817,9 +817,9 @@ HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> 
         base_hierarchy, level_number, init_data_time, can_be_refined, initial_time, base_old_level, allocate_data);
 
     // Initialize data associated with any child integrators.
-    for (auto d_child_integrator : d_child_integrators)
+    for (auto child_integrator : d_child_integrators)
     {
-        d_child_integrator->initializeLevelData(
+        child_integrator->initializeLevelData(
             base_hierarchy, level_number, init_data_time, can_be_refined, initial_time, base_old_level, allocate_data);
     }
     return;
@@ -908,9 +908,9 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
     resetHierarchyConfigurationSpecialized(base_hierarchy, coarsest_level, finest_level);
 
     // Reset data associated with any child integrators.
-    for (auto d_child_integrator : d_child_integrators)
+    for (auto child_integrator : d_child_integrators)
     {
-        d_child_integrator->resetHierarchyConfiguration(base_hierarchy, coarsest_level, finest_level);
+        child_integrator->resetHierarchyConfiguration(base_hierarchy, coarsest_level, finest_level);
     }
     return;
 } // resetHierarchyConfiguration
@@ -948,9 +948,9 @@ HierarchyIntegrator::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM
         hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
 
     // ALlow child integrators to tag cells for refinement.
-    for (auto d_child_integrator : d_child_integrators)
+    for (auto child_integrator : d_child_integrators)
     {
-        d_child_integrator->applyGradientDetector(
+        child_integrator->applyGradientDetector(
             hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     }
     return;

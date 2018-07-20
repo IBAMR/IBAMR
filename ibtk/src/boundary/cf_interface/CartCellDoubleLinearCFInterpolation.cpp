@@ -241,10 +241,10 @@ CartCellDoubleLinearCFInterpolation::clearPatchHierarchy()
         it = NULL;
     }
     d_cf_boundary.clear();
-    for (auto& d_domain_boxe : d_domain_boxes)
+    for (auto& d_domain_box : d_domain_boxes)
     {
-        delete d_domain_boxe;
-        d_domain_boxe = NULL;
+        delete d_domain_box;
+        d_domain_box = NULL;
     }
     d_domain_boxes.clear();
     d_periodic_shift.clear();

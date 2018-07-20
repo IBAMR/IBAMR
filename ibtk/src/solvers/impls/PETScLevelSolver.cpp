@@ -165,14 +165,14 @@ PETScLevelSolver::~PETScLevelSolver()
     }
 
     int ierr;
-    for (auto& d_nonoverlap_i : d_nonoverlap_is)
+    for (auto& nonoverlap_is : d_nonoverlap_is)
     {
-        ierr = ISDestroy(&d_nonoverlap_i);
+        ierr = ISDestroy(&nonoverlap_is);
         IBTK_CHKERRQ(ierr);
     }
-    for (auto& d_overlap_i : d_overlap_is)
+    for (auto& overlap_is : d_overlap_is)
     {
-        ierr = ISDestroy(&d_overlap_i);
+        ierr = ISDestroy(&overlap_is);
         IBTK_CHKERRQ(ierr);
     }
     return;
@@ -430,9 +430,9 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         const auto n_fields = static_cast<int>(field_is.size());
 
         // Destroy old IS'es and generate new ones.
-        for (auto& d_field_i : d_field_is)
+        for (auto& field_is : d_field_is)
         {
-            ierr = ISDestroy(&d_field_i);
+            ierr = ISDestroy(&field_is);
             IBTK_CHKERRQ(ierr);
         }
         d_field_is.clear();
