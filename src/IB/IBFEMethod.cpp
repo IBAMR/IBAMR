@@ -229,18 +229,6 @@ get_x_and_FF(libMesh::VectorValue<double>& x,
     return;
 }
 
-// initial condition for the stress normalization function Phi
-// which solves the heat equation.
-Number
-heat_initial_condition(const libMesh::Point& p, const Parameters& parameters, const std::string&, const std::string&)
-{
-    const Real x = p(0);
-    const Real y = p(1);
-    const Real z = p(2);
-
-    return 0.0;
-}
-
 void
 assemble_cg_heat(EquationSystems& es, const std::string& system_name)
 {
@@ -437,8 +425,6 @@ assemble_ipdg_poisson(EquationSystems& es, const std::string& system_name)
 
             // we enter here if element side is either in the interior of the domain or
             // on a periodic boundary.
-            // element side is either in the interior of the domain or
-            // on a periodic boundary.
             else
             {
                 // get topological neighbor of element
@@ -447,21 +433,21 @@ assemble_ipdg_poisson(EquationSystems& es, const std::string& system_name)
                 // find id of corresponding neighbor side,
                 // since elements with periodic boundaries may not share the same
                 // side in physical space.
-                int blah = 0;
-                for (int foo = 0; foo < neighbor->n_sides(); foo++)
+                int temp_side_id = 0;
+                for (int ss = 0; ss < neighbor->n_sides(); ++ss)
                 {
-                    const Elem* foo_elem =
-                        neighbor->topological_neighbor(foo, mesh, point_locator, periodic_boundaries);
+                    const Elem* temp_elem =
+                        neighbor->topological_neighbor(ss, mesh, point_locator, periodic_boundaries);
 
-                    if (!(foo_elem == libmesh_nullptr))
+                    if (!(temp_elem == libmesh_nullptr))
                     {
-                        if (foo_elem->id() == elem->id())
+                        if (temp_elem->id() == elem->id())
                         {
-                            blah = foo;
+                            temp_side_id = ss;
                         }
                     }
                 }
-                const int neighbor_side = blah;
+                const int neighbor_side = temp_side_id;
 
                 // Get the global element id of the element and the neighbor
                 const unsigned int elem_id = elem->id();

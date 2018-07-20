@@ -417,8 +417,8 @@ public:
      * data, like side centered, cell centered, etc.
     */
     void prolongData(int f_data_idx,
-                     libMesh::NumericVector<double>& F_vec,
-                     libMesh::NumericVector<double>& X_vec,
+                     libMesh::NumericVector<double>& F,
+                     libMesh::NumericVector<double>& X,
                      const std::string& system_name,
                      bool is_density = true,
                      bool accumulate_on_grid = true,

@@ -862,8 +862,8 @@ FEDataManager::spread(const int f_data_idx,
 
 void
 FEDataManager::prolongData(const int f_data_idx,
-                           NumericVector<double>& F_vec,
-                           NumericVector<double>& X_vec,
+                           NumericVector<double>& F,
+                           NumericVector<double>& X,
                            const std::string& system_name,
                            const bool is_density,
                            const bool accumulate_on_grid,
@@ -884,11 +884,11 @@ FEDataManager::prolongData(const int f_data_idx,
     // call the correct helper function
     if (cc_data)
     {
-        FEDataManager::prolongData_cell(f_data_idx, F_vec, X_vec, system_name, is_density, accumulate_on_grid, close_F, close_X);
+        FEDataManager::prolongData_cell(f_data_idx, F, X, system_name, is_density, accumulate_on_grid, close_F, close_X);
     }
     if (sc_data)
     {
-        FEDataManager::prolongData_side(f_data_idx, F_vec, X_vec, system_name, is_density, accumulate_on_grid, close_F, close_X);
+        FEDataManager::prolongData_side(f_data_idx, F, X, system_name, is_density, accumulate_on_grid, close_F, close_X);
     }
 
 } // prolongData
@@ -1127,8 +1127,6 @@ FEDataManager::prolongData_cell(const int f_data_idx,
                                 const bool close_X)
 {
     IBTK_TIMER_START(t_prolong_data_cell);
-
-    std::cout << "prolonging cell-centered data from system " << system_name << std::endl;
 
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
