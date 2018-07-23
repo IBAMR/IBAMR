@@ -808,7 +808,6 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
     d_equation_systems[part]->parameters.set<Real>("ipdg_beta1") = d_ipdg_beta1;
     d_equation_systems[part]->parameters.set<Real>("cg_penalty") = d_cg_penalty;
     d_equation_systems[part]->parameters.set<std::string>("Phi_solver") = d_phi_solver;
-    d_equation_systems[part]->parameters.set<Real>("dt") = d_phi_dt;
     d_equation_systems[part]->parameters.set<Real>("Phi_diffusion") = d_phi_diffusion;
 
     // assign function for building Phi linear system.  defaults to CG discretization
@@ -4381,7 +4380,6 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     d_ipdg_beta0 = db->getDoubleWithDefault("ipdg_beta0", 2.0);
     d_ipdg_beta1 = db->getDoubleWithDefault("ipdg_beta1", 2.0);
     d_cg_penalty = db->getDoubleWithDefault("cg_penalty", 1.0e10);
-    d_phi_dt = db->getDouble("Phi_dt");
     d_phi_fe_order = static_cast<Order>(db->getIntegerWithDefault("Phi_fe_order", 2));
 
     return;

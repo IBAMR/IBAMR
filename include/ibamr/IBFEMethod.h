@@ -812,7 +812,6 @@ protected:
     double d_ipdg_beta1;
     libMesh::Order d_phi_fe_order;
     double d_cg_penalty;
-    double d_phi_dt;
     double d_phi_diffusion;
     std::string d_phi_solver;
     bool d_scale_phi_by_J;
