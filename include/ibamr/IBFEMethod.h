@@ -111,7 +111,12 @@ public:
     static const std::string PHI_SYSTEM_NAME;
     static const std::string SOURCE_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
-
+    
+    // strings specifying the stress normalization solver.
+    static const std::string IPDG_PHI_SOLVER_NAME;
+    static const std::string CG_PHI_SOLVER_NAME;    
+    static const std::string CG_DIFFUSION_PHI_SOLVER_NAME;
+    
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > mask_var;
     int mask_current_idx, mask_new_idx, mask_scratch_idx;
 
