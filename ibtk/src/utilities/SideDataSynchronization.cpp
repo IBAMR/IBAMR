@@ -76,18 +76,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-SideDataSynchronization::SideDataSynchronization()
-    : d_transaction_comps(),
-
-      d_coarsen_alg(nullptr),
-      d_coarsen_scheds(),
-      d_refine_alg(nullptr),
-      d_refine_scheds()
-{
-    // intentionally blank
-    return;
-} // SideDataSynchronization
-
 SideDataSynchronization::~SideDataSynchronization()
 {
     if (d_is_initialized) deallocateOperatorState();

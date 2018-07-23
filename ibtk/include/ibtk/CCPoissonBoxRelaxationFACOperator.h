@@ -299,22 +299,22 @@ private:
     /*
      * Coarse level solvers and solver parameters.
      */
-    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
+    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db = nullptr;
 
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::string d_petsc_options_prefix;
-    std::vector<std::vector<Vec> > d_patch_vec_e, d_patch_vec_f;
-    std::vector<std::vector<Mat> > d_patch_mat;
-    std::vector<std::vector<KSP> > d_patch_ksp;
+    std::string d_petsc_options_prefix = "cc_poisson_fac_";
+    std::vector<std::vector<Vec> > d_patch_vec_e = {}, d_patch_vec_f = {};
+    std::vector<std::vector<Mat> > d_patch_mat = {};
+    std::vector<std::vector<KSP> > d_patch_ksp = {};
 
     /*
      * Patch overlap data.
      */
-    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_bc_box_overlap;
-    std::vector<std::vector<std::map<int, SAMRAI::hier::Box<NDIM> > > > d_patch_neighbor_overlap;
+    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_bc_box_overlap = {};
+    std::vector<std::vector<std::map<int, SAMRAI::hier::Box<NDIM> > > > d_patch_neighbor_overlap = {};
 };
 } // namespace IBTK
 

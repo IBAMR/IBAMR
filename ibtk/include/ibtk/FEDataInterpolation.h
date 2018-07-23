@@ -326,38 +326,39 @@ private:
 
     const unsigned int d_dim;
     FEDataManager* const d_fe_data_manager;
-    bool d_initialized;
-    bool d_eval_q_point, d_eval_JxW, d_eval_q_point_face, d_eval_JxW_face, d_eval_normal_face;
-    libMesh::QBase *d_qrule, *d_qrule_face;
-    const std::vector<libMesh::Point> *d_q_point, *d_q_point_face;
-    const std::vector<double> *d_JxW, *d_JxW_face;
-    const std::vector<libMesh::Point>* d_normal_face;
+    bool d_initialized = false;
+    bool d_eval_q_point = false, d_eval_JxW = false, d_eval_q_point_face = false, d_eval_JxW_face = false,
+         d_eval_normal_face = false;
+    libMesh::QBase *d_qrule = nullptr, *d_qrule_face = nullptr;
+    const std::vector<libMesh::Point>*d_q_point = nullptr, *d_q_point_face = nullptr;
+    const std::vector<double>*d_JxW = nullptr, *d_JxW_face = nullptr;
+    const std::vector<libMesh::Point>* d_normal_face = nullptr;
 
     // Data associated with systems.
-    std::vector<const libMesh::System*> d_systems;
-    std::vector<FEDataManager::SystemDofMapCache*> d_system_dof_map_caches;
-    std::vector<std::vector<int> > d_system_all_vars, d_system_vars, d_system_grad_vars;
-    std::vector<std::vector<size_t> > d_system_var_idx, d_system_grad_var_idx;
-    std::vector<libMesh::NumericVector<double>*> d_system_data;
-    std::vector<std::vector<size_t> > d_system_var_fe_type_idx, d_system_grad_var_fe_type_idx;
-    std::vector<std::vector<std::vector<double> > > d_system_var_data;
-    std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > > d_system_grad_var_data;
-    std::vector<const libMesh::System*> d_noninterp_systems;
-    std::vector<std::vector<int> > d_noninterp_system_all_vars, d_noninterp_system_phi_vars,
-        d_noninterp_system_dphi_vars;
+    std::vector<const libMesh::System*> d_systems = {};
+    std::vector<FEDataManager::SystemDofMapCache*> d_system_dof_map_caches = {};
+    std::vector<std::vector<int> > d_system_all_vars = {}, d_system_vars = {}, d_system_grad_vars = {};
+    std::vector<std::vector<size_t> > d_system_var_idx = {}, d_system_grad_var_idx = {};
+    std::vector<libMesh::NumericVector<double>*> d_system_data = {};
+    std::vector<std::vector<size_t> > d_system_var_fe_type_idx = {}, d_system_grad_var_fe_type_idx = {};
+    std::vector<std::vector<std::vector<double> > > d_system_var_data = {};
+    std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > > d_system_grad_var_data = {};
+    std::vector<const libMesh::System*> d_noninterp_systems = {};
+    std::vector<std::vector<int> > d_noninterp_system_all_vars = {}, d_noninterp_system_phi_vars = {},
+                                   d_noninterp_system_dphi_vars = {};
 
     // Data associated with FETypes.
-    std::vector<libMesh::FEType> d_fe_types;
-    std::vector<SAMRAI::tbox::Pointer<libMesh::FEBase> > d_fe, d_fe_face;
-    std::vector<bool> d_eval_phi, d_eval_dphi;
-    std::vector<const std::vector<std::vector<double> > *> d_phi, d_phi_face;
-    std::vector<const std::vector<std::vector<libMesh::VectorValue<double> > > *> d_dphi, d_dphi_face;
+    std::vector<libMesh::FEType> d_fe_types = {};
+    std::vector<SAMRAI::tbox::Pointer<libMesh::FEBase> > d_fe{}, d_fe_face = {};
+    std::vector<bool> d_eval_phi = {}, d_eval_dphi = {};
+    std::vector<const std::vector<std::vector<double> >*> d_phi = {}, d_phi_face = {};
+    std::vector<const std::vector<std::vector<libMesh::VectorValue<double> > >*> d_dphi = {}, d_dphi_face = {};
 
     // Data associated with the current element.
-    const libMesh::Elem* d_current_elem;
-    unsigned int d_current_side;
-    std::vector<boost::multi_array<double, 2> > d_system_elem_data;
-    unsigned int d_n_qp;
+    const libMesh::Elem* d_current_elem = nullptr;
+    unsigned int d_current_side = -1;
+    std::vector<boost::multi_array<double, 2> > d_system_elem_data = {};
+    unsigned int d_n_qp = -1;
 };
 } // namespace IBTK
 

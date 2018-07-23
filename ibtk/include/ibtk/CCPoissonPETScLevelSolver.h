@@ -202,11 +202,12 @@ private:
      * \name PETSc objects.
      */
     //\{
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    std::vector<int> d_num_dofs_per_proc;
-    int d_dof_index_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_data_synch_sched, d_ghost_fill_sched;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context = nullptr;
+    std::vector<int> d_num_dofs_per_proc = {};
+    int d_dof_index_idx = -1;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_dof_index_var = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_data_synch_sched = nullptr,
+                                                               d_ghost_fill_sched = nullptr;
     //\}
 };
 } // namespace IBTK

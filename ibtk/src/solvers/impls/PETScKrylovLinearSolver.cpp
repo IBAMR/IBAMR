@@ -90,22 +90,7 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(const std::string& object_name,
                                                  Pointer<Database> input_db,
                                                  const std::string& default_options_prefix,
                                                  MPI_Comm petsc_comm)
-    : d_ksp_type(KSPGMRES),
-      d_reinitializing_solver(false),
-      d_petsc_x(nullptr),
-      d_petsc_b(nullptr),
-      d_options_prefix(default_options_prefix),
-      d_petsc_comm(petsc_comm),
-      d_petsc_ksp(nullptr),
-      d_petsc_mat(nullptr),
-      d_petsc_nullsp(nullptr),
-      d_managing_petsc_ksp(true),
-      d_user_provided_mat(false),
-      d_user_provided_pc(false),
-      d_nullspace_constant_vec(nullptr),
-      d_petsc_nullspace_constant_vec(nullptr),
-      d_petsc_nullspace_basis_vecs(),
-      d_solver_has_attached_nullspace(false)
+    : d_ksp_type(KSPGMRES), d_options_prefix(default_options_prefix), d_petsc_comm(petsc_comm)
 {
     // Setup default values.
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
@@ -136,22 +121,7 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(const std::string& object_name,
 } // PETScKrylovLinearSolver()
 
 PETScKrylovLinearSolver::PETScKrylovLinearSolver(const std::string& object_name, const KSP& petsc_ksp)
-    : d_ksp_type("none"),
-      d_reinitializing_solver(false),
-      d_petsc_x(nullptr),
-      d_petsc_b(nullptr),
-      d_options_prefix(""),
-      d_petsc_comm(PETSC_COMM_WORLD),
-      d_petsc_ksp(petsc_ksp),
-      d_petsc_mat(nullptr),
-      d_petsc_nullsp(nullptr),
-      d_managing_petsc_ksp(false),
-      d_user_provided_mat(false),
-      d_user_provided_pc(false),
-      d_nullspace_constant_vec(nullptr),
-      d_petsc_nullspace_constant_vec(nullptr),
-      d_petsc_nullspace_basis_vecs(),
-      d_solver_has_attached_nullspace(false)
+    : d_petsc_ksp(petsc_ksp)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     if (d_petsc_ksp) resetWrappedKSP(d_petsc_ksp);

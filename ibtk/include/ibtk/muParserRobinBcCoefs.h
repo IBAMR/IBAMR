@@ -194,28 +194,28 @@ private:
     /*!
      * User-provided constants specified in the input file.
      */
-    std::map<std::string, double> d_constants;
+    std::map<std::string, double> d_constants = {};
 
     /*!
      * The strings providing the data-setting functions which are evaluated by the
      * mu::Parser objects.
      */
-    std::vector<std::string> d_acoef_function_strings;
-    std::vector<std::string> d_bcoef_function_strings;
-    std::vector<std::string> d_gcoef_function_strings;
+    std::vector<std::string> d_acoef_function_strings = {};
+    std::vector<std::string> d_bcoef_function_strings = {};
+    std::vector<std::string> d_gcoef_function_strings = {};
 
     /*!
      * The mu::Parser objects which evaluate the data-setting functions.
      */
-    std::vector<mu::Parser> d_acoef_parsers;
-    std::vector<mu::Parser> d_bcoef_parsers;
-    std::vector<mu::Parser> d_gcoef_parsers;
+    std::vector<mu::Parser> d_acoef_parsers = std::vector<mu::Parser>(2 * NDIM);
+    std::vector<mu::Parser> d_bcoef_parsers = std::vector<mu::Parser>(2 * NDIM);
+    std::vector<mu::Parser> d_gcoef_parsers = std::vector<mu::Parser>(2 * NDIM);
 
     /*!
      * Time and position variables.
      */
-    double* d_parser_time;
-    Point* d_parser_posn;
+    double* d_parser_time = new double;
+    Point* d_parser_posn = new Point;
 };
 } // namespace IBTK
 

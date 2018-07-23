@@ -99,18 +99,6 @@ static const int GHOST_WIDTH_TO_FILL = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartCellDoubleLinearCFInterpolation::CartCellDoubleLinearCFInterpolation()
-    : d_patch_data_indices(),
-
-      d_refine_op(new CellDoubleConstantRefine<NDIM>()),
-      d_hierarchy(nullptr),
-      d_cf_boundary(),
-      d_periodic_shift()
-{
-    // intentionally blank
-    return;
-} // CartCellDoubleLinearCFInterpolation
-
 CartCellDoubleLinearCFInterpolation::~CartCellDoubleLinearCFInterpolation()
 {
     clearPatchHierarchy();

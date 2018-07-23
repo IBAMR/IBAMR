@@ -50,7 +50,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LinearSolver::LinearSolver() : d_nullspace_basis_vecs()
+LinearSolver::LinearSolver()
 {
     d_max_iterations = 10000;
     d_rel_residual_tol = 1.0e-5;

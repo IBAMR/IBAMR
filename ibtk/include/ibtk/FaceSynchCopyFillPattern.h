@@ -70,7 +70,7 @@ public:
     /*!
      * \brief Default constructor
      */
-    FaceSynchCopyFillPattern();
+    FaceSynchCopyFillPattern() = default;
 
     /*!
      * \brief Destructor
@@ -136,7 +136,7 @@ private:
      */
     FaceSynchCopyFillPattern& operator=(const FaceSynchCopyFillPattern& that) = delete;
 
-    SAMRAI::hier::IntVector<NDIM> d_stencil_width;
+    SAMRAI::hier::IntVector<NDIM> d_stencil_width = { 1 };
 };
 } // namespace IBTK
 

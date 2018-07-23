@@ -61,7 +61,7 @@ static const std::string PATTERN_NAME = "NODE_SYNCH_COPY_FILL_PATTERN";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-NodeSynchCopyFillPattern::NodeSynchCopyFillPattern(const unsigned int axis) : d_stencil_width(1), d_axis(axis)
+NodeSynchCopyFillPattern::NodeSynchCopyFillPattern(const unsigned int axis) : d_axis(axis)
 {
     // intentionally blank
     return;

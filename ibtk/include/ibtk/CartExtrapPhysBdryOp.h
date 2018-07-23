@@ -79,7 +79,7 @@ public:
      * \see setPatchDataIndices
      * \see setExtrapolationType
      */
-    CartExtrapPhysBdryOp();
+    CartExtrapPhysBdryOp() = default;
 
     /*!
      * \brief Constructor.
@@ -285,13 +285,13 @@ private:
      * The patch data indices corresponding to the "scratch" patch data that
      * requires extrapolation of ghost cell values at physical boundaries.
      */
-    std::set<int> d_patch_data_indices;
+    std::set<int> d_patch_data_indices = {};
 
     /*
      * The type of extrapolation to perform.  Choices are presently "CONSTANT",
      * "LINEAR", or "QUADRATIC".
      */
-    std::string d_extrap_type;
+    std::string d_extrap_type = "NULL";
 };
 } // namespace IBTK
 

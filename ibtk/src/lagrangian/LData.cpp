@@ -59,23 +59,7 @@ LData::LData(std::string name,
              const unsigned int num_local_nodes,
              const unsigned int depth,
              std::vector<int> nonlocal_petsc_indices)
-    : d_name(std::move(name)),
-      d_global_node_count(0),
-      d_local_node_count(0),
-      d_ghost_node_count(0),
-      d_depth(depth),
-      d_nonlocal_petsc_indices(std::move(nonlocal_petsc_indices)),
-      d_global_vec(nullptr),
-      d_managing_petsc_vec(true),
-      d_array(nullptr),
-      d_boost_array(nullptr),
-      d_boost_local_array(nullptr),
-      d_boost_vec_array(nullptr),
-      d_boost_local_vec_array(nullptr),
-      d_ghosted_local_vec(nullptr),
-      d_ghosted_local_array(nullptr),
-      d_boost_ghosted_local_array(nullptr),
-      d_boost_vec_ghosted_local_array(nullptr)
+    : d_name(std::move(name)), d_depth(depth), d_nonlocal_petsc_indices(std::move(nonlocal_petsc_indices))
 {
     // Create the PETSc Vec that provides storage for the Lagrangian data.
     int ierr;
@@ -115,22 +99,9 @@ LData::LData(std::string name,
 
 LData::LData(std::string name, Vec vec, std::vector<int> nonlocal_petsc_indices, const bool manage_petsc_vec)
     : d_name(std::move(name)),
-      d_global_node_count(0),
-      d_local_node_count(0),
-      d_ghost_node_count(0),
-      d_depth(0),
       d_nonlocal_petsc_indices(std::move(nonlocal_petsc_indices)),
       d_global_vec(vec),
-      d_managing_petsc_vec(manage_petsc_vec),
-      d_array(nullptr),
-      d_boost_array(nullptr),
-      d_boost_local_array(nullptr),
-      d_boost_vec_array(nullptr),
-      d_boost_local_vec_array(nullptr),
-      d_ghosted_local_vec(nullptr),
-      d_ghosted_local_array(nullptr),
-      d_boost_ghosted_local_array(nullptr),
-      d_boost_vec_ghosted_local_array(nullptr)
+      d_managing_petsc_vec(manage_petsc_vec)
 {
     int ierr;
     int depth;

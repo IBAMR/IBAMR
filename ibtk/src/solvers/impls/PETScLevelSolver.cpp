@@ -127,12 +127,7 @@ generate_petsc_is_from_std_is(std::vector<std::set<int> >& overlap_std,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PETScLevelSolver::PETScLevelSolver()
-    : d_hierarchy(),
-
-      d_ksp_type(KSPGMRES),
-      d_shell_pc_type(""),
-      d_options_prefix("")
+PETScLevelSolver::PETScLevelSolver() : d_ksp_type(KSPGMRES)
 
 {
     // Setup default options.

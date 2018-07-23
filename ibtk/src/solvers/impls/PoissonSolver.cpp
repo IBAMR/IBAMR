@@ -53,7 +53,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PoissonSolver::PoissonSolver() : d_poisson_spec(""), d_bc_coefs()
+PoissonSolver::PoissonSolver() : d_poisson_spec("")
 {
     // intentionally blank
     return;

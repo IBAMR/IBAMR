@@ -75,18 +75,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-NodeDataSynchronization::NodeDataSynchronization()
-    : d_transaction_comps(),
-
-      d_coarsen_alg(nullptr),
-      d_coarsen_scheds(),
-      d_refine_alg(),
-      d_refine_scheds()
-{
-    // intentionally blank
-    return;
-} // NodeDataSynchronization
-
 NodeDataSynchronization::~NodeDataSynchronization()
 {
     if (d_is_initialized) deallocateOperatorState();

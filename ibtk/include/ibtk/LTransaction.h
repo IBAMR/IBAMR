@@ -249,7 +249,7 @@ private:
 
     std::vector<LTransactionComponent> d_src_item_set;
     int d_src_proc;
-    int d_outgoing_bytes;
+    int d_outgoing_bytes = 0;
 
     std::vector<LTransactionComponent> d_dst_item_set;
     int d_dst_proc;

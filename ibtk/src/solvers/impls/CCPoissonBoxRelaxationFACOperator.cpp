@@ -188,16 +188,7 @@ CCPoissonBoxRelaxationFACOperator::CCPoissonBoxRelaxationFACOperator(const std::
           new CellVariable<NDIM, double>(object_name + "::cell_scratch", DEFAULT_DATA_DEPTH),
           CELLG,
           input_db,
-          default_options_prefix),
-      d_coarse_solver(nullptr),
-      d_coarse_solver_db(),
-      d_petsc_options_prefix("cc_poisson_fac_"),
-      d_patch_vec_e(),
-      d_patch_vec_f(),
-      d_patch_mat(),
-      d_patch_ksp(),
-      d_patch_bc_box_overlap(),
-      d_patch_neighbor_overlap()
+          default_options_prefix)
 {
     // Set some default values.
     d_smoother_type = "PATCH_GAUSS_SEIDEL";

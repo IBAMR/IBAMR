@@ -75,7 +75,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    RobinPhysBdryPatchStrategy();
+    RobinPhysBdryPatchStrategy() = default;
 
     /*!
      * \brief Destructor.
@@ -207,7 +207,7 @@ protected:
      * The patch data indices corresponding to the "scratch" patch data that
      * requires extrapolation of ghost cell values at physical boundaries.
      */
-    std::set<int> d_patch_data_indices;
+    std::set<int> d_patch_data_indices = {};
 
     /*
      * The RobinBcCoefStrategy objects used to specify Robin boundary conditions
@@ -216,7 +216,7 @@ protected:
      * The boolean value indicates whether homogeneous boundary conditions
      * should be used.
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs = {};
     bool d_homogeneous_bc = false;
 
 private:

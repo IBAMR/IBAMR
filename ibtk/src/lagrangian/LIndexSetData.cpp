@@ -62,20 +62,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-LIndexSetData<T>::LIndexSetData(const Box<NDIM>& box, const IntVector<NDIM>& ghosts)
-    : LSetData<T>(box, ghosts),
-      d_lag_indices(),
-      d_interior_lag_indices(),
-      d_ghost_lag_indices(),
-      d_global_petsc_indices(),
-      d_interior_global_petsc_indices(),
-      d_ghost_global_petsc_indices(),
-      d_local_petsc_indices(),
-      d_interior_local_petsc_indices(),
-      d_ghost_local_petsc_indices(),
-      d_periodic_shifts(),
-      d_interior_periodic_shifts(),
-      d_ghost_periodic_shifts()
+LIndexSetData<T>::LIndexSetData(const Box<NDIM>& box, const IntVector<NDIM>& ghosts) : LSetData<T>(box, ghosts)
 {
     // intentionally blank
     return;

@@ -113,15 +113,6 @@ static Timer* t_fill_data_set_physical_bcs;
 
 HierarchyGhostCellInterpolation::HierarchyGhostCellInterpolation()
     : d_transaction_comps(),
-      d_hierarchy(nullptr),
-      d_grid_geom(nullptr),
-
-      d_coarsen_alg(nullptr),
-
-      d_coarsen_scheds(),
-      d_refine_alg(nullptr),
-
-      d_refine_scheds(),
       d_cf_bdry_ops(),
       d_extrap_bc_ops(),
       d_cc_robin_bc_ops(),

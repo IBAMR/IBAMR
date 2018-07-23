@@ -60,7 +60,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    ParallelMap();
+    ParallelMap() = default;
 
     /*!
      * \brief Copy constructor.
@@ -121,9 +121,9 @@ public:
 
 private:
     // Member data.
-    std::map<int, SAMRAI::tbox::Pointer<Streamable> > d_map;
-    std::map<int, SAMRAI::tbox::Pointer<Streamable> > d_pending_additions;
-    std::vector<int> d_pending_removals;
+    std::map<int, SAMRAI::tbox::Pointer<Streamable> > d_map = {};
+    std::map<int, SAMRAI::tbox::Pointer<Streamable> > d_pending_additions = {};
+    std::vector<int> d_pending_removals = {};
 };
 } // namespace IBTK
 

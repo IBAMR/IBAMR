@@ -77,7 +77,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    CartCellDoubleCubicCoarsen();
+    CartCellDoubleCubicCoarsen() = default;
 
     /*!
      * \brief Destructor.
@@ -163,7 +163,7 @@ private:
     /*!
      * "Backup" coarsen operator for even refinement ratios less than 4.
      */
-    SAMRAI::geom::CartesianCellDoubleWeightedAverage<NDIM> d_weighted_average_coarsen_op;
+    SAMRAI::geom::CartesianCellDoubleWeightedAverage<NDIM> d_weighted_average_coarsen_op = {};
 };
 } // namespace IBTK
 

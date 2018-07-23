@@ -296,11 +296,7 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(const s
           new CellVariable<NDIM, double>(object_name + "::cell_scratch", DEFAULT_DATA_DEPTH),
           CELLG,
           input_db,
-          default_options_prefix),
-      d_coarse_solver(nullptr),
-      d_coarse_solver_db(),
-      d_patch_bc_box_overlap(),
-      d_patch_neighbor_overlap()
+          default_options_prefix)
 {
     // Set some default values.
     d_smoother_type = "PATCH_GAUSS_SEIDEL";

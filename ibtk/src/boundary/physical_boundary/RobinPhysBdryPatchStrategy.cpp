@@ -65,12 +65,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-RobinPhysBdryPatchStrategy::RobinPhysBdryPatchStrategy() : d_patch_data_indices(), d_bc_coefs()
-{
-    // intentionally blank
-    return;
-} // RobinPhysBdryPatchStrategy
-
 void
 RobinPhysBdryPatchStrategy::setPatchDataIndex(const int patch_data_index)
 {

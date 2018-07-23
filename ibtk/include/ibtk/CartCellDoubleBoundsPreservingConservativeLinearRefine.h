@@ -71,7 +71,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    CartCellDoubleBoundsPreservingConservativeLinearRefine();
+    CartCellDoubleBoundsPreservingConservativeLinearRefine() = default;
 
     /*!
      * \brief Destructor.
@@ -159,12 +159,12 @@ private:
     /*!
      * The basic, non-bounds preserving conservative linear refine operator.
      */
-    SAMRAI::geom::CartesianCellDoubleConservativeLinearRefine<NDIM> d_conservative_linear_refine_op;
+    SAMRAI::geom::CartesianCellDoubleConservativeLinearRefine<NDIM> d_conservative_linear_refine_op = {};
 
     /*!
      * The constant refine operator.
      */
-    SAMRAI::pdat::CellDoubleConstantRefine<NDIM> d_constant_refine_op;
+    SAMRAI::pdat::CellDoubleConstantRefine<NDIM> d_constant_refine_op = {};
 };
 } // namespace IBTK
 

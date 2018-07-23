@@ -204,8 +204,8 @@ private:
     const SNES d_petsc_snes;
     PetscErrorCode (*const d_petsc_snes_form_func)(SNES, Vec, Vec, void*);
     void* const d_petsc_snes_func_ctx;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_y;
-    Vec d_petsc_x, d_petsc_y;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x = nullptr, d_y = nullptr;
+    Vec d_petsc_x = nullptr, d_petsc_y = nullptr;
 };
 } // namespace IBTK
 

@@ -150,24 +150,24 @@ private:
     /*!
      * User-provided constants specified in the input file.
      */
-    std::map<std::string, double> d_constants;
+    std::map<std::string, double> d_constants = {};
 
     /*!
      * The strings providing the data-setting functions which are evaluated by the
      * mu::Parser objects.
      */
-    std::vector<std::string> d_function_strings;
+    std::vector<std::string> d_function_strings = {};
 
     /*!
      * The mu::Parser objects which evaluate the data-setting functions.
      */
-    std::vector<mu::Parser> d_parsers;
+    std::vector<mu::Parser> d_parsers = {};
 
     /*!
      * Time and position variables.
      */
-    double d_parser_time;
-    Point d_parser_posn;
+    double d_parser_time = 0.0;
+    Point d_parser_posn = {};
 };
 } // namespace IBTK
 

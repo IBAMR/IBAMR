@@ -63,7 +63,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    KrylovLinearSolver();
+    KrylovLinearSolver() = default;
 
     /*!
      * \brief Empty destructor.
@@ -130,9 +130,9 @@ public:
 
 protected:
     // Solver components.
-    SAMRAI::tbox::Pointer<LinearOperator> d_A;
-    SAMRAI::tbox::Pointer<LinearSolver> d_pc_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b;
+    SAMRAI::tbox::Pointer<LinearOperator> d_A = nullptr;
+    SAMRAI::tbox::Pointer<LinearSolver> d_pc_solver = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x = nullptr, d_b = nullptr;
 
 private:
     /*!

@@ -128,8 +128,8 @@ private:
     const int d_root_proc;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_patch_level;
     const std::vector<int> d_src_patch_data_idxs;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > > d_root_patch_data;
-    SAMRAI::tbox::Schedule d_schedule;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > > d_root_patch_data = {};
+    SAMRAI::tbox::Schedule d_schedule = {};
 };
 } // namespace IBTK
 

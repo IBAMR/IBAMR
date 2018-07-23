@@ -81,16 +81,7 @@ static const int EXTENSIONS_FILLABLE = 128;
 muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
                                            Pointer<Database> input_db,
                                            Pointer<CartesianGridGeometry<NDIM> > grid_geom)
-    : d_grid_geom(grid_geom),
-      d_constants(),
-      d_acoef_function_strings(),
-      d_bcoef_function_strings(),
-      d_gcoef_function_strings(),
-      d_acoef_parsers(2 * NDIM),
-      d_bcoef_parsers(2 * NDIM),
-      d_gcoef_parsers(2 * NDIM),
-      d_parser_time(new double),
-      d_parser_posn(new Point)
+    : d_grid_geom(grid_geom)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());

@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <iosfwd>
+#include <limits>
 #include <string>
 #include <utility>
 
@@ -67,7 +68,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    GeneralSolver();
+    GeneralSolver() = default;
 
     /*!
      * \brief Empty virtual destructor.
@@ -325,7 +326,7 @@ protected:
     virtual void initSpecialized(const std::string& object_name, bool homogeneous_bc);
 
     // Object name.
-    std::string d_object_name;
+    std::string d_object_name = "unitialized";
 
     // Boolean value to indicate whether the preconditioner is presently
     // initialized.
@@ -333,15 +334,17 @@ protected:
 
     // Solver configuration.
     bool d_homogeneous_bc = false;
-    double d_solution_time, d_current_time, d_new_time;
+    double d_solution_time = std::numeric_limits<double>::quiet_NaN(),
+           d_current_time = std::numeric_limits<double>::quiet_NaN(),
+           d_new_time = std::numeric_limits<double>::quiet_NaN();
     double d_rel_residual_tol = 0.0;
     double d_abs_residual_tol = 0.0;
     int d_max_iterations = 100;
     int d_current_iterations = 0;
-    double d_current_residual_norm;
+    double d_current_residual_norm = std::numeric_limits<double>::quiet_NaN();
 
     // Mathematical operators.
-    SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
+    SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops = nullptr;
     bool d_hier_math_ops_external = false;
 
     // Logging configuration.

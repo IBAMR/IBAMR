@@ -59,7 +59,7 @@ namespace IBTK
 
 template <class T>
 LTransaction<T>::LTransaction(const int src_proc, const int dst_proc)
-    : d_src_item_set(), d_src_proc(src_proc), d_outgoing_bytes(0), d_dst_item_set(), d_dst_proc(dst_proc)
+    : d_src_item_set(), d_src_proc(src_proc), d_dst_item_set(), d_dst_proc(dst_proc)
 {
     // intentionally blank
     return;

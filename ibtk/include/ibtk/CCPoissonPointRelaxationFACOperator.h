@@ -267,14 +267,14 @@ private:
     /*
      * Coarse level solvers and solver parameters.
      */
-    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
+    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db = nullptr;
 
     /*
      * Patch overlap data.
      */
-    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_bc_box_overlap;
-    std::vector<std::vector<std::map<int, SAMRAI::hier::Box<NDIM> > > > d_patch_neighbor_overlap;
+    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_bc_box_overlap = {};
+    std::vector<std::vector<std::map<int, SAMRAI::hier::Box<NDIM> > > > d_patch_neighbor_overlap = {};
 };
 } // namespace IBTK
 

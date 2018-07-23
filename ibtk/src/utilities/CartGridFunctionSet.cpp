@@ -76,7 +76,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartGridFunctionSet::CartGridFunctionSet(const std::string& object_name) : CartGridFunction(object_name), d_fcns()
+CartGridFunctionSet::CartGridFunctionSet(const std::string& object_name) : CartGridFunction(object_name)
 {
     // intentionally blank
     return;

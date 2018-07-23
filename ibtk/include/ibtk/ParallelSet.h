@@ -54,7 +54,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    ParallelSet();
+    ParallelSet() = default;
 
     /*!
      * \brief Copy constructor.
@@ -115,8 +115,8 @@ public:
 
 private:
     // Member data.
-    std::set<int> d_set;
-    std::vector<int> d_pending_additions, d_pending_removals;
+    std::set<int> d_set = {};
+    std::vector<int> d_pending_additions = {}, d_pending_removals = {};
 };
 } // namespace IBTK
 

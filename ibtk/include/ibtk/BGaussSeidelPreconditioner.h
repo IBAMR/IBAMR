@@ -310,18 +310,18 @@ private:
     /*!
      * The component preconditioners.
      */
-    std::map<unsigned int, SAMRAI::tbox::Pointer<LinearSolver> > d_pc_map;
+    std::map<unsigned int, SAMRAI::tbox::Pointer<LinearSolver> > d_pc_map = {};
 
     /*!
      * The component operators.
      */
-    std::map<unsigned int, std::vector<SAMRAI::tbox::Pointer<LinearOperator> > > d_linear_ops_map;
+    std::map<unsigned int, std::vector<SAMRAI::tbox::Pointer<LinearOperator> > > d_linear_ops_map = {};
 
     /*!
      * Parameters to specify the ordering of the application of the component
      * preconditioners.
      */
-    bool d_symmetric_preconditioner, d_reverse_order;
+    bool d_symmetric_preconditioner = false, d_reverse_order = false;
 };
 } // namespace IBTK
 

@@ -375,18 +375,18 @@ private:
 
     //\}
 
-    bool d_reinitializing_solver;
+    bool d_reinitializing_solver = false;
 
-    Vec d_petsc_x, d_petsc_b, d_petsc_r;
+    Vec d_petsc_x = nullptr, d_petsc_b = nullptr, d_petsc_r = nullptr;
 
-    std::string d_options_prefix;
+    std::string d_options_prefix = "";
 
-    MPI_Comm d_petsc_comm;
-    SNES d_petsc_snes;
-    Mat d_petsc_jac;
-    bool d_managing_petsc_snes;
-    bool d_user_provided_function;
-    bool d_user_provided_jacobian;
+    MPI_Comm d_petsc_comm = PETSC_COMM_WORLD;
+    SNES d_petsc_snes = nullptr;
+    Mat d_petsc_jac = nullptr;
+    bool d_managing_petsc_snes = true;
+    bool d_user_provided_function = false;
+    bool d_user_provided_jacobian = false;
 };
 } // namespace IBTK
 

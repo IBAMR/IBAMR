@@ -232,8 +232,8 @@ protected:
     /*
      * Coarse level solvers and solver parameters.
      */
-    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
+    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db = nullptr;
 
     /*
      * Patch overlap data.

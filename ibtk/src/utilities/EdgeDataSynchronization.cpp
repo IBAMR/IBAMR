@@ -75,18 +75,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-EdgeDataSynchronization::EdgeDataSynchronization()
-    : d_transaction_comps(),
-
-      d_coarsen_alg(nullptr),
-      d_coarsen_scheds(),
-      d_refine_alg(),
-      d_refine_scheds()
-{
-    // intentionally blank
-    return;
-} // EdgeDataSynchronization
-
 EdgeDataSynchronization::~EdgeDataSynchronization()
 {
     if (d_is_initialized) deallocateOperatorState();

@@ -107,7 +107,7 @@ protected:
     // Problem specification.
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_bc_coef = nullptr;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs = {};
 
 private:
     /*!

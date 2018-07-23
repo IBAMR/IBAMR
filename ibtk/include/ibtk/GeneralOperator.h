@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <iosfwd>
+#include <limits>
 #include <string>
 #include <utility>
 
@@ -302,18 +303,20 @@ protected:
 
     // Boolean value to indicate whether the preconditioner is presently
     // initialized.
-    bool d_is_initialized;
+    bool d_is_initialized = false;
 
     // Operator configuration.
     bool d_homogeneous_bc;
-    double d_solution_time, d_current_time, d_new_time;
+    double d_solution_time = std::numeric_limits<double>::quiet_NaN(),
+           d_current_time = std::numeric_limits<double>::quiet_NaN(),
+           d_new_time = std::numeric_limits<double>::quiet_NaN();
 
     // Mathematical operators.
-    SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
-    bool d_hier_math_ops_external;
+    SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops = nullptr;
+    bool d_hier_math_ops_external = false;
 
     // Logging configuration.
-    bool d_enable_logging;
+    bool d_enable_logging = false;
 
 private:
     /*!

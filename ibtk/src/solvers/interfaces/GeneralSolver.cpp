@@ -60,21 +60,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-GeneralSolver::GeneralSolver()
-    : d_object_name("unitialized"),
-
-      d_solution_time(std::numeric_limits<double>::quiet_NaN()),
-      d_current_time(std::numeric_limits<double>::quiet_NaN()),
-      d_new_time(std::numeric_limits<double>::quiet_NaN()),
-
-      d_current_residual_norm(std::numeric_limits<double>::quiet_NaN()),
-      d_hier_math_ops(nullptr)
-
-{
-    // intentionally blank
-    return;
-} // GeneralSolver()
-
 const std::string&
 GeneralSolver::getName() const
 {

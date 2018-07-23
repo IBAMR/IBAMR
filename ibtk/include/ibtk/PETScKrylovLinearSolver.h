@@ -400,26 +400,26 @@ private:
 
     //\}
 
-    std::string d_ksp_type;
+    std::string d_ksp_type = "none";
 
-    bool d_reinitializing_solver;
+    bool d_reinitializing_solver = false;
 
-    Vec d_petsc_x, d_petsc_b;
+    Vec d_petsc_x = nullptr, d_petsc_b = nullptr;
 
-    std::string d_options_prefix;
+    std::string d_options_prefix = "";
 
-    MPI_Comm d_petsc_comm;
-    KSP d_petsc_ksp;
-    Mat d_petsc_mat;
-    MatNullSpace d_petsc_nullsp;
-    bool d_managing_petsc_ksp;
-    bool d_user_provided_mat;
-    bool d_user_provided_pc;
+    MPI_Comm d_petsc_comm = PETSC_COMM_WORLD;
+    KSP d_petsc_ksp = nullptr;
+    Mat d_petsc_mat = nullptr;
+    MatNullSpace d_petsc_nullsp = nullptr;
+    bool d_managing_petsc_ksp = true;
+    bool d_user_provided_mat = false;
+    bool d_user_provided_pc = false;
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_nullspace_constant_vec;
-    Vec d_petsc_nullspace_constant_vec;
-    std::vector<Vec> d_petsc_nullspace_basis_vecs;
-    bool d_solver_has_attached_nullspace;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_nullspace_constant_vec = nullptr;
+    Vec d_petsc_nullspace_constant_vec = nullptr;
+    std::vector<Vec> d_petsc_nullspace_basis_vecs = {};
+    bool d_solver_has_attached_nullspace = false;
 };
 } // namespace IBTK
 

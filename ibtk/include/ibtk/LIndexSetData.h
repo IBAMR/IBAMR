@@ -185,10 +185,11 @@ private:
      */
     LIndexSetData& operator=(const LIndexSetData<T>& that) = delete;
 
-    std::vector<int> d_lag_indices, d_interior_lag_indices, d_ghost_lag_indices;
-    std::vector<int> d_global_petsc_indices, d_interior_global_petsc_indices, d_ghost_global_petsc_indices;
-    std::vector<int> d_local_petsc_indices, d_interior_local_petsc_indices, d_ghost_local_petsc_indices;
-    std::vector<double> d_periodic_shifts, d_interior_periodic_shifts, d_ghost_periodic_shifts;
+    std::vector<int> d_lag_indices = {}, d_interior_lag_indices = {}, d_ghost_lag_indices = {};
+    std::vector<int> d_global_petsc_indices = {}, d_interior_global_petsc_indices = {},
+                     d_ghost_global_petsc_indices = {};
+    std::vector<int> d_local_petsc_indices = {}, d_interior_local_petsc_indices = {}, d_ghost_local_petsc_indices = {};
+    std::vector<double> d_periodic_shifts = {}, d_interior_periodic_shifts = {}, d_ghost_periodic_shifts = {};
 };
 } // namespace IBTK
 

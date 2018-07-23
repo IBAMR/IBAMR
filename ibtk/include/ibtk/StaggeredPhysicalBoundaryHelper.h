@@ -87,7 +87,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    StaggeredPhysicalBoundaryHelper();
+    StaggeredPhysicalBoundaryHelper() = default;
 
     /*!
      * \brief Destructor.
@@ -161,10 +161,10 @@ protected:
     /*!
      * Cached hierarchy-related information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    std::vector<std::map<int, SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> > > > d_physical_codim1_boxes;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy = nullptr;
+    std::vector<std::map<int, SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> > > > d_physical_codim1_boxes = {};
     std::vector<std::map<int, std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, bool> > > > >
-        d_dirichlet_bdry_locs;
+        d_dirichlet_bdry_locs = {};
 
 private:
     /*!

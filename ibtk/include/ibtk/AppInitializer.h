@@ -224,41 +224,41 @@ private:
     /*!
      * The input database.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_input_db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_input_db = nullptr;
 
     /*!
      * Restart settings.
      */
-    std::string d_restart_read_dirname;
-    int d_restart_restore_num;
-    bool d_is_from_restart;
+    std::string d_restart_read_dirname = "";
+    int d_restart_restore_num = 0;
+    bool d_is_from_restart = false;
 
     /*!
      * Visualization options.
      */
-    int d_viz_dump_interval;
-    std::string d_viz_dump_dirname;
-    std::vector<std::string> d_viz_writers;
-    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_data_writer;
-    SAMRAI::tbox::Pointer<LSiloDataWriter> d_silo_data_writer;
-    std::string d_exodus_filename, d_gmv_filename;
+    int d_viz_dump_interval = 0;
+    std::string d_viz_dump_dirname = "";
+    std::vector<std::string> d_viz_writers = {};
+    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_data_writer = nullptr;
+    SAMRAI::tbox::Pointer<LSiloDataWriter> d_silo_data_writer = nullptr;
+    std::string d_exodus_filename = "output.ex2", d_gmv_filename = "output.gmv";
 
     /*!
      * Restart options.
      */
-    int d_restart_dump_interval;
-    std::string d_restart_dump_dirname;
+    int d_restart_dump_interval = 0;
+    std::string d_restart_dump_dirname = "";
 
     /*!
      * Post-processing options.
      */
-    int d_data_dump_interval;
-    std::string d_data_dump_dirname;
+    int d_data_dump_interval = 0;
+    std::string d_data_dump_dirname = "";
 
     /*!
      * Timer options.
      */
-    int d_timer_dump_interval;
+    int d_timer_dump_interval = 0;
 };
 } // namespace IBTK
 

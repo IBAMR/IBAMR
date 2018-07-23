@@ -269,8 +269,6 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
           SIDEG,
           input_db,
           default_options_prefix),
-      d_coarse_solver(nullptr),
-      d_coarse_solver_db(),
       d_patch_bc_box_overlap(),
       d_patch_neighbor_overlap()
 {

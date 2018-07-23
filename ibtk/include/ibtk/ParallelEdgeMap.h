@@ -54,7 +54,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    ParallelEdgeMap();
+    ParallelEdgeMap() = default;
 
     /*!
      * \brief Destructor.
@@ -122,8 +122,8 @@ private:
     ParallelEdgeMap& operator=(const ParallelEdgeMap& that) = delete;
 
     // Member data.
-    std::multimap<int, std::pair<int, int> > d_edge_map;
-    std::multimap<int, std::pair<int, int> > d_pending_additions, d_pending_removals;
+    std::multimap<int, std::pair<int, int> > d_edge_map = {};
+    std::multimap<int, std::pair<int, int> > d_pending_additions = {}, d_pending_removals = {};
 };
 } // namespace IBTK
 

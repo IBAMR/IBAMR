@@ -291,7 +291,7 @@ protected:
     /*!
      * \brief Associated hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy = nullptr;
 
     /*!
      * \brief Associated patch level and C-F boundary (for level numbers > 0).
@@ -304,8 +304,8 @@ protected:
      * \name PETSc objects.
      */
     //\{
-    std::string d_ksp_type, d_pc_type, d_shell_pc_type;
-    std::string d_options_prefix;
+    std::string d_ksp_type, d_pc_type, d_shell_pc_type = "";
+    std::string d_options_prefix = "";
     KSP d_petsc_ksp = nullptr;
     Mat d_petsc_mat = nullptr, d_petsc_pc = nullptr;
     MatNullSpace d_petsc_nullsp;

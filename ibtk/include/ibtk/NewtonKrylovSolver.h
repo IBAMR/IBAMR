@@ -197,10 +197,10 @@ public:
 
 protected:
     // Solver components.
-    SAMRAI::tbox::Pointer<GeneralOperator> d_F;
-    SAMRAI::tbox::Pointer<JacobianOperator> d_J;
-    SAMRAI::tbox::Pointer<KrylovLinearSolver> d_krylov_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b, d_r;
+    SAMRAI::tbox::Pointer<GeneralOperator> d_F = nullptr;
+    SAMRAI::tbox::Pointer<JacobianOperator> d_J = nullptr;
+    SAMRAI::tbox::Pointer<KrylovLinearSolver> d_krylov_solver = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x = nullptr, d_b = nullptr, d_r = nullptr;
 
     // Solver parameters.
     int d_max_evaluations = 10000;

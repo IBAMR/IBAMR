@@ -139,7 +139,7 @@ protected:
     /*
      * The collection of function objects.
      */
-    std::vector<SAMRAI::tbox::Pointer<CartGridFunction> > d_fcns;
+    std::vector<SAMRAI::tbox::Pointer<CartGridFunction> > d_fcns = {};
 
 private:
     /*!

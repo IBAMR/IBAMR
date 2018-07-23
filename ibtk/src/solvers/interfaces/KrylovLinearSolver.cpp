@@ -44,12 +44,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovLinearSolver::KrylovLinearSolver() : d_A(nullptr), d_pc_solver(nullptr), d_x(nullptr), d_b(nullptr)
-{
-    // intentionally blank
-    return;
-} // KrylovLinearSolver()
-
 void
 KrylovLinearSolver::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
 {

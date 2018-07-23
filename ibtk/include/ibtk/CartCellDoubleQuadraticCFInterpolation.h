@@ -76,7 +76,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    CartCellDoubleQuadraticCFInterpolation();
+    CartCellDoubleQuadraticCFInterpolation() = default;
 
     /*!
      * \brief Destructor.
@@ -87,7 +87,6 @@ public:
      * \name SAMRAI::xfer::RefinePatchStrategy interface.
      */
     //\{
-
     /*!
      * Function to set data associated with the given list of patch data indices
      * at patch boundaries that intersect the physical domain boundary.  The
@@ -127,7 +126,7 @@ public:
      * Presently, the implementation does nothing.
      *
      * \param fine      Fine patch containing destination data.
-     * \param coarse    Coarse patch containing source data.
+     :* \param coarse    Coarse patch containing source data.
      * \param fine_box  Box region on fine patch into which data is refined.
      * \param ratio     Integer vector containing ratio relating index space between coarse and
      *fine
@@ -244,7 +243,7 @@ private:
                                      const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
-     * \brief Implementations of computeNormalExtension().
+     :* \brief Implementations of computeNormalExtension().
      */
     void computeNormalExtension_expensive(SAMRAI::hier::Patch<NDIM>& patch,
                                           const SAMRAI::hier::IntVector<NDIM>& ratio,
@@ -256,7 +255,7 @@ private:
      * The patch data indices corresponding to the "scratch" patch data that is
      * operated on by this class.
      */
-    std::set<int> d_patch_data_indices;
+    std::set<int> d_patch_data_indices = {};
 
     /*!
      * Boolean value indicating whether we are enforcing a consistent
@@ -267,15 +266,16 @@ private:
     /*!
      * Refine operator employed to fill coarse grid ghost cell values.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op =
+        new SAMRAI::geom::CartesianCellDoubleLinearRefine<NDIM>();
 
     /*!
      * Cached hierarchy-related information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM>*> d_cf_boundary;
-    std::vector<SAMRAI::hier::BoxArray<NDIM>*> d_domain_boxes;
-    std::vector<SAMRAI::hier::IntVector<NDIM> > d_periodic_shift;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy = nullptr;
+    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM>*> d_cf_boundary = {};
+    std::vector<SAMRAI::hier::BoxArray<NDIM>*> d_domain_boxes = {};
+    std::vector<SAMRAI::hier::IntVector<NDIM> > d_periodic_shift = {};
 };
 } // namespace IBTK
 

@@ -142,12 +142,7 @@ CCPoissonLevelRelaxationFACOperator::CCPoissonLevelRelaxationFACOperator(const s
           new CellVariable<NDIM, double>(object_name + "::cell_scratch", DEFAULT_DATA_DEPTH),
           CELLG,
           input_db,
-          default_options_prefix),
-      d_level_solver_type(),
-      d_level_solvers(),
-      d_level_solver_db(),
-      d_coarse_solver(nullptr),
-      d_coarse_solver_db()
+          default_options_prefix)
 {
     // Set some default values.
     d_prolongation_method = "LINEAR_REFINE";

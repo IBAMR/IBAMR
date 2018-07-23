@@ -100,17 +100,7 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SCLaplaceOperator::SCLaplaceOperator(const std::string& object_name, const bool homogeneous_bc)
-    : LaplaceOperator(object_name, homogeneous_bc),
-      d_ncomp(0),
-      d_fill_pattern(nullptr),
-      d_transaction_comps(),
-      d_hier_bdry_fill(nullptr),
-      d_no_fill(nullptr),
-      d_x(nullptr),
-      d_b(nullptr),
-      d_hierarchy(),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1)
+    : LaplaceOperator(object_name, homogeneous_bc)
 {
     // Setup the operator to use default vector-valued boundary conditions.
     setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr)));
