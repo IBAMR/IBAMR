@@ -11,6 +11,7 @@ AM_INIT_AUTOMAKE([1.12 -Wall -Werror dist-bzip2 foreign -Wno-extra-portability s
 AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])
 AC_LANG(C++)
+AX_CXX_COMPILE_STDCXX([11], [noext], [mandatory])
 
 ###########################################################################
 # Checks for programs.
