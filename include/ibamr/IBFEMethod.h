@@ -814,7 +814,7 @@ protected:
     double d_cg_penalty;
     double d_phi_diffusion;
     std::string d_phi_solver;
-    bool d_scale_phi_by_J;
+    bool d_phi_current_config;
     bool d_has_stress_normalization_parts;
     std::vector<bool> d_is_stress_normalization_part;
 

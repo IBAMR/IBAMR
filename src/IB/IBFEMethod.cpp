@@ -1650,7 +1650,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
         PetscVector<double>* Phi_ghost_vec = d_Phi_half_vecs[part];
         X_vec->localize(*X_ghost_vec);
         F_vec->localize(*F_ghost_vec);
-        if(d_is_stress_normalization_part[part])
+        if (d_is_stress_normalization_part[part])
         {
             Phi_vec->localize(*Phi_ghost_vec);
         }
@@ -2414,7 +2414,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                                                            PK1_grad_var_data[k],
                                                            data_time,
                                                            d_PK1_stress_fcn_data[part][k].ctx);
-                        if (d_scale_phi_by_J)
+                        if (d_phi_current_config)
                         {
                             Phi += n * ((PP * FF_trans) * n) / J;
                         }
@@ -2444,7 +2444,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                                                            surface_force_grad_var_data,
                                                            data_time,
                                                            d_lag_surface_force_fcn_data[part].ctx);
-                    if (d_scale_phi_by_J)
+                    if (d_phi_current_config)
                     {
                         Phi -= n * F_s * dA_da;
                     }
@@ -2477,7 +2477,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                                                               surface_pressure_grad_var_data,
                                                               data_time,
                                                               d_lag_surface_pressure_fcn_data[part].ctx);
-                    if (d_scale_phi_by_J)
+                    if (d_phi_current_config)
                     {
                         Phi += P;
                     }
@@ -2853,7 +2853,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                 // Compute the value of the first Piola-Kirchhoff stress tensor
                 // at the quadrature point and add the corresponding forces to
                 // the right-hand-side vector.
-                if (d_scale_phi_by_J)
+                if (d_phi_current_config)
                 {
                     Phi_vol = -J * Phi * FF_inv_trans;
                 }
@@ -2996,7 +2996,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                         (d_split_normal_force && !at_dirichlet_bdry) || (!d_split_normal_force && at_dirichlet_bdry);
                     const bool integrate_tangential_force = (d_split_tangential_force && !at_dirichlet_bdry) ||
                                                             (!d_split_tangential_force && at_dirichlet_bdry);
-                    if (d_scale_phi_by_J)
+                    if (d_phi_current_config)
                     {
                         PP = -J * Phi * FF_inv_trans;
                     }
@@ -3504,7 +3504,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                         // Compute the value of the first Piola-Kirchhoff stress tensor
                         // at the quadrature point and add the corresponding forces to
                         // the right-hand-side vector.
-                        if (d_scale_phi_by_J)
+                        if (d_phi_current_config)
                         {
                             F += J * Phi * FF_inv_trans * normal_face[qp] * JxW_face[qp];
                         }
@@ -4157,7 +4157,8 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     d_cg_penalty = 1e10;
     d_phi_solver = CG_PHI_SOLVER_NAME;
     d_phi_diffusion = 1.0;
-    d_scale_phi_by_J = true;
+    // if this is true, Phi has units of physical pressure.
+    d_phi_current_config = true;
     d_has_stress_normalization_parts = false;
     d_is_stress_normalization_part.resize(d_num_parts, false);
 
@@ -4374,7 +4375,7 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     if (db->isDouble("Phi_epsilon")) d_phi_epsilon = db->getDouble("Phi_epsilon");
     d_phi_diffusion = db->getDoubleWithDefault("Phi_diffusion", 1.0);
     d_phi_solver = db->getStringWithDefault("Phi_solver", CG_PHI_SOLVER_NAME);
-    d_scale_phi_by_J = db->getBoolWithDefault("scale_Phi_by_J", true);
+    d_phi_current_config = db->getBoolWithDefault("Phi_current_config", true);
     d_ipdg_jump0_penalty = db->getDoubleWithDefault("ipdg_jump0_penalty", 2.0);
     d_ipdg_jump1_penalty = db->getDoubleWithDefault("ipdg_jump1_penalty", 2.0);
     d_ipdg_beta0 = db->getDoubleWithDefault("ipdg_beta0", 2.0);
