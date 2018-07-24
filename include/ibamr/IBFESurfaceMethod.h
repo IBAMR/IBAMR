@@ -113,6 +113,7 @@ public:
     static const boost::array<std::string, NDIM> VELOCITY_JUMP_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
     static const std::string WSS_O_SYSTEM_NAME;
+    static const std::string WSS_I_SYSTEM_NAME;
     static const std::string P_O_SYSTEM_NAME;
     static const std::string TAU_SYSTEM_NAME;
 
@@ -540,7 +541,7 @@ protected:
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
     std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_WSS_o_systems,
-        d_P_j_systems;
+        d_P_j_systems, d_WSS_i_systems;
     std::vector<libMesh::System*> d_P_o_systems, d_TAU_systems;
     std::vector<boost::array<libMesh::System*, NDIM> > d_DU_j_systems;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
@@ -554,6 +555,7 @@ protected:
     std::vector<libMesh::PetscVector<double>*> d_P_i_half_vecs, d_P_i_IB_ghost_vecs;
     std::vector<boost::array<libMesh::PetscVector<double>*, NDIM> > d_DU_j_half_vecs, d_DU_j_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_WSS_o_half_vecs, d_WSS_o_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_WSS_i_half_vecs, d_WSS_i_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_TAU_half_vecs, d_TAU_IB_ghost_vecs;
 
     bool d_fe_equation_systems_initialized, d_fe_data_initialized;
