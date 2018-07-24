@@ -74,19 +74,7 @@ namespace IBAMR
 
 StaggeredStokesBlockPreconditioner::StaggeredStokesBlockPreconditioner(bool needs_velocity_solver,
                                                                        bool needs_pressure_solver)
-    : d_needs_velocity_solver(needs_velocity_solver),
-      d_velocity_solver(),
-      d_P_problem_coefs("P_problem_coefs"),
-      d_needs_pressure_solver(needs_pressure_solver),
-      d_pressure_solver(),
-      d_hierarchy(nullptr),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_velocity_data_ops(nullptr),
-      d_pressure_data_ops(nullptr),
-      d_velocity_wgt_idx(-1),
-      d_pressure_wgt_idx(-1),
-      d_hier_math_ops(nullptr)
+    : d_needs_velocity_solver(needs_velocity_solver), d_needs_pressure_solver(needs_pressure_solver)
 {
     // intentionally blank
     return;

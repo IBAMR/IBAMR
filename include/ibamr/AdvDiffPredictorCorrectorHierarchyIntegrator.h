@@ -247,11 +247,11 @@ private:
      * The advection patch strategy supplies the advection-specific operations
      * needed to treat data on patches in the AMR grid hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> > d_hyp_level_integrator;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_level_integrator_db;
-    SAMRAI::tbox::Pointer<AdvDiffPredictorCorrectorHyperbolicPatchOps> d_hyp_patch_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_patch_ops_db;
-    SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> d_explicit_predictor;
+    SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> > d_hyp_level_integrator = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_level_integrator_db = nullptr;
+    SAMRAI::tbox::Pointer<AdvDiffPredictorCorrectorHyperbolicPatchOps> d_hyp_patch_ops = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_patch_ops_db = nullptr;
+    SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> d_explicit_predictor = nullptr;
 };
 } // namespace IBAMR
 

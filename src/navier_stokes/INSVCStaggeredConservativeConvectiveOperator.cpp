@@ -1078,29 +1078,7 @@ INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvecti
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
-    : ConvectiveOperator(object_name, difference_form),
-      d_bc_coefs(std::move(bc_coefs)),
-      d_bdry_extrap_type("CONSTANT"),
-      d_hierarchy(nullptr),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_rho_is_set(false),
-      d_num_steps(1),
-      d_rho_sc_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr)),
-      d_U_var(nullptr),
-      d_U_scratch_idx(-1),
-      d_rho_sc_var(nullptr),
-      d_rho_sc_current_idx(-1),
-      d_rho_sc_scratch_idx(-1),
-      d_rho_sc_new_idx(-1),
-      d_velocity_convective_limiter(UPWIND),
-      d_density_convective_limiter(UPWIND),
-      d_velocity_limiter_gcw(1),
-      d_density_limiter_gcw(1),
-      d_density_time_stepping_type(FORWARD_EULER),
-      d_S_var(nullptr),
-      d_S_scratch_idx(-1),
-      d_S_fcn(nullptr)
+    : ConvectiveOperator(object_name, difference_form), d_bc_coefs(std::move(bc_coefs))
 {
     if (d_difference_form != CONSERVATIVE)
     {

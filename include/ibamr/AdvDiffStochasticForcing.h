@@ -174,7 +174,7 @@ private:
     /*!
      * Concentration-dependent flux scaling function.
      */
-    mu::Parser d_f_parser;
+    mu::Parser d_f_parser = {};
 
     /*!
      * Pointer to the advection-diffusion solver object that is using this
@@ -185,25 +185,25 @@ private:
     /*!
      * Weighting data.
      */
-    double d_std;
-    int d_num_rand_vals;
-    std::vector<SAMRAI::tbox::Array<double> > d_weights;
+    double d_std = std::numeric_limits<double>::quiet_NaN();
+    int d_num_rand_vals = 0;
+    std::vector<SAMRAI::tbox::Array<double> > d_weights = {};
 
     /*!
      * Boundary condition scalings.
      */
-    double d_dirichlet_bc_scaling, d_neumann_bc_scaling;
+    double d_dirichlet_bc_scaling = sqrt(2), d_neumann_bc_scaling = 0.0;
 
     /*!
      * VariableContext and Variable objects for storing the components of the
      * stochastic fluxes.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_cc_var;
-    int d_C_current_cc_idx, d_C_half_cc_idx, d_C_new_cc_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_F_sc_var;
-    int d_F_sc_idx;
-    std::vector<int> d_F_sc_idxs;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_cc_var = nullptr;
+    int d_C_current_cc_idx = -1, d_C_half_cc_idx = -1, d_C_new_cc_idx = -1;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_F_sc_var = nullptr;
+    int d_F_sc_idx = -1;
+    std::vector<int> d_F_sc_idxs = {};
 };
 } // namespace IBAMR
 

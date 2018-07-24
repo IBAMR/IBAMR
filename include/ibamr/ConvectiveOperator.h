@@ -136,7 +136,7 @@ protected:
     /*!
      * The advection velocity patch data descriptor index.
      */
-    int d_u_idx;
+    int d_u_idx = -1;
 
 private:
     /*!

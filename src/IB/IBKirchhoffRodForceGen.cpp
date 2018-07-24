@@ -78,12 +78,6 @@ static Timer* t_initialize_level_data;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(Pointer<Database> input_db)
-    : d_D_next_mats(),
-      d_X_next_mats(),
-      d_petsc_curr_node_idxs(),
-      d_petsc_next_node_idxs(),
-      d_material_params(),
-      d_is_initialized()
 {
     // Initialize object with data read from the input database.
     getFromInput(input_db);

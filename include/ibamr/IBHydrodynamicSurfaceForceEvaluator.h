@@ -162,22 +162,22 @@ private:
     /*!
      * \brief Level set patch data index.
      */
-    int d_ls_solid_idx;
+    int d_ls_solid_idx = -1;
 
     /*!
      * \brief Fluid velocity and pressure patch data indices.
      */
-    int d_u_idx, d_p_idx;
+    int d_u_idx = -1, d_p_idx = -1;
 
     /*!
      * \brief Viscosity patch data index.
      */
-    int d_mu_idx;
+    int d_mu_idx = -1;
 
     /*!
      * \brief Viscosity for the constant mu case.
      */
-    double d_mu;
+    double d_mu = std::numeric_limits<double>::quiet_NaN();
 
     /*!
      * \brief Whether or not viscosity is constant.

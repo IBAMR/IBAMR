@@ -182,11 +182,11 @@ private:
     StaggeredStokesProjectionPreconditioner& operator=(const StaggeredStokesProjectionPreconditioner& that) = delete;
 
     // Boundary condition objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op = nullptr, d_no_fill_op = nullptr;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Phi_var, d_F_Phi_var;
-    int d_Phi_scratch_idx, d_F_Phi_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Phi_var = nullptr, d_F_Phi_var = nullptr;
+    int d_Phi_scratch_idx = -1, d_F_Phi_idx = -1;
 };
 } // namespace IBAMR
 

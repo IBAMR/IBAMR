@@ -671,19 +671,19 @@ protected:
      * vector of boolean values indicating whether a particular level has been
      * initialized yet.
      */
-    int d_max_levels;
-    std::vector<bool> d_level_is_initialized;
+    int d_max_levels = -1;
+    std::vector<bool> d_level_is_initialized = {};
 
     /*
      * An (optional) Lagrangian Silo data writer.
      */
-    SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> d_silo_writer;
+    SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> d_silo_writer = nullptr;
 
     /*
      * The base filenames of the structures are used to generate unique names
      * when registering data with the Silo data writer.
      */
-    std::vector<std::vector<std::string> > d_base_filename;
+    std::vector<std::vector<std::string> > d_base_filename = {};
 
     /*
      * Optional shift and scale factors.
@@ -697,96 +697,96 @@ protected:
      * \note The shift factor should have the same units as the positions in the
      * input files, i.e., X_final = scale*(X_initial + shift).
      */
-    double d_length_scale_factor;
-    IBTK::Vector d_posn_shift;
+    double d_length_scale_factor = 1.0;
+    IBTK::Vector d_posn_shift = IBTK::Vector::Zero();
 
     /*
      * Vertex information.
      */
-    std::vector<std::vector<int> > d_num_vertex, d_vertex_offset;
-    std::vector<std::vector<std::vector<IBTK::Point> > > d_vertex_posn;
+    std::vector<std::vector<int> > d_num_vertex = {}, d_vertex_offset = {};
+    std::vector<std::vector<std::vector<IBTK::Point> > > d_vertex_posn = {};
 
     /*
      * Spring information.
      */
-    std::vector<std::vector<std::multimap<int, Edge> > > d_spring_edge_map;
+    std::vector<std::vector<std::multimap<int, Edge> > > d_spring_edge_map = {};
 
-    std::vector<std::vector<std::map<Edge, SpringSpec, EdgeComp> > > d_spring_spec_data;
+    std::vector<std::vector<std::map<Edge, SpringSpec, EdgeComp> > > d_spring_spec_data = {};
 
     /*
      * Crosslink spring ("x-spring") information.
      */
-    std::vector<std::vector<std::multimap<int, Edge> > > d_xspring_edge_map;
+    std::vector<std::vector<std::multimap<int, Edge> > > d_xspring_edge_map = {};
 
-    std::vector<std::vector<std::map<Edge, XSpringSpec, EdgeComp> > > d_xspring_spec_data;
+    std::vector<std::vector<std::map<Edge, XSpringSpec, EdgeComp> > > d_xspring_spec_data = {};
 
     /*
      * Beam information.
      */
-    std::vector<std::vector<std::multimap<int, BeamSpec> > > d_beam_spec_data;
+    std::vector<std::vector<std::multimap<int, BeamSpec> > > d_beam_spec_data = {};
 
     /*
      * Rod information.
      */
-    std::vector<std::vector<std::multimap<int, Edge> > > d_rod_edge_map;
+    std::vector<std::vector<std::multimap<int, Edge> > > d_rod_edge_map = {};
 
-    std::vector<std::vector<std::map<Edge, RodSpec, EdgeComp> > > d_rod_spec_data;
+    std::vector<std::vector<std::map<Edge, RodSpec, EdgeComp> > > d_rod_spec_data = {};
 
     /*
      * Target point information.
      */
-    std::vector<std::vector<std::vector<TargetSpec> > > d_target_spec_data;
+    std::vector<std::vector<std::vector<TargetSpec> > > d_target_spec_data = {};
 
     /*
      * Anchor point information.
      */
-    std::vector<std::vector<std::vector<AnchorSpec> > > d_anchor_spec_data;
+    std::vector<std::vector<std::vector<AnchorSpec> > > d_anchor_spec_data = {};
 
     /*
      * Mass information for the pIB method.
      */
-    std::vector<std::vector<std::vector<BdryMassSpec> > > d_bdry_mass_spec_data;
+    std::vector<std::vector<std::vector<BdryMassSpec> > > d_bdry_mass_spec_data = {};
 
     /*
      * Orthonormal directors for the generalized IB method.
      */
-    std::vector<std::vector<std::vector<std::vector<double> > > > d_directors;
+    std::vector<std::vector<std::vector<std::vector<double> > > > d_directors = {};
 
     /*
      * Instrumentation information.
      */
-    std::vector<std::vector<std::map<int, std::pair<int, int> > > > d_instrument_idx;
+    std::vector<std::vector<std::map<int, std::pair<int, int> > > > d_instrument_idx = {};
 
     /*
      * Source information.
      */
-    std::vector<std::vector<std::map<int, int> > > d_source_idx;
+    std::vector<std::vector<std::map<int, int> > > d_source_idx = {};
 
     /*
      * Data required to specify connectivity information for visualization
      * purposes.
      */
-    std::vector<unsigned int> d_global_index_offset;
+    std::vector<unsigned int> d_global_index_offset = {};
 
     /*!
      * Check if user defined data has been processed.
      */
-    bool d_data_processed;
+    bool d_data_processed = false;
 
 private:
     /*
      * Functions used to initialize structures programmatically.
      */
-    InitStructureOnLevel d_init_structure_on_level_fcn;
-    InitSpringDataOnLevel d_init_spring_on_level_fcn;
-    InitXSpringDataOnLevel d_init_xspring_on_level_fcn;
-    InitBeamDataOnLevel d_init_beam_on_level_fcn;
-    InitDirectorAndRodOnLevel d_init_director_and_rod_on_level_fcn;
-    InitBoundaryMassOnLevel d_init_boundary_mass_on_level_fcn;
-    InitTargetPtOnLevel d_init_target_pt_on_level_fcn;
-    InitAnchorPtOnLevel d_init_anchor_pt_on_level_fcn;
-    InitInstrumentationOnLevel d_init_instrumentation_on_level_fcn;
-    InitSourceOnLevel d_init_source_on_level_fcn;
+    InitStructureOnLevel d_init_structure_on_level_fcn = nullptr;
+    InitSpringDataOnLevel d_init_spring_on_level_fcn = nullptr;
+    InitXSpringDataOnLevel d_init_xspring_on_level_fcn = nullptr;
+    InitBeamDataOnLevel d_init_beam_on_level_fcn = nullptr;
+    InitDirectorAndRodOnLevel d_init_director_and_rod_on_level_fcn = nullptr;
+    InitBoundaryMassOnLevel d_init_boundary_mass_on_level_fcn = nullptr;
+    InitTargetPtOnLevel d_init_target_pt_on_level_fcn = nullptr;
+    InitAnchorPtOnLevel d_init_anchor_pt_on_level_fcn = nullptr;
+    InitInstrumentationOnLevel d_init_instrumentation_on_level_fcn = nullptr;
+    InitSourceOnLevel d_init_source_on_level_fcn = nullptr;
 };
 } // namespace IBAMR
 

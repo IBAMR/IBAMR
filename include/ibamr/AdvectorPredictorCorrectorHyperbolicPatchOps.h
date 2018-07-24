@@ -400,7 +400,7 @@ protected:
      * The SAMRAI::algs::HyperbolicLevelIntegrator that is using the patch
      * strategy.
      */
-    SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>* d_integrator;
+    SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>* d_integrator = nullptr;
 
     /*
      * The AdvectorExplicitPredictorPatchOps being used to advect the cell-centered quantities
@@ -411,40 +411,47 @@ protected:
     /*
      * Advection velocity data.
      */
-    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_u_var;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >, bool> d_u_is_div_free;
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_u_var = {};
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >, bool> d_u_is_div_free = {};
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_u_fcn;
-    bool d_compute_init_velocity, d_compute_half_velocity, d_compute_final_velocity;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_u_fcn = {};
+    bool d_compute_init_velocity = true, d_compute_half_velocity = true, d_compute_final_velocity = true;
 
     /*
      * Source term data.
      */
-    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_F_var;
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_F_var = {};
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_F_fcn;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_F_fcn = {};
 
     /*
      * Transported quantities.
      */
-    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_Q_var;
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_Q_var = {};
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_Q_u_map;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > >
+        d_Q_u_map = {};
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_Q_F_map;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > >
+        d_Q_F_map = {};
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, ConvectiveDifferencingType>
-        d_Q_difference_form;
+        d_Q_difference_form = {};
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_Q_init;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_Q_init = {};
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coef;
+             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> >
+        d_Q_bc_coef = {};
 
     /*
      * When conservative differencing is employed for a quantity Q, we maintain
      * the time integral of the advective flux corresponding to that quantity.
      */
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_flux_integral_var;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > >
+        d_flux_integral_var = {};
 
     /*
      * When non-conservative differencing is employed for a quantity Q, we
@@ -463,7 +470,7 @@ protected:
      * Boolean indicating whether or not to overwrite tag data (default is
      * true).
      */
-    bool d_overwrite_tags;
+    bool d_overwrite_tags = true;
 
 private:
     /*!
@@ -525,12 +532,12 @@ private:
      * variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
-    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
+    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer = nullptr;
 
     /*
      * Boundary condition extrapolation helpers.
      */
-    IBTK::CartExtrapPhysBdryOp d_extrap_bc_helper;
+    IBTK::CartExtrapPhysBdryOp d_extrap_bc_helper = {};
 
     /*
      *  Parameters for numerical method:
@@ -544,19 +551,19 @@ private:
      */
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
     SAMRAI::hier::IntVector<NDIM> d_flux_ghosts;
-    std::string d_extrap_type;
+    std::string d_extrap_type = "CONSTANT";
 
     /*
      * Refinement criteria parameters for gradient detection.
      */
-    SAMRAI::tbox::Array<std::string> d_refinement_criteria;
-    SAMRAI::tbox::Array<double> d_dev_tol;
-    SAMRAI::tbox::Array<double> d_dev;
-    SAMRAI::tbox::Array<double> d_dev_time_max;
-    SAMRAI::tbox::Array<double> d_dev_time_min;
-    SAMRAI::tbox::Array<double> d_grad_tol;
-    SAMRAI::tbox::Array<double> d_grad_time_max;
-    SAMRAI::tbox::Array<double> d_grad_time_min;
+    SAMRAI::tbox::Array<std::string> d_refinement_criteria = {};
+    SAMRAI::tbox::Array<double> d_dev_tol = {};
+    SAMRAI::tbox::Array<double> d_dev = {};
+    SAMRAI::tbox::Array<double> d_dev_time_max = {};
+    SAMRAI::tbox::Array<double> d_dev_time_min = {};
+    SAMRAI::tbox::Array<double> d_grad_tol = {};
+    SAMRAI::tbox::Array<double> d_grad_time_max = {};
+    SAMRAI::tbox::Array<double> d_grad_time_min = {};
 };
 } // namespace IBAMR
 

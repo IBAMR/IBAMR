@@ -295,7 +295,7 @@ protected:
      */
     libMesh::MeshBase* d_mesh;
     IBTK::FEDataManager* d_fe_data_manager;
-    bool d_fe_data_initialized;
+    bool d_fe_data_initialized = false;
 
     /*!
      * Scalar-valued reconstruction data.

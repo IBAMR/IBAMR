@@ -607,19 +607,19 @@ protected:
     /*
      * Objects to set initial condition for density and viscosity when they are maintained by the fluid integrator.
      */
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_init_fcn, d_mu_init_fcn;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_init_fcn = nullptr, d_mu_init_fcn = nullptr;
 
     /*
      * Boundary condition objects for viscosity, which is provided by an appropriate advection-diffusion
      * integrator
      * or set by the fluid integrator.
      */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_mu_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_mu_bc_coef = nullptr;
 
     /*
      * Variable to keep track of a transported viscosity variable maintained by an advection-diffusion integrator
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_mu_adv_diff_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_mu_adv_diff_var = nullptr;
 
 private:
     /*!

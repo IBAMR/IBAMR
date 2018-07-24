@@ -71,7 +71,7 @@ public:
     /*!
      *  \brief Destructor of the class.
      */
-    virtual ~CIBStrategy();
+    virtual ~CIBStrategy() = default;
 
     /*!
      * \brief Prepare the implementation class for sprading constraint force.

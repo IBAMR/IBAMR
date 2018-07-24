@@ -287,7 +287,8 @@ private:
      * Boundary condition object for the side-centered density variable maintained
      * by this integrator.
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_rho_sc_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_rho_sc_bc_coefs =
+        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM, nullptr);
 
     /*
      * Variables for plotting cell-centered density
@@ -298,7 +299,7 @@ private:
     /*
      * Source term function for the mass density update
      */
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn = nullptr;
 };
 } // namespace IBAMR
 

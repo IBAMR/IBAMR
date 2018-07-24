@@ -140,7 +140,7 @@ INSStaggeredConvectiveOperatorManager::registerOperatorFactoryFunction(const std
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-INSStaggeredConvectiveOperatorManager::INSStaggeredConvectiveOperatorManager() : d_operator_maker_map()
+INSStaggeredConvectiveOperatorManager::INSStaggeredConvectiveOperatorManager()
 {
     registerOperatorFactoryFunction(DEFAULT, INSStaggeredPPMConvectiveOperator::allocate_operator);
     registerOperatorFactoryFunction(CENTERED, INSStaggeredCenteredConvectiveOperator::allocate_operator);

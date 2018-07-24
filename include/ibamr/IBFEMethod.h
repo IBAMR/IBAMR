@@ -715,7 +715,7 @@ protected:
     int d_max_level_number;
     std::vector<libMesh::EquationSystems*> d_equation_systems;
 
-    const unsigned int d_num_parts;
+    const unsigned int d_num_parts = 1;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
     std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems, d_Q_systems, d_Phi_systems;

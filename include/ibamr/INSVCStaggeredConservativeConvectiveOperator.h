@@ -281,46 +281,47 @@ private:
 
     // Cached communications operators.
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
-    std::string d_bdry_extrap_type;
+    std::string d_bdry_extrap_type = "CONSTANT";
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy = nullptr;
+    int d_coarsest_ln = -1, d_finest_ln = -1;
 
     // Whether or not the current density field has been set.
-    bool d_rho_is_set;
+    bool d_rho_is_set = false;
 
     // Number of RK steps to take.
-    int d_num_steps;
+    int d_num_steps = 1;
 
     // Boundary condition object for side-centered density field.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_rho_sc_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_rho_sc_bc_coefs =
+        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM, nullptr);
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
-    int d_U_scratch_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var;
-    int d_rho_sc_current_idx, d_rho_sc_scratch_idx, d_rho_sc_new_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var = nullptr;
+    int d_U_scratch_idx = -1;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var = nullptr;
+    int d_rho_sc_current_idx = -1, d_rho_sc_scratch_idx = -1, d_rho_sc_new_idx = -1;
 
     // Hierarchy operation obect.
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
 
     // The limiter type for interpolation onto faces.
-    LimiterType d_velocity_convective_limiter;
-    LimiterType d_density_convective_limiter;
+    LimiterType d_velocity_convective_limiter = UPWIND;
+    LimiterType d_density_convective_limiter = UPWIND;
 
     // The required number of ghost cells for the chosen interpolation
-    int d_velocity_limiter_gcw, d_density_limiter_gcw;
+    int d_velocity_limiter_gcw = 1, d_density_limiter_gcw = 1;
 
     // Variable to indicate the density update time-stepping type.
-    TimeSteppingType d_density_time_stepping_type;
+    TimeSteppingType d_density_time_stepping_type = FORWARD_EULER;
 
     // Source term variable and function for the mass density update
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_S_var;
-    int d_S_scratch_idx;
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_S_var = nullptr;
+    int d_S_scratch_idx = -1;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn = nullptr;
 };
 } // namespace IBAMR
 

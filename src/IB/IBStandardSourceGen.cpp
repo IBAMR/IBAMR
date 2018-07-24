@@ -75,7 +75,6 @@ std::vector<std::vector<double> > IBStandardSourceGen::s_source_radii;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBStandardSourceGen::IBStandardSourceGen()
-    : d_n_src(), d_source_names(), d_r_src(), d_num_perimeter_nodes(), d_Q_src(), d_P_src()
 {
     RestartManager::getManager()->registerRestartItem("IBStandardSourceGen", this);
     const bool from_restart = RestartManager::getManager()->isFromRestart();

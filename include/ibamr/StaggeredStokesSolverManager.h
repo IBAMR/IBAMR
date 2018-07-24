@@ -190,7 +190,7 @@ private:
     /*!
      * Mapping from solver type names to solver maker functions.
      */
-    std::map<std::string, SolverMaker> d_solver_maker_map;
+    std::map<std::string, SolverMaker> d_solver_maker_map = {};
 };
 } // namespace IBAMR
 

@@ -110,7 +110,7 @@ public:
 
 protected:
     // Problem specification.
-    SAMRAI::solv::PoissonSpecifications d_U_problem_coefs;
+    SAMRAI::solv::PoissonSpecifications d_U_problem_coefs = { "U_problem_coefs" };
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_U_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_P_bc_coef;

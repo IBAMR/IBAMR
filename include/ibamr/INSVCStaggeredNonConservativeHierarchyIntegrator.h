@@ -294,12 +294,12 @@ private:
      * Boundary condition objects for density, which is provided by an appropriate advection-diffusion
      * integrator, or set by the fluid integrator.
      */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_bc_coef = nullptr;
 
     /*
      * Variable to keep track of a transported density variable maintained by an advection-diffusion integrator
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_adv_diff_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_adv_diff_var = nullptr;
 };
 } // namespace IBAMR
 

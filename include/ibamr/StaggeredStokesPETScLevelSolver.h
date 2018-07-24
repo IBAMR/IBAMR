@@ -176,15 +176,16 @@ private:
      */
     //\{
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context = nullptr;
     std::vector<int> d_num_dofs_per_proc;
-    int d_u_dof_index_idx, d_p_dof_index_idx;
-    int d_u_nullspace_idx, d_p_nullspace_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_u_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_u_nullspace_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_p_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_p_nullspace_var;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_data_synch_sched, d_ghost_fill_sched;
+    int d_u_dof_index_idx = -1, d_p_dof_index_idx = -1;
+    int d_u_nullspace_idx = -1, d_p_nullspace_idx = -1;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_u_dof_index_var = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_u_nullspace_var = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_p_dof_index_var = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_p_nullspace_var = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_data_synch_sched = nullptr,
+                                                               d_ghost_fill_sched = nullptr;
 
     //\}
 };

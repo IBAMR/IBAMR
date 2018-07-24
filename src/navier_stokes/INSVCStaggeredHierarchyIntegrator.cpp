@@ -328,11 +328,7 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(const std::
                              new CellVariable<NDIM, double>(object_name + "::P"),
                              new SideVariable<NDIM, double>(object_name + "::F"),
                              new CellVariable<NDIM, double>(object_name + "::Q"),
-                             register_for_restart),
-      d_rho_init_fcn(nullptr),
-      d_mu_init_fcn(nullptr),
-      d_mu_bc_coef(nullptr),
-      d_mu_adv_diff_var(nullptr)
+                             register_for_restart)
 {
     // Set some default values
     d_rho_scale = 1.0;

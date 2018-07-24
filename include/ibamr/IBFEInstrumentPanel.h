@@ -135,7 +135,7 @@ private:
     /*!
      * \brief vector storing radius for each meter
      */
-    std::vector<double> d_meter_radii;
+    std::vector<double> d_meter_radii = {};
 
     /*!
      * \brief get the maximum radius of the meter in its current configuration
@@ -145,29 +145,29 @@ private:
     /*!
      * \brief number of mesh meters.
      */
-    unsigned int d_num_meters;
+    unsigned int d_num_meters = 0;
 
     /*!
      * \brief quadrature order used for the meter meshes.
      */
-    std::vector<libMesh::Order> d_quad_order;
+    std::vector<libMesh::Order> d_quad_order = {};
 
     /*!
      * \brief quadrature order from input file
      */
-    libMesh::Order d_input_quad_order;
+    libMesh::Order d_input_quad_order = {};
 
     /*!
      * \brief whether we use a grid based quadrature rule.
      * if false, then we default to using a high order Gauss
      * quadrature.
      */
-    bool d_use_adaptive_quadrature;
+    bool d_use_adaptive_quadrature = false;
 
     /*!
      * \brief quadrature type used for the meter meshes.
      */
-    libMesh::QuadratureType d_quad_type;
+    libMesh::QuadratureType d_quad_type = {};
 
     /*!
      * \brief part ID where the meter mesh lives, i.e. its parent mesh.
@@ -177,12 +177,12 @@ private:
     /*!
      * \brief true if meter meshes and other data are built and initialized.
      */
-    bool d_initialized;
+    bool d_initialized = false;
 
     /*!
      * \brief number of nodes in the perimeter of the meter mesh.
      */
-    std::vector<unsigned int> d_num_nodes;
+    std::vector<unsigned int> d_num_nodes = {};
 
     /*!
      * \brief vectors to store the dof indices for the velocity and displacement
@@ -193,53 +193,53 @@ private:
      * dimension 2 = number of mesh nodes
      * dimension 3 = NDIM
      */
-    std::vector<std::vector<std::vector<libMesh::dof_id_type> > > d_U_dof_idx;
-    std::vector<std::vector<std::vector<libMesh::dof_id_type> > > d_dX_dof_idx;
+    std::vector<std::vector<std::vector<libMesh::dof_id_type> > > d_U_dof_idx = {};
+    std::vector<std::vector<std::vector<libMesh::dof_id_type> > > d_dX_dof_idx = {};
 
     /*!
      * \brief a vector containing the nodes of each meter mesh.
      */
-    std::vector<std::vector<libMesh::Point> > d_nodes;
+    std::vector<std::vector<libMesh::Point> > d_nodes = {};
 
     /*!
      * \brief a vector storing the dof indices for each meter mesh.
      */
-    std::vector<std::vector<libMesh::dof_id_type> > d_node_dof_IDs;
+    std::vector<std::vector<libMesh::dof_id_type> > d_node_dof_IDs = {};
 
     /*!
      * \brief contains pointers to the equation systems for the meter mesh.
      */
-    std::vector<libMesh::EquationSystems*> d_meter_systems;
+    std::vector<libMesh::EquationSystems*> d_meter_systems = {};
 
     /*!
      * \brief vector of exodus io objects for data output.
      */
-    std::vector<libMesh::ExodusII_IO*> d_exodus_io;
+    std::vector<libMesh::ExodusII_IO*> d_exodus_io = {};
 
     /*!
      * \brief vector of meter mesh pointers.
      */
-    std::vector<libMesh::SerialMesh*> d_meter_meshes;
+    std::vector<libMesh::SerialMesh*> d_meter_meshes = {};
 
     /*!
      * \brief names for each meter mesh.
      */
-    std::vector<std::string> d_meter_mesh_names;
+    std::vector<std::string> d_meter_mesh_names = {};
 
     /*!
      * \brief contains the nodeset IDs on the parent mesh, for the nodesets
      * from which the meter meshes are built.
      */
-    SAMRAI::tbox::Array<int> d_nodeset_IDs_for_meters;
+    SAMRAI::tbox::Array<int> d_nodeset_IDs_for_meters = {};
 
     /*!
      * \brief things for data io.
      */
-    int d_instrument_dump_interval;
-    std::vector<double> d_flow_values, d_mean_pressure_values;
+    int d_instrument_dump_interval = 0;
+    std::vector<double> d_flow_values = {}, d_mean_pressure_values = {};
     std::string d_plot_directory_name;
-    std::ofstream d_mean_pressure_stream;
-    std::ofstream d_flux_stream;
+    std::ofstream d_mean_pressure_stream = {};
+    std::ofstream d_flux_stream{};
 
     /*!
      * \brief for ordering objects in a multimap.
@@ -274,7 +274,7 @@ private:
      * \brief a multimap which associates SAMRAI indices with quadrature point structures.
      */
     typedef std::multimap<SAMRAI::hier::Index<NDIM>, QuadPointStruct, IndexFortranOrder> QuadPointMap;
-    std::vector<QuadPointMap> d_quad_point_map;
+    std::vector<QuadPointMap> d_quad_point_map = {};
 };
 } // namespace IBAMR
 

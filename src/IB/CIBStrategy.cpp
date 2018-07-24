@@ -76,12 +76,6 @@ CIBStrategy::CIBStrategy(const unsigned int parts) : d_num_rigid_parts(parts)
     return;
 } // CIBStrategy
 
-CIBStrategy::~CIBStrategy()
-{
-    // intentionally left blank
-    return;
-} // ~CIBStrategy
-
 void
 CIBStrategy::getFreeRigidVelocities(Vec* U, const double /*data_time*/)
 {

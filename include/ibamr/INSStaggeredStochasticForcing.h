@@ -175,37 +175,37 @@ private:
     /*!
      * Type of stress tensor (correlated or uncorrelated).
      */
-    StochasticStressTensorType d_stress_tensor_type;
+    StochasticStressTensorType d_stress_tensor_type = UNCORRELATED;
 
     /*!
      * Weighting data.
      */
-    double d_std;
-    int d_num_rand_vals;
-    std::vector<SAMRAI::tbox::Array<double> > d_weights;
+    double d_std = std::numeric_limits<double>::quiet_NaN();
+    int d_num_rand_vals = 0;
+    std::vector<SAMRAI::tbox::Array<double> > d_weights = {};
 
     /*!
      * Boundary condition scalings.
      */
-    double d_velocity_bc_scaling, d_traction_bc_scaling;
+    double d_velocity_bc_scaling = NDIM == 2 ? 2.0 : 5.0 / 3.0, d_traction_bc_scaling = 0.0;
 
     /*!
      * VariableContext and Variable objects for storing the components of the
      * stochastic stresses.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_W_cc_var;
-    int d_W_cc_idx;
-    std::vector<int> d_W_cc_idxs;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_W_cc_var = nullptr;
+    int d_W_cc_idx = -1;
+    std::vector<int> d_W_cc_idxs = {};
 #if (NDIM == 2)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_W_nc_var;
-    int d_W_nc_idx;
-    std::vector<int> d_W_nc_idxs;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_W_nc_var = nullptr;
+    int d_W_nc_idx = -1;
+    std::vector<int> d_W_nc_idxs = {};
 #endif
 #if (NDIM == 3)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_W_ec_var;
-    int d_W_ec_idx;
-    std::vector<int> d_W_ec_idxs;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_W_ec_var = nullptr;
+    int d_W_ec_idx = -1;
+    std::vector<int> d_W_ec_idxs = {};
 #endif
 };
 } // namespace IBAMR

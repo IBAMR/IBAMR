@@ -325,7 +325,6 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        bool register_for_restart,
                        const std::string& restart_read_dirname,
                        unsigned int restart_restore_number)
-    : d_num_parts(1)
 {
     commonConstructor(object_name,
                       input_db,

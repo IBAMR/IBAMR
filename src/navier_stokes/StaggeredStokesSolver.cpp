@@ -56,8 +56,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesSolver::StaggeredStokesSolver()
-    : d_U_problem_coefs("U_problem_coefs"),
-      d_default_U_bc_coef(new LocationIndexRobinBcCoefs<NDIM>("default_U_bc_coef", Pointer<Database>(nullptr))),
+    : d_default_U_bc_coef(new LocationIndexRobinBcCoefs<NDIM>("default_U_bc_coef", Pointer<Database>(nullptr))),
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef)),
       d_default_P_bc_coef(new LocationIndexRobinBcCoefs<NDIM>("default_P_bc_coef", Pointer<Database>(nullptr))),
       d_P_bc_coef(d_default_P_bc_coef)

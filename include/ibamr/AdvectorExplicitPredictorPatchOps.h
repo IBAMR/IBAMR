@@ -394,9 +394,9 @@ private:
      *    d_using_full_ctu ...... specifies whether full corner transport
      *                            upwinding is used for 3D computations
      */
-    LimiterType d_limiter_type;
+    LimiterType d_limiter_type = MC_LIMITED;
 #if (NDIM == 3)
-    bool d_using_full_ctu;
+    bool d_using_full_ctu = true;
 #endif
 };
 } // namespace IBAMR

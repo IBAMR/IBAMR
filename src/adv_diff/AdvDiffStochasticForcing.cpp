@@ -105,23 +105,7 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(std::string object_name,
                                                    Pointer<Database> input_db,
                                                    Pointer<CellVariable<NDIM, double> > C_var,
                                                    const AdvDiffSemiImplicitHierarchyIntegrator* const adv_diff_solver)
-    : d_object_name(std::move(object_name)),
-      d_C_var(C_var),
-      d_f_parser(),
-      d_adv_diff_solver(adv_diff_solver),
-      d_std(std::numeric_limits<double>::quiet_NaN()),
-      d_num_rand_vals(0),
-      d_weights(),
-      d_dirichlet_bc_scaling(sqrt(2.0)),
-      d_neumann_bc_scaling(0.0),
-      d_context(nullptr),
-      d_C_cc_var(nullptr),
-      d_C_current_cc_idx(-1),
-      d_C_half_cc_idx(-1),
-      d_C_new_cc_idx(-1),
-      d_F_sc_var(nullptr),
-      d_F_sc_idx(-1),
-      d_F_sc_idxs()
+    : d_object_name(std::move(object_name)), d_C_var(C_var), d_adv_diff_solver(adv_diff_solver)
 {
     std::string f_expression = "1.0";
     if (input_db)

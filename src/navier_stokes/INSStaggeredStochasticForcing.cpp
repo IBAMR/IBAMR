@@ -183,28 +183,7 @@ genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
 INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(std::string object_name,
                                                              Pointer<Database> input_db,
                                                              const INSStaggeredHierarchyIntegrator* const fluid_solver)
-    : d_object_name(std::move(object_name)),
-      d_fluid_solver(fluid_solver),
-      d_stress_tensor_type(UNCORRELATED),
-      d_std(std::numeric_limits<double>::quiet_NaN()),
-      d_num_rand_vals(0),
-      d_weights(),
-      d_velocity_bc_scaling(NDIM == 2 ? 2.0 : 5.0 / 3.0),
-      d_traction_bc_scaling(0.0),
-      d_context(nullptr),
-      d_W_cc_var(nullptr),
-      d_W_cc_idx(-1),
-      d_W_cc_idxs(),
-#if (NDIM == 2)
-      d_W_nc_var(nullptr),
-      d_W_nc_idx(-1),
-      d_W_nc_idxs()
-#endif
-#if (NDIM == 3)
-          d_W_ec_var(nullptr),
-      d_W_ec_idx(-1),
-      d_W_ec_idxs()
-#endif
+    : d_object_name(std::move(object_name)), d_fluid_solver(fluid_solver)
 {
     if (input_db)
     {

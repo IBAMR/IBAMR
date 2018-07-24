@@ -299,31 +299,7 @@ linear_interp(const Vector& X,
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const int part)
-    : d_num_meters(0),
-      d_quad_order(),
-      d_input_quad_order(),
-      d_meter_radii(),
-      d_use_adaptive_quadrature(),
-      d_quad_type(),
-      d_part(part),
-      d_initialized(false),
-      d_num_nodes(),
-      d_U_dof_idx(),
-      d_dX_dof_idx(),
-      d_nodes(),
-      d_node_dof_IDs(),
-      d_meter_systems(),
-      d_exodus_io(),
-      d_meter_meshes(),
-      d_meter_mesh_names(),
-      d_nodeset_IDs_for_meters(),
-      d_instrument_dump_interval(),
-      d_flow_values(),
-      d_mean_pressure_values(),
-      d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d"),
-      d_mean_pressure_stream(),
-      d_flux_stream(),
-      d_quad_point_map()
+    : d_part(part), d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d")
 {
     // get input data
     IBFEInstrumentPanel::getFromInput(input_db);

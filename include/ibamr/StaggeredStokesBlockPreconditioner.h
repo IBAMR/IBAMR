@@ -174,17 +174,18 @@ protected:
 
     // Subdomain solvers.
     const bool d_needs_velocity_solver;
-    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velocity_solver;
-    SAMRAI::solv::PoissonSpecifications d_P_problem_coefs;
+    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velocity_solver = nullptr;
+    SAMRAI::solv::PoissonSpecifications d_P_problem_coefs = { "P_problem_coefs" };
     const bool d_needs_pressure_solver;
-    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_pressure_solver;
+    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_pressure_solver = nullptr;
 
     // Hierarchy data.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > d_velocity_data_ops, d_pressure_data_ops;
-    int d_velocity_wgt_idx, d_pressure_wgt_idx;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy = nullptr;
+    int d_coarsest_ln = -1, d_finest_ln = -1;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > d_velocity_data_ops = nullptr,
+                                                                             d_pressure_data_ops = nullptr;
+    int d_velocity_wgt_idx = -1, d_pressure_wgt_idx = -1;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops = nullptr;
 
 private:
     /*!

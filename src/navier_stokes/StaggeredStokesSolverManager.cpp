@@ -185,7 +185,7 @@ StaggeredStokesSolverManager::registerSolverFactoryFunction(const std::string& s
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-StaggeredStokesSolverManager::StaggeredStokesSolverManager() : d_solver_maker_map()
+StaggeredStokesSolverManager::StaggeredStokesSolverManager()
 {
     registerSolverFactoryFunction(DEFAULT_KRYLOV_SOLVER, allocate_petsc_krylov_solver);
     registerSolverFactoryFunction(PETSC_KRYLOV_SOLVER, allocate_petsc_krylov_solver);

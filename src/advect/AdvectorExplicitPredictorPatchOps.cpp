@@ -522,10 +522,6 @@ AdvectorExplicitPredictorPatchOps::AdvectorExplicitPredictorPatchOps(const std::
     : d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
       d_limiter_type(MC_LIMITED)
-#if (NDIM == 3)
-      ,
-      d_using_full_ctu(true)
-#endif
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());

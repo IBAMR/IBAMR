@@ -325,21 +325,7 @@ AdvDiffCUIConvectiveOperator::AdvDiffCUIConvectiveOperator(const std::string& ob
                                                            Pointer<Database> input_db,
                                                            const ConvectiveDifferencingType difference_form,
                                                            std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
-    : ConvectiveOperator(object_name, difference_form),
-      d_ghostfill_alg(nullptr),
-      d_ghostfill_scheds(),
-      d_bc_coefs(std::move(bc_coefs)),
-      d_outflow_bdry_extrap_type("CONSTANT"),
-      d_hierarchy(nullptr),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_Q_var(Q_var),
-      d_Q_data_depth(0),
-      d_Q_scratch_idx(-1),
-      d_q_extrap_var(nullptr),
-      d_q_flux_var(nullptr),
-      d_q_extrap_idx(-1),
-      d_q_flux_idx(-1)
+    : ConvectiveOperator(object_name, difference_form), d_bc_coefs(std::move(bc_coefs)), d_Q_var(Q_var)
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {

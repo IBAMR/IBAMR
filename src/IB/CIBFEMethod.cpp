@@ -1246,10 +1246,6 @@ CIBFEMethod::commonConstructor(Pointer<Database> input_db)
     d_constrained_velocity_fcns_data.resize(d_num_rigid_parts);
     d_ext_force_torque_fcn_data.resize(d_num_rigid_parts);
 
-    // Set some default values.
-    d_compute_L2_projection = false;
-    d_output_eul_lambda = false;
-
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
@@ -1271,9 +1267,6 @@ CIBFEMethod::commonConstructor(Pointer<Database> input_db)
     // Keep track of the initialization state.
     d_fe_data_initialized = false;
     d_is_initialized = false;
-    d_constraint_force_is_initialized = false;
-    d_lag_velvec_is_initialized = false;
-    d_initial_com_initialized = false;
 } // commonConstructor
 
 void

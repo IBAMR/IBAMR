@@ -72,12 +72,7 @@ static Timer* t_initialize_operator_state;
 CIBStaggeredStokesOperator::CIBStaggeredStokesOperator(const std::string& object_name,
                                                        Pointer<CIBStrategy> cib_strategy,
                                                        bool homogeneous_bc)
-    : StaggeredStokesOperator(object_name, homogeneous_bc),
-      d_cib_strategy(cib_strategy),
-      d_scale_interp(1.0),
-      d_scale_spread(1.0),
-      d_reg_mob_factor(1.0),
-      d_normalize_spread_force(false)
+    : StaggeredStokesOperator(object_name, homogeneous_bc), d_cib_strategy(cib_strategy)
 {
     // Setup Timers.
     IBAMR_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBAMR::CIBStaggeredStokesOperator::apply()");

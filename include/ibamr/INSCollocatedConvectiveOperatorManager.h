@@ -158,7 +158,7 @@ private:
     /*!
      * Mapping from operator type names to operator maker functions.
      */
-    std::map<std::string, OperatorMaker> d_operator_maker_map;
+    std::map<std::string, OperatorMaker> d_operator_maker_map = {};
 };
 } // namespace IBAMR
 

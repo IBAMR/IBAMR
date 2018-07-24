@@ -256,11 +256,11 @@ private:
     /*
      * Source/sink data.
      */
-    std::vector<int> d_n_src;
-    std::vector<std::vector<std::string> > d_source_names;
-    std::vector<std::vector<double> > d_r_src;
-    std::vector<std::vector<int> > d_num_perimeter_nodes;
-    std::vector<std::vector<double> > d_Q_src, d_P_src;
+    std::vector<int> d_n_src = {};
+    std::vector<std::vector<std::string> > d_source_names = {};
+    std::vector<std::vector<double> > d_r_src = {};
+    std::vector<std::vector<int> > d_num_perimeter_nodes = {};
+    std::vector<std::vector<double> > d_Q_src = {}, d_P_src = {};
 };
 } // namespace IBAMR
 

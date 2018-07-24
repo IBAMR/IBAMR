@@ -526,99 +526,111 @@ protected:
     /*
      * Boolean value that indicates whether the integrator has been initialized.
      */
-    bool d_integrator_is_initialized;
+    bool d_integrator_is_initialized = false;
 
     /*!
      * Advective CFL condition.
      */
-    double d_cfl_max;
+    double d_cfl_max = 0.5;
 
     /*!
      * Default diffusion time integration method.
      */
-    TimeSteppingType d_default_diffusion_time_stepping_type;
+    TimeSteppingType d_default_diffusion_time_stepping_type = TRAPEZOIDAL_RULE;
 
     /*!
      * Default convective differencing type.
      */
-    ConvectiveDifferencingType d_default_convective_difference_form;
+    ConvectiveDifferencingType d_default_convective_difference_form = CONSERVATIVE;
 
     /*!
      * Advection velocity data.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_u_var;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >, bool> d_u_is_div_free;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_u_var = {};
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >, bool> d_u_is_div_free = {};
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_u_fcn;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_u_fcn = {};
 
     /*!
      * Source term data.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_F_var;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_F_var = {};
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_F_fcn;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_F_fcn = {};
 
     /*!
      * Diffusion coefficient data
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > > d_diffusion_coef_var,
-        d_diffusion_coef_rhs_var;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > > d_diffusion_coef_var = {},
+                                                                                   d_diffusion_coef_rhs_var = {};
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_diffusion_coef_fcn;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_diffusion_coef_fcn = {};
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > > d_diffusion_coef_rhs_map;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > >
+        d_diffusion_coef_rhs_map = {};
 
     /*!
      * Transported quantities.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_Q_var, d_Q_rhs_var;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_Q_var = {}, d_Q_rhs_var = {};
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_Q_u_map;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > >
+        d_Q_u_map = {};
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_Q_F_map,
-        d_Q_Q_rhs_map;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > >
+        d_Q_F_map = {},
+        d_Q_Q_rhs_map = {};
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, TimeSteppingType>
-        d_Q_diffusion_time_stepping_type;
+        d_Q_diffusion_time_stepping_type = {};
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, ConvectiveDifferencingType>
-        d_Q_difference_form;
+        d_Q_difference_form = {};
 
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, double> d_Q_diffusion_coef;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, double> d_Q_diffusion_coef = {};
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > > d_Q_diffusion_coef_variable;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, bool> d_Q_is_diffusion_coef_variable;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, double> d_Q_damping_coef;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > >
+        d_Q_diffusion_coef_variable = {};
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, bool>
+        d_Q_is_diffusion_coef_variable = {};
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, double> d_Q_damping_coef = {};
 
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_Q_init;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_Q_init = {};
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coef;
+             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> >
+        d_Q_bc_coef = {};
 
     /*!
      * Objects to keep track of the resetting functions.
      */
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<ResetPropertiesFcnPtr> > d_Q_reset_fcns;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<void *> > d_Q_reset_fcns_ctx;
-    std::vector<int> d_Q_reset_priority;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<ResetPropertiesFcnPtr> >
+        d_Q_reset_fcns = {};
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<void*> >
+        d_Q_reset_fcns_ctx = {};
+    std::vector<int> d_Q_reset_priority = {};
 
     /*
      * Hierarchy operations objects.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> > d_hier_bdry_fill_ops;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops = nullptr;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> > d_hier_bdry_fill_ops = {};
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op = {};
 
     /*
      * Linear solvers and associated data.
      */
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_sol_vecs, d_rhs_vecs;
     std::string d_helmholtz_solver_type, d_helmholtz_precond_type, d_helmholtz_sub_precond_type;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_helmholtz_solver_db, d_helmholtz_precond_db,
-        d_helmholtz_sub_precond_db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_helmholtz_solver_db = nullptr, d_helmholtz_precond_db = nullptr,
+                                                  d_helmholtz_sub_precond_db = nullptr;
     std::vector<SAMRAI::tbox::Pointer<IBTK::PoissonSolver> > d_helmholtz_solvers;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> > d_helmholtz_rhs_ops;
-    std::vector<bool> d_helmholtz_solvers_need_init, d_helmholtz_rhs_ops_need_init;
-    int d_coarsest_reset_ln, d_finest_reset_ln;
+    std::vector<bool> d_helmholtz_solvers_need_init = {}, d_helmholtz_rhs_ops_need_init = {};
+    int d_coarsest_reset_ln = -1, d_finest_reset_ln = -1;
 
 private:
     /*!
