@@ -898,7 +898,6 @@ KrylovMobilitySolver::resetKSPPC()
     }
     else if (pc_type == "shell")
     {
-        const std::string pc_name = d_object_name + pc_type;
         PCSetType(petsc_pc, PCSHELL);
         PCShellSetContext(petsc_pc, static_cast<void*>(this));
         PCShellSetApply(petsc_pc, KrylovMobilitySolver::PCApply_KMInv);
