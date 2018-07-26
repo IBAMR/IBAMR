@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <cstddef>
+#include <limits>
 #include <string>
 #include <vector>
 
