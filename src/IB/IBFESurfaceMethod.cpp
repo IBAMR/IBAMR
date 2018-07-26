@@ -2391,7 +2391,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
     VectorValue<double> tau1, tau2, n;
-
+	X_ghost_vec->close();
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -2665,6 +2665,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
 
     d_P_o_half_vecs[part]->close();
     d_P_j_IB_ghost_vecs[part]->close();
+    d_X_IB_ghost_vecs[part]->close();
 
     return;
 
@@ -2688,7 +2689,6 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     NumericVector<double>* TAU_vec = d_TAU_half_vecs[part];
 
     NumericVector<double>* X_vec = NULL;
-    NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
 
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
@@ -2702,8 +2702,9 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     {
         X_vec = d_X_new_vecs[part];
     }
+    NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
     X_vec->localize(*X_ghost_vec);
-
+    
     WSS_o_vec = d_WSS_o_half_vecs[part];
     WSS_o_vec->localize(*WSS_o_ghost_vec);
 
@@ -2732,7 +2733,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    UniquePtr<QBase> qrule;
+    UniquePtr<QBase> qrule; 
     boost::array<std::vector<double>, NDIM> DU_j_qp;
 
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
@@ -2745,7 +2746,17 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
         TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
     }
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-    NumericVector<double>& X0_vec = X_system.get_vector("INITIAL_COORDINATES");
+    
+   X_ghost_vec->close();
+   PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec);
+   Vec X_global_vec = X_petsc_vec->vec();
+   Vec X_local_vec;
+   VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+   double* X_local_soln;
+   VecGetArray(X_local_vec, &X_local_soln);
+   UniquePtr<NumericVector<double> > X0_vec = X_petsc_vec->clone();
+   X_system.get_vector("INITIAL_COORDINATES").localize(*X0_vec);
+   X0_vec->close();
 
     FEType fe_type = X_fe_type;
     UniquePtr<FEBase> fe = FEBase::build(dim, fe_type);
@@ -2822,11 +2833,13 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
     VectorValue<double> n, N, x, X;
-    double da, dA;
+    double da = 0.0;
+    double dA = 0.0;
     boost::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
 
     int local_patch_num = 0;
 
+	
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
@@ -2854,19 +2867,15 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
             Elem* const elem = patch_elems[e_idx];
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+                X_dof_map.dof_indices(elem, X_dof_indices[d], d);
             }
-            get_values_for_interpolation(x_node, *X_vec, X_dof_indices);
-            get_values_for_interpolation(X_node, X0_vec, X_dof_indices);
-            const bool qrule_changed =
-                FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);              
-            if (qrule_changed)
-                fe->attach_quadrature_rule(qrule.get());
-            fe->reinit(elem);
-  
+            get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+
+            FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
+
             n_qp_patch += qrule->n_points();
         }
-
+   
         if (!n_qp_patch) continue;
         P_o_qp.resize(n_qp_patch);
         P_j_qp.resize(n_qp_patch);
@@ -2887,10 +2896,10 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
         std::fill(P_o_qp.begin(), P_o_qp.end(), 0.0);
         std::fill(P_j_qp.begin(), P_j_qp.end(), 0.0);
         std::fill(TAU_qp.begin(), TAU_qp.end(), 0.0);
-
         // Loop over the elements and compute the positions of the quadrature points.
         qrule.reset();
         unsigned int qp_offset = 0;
+        
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             Elem* const elem = patch_elems[e_idx];
@@ -2902,10 +2911,10 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
             P_o_dof_map_cache.dof_indices(elem, P_o_dof_indices);
             P_j_dof_map_cache.dof_indices(elem, P_j_dof_indices);
             get_values_for_interpolation(P_j_node, *P_j_ghost_vec, P_j_dof_indices);
-            get_values_for_interpolation(x_node, *X_vec, X_dof_indices);
-            get_values_for_interpolation(X_node, X0_vec, X_dof_indices);
+            get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
             get_values_for_interpolation(WSS_o_node, *WSS_o_ghost_vec, WSS_o_dof_indices);
             get_values_for_interpolation(P_o_node, *P_o_ghost_vec, P_o_dof_indices);
+            get_values_for_interpolation(X_node, *X0_vec, X_dof_indices);
 
             for (unsigned int d = 0; d < NDIM; ++d)
                 for (unsigned int k = 0; k < NDIM; ++k)
@@ -3051,7 +3060,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
             {
                 X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
             }
-            get_values_for_interpolation(x_node, *X_vec, X_dof_indices);
+            get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
             const bool qrule_changed =
                 FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
             if (qrule_changed)
@@ -3091,11 +3100,15 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     d_X_current_vecs[part]->close();
     d_X_new_vecs[part]->close();
     d_TAU_half_vecs[part]->close();
+    
+    VecRestoreArray(X_local_vec, &X_local_soln);
+    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
 
     d_WSS_o_IB_ghost_vecs[part]->close();
 
     d_P_o_IB_ghost_vecs[part]->close();
     d_P_j_IB_ghost_vecs[part]->close();
+    d_X_IB_ghost_vecs[part]->close();
 
     for (unsigned int d = 0; d < NDIM; ++d)
     {
