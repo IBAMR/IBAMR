@@ -811,17 +811,17 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
     d_equation_systems[part]->parameters.set<Real>("Phi_diffusion") = d_phi_diffusion;
 
     // assign function for building Phi linear system.  defaults to CG discretization
-    if (d_phi_solver.compare(CG_PHI_SOLVER_NAME) == 0)
+    if (d_phi_solver == CG_PHI_SOLVER_NAME)
     {
         Phi_system.attach_assemble_function(assemble_cg_poisson);
         Phi_system.add_variable("Phi_CG", d_phi_fe_order, d_fe_family[part]);
     }
-    else if (d_phi_solver.compare(IPDG_PHI_SOLVER_NAME) == 0)
+    else if (d_phi_solver == IPDG_PHI_SOLVER_NAME)
     {
         Phi_system.attach_assemble_function(assemble_ipdg_poisson);
         Phi_system.add_variable("Phi_IPDG", d_phi_fe_order, MONOMIAL);
     }
-    else if (d_phi_solver.compare(CG_DIFFUSION_PHI_SOLVER_NAME) == 0)
+    else if (d_phi_solver == CG_DIFFUSION_PHI_SOLVER_NAME)
     {
         // here we attach first the assemble function for poisson to have the
         // initial conditions for the diffusion equation be computed as the solution
@@ -1493,16 +1493,19 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
 
-        if (d_phi_solver.compare(CG_DIFFUSION_PHI_SOLVER_NAME) == 0)
+        if (d_is_stress_normalization_part[part])
         {
-            EquationSystems* equation_systems = d_equation_systems[part];
             d_equation_systems[part]->parameters.set<Real>("dt") = dt;
-            TransientLinearImplicitSystem& Phi_system =
-                equation_systems->get_system<TransientLinearImplicitSystem>(PHI_SYSTEM_NAME);
-            Phi_system.time = new_time;
-            *Phi_system.old_local_solution = *Phi_system.current_local_solution;
+            if (d_phi_solver == CG_DIFFUSION_PHI_SOLVER_NAME)
+            {
+                EquationSystems* equation_systems = d_equation_systems[part];
+                TransientLinearImplicitSystem& Phi_system =
+                        equation_systems->get_system<TransientLinearImplicitSystem>(PHI_SYSTEM_NAME);
+                Phi_system.time = new_time;
+                *Phi_system.old_local_solution = *Phi_system.current_local_solution;
+            }
         }
-
+            
         if (d_direct_forcing_kinematics_data[part])
         {
             d_direct_forcing_kinematics_data[part]->forwardEulerStep(
@@ -1969,7 +1972,7 @@ IBFEMethod::initializeFEData()
             TransientLinearImplicitSystem& Phi_system =
                 equation_systems->get_system<TransientLinearImplicitSystem>(PHI_SYSTEM_NAME);
 
-            if (d_phi_solver.compare(CG_DIFFUSION_PHI_SOLVER_NAME) == 0)
+            if (d_phi_solver == CG_DIFFUSION_PHI_SOLVER_NAME)
             {
                 // attach assemble function for computing initial condition as solution to
                 // steady state diffusion equation
