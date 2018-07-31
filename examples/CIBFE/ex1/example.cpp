@@ -468,7 +468,7 @@ run_example(int argc, char* argv[])
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_writer = app_initializer->getVisItDataWriter();
-        libMesh::UniquePtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
         if (dump_viz_data && uses_visit)
         {
             visit_writer->registerPlotQuantity("U", "VECTOR", u_plot_idx, 0);
