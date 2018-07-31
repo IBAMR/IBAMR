@@ -169,6 +169,11 @@ public:
      */
     void registerMassDensitySourceTerm(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> S_fcn);
 
+    /*!
+     * Returns the number of cycles to perform for the present time step.
+     */
+    int getNumberOfCycles() const;
+
 protected:
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -238,12 +243,6 @@ private:
      * \return A reference to this object.
      */
     INSVCStaggeredConservativeHierarchyIntegrator& operator=(const INSVCStaggeredConservativeHierarchyIntegrator& that);
-
-    /*!
-     * Determine the convective time stepping type for the current time step and
-     * cycle number.
-     */
-    TimeSteppingType getConvectiveTimeSteppingType(int cycle_num);
 
     /*!
      * Update the operators and solvers to account for changes due to time-dependent coefficients

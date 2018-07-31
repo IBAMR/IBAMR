@@ -189,18 +189,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
                                  << " requires non-constant density\n");
     }
 
-    switch (d_convective_time_stepping_type)
-    {
-    case FORWARD_EULER:
-    case MIDPOINT_RULE:
-        break;
-    default:
-        TBOX_ERROR(d_object_name << "::INSVCStaggeredConservativeHierarchyIntegrator():\n"
-                                 << "  unsupported convective time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " \n"
-                                 << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE\n");
-    }
-
     // Check to see whether the convective operator type has been set.
     d_convective_op_type = INSStaggeredConvectiveOperatorManager::DEFAULT;
     if (input_db->keyExists("convective_op_type"))
@@ -332,20 +320,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
                                                                             const int num_cycles)
 {
     INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
-
-    // Keep track of the number of cycles to be used for the present integration
-    // step.
-    if (!d_creeping_flow && (d_current_num_cycles == 1) && (d_convective_time_stepping_type == MIDPOINT_RULE))
-    {
-        TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                 << "  time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
-                                 << " requires num_cycles > 1.\n"
-                                 << "  at current time step, num_cycles = " << d_current_num_cycles << "\n");
-    }
-
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
 
     // Get the current value of density and store it in scratch.
@@ -581,21 +555,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     // Account for the convective acceleration term.
     if (!d_creeping_flow)
     {
-        const int U_adv_idx = d_U_adv_vec->getComponentDescriptorIndex(0);
-        d_hier_sc_data_ops->copyData(U_adv_idx, d_U_current_idx);
-        for (int ln = finest_ln; ln > coarsest_ln; --ln)
-        {
-            Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
-            Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-            Pointer<CoarsenOperator<NDIM> > coarsen_op =
-                grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
-            coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
-            coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
-            getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]->coarsenData();
-            getCoarsenAlgorithm(d_object_name + "::CONVECTIVE_OP")
-                ->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
-        }
-        d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
         d_convective_op->setSolutionTime(current_time);
         d_convective_op->setTimeInterval(current_time, new_time);
 
@@ -655,17 +614,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
     // Get the coarsest and finest level numbers.
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    // Check to make sure that the number of cycles is what we expect it to be.
-    const int expected_num_cycles = getNumberOfCycles();
-    if (d_current_num_cycles != expected_num_cycles)
-    {
-        IBAMR_DO_ONCE({
-            pout << "INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy():\n"
-                 << "  WARNING: num_cycles = " << d_current_num_cycles
-                 << " but expected num_cycles = " << expected_num_cycles << ".\n";
-        });
-    }
 
     // Update the state variables of any linked advection-diffusion solver.
     // NOTE: This also updates rho and mu if they are maintained by adv-diff integrator.
@@ -950,6 +898,12 @@ INSVCStaggeredConservativeHierarchyIntegrator::registerMassDensitySourceTerm(Poi
     return;
 } // registerMassDensitySourceTerm
 
+int
+INSVCStaggeredConservativeHierarchyIntegrator::getNumberOfCycles() const
+{
+    return d_num_cycles;
+} // getNumberOfCycles
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
@@ -1163,13 +1117,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
 } // regridProjection
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
-TimeSteppingType
-INSVCStaggeredConservativeHierarchyIntegrator::getConvectiveTimeSteppingType(const int /*cycle_num*/)
-{
-    TimeSteppingType convective_time_stepping_type = d_convective_time_stepping_type;
-    return convective_time_stepping_type;
-} // getConvectiveTimeSteppingType
-
 void
 INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const double current_time,
                                                                          const double new_time)
@@ -1443,36 +1390,10 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
     if (!d_creeping_flow)
     {
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
-        TimeSteppingType convective_time_stepping_type = getConvectiveTimeSteppingType(cycle_num);
-
         // Update N_idx if necessary
         if (cycle_num > 0)
         {
-            const int U_adv_idx = d_U_adv_vec->getComponentDescriptorIndex(0);
-            double apply_time = std::numeric_limits<double>::quiet_NaN();
-            if (convective_time_stepping_type == FORWARD_EULER)
-            {
-                d_hier_sc_data_ops->copyData(U_adv_idx, d_U_new_idx);
-                apply_time = current_time;
-            }
-            else if (convective_time_stepping_type == MIDPOINT_RULE)
-            {
-                d_hier_sc_data_ops->linearSum(U_adv_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
-                apply_time = half_time;
-            }
-            for (int ln = finest_ln; ln > coarsest_ln; --ln)
-            {
-                Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
-                Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-                Pointer<CoarsenOperator<NDIM> > coarsen_op =
-                    grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
-                coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
-                coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
-                getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]->coarsenData();
-                getCoarsenAlgorithm(d_object_name + "::CONVECTIVE_OP")
-                    ->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
-            }
-            d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
+            double apply_time = half_time;
             d_convective_op->setSolutionTime(apply_time);
 
             INSVCStaggeredConservativeConvectiveOperator* p_vc_convective_op =
@@ -1508,15 +1429,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
             d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
         }
 
-        // Set the convective term depending on the time stepping type
-        if (convective_time_stepping_type == FORWARD_EULER || convective_time_stepping_type == MIDPOINT_RULE)
-        {
-            d_hier_sc_data_ops->copyData(d_N_full_idx, N_idx, /*interior_only*/ true);
-        }
-        else
-        {
-            TBOX_ERROR("this statement should not be reached");
-        }
+        // Set the full convective term depending on the time stepping type
+        d_hier_sc_data_ops->copyData(d_N_full_idx, N_idx, /*interior_only*/ true);
 
         d_hier_sc_data_ops->axpy(
             rhs_vec->getComponentDescriptorIndex(0), -1.0, d_N_full_idx, rhs_vec->getComponentDescriptorIndex(0));
