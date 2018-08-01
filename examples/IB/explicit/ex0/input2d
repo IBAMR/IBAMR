@@ -86,7 +86,7 @@ VelocityBcCoefs_1 {
 PressureInitialConditions {
    R = 0.25
    mu = K
-   function = "if( (X_0-0.5)^2 + (X_1-0.5)^2 <= R^2,mu*(1/R - pi*R),-mu*pi*R )"
+   function = "(X_0-0.5)^2 + (X_1-0.5)^2 <= R^2 ? mu*(1/R - pi*R) : -mu*pi*R"
 }
 
 IBHierarchyIntegrator {

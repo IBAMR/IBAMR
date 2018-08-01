@@ -67,7 +67,7 @@ VelocityBcCoefs_0 {
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.5 * if(X_0 < 0.3,sin(PI*X_0/0.6)^2,if(X_0 > 1.7,sin(PI*(X_0-2.0)/0.6)^2,1.0))"
+   gcoef_function_3 = "0.5 * (X_0 < 0.3 ? sin(PI*X_0/0.6)^2 : (X_0 > 1.7 ? sin(PI*(X_0-2.0)/0.6)^2 : 1.0))"
 }
 
 VelocityBcCoefs_1 {
