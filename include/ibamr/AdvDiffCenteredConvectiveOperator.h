@@ -94,7 +94,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~AdvDiffCenteredConvectiveOperator();
+    ~AdvDiffCenteredConvectiveOperator() override;
 
     /*!
      * \brief Static function to construct an AdvDiffCenteredConvectiveOperator.
@@ -112,7 +112,7 @@ public:
     /*!
      * \brief Compute the action of the convective operator.
      */
-    void applyConvectiveOperator(int Q_idx, int N_idx);
+    void applyConvectiveOperator(int Q_idx, int N_idx) override;
 
     /*!
      * \name General operator functionality.
@@ -150,7 +150,7 @@ public:
      * \param out output vector
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -161,7 +161,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void deallocateOperatorState();
+    void deallocateOperatorState() override;
 
     //\}
 

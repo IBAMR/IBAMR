@@ -80,7 +80,7 @@ public:
     /*!
      * \brief Destructor for this class.
      */
-    ~DirectMobilitySolver();
+    ~DirectMobilitySolver() override;
 
     /*!
      * \brief Register a prototypical structure with a particular mobility

@@ -70,7 +70,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~StaggeredStokesSolver();
+    ~StaggeredStokesSolver() override;
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the

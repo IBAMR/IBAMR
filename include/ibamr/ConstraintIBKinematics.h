@@ -162,7 +162,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~ConstraintIBKinematics();
+    ~ConstraintIBKinematics() override;
 
     /*!
      * \brief Get the object enclosing this structure's parameters.
@@ -222,7 +222,7 @@ public:
      *
      * \note An empty default implementation is provided.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     /*!

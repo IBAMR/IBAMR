@@ -90,7 +90,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~KrylovMobilitySolver();
+    ~KrylovMobilitySolver() override;
 
     /*!
      * \brief Set the KSP type.

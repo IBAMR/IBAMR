@@ -77,7 +77,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~StaggeredStokesBlockPreconditioner() = default;
+    ~StaggeredStokesBlockPreconditioner() override;
 
     /*!
      * \brief Indicate whether the preconditioner needs a velocity subdomain
@@ -95,7 +95,7 @@ public:
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
+    void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs) override;
 
     /*!
      * \brief Indicate whether the preconditioner needs a pressure subdomain
@@ -129,8 +129,8 @@ public:
      *coefficients
      *for the pressure
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
+    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -150,7 +150,7 @@ public:
      * \note A default implementation is provided which does nothing.
      */
     void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -163,7 +163,7 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void deallocateSolverState();
+    void deallocateSolverState() override;
 
 protected:
     /*!

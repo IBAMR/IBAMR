@@ -80,7 +80,7 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBMethodPostProcessStrategy() = default;
+    ~IBMethodPostProcessStrategy() override = default;
 
     /*!
      * \brief Post-process data on the patch hierarchy.

@@ -162,7 +162,7 @@ public:
      * The destructor for AdvectorPredictorCorrectorHyperbolicPatchOps unregisters the patch
      * strategy object with the restart manager when so registered.
      */
-    virtual ~AdvectorPredictorCorrectorHyperbolicPatchOps();
+    ~AdvectorPredictorCorrectorHyperbolicPatchOps() override;
 
     /*!
      * Return the name of the patch operations object.
@@ -273,20 +273,20 @@ public:
      * integration process (e.g. time-dependent, flux, etc.).  This routine also
      * registers variables for plotting with the VisIt writer.
      */
-    virtual void registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>* integrator);
+    void registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>* integrator) override;
 
     /*!
      * \brief Set the data on the patch interior to some initial values via the
      * concrete IBTK::CartGridFunction objects registered with the patch strategy when
      * provided.  Otherwise, initialize data to zero.
      */
-    virtual void initializeDataOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double data_time, bool initial_time);
+    void initializeDataOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double data_time, bool initial_time) override;
 
     /*!
      * \brief Compute a stable time increment for patch using an explicit CFL
      * condition and return the computed dt.
      */
-    virtual double computeStableDtOnPatch(SAMRAI::hier::Patch<NDIM>& patch, bool initial_time, double dt_time);
+    double computeStableDtOnPatch(SAMRAI::hier::Patch<NDIM>& patch, bool initial_time, double dt_time) override;
 
     /*!
      * \brief Compute the time integral of the fluxes to be used in conservative
@@ -295,14 +295,16 @@ public:
      * The conservative difference used to update the integrated quantities is
      * implemented in conservativeDifferenceOnPatch().
      */
-    virtual void computeFluxesOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time, double dt);
+    void computeFluxesOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time, double dt) override;
 
     /*!
      * \brief Update solution variables by performing a conservative difference
      * using the fluxes calculated by computeFluxesOnPatch().
      */
-    virtual void
-    conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time, double dt, bool at_synchronization);
+    void conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch,
+                                       double time,
+                                       double dt,
+                                       bool at_synchronization) override;
 
     /*!
      * \brief Compute the values of any time-dependent source terms for use by
@@ -316,12 +318,12 @@ public:
      * level data on all patch interiors.  That is, both scratch and current
      * data correspond to current_time.
      */
-    virtual void preprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
-                                             double current_time,
-                                             double dt,
-                                             bool first_step,
-                                             bool last_step,
-                                             bool regrid_advance);
+    void preprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
+                                     double current_time,
+                                     double dt,
+                                     bool first_step,
+                                     bool last_step,
+                                     bool regrid_advance) override;
 
     /*!
      * \brief Add source terms to the updated solution.
@@ -335,29 +337,29 @@ public:
      * correspond to current_time + dt on patch interiors.  The current data and
      * ghost values correspond to the current_time.
      */
-    virtual void postprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
-                                              double current_time,
-                                              double dt,
-                                              bool first_step,
-                                              bool last_step,
-                                              bool regrid_advance);
+    void postprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
+                                      double current_time,
+                                      double dt,
+                                      bool first_step,
+                                      bool last_step,
+                                      bool regrid_advance) override;
 
     /*!
      * \brief Tag cells for refinement using a gradient detector.
      */
-    virtual void tagGradientDetectorCells(SAMRAI::hier::Patch<NDIM>& patch,
-                                          double regrid_time,
-                                          bool initial_error,
-                                          int tag_indexindx,
-                                          bool uses_richardson_extrapolation_too);
+    void tagGradientDetectorCells(SAMRAI::hier::Patch<NDIM>& patch,
+                                  double regrid_time,
+                                  bool initial_error,
+                                  int tag_indexindx,
+                                  bool uses_richardson_extrapolation_too) override;
 
     /*!
      * \brief Set the data in ghost cells corresponding to physical boundary
      * conditions.
      */
-    virtual void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
-                                               double fill_time,
-                                               const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+    void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+                                       double fill_time,
+                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
 
     /*!
      * \brief Write state of AdvectorPredictorCorrectorHyperbolicPatchOps object to the given
@@ -366,7 +368,7 @@ public:
      * This routine is a concrete implementation of the function declared in the
      * SAMRAI::tbox::Serializable abstract base class.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     /*!

@@ -101,7 +101,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~MaterialPointSpec();
+    ~MaterialPointSpec() override;
 
     /*!
      * \return A const reference to the point index.
@@ -154,18 +154,18 @@ public:
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
      * extract Streamable objects from data streams.
      */
-    int getStreamableClassID() const;
+    int getStreamableClassID() const override;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    size_t getDataStreamSize() const;
+    size_t getDataStreamSize() const override;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    void packStream(SAMRAI::tbox::AbstractStream& stream);
+    void packStream(SAMRAI::tbox::AbstractStream& stream) override;
 
 private:
     /*!
@@ -206,28 +206,28 @@ private:
         /*!
          * \brief Destructor.
          */
-        ~Factory() = default;
+        ~Factory() override = default;
 
         /*!
          * \brief Return the unique identifier used to specify the
          * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
          * extract MaterialPointSpec objects from data streams.
          */
-        int getStreamableClassID() const;
+        int getStreamableClassID() const override;
 
         /*!
          * \brief Set the unique identifier used to specify the
          * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
          * extract MaterialPointSpec objects from data streams.
          */
-        void setStreamableClassID(int class_id);
+        void setStreamableClassID(int class_id) override;
 
         /*!
          * \brief Build an MaterialPointSpec object by unpacking data from the
          * data stream.
          */
         SAMRAI::tbox::Pointer<IBTK::Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                                                             const SAMRAI::hier::IntVector<NDIM>& offset);
+                                                             const SAMRAI::hier::IntVector<NDIM>& offset) override;
 
     private:
         /*!

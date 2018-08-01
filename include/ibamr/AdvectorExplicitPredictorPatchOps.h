@@ -122,7 +122,7 @@ public:
      * with
      * the restart manager when so registered.
      */
-    ~AdvectorExplicitPredictorPatchOps();
+    ~AdvectorExplicitPredictorPatchOps() override;
 
     /*!
      * Return the name of the patch operations object.
@@ -322,7 +322,7 @@ public:
      * This routine is a concrete implementation of the function declared in the
      * SAMRAI::tbox::Serializable abstract base class.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 private:
     /*!

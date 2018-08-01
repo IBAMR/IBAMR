@@ -102,14 +102,16 @@ public:
      * The destructor for AdvDiffPredictorCorrectorHyperbolicPatchOps unregisters the patch
      * strategy object with the restart manager when so registered.
      */
-    ~AdvDiffPredictorCorrectorHyperbolicPatchOps() = default;
+    ~AdvDiffPredictorCorrectorHyperbolicPatchOps() override = default;
 
     /*!
      * Update solution variables by performing a conservative difference using
      * the fluxes calculated in computeFluxesOnPatch().
      */
-    void
-    conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time, double dt, bool at_synchronization);
+    void conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch,
+                                       double time,
+                                       double dt,
+                                       bool at_synchronization) override;
 
     /*!
      * Compute the values of any time-dependent source terms for use by the
@@ -128,7 +130,7 @@ public:
                                      double dt,
                                      bool first_step,
                                      bool last_step,
-                                     bool regrid_advance);
+                                     bool regrid_advance) override;
 
     /*!
      * Add source terms to the updated solution.
@@ -147,7 +149,7 @@ public:
                                       double dt,
                                       bool first_step,
                                       bool last_step,
-                                      bool regrid_advance);
+                                      bool regrid_advance) override;
 
 private:
     /*!

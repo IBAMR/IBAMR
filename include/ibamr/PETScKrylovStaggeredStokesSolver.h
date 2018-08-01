@@ -72,7 +72,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~PETScKrylovStaggeredStokesSolver() = default;
+    ~PETScKrylovStaggeredStokesSolver() override = default;
 
 protected:
 private:

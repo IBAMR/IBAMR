@@ -83,18 +83,18 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~CIBStaggeredStokesSolver();
+    ~CIBStaggeredStokesSolver() override;
 
     /*!
      * Initialize the solver before solving the system of equations.
      */
-    virtual void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                       const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * Deallocate the solver when hierarchy changes.
      */
-    virtual void deallocateSolverState();
+    void deallocateSolverState() override;
 
     /*!
      * \brief Solve the system of equations.
@@ -102,15 +102,15 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise.
      */
-    virtual bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                             SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    virtual void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& u_problem_coefs);
+    void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& u_problem_coefs) override;
 
     /*!
      *\brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -127,24 +127,24 @@ public:
      * \param p_bc_coef Pointer to object that can set the Robin boundary condition
      * coefficients for the pressure.
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef);
+    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef) override;
 
     /*!
      * \brief Set the StaggeredStokesPhysicalBoundaryHelper object to be used
      * in the StokesOperator.
      */
-    virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
      */
-    virtual void setSolutionTime(double solution_time);
+    void setSolutionTime(double solution_time) override;
 
     /*!
      * \brief Set the current time interval.
      */
-    virtual void setTimeInterval(double current_time, double new_time);
+    void setTimeInterval(double current_time, double new_time) override;
 
     /*!
      * \brief Get the saddle-point solver for the extended Stokes

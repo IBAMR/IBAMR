@@ -94,7 +94,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~IBRedundantInitializer();
+    ~IBRedundantInitializer() override;
 
     /*!
      * \brief Register a Silo data writer with the IB initializer object.
@@ -108,7 +108,7 @@ public:
      * \return A boolean value indicating whether Lagrangian data is associated
      * with the given level in the patch hierarchy.
      */
-    bool getLevelHasLagrangianData(int level_number, bool can_be_refined) const;
+    bool getLevelHasLagrangianData(int level_number, bool can_be_refined) const override;
 
     /*!
      * \brief Determine the number of global nodes on the specified patch level.
@@ -120,7 +120,7 @@ public:
                                        int level_number,
                                        double init_data_time,
                                        bool can_be_refined,
-                                       bool initial_time);
+                                       bool initial_time) override;
 
     /*!
      * \brief Determine the number of local nodes on the specified patch level.
@@ -131,7 +131,7 @@ public:
                                                    int level_number,
                                                    double init_data_time,
                                                    bool can_be_refined,
-                                                   bool initial_time);
+                                                   bool initial_time) override;
 
     /*!
      * Typedef specifying the interface for initializing structures on a given level.
@@ -408,7 +408,7 @@ public:
                                                  double init_data_time,
                                                  bool can_be_refined,
                                                  bool initial_time,
-                                                 IBTK::LDataManager* l_data_manager);
+                                                 IBTK::LDataManager* l_data_manager) override;
 
     /*!
      * \brief Initialize the LNode and LData data needed to specify the
@@ -426,7 +426,7 @@ public:
                                             double init_data_time,
                                             bool can_be_refined,
                                             bool initial_time,
-                                            IBTK::LDataManager* l_data_manager);
+                                            IBTK::LDataManager* l_data_manager) override;
 
     /*!
      * \brief Initialize the LData needed to specify the mass and spring
@@ -443,7 +443,7 @@ public:
                                                 double init_data_time,
                                                 bool can_be_refined,
                                                 bool initial_time,
-                                                IBTK::LDataManager* l_data_manager);
+                                                IBTK::LDataManager* l_data_manager) override;
 
     /*!
      * \brief Initialize the LNode data needed to specify director vectors
@@ -460,7 +460,7 @@ public:
                                        double init_data_time,
                                        bool can_be_refined,
                                        bool initial_time,
-                                       IBTK::LDataManager* l_data_manager);
+                                       IBTK::LDataManager* l_data_manager) override;
 
     /*!
      * \brief Tag cells for initial refinement.
@@ -474,7 +474,7 @@ public:
     void tagCellsForInitialRefinement(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                       int level_number,
                                       double error_data_time,
-                                      int tag_index);
+                                      int tag_index) override;
 
     /*!
      * \brief Set the names of the structures on a given level.

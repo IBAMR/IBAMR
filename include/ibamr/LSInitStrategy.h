@@ -89,7 +89,7 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~LSInitStrategy();
+    ~LSInitStrategy() override;
 
     /*!
      * \brief Register physical boundary condition for the level set.
@@ -129,7 +129,7 @@ public:
      *
      * An empty default implementation is provided.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     // Book-keeping.

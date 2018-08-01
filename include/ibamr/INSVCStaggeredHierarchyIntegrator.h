@@ -125,7 +125,7 @@ public:
      * integrator object with the restart manager when the object is so
      * registered.
      */
-    ~INSVCStaggeredHierarchyIntegrator();
+    ~INSVCStaggeredHierarchyIntegrator() override;
 
     /*!
      * Get the convective operator being used by this solver class.
@@ -138,19 +138,19 @@ public:
      * Stokes equations, then this function will initialize the default type of
      * convective operator, which may be set in the class input database.
      */
-    SAMRAI::tbox::Pointer<ConvectiveOperator> getConvectiveOperator();
+    SAMRAI::tbox::Pointer<ConvectiveOperator> getConvectiveOperator() override;
 
     /*!
      * Get the subdomain solver for the velocity subsystem.  Such solvers can be
      * useful in constructing block preconditioners.
      */
-    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> getVelocitySubdomainSolver();
+    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> getVelocitySubdomainSolver() override;
 
     /*!
      * Get the subdomain solver for the pressure subsystem.  Such solvers can be
      * useful in constructing block preconditioners.
      */
-    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> getPressureSubdomainSolver();
+    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> getPressureSubdomainSolver() override;
 
     /*!
      * Register a solver for the time-dependent incompressible Stokes equations.
@@ -179,9 +179,9 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    virtual void
+    void
     initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Virtual method to initialize the AMR patch hierarchy and data defined on the hierarchy at
@@ -196,26 +196,26 @@ public:
      * such that it is possible to step through time via the advanceHierarchy()
      * function.
      */
-    virtual void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                          SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Virtual method to prepare to advance the data from current_time to new_time.
      */
-    virtual void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
 
     /*!
      * Virtual method to clean up data following call(s) to integrateHierarchy().
      */
-    virtual void postprocessIntegrateHierarchy(double current_time,
-                                               double new_time,
-                                               bool skip_synchronize_new_state_data,
-                                               int num_cycles = 1);
+    void postprocessIntegrateHierarchy(double current_time,
+                                       double new_time,
+                                       bool skip_synchronize_new_state_data,
+                                       int num_cycles = 1) override;
 
     /*!
      * Virtual method to regrid the patch hierarchy.
      */
-    virtual void regridHierarchy();
+    void regridHierarchy() override;
 
     /*!
      * Explicitly remove nullspace components from a solution vector.
@@ -383,45 +383,43 @@ protected:
     /*!
      * Determine the largest stable timestep on an individual patch.
      */
-    double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const override;
 
     /*!
      * Virtual method to initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.
      */
-    virtual void
-    initializeLevelDataSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                   int level_number,
-                                   double init_data_time,
-                                   bool can_be_refined,
-                                   bool initial_time,
-                                   SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-                                   bool allocate_data);
+    void initializeLevelDataSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                        int level_number,
+                                        double init_data_time,
+                                        bool can_be_refined,
+                                        bool initial_time,
+                                        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+                                        bool allocate_data) override;
 
     /*!
      * Virtual method to reset cached hierarchy dependent data.
      */
-    virtual void
+    void
     resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                            int coarsest_level,
-                                           int finest_level);
+                                           int finest_level) override;
 
     /*!
      * Virtual method to set integer tags to "one" in cells where refinement of the given level
      * should occur according to the magnitude of the fluid vorticity.
      */
-    virtual void
-    applyGradientDetectorSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                     int level_number,
-                                     double error_data_time,
-                                     int tag_index,
-                                     bool initial_time,
-                                     bool uses_richardson_extrapolation_too);
+    void applyGradientDetectorSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                          int level_number,
+                                          double error_data_time,
+                                          int tag_index,
+                                          bool initial_time,
+                                          bool uses_richardson_extrapolation_too) override;
 
     /*!
      * Virtual method to prepare variables for plotting.
      */
-    virtual void setupPlotDataSpecialized();
+    void setupPlotDataSpecialized() override;
 
     /*!
      * Virtual method to project the velocity field following a regridding operation.

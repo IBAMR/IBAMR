@@ -87,7 +87,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~IBKirchhoffRodForceGen();
+    ~IBKirchhoffRodForceGen() override;
 
     /*!
      * \brief Setup the data needed to compute the beam forces on the specified

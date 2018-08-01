@@ -91,7 +91,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~StaggeredStokesLevelRelaxationFACOperator();
+    ~StaggeredStokesLevelRelaxationFACOperator() override;
 
     /*!
      * \brief Static function to construct a StaggeredStokesFACPreconditioner with a
@@ -137,7 +137,7 @@ public:
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
-                     bool performing_post_sweeps);
+                     bool performing_post_sweeps) override;
 
     //\}
 
@@ -148,12 +148,12 @@ protected:
     void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
                                             int coarsest_reset_ln,
-                                            int finest_reset_ln);
+                                            int finest_reset_ln) override;
 
     /*!
      * \brief Remove implementation-specific hierarchy-dependent data.
      */
-    void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln);
+    void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) override;
 
 private:
     /*!

@@ -73,7 +73,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    inline ~StokesSpecifications()
+    inline ~StokesSpecifications() override
     {
         // intentionally blank
         return;

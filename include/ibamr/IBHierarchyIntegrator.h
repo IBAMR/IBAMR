@@ -109,7 +109,7 @@ public:
      * The destructor for class IBHierarchyIntegrator unregisters the integrator
      * object with the restart manager when the object is so registered.
      */
-    ~IBHierarchyIntegrator() = default;
+    ~IBHierarchyIntegrator() override = default;
 
     /*!
      * Return a pointer to the IBStrategy object registered with this
@@ -159,7 +159,7 @@ public:
      * num_cycles and the time step size and checks to see if the time step size
      * has changed.
      */
-    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -170,8 +170,9 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    void
+    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Initialize the AMR patch hierarchy and data defined on the hierarchy at
@@ -187,12 +188,12 @@ public:
      * function.
      */
     void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Regrid the hierarchy.
      */
-    void regridHierarchy();
+    void regridHierarchy() override;
 
 protected:
     /*!
@@ -210,13 +211,13 @@ protected:
      * Function to determine whether regridding should occur at the current time
      * step.
      */
-    bool atRegridPointSpecialized() const;
+    bool atRegridPointSpecialized() const override;
 
     /*!
      * Initialize data after the entire hierarchy has been constructed.
      *
      */
-    void initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time);
+    void initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time) override;
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -228,7 +229,7 @@ protected:
                                         bool can_be_refined,
                                         bool initial_time,
                                         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-                                        bool allocate_data);
+                                        bool allocate_data) override;
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -236,7 +237,7 @@ protected:
     void
     resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                            int coarsest_level,
-                                           int finest_level);
+                                           int finest_level) override;
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -247,12 +248,12 @@ protected:
                                           double error_data_time,
                                           int tag_index,
                                           bool initial_time,
-                                          bool uses_richardson_extrapolation_too);
+                                          bool uses_richardson_extrapolation_too) override;
 
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*
      * Boolean value that indicates whether the integrator has been initialized.
@@ -358,7 +359,7 @@ protected:
         /*!
          * \brief Destructor.
          */
-        ~IBEulerianForceFunction() = default;
+        ~IBEulerianForceFunction() override = default;
 
         /*!
          * \name Methods to set the data.
@@ -368,7 +369,7 @@ protected:
         /*!
          * \note This concrete IBTK::CartGridFunction is time-dependent.
          */
-        bool isTimeDependent() const;
+        bool isTimeDependent() const override;
 
         /*!
          * \brief Set the data on the patch interiors on the specified levels of
@@ -380,7 +381,7 @@ protected:
                                      const double data_time,
                                      const bool initial_time = false,
                                      const int coarsest_ln = -1,
-                                     const int finest_ln = -1);
+                                     const int finest_ln = -1) override;
 
         /*!
          * Set the data on the patch interior.
@@ -391,7 +392,7 @@ protected:
                             double data_time,
                             bool initial_time = false,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr));
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr)) override;
 
         //\}
 
@@ -444,7 +445,7 @@ protected:
         /*!
          * \brief Destructor.
          */
-        ~IBEulerianSourceFunction() = default;
+        ~IBEulerianSourceFunction() override = default;
 
         /*!
          * \name Methods to set the data.
@@ -454,7 +455,7 @@ protected:
         /*!
          * \note This concrete IBTK::CartGridFunction is time-dependent.
          */
-        bool isTimeDependent() const;
+        bool isTimeDependent() const override;
 
         /*!
          * Set the data on the patch interior.
@@ -465,7 +466,7 @@ protected:
                             double data_time,
                             bool initial_time = false,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr));
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr)) override;
 
         //\}
 

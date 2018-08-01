@@ -85,7 +85,7 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBLagrangianForceStrategy() = default;
+    ~IBLagrangianForceStrategy() override = default;
 
     /*!
      * \brief Set the current and new times for the present timestep.

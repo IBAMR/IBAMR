@@ -68,7 +68,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~ConvectiveOperator();
+    ~ConvectiveOperator() override;
 
     /*!
      * \brief Set the patch data index corresponding to the advection velocity
@@ -123,7 +123,8 @@ public:
      *
      * \see initializeOperatorState
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
     //\}
 

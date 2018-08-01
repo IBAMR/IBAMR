@@ -80,7 +80,7 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBImplicitStrategy() = default;
+    ~IBImplicitStrategy() override = default;
 
     /*!
      * Create solution and rhs data.

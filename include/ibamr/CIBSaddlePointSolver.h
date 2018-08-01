@@ -138,7 +138,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~CIBSaddlePointSolver();
+    ~CIBSaddlePointSolver() override;
 
     /*!
      * \brief Set the KSP type.

@@ -94,7 +94,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~SpongeLayerForceFunction() = default;
+    ~SpongeLayerForceFunction() override = default;
 
     /*!
      * \name Methods to set the data.
@@ -104,7 +104,7 @@ public:
     /*!
      * \note This concrete IBTK::CartGridFunction is time-dependent.
      */
-    bool isTimeDependent() const;
+    bool isTimeDependent() const override;
 
     /*!
      * Set the data on the patch interior.
@@ -115,7 +115,7 @@ public:
                         double data_time,
                         bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr)) override;
 
     //\}
 

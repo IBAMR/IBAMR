@@ -65,7 +65,7 @@ public:
                                 const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                 const int level_number,
                                 const double data_time,
-                                IBTK::LDataManager* const l_data_manager);
+                                IBTK::LDataManager* const l_data_manager) override;
 
 private:
     // Default constructor, not implemented.

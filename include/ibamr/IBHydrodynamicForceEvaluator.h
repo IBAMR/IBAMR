@@ -110,7 +110,7 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBHydrodynamicForceEvaluator();
+    ~IBHydrodynamicForceEvaluator() override;
 
     struct IBHydrodynamicForceObject
     {
@@ -274,7 +274,7 @@ public:
     /*!
      * \brief Override the putToDatabase method of the base Serializable class.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*!
      * \brief Create the control volume plot data and register it with the VisIt data writer
