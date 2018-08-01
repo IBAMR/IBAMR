@@ -636,7 +636,7 @@ ConstraintIBMethod::initializeHierarchyOperatorsandData()
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     if (!from_restart) calculateVolumeElement();
     setInitialLagrangianVelocity();
-    
+
     return;
 } // initializeHierarchyOperatorsandData
 

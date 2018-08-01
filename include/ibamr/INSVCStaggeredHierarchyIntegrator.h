@@ -366,7 +366,7 @@ public:
     /*!
      * \brief Get the scaling factor used for A, p and u_rhs
      */
-    inline SAMRAI::tbox::Array<double> getPressureScalingFactor() const
+    inline SAMRAI::tbox::Array<double> getScalingFactor() const
     {
         return d_A_scale;
     }
