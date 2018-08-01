@@ -59,7 +59,7 @@ public:
 
     // Class constructor.
     NonbondedForceEvaluator(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                            SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry);
+                            SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> grid_geometry);
 
     // Function to evaluate forces.
     void evaluateForces(int mstr_petsc_idx,
@@ -72,7 +72,7 @@ public:
     void computeLagrangianForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
                                 SAMRAI::tbox::Pointer<IBTK::LData> X_data,
                                 SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                 const int level_number,
                                 const double data_time,
                                 IBTK::LDataManager* const l_data_manager) override;
@@ -103,7 +103,7 @@ private:
     SAMRAI::tbox::Array<double> d_parameters;
 
     // grid geometry
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> d_grid_geometry;
 
     // spring force function pointer, to evaluate the force between particles:
     // TODO: Add species, make this a map from species1 x species2 -> Force Function Pointer

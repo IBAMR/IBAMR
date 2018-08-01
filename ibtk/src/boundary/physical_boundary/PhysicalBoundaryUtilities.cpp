@@ -201,19 +201,19 @@ PhysicalBoundaryUtilities::isUpper(int loc, int codim, int direction)
     return false;
 } // isUpper
 
-Array<BoundaryBox<NDIM> >
+Array<BoundaryBox<NDIM>>
 PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(const Patch<NDIM>& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(1);
 } // getPhysicalBoundaryCodim1Boxes
 
-Array<BoundaryBox<NDIM> >
+Array<BoundaryBox<NDIM>>
 PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(const Patch<NDIM>& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(2);
 } // getPhysicalBoundaryCodim2Boxes
 
-Array<BoundaryBox<NDIM> >
+Array<BoundaryBox<NDIM>>
 PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(const Patch<NDIM>& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(3);

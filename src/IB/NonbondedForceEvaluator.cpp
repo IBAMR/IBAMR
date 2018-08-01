@@ -45,7 +45,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 NonbondedForceEvaluator::NonbondedForceEvaluator(Pointer<Database> input_db,
-                                                 Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
+                                                 Pointer<CartesianGridGeometry<NDIM>> grid_geometry)
 {
     // get interaction radius
     if (input_db->keyExists("interaction_radius"))
@@ -138,13 +138,13 @@ void
 NonbondedForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
                                                 Pointer<LData> X_data,
                                                 Pointer<LData> /*U_data*/,
-                                                const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                const Pointer<PatchHierarchy<NDIM>> hierarchy,
                                                 const int level_number,
                                                 const double /*data_time*/,
                                                 LDataManager* const l_data_manager)
 {
     // Get grid geometry and relevant lower and upper limits.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = hierarchy->getGridGeometry();
     if (!grid_geom->getDomainIsSingleBox()) TBOX_ERROR("physical domain must be a single box...\n");
 
     // These will only work if the domain is a single box.
@@ -165,13 +165,13 @@ NonbondedForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
     const int lag_node_idx_current_idx = l_data_manager->getLNodePatchDescriptorIndex();
 
     // iterate through levels.
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_number);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
         Pointer<LNodeSetData> current_idx_data = patch->getPatchData(lag_node_idx_current_idx);
         const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
 
         std::vector<int> cell_offset(NDIM);

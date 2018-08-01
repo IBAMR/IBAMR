@@ -93,7 +93,7 @@ public:
      * \brief Setup the data needed to compute the beam forces on the specified
      * level of the patch hierarchy.
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool initial_time,
@@ -110,7 +110,7 @@ public:
                                          SAMRAI::tbox::Pointer<IBTK::LData> N_data,
                                          SAMRAI::tbox::Pointer<IBTK::LData> X_data,
                                          SAMRAI::tbox::Pointer<IBTK::LData> D_data,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                          int level_number,
                                          double data_time,
                                          IBTK::LDataManager* l_data_manager);
@@ -148,8 +148,8 @@ private:
      */
     //\{
     std::vector<Mat> d_D_next_mats = {}, d_X_next_mats = {};
-    std::vector<std::vector<int> > d_petsc_curr_node_idxs = {}, d_petsc_next_node_idxs = {};
-    std::vector<std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_material_params = {};
+    std::vector<std::vector<int>> d_petsc_curr_node_idxs = {}, d_petsc_next_node_idxs = {};
+    std::vector<std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS>>> d_material_params = {};
     std::vector<bool> d_is_initialized = {};
     //\}
 };

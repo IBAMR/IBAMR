@@ -93,7 +93,7 @@ IndexUtilities::getCellIndex(const DoubleArray& X,
 template <class DoubleArray>
 inline SAMRAI::hier::Index<NDIM>
 IndexUtilities::getCellIndex(const DoubleArray& X,
-                             const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> >& patch_geom,
+                             const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM>>& patch_geom,
                              const SAMRAI::hier::Box<NDIM>& patch_box)
 {
 #if !defined(NDEBUG)
@@ -106,7 +106,7 @@ IndexUtilities::getCellIndex(const DoubleArray& X,
 template <class DoubleArray>
 inline SAMRAI::hier::Index<NDIM>
 IndexUtilities::getCellIndex(const DoubleArray& X,
-                             const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
+                             const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>>& grid_geom,
                              const SAMRAI::hier::IntVector<NDIM>& ratio)
 {
 #if !defined(NDEBUG)
@@ -162,8 +162,8 @@ IndexUtilities::mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
 } // mapIndexToInteger
 
 inline SAMRAI::hier::IntVector<NDIM>
-IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM> >& overlap_boxes,
-                                  std::vector<SAMRAI::hier::Box<NDIM> >& nonoverlap_boxes,
+IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM>>& overlap_boxes,
+                                  std::vector<SAMRAI::hier::Box<NDIM>>& nonoverlap_boxes,
                                   const SAMRAI::hier::Box<NDIM>& patch_box,
                                   const SAMRAI::hier::IntVector<NDIM>& box_size,
                                   const SAMRAI::hier::IntVector<NDIM>& overlap_size)

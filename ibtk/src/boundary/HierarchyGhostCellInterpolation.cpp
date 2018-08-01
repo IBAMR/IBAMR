@@ -155,7 +155,7 @@ HierarchyGhostCellInterpolation::setHomogeneousBc(const bool homogeneous_bc)
 
 void
 HierarchyGhostCellInterpolation::initializeOperatorState(const InterpolationTransactionComponent transaction_comp,
-                                                         const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                         const Pointer<PatchHierarchy<NDIM>> hierarchy,
                                                          const int coarsest_ln,
                                                          const int finest_ln)
 {
@@ -171,7 +171,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(const InterpolationTran
 void
 HierarchyGhostCellInterpolation::initializeOperatorState(
     const std::vector<InterpolationTransactionComponent>& transaction_comps,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM>> hierarchy,
     const int coarsest_ln,
     const int finest_ln)
 {
@@ -203,12 +203,12 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         if (coarsen_op_name != "NONE")
         {
             const int src_data_idx = d_transaction_comp.d_src_data_idx;
-            Pointer<Variable<NDIM> > var;
+            Pointer<Variable<NDIM>> var;
             var_db->mapIndexToVariable(src_data_idx, var);
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            Pointer<CoarsenOperator<NDIM>> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -224,8 +224,8 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     {
         for (int src_ln = std::max(1, d_coarsest_ln); src_ln <= d_finest_ln; ++src_ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(src_ln);
-            Pointer<PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(src_ln - 1);
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(src_ln);
+            Pointer<PatchLevel<NDIM>> coarser_level = d_hierarchy->getPatchLevel(src_ln - 1);
             d_coarsen_scheds[src_ln] = d_coarsen_alg->createSchedule(coarser_level, level, d_coarsen_strategy);
         }
     }
@@ -241,15 +241,15 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     {
         const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
         const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
-        Pointer<Variable<NDIM> > var;
+        Pointer<Variable<NDIM>> var;
         var_db->mapIndexToVariable(src_data_idx, var);
-        Pointer<CellVariable<NDIM, double> > cc_var = var;
-        Pointer<NodeVariable<NDIM, double> > nc_var = var;
-        Pointer<SideVariable<NDIM, double> > sc_var = var;
-        Pointer<EdgeVariable<NDIM, double> > ec_var = var;
-        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
+        Pointer<CellVariable<NDIM, double>> cc_var = var;
+        Pointer<NodeVariable<NDIM, double>> nc_var = var;
+        Pointer<SideVariable<NDIM, double>> sc_var = var;
+        Pointer<EdgeVariable<NDIM, double>> ec_var = var;
+        Pointer<RefineOperator<NDIM>> refine_op = nullptr;
         d_cf_bdry_ops[comp_idx] = nullptr;
-        Pointer<VariableFillPattern<NDIM> > fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
+        Pointer<VariableFillPattern<NDIM>> fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
         if (cc_var)
         {
             if (d_transaction_comps[comp_idx].d_refine_op_name != "NONE")
@@ -346,7 +346,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     d_refine_scheds.resize(d_finest_ln + 1);
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(dst_ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(dst_ln);
         d_refine_scheds[dst_ln] = d_refine_alg->createSchedule(level, dst_ln - 1, d_hierarchy, d_refine_strategy);
     }
 
@@ -409,12 +409,12 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         if (coarsen_op_name != "NONE")
         {
             const int src_data_idx = d_transaction_comp.d_src_data_idx;
-            Pointer<Variable<NDIM> > var;
+            Pointer<Variable<NDIM>> var;
             var_db->mapIndexToVariable(src_data_idx, var);
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            Pointer<CoarsenOperator<NDIM>> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -437,14 +437,14 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
     {
         const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
         const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
-        Pointer<Variable<NDIM> > var;
+        Pointer<Variable<NDIM>> var;
         var_db->mapIndexToVariable(src_data_idx, var);
-        Pointer<CellVariable<NDIM, double> > cc_var = var;
-        Pointer<NodeVariable<NDIM, double> > nc_var = var;
-        Pointer<SideVariable<NDIM, double> > sc_var = var;
-        Pointer<EdgeVariable<NDIM, double> > ec_var = var;
-        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
-        Pointer<VariableFillPattern<NDIM> > fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
+        Pointer<CellVariable<NDIM, double>> cc_var = var;
+        Pointer<NodeVariable<NDIM, double>> nc_var = var;
+        Pointer<SideVariable<NDIM, double>> sc_var = var;
+        Pointer<EdgeVariable<NDIM, double>> ec_var = var;
+        Pointer<RefineOperator<NDIM>> refine_op = nullptr;
+        Pointer<VariableFillPattern<NDIM>> fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
         if (d_cf_bdry_ops[comp_idx]) d_cf_bdry_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
         if (cc_var)
         {
@@ -539,7 +539,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
 } // resetTransactionComponents
 
 void
-HierarchyGhostCellInterpolation::reinitializeOperatorState(Pointer<PatchHierarchy<NDIM> > hierarchy)
+HierarchyGhostCellInterpolation::reinitializeOperatorState(Pointer<PatchHierarchy<NDIM>> hierarchy)
 {
     if (!d_is_initialized) return;
 
@@ -612,11 +612,11 @@ HierarchyGhostCellInterpolation::fillData(double fill_time)
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
     {
         if (d_refine_scheds[dst_ln]) d_refine_scheds[dst_ln]->fillData(fill_time);
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(dst_ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(dst_ln);
         const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
             {
                 if (d_cf_bdry_ops[comp_idx])
@@ -634,10 +634,10 @@ HierarchyGhostCellInterpolation::fillData(double fill_time)
     IBTK_TIMER_START(t_fill_data_set_physical_bcs);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
                 for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)

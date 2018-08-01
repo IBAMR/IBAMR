@@ -246,31 +246,31 @@ INSHierarchyIntegrator::registerFluidSourceFunction(Pointer<CartGridFunction> Q_
     return;
 } // registerFluidSourceFunction
 
-Pointer<Variable<NDIM> >
+Pointer<Variable<NDIM>>
 INSHierarchyIntegrator::getVelocityVariable() const
 {
     return d_U_var;
 } // getVelocityVariable
 
-Pointer<Variable<NDIM> >
+Pointer<Variable<NDIM>>
 INSHierarchyIntegrator::getPressureVariable() const
 {
     return d_P_var;
 } // getPressureVariable
 
-Pointer<Variable<NDIM> >
+Pointer<Variable<NDIM>>
 INSHierarchyIntegrator::getBodyForceVariable() const
 {
     return d_F_var;
 } // getBodyForceVariable
 
-Pointer<Variable<NDIM> >
+Pointer<Variable<NDIM>>
 INSHierarchyIntegrator::getFluidSourceVariable() const
 {
     return d_Q_var;
 } // getFluidSourceVariable
 
-Pointer<FaceVariable<NDIM, double> >
+Pointer<FaceVariable<NDIM, double>>
 INSHierarchyIntegrator::getAdvectionVelocityVariable() const
 {
     return d_U_adv_diff_var;
@@ -414,10 +414,10 @@ INSHierarchyIntegrator::getNumberOfCycles() const
 
 INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
                                                Pointer<Database> input_db,
-                                               Pointer<Variable<NDIM> > U_var,
-                                               Pointer<Variable<NDIM> > P_var,
-                                               Pointer<Variable<NDIM> > F_var,
-                                               Pointer<Variable<NDIM> > Q_var,
+                                               Pointer<Variable<NDIM>> U_var,
+                                               Pointer<Variable<NDIM>> P_var,
+                                               Pointer<Variable<NDIM>> F_var,
+                                               Pointer<Variable<NDIM>> Q_var,
                                                bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart),
       d_U_var(U_var),
@@ -501,19 +501,19 @@ INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     double dt = HierarchyIntegrator::getMaximumTimeStepSizeSpecialized();
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         dt = std::min(dt, d_cfl_max * getStableTimestep(level));
     }
     return dt;
 } // getMaximumTimeStepSizeSpecialized
 
 double
-INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel<NDIM> > level) const
+INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel<NDIM>> level) const
 {
     double stable_dt = std::numeric_limits<double>::max();
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
         stable_dt = std::min(stable_dt, getStableTimestep(patch));
     }
     stable_dt = SAMRAI_MPI::minReduction(stable_dt);

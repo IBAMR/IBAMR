@@ -169,25 +169,25 @@ StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(Vec& vec,
                                                       const int u_dof_index_idx,
                                                       const int p_data_idx,
                                                       const int p_dof_index_idx,
-                                                      Pointer<PatchLevel<NDIM> > patch_level)
+                                                      Pointer<PatchLevel<NDIM>> patch_level)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > u_data_var;
+    Pointer<Variable<NDIM>> u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
-    Pointer<SideVariable<NDIM, double> > u_data_sc_var = u_data_var;
-    Pointer<Variable<NDIM> > p_data_var;
+    Pointer<SideVariable<NDIM, double>> u_data_sc_var = u_data_var;
+    Pointer<Variable<NDIM>> p_data_var;
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
-    Pointer<CellVariable<NDIM, double> > p_data_cc_var = p_data_var;
+    Pointer<CellVariable<NDIM, double>> p_data_cc_var = p_data_var;
     if (u_data_sc_var && p_data_cc_var)
     {
 #if !defined(NDEBUG)
-        Pointer<Variable<NDIM> > u_dof_index_var;
+        Pointer<Variable<NDIM>> u_dof_index_var;
         var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
-        Pointer<SideVariable<NDIM, int> > u_dof_index_sc_var = u_dof_index_var;
+        Pointer<SideVariable<NDIM, int>> u_dof_index_sc_var = u_dof_index_var;
         TBOX_ASSERT(u_dof_index_sc_var);
-        Pointer<Variable<NDIM> > p_dof_index_var;
+        Pointer<Variable<NDIM>> p_dof_index_var;
         var_db->mapIndexToVariable(p_dof_index_idx, p_dof_index_var);
-        Pointer<CellVariable<NDIM, int> > p_dof_index_cc_var = p_dof_index_var;
+        Pointer<CellVariable<NDIM, int>> p_dof_index_cc_var = p_dof_index_var;
         TBOX_ASSERT(p_dof_index_cc_var);
 #endif
         copyToPatchLevelVec_MAC(vec, u_data_idx, u_dof_index_idx, p_data_idx, p_dof_index_idx, patch_level);
@@ -210,33 +210,33 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
                                                         const int u_dof_index_idx,
                                                         const int p_data_idx,
                                                         const int p_dof_index_idx,
-                                                        Pointer<PatchLevel<NDIM> > patch_level,
-                                                        Pointer<RefineSchedule<NDIM> > data_synch_sched,
-                                                        Pointer<RefineSchedule<NDIM> > ghost_fill_sched)
+                                                        Pointer<PatchLevel<NDIM>> patch_level,
+                                                        Pointer<RefineSchedule<NDIM>> data_synch_sched,
+                                                        Pointer<RefineSchedule<NDIM>> ghost_fill_sched)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > u_data_var;
+    Pointer<Variable<NDIM>> u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
-    Pointer<SideVariable<NDIM, double> > u_data_sc_var = u_data_var;
-    Pointer<Variable<NDIM> > p_data_var;
+    Pointer<SideVariable<NDIM, double>> u_data_sc_var = u_data_var;
+    Pointer<Variable<NDIM>> p_data_var;
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
-    Pointer<CellVariable<NDIM, double> > p_data_cc_var = p_data_var;
+    Pointer<CellVariable<NDIM, double>> p_data_cc_var = p_data_var;
     if (u_data_sc_var && p_data_cc_var)
     {
 #if !defined(NDEBUG)
-        Pointer<Variable<NDIM> > u_dof_index_var;
+        Pointer<Variable<NDIM>> u_dof_index_var;
         var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
-        Pointer<SideVariable<NDIM, int> > u_dof_index_sc_var = u_dof_index_var;
+        Pointer<SideVariable<NDIM, int>> u_dof_index_sc_var = u_dof_index_var;
         TBOX_ASSERT(u_dof_index_sc_var);
-        Pointer<Variable<NDIM> > p_dof_index_var;
+        Pointer<Variable<NDIM>> p_dof_index_var;
         var_db->mapIndexToVariable(p_dof_index_idx, p_dof_index_var);
-        Pointer<CellVariable<NDIM, int> > p_dof_index_cc_var = p_dof_index_var;
+        Pointer<CellVariable<NDIM, int>> p_dof_index_cc_var = p_dof_index_var;
         TBOX_ASSERT(p_dof_index_cc_var);
 #endif
         copyFromPatchLevelVec_MAC(vec, u_data_idx, u_dof_index_idx, p_data_idx, p_dof_index_idx, patch_level);
         if (data_synch_sched)
         {
-            Pointer<RefineClasses<NDIM> > data_synch_config = data_synch_sched->getEquivalenceClasses();
+            Pointer<RefineClasses<NDIM>> data_synch_config = data_synch_sched->getEquivalenceClasses();
             RefineAlgorithm<NDIM> data_synch_alg;
             data_synch_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, nullptr, new SideSynchCopyFillPattern());
             data_synch_alg.resetSchedule(data_synch_sched);
@@ -255,7 +255,7 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     }
     if (ghost_fill_sched)
     {
-        Pointer<RefineClasses<NDIM> > ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
+        Pointer<RefineClasses<NDIM>> ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
         RefineAlgorithm<NDIM> ghost_fill_alg;
         ghost_fill_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, nullptr);
         ghost_fill_alg.registerRefine(p_data_idx, p_data_idx, p_data_idx, nullptr);
@@ -266,19 +266,19 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     return;
 } // copyFromPatchLevelVec
 
-Pointer<RefineSchedule<NDIM> >
+Pointer<RefineSchedule<NDIM>>
 StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_idx,
                                                              const int p_data_idx,
-                                                             Pointer<PatchLevel<NDIM> > patch_level)
+                                                             Pointer<PatchLevel<NDIM>> patch_level)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > u_data_var;
+    Pointer<Variable<NDIM>> u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
-    Pointer<SideVariable<NDIM, double> > u_data_sc_var = u_data_var;
-    Pointer<Variable<NDIM> > p_data_var;
+    Pointer<SideVariable<NDIM, double>> u_data_sc_var = u_data_var;
+    Pointer<Variable<NDIM>> p_data_var;
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
-    Pointer<CellVariable<NDIM, double> > p_data_cc_var = p_data_var;
-    Pointer<RefineSchedule<NDIM> > data_synch_sched;
+    Pointer<CellVariable<NDIM, double>> p_data_cc_var = p_data_var;
+    Pointer<RefineSchedule<NDIM>> data_synch_sched;
     if (u_data_sc_var && p_data_cc_var)
     {
         RefineAlgorithm<NDIM> data_synch_alg;
@@ -297,10 +297,10 @@ StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_id
     return data_synch_sched;
 } // constructDataSynchSchedule
 
-Pointer<RefineSchedule<NDIM> >
+Pointer<RefineSchedule<NDIM>>
 StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(const int u_data_idx,
                                                              const int p_data_idx,
-                                                             Pointer<PatchLevel<NDIM> > patch_level)
+                                                             Pointer<PatchLevel<NDIM>> patch_level)
 {
     RefineAlgorithm<NDIM> ghost_fill_alg;
     ghost_fill_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, nullptr);
@@ -312,15 +312,15 @@ void
 StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs_per_proc,
                                                                 const int u_dof_index_idx,
                                                                 const int p_dof_index_idx,
-                                                                Pointer<PatchLevel<NDIM> > patch_level)
+                                                                Pointer<PatchLevel<NDIM>> patch_level)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > u_dof_index_var;
+    Pointer<Variable<NDIM>> u_dof_index_var;
     var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
-    Pointer<SideVariable<NDIM, int> > u_dof_index_sc_var = u_dof_index_var;
-    Pointer<Variable<NDIM> > p_dof_index_var;
+    Pointer<SideVariable<NDIM, int>> u_dof_index_sc_var = u_dof_index_var;
+    Pointer<Variable<NDIM>> p_dof_index_var;
     var_db->mapIndexToVariable(p_dof_index_idx, p_dof_index_var);
-    Pointer<CellVariable<NDIM, int> > p_dof_index_cc_var = p_dof_index_var;
+    Pointer<CellVariable<NDIM, int>> p_dof_index_cc_var = p_dof_index_var;
     if (u_dof_index_sc_var && p_dof_index_cc_var)
     {
         constructPatchLevelDOFIndices_MAC(num_dofs_per_proc, u_dof_index_idx, p_dof_index_idx, patch_level);
@@ -342,7 +342,7 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelAO(AO& ao,
                                                         std::vector<int>& num_dofs_per_proc,
                                                         int u_dof_index_idx,
                                                         int p_dof_index_idx,
-                                                        Pointer<PatchLevel<NDIM> > patch_level,
+                                                        Pointer<PatchLevel<NDIM>> patch_level,
                                                         int& u_ao_offset,
                                                         int& p_ao_offset)
 {
@@ -360,7 +360,7 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelAO(AO& ao,
 #endif
     const Index<NDIM>& domain_lower = domain_boxes[0].lower();
     const Index<NDIM>& domain_upper = domain_boxes[0].upper();
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = patch_level->getGridGeometry();
     IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(patch_level->getRatio());
 
     const Index<NDIM> p_num_cells = domain_upper - domain_lower + 1;
@@ -387,10 +387,10 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelAO(AO& ao,
 
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        Pointer<SideData<NDIM, int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<CellData<NDIM, int>> p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         const int depth = u_dof_index_data->getDepth();
 #if !defined(NDEBUG)
         TBOX_ASSERT(depth == 1);
@@ -464,7 +464,7 @@ StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
                                                           const int u_dof_index_idx,
                                                           const int p_data_idx,
                                                           const int p_dof_index_idx,
-                                                          Pointer<PatchLevel<NDIM> > patch_level)
+                                                          Pointer<PatchLevel<NDIM>> patch_level)
 {
     int ierr;
     int first_local, last_local;
@@ -476,13 +476,13 @@ StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
 
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
         const IntVector<NDIM>& ilower = patch_box.lower();
         const IntVector<NDIM>& iupper = patch_box.upper();
 
-        Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_data_idx);
-        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_data_idx);
+        Pointer<SideData<NDIM, int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         const IntVector<NDIM> u_gcw = u_data->getGhostCellWidth();
         const IntVector<NDIM> u_dof_gcw = u_dof_index_data->getGhostCellWidth();
 #if !defined(NDEBUG)
@@ -490,8 +490,8 @@ StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
         TBOX_ASSERT(u_dof_gcw.min() == u_dof_gcw.max());
 #endif
 
-        Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_data_idx);
-        Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        Pointer<CellData<NDIM, double>> p_data = patch->getPatchData(p_data_idx);
+        Pointer<CellData<NDIM, int>> p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         const IntVector<NDIM> p_gcw = p_data->getGhostCellWidth();
         const IntVector<NDIM> p_dof_gcw = p_dof_index_data->getGhostCellWidth();
 #if !defined(NDEBUG)
@@ -539,7 +539,7 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
                                                             const int u_dof_index_idx,
                                                             const int p_data_idx,
                                                             const int p_dof_index_idx,
-                                                            Pointer<PatchLevel<NDIM> > patch_level)
+                                                            Pointer<PatchLevel<NDIM>> patch_level)
 {
     int ierr;
     int first_local, last_local;
@@ -551,13 +551,13 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
 
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
         const IntVector<NDIM>& ilower = patch_box.lower();
         const IntVector<NDIM>& iupper = patch_box.upper();
 
-        Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_data_idx);
-        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_data_idx);
+        Pointer<SideData<NDIM, int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         const IntVector<NDIM> u_gcw = u_data->getGhostCellWidth();
         const IntVector<NDIM> u_dof_gcw = u_dof_index_data->getGhostCellWidth();
 #if !defined(NDEBUG)
@@ -565,8 +565,8 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
         TBOX_ASSERT(u_dof_gcw.min() == u_dof_gcw.max());
 #endif
 
-        Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_data_idx);
-        Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        Pointer<CellData<NDIM, double>> p_data = patch->getPatchData(p_data_idx);
+        Pointer<CellData<NDIM, int>> p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         const IntVector<NDIM> p_gcw = p_data->getGhostCellWidth();
         const IntVector<NDIM> p_dof_gcw = p_dof_index_data->getGhostCellWidth();
 #if !defined(NDEBUG)
@@ -612,25 +612,25 @@ void
 StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<int>& num_dofs_per_proc,
                                                                     const int u_dof_index_idx,
                                                                     const int p_dof_index_idx,
-                                                                    Pointer<PatchLevel<NDIM> > patch_level)
+                                                                    Pointer<PatchLevel<NDIM>> patch_level)
 {
     // Create variables to keep track of whether a particular velocity location
     // is the "master" location.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<SideVariable<NDIM, int> > patch_num_var = new SideVariable<NDIM, int>(
+    Pointer<SideVariable<NDIM, int>> patch_num_var = new SideVariable<NDIM, int>(
         "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_num_var");
     static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
     patch_level->allocatePatchData(patch_num_idx);
-    Pointer<SideVariable<NDIM, bool> > u_mastr_loc_var = new SideVariable<NDIM, bool>(
+    Pointer<SideVariable<NDIM, bool>> u_mastr_loc_var = new SideVariable<NDIM, bool>(
         "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::u_mastr_loc_var");
     static const int u_mastr_loc_idx = var_db->registerPatchDataIndex(u_mastr_loc_var);
     patch_level->allocatePatchData(u_mastr_loc_idx);
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const int patch_num = patch->getPatchNumber();
-        Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(patch_num_idx);
-        Pointer<SideData<NDIM, bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        Pointer<SideData<NDIM, int>> patch_num_data = patch->getPatchData(patch_num_idx);
+        Pointer<SideData<NDIM, bool>> u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         patch_num_data->fillAll(patch_num);
         u_mastr_loc_data->fillAll(false);
     }
@@ -644,7 +644,7 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
     bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
 
     // For a single patch in a periodic domain, the far side DOFs are not master.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = patch_level->getGridGeometry();
     IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(patch_level->getRatio());
     const BoxArray<NDIM>& domain_boxes = patch_level->getPhysicalDomain();
 #if !defined(NDEBUG)
@@ -656,14 +656,14 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
     int local_dof_count = 0;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const int patch_num = patch->getPatchNumber();
         const Box<NDIM>& patch_box = patch->getBox();
         const IntVector<NDIM> patch_size = patch_box.numberCells();
 
-        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(patch_num_idx);
-        Pointer<SideData<NDIM, bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        Pointer<SideData<NDIM, int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<SideData<NDIM, int>> patch_num_data = patch->getPatchData(patch_num_idx);
+        Pointer<SideData<NDIM, bool>> u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             const int upper_domain_side_idx = domain_upper(component_axis) + 1;
@@ -697,12 +697,12 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
     int counter = local_dof_offset;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<SideData<NDIM, int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         u_dof_index_data->fillAll(-1);
-        Pointer<SideData<NDIM, bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
-        Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        Pointer<SideData<NDIM, bool>> u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        Pointer<CellData<NDIM, int>> p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         p_dof_index_data->fillAll(-1);
         boost::array<Box<NDIM>, NDIM> data_boxes;
         BoxList<NDIM> data_box_union(patch_box);

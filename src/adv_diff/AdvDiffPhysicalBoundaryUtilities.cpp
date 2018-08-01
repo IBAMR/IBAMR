@@ -63,17 +63,17 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 void
-AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData<NDIM, double> > Q_data,
-                                                                Pointer<FaceData<NDIM, double> > u_ADV_data,
-                                                                Pointer<Patch<NDIM> > patch,
+AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData<NDIM, double>> Q_data,
+                                                                Pointer<FaceData<NDIM, double>> u_ADV_data,
+                                                                Pointer<Patch<NDIM>> patch,
                                                                 const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                                 const double fill_time,
                                                                 const bool inflow_boundaries_only,
                                                                 const bool homogeneous_bc)
 {
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     if (!pgeom->getTouchesRegularBoundary()) return;
-    const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+    const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     if (physical_codim1_boxes.size() == 0) return;
 
@@ -113,9 +113,9 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData
                 bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), patch_box.upper(d));
             }
         }
-        Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
         for (int depth = 0; depth < Q_data->getDepth(); ++depth)
         {
             if (bc_coefs[depth] == nullptr) continue;

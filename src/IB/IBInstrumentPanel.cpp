@@ -591,7 +591,7 @@ IBInstrumentPanel::isInstrumented() const
 } // isInstrumented
 
 void
-IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarchy<NDIM>> hierarchy,
                                                       LDataManager* const l_data_manager)
 {
     IBAMR_TIMER_START(t_initialize_hierarchy_independent_data);
@@ -709,7 +709,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarc
 } // initializeHierarchyIndependentData
 
 void
-IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy<NDIM>> hierarchy,
                                                     LDataManager* const l_data_manager,
                                                     const int timestep_num,
                                                     const double data_time)
@@ -816,7 +816,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
     }
 
     // Determine the finest grid spacing in the Cartesian grid hierarchy.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = hierarchy->getGridGeometry();
     const double* const domainXLower = grid_geom->getXLower();
     const double* const domainXUpper = grid_geom->getXUpper();
     const double* const dx_coarsest = grid_geom->getDx();
@@ -860,7 +860,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
     d_web_centroid_map.resize(finest_ln + 1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         const IntVector<NDIM>& ratio = level->getRatio();
         const Box<NDIM> domain_box_level = Box<NDIM>::refine(domain_box, ratio);
         const Index<NDIM>& domain_box_level_lower = domain_box_level.lower();
@@ -871,8 +871,8 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
             dx[d] = dx_coarsest[d] / static_cast<double>(ratio(d));
         }
 
-        Pointer<PatchLevel<NDIM> > finer_level =
-            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel<NDIM> >(nullptr));
+        Pointer<PatchLevel<NDIM>> finer_level =
+            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel<NDIM>>(nullptr));
         const IntVector<NDIM>& finer_ratio = (ln < finest_ln ? finer_level->getRatio() : IntVector<NDIM>(1));
         const Box<NDIM> finer_domain_box_level = Box<NDIM>::refine(domain_box, finer_ratio);
         const Index<NDIM>& finer_domain_box_level_lower = finer_domain_box_level.lower();
@@ -938,7 +938,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
 void
 IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                       const int P_data_idx,
-                                      const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                      const Pointer<PatchHierarchy<NDIM>> hierarchy,
                                       LDataManager* const l_data_manager,
                                       const int timestep_num,
                                       const double data_time)
@@ -982,22 +982,22 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     // the centroid of the meter.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
             const Index<NDIM>& patch_lower = patch_box.lower();
             const Index<NDIM>& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
             const double* const x_lower = pgeom->getXLower();
             const double* const x_upper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
 
-            Pointer<CellData<NDIM, double> > U_cc_data = patch->getPatchData(U_data_idx);
-            Pointer<SideData<NDIM, double> > U_sc_data = patch->getPatchData(U_data_idx);
-            Pointer<CellData<NDIM, double> > P_cc_data = patch->getPatchData(P_data_idx);
+            Pointer<CellData<NDIM, double>> U_cc_data = patch->getPatchData(U_data_idx);
+            Pointer<SideData<NDIM, double>> U_sc_data = patch->getPatchData(U_data_idx);
+            Pointer<CellData<NDIM, double>> P_cc_data = patch->getPatchData(P_data_idx);
 
             for (Box<NDIM>::Iterator b(patch_box); b; b++)
             {
@@ -1093,7 +1093,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
 
     // Loop over all local nodes to determine the velocities of the local
     // perimeter nodes.
-    std::vector<boost::multi_array<Vector, 1> > U_perimeter(d_num_meters);
+    std::vector<boost::multi_array<Vector, 1>> U_perimeter(d_num_meters);
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         U_perimeter[m].resize(boost::extents[d_num_perimeter_nodes[m]]);

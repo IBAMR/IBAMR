@@ -67,8 +67,8 @@ struct IndexOrder : std::binary_function<T, T, bool>
     }
 };
 
-typedef struct IndexOrder<SAMRAI::hier::Index<NDIM> > IndexFortranOrder;
-typedef struct IndexOrder<SAMRAI::pdat::CellIndex<NDIM> > CellIndexFortranOrder;
+typedef struct IndexOrder<SAMRAI::hier::Index<NDIM>> IndexFortranOrder;
+typedef struct IndexOrder<SAMRAI::pdat::CellIndex<NDIM>> CellIndexFortranOrder;
 
 /*!
  * \brief Class IndexUtilities is a utility class that defines simple functions
@@ -126,7 +126,7 @@ public:
     template <class DoubleArray>
     static SAMRAI::hier::Index<NDIM>
     getCellIndex(const DoubleArray& X,
-                 const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> >& patch_geom,
+                 const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM>>& patch_geom,
                  const SAMRAI::hier::Box<NDIM>& patch_box);
 
     /*!
@@ -139,7 +139,7 @@ public:
     template <class DoubleArray>
     static SAMRAI::hier::Index<NDIM>
     getCellIndex(const DoubleArray& X,
-                 const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
+                 const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>>& grid_geom,
                  const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
@@ -192,11 +192,12 @@ public:
      * \note The overlap boxes are obtained from nonoverlap_boxes by growing
      * them suitably.
      */
-    static SAMRAI::hier::IntVector<NDIM> partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM> >& overlap_boxes,
-                                                           std::vector<SAMRAI::hier::Box<NDIM> >& nonoverlap_boxes,
+    static SAMRAI::hier::IntVector<NDIM> partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM>>& overlap_boxes,
+                                                           std::vector<SAMRAI::hier::Box<NDIM>>& nonoverlap_boxes,
                                                            const SAMRAI::hier::Box<NDIM>& patch_box,
                                                            const SAMRAI::hier::IntVector<NDIM>& box_size,
                                                            const SAMRAI::hier::IntVector<NDIM>& overlap_size);
+
 private:
     /*!
      * \brief Default constructor.

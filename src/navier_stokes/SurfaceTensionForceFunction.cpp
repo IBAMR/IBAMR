@@ -184,7 +184,7 @@ namespace IBAMR
 SurfaceTensionForceFunction::SurfaceTensionForceFunction(const std::string& object_name,
                                                          const Pointer<Database> input_db,
                                                          const AdvDiffHierarchyIntegrator* adv_diff_solver,
-                                                         const Pointer<Variable<NDIM> > level_set_var)
+                                                         const Pointer<Variable<NDIM>> level_set_var)
     : CartGridFunction(object_name), d_adv_diff_solver(adv_diff_solver), d_ls_var(level_set_var)
 {
     // Set some default values
@@ -236,8 +236,8 @@ SurfaceTensionForceFunction::isTimeDependent() const
 
 void
 SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
-                                                     Pointer<Variable<NDIM> > var,
-                                                     Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                     Pointer<Variable<NDIM>> var,
+                                                     Pointer<PatchHierarchy<NDIM>> hierarchy,
                                                      const double data_time,
                                                      const bool initial_time,
                                                      const int coarsest_ln_in,
@@ -248,7 +248,7 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
 #endif
 
     // Get the newest patch data index for the level set variable
-    Pointer<CellVariable<NDIM, double> > phi_cc_var = d_ls_var;
+    Pointer<CellVariable<NDIM, double>> phi_cc_var = d_ls_var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(!phi_cc_var.isNull());
 #endif
@@ -315,18 +315,18 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
 
 void
 SurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
-                                            Pointer<Variable<NDIM> > /*var*/,
-                                            Pointer<Patch<NDIM> > patch,
+                                            Pointer<Variable<NDIM>> /*var*/,
+                                            Pointer<Patch<NDIM>> patch,
                                             const double data_time,
                                             const bool initial_time,
-                                            Pointer<PatchLevel<NDIM> > level)
+                                            Pointer<PatchLevel<NDIM>> level)
 {
-    Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
+    Pointer<PatchData<NDIM>> f_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_data);
 #endif
-    Pointer<CellData<NDIM, double> > f_cc_data = f_data;
-    Pointer<SideData<NDIM, double> > f_sc_data = f_data;
+    Pointer<CellData<NDIM, double>> f_cc_data = f_data;
+    Pointer<SideData<NDIM, double>> f_sc_data = f_data;
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
@@ -348,22 +348,22 @@ void
 SurfaceTensionForceFunction::convertToHeaviside(int phi_idx,
                                                 int coarsest_ln,
                                                 int finest_ln,
-                                                Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+                                                Pointer<PatchHierarchy<NDIM>> patch_hierarchy)
 {
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
             double eps = d_num_interface_cells * std::pow(vol_cell, 1.0 / (double)NDIM);
 
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);
+            Pointer<CellData<NDIM, double>> phi_data = patch->getPatchData(phi_idx);
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
@@ -391,20 +391,20 @@ SurfaceTensionForceFunction::mollifyData(int smooth_C_idx,
                                          int coarsest_ln,
                                          int finest_ln,
                                          double data_time,
-                                         Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                         Pointer<PatchHierarchy<NDIM>> hierarchy,
                                          Pointer<HierarchyGhostCellInterpolation> fill_op)
 {
     if (d_kernel_fcn == "none") return;
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
 
-            Pointer<CellData<NDIM, double> > smooth_C_data = patch->getPatchData(smooth_C_idx);
+            Pointer<CellData<NDIM, double>> smooth_C_data = patch->getPatchData(smooth_C_idx);
             CellData<NDIM, double> C_data(patch_box, /*depth*/ 1, smooth_C_data->getGhostCellWidth());
 
             C_data.copy(*smooth_C_data);
@@ -444,11 +444,11 @@ SurfaceTensionForceFunction::mollifyData(int smooth_C_idx,
 } // mollifyData
 
 void
-SurfaceTensionForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double> > /*F_data*/,
-                                                Pointer<Patch<NDIM> > /*patch*/,
+SurfaceTensionForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double>> /*F_data*/,
+                                                Pointer<Patch<NDIM>> /*patch*/,
                                                 const double /*data_time*/,
                                                 const bool /*initial_time*/,
-                                                Pointer<PatchLevel<NDIM> > /*level*/)
+                                                Pointer<PatchLevel<NDIM>> /*level*/)
 {
     TBOX_ERROR(
         "SurfaceTensionForceFunction::setDataOnPatchCell() Cell centered surface force tension is not implemented yet."
@@ -458,20 +458,20 @@ SurfaceTensionForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double> >
 } // setDataOnPatchCell
 
 void
-SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> > F_data,
-                                                Pointer<Patch<NDIM> > patch,
+SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double>> F_data,
+                                                Pointer<Patch<NDIM>> patch,
                                                 const double /*data_time*/,
                                                 const bool /*initial_time*/,
-                                                Pointer<PatchLevel<NDIM> > /*level*/)
+                                                Pointer<PatchLevel<NDIM>> /*level*/)
 {
     const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     // First find normal in terms of gradient of phi.
     // N = grad(phi)
     SideData<NDIM, double> N(patch_box, /*depth*/ NDIM, /*gcw*/ IntVector<NDIM>(2));
-    Pointer<CellData<NDIM, double> > Phi = patch->getPatchData(d_phi_idx);
+    Pointer<CellData<NDIM, double>> Phi = patch->getPatchData(d_phi_idx);
 
     SC_NORMAL_FC(N.getPointer(0, 0),
                  N.getPointer(0, 1),
@@ -529,7 +529,7 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> >
                     dx);
 
     // Compute N = grad(C)
-    Pointer<CellData<NDIM, double> > C = patch->getPatchData(d_C_idx);
+    Pointer<CellData<NDIM, double>> C = patch->getPatchData(d_C_idx);
 
     SC_NORMAL_FC(N.getPointer(0, 0),
                  N.getPointer(0, 1),

@@ -80,7 +80,7 @@ static const int EXTENSIONS_FILLABLE = 128;
 
 muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
                                            Pointer<Database> input_db,
-                                           Pointer<CartesianGridGeometry<NDIM> > grid_geom)
+                                           Pointer<CartesianGridGeometry<NDIM>> grid_geom)
     : d_grid_geom(grid_geom)
 {
 #if !defined(NDEBUG)
@@ -335,17 +335,17 @@ muParserRobinBcCoefs::~muParserRobinBcCoefs()
 } // ~muParserRobinBcCoefs
 
 void
-muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                 Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                 Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                 const Pointer<Variable<NDIM> >& /*variable*/,
+muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
+                                 Pointer<ArrayData<NDIM, double>>& bcoef_data,
+                                 Pointer<ArrayData<NDIM, double>>& gcoef_data,
+                                 const Pointer<Variable<NDIM>>& /*variable*/,
                                  const Patch<NDIM>& patch,
                                  const BoundaryBox<NDIM>& bdry_box,
                                  double fill_time) const
 {
     const Box<NDIM>& patch_box = patch.getBox();
     const Index<NDIM>& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
 
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();

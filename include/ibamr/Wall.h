@@ -58,7 +58,7 @@ public:
 
     // Constructor.
     Wall(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> wall_db,
-         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry,
+         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> grid_geometry,
          double wall_ghost_dist);
 
     // Copy constructor.

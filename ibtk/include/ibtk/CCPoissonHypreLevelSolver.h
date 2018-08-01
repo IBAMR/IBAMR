@@ -301,14 +301,14 @@ private:
     /*!
      * \brief Associated hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy = nullptr;
 
     /*!
      * \brief Associated patch level and C-F boundary (for level numbers > 0).
      */
     int d_level_num = -1;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_level = nullptr;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_level = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> d_cf_boundary = nullptr;
 
     /*!
      * \name Problem specification.
@@ -325,7 +325,7 @@ private:
     std::vector<HYPRE_StructMatrix> d_matrices = {};
     std::vector<HYPRE_StructVector> d_rhs_vecs = {}, d_sol_vecs = {};
     std::vector<HYPRE_StructSolver> d_solvers = {}, d_preconds = {};
-    std::vector<SAMRAI::hier::Index<NDIM> > d_stencil_offsets = {};
+    std::vector<SAMRAI::hier::Index<NDIM>> d_stencil_offsets = {};
 
     std::string d_solver_type = "PFMG", d_precond_type = "none";
     int d_rel_change = 0;

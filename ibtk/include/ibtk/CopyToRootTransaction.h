@@ -70,9 +70,9 @@ public:
      */
     CopyToRootTransaction(int src_proc,
                           int dst_proc,
-                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
                           int src_patch_data_idx,
-                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > dst_patch_data);
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM>> dst_patch_data);
 
     /*!
      * \brief Destructor
@@ -82,7 +82,7 @@ public:
     /*!
      * Return a pointer to the data on the root process.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > getRootPatchData() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM>> getRootPatchData() const;
 
     /*!
      * Return a boolean indicating whether this transaction can estimate the
@@ -161,9 +161,9 @@ private:
     CopyToRootTransaction& operator=(const CopyToRootTransaction& that) = delete;
 
     const int d_src_proc, d_dst_proc;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_patch_level;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_patch_level;
     const int d_src_patch_data_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > d_dst_patch_data;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM>> d_dst_patch_data;
 };
 } // namespace IBTK
 

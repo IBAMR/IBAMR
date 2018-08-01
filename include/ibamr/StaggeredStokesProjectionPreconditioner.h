@@ -186,7 +186,7 @@ private:
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op = nullptr, d_no_fill_op = nullptr;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Phi_var = nullptr, d_F_Phi_var = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_Phi_var = nullptr, d_F_Phi_var = nullptr;
     int d_Phi_scratch_idx = -1, d_F_Phi_idx = -1;
 };
 } // namespace IBAMR

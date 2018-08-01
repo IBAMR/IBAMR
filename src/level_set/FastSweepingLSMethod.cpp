@@ -122,14 +122,14 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     if (!initialize_ls) return;
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > data_var;
+    Pointer<Variable<NDIM>> data_var;
     var_db->mapIndexToVariable(D_idx, data_var);
-    Pointer<CellVariable<NDIM, double> > D_var = data_var;
+    Pointer<CellVariable<NDIM, double>> D_var = data_var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(!D_var.isNull());
 #endif
 
-    Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
@@ -233,13 +233,13 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
 void
 FastSweepingLSMethod::fastSweep(Pointer<HierarchyMathOps> hier_math_ops, int dist_idx) const
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         const BoxArray<NDIM>& domain_boxes = level->getPhysicalDomain();
 #if !defined(NDEBUG)
         TBOX_ASSERT(domain_boxes.size() == 1);
@@ -247,8 +247,8 @@ FastSweepingLSMethod::fastSweep(Pointer<HierarchyMathOps> hier_math_ops, int dis
 
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double>> dist_data = patch->getPatchData(dist_idx);
             fastSweep(dist_data, patch, domain_boxes[0]);
         }
     }
@@ -257,8 +257,8 @@ FastSweepingLSMethod::fastSweep(Pointer<HierarchyMathOps> hier_math_ops, int dis
 } // fastSweep
 
 void
-FastSweepingLSMethod::fastSweep(Pointer<CellData<NDIM, double> > dist_data,
-                                const Pointer<Patch<NDIM> > patch,
+FastSweepingLSMethod::fastSweep(Pointer<CellData<NDIM, double>> dist_data,
+                                const Pointer<Patch<NDIM>> patch,
                                 const Box<NDIM>& domain_box) const
 {
     double* const D = dist_data->getPointer(0);
@@ -266,7 +266,7 @@ FastSweepingLSMethod::fastSweep(Pointer<CellData<NDIM, double> > dist_data,
 
     // Check if the patch touches physical domain.
     int touches_wall_loc_idx[NDIM * 2] = { 0 };
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const bool patch_touches_bdry = pgeom->getTouchesRegularBoundary() || pgeom->getTouchesPeriodicBoundary();
     if (patch_touches_bdry)
     {

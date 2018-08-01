@@ -179,9 +179,9 @@ private:
     /*!
      * \brief Do one relaxation step over a patch.
      */
-    void relax(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-               const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
-               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    void relax(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dist_data,
+               const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dist_init_data,
+               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                const int iter) const;
 
     /*!
@@ -194,9 +194,9 @@ private:
     /*!
      * \brief Compute the hamiltonian of the indicator field field over a patch
      */
-    void computeInitialHamiltonian(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > ham_init_data,
-                                   const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
-                                   const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void computeInitialHamiltonian(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> ham_init_data,
+                                   const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dist_init_data,
+                                   const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch) const;
 
     /*!
      * \brief Apply the mass constraint over the hierarchy
@@ -210,11 +210,11 @@ private:
     /*!
      * \brief Apply the mass constraint over a patch
      */
-    void applyMassConstraint(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_copy_data,
-                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
-                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > ham_init_data,
-                             const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void applyMassConstraint(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dist_data,
+                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dist_copy_data,
+                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dist_init_data,
+                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> ham_init_data,
+                             const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch) const;
 
     /*!
      * \brief Compute the volume of a region demarcated by a level set variable
@@ -233,10 +233,10 @@ private:
     /*!
      * \brief Apply the volume shift over a patch
      */
-    void applyVolumeShift(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-                          const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_copy_data,
+    void applyVolumeShift(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dist_data,
+                          const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dist_copy_data,
                           const double dV,
-                          const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+                          const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch) const;
 
     /*!
      * Read input values from a given database.

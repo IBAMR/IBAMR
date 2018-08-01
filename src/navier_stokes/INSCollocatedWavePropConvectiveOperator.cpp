@@ -177,7 +177,7 @@ INSCollocatedWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_U_scratch_idx);
     }
 
@@ -202,23 +202,23 @@ INSCollocatedWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
 
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
             const Box<NDIM>& patch_box = patch->getBox();
             const IntVector<NDIM>& patch_lower = patch_box.lower();
             const IntVector<NDIM>& patch_upper = patch_box.upper();
 
-            Pointer<CellData<NDIM, double> > N_data = patch->getPatchData(N_idx);
+            Pointer<CellData<NDIM, double>> N_data = patch->getPatchData(N_idx);
             const IntVector<NDIM> N_gcw = N_data->getGhostCellWidth();
-            Pointer<CellData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            Pointer<CellData<NDIM, double>> U_data = patch->getPatchData(d_U_scratch_idx);
             const IntVector<NDIM> U_gcw = U_data->getGhostCellWidth();
-            Pointer<FaceData<NDIM, double> > U_sp_data = patch->getPatchData(d_u_idx);
+            Pointer<FaceData<NDIM, double>> U_sp_data = patch->getPatchData(d_u_idx);
             const IntVector<NDIM> U_sp_gcw = U_sp_data->getGhostCellWidth();
 
             // Do differencing
@@ -265,7 +265,7 @@ INSCollocatedWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_U_scratch_idx);
     }
 

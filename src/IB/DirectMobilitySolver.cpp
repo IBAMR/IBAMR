@@ -287,7 +287,7 @@ DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
 
 void
 DirectMobilitySolver::registerStructIDsWithMobilityMat(const std::string& mat_name,
-                                                       const std::vector<std::vector<unsigned> >& struct_ids)
+                                                       const std::vector<std::vector<unsigned>>& struct_ids)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_mat_map.find(mat_name) != d_mat_map.end());
@@ -353,7 +353,7 @@ DirectMobilitySolver::solveSystem(Vec x, Vec b)
         const std::string& mat_name = it.first;
         Mat& mat = d_petsc_mat_map[mat_name].first;
         const MobilityMatrixInverseType& inv_type = d_mat_inv_type_map[mat_name].first;
-        const std::vector<std::vector<unsigned> >& struct_ids = d_mat_actual_id_map[mat_name];
+        const std::vector<std::vector<unsigned>>& struct_ids = d_mat_actual_id_map[mat_name];
         const int managing_proc = d_mat_proc_map[mat_name];
         const int mat_size = d_mat_nodes_map[mat_name] * data_depth;
         const auto num_structs = static_cast<int>(struct_ids.size());
@@ -407,7 +407,7 @@ DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
         const std::string& mat_name = it.first;
         Mat& mat = d_petsc_mat_map[mat_name].second;
         const MobilityMatrixInverseType& inv_type = d_mat_inv_type_map[mat_name].second;
-        const std::vector<std::vector<unsigned> >& struct_ids = d_mat_actual_id_map[mat_name];
+        const std::vector<std::vector<unsigned>>& struct_ids = d_mat_actual_id_map[mat_name];
         const int mat_size = d_mat_parts_map[mat_name] * data_depth;
         const int managing_proc = d_mat_proc_map[mat_name];
         const auto num_structs = static_cast<int>(struct_ids.size());
@@ -463,14 +463,14 @@ DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
         // Get grid-info
         Vec* vx;
         VecNestGetSubVecs(x, nullptr, &vx);
-        Pointer<SAMRAIVectorReal<NDIM, double> > vx0;
+        Pointer<SAMRAIVectorReal<NDIM, double>> vx0;
         IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = vx0->getPatchHierarchy();
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = vx0->getPatchHierarchy();
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(vx[0], &vx0);
-        Pointer<PatchLevel<NDIM> > struct_patch_level = patch_hierarchy->getPatchLevel(finest_ln);
+        Pointer<PatchLevel<NDIM>> struct_patch_level = patch_hierarchy->getPatchLevel(finest_ln);
         const IntVector<NDIM>& ratio = struct_patch_level->getRatio();
-        Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_hierarchy->getGridGeometry();
+        Pointer<CartesianGridGeometry<NDIM>> grid_geom = patch_hierarchy->getGridGeometry();
         const double* dx0 = grid_geom->getDx();
         const double* X_upper = grid_geom->getXUpper();
         const double* X_lower = grid_geom->getXLower();
@@ -557,7 +557,7 @@ DirectMobilitySolver::getPrototypeStructIDs(const std::string& mat_name)
 
 } // getPrototypeStructIDs
 
-const std::vector<std::vector<unsigned> >&
+const std::vector<std::vector<unsigned>>&
 DirectMobilitySolver::getStructIDs(const std::string& mat_name)
 {
 #if !defined(NDEBUG)

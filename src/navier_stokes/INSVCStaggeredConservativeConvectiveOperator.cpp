@@ -1385,33 +1385,33 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
 
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
 
-                const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
                 const double* const dx = patch_geom->getDx();
 
                 const Box<NDIM>& patch_box = patch->getBox();
                 const IntVector<NDIM>& patch_lower = patch_box.lower();
                 const IntVector<NDIM>& patch_upper = patch_box.upper();
 
-                Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(N_idx);
-                Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
-                Pointer<SideData<NDIM, double> > R_cur_data = patch->getPatchData(d_rho_sc_current_idx);
-                Pointer<SideData<NDIM, double> > R_pre_data = patch->getPatchData(d_rho_sc_scratch_idx);
-                Pointer<SideData<NDIM, double> > R_new_data = patch->getPatchData(d_rho_sc_new_idx);
-                Pointer<SideData<NDIM, double> > R_src_data = patch->getPatchData(d_S_scratch_idx);
+                Pointer<SideData<NDIM, double>> N_data = patch->getPatchData(N_idx);
+                Pointer<SideData<NDIM, double>> U_data = patch->getPatchData(d_U_scratch_idx);
+                Pointer<SideData<NDIM, double>> R_cur_data = patch->getPatchData(d_rho_sc_current_idx);
+                Pointer<SideData<NDIM, double>> R_pre_data = patch->getPatchData(d_rho_sc_scratch_idx);
+                Pointer<SideData<NDIM, double>> R_new_data = patch->getPatchData(d_rho_sc_new_idx);
+                Pointer<SideData<NDIM, double>> R_src_data = patch->getPatchData(d_S_scratch_idx);
 
                 // Define variables that live on the "faces" of control volumes centered about side-centered staggered
                 // velocity components
                 const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
                 boost::array<Box<NDIM>, NDIM> side_boxes;
-                boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data;
-                boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data;
-                boost::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data;
-                boost::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data;
+                boost::array<Pointer<FaceData<NDIM, double>>, NDIM> U_adv_data;
+                boost::array<Pointer<FaceData<NDIM, double>>, NDIM> U_half_data;
+                boost::array<Pointer<FaceData<NDIM, double>>, NDIM> R_half_data;
+                boost::array<Pointer<FaceData<NDIM, double>>, NDIM> P_half_data;
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
@@ -1566,7 +1566,7 @@ INSVCStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMR
     // Allocate data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_U_scratch_idx)) level->allocatePatchData(d_U_scratch_idx);
         if (!level->checkAllocated(d_rho_sc_scratch_idx)) level->allocatePatchData(d_rho_sc_scratch_idx);
         if (!level->checkAllocated(d_rho_sc_new_idx)) level->allocatePatchData(d_rho_sc_new_idx);
@@ -1605,7 +1605,7 @@ INSVCStaggeredConservativeConvectiveOperator::deallocateOperatorState()
     // Deallocate data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_U_scratch_idx)) level->deallocatePatchData(d_U_scratch_idx);
         if (level->checkAllocated(d_rho_sc_scratch_idx)) level->deallocatePatchData(d_rho_sc_scratch_idx);
         if (level->checkAllocated(d_rho_sc_new_idx)) level->deallocatePatchData(d_rho_sc_new_idx);
@@ -1667,8 +1667,8 @@ INSVCStaggeredConservativeConvectiveOperator::setMassDensitySourceTerm(const Poi
 
 void
 INSVCStaggeredConservativeConvectiveOperator::computeAdvectionVelocity(
-    boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
-    const Pointer<SideData<NDIM, double> > U_data,
+    boost::array<Pointer<FaceData<NDIM, double>>, NDIM> U_adv_data,
+    const Pointer<SideData<NDIM, double>> U_data,
     const IntVector<NDIM>& patch_lower,
     const IntVector<NDIM>& patch_upper,
     const boost::array<Box<NDIM>, NDIM>& side_boxes)
@@ -1753,9 +1753,9 @@ INSVCStaggeredConservativeConvectiveOperator::computeAdvectionVelocity(
 
 void
 INSVCStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
-    boost::array<Pointer<FaceData<NDIM, double> >, NDIM> Q_half_data,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
-    const Pointer<SideData<NDIM, double> > Q_data,
+    boost::array<Pointer<FaceData<NDIM, double>>, NDIM> Q_half_data,
+    const boost::array<Pointer<FaceData<NDIM, double>>, NDIM> U_adv_data,
+    const Pointer<SideData<NDIM, double>> Q_data,
     const IntVector<NDIM>& patch_lower,
     const IntVector<NDIM>& patch_upper,
     const boost::array<Box<NDIM>, NDIM>& side_boxes,
@@ -2154,16 +2154,16 @@ INSVCStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
     case PPM:
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            Pointer<SideData<NDIM, double> > dQ_data =
+            Pointer<SideData<NDIM, double>> dQ_data =
                 new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
-            Pointer<SideData<NDIM, double> > Q_L_data =
+            Pointer<SideData<NDIM, double>> Q_L_data =
                 new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
-            Pointer<SideData<NDIM, double> > Q_R_data =
+            Pointer<SideData<NDIM, double>> Q_R_data =
                 new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
-            Pointer<SideData<NDIM, double> > Q_scratch1_data =
+            Pointer<SideData<NDIM, double>> Q_scratch1_data =
                 new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
 #if (NDIM == 3)
-            Pointer<SideData<NDIM, double> > Q_scratch2_data =
+            Pointer<SideData<NDIM, double>> Q_scratch2_data =
                 new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
 #endif
 #if (NDIM == 2)
@@ -2228,11 +2228,11 @@ INSVCStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
 
 void
 INSVCStaggeredConservativeConvectiveOperator::computeConvectiveDerivative(
-    Pointer<SideData<NDIM, double> > N_data,
-    boost::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data,
+    Pointer<SideData<NDIM, double>> N_data,
+    boost::array<Pointer<FaceData<NDIM, double>>, NDIM> P_half_data,
+    const boost::array<Pointer<FaceData<NDIM, double>>, NDIM> U_adv_data,
+    const boost::array<Pointer<FaceData<NDIM, double>>, NDIM> R_half_data,
+    const boost::array<Pointer<FaceData<NDIM, double>>, NDIM> U_half_data,
     const boost::array<Box<NDIM>, NDIM>& side_boxes,
     const double* const dx)
 {
@@ -2406,15 +2406,15 @@ INSVCStaggeredConservativeConvectiveOperator::computeConvectiveDerivative(
 
 void
 INSVCStaggeredConservativeConvectiveOperator::computeDensityUpdate(
-    Pointer<SideData<NDIM, double> > R_data,
+    Pointer<SideData<NDIM, double>> R_data,
     const double& a0,
-    const Pointer<SideData<NDIM, double> > R0_data,
+    const Pointer<SideData<NDIM, double>> R0_data,
     const double& a1,
-    const Pointer<SideData<NDIM, double> > R1_data,
+    const Pointer<SideData<NDIM, double>> R1_data,
     const double& a2,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
-    const Pointer<SideData<NDIM, double> > S_data,
+    const boost::array<Pointer<FaceData<NDIM, double>>, NDIM> U_adv_data,
+    const boost::array<Pointer<FaceData<NDIM, double>>, NDIM> R_half_data,
+    const Pointer<SideData<NDIM, double>> S_data,
     const boost::array<Box<NDIM>, NDIM>& side_boxes,
     const double& dt,
     const double* const dx)
@@ -2501,7 +2501,7 @@ INSVCStaggeredConservativeConvectiveOperator::computeDensityUpdate(
             if (patch_geom->getTouchesRegularBoundary())
             {
                 // Compute the co-dimension one boundary boxes.
-                const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+                const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
                 PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
                 
                 // There is nothing to do if the patch does not have any co-dimension one
@@ -2512,7 +2512,7 @@ INSVCStaggeredConservativeConvectiveOperator::computeDensityUpdate(
                 const double* const patch_x_lower = patch_geom->getXLower();
                 const double* const patch_x_upper = patch_geom->getXUpper();
                 const IntVector<NDIM>& ratio_to_level_zero = patch_geom->getRatio();
-                Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+                Array<Array<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     touches_regular_bdry[axis].resizeArray(2);
@@ -2540,9 +2540,9 @@ INSVCStaggeredConservativeConvectiveOperator::computeDensityUpdate(
                                                                  bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
                         const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
                         
-                        Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                        Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                        Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                        Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                        Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                        Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
                         
                         
                         if (axis != bdry_normal_axis)
@@ -2566,7 +2566,7 @@ INSVCStaggeredConservativeConvectiveOperator::computeDensityUpdate(
                                                                                      shifted_patch_x_upper.data()));
                         }
     
-                        d_rho_interp_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data,Pointer<Variable<NDIM> >(NULL), *patch, trimmed_bdry_box, d_current_time);
+                        d_rho_interp_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data,Pointer<Variable<NDIM>>(NULL), *patch, trimmed_bdry_box, d_current_time);
                         
                         // Restore the original patch geometry object.
                         patch->setPatchGeometry(patch_geom);

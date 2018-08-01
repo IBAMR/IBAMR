@@ -273,8 +273,8 @@ private:
     /*
      * Patch overlap data.
      */
-    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_bc_box_overlap = {};
-    std::vector<std::vector<std::map<int, SAMRAI::hier::Box<NDIM> > > > d_patch_neighbor_overlap = {};
+    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM>>> d_patch_bc_box_overlap = {};
+    std::vector<std::vector<std::map<int, SAMRAI::hier::Box<NDIM>>>> d_patch_neighbor_overlap = {};
 };
 } // namespace IBTK
 

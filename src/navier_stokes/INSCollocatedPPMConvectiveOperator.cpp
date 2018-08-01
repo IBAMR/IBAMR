@@ -424,7 +424,7 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_U_scratch_idx);
         level->allocatePatchData(d_u_extrap_idx);
         if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
@@ -432,9 +432,9 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
     }
 
     // Setup communications algorithm.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
-    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<RefineAlgorithm<NDIM>> refine_alg = new RefineAlgorithm<NDIM>();
+    Pointer<RefineOperator<NDIM>> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
     refine_alg->registerRefine(d_U_scratch_idx, U_idx, d_U_scratch_idx, refine_op);
 
     // Extrapolate from cell centers to cell faces.
@@ -443,26 +443,26 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
         refine_alg->resetSchedule(d_ghostfill_scheds[ln]);
         d_ghostfill_scheds[ln]->fillData(d_solution_time);
         d_ghostfill_alg->resetSchedule(d_ghostfill_scheds[ln]);
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
 
             const Box<NDIM>& patch_box = patch->getBox();
             const IntVector<NDIM>& patch_lower = patch_box.lower();
             const IntVector<NDIM>& patch_upper = patch_box.upper();
 
-            Pointer<CellData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            Pointer<CellData<NDIM, double>> U_data = patch->getPatchData(d_U_scratch_idx);
             const IntVector<NDIM>& U_data_gcw = U_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(U_data_gcw.min() == U_data_gcw.max());
 #endif
-            Pointer<FaceData<NDIM, double> > u_ADV_data = patch->getPatchData(d_u_idx);
+            Pointer<FaceData<NDIM, double>> u_ADV_data = patch->getPatchData(d_u_idx);
             const IntVector<NDIM>& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(u_ADV_data_gcw.min() == u_ADV_data_gcw.max());
 #endif
-            Pointer<FaceData<NDIM, double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
+            Pointer<FaceData<NDIM, double>> u_extrap_data = patch->getPatchData(d_u_extrap_idx);
             const IntVector<NDIM>& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(u_extrap_data_gcw.min() == u_extrap_data_gcw.max());
@@ -538,9 +538,9 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
             // the patch hierarchy.
             if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                Pointer<FaceData<NDIM, double> > u_ADV_data = patch->getPatchData(d_u_idx);
+                Pointer<FaceData<NDIM, double>> u_ADV_data = patch->getPatchData(d_u_idx);
                 const IntVector<NDIM>& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-                Pointer<FaceData<NDIM, double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                Pointer<FaceData<NDIM, double>> u_flux_data = patch->getPatchData(d_u_flux_idx);
                 const IntVector<NDIM>& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -612,26 +612,26 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
     // Difference values on the patches.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
 
             const Box<NDIM>& patch_box = patch->getBox();
             const IntVector<NDIM>& patch_lower = patch_box.lower();
             const IntVector<NDIM>& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
-            Pointer<CellData<NDIM, double> > N_data = patch->getPatchData(N_idx);
+            Pointer<CellData<NDIM, double>> N_data = patch->getPatchData(N_idx);
             const IntVector<NDIM>& N_data_gcw = N_data->getGhostCellWidth();
 
             if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                Pointer<FaceData<NDIM, double> > u_ADV_data = patch->getPatchData(d_u_idx);
+                Pointer<FaceData<NDIM, double>> u_ADV_data = patch->getPatchData(d_u_idx);
                 const IntVector<NDIM>& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-                Pointer<FaceData<NDIM, double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
+                Pointer<FaceData<NDIM, double>> u_extrap_data = patch->getPatchData(d_u_extrap_idx);
                 const IntVector<NDIM>& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -688,7 +688,7 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
 
             if (d_difference_form == CONSERVATIVE)
             {
-                Pointer<FaceData<NDIM, double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                Pointer<FaceData<NDIM, double>> u_flux_data = patch->getPatchData(d_u_flux_idx);
                 const IntVector<NDIM>& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -723,7 +723,7 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
 
             if (d_difference_form == SKEW_SYMMETRIC)
             {
-                Pointer<FaceData<NDIM, double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                Pointer<FaceData<NDIM, double>> u_flux_data = patch->getPatchData(d_u_flux_idx);
                 const IntVector<NDIM>& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -768,7 +768,7 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_U_scratch_idx);
         level->deallocatePatchData(d_u_extrap_idx);
         if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
@@ -798,10 +798,10 @@ INSCollocatedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorRe
 #else
     NULL_USE(out);
 #endif
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
 
     // Setup the coarsen algorithm, operator, and schedules.
-    Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_u_flux_var, "CONSERVATIVE_COARSEN");
+    Pointer<CoarsenOperator<NDIM>> coarsen_op = grid_geom->lookupCoarsenOperator(d_u_flux_var, "CONSERVATIVE_COARSEN");
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
     if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
         d_coarsen_alg->registerCoarsen(d_u_extrap_idx, d_u_extrap_idx, coarsen_op);
@@ -810,20 +810,20 @@ INSCollocatedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorRe
     d_coarsen_scheds.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        Pointer<PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(ln - 1);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
         d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level);
     }
 
     // Setup the refine algorithm, operator, patch strategy, and schedules.
-    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    Pointer<RefineOperator<NDIM>> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
     d_ghostfill_alg = new RefineAlgorithm<NDIM>();
     d_ghostfill_alg->registerRefine(d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, refine_op);
     d_ghostfill_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, d_bdry_extrap_type);
     d_ghostfill_scheds.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy);
     }
 

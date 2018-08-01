@@ -90,7 +90,7 @@ coarsen_index(const Index<NDIM>& i, const IntVector<NDIM>& ratio)
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 bool
-LMarkerCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
+LMarkerCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM>>& var, const std::string& op_name) const
 {
     Pointer<LMarkerSetVariable> mark_var = var;
     return (mark_var && op_name == s_op_name);

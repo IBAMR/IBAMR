@@ -115,8 +115,8 @@ private:
     /*!
      * \brief Do one fast sweep over a patch.
      */
-    void fastSweep(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-                   const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    void fastSweep(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dist_data,
+                   const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                    const SAMRAI::hier::Box<NDIM>& domain_box) const;
 
     /*!

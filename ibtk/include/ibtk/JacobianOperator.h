@@ -90,7 +90,7 @@ public:
      * NULL pointer if the operator is not initialized, or if formJacobian() has
      * not been called.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getBaseVector() const = 0;
+    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> getBaseVector() const = 0;
 
     //\}
 

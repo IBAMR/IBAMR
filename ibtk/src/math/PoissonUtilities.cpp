@@ -172,7 +172,7 @@ compute_mu_harmonic_avg(const Index<NDIM>& i, const EdgeData<NDIM, double>& mu_d
 } // compute_mu_harmonic_avg
 
 inline double
-get_mu_edge(const Index<NDIM>& i, const int perp, const Pointer<EdgeData<NDIM, double> > mu_data)
+get_mu_edge(const Index<NDIM>& i, const int perp, const Pointer<EdgeData<NDIM, double>> mu_data)
 {
     const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
     return mu_array_data(i, /*depth*/ 0);
@@ -190,8 +190,8 @@ get_shift(int dir, int shift)
 
 void
 PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coefficients,
-                                            Pointer<Patch<NDIM> > patch,
-                                            const std::vector<Index<NDIM> >& stencil,
+                                            Pointer<Patch<NDIM>> patch,
+                                            const std::vector<Index<NDIM>>& stencil,
                                             const PoissonSpecifications& poisson_spec,
                                             RobinBcCoefStrategy<NDIM>* bc_coef,
                                             double data_time)
@@ -203,8 +203,8 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
 
 void
 PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coefficients,
-                                            Pointer<Patch<NDIM> > patch,
-                                            const std::vector<Index<NDIM> >& stencil,
+                                            Pointer<Patch<NDIM>> patch,
+                                            const std::vector<Index<NDIM>>& stencil,
                                             const PoissonSpecifications& poisson_spec,
                                             const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                             double data_time)
@@ -248,7 +248,7 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
     SideData<NDIM, double> off_diagonal(patch_box, depth, IntVector<NDIM>(0));
 
     ArrayDataBasicOps<NDIM, double> array_ops;
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     // Compute all off-diagonal matrix coefficients for all cell sides,
@@ -303,7 +303,7 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
     }
 
     // Modify matrix coefficients to account for physical boundary conditions.
-    const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+    const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
@@ -312,9 +312,9 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
         const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
         const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-        Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
 
         for (int d = 0; d < depth; ++d)
         {
@@ -407,8 +407,8 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
 
 void
 PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coefficients,
-                                            Pointer<Patch<NDIM> > patch,
-                                            const std::vector<Index<NDIM> >& stencil,
+                                            Pointer<Patch<NDIM>> patch,
+                                            const std::vector<Index<NDIM>>& stencil,
                                             const PoissonSpecifications& poisson_spec,
                                             const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                             double data_time)
@@ -459,15 +459,15 @@ PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coeff
     const double D = poisson_spec.getDConstant();
 
     const Box<NDIM>& patch_box = patch->getBox();
-    const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+    const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
     const IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
-    Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+    Array<Array<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         touches_regular_bdry[axis].resizeArray(2);
@@ -526,9 +526,9 @@ PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coeff
             const Box<NDIM> bc_coef_box = compute_tangential_extension(
                 PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
 
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
@@ -641,9 +641,9 @@ PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coeff
                 PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
 
             // Set the boundary condition coefficients.
             static const bool homogeneous_bc = true;
@@ -726,8 +726,8 @@ PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coeff
 void
 PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     SAMRAI::pdat::SideData<NDIM, double>& matrix_coefficients,
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-    const std::vector<std::map<Index<NDIM>, int, IndexFortranOrder> >& stencil_map_vec,
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+    const std::vector<std::map<Index<NDIM>, int, IndexFortranOrder>>& stencil_map_vec,
     const SAMRAI::solv::PoissonSpecifications& poisson_spec,
     double alpha,
     double beta,
@@ -747,13 +747,13 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     matrix_coefficients.fillAll(0.0);
 
     const bool C_is_varying = poisson_spec.cIsVariable();
-    Pointer<SideData<NDIM, double> > C_data = nullptr;
+    Pointer<SideData<NDIM, double>> C_data = nullptr;
     if (C_is_varying) C_data = patch->getPatchData(poisson_spec.getCPatchDataId());
 
 #if (NDIM == 2)
-    Pointer<NodeData<NDIM, double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    Pointer<NodeData<NDIM, double>> mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #elif (NDIM == 3)
-    Pointer<EdgeData<NDIM, double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    Pointer<EdgeData<NDIM, double>> mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #endif
 
 #if !defined(NDEBUG)
@@ -766,15 +766,15 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
 #endif
 
     const Box<NDIM>& patch_box = patch->getBox();
-    const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+    const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
     const IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
-    Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+    Array<Array<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         touches_regular_bdry[axis].resizeArray(2);
@@ -906,9 +906,9 @@ typedef std::map<Index<NDIM>, int, IndexFortranOrder> StencilMapType;
             const Box<NDIM> bc_coef_box = compute_tangential_extension(
                 PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
 
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
@@ -1026,9 +1026,9 @@ typedef std::map<Index<NDIM>, int, IndexFortranOrder> StencilMapType;
 
                 const Box<NDIM> bc_coef_box = compute_tangential_extension(side_box, comp);
 
-                Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
 
                 // Temporarily reset the patch geometry object associated with the
                 // patch so that boundary conditions are set at the correct spatial
@@ -1157,9 +1157,9 @@ typedef std::map<Index<NDIM>, int, IndexFortranOrder> StencilMapType;
                 PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
 
             // Set the boundary condition coefficients.
             static const bool homogeneous_bc = true;
@@ -1243,7 +1243,7 @@ typedef std::map<Index<NDIM>, int, IndexFortranOrder> StencilMapType;
 
 void
 PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
-                                              Pointer<Patch<NDIM> > patch,
+                                              Pointer<Patch<NDIM>> patch,
                                               const PoissonSpecifications& poisson_spec,
                                               RobinBcCoefStrategy<NDIM>* bc_coef,
                                               double data_time,
@@ -1256,7 +1256,7 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
 
 void
 PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
-                                              Pointer<Patch<NDIM> > patch,
+                                              Pointer<Patch<NDIM>> patch,
                                               const PoissonSpecifications& poisson_spec,
                                               const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                               double data_time,
@@ -1276,11 +1276,11 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
     {
         D_data.fillAll(poisson_spec.getDConstant());
     }
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     // Modify the rhs entries to account for inhomogeneous boundary conditions.
-    const Array<BoundaryBox<NDIM> > codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+    const Array<BoundaryBox<NDIM>> codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     const int n_bdry_boxes = codim1_boxes.size();
     for (int n = 0; n < n_bdry_boxes; ++n)
     {
@@ -1288,9 +1288,9 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
         const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
         const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-        Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
 
         for (int d = 0; d < depth; ++d)
         {
@@ -1355,7 +1355,7 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
 
 void
 PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
-                                              Pointer<Patch<NDIM> > patch,
+                                              Pointer<Patch<NDIM>> patch,
                                               const PoissonSpecifications& poisson_spec,
                                               const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                               double data_time,
@@ -1372,15 +1372,15 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
     }
     const Box<NDIM>& patch_box = patch->getBox();
     const double D = poisson_spec.getDConstant();
-    const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+    const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
     const IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
-    Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+    Array<Array<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         touches_regular_bdry[axis].resizeArray(2);
@@ -1417,9 +1417,9 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
             const Box<NDIM> bc_coef_box = compute_tangential_extension(
                 PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
 
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
@@ -1519,9 +1519,9 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
                 PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
 
             // Set the boundary condition coefficients.
             auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
@@ -1576,7 +1576,7 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
 
 void
 PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
-                                                           Pointer<Patch<NDIM> > patch,
+                                                           Pointer<Patch<NDIM>> patch,
                                                            const PoissonSpecifications& poisson_spec,
                                                            double alpha,
                                                            const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
@@ -1589,9 +1589,9 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
 #endif
 
 #if (NDIM == 2)
-    Pointer<NodeData<NDIM, double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    Pointer<NodeData<NDIM, double>> mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #elif (NDIM == 3)
-    Pointer<EdgeData<NDIM, double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    Pointer<EdgeData<NDIM, double>> mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #endif
 
 #if !defined(NDEBUG)
@@ -1603,15 +1603,15 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
 #endif
 
     const Box<NDIM>& patch_box = patch->getBox();
-    const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+    const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
     const IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
-    Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+    Array<Array<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         touches_regular_bdry[axis].resizeArray(2);
@@ -1648,9 +1648,9 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
             const Box<NDIM> bc_coef_box = compute_tangential_extension(
                 PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
 
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
@@ -1765,9 +1765,9 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
 
                 const Box<NDIM> bc_coef_box = compute_tangential_extension(side_box, comp);
 
-                Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
 
                 // Temporarily reset the patch geometry object associated with the
                 // patch so that boundary conditions are set at the correct spatial
@@ -1882,9 +1882,9 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
                 PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
 
             // Set the boundary condition coefficients.
             auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
@@ -1960,9 +1960,9 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
 void
 PoissonUtilities::adjustRHSAtCoarseFineBoundary(CellData<NDIM, double>& rhs_data,
                                                 const CellData<NDIM, double>& sol_data,
-                                                Pointer<Patch<NDIM> > patch,
+                                                Pointer<Patch<NDIM>> patch,
                                                 const PoissonSpecifications& poisson_spec,
-                                                const Array<BoundaryBox<NDIM> >& type1_cf_bdry)
+                                                const Array<BoundaryBox<NDIM>>& type1_cf_bdry)
 {
     const int depth = rhs_data.getDepth();
     TBOX_ASSERT(depth == sol_data.getDepth());
@@ -1976,7 +1976,7 @@ PoissonUtilities::adjustRHSAtCoarseFineBoundary(CellData<NDIM, double>& rhs_data
     {
         D_data.fillAll(poisson_spec.getDConstant());
     }
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     // Modify the rhs entries to account for coarse-fine interface boundary conditions.
@@ -2017,9 +2017,9 @@ PoissonUtilities::adjustRHSAtCoarseFineBoundary(CellData<NDIM, double>& rhs_data
 void
 PoissonUtilities::adjustRHSAtCoarseFineBoundary(SideData<NDIM, double>& rhs_data,
                                                 const SideData<NDIM, double>& sol_data,
-                                                Pointer<Patch<NDIM> > patch,
+                                                Pointer<Patch<NDIM>> patch,
                                                 const PoissonSpecifications& poisson_spec,
-                                                const Array<BoundaryBox<NDIM> >& type1_cf_bdry)
+                                                const Array<BoundaryBox<NDIM>>& type1_cf_bdry)
 {
     const int depth = rhs_data.getDepth();
     TBOX_ASSERT(depth == sol_data.getDepth());
@@ -2031,7 +2031,7 @@ PoissonUtilities::adjustRHSAtCoarseFineBoundary(SideData<NDIM, double>& rhs_data
     }
     const Box<NDIM>& patch_box = patch->getBox();
     const double D = poisson_spec.getDConstant();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     // Modify the rhs entries to account for coarse-fine interface boundary conditions.
@@ -2078,16 +2078,16 @@ PoissonUtilities::adjustRHSAtCoarseFineBoundary(SideData<NDIM, double>& rhs_data
 void
 PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, double>& rhs_data,
                                                              const SideData<NDIM, double>& sol_data,
-                                                             Pointer<Patch<NDIM> > patch,
+                                                             Pointer<Patch<NDIM>> patch,
                                                              const PoissonSpecifications& poisson_spec,
                                                              double alpha,
-                                                             const Array<BoundaryBox<NDIM> >& type1_cf_bdry,
+                                                             const Array<BoundaryBox<NDIM>>& type1_cf_bdry,
                                                              VCInterpType mu_interp_type)
 {
 #if (NDIM == 2)
-    Pointer<NodeData<NDIM, double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    Pointer<NodeData<NDIM, double>> mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #elif (NDIM == 3)
-    Pointer<EdgeData<NDIM, double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    Pointer<EdgeData<NDIM, double>> mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #endif
 
 #if !defined(NDEBUG)
@@ -2103,7 +2103,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
     const IntVector<NDIM> ghost_width_to_fill(1);
 
     const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     // Modify the rhs entries to account for inhomogeneous Dirichelt boundary

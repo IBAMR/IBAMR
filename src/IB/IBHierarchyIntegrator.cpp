@@ -142,7 +142,7 @@ IBHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> f_fcn
 } // registerBodyForceFunction
 
 void
-IBHierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer)
+IBHierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer<NDIM>> load_balancer)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
@@ -157,25 +157,25 @@ IBHierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_ba
     return;
 } // registerLoadBalancer
 
-Pointer<Variable<NDIM> >
+Pointer<Variable<NDIM>>
 IBHierarchyIntegrator::getVelocityVariable() const
 {
     return d_u_var;
 } // getVelocityVariable
 
-Pointer<Variable<NDIM> >
+Pointer<Variable<NDIM>>
 IBHierarchyIntegrator::getPressureVariable() const
 {
     return d_p_var;
 } // getPressureVariable
 
-Pointer<Variable<NDIM> >
+Pointer<Variable<NDIM>>
 IBHierarchyIntegrator::getBodyForceVariable() const
 {
     return d_f_var;
 } // getBodyForceVariable
 
-Pointer<Variable<NDIM> >
+Pointer<Variable<NDIM>>
 IBHierarchyIntegrator::getFluidSourceVariable() const
 {
     return d_q_var;
@@ -220,8 +220,8 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
 } // preprocessIntegrateHierarchy
 
 void
-IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                                     Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -284,15 +284,15 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
 
     // Create several communications algorithms, used in filling ghost cell data
     // and synchronizing data on the patch hierarchy.
-    Pointer<Geometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<Geometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
 
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_var, getNewContext());
     const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_u_var, getScratchContext());
     const int p_new_idx = var_db->mapVariableAndContextToIndex(d_p_var, getNewContext());
     const int p_scratch_idx = var_db->mapVariableAndContextToIndex(d_p_var, getScratchContext());
 
-    Pointer<CellVariable<NDIM, double> > u_cc_var = d_u_var;
-    Pointer<SideVariable<NDIM, double> > u_sc_var = d_u_var;
+    Pointer<CellVariable<NDIM, double>> u_cc_var = d_u_var;
+    Pointer<SideVariable<NDIM, double>> u_sc_var = d_u_var;
     if (u_cc_var)
     {
         d_u_phys_bdry_op = new CartCellRobinPhysBdryOp(u_scratch_idx,
@@ -329,7 +329,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
 
     if (d_ib_method_ops->hasFluidSources())
     {
-        Pointer<CellVariable<NDIM, double> > p_cc_var = d_p_var;
+        Pointer<CellVariable<NDIM, double>> p_cc_var = d_p_var;
         if (p_cc_var)
         {
             d_p_phys_bdry_op = new CartCellRobinPhysBdryOp(p_scratch_idx,
@@ -359,8 +359,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
         registerProlongRefineAlgorithm(d_object_name + "::q", d_q_prolong_alg);
     }
 
-    Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
-    Pointer<RefineOperator<NDIM> > refine_op;
+    Pointer<RefineAlgorithm<NDIM>> refine_alg = new RefineAlgorithm<NDIM>();
+    Pointer<RefineOperator<NDIM>> refine_op;
     refine_op = grid_geom->lookupRefineOperator(d_u_var, "CONSERVATIVE_LINEAR_REFINE");
     refine_alg->registerRefine(u_scratch_idx, u_new_idx, u_scratch_idx, refine_op);
     refine_op = grid_geom->lookupRefineOperator(d_p_var, "LINEAR_REFINE");
@@ -395,8 +395,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
 } // initializeHierarchyIntegrator
 
 void
-IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                                Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
 {
     if (d_hierarchy_is_initialized) return;
 
@@ -418,7 +418,7 @@ IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > h
     const int finest_ln = hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_u_idx, d_integrator_time);
         level->allocatePatchData(d_scratch_data, d_integrator_time);
     }
@@ -438,7 +438,7 @@ IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > h
                                               initial_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_scratch_data);
     }
@@ -572,16 +572,16 @@ IBHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double /*init
 } // initializeCompositeHierarchyDataSpecialized
 
 void
-IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
                                                       const int level_number,
                                                       const double init_data_time,
                                                       const bool can_be_refined,
                                                       const bool initial_time,
-                                                      const Pointer<BasePatchLevel<NDIM> > base_old_level,
+                                                      const Pointer<BasePatchLevel<NDIM>> base_old_level,
                                                       const bool allocate_data)
 {
-    const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
-    const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
+    const Pointer<PatchHierarchy<NDIM>> hierarchy = base_hierarchy;
+    const Pointer<PatchLevel<NDIM>> old_level = base_old_level;
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -614,11 +614,11 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHie
 } // initializeLevelDataSpecialized
 
 void
-IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
                                                               const int coarsest_level,
                                                               const int finest_level)
 {
-    const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    const Pointer<PatchHierarchy<NDIM>> hierarchy = base_hierarchy;
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
@@ -644,7 +644,7 @@ IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<Base
 } // resetHierarchyConfigurationSpecialized
 
 void
-IBHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                                         const int level_number,
                                                         const double error_data_time,
                                                         const int tag_index,

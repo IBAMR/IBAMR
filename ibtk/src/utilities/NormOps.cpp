@@ -136,50 +136,50 @@ double
 NormOps::L1Norm_local(const SAMRAIVectorReal<NDIM, double>* const samrai_vector)
 {
     std::vector<double> L1_norm_local_patch;
-    Pointer<PatchHierarchy<NDIM> > hierarchy = samrai_vector->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> hierarchy = samrai_vector->getPatchHierarchy();
     const int coarsest_ln = samrai_vector->getCoarsestLevelNumber();
     const int finest_ln = samrai_vector->getFinestLevelNumber();
     const int ncomp = samrai_vector->getNumberOfComponents();
     for (int comp = 0; comp < ncomp; ++comp)
     {
-        const Pointer<Variable<NDIM> >& comp_var = samrai_vector->getComponentVariable(comp);
+        const Pointer<Variable<NDIM>>& comp_var = samrai_vector->getComponentVariable(comp);
         const int comp_idx = samrai_vector->getComponentDescriptorIndex(comp);
         const int cvol_idx = samrai_vector->getControlVolumeIndex(comp);
         const bool has_cvol = cvol_idx >= 0;
 
-        Pointer<CellVariable<NDIM, double> > comp_cc_var = comp_var;
+        Pointer<CellVariable<NDIM, double>> comp_cc_var = comp_var;
         if (comp_cc_var)
         {
             PatchCellDataNormOpsReal<NDIM, double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
                 for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
                     const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<CellData<NDIM, double> > comp_data = patch->getPatchData(comp_idx);
-                    Pointer<CellData<NDIM, double> > cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM> >(nullptr));
+                    Pointer<CellData<NDIM, double>> comp_data = patch->getPatchData(comp_idx);
+                    Pointer<CellData<NDIM, double>> cvol_data =
+                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM>>(nullptr));
                     L1_norm_local_patch.push_back(patch_ops.L1Norm(comp_data, patch_box, cvol_data));
                 }
             }
         }
 
-        Pointer<SideVariable<NDIM, double> > comp_sc_var = comp_var;
+        Pointer<SideVariable<NDIM, double>> comp_sc_var = comp_var;
         if (comp_sc_var)
         {
             PatchSideDataNormOpsReal<NDIM, double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
                 for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
                     const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<SideData<NDIM, double> > comp_data = patch->getPatchData(comp_idx);
-                    Pointer<SideData<NDIM, double> > cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM> >(nullptr));
+                    Pointer<SideData<NDIM, double>> comp_data = patch->getPatchData(comp_idx);
+                    Pointer<SideData<NDIM, double>> cvol_data =
+                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM>>(nullptr));
                     L1_norm_local_patch.push_back(patch_ops.L1Norm(comp_data, patch_box, cvol_data));
                 }
             }
@@ -192,50 +192,50 @@ double
 NormOps::L2Norm_local(const SAMRAIVectorReal<NDIM, double>* const samrai_vector)
 {
     std::vector<double> L2_norm_local_patch;
-    Pointer<PatchHierarchy<NDIM> > hierarchy = samrai_vector->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> hierarchy = samrai_vector->getPatchHierarchy();
     const int coarsest_ln = samrai_vector->getCoarsestLevelNumber();
     const int finest_ln = samrai_vector->getFinestLevelNumber();
     const int ncomp = samrai_vector->getNumberOfComponents();
     for (int comp = 0; comp < ncomp; ++comp)
     {
-        const Pointer<Variable<NDIM> >& comp_var = samrai_vector->getComponentVariable(comp);
+        const Pointer<Variable<NDIM>>& comp_var = samrai_vector->getComponentVariable(comp);
         const int comp_idx = samrai_vector->getComponentDescriptorIndex(comp);
         const int cvol_idx = samrai_vector->getControlVolumeIndex(comp);
         const bool has_cvol = cvol_idx >= 0;
 
-        Pointer<CellVariable<NDIM, double> > comp_cc_var = comp_var;
+        Pointer<CellVariable<NDIM, double>> comp_cc_var = comp_var;
         if (comp_cc_var)
         {
             PatchCellDataNormOpsReal<NDIM, double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
                 for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
                     const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<CellData<NDIM, double> > comp_data = patch->getPatchData(comp_idx);
-                    Pointer<CellData<NDIM, double> > cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM> >(nullptr));
+                    Pointer<CellData<NDIM, double>> comp_data = patch->getPatchData(comp_idx);
+                    Pointer<CellData<NDIM, double>> cvol_data =
+                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM>>(nullptr));
                     L2_norm_local_patch.push_back(patch_ops.L2Norm(comp_data, patch_box, cvol_data));
                 }
             }
         }
 
-        Pointer<SideVariable<NDIM, double> > comp_sc_var = comp_var;
+        Pointer<SideVariable<NDIM, double>> comp_sc_var = comp_var;
         if (comp_sc_var)
         {
             PatchSideDataNormOpsReal<NDIM, double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
                 for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
                     const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<SideData<NDIM, double> > comp_data = patch->getPatchData(comp_idx);
-                    Pointer<SideData<NDIM, double> > cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM> >(nullptr));
+                    Pointer<SideData<NDIM, double>> comp_data = patch->getPatchData(comp_idx);
+                    Pointer<SideData<NDIM, double>> cvol_data =
+                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM>>(nullptr));
                     L2_norm_local_patch.push_back(patch_ops.L2Norm(comp_data, patch_box, cvol_data));
                 }
             }

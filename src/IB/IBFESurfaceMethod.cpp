@@ -269,7 +269,7 @@ IBFESurfaceMethod::getMinimumGhostCellWidth() const
 } // getMinimumGhostCellWidth
 
 void
-IBFESurfaceMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+IBFESurfaceMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM>> gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -500,8 +500,8 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
 
 void
 IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
-                                       const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                       const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                       const std::vector<Pointer<CoarsenSchedule<NDIM>>>& /*u_synch_scheds*/,
+                                       const std::vector<Pointer<RefineSchedule<NDIM>>>& u_ghost_fill_scheds,
                                        const double data_time)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -549,8 +549,8 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         const DofMap& X_dof_map = X_system.get_dof_map();
         FEDataManager::SystemDofMapCache& X_dof_map_cache =
             *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
-        std::vector<std::vector<unsigned int> > U_dof_indices(NDIM);
-        std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> U_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
         FEType U_fe_type = U_dof_map.variable_type(0);
         for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(U_dof_map.variable_type(d) == U_fe_type);
         FEType X_fe_type = X_dof_map.variable_type(0);
@@ -559,8 +559,8 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         FEType fe_type = U_fe_type;
         std::unique_ptr<FEBase> fe = FEBase::build(dim, fe_type);
         const std::vector<double>& JxW = fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
-        boost::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
+        const std::vector<std::vector<double>>& phi = fe->get_phi();
+        boost::array<const std::vector<std::vector<double>>*, NDIM - 1> dphi_dxi;
         dphi_dxi[0] = &fe->get_dphidxi();
         if (NDIM > 2) dphi_dxi[1] = &fe->get_dphideta();
 
@@ -578,25 +578,25 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         VecGhostGetLocalForm(X_global_vec, &X_local_vec);
         double* X_local_soln;
         VecGetArray(X_local_vec, &X_local_soln);
-        std::unique_ptr<NumericVector<double> > X0_vec = X_petsc_vec->clone();
+        std::unique_ptr<NumericVector<double>> X0_vec = X_petsc_vec->clone();
         X_system.get_vector("INITIAL_COORDINATES").localize(*X0_vec);
         X0_vec->close();
 
         // Loop over the patches to interpolate values to the element quadrature
         // points from the grid, then use these values to compute the projection
         // of the interpolated velocity field onto the FE basis functions.
-        std::unique_ptr<NumericVector<double> > U_rhs_vec = U_vec->zero_clone();
-        std::vector<DenseVector<double> > U_rhs_e(NDIM);
-        std::unique_ptr<NumericVector<double> > U_n_rhs_vec = U_n_vec->zero_clone();
-        std::vector<DenseVector<double> > U_n_rhs_e(NDIM);
-        std::unique_ptr<NumericVector<double> > U_t_rhs_vec = U_t_vec->zero_clone();
-        std::vector<DenseVector<double> > U_t_rhs_e(NDIM);
+        std::unique_ptr<NumericVector<double>> U_rhs_vec = U_vec->zero_clone();
+        std::vector<DenseVector<double>> U_rhs_e(NDIM);
+        std::unique_ptr<NumericVector<double>> U_n_rhs_vec = U_n_vec->zero_clone();
+        std::vector<DenseVector<double>> U_n_rhs_e(NDIM);
+        std::unique_ptr<NumericVector<double>> U_t_rhs_vec = U_t_vec->zero_clone();
+        std::vector<DenseVector<double>> U_t_rhs_e(NDIM);
         boost::multi_array<double, 2> X_node, x_node;
         std::vector<double> U_qp, x_qp;
         VectorValue<double> U, U_n, U_t, N, n;
         boost::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
 
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
         int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
@@ -606,8 +606,8 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
 
-            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
@@ -669,14 +669,14 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             // NOTE: Values are interpolated only to those quadrature points
             // that are within the patch interior.
             const Box<NDIM>& interp_box = patch->getBox();
-            Pointer<PatchData<NDIM> > u_data = patch->getPatchData(u_data_idx);
-            Pointer<CellData<NDIM, double> > u_cc_data = u_data;
+            Pointer<PatchData<NDIM>> u_data = patch->getPatchData(u_data_idx);
+            Pointer<CellData<NDIM, double>> u_cc_data = u_data;
             if (u_cc_data)
             {
                 LEInteractor::interpolate(
                     U_qp, NDIM, x_qp, NDIM, u_cc_data, patch, interp_box, d_default_interp_spec.kernel_fcn);
             }
-            Pointer<SideData<NDIM, double> > u_sc_data = u_data;
+            Pointer<SideData<NDIM, double>> u_sc_data = u_data;
             if (u_sc_data)
             {
                 LEInteractor::interpolate(
@@ -861,11 +861,11 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 
         // Setup global and elemental right-hand-side vectors.
         NumericVector<double>* F_vec = d_F_half_vecs[part];
-        std::unique_ptr<NumericVector<double> > F_rhs_vec = F_vec->zero_clone();
+        std::unique_ptr<NumericVector<double>> F_rhs_vec = F_vec->zero_clone();
         DenseVector<double> F_rhs_e[NDIM];
         NumericVector<double>* DP_vec = d_DP_half_vecs[part];
-        std::unique_ptr<NumericVector<double> > DP_rhs_vec =
-            (d_use_jump_conditions ? DP_vec->zero_clone() : std::unique_ptr<NumericVector<double> >());
+        std::unique_ptr<NumericVector<double>> DP_rhs_vec =
+            (d_use_jump_conditions ? DP_vec->zero_clone() : std::unique_ptr<NumericVector<double>>());
         DenseVector<double> DP_rhs_e;
         VectorValue<double>& F_integral = d_lag_surface_force_integral[part];
         F_integral.zero();
@@ -883,7 +883,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         {
             TBOX_ASSERT(F_dof_map.variable_type(d) == F_fe_type);
         }
-        std::vector<std::vector<unsigned int> > F_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> F_dof_indices(NDIM);
 
         System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
@@ -895,7 +895,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
             TBOX_ASSERT(X_dof_map.variable_type(d) == F_fe_type);
         }
-        std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
         NumericVector<double>& X0_vec = X_system.get_vector("INITIAL_COORDINATES");
 
         System* DP_system;
@@ -919,8 +919,8 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         std::unique_ptr<FEBase> fe = FEBase::build(dim, fe_type);
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
-        boost::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
+        const std::vector<std::vector<double>>& phi = fe->get_phi();
+        boost::array<const std::vector<std::vector<double>>*, NDIM - 1> dphi_dxi;
         dphi_dxi[0] = &fe->get_dphidxi();
         if (NDIM > 2) dphi_dxi[1] = &fe->get_dphideta();
 
@@ -935,7 +935,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         fe_interpolator.init(/*use_IB_ghosted_vecs*/ false);
 
         std::vector<const std::vector<double>*> surface_force_var_data, surface_pressure_var_data;
-        std::vector<const std::vector<VectorValue<double> >*> surface_force_grad_var_data,
+        std::vector<const std::vector<VectorValue<double>>*> surface_force_grad_var_data,
             surface_pressure_grad_var_data;
 
         // Loop over the elements to compute the right-hand side vector.
@@ -1101,7 +1101,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 void
 IBFESurfaceMethod::spreadForce(const int f_data_idx,
                                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                               const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+                               const std::vector<Pointer<RefineSchedule<NDIM>>>& /*f_prolongation_scheds*/,
                                const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
@@ -1319,11 +1319,11 @@ IBFESurfaceMethod::registerEulerianVariables()
 } // registerEulerianVariables
 
 void
-IBFESurfaceMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                            Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+IBFESurfaceMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                            Pointer<GriddingAlgorithm<NDIM>> gridding_alg,
                                             int /*u_data_idx*/,
-                                            const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                            const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                                            const std::vector<Pointer<CoarsenSchedule<NDIM>>>& /*u_synch_scheds*/,
+                                            const std::vector<Pointer<RefineSchedule<NDIM>>>& /*u_ghost_fill_scheds*/,
                                             int /*integrator_step*/,
                                             double /*init_data_time*/,
                                             bool /*initial_time*/)
@@ -1343,7 +1343,7 @@ IBFESurfaceMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hiera
 } // initializePatchHierarchy
 
 void
-IBFESurfaceMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
+IBFESurfaceMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM>> load_balancer, int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -1357,7 +1357,7 @@ IBFESurfaceMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balanc
 } // registerLoadBalancer
 
 void
-IBFESurfaceMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
+IBFESurfaceMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/, int /*workload_data_idx*/)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -1366,15 +1366,15 @@ IBFESurfaceMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hier
     return;
 } // updateWorkloadEstimates
 
-void IBFESurfaceMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                                Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void IBFESurfaceMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                                Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
 {
     // intentionally blank
     return;
 } // beginDataRedistribution
 
-void IBFESurfaceMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                              Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void IBFESurfaceMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                              Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
 {
     if (d_is_initialized)
     {
@@ -1387,12 +1387,12 @@ void IBFESurfaceMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*h
 } // endDataRedistribution
 
 void
-IBFESurfaceMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBFESurfaceMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                        int level_number,
                                        double init_data_time,
                                        bool can_be_refined,
                                        bool initial_time,
-                                       Pointer<BasePatchLevel<NDIM> > old_level,
+                                       Pointer<BasePatchLevel<NDIM>> old_level,
                                        bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -1412,7 +1412,7 @@ IBFESurfaceMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierar
 } // initializeLevelData
 
 void
-IBFESurfaceMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBFESurfaceMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                                int coarsest_level,
                                                int /*finest_level*/)
 {
@@ -1427,14 +1427,14 @@ IBFESurfaceMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> 
 } // resetHierarchyConfiguration
 
 void
-IBFESurfaceMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+IBFESurfaceMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
                                          int level_number,
                                          double error_data_time,
                                          int tag_index,
                                          bool initial_time,
                                          bool uses_richardson_extrapolation_too)
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    Pointer<PatchHierarchy<NDIM>> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
@@ -1512,7 +1512,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     DofMap& X_dof_map = X_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
     FEType X_fe_type = X_dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -1523,13 +1523,13 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
     FEType fe_type = DP_fe_type;
 
     std::unique_ptr<FEBase> fe = FEBase::build(dim, fe_type);
-    const std::vector<std::vector<double> >& phi = fe->get_phi();
-    boost::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
+    const std::vector<std::vector<double>>& phi = fe->get_phi();
+    boost::array<const std::vector<std::vector<double>>*, NDIM - 1> dphi_dxi;
     dphi_dxi[0] = &fe->get_dphidxi();
     if (NDIM > 2) dphi_dxi[1] = &fe->get_dphideta();
 
     // Loop over the patches to impose jump conditions on the Eulerian grid.
-    const std::vector<std::vector<Elem*> >& active_patch_element_map =
+    const std::vector<std::vector<Elem*>>& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
     boost::multi_array<double, 1> DP_node;
@@ -1538,9 +1538,9 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
     VectorValue<double> n;
     std::vector<libMesh::Point> X_node_cache, x_node_cache;
     IBTK::Point x_min, x_max;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(level_num);
     const IntVector<NDIM>& ratio = level->getRatio();
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    const Pointer<CartesianGridGeometry<NDIM>> grid_geom = level->getGridGeometry();
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -1549,8 +1549,8 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
+        const Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(f_data_idx);
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
         boost::array<Box<NDIM>, NDIM> side_ghost_boxes;
@@ -1558,13 +1558,13 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
         {
             side_ghost_boxes[d] = SideGeometry<NDIM>::toSideBox(f_data->getGhostBox(), d);
         }
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
         const double* const x_lower = patch_geom->getXLower();
         const double* const dx = patch_geom->getDx();
 
         boost::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_points,
             intersection_ref_coords;
-        boost::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>
+        boost::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double>>, IndexOrder>, NDIM>
             intersection_normals;
 
         // Loop over the elements.
@@ -1655,7 +1655,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                         r(d) = (d == axis ? 0.0 :
                                             x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]) + 0.5));
                     }
-                    std::vector<std::pair<double, libMesh::Point> > intersections;
+                    std::vector<std::pair<double, libMesh::Point>> intersections;
                     static const double tolerance = sqrt(std::numeric_limits<double>::epsilon());
 #if (NDIM == 2)
                     intersect_line_with_edge(intersections, static_cast<Edge*>(elem), r, q, tolerance);
@@ -1698,7 +1698,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                     intersection_points[axis][i_s_prime];
                                 const std::vector<libMesh::Point>& candidate_ref_coords =
                                     intersection_ref_coords[axis][i_s_prime];
-                                const std::vector<VectorValue<double> >& candidate_normals =
+                                const std::vector<VectorValue<double>>& candidate_normals =
                                     intersection_normals[axis][i_s_prime];
                                 auto x_prime_it = candidate_coords.begin();
                                 auto xi_prime_it = candidate_ref_coords.begin();

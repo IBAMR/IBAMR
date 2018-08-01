@@ -203,7 +203,7 @@ inline void
 get_x_and_FF(libMesh::VectorValue<double>& x,
              libMesh::TensorValue<double>& FF,
              const std::vector<double>& x_data,
-             const std::vector<VectorValue<double> >& grad_x_data,
+             const std::vector<VectorValue<double>>& grad_x_data,
              const unsigned int dim = NDIM)
 {
     x.zero();
@@ -243,10 +243,10 @@ assemble_poisson(EquationSystems& es, const std::string& /*system_name*/)
     fe_face->attach_quadrature_rule(&qface);
 
     const std::vector<Real>& JxW = fe->get_JxW();
-    const std::vector<std::vector<Real> >& phi = fe->get_phi();
-    const std::vector<std::vector<RealGradient> >& dphi = fe->get_dphi();
+    const std::vector<std::vector<Real>>& phi = fe->get_phi();
+    const std::vector<std::vector<RealGradient>>& dphi = fe->get_dphi();
 
-    const std::vector<std::vector<Real> >& phi_face = fe_face->get_phi();
+    const std::vector<std::vector<Real>>& phi_face = fe_face->get_phi();
     const std::vector<Real>& JxW_face = fe_face->get_JxW();
 
     DenseMatrix<Number> Ke;
@@ -514,7 +514,7 @@ IBFEMethod::registerOverlappingVelocityReset(const unsigned int part1, const uns
     }
 
     // Find the elements of part2 that contain nodes of part1.
-    boost::array<std::vector<std::vector<unsigned int> >, 2> U_dof_indices;
+    boost::array<std::vector<std::vector<unsigned int>>, 2> U_dof_indices;
     for (int k = 0; k < 2; ++k)
     {
         U_dof_indices[k].resize(NDIM);
@@ -578,7 +578,7 @@ IBFEMethod::registerOverlappingForceConstraint(const unsigned int part1,
     part_idx[0] = part1;
     part_idx[1] = part2;
     d_overlapping_elem_map.resize(n_pairs);
-    boost::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2>& elem_map =
+    boost::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type>>, 2>& elem_map =
         d_overlapping_elem_map.back();
     d_overlap_force_part_kappa.push_back(kappa);
     d_overlap_force_part_qrule.resize(n_pairs);
@@ -623,7 +623,7 @@ IBFEMethod::registerOverlappingForceConstraint(const unsigned int part1,
     }
 
     // Find quadrature points that overlap with the other part.
-    boost::array<std::vector<std::vector<unsigned int> >, 2> X_dof_indices;
+    boost::array<std::vector<std::vector<unsigned int>>, 2> X_dof_indices;
     for (int k = 0; k < 2; ++k)
     {
         X_dof_indices[k].resize(NDIM);
@@ -679,7 +679,7 @@ IBFEMethod::getMinimumGhostCellWidth() const
 } // getMinimumGhostCellWidth
 
 void
-IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM>> gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -879,8 +879,8 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
 
 void
 IBFEMethod::interpolateVelocity(const int u_data_idx,
-                                const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                const std::vector<Pointer<CoarsenSchedule<NDIM>>>& /*u_synch_scheds*/,
+                                const std::vector<Pointer<RefineSchedule<NDIM>>>& u_ghost_fill_scheds,
                                 const double data_time)
 {
     std::vector<NumericVector<double>*> U_vecs(d_num_parts), X_vecs(d_num_parts);
@@ -908,7 +908,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     {
         if (u_ghost_fill_sched) u_ghost_fill_sched->fillData(data_time);
     }
-    std::vector<Pointer<RefineSchedule<NDIM> > > no_fill(u_ghost_fill_scheds.size(), nullptr);
+    std::vector<Pointer<RefineSchedule<NDIM>>> no_fill(u_ghost_fill_scheds.size(), nullptr);
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -1072,7 +1072,7 @@ IBFEMethod::computeLagrangianForce(const double data_time)
 void
 IBFEMethod::spreadForce(const int f_data_idx,
                         RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                        const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+                        const std::vector<Pointer<RefineSchedule<NDIM>>>& /*f_prolongation_scheds*/,
                         const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
@@ -1167,14 +1167,14 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
 
         const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
         const std::vector<double>& JxW = fe.getQuadratureWeights();
-        const std::vector<std::vector<double> >& phi = fe.getPhi(Q_fe_type);
+        const std::vector<std::vector<double>>& phi = fe.getPhi(Q_fe_type);
 
-        const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
-        const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+        const std::vector<std::vector<std::vector<double>>>& fe_interp_var_data = fe.getVarInterpolation();
+        const std::vector<std::vector<std::vector<VectorValue<double>>>>& fe_interp_grad_var_data =
             fe.getGradVarInterpolation();
 
         std::vector<const std::vector<double>*> Q_var_data;
-        std::vector<const std::vector<VectorValue<double> >*> Q_grad_var_data;
+        std::vector<const std::vector<VectorValue<double>>*> Q_grad_var_data;
 
         // Setup global and elemental right-hand-side vectors.
         NumericVector<double>* Q_rhs_vec = Q_system.rhs;
@@ -1201,7 +1201,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
             {
                 const libMesh::Point& X = q_point[qp];
                 const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
-                const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                const std::vector<VectorValue<double>>& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
                 get_x_and_FF(x, FF, x_data, grad_x_data);
 
                 fe.setInterpolatedDataPointers(Q_var_data, Q_grad_var_data, Q_fcn_system_idxs, elem, qp);
@@ -1229,7 +1229,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
 void
 IBFEMethod::spreadFluidSource(const int q_data_idx,
                               RobinPhysBdryPatchStrategy* q_phys_bdry_op,
-                              const std::vector<Pointer<RefineSchedule<NDIM> > >& /*q_prolongation_scheds*/,
+                              const std::vector<Pointer<RefineSchedule<NDIM>>>& /*q_prolongation_scheds*/,
                               const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
@@ -1471,11 +1471,11 @@ IBFEMethod::registerEulerianVariables()
 } // registerEulerianVariables
 
 void
-IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                     Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                     Pointer<GriddingAlgorithm<NDIM>> gridding_alg,
                                      int /*u_data_idx*/,
-                                     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                                     const std::vector<Pointer<CoarsenSchedule<NDIM>>>& /*u_synch_scheds*/,
+                                     const std::vector<Pointer<RefineSchedule<NDIM>>>& /*u_ghost_fill_scheds*/,
                                      int /*integrator_step*/,
                                      double /*init_data_time*/,
                                      bool /*initial_time*/)
@@ -1495,7 +1495,7 @@ IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
 } // initializePatchHierarchy
 
 void
-IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
+IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM>> load_balancer, int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -1509,7 +1509,7 @@ IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int
 } // registerLoadBalancer
 
 void
-IBFEMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
+IBFEMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/, int /*workload_data_idx*/)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -1518,15 +1518,15 @@ IBFEMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/
     return;
 } // updateWorkloadEstimates
 
-void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                         Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                         Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
 {
     // intentionally blank
     return;
 } // beginDataRedistribution
 
-void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                       Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                       Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
 {
     if (d_is_initialized)
     {
@@ -1539,12 +1539,12 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
 } // endDataRedistribution
 
 void
-IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                 int level_number,
                                 double init_data_time,
                                 bool can_be_refined,
                                 bool initial_time,
-                                Pointer<BasePatchLevel<NDIM> > old_level,
+                                Pointer<BasePatchLevel<NDIM>> old_level,
                                 bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -1564,7 +1564,7 @@ IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
 } // initializeLevelData
 
 void
-IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                         int coarsest_level,
                                         int /*finest_level*/)
 {
@@ -1579,14 +1579,14 @@ IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hiera
 } // resetHierarchyConfiguration
 
 void
-IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
                                   int level_number,
                                   double error_data_time,
                                   int tag_index,
                                   bool initial_time,
                                   bool uses_richardson_extrapolation_too)
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    Pointer<PatchHierarchy<NDIM>> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
@@ -1662,7 +1662,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     fe.registerSystem(Phi_system, Phi_vars, Phi_vars); // compute phi and dphi for the Phi system
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, X_vars, X_vars, &X_vec);
     const size_t num_PK1_fcns = d_PK1_stress_fcn_data[part].size();
-    std::vector<std::vector<size_t> > PK1_fcn_system_idxs(num_PK1_fcns);
+    std::vector<std::vector<size_t>> PK1_fcn_system_idxs(num_PK1_fcns);
     for (unsigned int k = 0; k < num_PK1_fcns; ++k)
     {
         fe.setupInterpolatedSystemDataIndexes(
@@ -1679,16 +1679,16 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     const std::vector<libMesh::Point>& q_point_face = fe.getQuadraturePointsFace();
     const std::vector<double>& JxW_face = fe.getQuadratureWeightsFace();
     const std::vector<libMesh::Point>& normal_face = fe.getNormalsFace();
-    const std::vector<std::vector<double> >& phi_face = fe.getPhiFace(Phi_fe_type);
+    const std::vector<std::vector<double>>& phi_face = fe.getPhiFace(Phi_fe_type);
 
-    const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
-    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+    const std::vector<std::vector<std::vector<double>>>& fe_interp_var_data = fe.getVarInterpolation();
+    const std::vector<std::vector<std::vector<VectorValue<double>>>>& fe_interp_grad_var_data =
         fe.getGradVarInterpolation();
 
-    std::vector<std::vector<const std::vector<double>*> > PK1_var_data(num_PK1_fcns);
-    std::vector<std::vector<const std::vector<VectorValue<double> >*> > PK1_grad_var_data(num_PK1_fcns);
+    std::vector<std::vector<const std::vector<double>*>> PK1_var_data(num_PK1_fcns);
+    std::vector<std::vector<const std::vector<VectorValue<double>>*>> PK1_grad_var_data(num_PK1_fcns);
     std::vector<const std::vector<double>*> surface_force_var_data, surface_pressure_var_data;
-    std::vector<const std::vector<VectorValue<double> >*> surface_force_grad_var_data, surface_pressure_grad_var_data;
+    std::vector<const std::vector<VectorValue<double>>*> surface_force_grad_var_data, surface_pressure_grad_var_data;
 
     // Setup global and elemental right-hand-side vectors.
     NumericVector<double>* Phi_rhs_vec = Phi_system.rhs;
@@ -1737,7 +1737,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                 // dA_da: reference surface area per current surface area (from Nanson's relation)
                 const libMesh::Point& X = q_point_face[qp];
                 const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
-                const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                const std::vector<VectorValue<double>>& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
                 get_x_and_FF(x, FF, x_data, grad_x_data);
                 const double J = std::abs(FF.det());
                 FF_trans = FF.transpose();
@@ -1855,7 +1855,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     const unsigned int dim = mesh.mesh_dimension();
 
     // Setup global and elemental right-hand-side vectors.
-    std::unique_ptr<NumericVector<double> > G_rhs_vec = G_vec.zero_clone();
+    std::unique_ptr<NumericVector<double>> G_rhs_vec = G_vec.zero_clone();
     DenseVector<double> G_rhs_e[NDIM];
 
     // First handle the stress contributions.  These are handled separately because
@@ -1875,7 +1875,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         {
             TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
         }
-        std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> G_dof_indices(NDIM);
         System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
@@ -1901,19 +1901,19 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
         const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
         const std::vector<double>& JxW = fe.getQuadratureWeights();
-        const std::vector<std::vector<VectorValue<double> > >& dphi = fe.getDphi(G_fe_type);
+        const std::vector<std::vector<VectorValue<double>>>& dphi = fe.getDphi(G_fe_type);
 
         const std::vector<libMesh::Point>& q_point_face = fe.getQuadraturePointsFace();
         const std::vector<double>& JxW_face = fe.getQuadratureWeightsFace();
         const std::vector<libMesh::Point>& normal_face = fe.getNormalsFace();
-        const std::vector<std::vector<double> >& phi_face = fe.getPhiFace(G_fe_type);
+        const std::vector<std::vector<double>>& phi_face = fe.getPhiFace(G_fe_type);
 
-        const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
-        const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+        const std::vector<std::vector<std::vector<double>>>& fe_interp_var_data = fe.getVarInterpolation();
+        const std::vector<std::vector<std::vector<VectorValue<double>>>>& fe_interp_grad_var_data =
             fe.getGradVarInterpolation();
 
         std::vector<const std::vector<double>*> PK1_var_data;
-        std::vector<const std::vector<VectorValue<double> >*> PK1_grad_var_data;
+        std::vector<const std::vector<VectorValue<double>>*> PK1_grad_var_data;
 
         // Loop over the elements to compute the right-hand side vector.  This
         // is computed via
@@ -1943,7 +1943,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
             {
                 const libMesh::Point& X = q_point[qp];
                 const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
-                const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                const std::vector<VectorValue<double>>& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
                 get_x_and_FF(x, FF, x_data, grad_x_data);
 
                 // Compute the value of the first Piola-Kirchhoff stress tensor
@@ -1985,7 +1985,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                 {
                     const libMesh::Point& X = q_point_face[qp];
                     const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
-                    const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                    const std::vector<VectorValue<double>>& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
                     get_x_and_FF(x, FF, x_data, grad_x_data);
                     tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
 
@@ -2054,7 +2054,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     {
         TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
     }
-    std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> G_dof_indices(NDIM);
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     System* Phi_system = Phi_vec ? &equation_systems->get_system(PHI_SYSTEM_NAME) : nullptr;
     std::vector<int> vars(NDIM);
@@ -2089,20 +2089,20 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
     const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
     const std::vector<double>& JxW = fe.getQuadratureWeights();
-    const std::vector<std::vector<double> >& phi = fe.getPhi(G_fe_type);
-    const std::vector<std::vector<VectorValue<double> > >& dphi = fe.getDphi(G_fe_type);
+    const std::vector<std::vector<double>>& phi = fe.getPhi(G_fe_type);
+    const std::vector<std::vector<VectorValue<double>>>& dphi = fe.getDphi(G_fe_type);
 
     const std::vector<libMesh::Point>& q_point_face = fe.getQuadraturePointsFace();
     const std::vector<double>& JxW_face = fe.getQuadratureWeightsFace();
     const std::vector<libMesh::Point>& normal_face = fe.getNormalsFace();
-    const std::vector<std::vector<double> >& phi_face = fe.getPhiFace(G_fe_type);
+    const std::vector<std::vector<double>>& phi_face = fe.getPhiFace(G_fe_type);
 
-    const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
-    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+    const std::vector<std::vector<std::vector<double>>>& fe_interp_var_data = fe.getVarInterpolation();
+    const std::vector<std::vector<std::vector<VectorValue<double>>>>& fe_interp_grad_var_data =
         fe.getGradVarInterpolation();
 
     std::vector<const std::vector<double>*> body_force_var_data, surface_force_var_data, surface_pressure_var_data;
-    std::vector<const std::vector<VectorValue<double> >*> body_force_grad_var_data, surface_force_grad_var_data,
+    std::vector<const std::vector<VectorValue<double>>*> body_force_grad_var_data, surface_force_grad_var_data,
         surface_pressure_grad_var_data;
 
     // Loop over the elements to compute the right-hand side vector.
@@ -2129,7 +2129,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         {
             const libMesh::Point& X = q_point[qp];
             const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
-            const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+            const std::vector<VectorValue<double>>& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
             get_x_and_FF(x, FF, x_data, grad_x_data);
             const double J = std::abs(FF.det());
             tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
@@ -2200,7 +2200,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
             {
                 const libMesh::Point& X = q_point_face[qp];
                 const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
-                const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                const std::vector<VectorValue<double>>& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
                 get_x_and_FF(x, FF, x_data, grad_x_data);
                 const double J = std::abs(FF.det());
                 tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
@@ -2365,7 +2365,7 @@ IBFEMethod::resetOverlapNodalValues(const unsigned int part,
     }
 
     // Find the elements of part2 that contain nodes of part1.
-    boost::array<std::vector<std::vector<unsigned int> >, 2> F_dof_indices;
+    boost::array<std::vector<std::vector<unsigned int>>, 2> F_dof_indices;
     for (int k = 0; k < 2; ++k)
     {
         F_dof_indices[k].resize(NDIM);
@@ -2434,7 +2434,7 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
     {
         // Setup basic data structures.
         boost::array<unsigned int, 2>& part_idx = d_overlap_force_part_idxs[k];
-        boost::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2>& elem_map =
+        boost::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type>>, 2>& elem_map =
             d_overlapping_elem_map[k];
         const double kappa = d_overlap_force_part_kappa[k];
         boost::array<QBase*, 2>& qrule = d_overlap_force_part_qrule[k];
@@ -2470,7 +2470,7 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
         }
 
         // Loop over the elements that overlap elements of the other part.
-        boost::array<std::vector<std::vector<unsigned int> >, 2> F_dof_indices, X_dof_indices;
+        boost::array<std::vector<std::vector<unsigned int>>, 2> F_dof_indices, X_dof_indices;
         for (int k = 0; k < 2; ++k)
         {
             F_dof_indices[k].resize(NDIM);
@@ -2484,7 +2484,7 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
             const int k_next = (k + 1) % 2;
             const std::vector<libMesh::Point>& q_point = fe[k]->get_xyz();
             const std::vector<double>& JxW = fe[k]->get_JxW();
-            const std::vector<std::vector<double> >& phi = fe[k]->get_phi();
+            const std::vector<std::vector<double>>& phi = fe[k]->get_phi();
             for (auto& it : elem_map[k])
             {
                 const Elem* const elem = mesh[k]->elem_ptr(it.first);
@@ -2559,7 +2559,7 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
     {
         if (d_is_overlap_force_part[k])
         {
-            std::unique_ptr<NumericVector<double> > F_tmp_vec = F_vec[k]->zero_clone();
+            std::unique_ptr<NumericVector<double>> F_tmp_vec = F_vec[k]->zero_clone();
             d_fe_data_managers[k]->computeL2Projection(
                 *F_tmp_vec, *F_rhs_vec[k], FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
             F_vec[k]->add(*F_tmp_vec);
@@ -2597,15 +2597,15 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Make a copy of the Eulerian data.
-    Pointer<hier::Variable<NDIM> > f_var;
+    Pointer<hier::Variable<NDIM>> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_copy_data_idx);
     }
-    Pointer<HierarchyDataOpsReal<NDIM, double> > f_data_ops =
+    Pointer<HierarchyDataOpsReal<NDIM, double>> f_data_ops =
         HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
@@ -2624,7 +2624,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     {
         TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
     }
-    std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> G_dof_indices(NDIM);
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
@@ -2640,7 +2640,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     fe.evalQuadratureWeightsFace();
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_ghost_vec);
     const size_t num_PK1_fcns = d_PK1_stress_fcn_data[part].size();
-    std::vector<std::vector<size_t> > PK1_fcn_system_idxs(num_PK1_fcns);
+    std::vector<std::vector<size_t>> PK1_fcn_system_idxs(num_PK1_fcns);
     for (unsigned int k = 0; k < num_PK1_fcns; ++k)
     {
         fe.setupInterpolatedSystemDataIndexes(
@@ -2658,25 +2658,25 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     const std::vector<double>& JxW_face = fe.getQuadratureWeightsFace();
     const std::vector<libMesh::Point>& normal_face = fe.getNormalsFace();
 
-    const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
-    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+    const std::vector<std::vector<std::vector<double>>>& fe_interp_var_data = fe.getVarInterpolation();
+    const std::vector<std::vector<std::vector<VectorValue<double>>>>& fe_interp_grad_var_data =
         fe.getGradVarInterpolation();
 
-    std::vector<std::vector<const std::vector<double>*> > PK1_var_data(num_PK1_fcns);
-    std::vector<std::vector<const std::vector<VectorValue<double> >*> > PK1_grad_var_data(num_PK1_fcns);
+    std::vector<std::vector<const std::vector<double>*>> PK1_var_data(num_PK1_fcns);
+    std::vector<std::vector<const std::vector<VectorValue<double>>*>> PK1_grad_var_data(num_PK1_fcns);
     std::vector<const std::vector<double>*> surface_force_var_data, surface_pressure_var_data;
-    std::vector<const std::vector<VectorValue<double> >*> surface_force_grad_var_data, surface_pressure_grad_var_data;
+    std::vector<const std::vector<VectorValue<double>>*> surface_force_grad_var_data, surface_pressure_grad_var_data;
 
     // Loop over the patches to spread the transmission elastic force density
     // onto the grid.
-    const std::vector<std::vector<Elem*> >& active_patch_element_map =
+    const std::vector<std::vector<Elem*>>& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> F, F_s, n, x;
     double P;
     std::vector<double> T_bdry, x_bdry;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -2685,8 +2685,8 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
@@ -2731,7 +2731,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                 {
                     const libMesh::Point& X = q_point_face[qp];
                     const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
-                    const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                    const std::vector<VectorValue<double>>& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
                     get_x_and_FF(x, FF, x_data, grad_x_data);
                     const double J = std::abs(FF.det());
                     tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
@@ -2835,7 +2835,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         const std::string& spread_kernel_fcn = d_spread_spec[part].kernel_fcn;
         const hier::IntVector<NDIM>& ghost_width = d_fe_data_managers[part]->getGhostCellWidth();
         const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), ghost_width);
-        Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
+        Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(f_data_idx);
         LEInteractor::spread(f_data, T_bdry, NDIM, x_bdry, NDIM, patch, spread_box, spread_kernel_fcn);
         if (f_phys_bdry_op)
         {
@@ -2849,7 +2849,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(f_copy_data_idx);
     }
     var_db->removePatchDataIndex(f_copy_data_idx);
@@ -2885,7 +2885,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     {
         TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
     }
-    std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> G_dof_indices(NDIM);
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     DofMap& X_dof_map = X_system.get_dof_map();
     std::vector<int> vars(NDIM);
@@ -2900,7 +2900,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     const size_t G_sys_idx = fe.registerInterpolatedSystem(G_system, vars, no_vars, &G_ghost_vec);
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_ghost_vec);
     const size_t num_PK1_fcns = d_PK1_stress_fcn_data[part].size();
-    std::vector<std::vector<size_t> > PK1_fcn_system_idxs(num_PK1_fcns);
+    std::vector<std::vector<size_t>> PK1_fcn_system_idxs(num_PK1_fcns);
     for (unsigned int k = 0; k < num_PK1_fcns; ++k)
     {
         fe.setupInterpolatedSystemDataIndexes(
@@ -2917,32 +2917,32 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     const std::vector<libMesh::Point>& q_point_face = fe.getQuadraturePointsFace();
     const std::vector<libMesh::Point>& normal_face = fe.getNormalsFace();
 
-    const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
-    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+    const std::vector<std::vector<std::vector<double>>>& fe_interp_var_data = fe.getVarInterpolation();
+    const std::vector<std::vector<std::vector<VectorValue<double>>>>& fe_interp_grad_var_data =
         fe.getGradVarInterpolation();
 
-    std::vector<std::vector<const std::vector<double>*> > PK1_var_data(num_PK1_fcns);
-    std::vector<std::vector<const std::vector<VectorValue<double> >*> > PK1_grad_var_data(num_PK1_fcns);
+    std::vector<std::vector<const std::vector<double>*>> PK1_var_data(num_PK1_fcns);
+    std::vector<std::vector<const std::vector<VectorValue<double>>*>> PK1_grad_var_data(num_PK1_fcns);
     std::vector<const std::vector<double>*> surface_force_var_data, surface_pressure_var_data;
-    std::vector<const std::vector<VectorValue<double> >*> surface_force_grad_var_data, surface_pressure_grad_var_data;
+    std::vector<const std::vector<VectorValue<double>>*> surface_force_grad_var_data, surface_pressure_grad_var_data;
 
     // Loop over the patches to impose jump conditions on the Eulerian grid that
     // are determined from the interior and transmission elastic force
     // densities.
-    const std::vector<std::vector<Elem*> >& active_patch_element_map =
+    const std::vector<std::vector<Elem*>>& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> G, F, F_s, n, x;
     std::vector<libMesh::Point> X_node_cache, x_node_cache;
     IBTK::Point x_min, x_max;
-    std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> side_dof_indices(NDIM);
     std::vector<libMesh::Point> intersection_ref_coords;
-    std::vector<SideIndex<NDIM> > intersection_indices;
-    std::vector<std::pair<double, libMesh::Point> > intersections;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+    std::vector<SideIndex<NDIM>> intersection_indices;
+    std::vector<std::pair<double, libMesh::Point>> intersections;
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(level_num);
     const IntVector<NDIM>& ratio = level->getRatio();
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    const Pointer<CartesianGridGeometry<NDIM>> grid_geom = level->getGridGeometry();
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -2951,11 +2951,11 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
+        const Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(f_data_idx);
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
         const double* const x_lower = patch_geom->getXLower();
         const double* const dx = patch_geom->getDx();
 
@@ -3080,7 +3080,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     const unsigned int axis = i_s.getAxis();
                     const libMesh::Point& X = q_point_face[qp];
                     const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
-                    const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                    const std::vector<VectorValue<double>>& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
                     get_x_and_FF(x, FF, x_data, grad_x_data);
                     const double J = std::abs(FF.det());
                     tensor_inverse_transpose(FF_inv_trans, FF, NDIM);

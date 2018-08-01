@@ -140,8 +140,8 @@ StaggeredStokesPETScLevelSolver::~StaggeredStokesPETScLevelSolver()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int> >& overlap_is,
-                                                       std::vector<std::set<int> >& nonoverlap_is)
+StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
+                                                       std::vector<std::set<int>>& nonoverlap_is)
 {
     // Construct subdomains for ASM and MSM preconditioner.
     StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(overlap_is,
@@ -159,7 +159,7 @@ StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>
 
 void
 StaggeredStokesPETScLevelSolver::generateFieldSplitSubdomains(std::vector<std::string>& field_names,
-                                                              std::vector<std::set<int> >& field_is)
+                                                              std::vector<std::set<int>>& field_is)
 {
     // Set IS'es for field split preconditioner.
     StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
@@ -205,8 +205,8 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
             int local_cf_bdry_box_size = 0;
             for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
-                const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
+                Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+                const Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
                     d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
                 local_cf_bdry_box_size += type_1_cf_bdry.size();
             }
@@ -219,21 +219,21 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
             if (!d_level->checkAllocated(d_u_nullspace_idx)) d_level->allocatePatchData(d_u_nullspace_idx);
             if (!d_level->checkAllocated(d_p_nullspace_idx)) d_level->allocatePatchData(d_p_nullspace_idx);
 
-            Pointer<SAMRAIVectorReal<NDIM, double> > nullspace_vec = new SAMRAIVectorReal<NDIM, double>(
+            Pointer<SAMRAIVectorReal<NDIM, double>> nullspace_vec = new SAMRAIVectorReal<NDIM, double>(
                 d_object_name + "nullspace_vec", d_hierarchy, d_level_num, d_level_num);
             nullspace_vec->addComponent(d_u_nullspace_var, d_u_nullspace_idx);
             nullspace_vec->addComponent(d_p_nullspace_var, d_p_nullspace_idx);
             for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
-                Pointer<SideData<NDIM, double> > u_patch_data = nullspace_vec->getComponentPatchData(0, *patch);
+                Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+                Pointer<SideData<NDIM, double>> u_patch_data = nullspace_vec->getComponentPatchData(0, *patch);
                 u_patch_data->fill(0.0);
-                Pointer<CellData<NDIM, double> > p_patch_data = nullspace_vec->getComponentPatchData(1, *patch);
+                Pointer<CellData<NDIM, double>> p_patch_data = nullspace_vec->getComponentPatchData(1, *patch);
                 p_patch_data->fill(1.0);
             }
 
             LinearSolver::setNullspace(/*const vec*/ false,
-                                       std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >(1, nullspace_vec));
+                                       std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>>(1, nullspace_vec));
         }
     }
 
@@ -285,8 +285,8 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     const int p_idx = x.getComponentDescriptorIndex(1);
     const int f_idx = b.getComponentDescriptorIndex(0);
     const int h_idx = b.getComponentDescriptorIndex(1);
-    Pointer<SideVariable<NDIM, double> > f_var = b.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double> > h_var = b.getComponentVariable(1);
+    Pointer<SideVariable<NDIM, double>> f_var = b.getComponentVariable(0);
+    Pointer<CellVariable<NDIM, double>> h_var = b.getComponentVariable(1);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     int f_adj_idx = var_db->registerClonedPatchDataIndex(f_var, f_idx);
     int h_adj_idx = var_db->registerClonedPatchDataIndex(h_var, h_idx);
@@ -294,13 +294,13 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     d_level->allocatePatchData(h_adj_idx);
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
-        Pointer<PatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-        Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
-        Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_idx);
-        Pointer<CellData<NDIM, double> > h_data = patch->getPatchData(h_idx);
-        Pointer<SideData<NDIM, double> > f_adj_data = patch->getPatchData(f_adj_idx);
-        Pointer<CellData<NDIM, double> > h_adj_data = patch->getPatchData(h_adj_idx);
+        Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+        Pointer<PatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+        Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+        Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(f_idx);
+        Pointer<CellData<NDIM, double>> h_data = patch->getPatchData(h_idx);
+        Pointer<SideData<NDIM, double>> f_adj_data = patch->getPatchData(f_adj_idx);
+        Pointer<CellData<NDIM, double>> h_adj_data = patch->getPatchData(h_adj_idx);
         f_adj_data->copy(*f_data);
         h_adj_data->copy(*h_data);
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
@@ -314,8 +314,8 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
             d_bc_helper->enforceNormalVelocityBoundaryConditions(
                 f_adj_idx, h_adj_idx, d_U_bc_coefs, d_solution_time, d_homogeneous_bc, d_level_num, d_level_num);
         }
-        const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
-            level_zero ? Array<BoundaryBox<NDIM> >() :
+        const Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
+            level_zero ? Array<BoundaryBox<NDIM>>() :
                          d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
         if (at_cf_bdry)

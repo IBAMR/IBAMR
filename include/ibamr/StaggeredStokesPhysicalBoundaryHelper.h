@@ -100,8 +100,8 @@ public:
      * enforce the discrete divergence-free condition in the ghost cell abutting
      * the physical boundary.
      */
-    void enforceDivergenceFreeConditionAtBoundary(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > u_data,
-                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void enforceDivergenceFreeConditionAtBoundary(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> u_data,
+                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch) const;
 
     /*!
      * \brief Setup physical boundary condition specification objects for

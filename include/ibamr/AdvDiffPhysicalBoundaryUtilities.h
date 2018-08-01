@@ -75,9 +75,9 @@ public:
     /*!
      * \brief Set physical boundary conditions at physical boundaries.
      */
-    static void setPhysicalBoundaryConditions(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > Q_data,
-                                              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > u_ADV_data,
-                                              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    static void setPhysicalBoundaryConditions(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> Q_data,
+                                              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>> u_ADV_data,
+                                              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                               const double fill_time,
                                               const bool inflow_boundaries_only,

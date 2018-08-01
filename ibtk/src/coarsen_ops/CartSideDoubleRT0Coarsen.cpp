@@ -122,9 +122,9 @@ CartSideDoubleRT0Coarsen::CartSideDoubleRT0Coarsen(const IntVector<NDIM>& gcw) :
 } // CartSideDoubleRT0Coarsen
 
 bool
-CartSideDoubleRT0Coarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
+CartSideDoubleRT0Coarsen::findCoarsenOperator(const Pointer<Variable<NDIM>>& var, const std::string& op_name) const
 {
-    Pointer<SideVariable<NDIM, double> > sc_var = var;
+    Pointer<SideVariable<NDIM, double>> sc_var = var;
     return (sc_var && op_name == s_op_name);
 } // findCoarsenOperator
 
@@ -154,8 +154,8 @@ CartSideDoubleRT0Coarsen::coarsen(Patch<NDIM>& coarse,
                                   const Box<NDIM>& coarse_box,
                                   const IntVector<NDIM>& ratio) const
 {
-    Pointer<SideData<NDIM, double> > cdata = coarse.getPatchData(dst_component);
-    Pointer<SideData<NDIM, double> > fdata = fine.getPatchData(src_component);
+    Pointer<SideData<NDIM, double>> cdata = coarse.getPatchData(dst_component);
+    Pointer<SideData<NDIM, double>> fdata = fine.getPatchData(src_component);
     const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
     const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
 #if !defined(NDEBUG)

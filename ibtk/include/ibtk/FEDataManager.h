@@ -118,7 +118,7 @@ public:
         dof_indices(const libMesh::Elem* const elem, std::vector<unsigned int>& dof_indices, const unsigned int var = 0)
         {
             const libMesh::dof_id_type elem_id = elem->id();
-            std::vector<std::vector<unsigned int> >& elem_dof_indices = d_dof_cache[elem_id];
+            std::vector<std::vector<unsigned int>>& elem_dof_indices = d_dof_cache[elem_id];
             if (elem_dof_indices.size() <= var)
             {
                 elem_dof_indices.resize(var + 1);
@@ -133,7 +133,7 @@ public:
 
     private:
         libMesh::DofMap& d_dof_map;
-        boost::unordered_map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > > d_dof_cache;
+        boost::unordered_map<libMesh::dof_id_type, std::vector<std::vector<unsigned int>>> d_dof_cache;
     };
 
     /*!
@@ -254,7 +254,7 @@ public:
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
      */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
+    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM>> load_balancer,
                               int workload_data_idx);
 
     /*!
@@ -266,12 +266,12 @@ public:
     /*!
      * \brief Reset patch hierarchy over which operations occur.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy);
 
     /*!
      * \brief Get the patch hierarchy used by this object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPatchHierarchy() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> getPatchHierarchy() const;
 
     /*!
      * \brief Reset range of patch levels over which operations occur.
@@ -341,13 +341,13 @@ public:
      * \return A const reference to the map from local patch number to local
      * active elements.
      */
-    const std::vector<std::vector<libMesh::Elem*> >& getActivePatchElementMap() const;
+    const std::vector<std::vector<libMesh::Elem*>>& getActivePatchElementMap() const;
 
     /*!
      * \return A const reference to the map from local patch number to local
      * active nodes.
      */
-    const std::vector<std::vector<libMesh::Node*> >& getActivePatchNodeMap() const;
+    const std::vector<std::vector<libMesh::Node*>>& getActivePatchNodeMap() const;
 
     /*!
      * \brief Reinitialize the mappings from elements to Cartesian grid patches.
@@ -424,16 +424,15 @@ public:
      * the interpolated quantity at the quadrature points to the nodes. Here, the
      * basis functions of the deformational field is used as the filter.
      */
-    void
-    interpWeighted(int f_data_idx,
-                   libMesh::NumericVector<double>& F,
-                   libMesh::NumericVector<double>& X,
-                   const std::string& system_name,
-                   const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds =
-                       std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-                   double fill_data_time = 0.0,
-                   bool close_F = true,
-                   bool close_X = true);
+    void interpWeighted(int f_data_idx,
+                        libMesh::NumericVector<double>& F,
+                        libMesh::NumericVector<double>& X,
+                        const std::string& system_name,
+                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_refine_scheds =
+                            std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
+                        double fill_data_time = 0.0,
+                        bool close_F = true,
+                        bool close_X = true);
 
     /*!
      * \brief Interpolate a value from the Cartesian grid to the FE mesh using a
@@ -442,17 +441,16 @@ public:
      * the interpolated quantity at the quadrature points to the nodes. Here, the
      * basis functions of the deformational field is used as the filter.
      */
-    void
-    interpWeighted(int f_data_idx,
-                   libMesh::NumericVector<double>& F,
-                   libMesh::NumericVector<double>& X,
-                   const std::string& system_name,
-                   const InterpSpec& interp_spec,
-                   const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds =
-                       std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-                   double fill_data_time = 0.0,
-                   bool close_F = true,
-                   bool close_X = true);
+    void interpWeighted(int f_data_idx,
+                        libMesh::NumericVector<double>& F,
+                        libMesh::NumericVector<double>& X,
+                        const std::string& system_name,
+                        const InterpSpec& interp_spec,
+                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_refine_scheds =
+                            std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
+                        double fill_data_time = 0.0,
+                        bool close_F = true,
+                        bool close_X = true);
 
     /*!
      * \brief Interpolate a value from the Cartesian grid to the FE mesh using
@@ -462,8 +460,8 @@ public:
                 libMesh::NumericVector<double>& F,
                 libMesh::NumericVector<double>& X,
                 const std::string& system_name,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_refine_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
                 double fill_data_time = 0.0,
                 bool close_X = true);
 
@@ -476,8 +474,8 @@ public:
                 libMesh::NumericVector<double>& X,
                 const std::string& system_name,
                 const InterpSpec& interp_spec,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_refine_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
                 double fill_data_time = 0.0,
                 bool close_X = true);
 
@@ -592,13 +590,13 @@ public:
      * level in the hierarchy, or the old level number does not match the level
      * number (if the old level pointer is non-null).
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(nullptr),
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM>> old_level =
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM>>(nullptr),
                              bool allocate_data = true) override;
 
     /*!
@@ -616,7 +614,7 @@ public:
      * that is coarser than the finest level is null, or the given level numbers
      * not specified properly; e.g., coarsest_ln > finest_ln.
      */
-    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
                                      int coarsest_ln,
                                      int finest_ln) override;
 
@@ -638,7 +636,7 @@ public:
      * if the hierarchy pointer is null or the level number does not match any
      * existing level in the hierarchy.
      */
-    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,
@@ -708,7 +706,7 @@ private:
      * \note For inactive elements, the lower and upper bound values will be
      * identically zero.
      */
-    std::vector<std::pair<Point, Point> >* computeActiveElementBoundingBoxes();
+    std::vector<std::pair<Point, Point>>* computeActiveElementBoundingBoxes();
 
     /*!
      * Collect all of the active elements which are located within a local
@@ -717,7 +715,7 @@ private:
      * In this method, the determination as to whether an element is local or
      * not is based on the position of the bounding box of the element.
      */
-    void collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
+    void collectActivePatchElements(std::vector<std::vector<libMesh::Elem*>>& active_patch_elems,
                                     int level_number,
                                     const SAMRAI::hier::IntVector<NDIM>& ghost_width);
 
@@ -725,8 +723,8 @@ private:
      * Collect all of the nodes of the active elements that are located within a
      * local Cartesian grid patch grown by the specified ghost cell width.
      */
-    void collectActivePatchNodes(std::vector<std::vector<libMesh::Node*> >& active_patch_nodes,
-                                 const std::vector<std::vector<libMesh::Elem*> >& active_patch_elems);
+    void collectActivePatchNodes(std::vector<std::vector<libMesh::Node*>>& active_patch_nodes,
+                                 const std::vector<std::vector<libMesh::Elem*>>& active_patch_elems);
 
     /*!
      * Collect all ghost DOF indices for the specified collection of elements.
@@ -769,12 +767,12 @@ private:
     /*
      * We cache a pointer to the load balancer.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM>> d_load_balancer;
 
     /*
      * Grid hierarchy information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
     /*
@@ -787,7 +785,7 @@ private:
      * cell variable used to keep track of the count of the quadrature points in
      * each cell.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_qp_count_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_qp_count_var;
     int d_qp_count_idx;
 
     /*
@@ -801,7 +799,7 @@ private:
      * cell variable used to determine the workload for nonuniform load
      * balancing.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_workload_var;
     int d_workload_idx;
 
     /*
@@ -822,15 +820,15 @@ private:
      */
     libMesh::EquationSystems* d_es;
     int d_level_number;
-    std::map<unsigned int, SAMRAI::tbox::Pointer<SystemDofMapCache> > d_system_dof_map_cache;
+    std::map<unsigned int, SAMRAI::tbox::Pointer<SystemDofMapCache>> d_system_dof_map_cache;
 
     /*
      * Data to manage mappings between mesh elements and grid patches.
      */
-    std::vector<std::vector<libMesh::Elem*> > d_active_patch_elem_map;
-    std::vector<std::vector<libMesh::Node*> > d_active_patch_node_map;
-    std::map<std::string, std::vector<unsigned int> > d_active_patch_ghost_dofs;
-    std::vector<std::pair<Point, Point> > d_active_elem_bboxes;
+    std::vector<std::vector<libMesh::Elem*>> d_active_patch_elem_map;
+    std::vector<std::vector<libMesh::Node*>> d_active_patch_node_map;
+    std::map<std::string, std::vector<unsigned int>> d_active_patch_ghost_dofs;
+    std::vector<std::pair<Point, Point>> d_active_elem_bboxes;
 
     /*
      * Ghost vectors for the various equation systems.

@@ -89,7 +89,7 @@ public:
                                                double data_time,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -102,7 +102,7 @@ public:
                                                double data_time,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -115,7 +115,7 @@ public:
                                                double data_time,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -134,7 +134,7 @@ public:
                                                  double data_time,
                                                  const std::vector<int>& num_dofs_per_proc,
                                                  int dof_index_idx,
-                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
                                                  VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
     /*!
@@ -151,7 +151,7 @@ public:
                                               Vec& X_vec,
                                               const std::vector<int>& num_dofs_per_proc,
                                               int dof_index_idx,
-                                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+                                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
     /*!
      * \brief Standard one-dimensional Peskin 4-pt delta function.
      *
@@ -196,8 +196,8 @@ public:
                                         int dof_index_idx,
                                         const std::vector<int>& num_fine_dofs_per_proc,
                                         const std::vector<int>& num_coarse_dofs_per_proc,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > fine_patch_level,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
+                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> fine_patch_level,
+                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> coarse_patch_level,
                                         const AO& coarse_level_ao,
                                         const int coarse_ao_offset = 0);
 
@@ -220,8 +220,8 @@ public:
                                      const SAMRAI::hier::IntVector<NDIM>& overlap_size,
                                      const std::vector<int>& num_dofs_per_proc,
                                      int dof_index_idx,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > cf_boundary);
+                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+                                     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> cf_boundary);
 
     //\}
 
@@ -263,8 +263,8 @@ private:
                                              int dof_index_idx,
                                              const std::vector<int>& num_fine_dofs_per_proc,
                                              const std::vector<int>& num_coarse_dofs_per_proc,
-                                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > fine_patch_level,
-                                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
+                                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> fine_patch_level,
+                                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> coarse_patch_level,
                                              const AO& coarse_level_ao,
                                              const int coarse_ao_offset);
     /*!
@@ -276,8 +276,8 @@ private:
                                     int dof_index_idx,
                                     const std::vector<int>& num_fine_dofs_per_proc,
                                     const std::vector<int>& num_coarse_dofs_per_proc,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > fine_patch_level,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> fine_patch_level,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> coarse_patch_level,
                                     const AO& coarse_level_ao,
                                     const int coarse_ao_offset);
 
@@ -290,8 +290,8 @@ private:
                                        int dof_index_idx,
                                        const std::vector<int>& num_fine_dofs_per_proc,
                                        const std::vector<int>& num_coarse_dofs_per_proc,
-                                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > fine_patch_level,
-                                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
+                                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> fine_patch_level,
+                                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> coarse_patch_level,
                                        const AO& coarse_level_ao,
                                        const int coarse_ao_offset);
 
@@ -306,8 +306,8 @@ private:
                                           const SAMRAI::hier::IntVector<NDIM>& overlap_size,
                                           const std::vector<int>& num_dofs_per_proc,
                                           int dof_index_idx,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > cf_boundary);
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> cf_boundary);
     /*!
      * \brief Partition the patch level into subdomains suitable to be used for
      * additive Schwarz method for a sc-variable.
@@ -319,8 +319,8 @@ private:
                                           const SAMRAI::hier::IntVector<NDIM>& overlap_size,
                                           const std::vector<int>& num_dofs_per_proc,
                                           int dof_index_idx,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > cf_boundary);
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> cf_boundary);
 };
 } // namespace IBTK
 

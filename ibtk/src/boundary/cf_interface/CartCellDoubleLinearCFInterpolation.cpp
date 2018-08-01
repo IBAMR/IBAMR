@@ -187,7 +187,7 @@ CartCellDoubleLinearCFInterpolation::setPatchDataIndices(const ComponentSelector
 } // setPatchDataIndices
 
 void
-CartCellDoubleLinearCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
+CartCellDoubleLinearCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -203,14 +203,14 @@ CartCellDoubleLinearCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy<ND
         d_cf_boundary[ln] = new CoarseFineBoundary<NDIM>(*d_hierarchy, ln, max_ghost_width);
     }
 
-    Pointer<GridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<GridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
     const BoxArray<NDIM>& domain_boxes = grid_geom->getPhysicalDomain();
 
     d_domain_boxes.resize(finest_level_number + 1);
     d_periodic_shift.resize(finest_level_number + 1);
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         const IntVector<NDIM>& ratio = level->getRatio();
         d_domain_boxes[ln] = new BoxArray<NDIM>(domain_boxes);
         d_domain_boxes[ln]->refine(ratio);
@@ -258,10 +258,10 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch<NDIM>& patch,
     const int patch_num = patch.getPatchNumber();
     const int patch_level_num = patch.getPatchLevelNumber();
 #if !defined(NDEBUG)
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(patch_level_num);
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(patch_level_num);
     TBOX_ASSERT(&patch == level->getPatch(patch_num).getPointer());
 #endif
-    const Array<BoundaryBox<NDIM> >& cf_bdry_codim1_boxes = d_cf_boundary[patch_level_num]->getBoundaries(patch_num, 1);
+    const Array<BoundaryBox<NDIM>>& cf_bdry_codim1_boxes = d_cf_boundary[patch_level_num]->getBoundaries(patch_num, 1);
     const int n_cf_bdry_codim1_boxes = cf_bdry_codim1_boxes.size();
 
     // Check to see if there are any co-dimension 1 coarse-fine boundary boxes
@@ -271,7 +271,7 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch<NDIM>& patch,
     // Get the patch data.
     for (int patch_data_index : d_patch_data_indices)
     {
-        Pointer<CellData<NDIM, double> > data = patch.getPatchData(patch_data_index);
+        Pointer<CellData<NDIM, double>> data = patch.getPatchData(patch_data_index);
 #if !defined(NDEBUG)
         TBOX_ASSERT(data);
 #endif
@@ -286,7 +286,7 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch<NDIM>& patch,
 #endif
         const int data_depth = data->getDepth();
         const IntVector<NDIM> ghost_width_to_fill = GHOST_WIDTH_TO_FILL;
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+        Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
         const Box<NDIM>& patch_box = patch.getBox();
         for (int k = 0; k < n_cf_bdry_codim1_boxes; ++k)
         {

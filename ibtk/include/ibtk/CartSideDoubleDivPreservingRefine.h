@@ -70,8 +70,8 @@ public:
     CartSideDoubleDivPreservingRefine(int u_dst_idx,
                                       int u_src_idx,
                                       int indicator_idx,
-                                      SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_op,
-                                      SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_op,
+                                      SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM>> refine_op,
+                                      SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM>> coarsen_op,
                                       double fill_time,
                                       SAMRAI::xfer::RefinePatchStrategy<NDIM>* phys_bdry_op);
 
@@ -209,12 +209,12 @@ private:
     /*!
      * The basic linear refine operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM>> d_refine_op;
 
     /*!
      * The basic coarsening operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_coarsen_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM>> d_coarsen_op;
 };
 } // namespace IBTK
 

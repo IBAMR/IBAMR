@@ -75,7 +75,7 @@ IBLagrangianForceStrategy::setTimeInterval(const double /*current_time*/, const 
 } // setTimeInterval
 
 void
-IBLagrangianForceStrategy::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+IBLagrangianForceStrategy::initializeLevelData(const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
                                                const int /*level_number*/,
                                                const double /*init_data_time*/,
                                                const bool /*initial_time*/,
@@ -89,7 +89,7 @@ void
 IBLagrangianForceStrategy::computeLagrangianForce(Pointer<LData> /*F_data*/,
                                                   Pointer<LData> /*X_data*/,
                                                   Pointer<LData> /*U_data*/,
-                                                  const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                                  const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
                                                   const int /*level_number*/,
                                                   const double /*data_time*/,
                                                   LDataManager* const /*l_data_manager*/)
@@ -104,7 +104,7 @@ void
 IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& /*d_nnz*/,
     std::vector<int>& /*o_nnz*/,
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+    const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
     const int /*level_number*/,
     LDataManager* const /*l_data_manager*/)
 {
@@ -121,7 +121,7 @@ IBLagrangianForceStrategy::computeLagrangianForceJacobian(Mat& /*J_mat*/,
                                                           Pointer<LData> /*X_data*/,
                                                           const double /*U_coef*/,
                                                           Pointer<LData> /*U_data*/,
-                                                          const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                                          const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
                                                           const int /*level_number*/,
                                                           const double /*data_time*/,
                                                           LDataManager* const /*l_data_manager*/)
@@ -135,7 +135,7 @@ IBLagrangianForceStrategy::computeLagrangianForceJacobian(Mat& /*J_mat*/,
 double
 IBLagrangianForceStrategy::computeLagrangianEnergy(Pointer<LData> /*X_data*/,
                                                    Pointer<LData> /*U_data*/,
-                                                   const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                                   const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
                                                    const int /*level_number*/,
                                                    const double /*data_time*/,
                                                    LDataManager* const /*l_data_manager*/)

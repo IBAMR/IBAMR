@@ -81,15 +81,15 @@ RelaxationLSBcCoefs::resetLSPatchDataIndex()
 } // resetLSPatchDataIndex
 
 void
-RelaxationLSBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                const Pointer<Variable<NDIM> >& /*variable*/,
+RelaxationLSBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
+                                Pointer<ArrayData<NDIM, double>>& bcoef_data,
+                                Pointer<ArrayData<NDIM, double>>& gcoef_data,
+                                const Pointer<Variable<NDIM>>& /*variable*/,
                                 const Patch<NDIM>& patch,
                                 const BoundaryBox<NDIM>& bdry_box,
                                 double /*fill_time*/) const
 {
-    Pointer<CellData<NDIM, double> > phi_data = patch.getPatchData(d_phi_idx);
+    Pointer<CellData<NDIM, double>> phi_data = patch.getPatchData(d_phi_idx);
 
     const int location_index = bdry_box.getLocationIndex();
     const int axis = location_index / 2;

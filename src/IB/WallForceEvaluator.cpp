@@ -43,7 +43,7 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-WallForceEvaluator::WallForceEvaluator(Pointer<Database> input_db, Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
+WallForceEvaluator::WallForceEvaluator(Pointer<Database> input_db, Pointer<CartesianGridGeometry<NDIM>> grid_geometry)
     : d_grid_geometry(grid_geometry)
 {
     // register walls, call this during IB Hierarchy Integrator constructor
@@ -116,7 +116,7 @@ void
 WallForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
                                            Pointer<LData> X_data,
                                            Pointer<LData> /*U_data*/,
-                                           const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                           const Pointer<PatchHierarchy<NDIM>> hierarchy,
                                            const int level_number,
                                            const double eval_time,
                                            LDataManager* const l_data_manager)
@@ -136,12 +136,12 @@ WallForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
         // get axis (which direction the wall is normal to)
         int axis = wall_it.getAxis();
 
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_number);
         const IntVector<NDIM>& ratio = level->getRatio();
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         { // iterate through patches
 
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             Pointer<LNodeSetData> current_idx_data = patch->getPatchData(lag_node_idx_current_idx);
             const Box<NDIM>& patch_box = patch->getBox();
 

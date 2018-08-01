@@ -251,7 +251,7 @@ CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, do
                                  << std::endl);
     }
 
-    const Pointer<PatchHierarchy<NDIM> >& patch_hierarchy = x.getPatchHierarchy();
+    const Pointer<PatchHierarchy<NDIM>>& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -324,7 +324,7 @@ CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, do
     // Allocate and initialize the hypre data structures.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
-    Pointer<CellDataFactory<NDIM, double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
+    Pointer<CellDataFactory<NDIM, double>> x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
     d_depth = x_fac->getDefaultDepth();
     if (d_poisson_spec.dIsConstant())
     {
@@ -333,7 +333,7 @@ CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, do
     else
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<SideDataFactory<NDIM, double> > pdat_factory =
+        Pointer<SideDataFactory<NDIM, double>> pdat_factory =
             var_db->getPatchDescriptor()->getPatchDataFactory(d_poisson_spec.getDPatchDataId());
 #if !defined(NDEBUG)
         TBOX_ASSERT(pdat_factory);
@@ -387,7 +387,7 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
 
     // Setup the hypre grid.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geometry = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geometry = d_hierarchy->getGridGeometry();
     const IntVector<NDIM>& ratio = d_level->getRatio();
     const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift(ratio);
 
@@ -516,7 +516,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
     std::vector<double> mat_vals(stencil_sz, 0.0);
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
         CellData<NDIM, double> matrix_coefs(patch_box, stencil_sz, IntVector<NDIM>(0));
         for (unsigned int k = 0; k < d_depth; ++k)
@@ -549,16 +549,16 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
     static const IntVector<NDIM> no_ghosts = 0;
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
 
         // Compute all matrix coefficients.
         //
         // NOTE: Here we assume that no flux boundary conditions are imposed at
         // the physical domain.
-        Pointer<CellData<NDIM, double> > C_data;
+        Pointer<CellData<NDIM, double>> C_data;
         if (!d_poisson_spec.cIsZero() && !d_poisson_spec.cIsConstant())
         {
             C_data = patch->getPatchData(d_poisson_spec.getCPatchDataId());
@@ -579,7 +579,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                 C_data->fill(d_poisson_spec.getCConstant());
         }
 
-        Pointer<SideData<NDIM, double> > D_data;
+        Pointer<SideData<NDIM, double>> D_data;
         if (!d_poisson_spec.dIsConstant())
         {
             D_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
@@ -1054,22 +1054,22 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     const IntVector<NDIM> no_ghosts = 0;
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
 
         // Copy the solution data into the hypre vector, including ghost cell
         // values
         const Box<NDIM> x_ghost_box = Box<NDIM>::grow(patch_box, 1);
-        Pointer<CellData<NDIM, double> > x_data = patch->getPatchData(x_idx);
+        Pointer<CellData<NDIM, double>> x_data = patch->getPatchData(x_idx);
         copyToHypre(d_sol_vecs, *x_data, x_ghost_box);
 
         // Modify the right-hand-side data to account for any inhomogeneous
         // boundary conditions and copy the right-hand-side into the hypre
         // vector.
-        Pointer<CellData<NDIM, double> > b_data = patch->getPatchData(b_idx);
-        const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
-            level_zero ? Array<BoundaryBox<NDIM> >() :
+        Pointer<CellData<NDIM, double>> b_data = patch->getPatchData(b_idx);
+        const Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
+            level_zero ? Array<BoundaryBox<NDIM>>() :
                          d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
@@ -1187,9 +1187,9 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     // Pull the solution vector out of the hypre structures.
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
+        Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, double> > x_data = patch->getPatchData(x_idx);
+        Pointer<CellData<NDIM, double>> x_data = patch->getPatchData(x_idx);
         copyFromHypre(*x_data, d_sol_vecs, patch_box);
     }
     return (d_current_residual_norm <= d_rel_residual_tol || d_current_residual_norm <= d_abs_residual_tol);

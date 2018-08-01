@@ -132,7 +132,7 @@ discard_comments(const std::string& input_string)
 unsigned int
 LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init_posns,
                                       const std::string& mark_input_file_name,
-                                      Pointer<CartesianGridGeometry<NDIM> > grid_geom)
+                                      Pointer<CartesianGridGeometry<NDIM>> grid_geom)
 {
     if (mark_input_file_name.empty()) return 0;
 
@@ -274,7 +274,7 @@ LMarkerUtilities::eulerStep(const int mark_current_idx,
                             const int u_current_idx,
                             const double dt,
                             const std::string& weighting_fcn,
-                            Pointer<PatchHierarchy<NDIM> > hierarchy,
+                            Pointer<PatchHierarchy<NDIM>> hierarchy,
                             const int coarsest_ln_in,
                             const int finest_ln_in)
 {
@@ -282,14 +282,14 @@ LMarkerUtilities::eulerStep(const int mark_current_idx,
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<PatchData<NDIM> > u_current_data = patch->getPatchData(u_current_idx);
-            Pointer<CellData<NDIM, double> > u_cc_current_data = u_current_data;
-            Pointer<SideData<NDIM, double> > u_sc_current_data = u_current_data;
+            Pointer<PatchData<NDIM>> u_current_data = patch->getPatchData(u_current_idx);
+            Pointer<CellData<NDIM, double>> u_cc_current_data = u_current_data;
+            Pointer<SideData<NDIM, double>> u_sc_current_data = u_current_data;
             const bool is_cc_data = u_cc_current_data;
             const bool is_sc_data = u_sc_current_data;
             Pointer<LMarkerSetData> mark_current_data = patch->getPatchData(mark_current_idx);
@@ -338,7 +338,7 @@ LMarkerUtilities::midpointStep(const int mark_current_idx,
                                const int u_half_idx,
                                const double dt,
                                const std::string& weighting_fcn,
-                               Pointer<PatchHierarchy<NDIM> > hierarchy,
+                               Pointer<PatchHierarchy<NDIM>> hierarchy,
                                const int coarsest_ln_in,
                                const int finest_ln_in)
 {
@@ -346,14 +346,14 @@ LMarkerUtilities::midpointStep(const int mark_current_idx,
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<PatchData<NDIM> > u_half_data = patch->getPatchData(u_half_idx);
-            Pointer<CellData<NDIM, double> > u_cc_half_data = u_half_data;
-            Pointer<SideData<NDIM, double> > u_sc_half_data = u_half_data;
+            Pointer<PatchData<NDIM>> u_half_data = patch->getPatchData(u_half_idx);
+            Pointer<CellData<NDIM, double>> u_cc_half_data = u_half_data;
+            Pointer<SideData<NDIM, double>> u_sc_half_data = u_half_data;
             const bool is_cc_data = u_cc_half_data;
             const bool is_sc_data = u_sc_half_data;
             Pointer<LMarkerSetData> mark_current_data = patch->getPatchData(mark_current_idx);
@@ -409,7 +409,7 @@ LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
                                   const int u_new_idx,
                                   const double dt,
                                   const std::string& weighting_fcn,
-                                  Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                  Pointer<PatchHierarchy<NDIM>> hierarchy,
                                   const int coarsest_ln_in,
                                   const int finest_ln_in)
 {
@@ -417,14 +417,14 @@ LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<PatchData<NDIM> > u_new_data = patch->getPatchData(u_new_idx);
-            Pointer<CellData<NDIM, double> > u_cc_new_data = u_new_data;
-            Pointer<SideData<NDIM, double> > u_sc_new_data = u_new_data;
+            Pointer<PatchData<NDIM>> u_new_data = patch->getPatchData(u_new_idx);
+            Pointer<CellData<NDIM, double>> u_cc_new_data = u_new_data;
+            Pointer<SideData<NDIM, double>> u_sc_new_data = u_new_data;
             const bool is_cc_data = u_cc_new_data;
             const bool is_sc_data = u_sc_new_data;
             Pointer<LMarkerSetData> mark_current_data = patch->getPatchData(mark_current_idx);
@@ -481,7 +481,7 @@ LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
 } // trapezoidalStep
 
 void
-LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<PatchHierarchy<NDIM> > hierarchy)
+LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<PatchHierarchy<NDIM>> hierarchy)
 {
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
@@ -491,15 +491,15 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<Pat
 
     // Collect all marker data on the patch hierarchy.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > var;
+    Pointer<Variable<NDIM>> var;
     var_db->mapIndexToVariable(mark_idx, var);
     int mark_scratch_idx = var_db->registerClonedPatchDataIndex(var, mark_idx);
-    Pointer<CoarsenAlgorithm<NDIM> > mark_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+    Pointer<CoarsenAlgorithm<NDIM>> mark_coarsen_alg = new CoarsenAlgorithm<NDIM>();
     mark_coarsen_alg->registerCoarsen(mark_scratch_idx, mark_idx, new LMarkerCoarsen());
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        Pointer<PatchLevel<NDIM> > coarser_level = hierarchy->getPatchLevel(ln - 1);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> coarser_level = hierarchy->getPatchLevel(ln - 1);
 
         // Allocate scratch data.
         coarser_level->allocatePatchData(mark_scratch_idx);
@@ -511,7 +511,7 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<Pat
         // Merge the coarsened fine data with the coarse data.
         for (PatchLevel<NDIM>::Iterator p(coarser_level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = coarser_level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = coarser_level->getPatch(p());
             Pointer<LMarkerSetData> mark_current_data = patch->getPatchData(mark_idx);
             Pointer<LMarkerSetData> mark_scratch_data = patch->getPatchData(mark_scratch_idx);
             for (LMarkerSetData::Iterator it(*mark_scratch_data); it; it++)
@@ -530,7 +530,7 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<Pat
         // Clear the fine data.
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             Pointer<LMarkerSetData> mark_current_data = patch->getPatchData(mark_idx);
             mark_current_data->removeAllItems();
         }
@@ -569,16 +569,16 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<Pat
     // NOTE: It is important to do this only *after* collecting markers on the
     // patch hierarchy.  Otherwise, markers that have left a fine level through
     // the coarse-fine interface would be discarded by this procedure.
-    Pointer<RefineAlgorithm<NDIM> > mark_level_fill_alg = new RefineAlgorithm<NDIM>();
+    Pointer<RefineAlgorithm<NDIM>> mark_level_fill_alg = new RefineAlgorithm<NDIM>();
     mark_level_fill_alg->registerRefine(mark_idx, mark_idx, mark_idx, nullptr);
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(coarsest_ln);
+    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(coarsest_ln);
     const IntVector<NDIM>& ratio = level->getRatio();
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    const Pointer<CartesianGridGeometry<NDIM>> grid_geom = level->getGridGeometry();
     mark_level_fill_alg->createSchedule(level, nullptr)->fillData(0.0);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
         const double* const patchXLower = patch_geom->getXLower();
         const double* const patchXUpper = patch_geom->getXUpper();
         const double* const patchDx = patch_geom->getDx();
@@ -646,14 +646,14 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<Pat
 void
 LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
                                            const std::vector<Point>& mark_init_posns,
-                                           const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                           const Pointer<PatchHierarchy<NDIM>> hierarchy,
                                            const int level_number,
                                            const bool initial_time,
-                                           const Pointer<BasePatchLevel<NDIM> > old_level)
+                                           const Pointer<BasePatchLevel<NDIM>> old_level)
 {
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_number);
     const IntVector<NDIM>& ratio = level->getRatio();
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    const Pointer<CartesianGridGeometry<NDIM>> grid_geom = level->getGridGeometry();
 
     // On the coarsest level of the patch hierarchy, copy marker data from the
     // old coarse level.  Otherwise, refine marker data from the coarsest level
@@ -662,8 +662,8 @@ LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
     {
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const patchXLower = patch_geom->getXLower();
             const double* const patchXUpper = patch_geom->getXUpper();
 
@@ -697,21 +697,21 @@ LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
     {
         if (old_level && level_number == 0)
         {
-            Pointer<RefineAlgorithm<NDIM> > copy_mark_alg = new RefineAlgorithm<NDIM>();
+            Pointer<RefineAlgorithm<NDIM>> copy_mark_alg = new RefineAlgorithm<NDIM>();
             copy_mark_alg->registerRefine(mark_idx, mark_idx, mark_idx, nullptr);
-            Pointer<PatchLevel<NDIM> > dst_level = level;
-            Pointer<PatchLevel<NDIM> > src_level = old_level;
+            Pointer<PatchLevel<NDIM>> dst_level = level;
+            Pointer<PatchLevel<NDIM>> src_level = old_level;
             RefinePatchStrategy<NDIM>* refine_mark_op = nullptr;
             copy_mark_alg->createSchedule(dst_level, src_level, refine_mark_op)->fillData(0.0);
         }
         else if (level_number > 0)
         {
-            Pointer<RefineAlgorithm<NDIM> > refine_mark_alg = new RefineAlgorithm<NDIM>();
+            Pointer<RefineAlgorithm<NDIM>> refine_mark_alg = new RefineAlgorithm<NDIM>();
             refine_mark_alg->registerRefine(mark_idx, mark_idx, mark_idx, new LMarkerRefine());
             RefinePatchStrategy<NDIM>* refine_mark_op = nullptr;
             for (int ln = 1; ln <= level_number; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > dst_level = hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel<NDIM>> dst_level = hierarchy->getPatchLevel(ln);
                 refine_mark_alg->createSchedule(dst_level, nullptr, ln - 1, hierarchy, refine_mark_op)->fillData(0.0);
             }
         }
@@ -721,7 +721,7 @@ LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
 
 void
 LMarkerUtilities::pruneInvalidMarkers(const int mark_idx,
-                                      Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                      Pointer<PatchHierarchy<NDIM>> hierarchy,
                                       const int coarsest_ln_in,
                                       const int finest_ln_in)
 {
@@ -730,14 +730,14 @@ LMarkerUtilities::pruneInvalidMarkers(const int mark_idx,
     const int finest_hier_level_number = hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= std::min(finest_ln, finest_hier_level_number - 1); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        Pointer<PatchLevel<NDIM> > finer_level = hierarchy->getPatchLevel(ln + 1);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> finer_level = hierarchy->getPatchLevel(ln + 1);
         BoxArray<NDIM> refined_region_boxes = finer_level->getBoxes();
         const IntVector<NDIM>& ratio = finer_level->getRatioToCoarserLevel();
         refined_region_boxes.coarsen(ratio);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             Pointer<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
             const Box<NDIM>& ghost_box = mark_data->getGhostBox();
             for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
@@ -756,7 +756,7 @@ LMarkerUtilities::pruneInvalidMarkers(const int mark_idx,
 
 unsigned int
 LMarkerUtilities::countMarkers(const int mark_idx,
-                               Pointer<PatchHierarchy<NDIM> > hierarchy,
+                               Pointer<PatchHierarchy<NDIM>> hierarchy,
                                const int coarsest_ln_in,
                                const int finest_ln_in)
 {
@@ -765,10 +765,10 @@ LMarkerUtilities::countMarkers(const int mark_idx,
     unsigned int num_marks = 0;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             Pointer<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
             num_marks += countMarkersOnPatch(mark_data);
         }
@@ -866,7 +866,7 @@ LMarkerUtilities::resetMarkerVelocitiesOnPatch(const std::vector<double>& U_mark
 } // resetMarkerVelocitiesOnPatch
 
 void
-LMarkerUtilities::preventMarkerEscape(std::vector<double>& X_mark, Pointer<CartesianGridGeometry<NDIM> > grid_geom)
+LMarkerUtilities::preventMarkerEscape(std::vector<double>& X_mark, Pointer<CartesianGridGeometry<NDIM>> grid_geom)
 {
     const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
     if (periodic_shift.min() > 0) return;

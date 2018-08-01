@@ -116,7 +116,7 @@ public:
             std::string phys_bdry_extrap_type = "NONE",
             bool consistent_type_2_bdry = false,
             SAMRAI::solv::RobinBcCoefStrategy<NDIM>* robin_bc_coef = nullptr,
-            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = nullptr)
+            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> fill_pattern = nullptr)
             : d_dst_data_idx(data_idx),
               d_src_data_idx(data_idx),
               d_refine_op_name(std::move(refine_op_name)),
@@ -143,7 +143,7 @@ public:
             std::string phys_bdry_extrap_type,
             bool consistent_type_2_bdry,
             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> robin_bc_coefs,
-            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = nullptr)
+            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> fill_pattern = nullptr)
             : d_dst_data_idx(data_idx),
               d_src_data_idx(data_idx),
               d_refine_op_name(std::move(refine_op_name)),
@@ -170,7 +170,7 @@ public:
             std::string phys_bdry_extrap_type,
             bool consistent_type_2_bdry,
             SAMRAI::solv::RobinBcCoefStrategy<NDIM>* robin_bc_coef,
-            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = nullptr)
+            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> fill_pattern = nullptr)
             : d_dst_data_idx(dst_data_idx),
               d_src_data_idx(src_data_idx),
               d_refine_op_name(std::move(refine_op_name)),
@@ -198,7 +198,7 @@ public:
             std::string phys_bdry_extrap_type,
             bool consistent_type_2_bdry,
             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> robin_bc_coefs,
-            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = nullptr)
+            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> fill_pattern = nullptr)
             : d_dst_data_idx(dst_data_idx),
               d_src_data_idx(src_data_idx),
               d_refine_op_name(std::move(refine_op_name)),
@@ -274,7 +274,7 @@ public:
         std::string d_phys_bdry_extrap_type;
         bool d_consistent_type_2_bdry;
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_robin_bc_coefs;
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> d_fill_pattern;
     };
 
     /*!
@@ -298,7 +298,7 @@ public:
      * hierarchy.
      */
     void initializeOperatorState(InterpolationTransactionComponent transaction_comp,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                  int coarsest_ln = -1,
                                  int finest_ln = -1);
 
@@ -308,7 +308,7 @@ public:
      * patch hierarchy.
      */
     void initializeOperatorState(const std::vector<InterpolationTransactionComponent>& transaction_comps,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                  int coarsest_ln = -1,
                                  int finest_ln = -1);
 
@@ -325,7 +325,7 @@ public:
     /*!
      * \brief Reinitialize operator state following, e.g., a regridding operation.
      */
-    void reinitializeOperatorState(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void reinitializeOperatorState(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy);
 
     /*!
      * \brief Clear all cached data.
@@ -371,24 +371,24 @@ private:
     std::vector<InterpolationTransactionComponent> d_transaction_comps;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy = nullptr;
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> d_grid_geom = nullptr;
     int d_coarsest_ln = -1, d_finest_ln = -1;
 
     // Cached communications algorithms and schedules.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_coarsen_alg = nullptr;
     SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* d_coarsen_strategy = nullptr;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds = {};
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_coarsen_scheds = {};
 
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_refine_alg = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_refine_alg = nullptr;
     SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_refine_strategy = nullptr;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_refine_scheds = {};
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_refine_scheds = {};
 
     // Cached coarse-fine boundary and physical boundary condition handlers.
-    std::vector<SAMRAI::tbox::Pointer<CoarseFineBoundaryRefinePatchStrategy> > d_cf_bdry_ops;
-    std::vector<SAMRAI::tbox::Pointer<CartExtrapPhysBdryOp> > d_extrap_bc_ops;
-    std::vector<SAMRAI::tbox::Pointer<CartCellRobinPhysBdryOp> > d_cc_robin_bc_ops;
-    std::vector<SAMRAI::tbox::Pointer<CartSideRobinPhysBdryOp> > d_sc_robin_bc_ops;
+    std::vector<SAMRAI::tbox::Pointer<CoarseFineBoundaryRefinePatchStrategy>> d_cf_bdry_ops;
+    std::vector<SAMRAI::tbox::Pointer<CartExtrapPhysBdryOp>> d_extrap_bc_ops;
+    std::vector<SAMRAI::tbox::Pointer<CartCellRobinPhysBdryOp>> d_cc_robin_bc_ops;
+    std::vector<SAMRAI::tbox::Pointer<CartSideRobinPhysBdryOp>> d_sc_robin_bc_ops;
 };
 } // namespace IBTK
 

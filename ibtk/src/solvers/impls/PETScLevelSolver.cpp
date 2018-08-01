@@ -74,8 +74,8 @@ static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
 
 void
-generate_petsc_is_from_std_is(std::vector<std::set<int> >& overlap_std,
-                              std::vector<std::set<int> >& nonoverlap_std,
+generate_petsc_is_from_std_is(std::vector<std::set<int>>& overlap_std,
+                              std::vector<std::set<int>>& nonoverlap_std,
                               std::vector<IS>& overlap_petsc,
                               std::vector<IS>& nonoverlap_petsc)
 {
@@ -207,7 +207,7 @@ PETScLevelSolver::getASMSubdomains(std::vector<IS>** nonoverlapping_subdomains,
 
 void
 PETScLevelSolver::setNullspace(bool contains_constant_vec,
-                               const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs)
+                               const std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>>& nullspace_basis_vecs)
 {
     LinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
     if (d_is_initialized) setupNullspace();
@@ -273,7 +273,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
                                  << std::endl);
     }
 
-    const Pointer<PatchHierarchy<NDIM> >& patch_hierarchy = x.getPatchHierarchy();
+    const Pointer<PatchHierarchy<NDIM>>& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -389,7 +389,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
     if (d_pc_type == "asm")
     {
         // Generate user-defined subdomains.
-        std::vector<std::set<int> > overlap_is, nonoverlap_is;
+        std::vector<std::set<int>> overlap_is, nonoverlap_is;
         generateASMSubdomains(overlap_is, nonoverlap_is);
 
         // Generate PETSc IS in cases where they have not been generated directly.
@@ -418,7 +418,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
 
     if (d_pc_type == "fieldsplit")
     {
-        std::vector<std::set<int> > field_is;
+        std::vector<std::set<int>> field_is;
         std::vector<std::string> field_name;
         generateFieldSplitSubdomains(field_name, field_is);
         d_field_name = field_name;
@@ -456,7 +456,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         IBTK_CHKERRQ(ierr);
 
         // Generate user-defined subdomains.
-        std::vector<std::set<int> > overlap_is, nonoverlap_is;
+        std::vector<std::set<int>> overlap_is, nonoverlap_is;
         generateASMSubdomains(overlap_is, nonoverlap_is);
         d_n_local_subdomains = static_cast<int>(d_overlap_is.size());
         d_n_subdomains_max = SAMRAI_MPI::maxReduction(d_n_local_subdomains);
@@ -779,8 +779,8 @@ PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_op
 } // init
 
 void
-PETScLevelSolver::generateASMSubdomains(std::vector<std::set<int> >& /*overlap_is*/,
-                                        std::vector<std::set<int> >& /*nonoverlap_is*/)
+PETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& /*overlap_is*/,
+                                        std::vector<std::set<int>>& /*nonoverlap_is*/)
 {
     TBOX_ERROR("PETScLevelSolver::generateASMSubdomains(): Subclasses need to generate ASM subdomains. \n");
 
@@ -789,7 +789,7 @@ PETScLevelSolver::generateASMSubdomains(std::vector<std::set<int> >& /*overlap_i
 
 void
 PETScLevelSolver::generateFieldSplitSubdomains(std::vector<std::string>& /*field_names*/,
-                                               std::vector<std::set<int> >& /*field_is*/)
+                                               std::vector<std::set<int>>& /*field_is*/)
 {
     TBOX_ERROR(
         "PETScLevelSolver::generateFieldSplitSubdomains(): Subclasses need to generate FieldSplit subdomains. \n");

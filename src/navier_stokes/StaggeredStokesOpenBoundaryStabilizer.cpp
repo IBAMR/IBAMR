@@ -90,7 +90,7 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
     const std::string& object_name,
     Pointer<Database> input_db,
     const INSHierarchyIntegrator* fluid_solver,
-    Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
+    Pointer<CartesianGridGeometry<NDIM>> grid_geometry)
     : CartGridFunction(object_name),
       d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
       d_inflow_bdry(array_constant<bool, 2 * NDIM>(false)),
@@ -152,13 +152,13 @@ StaggeredStokesOpenBoundaryStabilizer::isTimeDependent() const
 
 void
 StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
-                                                      Pointer<Variable<NDIM> > /*var*/,
-                                                      Pointer<Patch<NDIM> > patch,
+                                                      Pointer<Variable<NDIM>> /*var*/,
+                                                      Pointer<Patch<NDIM>> patch,
                                                       const double /*data_time*/,
                                                       const bool initial_time,
-                                                      Pointer<PatchLevel<NDIM> > /*level*/)
+                                                      Pointer<PatchLevel<NDIM>> /*level*/)
 {
-    Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(data_idx);
+    Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_data);
 #endif
@@ -168,15 +168,15 @@ StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     const double rho = d_fluid_solver->getStokesSpecifications()->getRho();
     const double kappa = cycle_num >= 0 ? 0.5 * rho / dt : 0.0;
-    Pointer<SideData<NDIM, double> > U_current_data =
+    Pointer<SideData<NDIM, double>> U_current_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-    Pointer<SideData<NDIM, double> > U_new_data =
+    Pointer<SideData<NDIM, double>> U_new_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(U_current_data);
 #endif
     const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();

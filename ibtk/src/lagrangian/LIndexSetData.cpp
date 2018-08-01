@@ -70,7 +70,7 @@ LIndexSetData<T>::LIndexSetData(const Box<NDIM>& box, const IntVector<NDIM>& gho
 
 template <class T>
 void
-LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntVector<NDIM>& periodic_shift)
+LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM>> patch, const IntVector<NDIM>& periodic_shift)
 {
     d_lag_indices.clear();
     d_interior_lag_indices.clear();
@@ -89,7 +89,7 @@ LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntVector
     const Index<NDIM>& ilower = patch_box.lower();
     const Index<NDIM>& iupper = patch_box.upper();
 
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     boost::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
     for (unsigned int axis = 0; axis < NDIM; ++axis)

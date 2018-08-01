@@ -141,13 +141,13 @@ public:
      * The data initialized by this method is assumed \em not to change during
      * the course of a simulation.
      */
-    void initializeHierarchyIndependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    void initializeHierarchyIndependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                             IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Initialize hierarchy- and configuration-dependent data.
      */
-    void initializeHierarchyDependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    void initializeHierarchyDependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                           IBTK::LDataManager* l_data_manager,
                                           int timestep_num,
                                           double data_time);
@@ -158,7 +158,7 @@ public:
      */
     void readInstrumentData(int U_data_idx,
                             int P_data_idx,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                             IBTK::LDataManager* l_data_manager,
                             int timestep_num,
                             double data_time);
@@ -229,8 +229,8 @@ private:
     unsigned int d_num_meters = 0;
     std::vector<int> d_num_perimeter_nodes = {};
     std::vector<IBTK::Vector> d_X_centroid = {};
-    std::vector<boost::multi_array<IBTK::Vector, 1> > d_X_perimeter = {};
-    std::vector<boost::multi_array<IBTK::Vector, 2> > d_X_web = {}, d_dA_web = {};
+    std::vector<boost::multi_array<IBTK::Vector, 1>> d_X_perimeter = {};
+    std::vector<boost::multi_array<IBTK::Vector, 2>> d_X_web = {}, d_dA_web = {};
 
     int d_instrument_read_timestep_num = -1;
     double d_instrument_read_time = std::numeric_limits<double>::quiet_NaN();

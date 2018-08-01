@@ -228,20 +228,20 @@ private:
     /*!
      * \brief Compute the advection velocity using simple averages
      */
-    void computeAdvectionVelocity(
-        boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > U_data,
-        const SAMRAI::hier::IntVector<NDIM>& patch_lower,
-        const SAMRAI::hier::IntVector<NDIM>& patch_upper,
-        const boost::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes);
+    void
+    computeAdvectionVelocity(boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>>, NDIM> U_adv_data,
+                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> U_data,
+                             const SAMRAI::hier::IntVector<NDIM>& patch_lower,
+                             const SAMRAI::hier::IntVector<NDIM>& patch_upper,
+                             const boost::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes);
 
     /*!
      * \brief Compute the interpolation of a quantity Q onto Q_half, faces of the velocity DOF centered control volumes
      */
     void interpolateSideQuantity(
-        boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> Q_half_data,
-        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > Q_data,
+        boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>>, NDIM> Q_half_data,
+        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>>, NDIM> U_adv_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> Q_data,
         const SAMRAI::hier::IntVector<NDIM>& patch_lower,
         const SAMRAI::hier::IntVector<NDIM>& patch_upper,
         const boost::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
@@ -251,11 +251,11 @@ private:
      * \brief Compute div[rho_half*u_half*u_adv]
      */
     void computeConvectiveDerivative(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > N_data,
-        boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> P_half_data,
-        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
-        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> R_half_data,
-        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_half_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> N_data,
+        boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>>, NDIM> P_half_data,
+        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>>, NDIM> U_adv_data,
+        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>>, NDIM> R_half_data,
+        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>>, NDIM> U_half_data,
         const boost::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
         const double* const dx);
 
@@ -263,15 +263,15 @@ private:
      * \brief Compute the density update rho = a0*rho^0 + a1*rho^1 + a2*dt*(-div[u_adv*rho_half]) + a2*dt*S
      */
     void computeDensityUpdate(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > R_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> R_data,
         const double& a0,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > R0_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> R0_data,
         const double& a1,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > R1_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> R1_data,
         const double& a2,
-        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
-        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> R_half_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > S_data,
+        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>>, NDIM> U_adv_data,
+        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>>, NDIM> R_half_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> S_data,
         const boost::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
         const double& dt,
         const double* const dx);
@@ -286,7 +286,7 @@ private:
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy = nullptr;
     int d_coarsest_ln = -1, d_finest_ln = -1;
 
     // Whether or not the current density field has been set.
@@ -300,13 +300,13 @@ private:
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM, nullptr);
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_U_var = nullptr;
     int d_U_scratch_idx = -1;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_rho_sc_var = nullptr;
     int d_rho_sc_current_idx = -1, d_rho_sc_scratch_idx = -1, d_rho_sc_new_idx = -1;
 
     // Hierarchy operation obect.
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double>> d_hier_sc_data_ops;
 
     // The limiter type for interpolation onto faces.
     LimiterType d_velocity_convective_limiter = UPWIND;
@@ -319,7 +319,7 @@ private:
     TimeSteppingType d_density_time_stepping_type = FORWARD_EULER;
 
     // Source term variable and function for the mass density update
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_S_var = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_S_var = nullptr;
     int d_S_scratch_idx = -1;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn = nullptr;
 };

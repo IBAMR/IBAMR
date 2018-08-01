@@ -124,7 +124,7 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     Vec *vx, *vy;
     VecNestGetSubVecs(x, nullptr, &vx);
     VecNestGetSubVecs(y, nullptr, &vy);
-    Pointer<SAMRAIVectorReal<NDIM, double> > vx0, vy0;
+    Pointer<SAMRAIVectorReal<NDIM, double>> vx0, vy0;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0], &vy0);
     SAMRAIVectorReal<NDIM, double>& u_p = *vx0;
@@ -145,10 +145,10 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     const int A_P_idx = g_f.getComponentDescriptorIndex(1);
     const int U_scratch_idx = d_x->getComponentDescriptorIndex(0);
 
-    Pointer<SideVariable<NDIM, double> > U_sc_var = u_p.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double> > P_cc_var = u_p.getComponentVariable(1);
-    Pointer<SideVariable<NDIM, double> > A_U_sc_var = g_f.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double> > A_P_cc_var = g_f.getComponentVariable(1);
+    Pointer<SideVariable<NDIM, double>> U_sc_var = u_p.getComponentVariable(0);
+    Pointer<CellVariable<NDIM, double>> P_cc_var = u_p.getComponentVariable(1);
+    Pointer<SideVariable<NDIM, double>> A_U_sc_var = g_f.getComponentVariable(0);
+    Pointer<CellVariable<NDIM, double>> A_P_cc_var = g_f.getComponentVariable(1);
 
     // Simultaneously fill ghost cell values for u and p.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -196,7 +196,7 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
                              A_U_sc_var);
 
     d_cib_strategy->setConstraintForce(L, half_time, -1.0 * d_scale_spread);
-    ib_method_ops->spreadForce(A_U_idx, nullptr, std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
+    ib_method_ops->spreadForce(A_U_idx, nullptr, std::vector<Pointer<RefineSchedule<NDIM>>>(), half_time);
     if (d_normalize_spread_force)
     {
         d_cib_strategy->subtractMeanConstraintForce(L, A_U_idx, -1 * d_scale_spread);
@@ -216,8 +216,8 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     // (c) Rigid body velocity constraint.
     d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
     ib_method_ops->interpolateVelocity(U_scratch_idx,
-                                       std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
-                                       std::vector<Pointer<RefineSchedule<NDIM> > >(),
+                                       std::vector<Pointer<CoarsenSchedule<NDIM>>>(),
+                                       std::vector<Pointer<RefineSchedule<NDIM>>>(),
                                        half_time);
 
     d_cib_strategy->getInterpolatedVelocity(V, half_time, d_scale_interp);
@@ -322,7 +322,7 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
     // Get vectors corresponding to fluid and Lagrangian velocity.
     Vec* vy;
     VecNestGetSubVecs(y, nullptr, &vy);
-    Pointer<SAMRAIVectorReal<NDIM, double> > vy0;
+    Pointer<SAMRAIVectorReal<NDIM, double>> vy0;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0], &vy0);
     SAMRAIVectorReal<NDIM, double>& b = *vy0;
     Vec W = vy[1];
@@ -335,7 +335,7 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
     {
         Vec V;
         VecDuplicate(W, &V);
-        Pointer<SAMRAIVectorReal<NDIM, double> > x = b.cloneVector("");
+        Pointer<SAMRAIVectorReal<NDIM, double>> x = b.cloneVector("");
         x->allocateVectorData();
         x->setToScalar(0.0);
         const int U_idx = x->getComponentDescriptorIndex(0);
@@ -362,8 +362,8 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
 
         d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
         ib_method_ops->interpolateVelocity(U_idx,
-                                           std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
-                                           std::vector<Pointer<RefineSchedule<NDIM> > >(),
+                                           std::vector<Pointer<CoarsenSchedule<NDIM>>>(),
+                                           std::vector<Pointer<RefineSchedule<NDIM>>>(),
                                            half_time);
 
         d_cib_strategy->getInterpolatedVelocity(V, half_time, -1.0 * d_scale_interp);
@@ -381,7 +381,7 @@ CIBStaggeredStokesOperator::imposeSolBcs(Vec x)
 {
     Vec* vx;
     VecNestGetSubVecs(x, nullptr, &vx);
-    Pointer<SAMRAIVectorReal<NDIM, double> > vx0;
+    Pointer<SAMRAIVectorReal<NDIM, double>> vx0;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0], &vx0);
     SAMRAIVectorReal<NDIM, double>& u_p = *vx0;
     imposeSolBcs(u_p);

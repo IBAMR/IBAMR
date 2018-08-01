@@ -295,12 +295,12 @@ protected:
                   int mu);
 
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy = nullptr;
     int d_coarsest_ln = 0;
     int d_finest_ln = 0;
     MGCycleType d_cycle_type;
     int d_num_pre_sweeps = 0, d_num_post_sweeps = 2;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_f = nullptr, d_r = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_f = nullptr, d_r = nullptr;
 
 private:
     /*!

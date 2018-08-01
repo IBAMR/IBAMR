@@ -138,10 +138,10 @@ INSIntermediateVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                          Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                          Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                          const Pointer<Variable<NDIM> >& variable,
+INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
+                                          Pointer<ArrayData<NDIM, double>>& bcoef_data,
+                                          Pointer<ArrayData<NDIM, double>>& gcoef_data,
+                                          const Pointer<Variable<NDIM>>& variable,
                                           const Patch<NDIM>& patch,
                                           const BoundaryBox<NDIM>& bdry_box,
                                           double fill_time) const

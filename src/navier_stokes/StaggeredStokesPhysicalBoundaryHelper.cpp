@@ -92,18 +92,18 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             const int patch_num = p();
-            Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
-            Pointer<PatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            Pointer<Patch<NDIM>> patch = level->getPatch(patch_num);
+            Pointer<PatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
             if (pgeom->getTouchesRegularBoundary())
             {
-                Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_data_idx);
+                Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_data_idx);
                 Box<NDIM> bc_coef_box;
                 BoundaryBox<NDIM> trimmed_bdry_box;
-                const Array<BoundaryBox<NDIM> >& physical_codim1_boxes =
+                const Array<BoundaryBox<NDIM>>& physical_codim1_boxes =
                     d_physical_codim1_boxes[ln].find(patch_num)->second;
                 const int n_physical_codim1_boxes = physical_codim1_boxes.size();
                 for (int n = 0; n < n_physical_codim1_boxes; ++n)
@@ -111,13 +111,13 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
                     const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
                     StaggeredPhysicalBoundaryHelper::setupBcCoefBoxes(bc_coef_box, trimmed_bdry_box, bdry_box, patch);
                     const unsigned int bdry_normal_axis = bdry_box.getLocationIndex() / 2;
-                    Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                    Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                    Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                    Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                    Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                    Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
                     u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data,
                                                              bcoef_data,
                                                              gcoef_data,
-                                                             Pointer<Variable<NDIM> >(),
+                                                             Pointer<Variable<NDIM>>(),
                                                              *patch,
                                                              trimmed_bdry_box,
                                                              fill_time);
@@ -157,13 +157,13 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
-                Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_data_idx);
+                Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_data_idx);
                 enforceDivergenceFreeConditionAtBoundary(u_data, patch);
             }
         }
@@ -172,17 +172,17 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
 } // enforceDivergenceFreeConditionAtBoundary
 
 void
-StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(Pointer<SideData<NDIM, double> > u_data,
-                                                                                Pointer<Patch<NDIM> > patch) const
+StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(Pointer<SideData<NDIM, double>> u_data,
+                                                                                Pointer<Patch<NDIM>> patch) const
 {
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return;
     const int ln = patch->getPatchLevelNumber();
     const int patch_num = patch->getPatchNumber();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    const Array<BoundaryBox<NDIM> >& physical_codim1_boxes = d_physical_codim1_boxes[ln].find(patch_num)->second;
+    const Array<BoundaryBox<NDIM>>& physical_codim1_boxes = d_physical_codim1_boxes[ln].find(patch_num)->second;
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    const std::vector<Pointer<ArrayData<NDIM, bool> > >& dirichlet_bdry_locs =
+    const std::vector<Pointer<ArrayData<NDIM, bool>>>& dirichlet_bdry_locs =
         d_dirichlet_bdry_locs[ln].find(patch_num)->second;
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {

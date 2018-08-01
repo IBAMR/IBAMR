@@ -175,7 +175,7 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
     const IntVector<NDIM> side_ghosts = d_gcw;
-    Pointer<SideVariable<NDIM, double> > side_scratch_var =
+    Pointer<SideVariable<NDIM, double>> side_scratch_var =
         new SideVariable<NDIM, double>(d_object_name + "::side_scratch");
     if (var_db->checkVariableExists(side_scratch_var->getName()))
     {
@@ -185,7 +185,7 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
     }
     d_side_scratch_idx = var_db->registerVariableAndContext(side_scratch_var, d_context, side_ghosts);
     const IntVector<NDIM> cell_ghosts = d_gcw;
-    Pointer<CellVariable<NDIM, double> > cell_scratch_var =
+    Pointer<CellVariable<NDIM, double>> cell_scratch_var =
         new CellVariable<NDIM, double>(d_object_name + "::cell_scratch");
     if (var_db->checkVariableExists(cell_scratch_var->getName()))
     {
@@ -543,22 +543,22 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
     const int U_sol_idx = solution.getComponentDescriptorIndex(0);
     const int U_rhs_idx = rhs.getComponentDescriptorIndex(0);
 
-    const Pointer<SideVariable<NDIM, double> > U_res_sc_var = residual.getComponentVariable(0);
-    const Pointer<SideVariable<NDIM, double> > U_sol_sc_var = solution.getComponentVariable(0);
-    const Pointer<SideVariable<NDIM, double> > U_rhs_sc_var = rhs.getComponentVariable(0);
+    const Pointer<SideVariable<NDIM, double>> U_res_sc_var = residual.getComponentVariable(0);
+    const Pointer<SideVariable<NDIM, double>> U_sol_sc_var = solution.getComponentVariable(0);
+    const Pointer<SideVariable<NDIM, double>> U_rhs_sc_var = rhs.getComponentVariable(0);
 
     const int P_res_idx = residual.getComponentDescriptorIndex(1);
     const int P_sol_idx = solution.getComponentDescriptorIndex(1);
     const int P_rhs_idx = rhs.getComponentDescriptorIndex(1);
 
-    const Pointer<CellVariable<NDIM, double> > P_res_cc_var = residual.getComponentVariable(1);
-    const Pointer<CellVariable<NDIM, double> > P_sol_cc_var = solution.getComponentVariable(1);
-    const Pointer<CellVariable<NDIM, double> > P_rhs_cc_var = rhs.getComponentVariable(1);
+    const Pointer<CellVariable<NDIM, double>> P_res_cc_var = residual.getComponentVariable(1);
+    const Pointer<CellVariable<NDIM, double>> P_sol_cc_var = solution.getComponentVariable(1);
+    const Pointer<CellVariable<NDIM, double>> P_rhs_cc_var = rhs.getComponentVariable(1);
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(d_gcw, false, false, true);
-    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(d_gcw, false, false, true);
+    Pointer<VariableFillPattern<NDIM>> sc_fill_pattern = new SideNoCornersFillPattern(d_gcw, false, false, true);
+    Pointer<VariableFillPattern<NDIM>> cc_fill_pattern = new CellNoCornersFillPattern(d_gcw, false, false, true);
     InterpolationTransactionComponent U_scratch_component(U_sol_idx,
                                                           DATA_REFINE_TYPE,
                                                           USE_CF_INTERPOLATION,
@@ -739,19 +739,19 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     // Allocate scratch data.
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_side_scratch_idx)) level->allocatePatchData(d_side_scratch_idx);
         if (!level->checkAllocated(d_cell_scratch_idx)) level->allocatePatchData(d_cell_scratch_idx);
     }
 
     // Get the transfer operators.
-    Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> geometry = d_hierarchy->getGridGeometry();
     IBAMR_DO_ONCE(geometry->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen());
                   geometry->addSpatialCoarsenOperator(new CartSideDoubleRT0Coarsen());
                   geometry->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
                   geometry->addSpatialRefineOperator(new CartSideDoubleSpecializedConstantRefine()));
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > var;
+    Pointer<Variable<NDIM>> var;
 
     var_db->mapIndexToVariable(d_side_scratch_idx, var);
     d_U_prolongation_refine_operator = geometry->lookupRefineOperator(var, d_U_prolongation_method);
@@ -813,18 +813,18 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     d_ghostfill_nocoarse_refine_algorithm->registerRefine(solution.getComponentDescriptorIndex(0),
                                                           solution.getComponentDescriptorIndex(0),
                                                           solution.getComponentDescriptorIndex(0),
-                                                          Pointer<RefineOperator<NDIM> >(),
+                                                          Pointer<RefineOperator<NDIM>>(),
                                                           d_U_op_stencil_fill_pattern);
     d_ghostfill_nocoarse_refine_algorithm->registerRefine(solution.getComponentDescriptorIndex(1),
                                                           solution.getComponentDescriptorIndex(1),
                                                           solution.getComponentDescriptorIndex(1),
-                                                          Pointer<RefineOperator<NDIM> >(),
+                                                          Pointer<RefineOperator<NDIM>>(),
                                                           d_P_op_stencil_fill_pattern);
 
     d_synch_refine_algorithm->registerRefine(solution.getComponentDescriptorIndex(0),
                                              solution.getComponentDescriptorIndex(0),
                                              solution.getComponentDescriptorIndex(0),
-                                             Pointer<RefineOperator<NDIM> >(),
+                                             Pointer<RefineOperator<NDIM>>(),
                                              d_U_synch_fill_pattern);
 
     std::vector<RefinePatchStrategy<NDIM>*> bc_op_ptrs(2);
@@ -836,7 +836,7 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     {
         d_prolongation_refine_schedules[dst_ln] =
             d_prolongation_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln),
-                                                            Pointer<PatchLevel<NDIM> >(),
+                                                            Pointer<PatchLevel<NDIM>>(),
                                                             dst_ln - 1,
                                                             d_hierarchy,
                                                             d_prolongation_refine_patch_strategy.getPointer());
@@ -887,7 +887,7 @@ StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
     // Deallocate scratch data.
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_side_scratch_idx)) level->deallocatePatchData(d_side_scratch_idx);
         if (level->checkAllocated(d_cell_scratch_idx)) level->deallocatePatchData(d_cell_scratch_idx);
     }
@@ -1011,9 +1011,9 @@ StaggeredStokesFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const std
 
     RefineAlgorithm<NDIM> refine_alg;
     refine_alg.registerRefine(
-        U_dst_idx, U_dst_idx, U_dst_idx, Pointer<RefineOperator<NDIM> >(), d_U_op_stencil_fill_pattern);
+        U_dst_idx, U_dst_idx, U_dst_idx, Pointer<RefineOperator<NDIM>>(), d_U_op_stencil_fill_pattern);
     refine_alg.registerRefine(
-        P_dst_idx, P_dst_idx, P_dst_idx, Pointer<RefineOperator<NDIM> >(), d_P_op_stencil_fill_pattern);
+        P_dst_idx, P_dst_idx, P_dst_idx, Pointer<RefineOperator<NDIM>>(), d_P_op_stencil_fill_pattern);
     refine_alg.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
     d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_new_time);
     d_ghostfill_nocoarse_refine_algorithm->resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
@@ -1024,8 +1024,7 @@ void
 StaggeredStokesFACPreconditionerStrategy::xeqScheduleDataSynch(const int U_dst_idx, const int dst_ln)
 {
     RefineAlgorithm<NDIM> refine_alg;
-    refine_alg.registerRefine(
-        U_dst_idx, U_dst_idx, U_dst_idx, Pointer<RefineOperator<NDIM> >(), d_U_synch_fill_pattern);
+    refine_alg.registerRefine(U_dst_idx, U_dst_idx, U_dst_idx, Pointer<RefineOperator<NDIM>>(), d_U_synch_fill_pattern);
     refine_alg.resetSchedule(d_synch_refine_schedules[dst_ln]);
     d_synch_refine_schedules[dst_ln]->fillData(d_new_time);
     d_synch_refine_algorithm->resetSchedule(d_synch_refine_schedules[dst_ln]);

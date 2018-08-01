@@ -269,14 +269,14 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     const bool constrain_ls_mass = (d_apply_mass_constraint && !initial_time);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > data_var;
+    Pointer<Variable<NDIM>> data_var;
     var_db->mapIndexToVariable(D_idx, data_var);
-    Pointer<CellVariable<NDIM, double> > D_var = data_var;
+    Pointer<CellVariable<NDIM, double>> D_var = data_var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(!D_var.isNull());
 #endif
 
-    Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
@@ -523,18 +523,18 @@ RelaxationLSMethod::relax(Pointer<HierarchyMathOps> hier_math_ops,
                           int dist_init_idx,
                           const int iter) const
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
-            const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double>> dist_data = patch->getPatchData(dist_idx);
+            const Pointer<CellData<NDIM, double>> dist_init_data = patch->getPatchData(dist_init_idx);
             relax(dist_data, dist_init_data, patch, iter);
         }
     }
@@ -543,9 +543,9 @@ RelaxationLSMethod::relax(Pointer<HierarchyMathOps> hier_math_ops,
 } // relax
 
 void
-RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
-                          const Pointer<CellData<NDIM, double> > dist_init_data,
-                          const Pointer<Patch<NDIM> > patch,
+RelaxationLSMethod::relax(Pointer<CellData<NDIM, double>> dist_data,
+                          const Pointer<CellData<NDIM, double>> dist_init_data,
+                          const Pointer<Patch<NDIM>> patch,
                           const int iter) const
 {
     double* const D = dist_data->getPointer(0);
@@ -573,7 +573,7 @@ RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
 #endif
 
     const Box<NDIM>& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     // Get the direction of sweeping (alternates according to iteration number)
@@ -666,18 +666,18 @@ RelaxationLSMethod::computeInitialHamiltonian(Pointer<HierarchyMathOps> hier_mat
                                               int ham_init_idx,
                                               int dist_init_idx) const
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double> > ham_init_data = patch->getPatchData(ham_init_idx);
-            const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double>> ham_init_data = patch->getPatchData(ham_init_idx);
+            const Pointer<CellData<NDIM, double>> dist_init_data = patch->getPatchData(dist_init_idx);
             computeInitialHamiltonian(ham_init_data, dist_init_data, patch);
         }
     }
@@ -686,9 +686,9 @@ RelaxationLSMethod::computeInitialHamiltonian(Pointer<HierarchyMathOps> hier_mat
 } // computeInitialHamiltonian
 
 void
-RelaxationLSMethod::computeInitialHamiltonian(Pointer<CellData<NDIM, double> > ham_init_data,
-                                              const Pointer<CellData<NDIM, double> > dist_init_data,
-                                              const Pointer<Patch<NDIM> > patch) const
+RelaxationLSMethod::computeInitialHamiltonian(Pointer<CellData<NDIM, double>> ham_init_data,
+                                              const Pointer<CellData<NDIM, double>> dist_init_data,
+                                              const Pointer<Patch<NDIM>> patch) const
 {
     double* const H = ham_init_data->getPointer(0);
     const double* const P = dist_init_data->getPointer(0);
@@ -709,7 +709,7 @@ RelaxationLSMethod::computeInitialHamiltonian(Pointer<CellData<NDIM, double> > h
 #endif
 
     const Box<NDIM>& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     if (d_ls_order == THIRD_ORDER_ENO_LS)
@@ -778,20 +778,20 @@ RelaxationLSMethod::applyMassConstraint(Pointer<HierarchyMathOps> hier_math_ops,
                                         int dist_init_idx,
                                         int ham_init_idx) const
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
-            const Pointer<CellData<NDIM, double> > dist_copy_data = patch->getPatchData(dist_copy_idx);
-            const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
-            const Pointer<CellData<NDIM, double> > ham_init_data = patch->getPatchData(ham_init_idx);
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double>> dist_data = patch->getPatchData(dist_idx);
+            const Pointer<CellData<NDIM, double>> dist_copy_data = patch->getPatchData(dist_copy_idx);
+            const Pointer<CellData<NDIM, double>> dist_init_data = patch->getPatchData(dist_init_idx);
+            const Pointer<CellData<NDIM, double>> ham_init_data = patch->getPatchData(ham_init_idx);
             applyMassConstraint(dist_data, dist_copy_data, dist_init_data, ham_init_data, patch);
         }
     }
@@ -800,11 +800,11 @@ RelaxationLSMethod::applyMassConstraint(Pointer<HierarchyMathOps> hier_math_ops,
 } // applyMassConstraint
 
 void
-RelaxationLSMethod::applyMassConstraint(Pointer<CellData<NDIM, double> > dist_data,
-                                        const Pointer<CellData<NDIM, double> > dist_copy_data,
-                                        const Pointer<CellData<NDIM, double> > dist_init_data,
-                                        const Pointer<CellData<NDIM, double> > ham_init_data,
-                                        const Pointer<Patch<NDIM> > patch) const
+RelaxationLSMethod::applyMassConstraint(Pointer<CellData<NDIM, double>> dist_data,
+                                        const Pointer<CellData<NDIM, double>> dist_copy_data,
+                                        const Pointer<CellData<NDIM, double>> dist_init_data,
+                                        const Pointer<CellData<NDIM, double>> ham_init_data,
+                                        const Pointer<Patch<NDIM>> patch) const
 {
     double* const U = dist_data->getPointer(0);
     const double* const C = dist_copy_data->getPointer(0);
@@ -835,7 +835,7 @@ RelaxationLSMethod::applyMassConstraint(Pointer<CellData<NDIM, double> > dist_da
 #endif
 
     const Box<NDIM>& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     if (d_ls_order == THIRD_ORDER_ENO_LS || d_ls_order == THIRD_ORDER_WENO_LS || d_ls_order == FIFTH_ORDER_WENO_LS)
@@ -870,23 +870,23 @@ RelaxationLSMethod::applyMassConstraint(Pointer<CellData<NDIM, double> > dist_da
 double
 RelaxationLSMethod::computeRegionVolume(Pointer<HierarchyMathOps> hier_math_ops, int hs_phi_idx, int phi_idx) const
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
     // First compute a Heaviside field from the level set field
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > hs_data = patch->getPatchData(hs_phi_idx);
-            const Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);
+            Pointer<CellData<NDIM, double>> hs_data = patch->getPatchData(hs_phi_idx);
+            const Pointer<CellData<NDIM, double>> phi_data = patch->getPatchData(phi_idx);
 
             // Get grid spacing information
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             double alpha = 1.0;
             for (int d = 0; d < NDIM; ++d) alpha *= patch_dx[d];
@@ -928,18 +928,18 @@ RelaxationLSMethod::applyVolumeShift(Pointer<HierarchyMathOps> hier_math_ops,
                                      int dist_copy_idx,
                                      const double dV) const
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
-            const Pointer<CellData<NDIM, double> > dist_copy_data = patch->getPatchData(dist_copy_idx);
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double>> dist_data = patch->getPatchData(dist_idx);
+            const Pointer<CellData<NDIM, double>> dist_copy_data = patch->getPatchData(dist_copy_idx);
             applyVolumeShift(dist_data, dist_copy_data, dV, patch);
         }
     }
@@ -948,10 +948,10 @@ RelaxationLSMethod::applyVolumeShift(Pointer<HierarchyMathOps> hier_math_ops,
 } // applyVolumeShift
 
 void
-RelaxationLSMethod::applyVolumeShift(Pointer<CellData<NDIM, double> > dist_data,
-                                     const Pointer<CellData<NDIM, double> > dist_copy_data,
+RelaxationLSMethod::applyVolumeShift(Pointer<CellData<NDIM, double>> dist_data,
+                                     const Pointer<CellData<NDIM, double>> dist_copy_data,
                                      const double dV,
-                                     const Pointer<Patch<NDIM> > patch) const
+                                     const Pointer<Patch<NDIM>> patch) const
 {
     double* const U = dist_data->getPointer(0);
     const double* const C = dist_copy_data->getPointer(0);
@@ -964,7 +964,7 @@ RelaxationLSMethod::applyVolumeShift(Pointer<CellData<NDIM, double> > dist_data,
 #endif
 
     const Box<NDIM>& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     APPLY_LS_VOLUME_SHIFT_FC(U,

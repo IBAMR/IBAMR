@@ -112,8 +112,8 @@ SCPoissonPETScLevelSolver::~SCPoissonPETScLevelSolver()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-SCPoissonPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int> >& /*overlap_is*/,
-                                                 std::vector<std::set<int> >& /*nonoverlap_is*/)
+SCPoissonPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& /*overlap_is*/,
+                                                 std::vector<std::set<int>>& /*nonoverlap_is*/)
 {
     // Construct subdomains for ASM and MSM preconditioner, indexed directly by PETSc IS.
     PETScMatUtilities::constructPatchLevelASMSubdomains(d_overlap_is,
@@ -134,9 +134,9 @@ SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorRe
     // Allocate DOF index data.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
-    Pointer<SideDataFactory<NDIM, double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
+    Pointer<SideDataFactory<NDIM, double>> x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
     const int depth = x_fac->getDefaultDepth();
-    Pointer<SideDataFactory<NDIM, int> > dof_index_fac =
+    Pointer<SideDataFactory<NDIM, int>> dof_index_fac =
         var_db->getPatchDescriptor()->getPatchDataFactory(d_dof_index_idx);
     dof_index_fac->setDefaultDepth(depth);
     if (!d_level->checkAllocated(d_dof_index_idx)) d_level->allocatePatchData(d_dof_index_idx);
@@ -194,17 +194,17 @@ SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     const bool level_zero = (d_level_num == 0);
     const int x_idx = x.getComponentDescriptorIndex(0);
     const int b_idx = b.getComponentDescriptorIndex(0);
-    Pointer<SideVariable<NDIM, double> > b_var = b.getComponentVariable(0);
+    Pointer<SideVariable<NDIM, double>> b_var = b.getComponentVariable(0);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     int b_adj_idx = var_db->registerClonedPatchDataIndex(b_var, b_idx);
     d_level->allocatePatchData(b_adj_idx);
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
-        Pointer<PatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-        Pointer<SideData<NDIM, double> > x_data = patch->getPatchData(x_idx);
-        Pointer<SideData<NDIM, double> > b_data = patch->getPatchData(b_idx);
-        Pointer<SideData<NDIM, double> > b_adj_data = patch->getPatchData(b_adj_idx);
+        Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+        Pointer<PatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+        Pointer<SideData<NDIM, double>> x_data = patch->getPatchData(x_idx);
+        Pointer<SideData<NDIM, double>> b_data = patch->getPatchData(b_idx);
+        Pointer<SideData<NDIM, double>> b_adj_data = patch->getPatchData(b_adj_idx);
         b_adj_data->copy(*b_data);
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
         if (at_physical_bdry)
@@ -212,8 +212,8 @@ SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
             PoissonUtilities::adjustRHSAtPhysicalBoundary(
                 *b_adj_data, patch, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
         }
-        const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
-            level_zero ? Array<BoundaryBox<NDIM> >() :
+        const Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
+            level_zero ? Array<BoundaryBox<NDIM>>() :
                          d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
         if (at_cf_bdry)

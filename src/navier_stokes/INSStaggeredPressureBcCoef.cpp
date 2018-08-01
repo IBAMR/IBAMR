@@ -204,10 +204,10 @@ INSStaggeredPressureBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                       Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                       Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                       const Pointer<Variable<NDIM> >& variable,
+INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
+                                       Pointer<ArrayData<NDIM, double>>& bcoef_data,
+                                       Pointer<ArrayData<NDIM, double>>& gcoef_data,
+                                       const Pointer<Variable<NDIM>>& variable,
                                        const Patch<NDIM>& patch,
                                        const BoundaryBox<NDIM>& bdry_box,
                                        double /*fill_time*/) const
@@ -237,7 +237,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
     if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
 
     // Get the target velocity data.
-    Pointer<SideData<NDIM, double> > u_target_data;
+    Pointer<SideData<NDIM, double>> u_target_data;
     if (d_u_target_data_idx >= 0)
         u_target_data = patch.getPatchData(d_u_target_data_idx);
     else if (d_target_data_idx >= 0)
@@ -245,7 +245,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_target_data);
 #endif
-    Pointer<SideData<NDIM, double> > u_current_data =
+    Pointer<SideData<NDIM, double>> u_current_data =
         patch.getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_current_data);
@@ -265,7 +265,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
     // normal traction boundary conditions are converted into Dirichlet
     // conditions for the pressure.
     const double mu = d_fluid_solver->getStokesSpecifications()->getMu();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {

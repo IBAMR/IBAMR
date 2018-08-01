@@ -209,22 +209,22 @@ public:
     /*!
      * Return a pointer to the fluid velocity variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getVelocityVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> getVelocityVariable() const;
 
     /*!
      * Return a pointer to the fluid pressure state variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getPressureVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> getPressureVariable() const;
 
     /*!
      * Return a pointer to the body force variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getBodyForceVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> getBodyForceVariable() const;
 
     /*!
      * Return a pointer to the source strength variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getFluidSourceVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> getFluidSourceVariable() const;
 
     /*!
      * Return a pointer to a fluid velocity variable that can be used to advect
@@ -234,7 +234,7 @@ public:
      * data for this variable are allocated only when an advection-diffusion
      * solver is registered with the Navier-Stokes solver.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > getAdvectionVelocityVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>> getAdvectionVelocityVariable() const;
 
     /*!
      * Get a vector of pointers to the intermediate velocity boundary condition
@@ -364,10 +364,10 @@ protected:
      */
     INSHierarchyIntegrator(const std::string& object_name,
                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > U_var,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > P_var,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > F_var,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Q_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> U_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> P_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> F_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> Q_var,
                            bool register_for_restart);
 
     /*!
@@ -378,12 +378,12 @@ protected:
     /*!
      * Determine the largest stable timestep on an individual patch level.
      */
-    double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level) const;
+    double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level) const;
 
     /*!
      * Determine the largest stable timestep on an individual patch.
      */
-    virtual double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const = 0;
+    virtual double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch) const = 0;
 
     /*!
      * Write out specialized object state to the given database.
@@ -423,7 +423,7 @@ protected:
      * capability for quantities transported by the fluid velocity field.
      */
     SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_U_adv_diff_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>> d_U_adv_diff_var;
 
     /*!
      * The maximum CFL number.
@@ -479,7 +479,7 @@ protected:
     /*!
      * Fluid solver variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_U_var, d_P_var, d_F_var, d_Q_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> d_U_var, d_P_var, d_F_var, d_Q_var;
 
     /*!
      * Objects to set initial conditions, boundary conditions, body forces, and

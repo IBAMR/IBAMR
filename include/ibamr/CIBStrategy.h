@@ -610,7 +610,7 @@ protected:
     Vec d_U, d_F;
 
     // Mapping of free DOFs in the global vector.
-    std::vector<std::pair<int, int> > d_free_dofs_map;
+    std::vector<std::pair<int, int>> d_free_dofs_map;
     bool d_free_dofs_map_updated;
 
     // Rigid body velocity of the structures.

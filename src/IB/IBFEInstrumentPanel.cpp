@@ -361,9 +361,9 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     // some local variables
     std::vector<dof_id_type> nodes;
     std::vector<boundary_id_type> bcs;
-    std::vector<std::vector<dof_id_type> > temp_node_dof_IDs;
-    std::vector<std::set<dof_id_type> > temp_node_dof_ID_sets;
-    std::vector<std::vector<libMesh::Point> > temp_nodes;
+    std::vector<std::vector<dof_id_type>> temp_node_dof_IDs;
+    std::vector<std::set<dof_id_type>> temp_node_dof_ID_sets;
+    std::vector<std::vector<libMesh::Point>> temp_nodes;
     std::vector<libMesh::Point> meter_centroids;
     boundary_info.build_node_list(nodes, bcs);
 
@@ -540,7 +540,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
 
 void
 IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
-                                                      Pointer<PatchHierarchy<NDIM> > hierarchy)
+                                                      Pointer<PatchHierarchy<NDIM>> hierarchy)
 {
     if (!d_initialized)
     {
@@ -563,7 +563,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
     // Determine the finest grid spacing in the Cartesian grid hierarchy.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = hierarchy->getGridGeometry();
     const double* const domainXLower = grid_geom->getXLower();
     const double* const domainXUpper = grid_geom->getXUpper();
     const double* const dx_coarsest = grid_geom->getDx();
@@ -603,7 +603,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
     // loop over levels and assign each quadrature point to one level
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         const IntVector<NDIM>& ratio = level->getRatio();
         const Box<NDIM> domain_box_level = Box<NDIM>::refine(domain_box, ratio);
         const Index<NDIM>& domain_box_level_lower = domain_box_level.lower();
@@ -614,8 +614,8 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
             dx[d] = dx_coarsest[d] / static_cast<double>(ratio(d));
         }
 
-        Pointer<PatchLevel<NDIM> > finer_level =
-            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel<NDIM> >(nullptr));
+        Pointer<PatchLevel<NDIM>> finer_level =
+            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel<NDIM>>(nullptr));
         const IntVector<NDIM>& finer_ratio = (ln < finest_ln ? finer_level->getRatio() : IntVector<NDIM>(1));
         const Box<NDIM> finer_domain_box_level = Box<NDIM>::refine(domain_box, finer_ratio);
         const Index<NDIM>& finer_domain_box_level_lower = finer_domain_box_level.lower();
@@ -640,7 +640,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
             fe_elem->attach_quadrature_rule(qrule.get());
             //  for evaluating the displacement system
             const std::vector<Real>& JxW = fe_elem->get_JxW();
-            const std::vector<std::vector<Real> >& phi = fe_elem->get_phi();
+            const std::vector<std::vector<Real>>& phi = fe_elem->get_phi();
             const std::vector<libMesh::Point>& qp_points = fe_elem->get_xyz();
             std::vector<dof_id_type> dof_indices;
             DenseMatrix<double> disp_coords;
@@ -721,7 +721,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
 void
 IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                                         const int P_data_idx,
-                                        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                         const double data_time)
 {
     if (d_num_meters == 0) return;
@@ -744,22 +744,22 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     {
         count_qp_1 += d_quad_point_map[ln].size();
 
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
             const Index<NDIM>& patch_lower = patch_box.lower();
             const Index<NDIM>& patch_upper = patch_box.upper();
 
-            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
             const double* const x_lower = pgeom->getXLower();
             const double* const x_upper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
 
-            Pointer<CellData<NDIM, double> > U_cc_data = patch->getPatchData(U_data_idx);
-            Pointer<SideData<NDIM, double> > U_sc_data = patch->getPatchData(U_data_idx);
-            Pointer<CellData<NDIM, double> > P_cc_data = patch->getPatchData(P_data_idx);
+            Pointer<CellData<NDIM, double>> U_cc_data = patch->getPatchData(U_data_idx);
+            Pointer<SideData<NDIM, double>> U_sc_data = patch->getPatchData(U_data_idx);
+            Pointer<CellData<NDIM, double>> P_cc_data = patch->getPatchData(P_data_idx);
 
             for (Box<NDIM>::Iterator b(patch_box); b; b++)
             {
@@ -861,7 +861,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
 
         //  for evaluating the velocity system
         const std::vector<Real>& JxW = fe_elem->get_JxW();
-        const std::vector<std::vector<Real> >& phi = fe_elem->get_phi();
+        const std::vector<std::vector<Real>>& phi = fe_elem->get_phi();
         const std::vector<libMesh::Point>& qp_points = fe_elem->get_xyz();
         std::vector<dof_id_type> dof_indices;
         DenseMatrix<double> vel_coords;

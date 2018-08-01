@@ -529,9 +529,9 @@ private:
     /*!
      * \return The specification objects associated with the specified vertex.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::Streamable> > initializeNodeData(const std::pair<int, int>& point_index,
-                                                                             unsigned int global_index_offset,
-                                                                             int level_number) const override;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::Streamable>> initializeNodeData(const std::pair<int, int>& point_index,
+                                                                            unsigned int global_index_offset,
+                                                                            int level_number) const override;
 
     /*!
      * Read input values, indicated above, from given database.
@@ -575,7 +575,7 @@ private:
      * The base filenames of the structures are used to generate unique names
      * when registering data with the Silo data writer.
      */
-    std::vector<std::vector<std::string> > d_base_filename = {};
+    std::vector<std::vector<std::string>> d_base_filename = {};
 
     /*
      * Optional shift and scale factors.
@@ -595,86 +595,86 @@ private:
     /*
      * Spring information.
      */
-    std::vector<std::vector<bool> > d_enable_springs = {};
+    std::vector<std::vector<bool>> d_enable_springs = {};
 
-    std::vector<std::vector<bool> > d_using_uniform_spring_stiffness = {};
-    std::vector<std::vector<double> > d_uniform_spring_stiffness = {};
+    std::vector<std::vector<bool>> d_using_uniform_spring_stiffness = {};
+    std::vector<std::vector<double>> d_uniform_spring_stiffness = {};
 
-    std::vector<std::vector<bool> > d_using_uniform_spring_rest_length = {};
-    std::vector<std::vector<double> > d_uniform_spring_rest_length = {};
+    std::vector<std::vector<bool>> d_using_uniform_spring_rest_length = {};
+    std::vector<std::vector<double>> d_uniform_spring_rest_length = {};
 
-    std::vector<std::vector<bool> > d_using_uniform_spring_force_fcn_idx = {};
-    std::vector<std::vector<int> > d_uniform_spring_force_fcn_idx = {};
+    std::vector<std::vector<bool>> d_using_uniform_spring_force_fcn_idx = {};
+    std::vector<std::vector<int>> d_uniform_spring_force_fcn_idx = {};
 
     /*
      * Crosslink spring ("x-spring") information.
      */
-    std::vector<std::vector<bool> > d_enable_xsprings = {};
+    std::vector<std::vector<bool>> d_enable_xsprings = {};
 
-    std::vector<std::vector<bool> > d_using_uniform_xspring_stiffness = {};
-    std::vector<std::vector<double> > d_uniform_xspring_stiffness = {};
+    std::vector<std::vector<bool>> d_using_uniform_xspring_stiffness = {};
+    std::vector<std::vector<double>> d_uniform_xspring_stiffness = {};
 
-    std::vector<std::vector<bool> > d_using_uniform_xspring_rest_length = {};
-    std::vector<std::vector<double> > d_uniform_xspring_rest_length = {};
+    std::vector<std::vector<bool>> d_using_uniform_xspring_rest_length = {};
+    std::vector<std::vector<double>> d_uniform_xspring_rest_length = {};
 
-    std::vector<std::vector<bool> > d_using_uniform_xspring_force_fcn_idx = {};
-    std::vector<std::vector<int> > d_uniform_xspring_force_fcn_idx = {};
+    std::vector<std::vector<bool>> d_using_uniform_xspring_force_fcn_idx = {};
+    std::vector<std::vector<int>> d_uniform_xspring_force_fcn_idx = {};
 
     /*
      * Beam information.
      */
-    std::vector<std::vector<bool> > d_enable_beams = {};
+    std::vector<std::vector<bool>> d_enable_beams = {};
 
-    std::vector<std::vector<bool> > d_using_uniform_beam_bend_rigidity = {};
-    std::vector<std::vector<double> > d_uniform_beam_bend_rigidity = {};
+    std::vector<std::vector<bool>> d_using_uniform_beam_bend_rigidity = {};
+    std::vector<std::vector<double>> d_uniform_beam_bend_rigidity = {};
 
-    std::vector<std::vector<bool> > d_using_uniform_beam_curvature = {};
-    std::vector<std::vector<IBTK::Vector> > d_uniform_beam_curvature = {};
+    std::vector<std::vector<bool>> d_using_uniform_beam_curvature = {};
+    std::vector<std::vector<IBTK::Vector>> d_uniform_beam_curvature = {};
 
     /*
      * Rod information.
      */
-    std::vector<std::vector<bool> > d_enable_rods = {};
+    std::vector<std::vector<bool>> d_enable_rods = {};
 
-    std::vector<std::vector<bool> > d_using_uniform_rod_properties = {};
-    std::vector<std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_uniform_rod_properties = {};
+    std::vector<std::vector<bool>> d_using_uniform_rod_properties = {};
+    std::vector<std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS>>> d_uniform_rod_properties = {};
 
     /*
      * Target point information.
      */
-    std::vector<std::vector<bool> > d_enable_target_points = {};
+    std::vector<std::vector<bool>> d_enable_target_points = {};
 
-    std::vector<std::vector<bool> > d_using_uniform_target_stiffness = {};
-    std::vector<std::vector<double> > d_uniform_target_stiffness = {};
+    std::vector<std::vector<bool>> d_using_uniform_target_stiffness = {};
+    std::vector<std::vector<double>> d_uniform_target_stiffness = {};
 
-    std::vector<std::vector<bool> > d_using_uniform_target_damping = {};
-    std::vector<std::vector<double> > d_uniform_target_damping = {};
+    std::vector<std::vector<bool>> d_using_uniform_target_damping = {};
+    std::vector<std::vector<double>> d_uniform_target_damping = {};
 
     /*
      * Anchor point information.
      */
-    std::vector<std::vector<bool> > d_enable_anchor_points = {};
+    std::vector<std::vector<bool>> d_enable_anchor_points = {};
 
     /*
      * Mass information for the pIB method.
      */
-    std::vector<std::vector<bool> > d_enable_bdry_mass = {};
+    std::vector<std::vector<bool>> d_enable_bdry_mass = {};
 
-    std::vector<std::vector<bool> > d_using_uniform_bdry_mass = {};
-    std::vector<std::vector<double> > d_uniform_bdry_mass = {};
+    std::vector<std::vector<bool>> d_using_uniform_bdry_mass = {};
+    std::vector<std::vector<double>> d_uniform_bdry_mass = {};
 
-    std::vector<std::vector<bool> > d_using_uniform_bdry_mass_stiffness = {};
-    std::vector<std::vector<double> > d_uniform_bdry_mass_stiffness = {};
+    std::vector<std::vector<bool>> d_using_uniform_bdry_mass_stiffness = {};
+    std::vector<std::vector<double>> d_uniform_bdry_mass_stiffness = {};
 
     /*
      * Instrumentation information.
      */
-    std::vector<std::vector<bool> > d_enable_instrumentation = {};
+    std::vector<std::vector<bool>> d_enable_instrumentation = {};
 
     /*
      * Source information.
      */
-    std::vector<std::vector<bool> > d_enable_sources = {};
+    std::vector<std::vector<bool>> d_enable_sources = {};
 };
 } // namespace IBAMR
 

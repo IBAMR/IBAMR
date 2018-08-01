@@ -130,16 +130,16 @@ SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<SideVariable<NDIM, double> > x_sc_var = x.getComponentVariable(comp);
-        Pointer<SideVariable<NDIM, double> > y_sc_var = y.getComponentVariable(comp);
+        Pointer<SideVariable<NDIM, double>> x_sc_var = x.getComponentVariable(comp);
+        Pointer<SideVariable<NDIM, double>> y_sc_var = y.getComponentVariable(comp);
         if (!x_sc_var || !y_sc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
                                      << "  encountered non-side centered vector components"
                                      << std::endl);
         }
-        Pointer<SideDataFactory<NDIM, double> > x_factory = x_sc_var->getPatchDataFactory();
-        Pointer<SideDataFactory<NDIM, double> > y_factory = y_sc_var->getPatchDataFactory();
+        Pointer<SideDataFactory<NDIM, double>> x_factory = x_sc_var->getPatchDataFactory();
+        Pointer<SideDataFactory<NDIM, double>> y_factory = y_sc_var->getPatchDataFactory();
         TBOX_ASSERT(x_factory);
         TBOX_ASSERT(y_factory);
         const unsigned int x_depth = x_factory->getDefaultDepth();
@@ -181,8 +181,8 @@ SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
     // Compute the action of the operator.
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<SideVariable<NDIM, double> > x_sc_var = x.getComponentVariable(comp);
-        Pointer<SideVariable<NDIM, double> > y_sc_var = y.getComponentVariable(comp);
+        Pointer<SideVariable<NDIM, double>> x_sc_var = x.getComponentVariable(comp);
+        Pointer<SideVariable<NDIM, double>> y_sc_var = y.getComponentVariable(comp);
         const int x_scratch_idx = d_x->getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
         d_hier_math_ops->laplace(y_idx, y_sc_var, d_poisson_spec, x_scratch_idx, x_sc_var, d_no_fill, 0.0);

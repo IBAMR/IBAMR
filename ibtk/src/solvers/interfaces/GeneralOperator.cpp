@@ -144,11 +144,11 @@ GeneralOperator::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
                           SAMRAIVectorReal<NDIM, double>& z)
 {
     // Guard against the case that y == z.
-    Pointer<SAMRAIVectorReal<NDIM, double> > zz = z.cloneVector(z.getName());
+    Pointer<SAMRAIVectorReal<NDIM, double>> zz = z.cloneVector(z.getName());
     zz->allocateVectorData();
-    zz->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&z, false));
+    zz->copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&z, false));
     apply(x, *zz);
-    z.add(Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false), zz);
+    z.add(Pointer<SAMRAIVectorReal<NDIM, double>>(&y, false), zz);
     zz->freeVectorComponents();
     return;
 } // applyAdd

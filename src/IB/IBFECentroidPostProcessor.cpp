@@ -84,7 +84,7 @@ inline void
 get_x_and_FF(libMesh::VectorValue<double>& x,
              libMesh::TensorValue<double>& FF,
              const std::vector<double>& x_data,
-             const std::vector<VectorValue<double> >& grad_x_data,
+             const std::vector<VectorValue<double>>& grad_x_data,
              const unsigned int dim = NDIM)
 {
     x.zero();
@@ -183,9 +183,9 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
 
     const size_t num_scalar_vars = d_scalar_var_systems.size();
     std::vector<const DofMap*> scalar_var_dof_maps(num_scalar_vars);
-    std::vector<std::vector<unsigned int> > scalar_var_dof_indices(num_scalar_vars);
+    std::vector<std::vector<unsigned int>> scalar_var_dof_indices(num_scalar_vars);
     std::vector<unsigned int> scalar_var_system_num(num_scalar_vars);
-    std::vector<std::vector<size_t> > scalar_var_fcn_system_idxs(num_scalar_vars);
+    std::vector<std::vector<size_t>> scalar_var_fcn_system_idxs(num_scalar_vars);
     for (unsigned int k = 0; k < num_scalar_vars; ++k)
     {
         scalar_var_dof_maps[k] = &d_scalar_var_systems[k]->get_dof_map();
@@ -196,9 +196,9 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
 
     const size_t num_vector_vars = d_vector_var_systems.size();
     std::vector<const DofMap*> vector_var_dof_maps(num_vector_vars);
-    std::vector<std::vector<std::vector<unsigned int> > > vector_var_dof_indices(num_vector_vars);
+    std::vector<std::vector<std::vector<unsigned int>>> vector_var_dof_indices(num_vector_vars);
     std::vector<unsigned int> vector_var_system_num(num_vector_vars);
-    std::vector<std::vector<size_t> > vector_var_fcn_system_idxs(num_vector_vars);
+    std::vector<std::vector<size_t>> vector_var_fcn_system_idxs(num_vector_vars);
     for (unsigned int k = 0; k < num_vector_vars; ++k)
     {
         vector_var_dof_maps[k] = &d_vector_var_systems[k]->get_dof_map();
@@ -210,9 +210,9 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
 
     const size_t num_tensor_vars = d_tensor_var_systems.size();
     std::vector<const DofMap*> tensor_var_dof_maps(num_tensor_vars);
-    std::vector<boost::multi_array<std::vector<unsigned int>, 2> > tensor_var_dof_indices(num_tensor_vars);
+    std::vector<boost::multi_array<std::vector<unsigned int>, 2>> tensor_var_dof_indices(num_tensor_vars);
     std::vector<unsigned int> tensor_var_system_num(num_tensor_vars);
-    std::vector<std::vector<size_t> > tensor_var_fcn_system_idxs(num_tensor_vars);
+    std::vector<std::vector<size_t>> tensor_var_fcn_system_idxs(num_tensor_vars);
     for (unsigned int k = 0; k < num_tensor_vars; ++k)
     {
         tensor_var_dof_maps[k] = &d_tensor_var_systems[k]->get_dof_map();
@@ -228,13 +228,13 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
 
     const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
 
-    const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
-    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+    const std::vector<std::vector<std::vector<double>>>& fe_interp_var_data = fe.getVarInterpolation();
+    const std::vector<std::vector<std::vector<VectorValue<double>>>>& fe_interp_grad_var_data =
         fe.getGradVarInterpolation();
 
-    std::vector<std::vector<const std::vector<double> *> > scalar_var_data(num_scalar_vars),
+    std::vector<std::vector<const std::vector<double>*>> scalar_var_data(num_scalar_vars),
         vector_var_data(num_vector_vars), tensor_var_data(num_tensor_vars);
-    std::vector<std::vector<const std::vector<VectorValue<double> > *> > scalar_grad_var_data(num_scalar_vars),
+    std::vector<std::vector<const std::vector<VectorValue<double>>*>> scalar_grad_var_data(num_scalar_vars),
         vector_grad_var_data(num_vector_vars), tensor_grad_var_data(num_tensor_vars);
 
     // Reconstruct the variables via simple function evaluation.
@@ -254,7 +254,7 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
         {
             const libMesh::Point& X_qp = q_point[qp];
             const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
-            const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+            const std::vector<VectorValue<double>>& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
             get_x_and_FF(x_qp, FF_qp, x_data, grad_x_data);
 
             // Scalar-valued variables.

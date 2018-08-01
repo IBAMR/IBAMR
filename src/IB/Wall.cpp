@@ -43,7 +43,7 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Wall::Wall(Pointer<Database> wall_db, Pointer<CartesianGridGeometry<NDIM> > grid_geometry, double wall_ghost_dist)
+Wall::Wall(Pointer<Database> wall_db, Pointer<CartesianGridGeometry<NDIM>> grid_geometry, double wall_ghost_dist)
 {
     // get geometry for the wall force box and scaling from cells to numerical postions
     const Box<NDIM> domain_box = grid_geometry->getPhysicalDomain()[0];

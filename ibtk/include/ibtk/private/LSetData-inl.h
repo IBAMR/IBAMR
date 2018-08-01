@@ -49,7 +49,7 @@ LSetData<T>::data_begin(const SAMRAI::hier::Box<NDIM>& box)
 {
     typename LSetData<T>::DataIterator it;
     it.d_box = box * this->getGhostBox();
-    it.d_index_it = SAMRAI::pdat::IndexIterator<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> >(*this);
+    it.d_index_it = SAMRAI::pdat::IndexIterator<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM>>(*this);
     if (it.d_index_it)
     {
         it.d_node_set = &(*it.d_index_it);

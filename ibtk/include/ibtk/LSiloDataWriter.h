@@ -100,7 +100,7 @@ public:
     /*!
      * \brief Reset the patch hierarchy over which operations occur.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy);
 
     /*!
      * \brief Reset range of patch levels over which operations occur.
@@ -139,8 +139,8 @@ public:
      * block of indices must be registered on only \em one MPI process.
      */
     void registerLogicallyCartesianMultiblock(const std::string& name,
-                                              const std::vector<SAMRAI::hier::IntVector<NDIM> >& nelem,
-                                              const std::vector<SAMRAI::hier::IntVector<NDIM> >& periodic,
+                                              const std::vector<SAMRAI::hier::IntVector<NDIM>>& nelem,
+                                              const std::vector<SAMRAI::hier::IntVector<NDIM>>& periodic,
                                               const std::vector<int>& first_lag_idx,
                                               int level_number);
 
@@ -151,7 +151,7 @@ public:
      * collection of indices must be registered on only \em one MPI process.
      */
     void registerUnstructuredMesh(const std::string& name,
-                                  const std::multimap<int, std::pair<int, int> >& edge_map,
+                                  const std::multimap<int, std::pair<int, int>>& edge_map,
                                   int level_number);
 
     /*!
@@ -280,61 +280,61 @@ private:
     /*
      * Grid hierarchy information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy = nullptr;
     int d_coarsest_ln = 0, d_finest_ln = 0;
 
     /*
      * Information about the indices in the local marker clouds.
      */
     std::vector<int> d_nclouds;
-    std::vector<std::vector<std::string> > d_cloud_names;
-    std::vector<std::vector<int> > d_cloud_nmarks, d_cloud_first_lag_idx;
+    std::vector<std::vector<std::string>> d_cloud_names;
+    std::vector<std::vector<int>> d_cloud_nmarks, d_cloud_first_lag_idx;
 
     /*
      * Information about the indices in the logically Cartesian subgrids.
      */
     std::vector<int> d_nblocks;
-    std::vector<std::vector<std::string> > d_block_names;
-    std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > d_block_nelems;
-    std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > d_block_periodic;
-    std::vector<std::vector<int> > d_block_first_lag_idx;
+    std::vector<std::vector<std::string>> d_block_names;
+    std::vector<std::vector<SAMRAI::hier::IntVector<NDIM>>> d_block_nelems;
+    std::vector<std::vector<SAMRAI::hier::IntVector<NDIM>>> d_block_periodic;
+    std::vector<std::vector<int>> d_block_first_lag_idx;
 
     /*
      * Information about the indices in the logically Cartesian multiblock
      * subgrids.
      */
     std::vector<int> d_nmbs;
-    std::vector<std::vector<std::string> > d_mb_names;
-    std::vector<std::vector<int> > d_mb_nblocks;
-    std::vector<std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > > d_mb_nelems;
-    std::vector<std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > > d_mb_periodic;
-    std::vector<std::vector<std::vector<int> > > d_mb_first_lag_idx;
+    std::vector<std::vector<std::string>> d_mb_names;
+    std::vector<std::vector<int>> d_mb_nblocks;
+    std::vector<std::vector<std::vector<SAMRAI::hier::IntVector<NDIM>>>> d_mb_nelems;
+    std::vector<std::vector<std::vector<SAMRAI::hier::IntVector<NDIM>>>> d_mb_periodic;
+    std::vector<std::vector<std::vector<int>>> d_mb_first_lag_idx;
 
     /*
      * Information about the indices in the unstructured meshes.
      */
     std::vector<int> d_nucd_meshes;
-    std::vector<std::vector<std::string> > d_ucd_mesh_names;
-    std::vector<std::vector<std::set<int> > > d_ucd_mesh_vertices;
-    std::vector<std::vector<std::multimap<int, std::pair<int, int> > > > d_ucd_mesh_edge_maps;
+    std::vector<std::vector<std::string>> d_ucd_mesh_names;
+    std::vector<std::vector<std::set<int>>> d_ucd_mesh_vertices;
+    std::vector<std::vector<std::multimap<int, std::pair<int, int>>>> d_ucd_mesh_edge_maps;
 
     /*
      * Coordinates and variable data for plotting.
      */
-    std::vector<SAMRAI::tbox::Pointer<LData> > d_coords_data;
+    std::vector<SAMRAI::tbox::Pointer<LData>> d_coords_data;
 
     std::vector<int> d_nvars;
-    std::vector<std::vector<std::string> > d_var_names;
-    std::vector<std::vector<int> > d_var_start_depths, d_var_plot_depths, d_var_depths;
-    std::vector<std::vector<SAMRAI::tbox::Pointer<LData> > > d_var_data;
+    std::vector<std::vector<std::string>> d_var_names;
+    std::vector<std::vector<int>> d_var_start_depths, d_var_plot_depths, d_var_depths;
+    std::vector<std::vector<SAMRAI::tbox::Pointer<LData>>> d_var_data;
 
     /*
      * Data for obtaining local data.
      */
     std::vector<AO> d_ao;
     std::vector<bool> d_build_vec_scatters;
-    std::vector<std::map<int, Vec> > d_src_vec, d_dst_vec;
-    std::vector<std::map<int, VecScatter> > d_vec_scatter;
+    std::vector<std::map<int, Vec>> d_src_vec, d_dst_vec;
+    std::vector<std::map<int, VecScatter>> d_vec_scatter;
 };
 } // namespace IBTK
 

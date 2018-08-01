@@ -98,7 +98,7 @@ public:
     /*!
      * \brief Return a const reference to the edge map.
      */
-    const std::multimap<int, std::pair<int, int> >& getEdgeMap() const;
+    const std::multimap<int, std::pair<int, int>>& getEdgeMap() const;
 
 private:
     /*!
@@ -122,8 +122,8 @@ private:
     ParallelEdgeMap& operator=(const ParallelEdgeMap& that) = delete;
 
     // Member data.
-    std::multimap<int, std::pair<int, int> > d_edge_map = {};
-    std::multimap<int, std::pair<int, int> > d_pending_additions = {}, d_pending_removals = {};
+    std::multimap<int, std::pair<int, int>> d_edge_map = {};
+    std::multimap<int, std::pair<int, int>> d_pending_additions = {}, d_pending_removals = {};
 };
 } // namespace IBTK
 

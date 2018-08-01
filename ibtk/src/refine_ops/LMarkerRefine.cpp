@@ -79,7 +79,7 @@ static const int REFINE_OP_STENCIL_WIDTH = 0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 bool
-LMarkerRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
+LMarkerRefine::findRefineOperator(const Pointer<Variable<NDIM>>& var, const std::string& op_name) const
 {
     Pointer<LMarkerSetVariable> mark_var = var;
     return (mark_var && op_name == s_op_name);
@@ -115,13 +115,13 @@ LMarkerRefine::refine(Patch<NDIM>& fine,
     Pointer<LMarkerSetData> src_mark_data = coarse.getPatchData(src_component);
 
     const Box<NDIM>& fine_patch_box = fine.getBox();
-    const Pointer<CartesianPatchGeometry<NDIM> > fine_patch_geom = fine.getPatchGeometry();
+    const Pointer<CartesianPatchGeometry<NDIM>> fine_patch_geom = fine.getPatchGeometry();
     const Index<NDIM>& fine_patch_lower = fine_patch_box.lower();
     const Index<NDIM>& fine_patch_upper = fine_patch_box.upper();
     const double* const fine_patchXLower = fine_patch_geom->getXLower();
     const double* const fine_patchXUpper = fine_patch_geom->getXUpper();
 
-    const Pointer<CartesianPatchGeometry<NDIM> > coarse_patch_geom = coarse.getPatchGeometry();
+    const Pointer<CartesianPatchGeometry<NDIM>> coarse_patch_geom = coarse.getPatchGeometry();
     const double* const coarse_patchDx = coarse_patch_geom->getDx();
 
     const Box<NDIM> coarse_box = Box<NDIM>::coarsen(fine_box, ratio);

@@ -214,10 +214,10 @@ INSStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                       Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                       Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                       const Pointer<Variable<NDIM> >& variable,
+INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
+                                       Pointer<ArrayData<NDIM, double>>& bcoef_data,
+                                       Pointer<ArrayData<NDIM, double>>& gcoef_data,
+                                       const Pointer<Variable<NDIM>>& variable,
                                        const Patch<NDIM>& patch,
                                        const BoundaryBox<NDIM>& bdry_box,
                                        double fill_time) const
@@ -243,7 +243,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
     if (d_homogeneous_bc) gcoef_data->fillAll(0.0);
 
     // Get the target velocity data.
-    Pointer<SideData<NDIM, double> > u_target_data;
+    Pointer<SideData<NDIM, double>> u_target_data;
     if (d_u_target_data_idx >= 0)
         u_target_data = patch.getPatchData(d_u_target_data_idx);
     else if (d_target_data_idx >= 0)
@@ -272,7 +272,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
     const Box<NDIM>& ghost_box = u_target_data->getGhostBox();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double mu = d_problem_coefs->getMu();
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)

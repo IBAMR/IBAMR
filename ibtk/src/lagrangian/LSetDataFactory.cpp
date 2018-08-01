@@ -56,21 +56,21 @@ namespace IBTK
 
 template <class T>
 LSetDataFactory<T>::LSetDataFactory(const IntVector<NDIM>& ghosts)
-    : IndexDataFactory<NDIM, LSet<T>, CellGeometry<NDIM> >(ghosts)
+    : IndexDataFactory<NDIM, LSet<T>, CellGeometry<NDIM>>(ghosts)
 {
     // intentionally blank
     return;
 } // LSetDataFactory
 
 template <class T>
-Pointer<PatchDataFactory<NDIM> >
+Pointer<PatchDataFactory<NDIM>>
 LSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
 {
     return new LSetDataFactory<T>(ghosts);
 } // cloneFactory
 
 template <class T>
-Pointer<PatchData<NDIM> >
+Pointer<PatchData<NDIM>>
 LSetDataFactory<T>::allocate(const Box<NDIM>& box, Pointer<Arena> pool) const
 {
     if (!pool)
@@ -78,12 +78,12 @@ LSetDataFactory<T>::allocate(const Box<NDIM>& box, Pointer<Arena> pool) const
         pool = ArenaManager::getManager()->getStandardAllocator();
     }
     PatchData<NDIM>* pd =
-        new (pool) LSetData<T>(box, IndexDataFactory<NDIM, LSet<T>, CellGeometry<NDIM> >::getGhostCellWidth());
-    return Pointer<PatchData<NDIM> >(pd, pool);
+        new (pool) LSetData<T>(box, IndexDataFactory<NDIM, LSet<T>, CellGeometry<NDIM>>::getGhostCellWidth());
+    return Pointer<PatchData<NDIM>>(pd, pool);
 } // allocate
 
 template <class T>
-Pointer<PatchData<NDIM> >
+Pointer<PatchData<NDIM>>
 LSetDataFactory<T>::allocate(const Patch<NDIM>& patch, Pointer<Arena> pool) const
 {
     return allocate(patch.getBox(), pool);
@@ -98,9 +98,9 @@ LSetDataFactory<T>::getSizeOfMemory(const Box<NDIM>& /*box*/) const
 
 template <class T>
 bool
-LSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst_pdf) const
+LSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM>>& dst_pdf) const
 {
-    Pointer<LSetDataFactory<T> > lnidf = dst_pdf;
+    Pointer<LSetDataFactory<T>> lnidf = dst_pdf;
     return lnidf;
 } // validCopyTo
 

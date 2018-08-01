@@ -397,7 +397,7 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_U_scratch_idx);
     }
 
@@ -423,25 +423,25 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
 
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
             const Box<NDIM>& patch_box = patch->getBox();
             const IntVector<NDIM>& patch_lower = patch_box.lower();
             const IntVector<NDIM>& patch_upper = patch_box.upper();
 
-            Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(N_idx);
-            Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            Pointer<SideData<NDIM, double>> N_data = patch->getPatchData(N_idx);
+            Pointer<SideData<NDIM, double>> U_data = patch->getPatchData(d_U_scratch_idx);
 
             const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
             boost::array<Box<NDIM>, NDIM> side_boxes;
-            boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data;
-            boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data;
+            boost::array<Pointer<FaceData<NDIM, double>>, NDIM> U_adv_data;
+            boost::array<Pointer<FaceData<NDIM, double>>, NDIM> U_half_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
@@ -693,7 +693,7 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_U_scratch_idx);
     }
 

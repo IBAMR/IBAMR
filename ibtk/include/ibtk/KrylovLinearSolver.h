@@ -132,7 +132,7 @@ protected:
     // Solver components.
     SAMRAI::tbox::Pointer<LinearOperator> d_A = nullptr;
     SAMRAI::tbox::Pointer<LinearSolver> d_pc_solver = nullptr;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x = nullptr, d_b = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_x = nullptr, d_b = nullptr;
 
 private:
     /*!

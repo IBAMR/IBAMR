@@ -95,7 +95,7 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::string& object_name,
-                                                                   Pointer<Variable<NDIM> > scratch_var,
+                                                                   Pointer<Variable<NDIM>> scratch_var,
                                                                    const int ghost_cell_width,
                                                                    const Pointer<Database> input_db,
                                                                    const std::string& default_options_prefix)
@@ -369,7 +369,7 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     d_solution = solution.cloneVector(solution.getName());
     d_rhs = rhs.cloneVector(rhs.getName());
 
-    Pointer<Variable<NDIM> > sol_var = d_solution->getComponentVariable(0);
+    Pointer<Variable<NDIM>> sol_var = d_solution->getComponentVariable(0);
     const int sol_idx = d_solution->getComponentDescriptorIndex(0);
     const int rhs_idx = d_rhs->getComponentDescriptorIndex(0);
 
@@ -403,12 +403,12 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     // Allocate scratch data.
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_scratch_idx)) level->allocatePatchData(d_scratch_idx);
     }
 
     // Get the transfer operators.
-    Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> geometry = d_hierarchy->getGridGeometry();
     d_prolongation_refine_operator = geometry->lookupRefineOperator(sol_var, d_prolongation_method);
     d_restriction_coarsen_operator = geometry->lookupCoarsenOperator(sol_var, d_restriction_method);
     d_cf_bdry_op->setConsistentInterpolationScheme(false);
@@ -438,9 +438,9 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
         d_scratch_idx, sol_idx, d_scratch_idx, d_prolongation_refine_operator, d_op_stencil_fill_pattern);
     d_restriction_coarsen_algorithm->registerCoarsen(d_scratch_idx, rhs_idx, d_restriction_coarsen_operator);
     d_ghostfill_nocoarse_refine_algorithm->registerRefine(
-        sol_idx, sol_idx, sol_idx, Pointer<RefineOperator<NDIM> >(), d_op_stencil_fill_pattern);
+        sol_idx, sol_idx, sol_idx, Pointer<RefineOperator<NDIM>>(), d_op_stencil_fill_pattern);
     d_synch_refine_algorithm->registerRefine(
-        sol_idx, sol_idx, sol_idx, Pointer<RefineOperator<NDIM> >(), d_synch_fill_pattern);
+        sol_idx, sol_idx, sol_idx, Pointer<RefineOperator<NDIM>>(), d_synch_fill_pattern);
 
     // TODO: Here we take a pessimistic approach and are recreating refine schedule for
     // (coarsest_reset_ln - 1) level as well.
@@ -448,7 +448,7 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     {
         d_prolongation_refine_schedules[dst_ln] =
             d_prolongation_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln),
-                                                            Pointer<PatchLevel<NDIM> >(),
+                                                            Pointer<PatchLevel<NDIM>>(),
                                                             dst_ln - 1,
                                                             d_hierarchy,
                                                             d_prolongation_refine_patch_strategy.getPointer());
@@ -495,7 +495,7 @@ PoissonFACPreconditionerStrategy::deallocateOperatorState()
     // Deallocate scratch data.
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_scratch_idx)) level->deallocatePatchData(d_scratch_idx);
     }
 
@@ -602,7 +602,7 @@ PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const int dst_idx
         }
     }
     RefineAlgorithm<NDIM> refiner;
-    refiner.registerRefine(dst_idx, dst_idx, dst_idx, Pointer<RefineOperator<NDIM> >(), d_op_stencil_fill_pattern);
+    refiner.registerRefine(dst_idx, dst_idx, dst_idx, Pointer<RefineOperator<NDIM>>(), d_op_stencil_fill_pattern);
     refiner.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
     d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_ghostfill_nocoarse_refine_algorithm->resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
@@ -618,7 +618,7 @@ void
 PoissonFACPreconditionerStrategy::xeqScheduleDataSynch(const int dst_idx, const int dst_ln)
 {
     RefineAlgorithm<NDIM> refiner;
-    refiner.registerRefine(dst_idx, dst_idx, dst_idx, Pointer<RefineOperator<NDIM> >(), d_synch_fill_pattern);
+    refiner.registerRefine(dst_idx, dst_idx, dst_idx, Pointer<RefineOperator<NDIM>>(), d_synch_fill_pattern);
     refiner.resetSchedule(d_synch_refine_schedules[dst_ln]);
     d_synch_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_synch_refine_algorithm->resetSchedule(d_synch_refine_schedules[dst_ln]);

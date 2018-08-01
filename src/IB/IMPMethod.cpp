@@ -279,7 +279,7 @@ IMPMethod::getMinimumGhostCellWidth() const
 } // getMinimumGhostCellWidth
 
 void
-IMPMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+IMPMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM>> gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -410,8 +410,8 @@ IMPMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/
 
 void
 IMPMethod::interpolateVelocity(const int u_data_idx,
-                               const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                               const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                               const std::vector<Pointer<CoarsenSchedule<NDIM>>>& u_synch_scheds,
+                               const std::vector<Pointer<RefineSchedule<NDIM>>>& u_ghost_fill_scheds,
                                const double data_time)
 {
     const int coarsest_ln = 0;
@@ -419,14 +419,14 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Determine the type of data centering.
-    Pointer<hier::Variable<NDIM> > u_var;
+    Pointer<hier::Variable<NDIM>> u_var;
     var_db->mapIndexToVariable(u_data_idx, u_var);
-    Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
+    Pointer<SideVariable<NDIM, double>> u_sc_var = u_var;
     const bool sc_data = u_sc_var;
     TBOX_ASSERT(sc_data);
 
     // Synchronize Eulerian and Lagrangian values.
-    std::vector<Pointer<LData> > *U_data, *Grad_U_data, *X_data;
+    std::vector<Pointer<LData>>*U_data, *Grad_U_data, *X_data;
     bool* X_needs_ghost_fill;
     getVelocityData(&U_data, &Grad_U_data, data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
@@ -445,7 +445,7 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
     *X_needs_ghost_fill = false;
 
     // Interpolate data from the Eulerian grid to the Lagrangian mesh.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -456,14 +456,14 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
         boost::multi_array_ref<double, 2>& U_array = *(*U_data)[ln]->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& Grad_U_array = *(*Grad_U_data)[ln]->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& X_array = *(*X_data)[ln]->getLocalFormVecArray();
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_data_idx);
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_data_idx);
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
             const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const x_lower = patch_geom->getXLower();
             const double* const x_upper = patch_geom->getXUpper();
             const double* const dx = patch_geom->getDx();
@@ -566,7 +566,7 @@ IMPMethod::forwardEulerStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> > *U_data, *Grad_U_data;
+    std::vector<Pointer<LData>>*U_data, *Grad_U_data;
     getVelocityData(&U_data, &Grad_U_data, current_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -623,7 +623,7 @@ IMPMethod::midpointStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> > *U_data, *Grad_U_data;
+    std::vector<Pointer<LData>>*U_data, *Grad_U_data;
     getVelocityData(&U_data, &Grad_U_data, current_time + 0.5 * dt);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -677,7 +677,7 @@ IMPMethod::trapezoidalStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> > *U_current_data, *U_new_data, *Grad_U_current_data, *Grad_U_new_data;
+    std::vector<Pointer<LData>>*U_current_data, *U_new_data, *Grad_U_current_data, *Grad_U_new_data;
     getVelocityData(&U_current_data, &Grad_U_current_data, current_time);
     getVelocityData(&U_new_data, &Grad_U_new_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -735,7 +735,7 @@ IMPMethod::computeLagrangianForce(const double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> > *X_data, *F_data;
+    std::vector<Pointer<LData>>*X_data, *F_data;
     bool* X_needs_ghost_fill;
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
     getDeformationGradientData(&F_data, data_time);
@@ -797,7 +797,7 @@ IMPMethod::computeLagrangianForce(const double data_time)
 void
 IMPMethod::spreadForce(const int f_data_idx,
                        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                       const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+                       const std::vector<Pointer<RefineSchedule<NDIM>>>& /*f_prolongation_scheds*/,
                        const double data_time)
 {
     const int coarsest_ln = 0;
@@ -805,9 +805,9 @@ IMPMethod::spreadForce(const int f_data_idx,
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Determine the type of data centering.
-    Pointer<hier::Variable<NDIM> > f_var;
+    Pointer<hier::Variable<NDIM>> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    Pointer<SideVariable<NDIM, double> > f_sc_var = f_var;
+    Pointer<SideVariable<NDIM, double>> f_sc_var = f_var;
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(sc_data);
 
@@ -815,16 +815,16 @@ IMPMethod::spreadForce(const int f_data_idx,
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_copy_data_idx);
     }
-    Pointer<HierarchyDataOpsReal<NDIM, double> > f_data_ops =
+    Pointer<HierarchyDataOpsReal<NDIM, double>> f_data_ops =
         HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
     // Synchronize Lagrangian values.
-    std::vector<Pointer<LData> >* X_data;
+    std::vector<Pointer<LData>>* X_data;
     bool* X_needs_ghost_fill;
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
@@ -840,22 +840,22 @@ IMPMethod::spreadForce(const int f_data_idx,
     *X_needs_ghost_fill = false;
 
     // Spread data from the Lagrangian mesh to the Eulerian grid.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         boost::multi_array_ref<double, 2>& X_array = *(*X_data)[ln]->getGhostedLocalFormVecArray();
         boost::multi_array_ref<double, 2>& tau_array = *d_tau_data[ln]->getGhostedLocalFormVecArray();
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(f_data_idx);
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
             const Box<NDIM>& patch_box = patch->getBox();
             Box<NDIM> side_boxes[NDIM];
             for (unsigned int d = 0; d < NDIM; ++d) side_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box, d);
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const x_lower = patch_geom->getXLower();
             const double* const x_upper = patch_geom->getXUpper();
             const double* const dx = patch_geom->getDx();
@@ -948,7 +948,7 @@ IMPMethod::spreadForce(const int f_data_idx,
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(f_copy_data_idx);
     }
     var_db->removePatchDataIndex(f_copy_data_idx);
@@ -956,11 +956,11 @@ IMPMethod::spreadForce(const int f_data_idx,
 } // spreadForce
 
 void
-IMPMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                    Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+IMPMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                    Pointer<GriddingAlgorithm<NDIM>> gridding_alg,
                                     int /*u_data_idx*/,
-                                    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                                    const std::vector<Pointer<CoarsenSchedule<NDIM>>>& /*u_synch_scheds*/,
+                                    const std::vector<Pointer<RefineSchedule<NDIM>>>& /*u_ghost_fill_scheds*/,
                                     int /*integrator_step*/,
                                     double /*init_data_time*/,
                                     bool initial_time)
@@ -988,7 +988,7 @@ IMPMethod::registerPK1StressTensorFunction(PK1StressFcnPtr PK1_stress_fcn, void*
 } // registerPK1StressTensorFunction
 
 void
-IMPMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
+IMPMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM>> load_balancer, int workload_data_idx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
@@ -1000,33 +1000,33 @@ IMPMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int 
 } // registerLoadBalancer
 
 void
-IMPMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
+IMPMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/, int /*workload_data_idx*/)
 {
     d_l_data_manager->updateWorkloadEstimates();
     return;
 } // updateWorkloadEstimates
 
-void IMPMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                        Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void IMPMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                        Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
 {
     d_l_data_manager->beginDataRedistribution();
     return;
 } // beginDataRedistribution
 
-void IMPMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                      Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void IMPMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                      Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
 {
     d_l_data_manager->endDataRedistribution();
     return;
 } // endDataRedistribution
 
 void
-IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                int level_number,
                                double init_data_time,
                                bool can_be_refined,
                                bool initial_time,
-                               Pointer<BasePatchLevel<NDIM> > old_level,
+                               Pointer<BasePatchLevel<NDIM>> old_level,
                                bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -1084,7 +1084,7 @@ IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
 } // initializeLevelData
 
 void
-IMPMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IMPMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                        int coarsest_level,
                                        int finest_level)
 {
@@ -1096,20 +1096,20 @@ IMPMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierar
 } // resetHierarchyConfiguration
 
 void
-IMPMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+IMPMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
                                  int level_number,
                                  double error_data_time,
                                  int tag_index,
                                  bool initial_time,
                                  bool uses_richardson_extrapolation_too)
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    Pointer<PatchHierarchy<NDIM>> hierarchy = base_hierarchy;
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_number);
 
     // Tag cells that contain Lagrangian nodes.
     d_l_data_manager->applyGradientDetector(
@@ -1128,7 +1128,7 @@ IMPMethod::putToDatabase(Pointer<Database> db)
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-IMPMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_needs_ghost_fill, double data_time)
+IMPMethod::getPositionData(std::vector<Pointer<LData>>** X_data, bool** X_needs_ghost_fill, double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1166,8 +1166,8 @@ IMPMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_needs
 } // getPositionData
 
 void
-IMPMethod::getVelocityData(std::vector<Pointer<LData> >** U_data,
-                           std::vector<Pointer<LData> >** Grad_U_data,
+IMPMethod::getVelocityData(std::vector<Pointer<LData>>** U_data,
+                           std::vector<Pointer<LData>>** Grad_U_data,
                            double data_time)
 {
     const int coarsest_ln = 0;
@@ -1207,7 +1207,7 @@ IMPMethod::getVelocityData(std::vector<Pointer<LData> >** U_data,
 } // getVelocityData
 
 void
-IMPMethod::getDeformationGradientData(std::vector<Pointer<LData> >** F_data, double data_time)
+IMPMethod::getDeformationGradientData(std::vector<Pointer<LData>>** F_data, double data_time)
 {
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
@@ -1225,9 +1225,9 @@ IMPMethod::getDeformationGradientData(std::vector<Pointer<LData> >** F_data, dou
 } // getDeformationGradientData
 
 void
-IMPMethod::reinitMidpointData(const std::vector<Pointer<LData> >& current_data,
-                              const std::vector<Pointer<LData> >& new_data,
-                              const std::vector<Pointer<LData> >& half_data)
+IMPMethod::reinitMidpointData(const std::vector<Pointer<LData>>& current_data,
+                              const std::vector<Pointer<LData>>& new_data,
+                              const std::vector<Pointer<LData>>& half_data)
 {
     int ierr;
     const int coarsest_ln = 0;

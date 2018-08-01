@@ -82,7 +82,7 @@ public:
     /*!
      * \brief Update the cached indexing data.
      */
-    void cacheLocalIndices(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    void cacheLocalIndices(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                            const SAMRAI::hier::IntVector<NDIM>& periodic_shift);
 
     /*!

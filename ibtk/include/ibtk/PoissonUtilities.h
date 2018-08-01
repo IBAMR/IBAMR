@@ -83,8 +83,8 @@ public:
      * discretization of the Laplacian.
      */
     static void computeMatrixCoefficients(SAMRAI::pdat::CellData<NDIM, double>& matrix_coefficients,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                          const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                                          const std::vector<SAMRAI::hier::Index<NDIM>>& stencil,
                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                           SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
                                           double data_time);
@@ -94,8 +94,8 @@ public:
      * discretization of the Laplacian.
      */
     static void computeMatrixCoefficients(SAMRAI::pdat::CellData<NDIM, double>& matrix_coefficients,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                          const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                                          const std::vector<SAMRAI::hier::Index<NDIM>>& stencil,
                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                           double data_time);
@@ -105,8 +105,8 @@ public:
      * discretization of the Laplacian.
      */
     static void computeMatrixCoefficients(SAMRAI::pdat::SideData<NDIM, double>& matrix_coefficients,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                          const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                                          const std::vector<SAMRAI::hier::Index<NDIM>>& stencil,
                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                           double data_time);
@@ -121,8 +121,8 @@ public:
      */
     static void computeVCSCViscousOpMatrixCoefficients(
         SAMRAI::pdat::SideData<NDIM, double>& matrix_coefficients,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const std::vector<std::map<SAMRAI::hier::Index<NDIM>, int, IndexFortranOrder> >& stencil_map_vec,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+        const std::vector<std::map<SAMRAI::hier::Index<NDIM>, int, IndexFortranOrder>>& stencil_map_vec,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         double alpha,
         double beta,
@@ -136,7 +136,7 @@ public:
      * Laplacian.
      */
     static void adjustRHSAtPhysicalBoundary(SAMRAI::pdat::CellData<NDIM, double>& rhs_data,
-                                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                             const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                             SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
                                             double data_time,
@@ -148,7 +148,7 @@ public:
      * Laplacian.
      */
     static void adjustRHSAtPhysicalBoundary(SAMRAI::pdat::CellData<NDIM, double>& rhs_data,
-                                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                             const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                             double data_time,
@@ -160,7 +160,7 @@ public:
      * Laplacian.
      */
     static void adjustRHSAtPhysicalBoundary(SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
-                                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                             const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                             double data_time,
@@ -176,7 +176,7 @@ public:
      */
     static void
     adjustVCSCViscousOpRHSAtPhysicalBoundary(SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
-                                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                              const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                              double alpha,
                                              const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
@@ -195,9 +195,9 @@ public:
     static void
     adjustRHSAtCoarseFineBoundary(SAMRAI::pdat::CellData<NDIM, double>& rhs_data,
                                   const SAMRAI::pdat::CellData<NDIM, double>& sol_data,
-                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                   const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                  const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& type1_cf_bdry);
+                                  const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type1_cf_bdry);
 
     /*!
      * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
@@ -210,9 +210,9 @@ public:
     static void
     adjustRHSAtCoarseFineBoundary(SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
                                   const SAMRAI::pdat::SideData<NDIM, double>& sol_data,
-                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                   const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                  const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& type1_cf_bdry);
+                                  const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type1_cf_bdry);
 
     /*!
      * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
@@ -228,10 +228,10 @@ public:
     static void adjustVCSCViscousOpRHSAtCoarseFineBoundary(
         SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
         const SAMRAI::pdat::SideData<NDIM, double>& sol_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         double alpha,
-        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& type1_cf_bdry,
+        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type1_cf_bdry,
         VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
 protected:

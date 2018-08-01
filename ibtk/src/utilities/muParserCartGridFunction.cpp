@@ -96,7 +96,7 @@ namespace IBTK
 
 muParserCartGridFunction::muParserCartGridFunction(const std::string& object_name,
                                                    Pointer<Database> input_db,
-                                                   Pointer<CartesianGridGeometry<NDIM> > grid_geom)
+                                                   Pointer<CartesianGridGeometry<NDIM>> grid_geom)
     : CartGridFunction(object_name)
 {
 #if !defined(NDEBUG)
@@ -295,31 +295,31 @@ muParserCartGridFunction::isTimeDependent() const
 
 void
 muParserCartGridFunction::setDataOnPatch(const int data_idx,
-                                         Pointer<Variable<NDIM> > /*var*/,
-                                         Pointer<Patch<NDIM> > patch,
+                                         Pointer<Variable<NDIM>> /*var*/,
+                                         Pointer<Patch<NDIM>> patch,
                                          const double data_time,
                                          const bool /*initial_time*/,
-                                         Pointer<PatchLevel<NDIM> > /*level*/)
+                                         Pointer<PatchLevel<NDIM>> /*level*/)
 {
     d_parser_time = data_time;
 
     const Box<NDIM>& patch_box = patch->getBox();
     const Index<NDIM>& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
 
     const double* const XLower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
     // Set the data in the patch.
-    Pointer<PatchData<NDIM> > data = patch->getPatchData(data_idx);
+    Pointer<PatchData<NDIM>> data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(data);
 #endif
-    Pointer<CellData<NDIM, double> > cc_data = data;
-    Pointer<FaceData<NDIM, double> > fc_data = data;
-    Pointer<NodeData<NDIM, double> > nc_data = data;
-    Pointer<SideData<NDIM, double> > sc_data = data;
-    Pointer<EdgeData<NDIM, double> > ec_data = data;
+    Pointer<CellData<NDIM, double>> cc_data = data;
+    Pointer<FaceData<NDIM, double>> fc_data = data;
+    Pointer<NodeData<NDIM, double>> nc_data = data;
+    Pointer<SideData<NDIM, double>> sc_data = data;
+    Pointer<EdgeData<NDIM, double>> ec_data = data;
     if (cc_data)
     {
 #if !defined(NDEBUG)

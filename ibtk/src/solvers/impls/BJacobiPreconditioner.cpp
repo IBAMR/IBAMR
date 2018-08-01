@@ -103,7 +103,7 @@ BJacobiPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVect
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
 
-    Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> hierarchy = x.getPatchHierarchy();
     const int coarsest_ln = x.getCoarsestLevelNumber();
     const int finest_ln = x.getFinestLevelNumber();
 #if !defined(NDEBUG)
@@ -158,7 +158,7 @@ void
 BJacobiPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
                                              const SAMRAIVectorReal<NDIM, double>& b)
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> hierarchy = x.getPatchHierarchy();
     const int coarsest_ln = x.getCoarsestLevelNumber();
     const int finest_ln = x.getFinestLevelNumber();
 #if !defined(NDEBUG)

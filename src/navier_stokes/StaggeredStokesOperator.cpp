@@ -209,10 +209,10 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
     const int A_P_idx = y.getComponentDescriptorIndex(1);
     const int U_scratch_idx = d_x->getComponentDescriptorIndex(0);
 
-    Pointer<SideVariable<NDIM, double> > U_sc_var = x.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double> > P_cc_var = x.getComponentVariable(1);
-    Pointer<SideVariable<NDIM, double> > A_U_sc_var = y.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double> > A_P_cc_var = y.getComponentVariable(1);
+    Pointer<SideVariable<NDIM, double>> U_sc_var = x.getComponentVariable(0);
+    Pointer<CellVariable<NDIM, double>> P_cc_var = x.getComponentVariable(1);
+    Pointer<SideVariable<NDIM, double>> A_U_sc_var = y.getComponentVariable(0);
+    Pointer<CellVariable<NDIM, double>> A_P_cc_var = y.getComponentVariable(1);
 
     // Simultaneously fill ghost cell values for all components.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -385,8 +385,8 @@ StaggeredStokesOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
     {
         // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
         // inhomogeneous boundary conditions.
-        Pointer<SAMRAIVectorReal<NDIM, double> > x = y.cloneVector("");
-        Pointer<SAMRAIVectorReal<NDIM, double> > b = y.cloneVector("");
+        Pointer<SAMRAIVectorReal<NDIM, double>> x = y.cloneVector("");
+        Pointer<SAMRAIVectorReal<NDIM, double>> b = y.cloneVector("");
         x->allocateVectorData();
         b->allocateVectorData();
         x->setToScalar(0.0);
@@ -397,7 +397,7 @@ StaggeredStokesOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
         d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc);
         StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
         apply(*x, *b);
-        y.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false), b);
+        y.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&y, false), b);
         x->freeVectorComponents();
         b->freeVectorComponents();
     }

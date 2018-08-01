@@ -90,13 +90,13 @@ public:
      * \note this is done each time we compute things with the meter.
      */
     void initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_method_ops,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy);
     /*!
      * \brief read instrument data.
      */
     void readInstrumentData(int U_data_idx,
                             int P_data_idx,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                             double data_time);
 
     /*!
@@ -193,18 +193,18 @@ private:
      * dimension 2 = number of mesh nodes
      * dimension 3 = NDIM
      */
-    std::vector<std::vector<std::vector<libMesh::dof_id_type> > > d_U_dof_idx = {};
-    std::vector<std::vector<std::vector<libMesh::dof_id_type> > > d_dX_dof_idx = {};
+    std::vector<std::vector<std::vector<libMesh::dof_id_type>>> d_U_dof_idx = {};
+    std::vector<std::vector<std::vector<libMesh::dof_id_type>>> d_dX_dof_idx = {};
 
     /*!
      * \brief a vector containing the nodes of each meter mesh.
      */
-    std::vector<std::vector<libMesh::Point> > d_nodes = {};
+    std::vector<std::vector<libMesh::Point>> d_nodes = {};
 
     /*!
      * \brief a vector storing the dof indices for each meter mesh.
      */
-    std::vector<std::vector<libMesh::dof_id_type> > d_node_dof_IDs = {};
+    std::vector<std::vector<libMesh::dof_id_type>> d_node_dof_IDs = {};
 
     /*!
      * \brief contains pointers to the equation systems for the meter mesh.

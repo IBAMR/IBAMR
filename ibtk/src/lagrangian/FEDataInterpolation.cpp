@@ -179,7 +179,7 @@ FEDataInterpolation::setupInterpolatedSystemDataIndexes(std::vector<size_t>& sys
 
 void
 FEDataInterpolation::setInterpolatedDataPointers(std::vector<const std::vector<double>*>& var_data,
-                                                 std::vector<const std::vector<VectorValue<double> >*>& grad_var_data,
+                                                 std::vector<const std::vector<VectorValue<double>>*>& grad_var_data,
                                                  const std::vector<size_t>& system_idxs,
                                                  const Elem* const elem,
                                                  const unsigned int qp)
@@ -392,7 +392,7 @@ FEDataInterpolation::collectDataForInterpolation(const Elem* const elem)
         const size_t num_vars = all_vars.size();
 
         // Get the DOF mappings and local data for all variables.
-        std::vector<std::vector<unsigned int> > dof_indices(num_vars);
+        std::vector<std::vector<unsigned int>> dof_indices(num_vars);
         NumericVector<double>* system_data = d_system_data[system_idx];
         for (size_t k = 0; k < num_vars; ++k)
         {
@@ -444,16 +444,16 @@ FEDataInterpolation::getFETypeIndex(const FEType& fe_type) const
 
 void
 FEDataInterpolation::interpolateCommon(
-    std::vector<std::vector<std::vector<double> > >& system_var_data,
-    std::vector<std::vector<std::vector<VectorValue<double> > > >& system_grad_var_data,
-    const std::vector<const std::vector<std::vector<double> >*>& phi_data,
-    const std::vector<const std::vector<std::vector<VectorValue<double> > >*>& dphi_data)
+    std::vector<std::vector<std::vector<double>>>& system_var_data,
+    std::vector<std::vector<std::vector<VectorValue<double>>>>& system_grad_var_data,
+    const std::vector<const std::vector<std::vector<double>>*>& phi_data,
+    const std::vector<const std::vector<std::vector<VectorValue<double>>>*>& dphi_data)
 {
     // Determine the number of quadrature points where the interpolation will be evaluated.
     const unsigned int n_qp = d_n_qp;
     const size_t n_systems = d_systems.size();
-    system_var_data.resize(n_qp, std::vector<std::vector<double> >(n_systems));
-    system_grad_var_data.resize(n_qp, std::vector<std::vector<VectorValue<double> > >(n_systems));
+    system_var_data.resize(n_qp, std::vector<std::vector<double>>(n_systems));
+    system_grad_var_data.resize(n_qp, std::vector<std::vector<VectorValue<double>>>(n_systems));
 
     // Interpolate data for each system.
     for (size_t system_idx = 0; system_idx < n_systems; ++system_idx)
@@ -473,7 +473,7 @@ FEDataInterpolation::interpolateCommon(
             {
                 const size_t var_idx = var_idxs[k];
                 const size_t fe_type_idx = var_fe_type_idxs[k];
-                const std::vector<std::vector<double> >& phi = *phi_data[fe_type_idx];
+                const std::vector<std::vector<double>>& phi = *phi_data[fe_type_idx];
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
                     system_var_data[qp][system_idx][k] = 0.0;
@@ -498,7 +498,7 @@ FEDataInterpolation::interpolateCommon(
             {
                 const size_t var_idx = grad_var_idxs[k];
                 const size_t fe_type_idx = grad_var_fe_type_idxs[k];
-                const std::vector<std::vector<VectorValue<double> > >& dphi = *dphi_data[fe_type_idx];
+                const std::vector<std::vector<VectorValue<double>>>& dphi = *dphi_data[fe_type_idx];
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
                     system_grad_var_data[qp][system_idx][k].zero();

@@ -74,10 +74,10 @@ const std::string CartCellDoubleBoundsPreservingConservativeLinearRefine::s_op_n
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 bool
-CartCellDoubleBoundsPreservingConservativeLinearRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
+CartCellDoubleBoundsPreservingConservativeLinearRefine::findRefineOperator(const Pointer<Variable<NDIM>>& var,
                                                                            const std::string& op_name) const
 {
-    const Pointer<CellVariable<NDIM, double> > cc_var = var;
+    const Pointer<CellVariable<NDIM, double>> cc_var = var;
     return (cc_var && op_name == s_op_name);
 } // findRefineOperator
 
@@ -153,8 +153,8 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch<NDIM>& fine
     if (empty_correction_box) return;
 
     // Correct the data within the correction box.
-    Pointer<CellData<NDIM, double> > fdata = fine.getPatchData(dst_component);
-    Pointer<CellData<NDIM, double> > cdata = coarse.getPatchData(src_component);
+    Pointer<CellData<NDIM, double>> fdata = fine.getPatchData(dst_component);
+    Pointer<CellData<NDIM, double>> cdata = coarse.getPatchData(src_component);
 #if !defined(NDEBUG)
     TBOX_ASSERT(fdata);
     TBOX_ASSERT(cdata);
@@ -164,7 +164,7 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch<NDIM>& fine
     const Box<NDIM>& patch_box_crse = coarse.getBox();
     const Index<NDIM>& patch_lower_crse = patch_box_crse.lower();
     const Index<NDIM>& patch_upper_crse = patch_box_crse.upper();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom_crse = coarse.getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom_crse = coarse.getPatchGeometry();
     for (int depth = 0; depth < data_depth; ++depth)
     {
         for (Box<NDIM>::Iterator b(coarse_correction_box); b; b++)

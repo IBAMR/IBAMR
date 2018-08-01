@@ -563,7 +563,7 @@ AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceData<NDIM, d
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox() == patch.getBox());
 #endif
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
+    const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     const Index<NDIM>& ilower = patch.getBox().lower();
@@ -619,7 +619,7 @@ AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(CellData<NDIM, dou
 
     TBOX_ASSERT(q_half.getBox() == patch.getBox());
 #endif
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
+    const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     const Index<NDIM>& ilower = patch.getBox().lower();
@@ -959,7 +959,7 @@ AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
 
     TBOX_ASSERT(Q.getBox() == patch.getBox());
 #endif
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
+    const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     const Index<NDIM>& ilower = patch.getBox().lower();
@@ -1142,7 +1142,7 @@ AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>&
 
     TBOX_ASSERT(F.getBox() == patch.getBox());
 #endif
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
+    const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     const Index<NDIM>& ilower = patch.getBox().lower();

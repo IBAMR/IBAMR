@@ -105,7 +105,7 @@ ParallelEdgeMap::communicateData()
 
     static const int SIZE = 3;
     std::vector<int> transactions(SIZE * num_transactions, 0);
-    for (std::multimap<int, std::pair<int, int> >::const_iterator cit = d_pending_additions.begin();
+    for (std::multimap<int, std::pair<int, int>>::const_iterator cit = d_pending_additions.begin();
          cit != d_pending_additions.end();
          ++cit, ++offset)
     {
@@ -113,7 +113,7 @@ ParallelEdgeMap::communicateData()
         transactions[SIZE * offset + 1] = cit->second.first;
         transactions[SIZE * offset + 2] = cit->second.second;
     }
-    for (std::multimap<int, std::pair<int, int> >::const_iterator cit = d_pending_removals.begin();
+    for (std::multimap<int, std::pair<int, int>>::const_iterator cit = d_pending_removals.begin();
          cit != d_pending_removals.end();
          ++cit, ++offset)
     {
@@ -144,14 +144,14 @@ ParallelEdgeMap::communicateData()
         }
     }
 
-    typedef std::multimap<int, std::pair<int, int> >::iterator multimap_iterator;
-    typedef std::multimap<int, std::pair<int, int> >::const_iterator multimap_const_iterator;
+    typedef std::multimap<int, std::pair<int, int>>::iterator multimap_iterator;
+    typedef std::multimap<int, std::pair<int, int>>::const_iterator multimap_const_iterator;
     for (multimap_const_iterator cit = d_pending_additions.begin(); cit != d_pending_additions.end(); ++cit)
     {
         d_edge_map.insert(std::make_pair(cit->first, cit->second));
     }
 
-    typedef std::multimap<int, std::pair<int, int> >::const_iterator multimap_const_iterator;
+    typedef std::multimap<int, std::pair<int, int>>::const_iterator multimap_const_iterator;
     for (multimap_const_iterator cit = d_pending_removals.begin(); cit != d_pending_removals.end(); ++cit)
     {
         int mastr_idx = cit->first;
@@ -199,7 +199,7 @@ ParallelEdgeMap::communicateData()
     return;
 } // communicateData
 
-const std::multimap<int, std::pair<int, int> >&
+const std::multimap<int, std::pair<int, int>>&
 ParallelEdgeMap::getEdgeMap() const
 {
     return d_edge_map;

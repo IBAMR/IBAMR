@@ -208,8 +208,8 @@ public:
      */
     void setNullspace(
         bool contains_constant_vec,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs =
-            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >()) override;
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>>& nullspace_basis_vecs =
+            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>>()) override;
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -416,7 +416,7 @@ private:
     bool d_user_provided_mat = false;
     bool d_user_provided_pc = false;
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_nullspace_constant_vec = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_nullspace_constant_vec = nullptr;
     Vec d_petsc_nullspace_constant_vec = nullptr;
     std::vector<Vec> d_petsc_nullspace_basis_vecs = {};
     bool d_solver_has_attached_nullspace = false;

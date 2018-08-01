@@ -92,7 +92,7 @@ public:
      * \brief Setup the data needed to compute the forces on the specified level
      * of the patch hierarchy.
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool initial_time,
@@ -108,7 +108,7 @@ public:
     void computeLagrangianForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
                                 SAMRAI::tbox::Pointer<IBTK::LData> X_data,
                                 SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                 int level_number,
                                 double data_time,
                                 IBTK::LDataManager* l_data_manager) override;
@@ -121,7 +121,7 @@ public:
     void
     computeLagrangianForceJacobianNonzeroStructure(std::vector<int>& d_nnz,
                                                    std::vector<int>& o_nnz,
-                                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                                    int level_number,
                                                    IBTK::LDataManager* l_data_manager) override;
 
@@ -138,7 +138,7 @@ public:
                                         SAMRAI::tbox::Pointer<IBTK::LData> X_data,
                                         double U_coef,
                                         SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                         int level_number,
                                         double data_time,
                                         IBTK::LDataManager* l_data_manager) override;
@@ -149,7 +149,7 @@ public:
      */
     double computeLagrangianEnergy(SAMRAI::tbox::Pointer<IBTK::LData> X_data,
                                    SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                    int level_number,
                                    double data_time,
                                    IBTK::LDataManager* l_data_manager) override;
@@ -185,7 +185,7 @@ private:
     /*!
      * \brief The set of IBLagrangianForceStrategy objects.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> > d_strategy_set;
+    std::vector<SAMRAI::tbox::Pointer<IBLagrangianForceStrategy>> d_strategy_set;
 };
 } // namespace IBAMR
 

@@ -220,9 +220,9 @@ private:
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_P_bdry_fill_op = nullptr, d_no_fill_op = nullptr;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_U_var = nullptr;
     int d_F_U_mod_idx = -1;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_P_var = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_P_var = nullptr;
     int d_P_scratch_idx = -1, d_F_P_mod_idx = -1;
 };
 } // namespace IBAMR

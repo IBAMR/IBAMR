@@ -113,7 +113,7 @@ IBStrategy::registerEulerianCommunicationAlgorithms()
 } // registerEulerianCommunicationAlgorithms
 
 void
-IBStrategy::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+IBStrategy::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM>> gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -178,7 +178,7 @@ IBStrategy::computeLagrangianFluidSource(double /*data_time*/)
 void
 IBStrategy::spreadFluidSource(int /*q_data_idx*/,
                               RobinPhysBdryPatchStrategy* /*q_phys_bdry_op*/,
-                              const std::vector<Pointer<RefineSchedule<NDIM> > >& /*q_prolongation_scheds*/,
+                              const std::vector<Pointer<RefineSchedule<NDIM>>>& /*q_prolongation_scheds*/,
                               double /*data_time*/)
 {
     // intentionally blank
@@ -187,8 +187,8 @@ IBStrategy::spreadFluidSource(int /*q_data_idx*/,
 
 void
 IBStrategy::interpolatePressure(int /*p_data_idx*/,
-                                const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*p_synch_scheds*/,
-                                const std::vector<Pointer<RefineSchedule<NDIM> > >& /*p_ghost_fill_scheds*/,
+                                const std::vector<Pointer<CoarsenSchedule<NDIM>>>& /*p_synch_scheds*/,
+                                const std::vector<Pointer<RefineSchedule<NDIM>>>& /*p_ghost_fill_scheds*/,
                                 double /*data_time*/)
 {
     // intentionally blank
@@ -217,11 +217,11 @@ IBStrategy::postprocessData()
 } // postprocessData
 
 void
-IBStrategy::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                     Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/,
+IBStrategy::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                     Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/,
                                      int /*u_data_idx*/,
-                                     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                                     const std::vector<Pointer<CoarsenSchedule<NDIM>>>& /*u_synch_scheds*/,
+                                     const std::vector<Pointer<RefineSchedule<NDIM>>>& /*u_ghost_fill_scheds*/,
                                      int /*integrator_step*/,
                                      double /*init_data_time*/,
                                      bool /*initial_time*/)
@@ -231,40 +231,40 @@ IBStrategy::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > /*hierarchy*
 } // initializePatchHierarchy
 
 void
-IBStrategy::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > /*load_balancer*/, int /*workload_data_idx*/)
+IBStrategy::registerLoadBalancer(Pointer<LoadBalancer<NDIM>> /*load_balancer*/, int /*workload_data_idx*/)
 {
     // intentionally blank
     return;
 } // registerLoadBalancer
 
 void
-IBStrategy::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
+IBStrategy::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/, int /*workload_data_idx*/)
 {
     // intentionally blank
     return;
 } // updateWorkloadEstimates
 
-void IBStrategy::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                         Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void IBStrategy::beginDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                         Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
 {
     // intentionally blank
     return;
 } // beginDataRedistribution
 
-void IBStrategy::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                       Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void IBStrategy::endDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                       Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
 {
     // intentionally blank
     return;
 } // endDataRedistribution
 
 void
-IBStrategy::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+IBStrategy::initializeLevelData(Pointer<BasePatchHierarchy<NDIM>> /*hierarchy*/,
                                 int /*level_number*/,
                                 double /*init_data_time*/,
                                 bool /*can_be_refined*/,
                                 bool /*initial_time*/,
-                                Pointer<BasePatchLevel<NDIM> > /*old_level*/,
+                                Pointer<BasePatchLevel<NDIM>> /*old_level*/,
                                 bool /*allocate_data*/)
 {
     // intentionally blank
@@ -272,7 +272,7 @@ IBStrategy::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/
 } // initializeLevelData
 
 void
-IBStrategy::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+IBStrategy::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM>> /*hierarchy*/,
                                         int /*coarsest_level*/,
                                         int /*finest_level*/)
 {
@@ -281,7 +281,7 @@ IBStrategy::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > /*hie
 } // resetHierarchyConfiguration
 
 void
-IBStrategy::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+IBStrategy::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM>> /*hierarchy*/,
                                   int /*level_number*/,
                                   double /*error_data_time*/,
                                   int /*tag_index*/,
@@ -309,7 +309,7 @@ IBStrategy::getINSHierarchyIntegrator() const
     return d_ib_solver->d_ins_hier_integrator;
 } // getINSHierarchyIntegrator
 
-Pointer<HierarchyDataOpsReal<NDIM, double> >
+Pointer<HierarchyDataOpsReal<NDIM, double>>
 IBStrategy::getVelocityHierarchyDataOps() const
 {
 #if !defined(NDEBUG)
@@ -318,7 +318,7 @@ IBStrategy::getVelocityHierarchyDataOps() const
     return d_ib_solver->d_hier_velocity_data_ops;
 } // getVelocityHierarchyDataOps
 
-Pointer<HierarchyDataOpsReal<NDIM, double> >
+Pointer<HierarchyDataOpsReal<NDIM, double>>
 IBStrategy::getPressureHierarchyDataOps() const
 {
 #if !defined(NDEBUG)
@@ -340,7 +340,7 @@ void
 IBStrategy::registerVariable(int& current_idx,
                              int& new_idx,
                              int& scratch_idx,
-                             Pointer<Variable<NDIM> > variable,
+                             Pointer<Variable<NDIM>> variable,
                              const IntVector<NDIM>& scratch_ghosts,
                              const std::string& coarsen_name,
                              const std::string& refine_name,
@@ -356,7 +356,7 @@ IBStrategy::registerVariable(int& current_idx,
 
 void
 IBStrategy::registerVariable(int& idx,
-                             Pointer<Variable<NDIM> > variable,
+                             Pointer<Variable<NDIM>> variable,
                              const IntVector<NDIM>& ghosts,
                              Pointer<VariableContext> ctx)
 {
@@ -369,7 +369,7 @@ IBStrategy::registerVariable(int& idx,
 
 void
 IBStrategy::registerGhostfillRefineAlgorithm(const std::string& name,
-                                             Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
+                                             Pointer<RefineAlgorithm<NDIM>> ghostfill_alg,
                                              RefinePatchStrategy<NDIM>* ghostfill_patch_strategy)
 {
     d_ib_solver->registerGhostfillRefineAlgorithm(name, ghostfill_alg, ghostfill_patch_strategy);
@@ -377,7 +377,7 @@ IBStrategy::registerGhostfillRefineAlgorithm(const std::string& name,
 
 void
 IBStrategy::registerProlongRefineAlgorithm(const std::string& name,
-                                           Pointer<RefineAlgorithm<NDIM> > prolong_alg,
+                                           Pointer<RefineAlgorithm<NDIM>> prolong_alg,
                                            RefinePatchStrategy<NDIM>* prolong_patch_strategy)
 {
     d_ib_solver->registerProlongRefineAlgorithm(name, prolong_alg, prolong_patch_strategy);
@@ -385,43 +385,43 @@ IBStrategy::registerProlongRefineAlgorithm(const std::string& name,
 
 void
 IBStrategy::registerCoarsenAlgorithm(const std::string& name,
-                                     Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg,
+                                     Pointer<CoarsenAlgorithm<NDIM>> coarsen_alg,
                                      CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy)
 {
     d_ib_solver->registerCoarsenAlgorithm(name, coarsen_alg, coarsen_patch_strategy);
 } // registerCoarsenAlgorithm
 
-Pointer<RefineAlgorithm<NDIM> >
+Pointer<RefineAlgorithm<NDIM>>
 IBStrategy::getGhostfillRefineAlgorithm(const std::string& name) const
 {
     return d_ib_solver->getGhostfillRefineAlgorithm(name);
 } // getGhostfillRefineAlgorithm
 
-Pointer<RefineAlgorithm<NDIM> >
+Pointer<RefineAlgorithm<NDIM>>
 IBStrategy::getProlongRefineAlgorithm(const std::string& name) const
 {
     return d_ib_solver->getProlongRefineAlgorithm(name);
 } // getProlongRefineAlgorithm
 
-Pointer<CoarsenAlgorithm<NDIM> >
+Pointer<CoarsenAlgorithm<NDIM>>
 IBStrategy::getCoarsenAlgorithm(const std::string& name) const
 {
     return d_ib_solver->getCoarsenAlgorithm(name);
 } // getCoarsenAlgorithm
 
-const std::vector<Pointer<RefineSchedule<NDIM> > >&
+const std::vector<Pointer<RefineSchedule<NDIM>>>&
 IBStrategy::getGhostfillRefineSchedules(const std::string& name) const
 {
     return d_ib_solver->getGhostfillRefineSchedules(name);
 } // getGhostfillRefineSchedules
 
-const std::vector<Pointer<RefineSchedule<NDIM> > >&
+const std::vector<Pointer<RefineSchedule<NDIM>>>&
 IBStrategy::getProlongRefineSchedules(const std::string& name) const
 {
     return d_ib_solver->getProlongRefineSchedules(name);
 } // getProlongRefineSchedules
 
-const std::vector<Pointer<CoarsenSchedule<NDIM> > >&
+const std::vector<Pointer<CoarsenSchedule<NDIM>>>&
 IBStrategy::getCoarsenSchedules(const std::string& name) const
 {
     return d_ib_solver->getCoarsenSchedules(name);

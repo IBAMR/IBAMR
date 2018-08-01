@@ -137,7 +137,7 @@ public:
      * \brief Return an upper bound on the amount of space required to pack a
      * vector of Streamable objects to a buffer.
      */
-    size_t getDataStreamSize(const std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items) const;
+    size_t getDataStreamSize(const std::vector<SAMRAI::tbox::Pointer<Streamable>>& data_items) const;
 
     /*!
      * \brief Pack a Streamable object into the output stream.
@@ -147,7 +147,7 @@ public:
     /*!
      * \brief Pack a vector of Streamable objects into the output stream.
      */
-    void packStream(SAMRAI::tbox::AbstractStream& stream, std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items);
+    void packStream(SAMRAI::tbox::AbstractStream& stream, std::vector<SAMRAI::tbox::Pointer<Streamable>>& data_items);
 
     /*!
      * \brief Unpack a Streamable object from the data stream.
@@ -160,7 +160,7 @@ public:
      */
     void unpackStream(SAMRAI::tbox::AbstractStream& stream,
                       const SAMRAI::hier::IntVector<NDIM>& offset,
-                      std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items);
+                      std::vector<SAMRAI::tbox::Pointer<Streamable>>& data_items);
 
 protected:
     /*!
@@ -182,7 +182,7 @@ protected:
     static int createUniqueID();
 
 private:
-    typedef std::map<int, SAMRAI::tbox::Pointer<StreamableFactory> > StreamableFactoryMap;
+    typedef std::map<int, SAMRAI::tbox::Pointer<StreamableFactory>> StreamableFactoryMap;
 
     /*!
      * \brief Copy constructor.

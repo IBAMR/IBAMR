@@ -103,7 +103,7 @@ static const bool ENABLE_TIMERS = true;
 namespace std
 {
 template <typename T>
-struct less<SAMRAI::tbox::Pointer<T> >
+struct less<SAMRAI::tbox::Pointer<T>>
 {
     inline bool operator()(const SAMRAI::tbox::Pointer<T>& k1, const SAMRAI::tbox::Pointer<T>& k2) const
     {

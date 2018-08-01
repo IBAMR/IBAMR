@@ -74,7 +74,7 @@ public:
     /*!
      * \brief The container class.
      */
-    typedef std::vector<SAMRAI::tbox::Pointer<T> > DataSet;
+    typedef std::vector<SAMRAI::tbox::Pointer<T>> DataSet;
 
     /*!
      * \brief The type of object, T, stored in the collection.

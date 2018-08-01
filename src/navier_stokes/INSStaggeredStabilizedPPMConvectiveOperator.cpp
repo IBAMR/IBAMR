@@ -577,7 +577,7 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_U_scratch_idx);
     }
 
@@ -601,17 +601,17 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the convective derivative.
-    Pointer<GridGeometry<NDIM> > grid_geometry = d_hierarchy->getGridGeometry();
+    Pointer<GridGeometry<NDIM>> grid_geometry = d_hierarchy->getGridGeometry();
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         const IntVector<NDIM>& ratio = level->getRatio();
         const Box<NDIM> domain_box = Box<NDIM>::refine(grid_geometry->getPhysicalDomain()[0], ratio);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
 
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
             const double* const x_lower = patch_geom->getXLower();
             const double* const x_upper = patch_geom->getXUpper();
@@ -620,16 +620,16 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
             const IntVector<NDIM>& patch_lower = patch_box.lower();
             const IntVector<NDIM>& patch_upper = patch_box.upper();
 
-            Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(N_idx);
-            Pointer<SideData<NDIM, double> > N_upwind_data =
+            Pointer<SideData<NDIM, double>> N_data = patch->getPatchData(N_idx);
+            Pointer<SideData<NDIM, double>> N_upwind_data =
                 new SideData<NDIM, double>(N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
-            Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            Pointer<SideData<NDIM, double>> U_data = patch->getPatchData(d_U_scratch_idx);
 
             const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
             boost::array<Box<NDIM>, NDIM> side_boxes;
-            boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data;
-            boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data;
-            boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_upwind_data;
+            boost::array<Pointer<FaceData<NDIM, double>>, NDIM> U_adv_data;
+            boost::array<Pointer<FaceData<NDIM, double>>, NDIM> U_half_data;
+            boost::array<Pointer<FaceData<NDIM, double>>, NDIM> U_half_upwind_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
@@ -891,16 +891,16 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
             // Compute the xsPPM7 discretization.
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                Pointer<SideData<NDIM, double> > dU_data =
+                Pointer<SideData<NDIM, double>> dU_data =
                     new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<NDIM, double> > U_L_data =
+                Pointer<SideData<NDIM, double>> U_L_data =
                     new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<NDIM, double> > U_R_data =
+                Pointer<SideData<NDIM, double>> U_R_data =
                     new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<NDIM, double> > U_scratch1_data =
+                Pointer<SideData<NDIM, double>> U_scratch1_data =
                     new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #if (NDIM == 3)
-                Pointer<SideData<NDIM, double> > U_scratch2_data =
+                Pointer<SideData<NDIM, double>> U_scratch2_data =
                     new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #endif
 #if (NDIM == 2)
@@ -1206,7 +1206,7 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
             }
             if (patch_geom->getTouchesRegularBoundary())
             {
-                Pointer<SideData<NDIM, double> > N_PPM_data =
+                Pointer<SideData<NDIM, double>> N_PPM_data =
                     new SideData<NDIM, double>(N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
                 N_PPM_data->copy(*N_data);
                 for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
@@ -1250,7 +1250,7 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_U_scratch_idx);
     }
 

@@ -457,7 +457,7 @@ AppInitializer::getVizWriters() const
     return d_viz_writers;
 } // getVizDumpDirectory
 
-Pointer<VisItDataWriter<NDIM> >
+Pointer<VisItDataWriter<NDIM>>
 AppInitializer::getVisItDataWriter() const
 {
     return d_visit_data_writer;

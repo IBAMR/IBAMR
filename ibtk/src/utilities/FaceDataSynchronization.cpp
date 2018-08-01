@@ -82,7 +82,7 @@ FaceDataSynchronization::~FaceDataSynchronization()
 
 void
 FaceDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                                 Pointer<PatchHierarchy<NDIM> > hierarchy)
+                                                 Pointer<PatchHierarchy<NDIM>> hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
@@ -91,7 +91,7 @@ FaceDataSynchronization::initializeOperatorState(const SynchronizationTransactio
 void
 FaceDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
-    Pointer<PatchHierarchy<NDIM> > hierarchy)
+    Pointer<PatchHierarchy<NDIM>> hierarchy)
 {
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
@@ -115,12 +115,12 @@ FaceDataSynchronization::initializeOperatorState(
         if (coarsen_op_name != "NONE")
         {
             const int data_idx = transaction_comp.d_data_idx;
-            Pointer<Variable<NDIM> > var;
+            Pointer<Variable<NDIM>> var;
             var_db->mapIndexToVariable(data_idx, var);
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            Pointer<CoarsenOperator<NDIM>> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -137,8 +137,8 @@ FaceDataSynchronization::initializeOperatorState(
     {
         for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(ln - 1);
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
             d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level, coarsen_strategy);
         }
     }
@@ -148,17 +148,17 @@ FaceDataSynchronization::initializeOperatorState(
     for (auto& transaction_comp : d_transaction_comps)
     {
         const int data_idx = transaction_comp.d_data_idx;
-        Pointer<Variable<NDIM> > var;
+        Pointer<Variable<NDIM>> var;
         var_db->mapIndexToVariable(data_idx, var);
-        Pointer<FaceVariable<NDIM, double> > fc_var = var;
+        Pointer<FaceVariable<NDIM, double>> fc_var = var;
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::initializeOperatorState():\n"
                        << "  only double-precision face-centered data is supported."
                        << std::endl);
         }
-        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
-        Pointer<VariableFillPattern<NDIM> > fill_pattern = new FaceSynchCopyFillPattern();
+        Pointer<RefineOperator<NDIM>> refine_op = nullptr;
+        Pointer<VariableFillPattern<NDIM>> fill_pattern = new FaceSynchCopyFillPattern();
         d_refine_alg->registerRefine(data_idx, // destination
                                      data_idx, // source
                                      data_idx, // temporary work space
@@ -169,7 +169,7 @@ FaceDataSynchronization::initializeOperatorState(
     d_refine_scheds.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         d_refine_scheds[ln] = d_refine_alg->createSchedule(level);
     }
 
@@ -221,12 +221,12 @@ FaceDataSynchronization::resetTransactionComponents(
         if (coarsen_op_name != "NONE")
         {
             const int data_idx = transaction_comp.d_data_idx;
-            Pointer<Variable<NDIM> > var;
+            Pointer<Variable<NDIM>> var;
             var_db->mapIndexToVariable(data_idx, var);
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            Pointer<CoarsenOperator<NDIM>> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -250,17 +250,17 @@ FaceDataSynchronization::resetTransactionComponents(
     for (auto& transaction_comp : d_transaction_comps)
     {
         const int data_idx = transaction_comp.d_data_idx;
-        Pointer<Variable<NDIM> > var;
+        Pointer<Variable<NDIM>> var;
         var_db->mapIndexToVariable(data_idx, var);
-        Pointer<FaceVariable<NDIM, double> > fc_var = var;
+        Pointer<FaceVariable<NDIM, double>> fc_var = var;
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::resetTransactionComponents():\n"
                        << "  only double-precision face-centered data is supported."
                        << std::endl);
         }
-        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
-        Pointer<VariableFillPattern<NDIM> > fill_pattern = new FaceSynchCopyFillPattern();
+        Pointer<RefineOperator<NDIM>> refine_op = nullptr;
+        Pointer<VariableFillPattern<NDIM>> fill_pattern = new FaceSynchCopyFillPattern();
         d_refine_alg->registerRefine(data_idx, // destination
                                      data_idx, // source
                                      data_idx, // temporary work space
@@ -300,7 +300,7 @@ FaceDataSynchronization::synchronizeData(const double fill_time)
 #endif
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
 
         // Synchronize data on the current level.
         d_refine_scheds[ln]->fillData(fill_time);

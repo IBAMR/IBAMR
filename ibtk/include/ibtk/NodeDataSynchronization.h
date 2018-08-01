@@ -149,7 +149,7 @@ public:
      * specified synchronization transactions on the specified patch hierarchy.
      */
     void initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy);
 
     /*!
      * \brief Setup the hierarchy synchronization operator to perform the
@@ -157,7 +157,7 @@ public:
      * patch hierarchy.
      */
     void initializeOperatorState(const std::vector<SynchronizationTransactionComponent>& transaction_comps,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy);
 
     /*!
      * \brief Reset transaction component with the synchronization operator.
@@ -208,18 +208,16 @@ private:
     std::vector<SynchronizationTransactionComponent> d_transaction_comps = {};
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy = nullptr;
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> d_grid_geom = nullptr;
     int d_coarsest_ln = -1, d_finest_ln = -1;
 
     // Cached communications algorithms and schedules.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg = nullptr;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds = {};
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_coarsen_alg = nullptr;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_coarsen_scheds = {};
 
-    boost::array<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >, NDIM> d_refine_alg = { {} };
-    boost::array<std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >, NDIM> d_refine_scheds = {
-        {}
-    };
+    boost::array<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>>, NDIM> d_refine_alg = { {} };
+    boost::array<std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>, NDIM> d_refine_scheds = { {} };
 };
 } // namespace IBTK
 

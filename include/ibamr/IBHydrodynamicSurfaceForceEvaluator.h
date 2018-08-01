@@ -92,7 +92,7 @@ public:
      * \brief Default constructor.
      */
     IBHydrodynamicSurfaceForceEvaluator(std::string object_name,
-                                        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_solid_var,
+                                        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_solid_var,
                                         SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
                                         SAMRAI::tbox::Pointer<IBAMR::INSHierarchyIntegrator> fluid_solver,
                                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = nullptr);
@@ -136,7 +136,7 @@ private:
     /*!
      * Fill required patch data and ghost cells.
      */
-    void fillPatchData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+    void fillPatchData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                        const double fill_time);
 
     /*!
@@ -147,7 +147,7 @@ private:
     /*!
      * \brief Level set variable for the immersed body
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >  d_ls_solid_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_ls_solid_var;
 
     /*!
      * \brief Pointer to advection-diffusion solver.

@@ -103,7 +103,7 @@ public:
      */
     IBRodForceSpec(int master_idx,
                    std::vector<int> next_idxs,
-                   std::vector<boost::array<double, NUM_MATERIAL_PARAMS> > material_params);
+                   std::vector<boost::array<double, NUM_MATERIAL_PARAMS>> material_params);
 
     /*!
      * \brief Destructor.
@@ -141,13 +141,13 @@ public:
      * \return A const reference to the material parameters of the rods attached
      * to the master node.
      */
-    const std::vector<boost::array<double, NUM_MATERIAL_PARAMS> >& getMaterialParams() const;
+    const std::vector<boost::array<double, NUM_MATERIAL_PARAMS>>& getMaterialParams() const;
 
     /*!
      * \return A non-const reference to the material parameters of the rods
      * attached to the master node.
      */
-    std::vector<boost::array<double, NUM_MATERIAL_PARAMS> >& getMaterialParams();
+    std::vector<boost::array<double, NUM_MATERIAL_PARAMS>>& getMaterialParams();
 
     /*!
      * \brief Return the unique identifier used to specify the
@@ -193,7 +193,7 @@ private:
      */
     int d_master_idx = -1;
     std::vector<int> d_next_idxs;
-    std::vector<boost::array<double, NUM_MATERIAL_PARAMS> > d_material_params;
+    std::vector<boost::array<double, NUM_MATERIAL_PARAMS>> d_material_params;
 
     /*!
      * \brief A factory class to rebuild IBRodForceSpec objects from

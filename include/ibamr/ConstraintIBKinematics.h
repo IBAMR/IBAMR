@@ -120,7 +120,7 @@ public:
         /*!
          * \brief Global Lagrangian indices managed for this structure.
          */
-        inline const std::vector<std::pair<int, int> >& getLagIdxRange() const
+        inline const std::vector<std::pair<int, int>>& getLagIdxRange() const
         {
             return d_idx_range;
         } // getLagIdxRange
@@ -144,7 +144,7 @@ public:
     private:
         std::string d_lag_position_update_method;
         int d_coarsest_ln, d_finest_ln;
-        std::vector<std::pair<int, int> > d_idx_range;
+        std::vector<std::pair<int, int>> d_idx_range;
         int d_total_nodes;
         int d_tagged_pt_idx;
         SAMRAI::tbox::Array<int> d_calculate_trans_mom, d_calculate_rot_mom;
@@ -194,7 +194,7 @@ public:
      *
      * \param level Kinematics velocity of the structure on this level.
      */
-    virtual const std::vector<std::vector<double> >& getKinematicsVelocity(const int level) const = 0;
+    virtual const std::vector<std::vector<double>>& getKinematicsVelocity(const int level) const = 0;
 
     /*!
      * \brief Set the shape of structure at the required time. The shape should have its center of
@@ -215,7 +215,7 @@ public:
      *
      * \param level
      */
-    virtual const std::vector<std::vector<double> >& getShape(const int level) const = 0;
+    virtual const std::vector<std::vector<double>>& getShape(const int level) const = 0;
 
     /*!
      * \brief Write out object state to the given database.

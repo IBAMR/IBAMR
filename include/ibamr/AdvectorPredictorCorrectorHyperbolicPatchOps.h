@@ -155,7 +155,7 @@ public:
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
-        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
+        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> grid_geom,
         bool register_for_restart = true);
 
     /*!
@@ -173,7 +173,7 @@ public:
      * Register a VisIt data writer so this class will write plot files that may
      * be postprocessed with the VisIt visualization tool.
      */
-    void registerVisItDataWriter(SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
+    void registerVisItDataWriter(SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM>> visit_writer);
 
     /*!
      * Register a face-centered advection velocity to be used to advect
@@ -182,39 +182,39 @@ public:
      * \note By default, each registered advection velocity is assumed to be
      * divergence free.
      */
-    void registerAdvectionVelocity(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var);
+    void registerAdvectionVelocity(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>> u_var);
 
     /*!
      * Indicate whether a particular advection velocity is discretely divergence
      * free.
      */
-    void setAdvectionVelocityIsDivergenceFree(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var,
+    void setAdvectionVelocityIsDivergenceFree(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>> u_var,
                                               bool is_div_free);
 
     /*!
      * Set an IBTK::CartGridFunction object that specifies the value of a
      * particular advection velocity.
      */
-    void setAdvectionVelocityFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var,
+    void setAdvectionVelocityFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>> u_var,
                                       SAMRAI::tbox::Pointer<IBTK::CartGridFunction> u_fcn);
 
     /*!
      * Register a cell-centered source term.
      */
-    void registerSourceTerm(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > F_var);
+    void registerSourceTerm(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> F_var);
 
     /*!
      * Set an IBTK::CartGridFunction object that specifies the value of a
      * particular source term.
      */
-    void setSourceTermFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > F_var,
+    void setSourceTermFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> F_var,
                                SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
 
     /*!
      * Register a cell-centered quantity to be advected and diffused by the
      * hierarchy integrator.
      */
-    void registerTransportedQuantity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+    void registerTransportedQuantity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var);
 
     /*!
      * Set the face-centered advection velocity to be used with a particular
@@ -223,8 +223,8 @@ public:
      * \note The specified advection velocity must have been already registered
      * with the hierarchy integrator.
      */
-    void setAdvectionVelocity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var);
+    void setAdvectionVelocity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
+                              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>> u_var);
 
     /*!
      * Set the cell-centered source term to be used with a particular
@@ -233,35 +233,35 @@ public:
      * \note The specified source term must have been already registered with
      * the hierarchy integrator.
      */
-    void setSourceTerm(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > F_var);
+    void setSourceTerm(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> F_var);
 
     /*!
      * Set the convective differencing form for a quantity that has been
      * registered with the hierarchy integrator.
      */
-    void setConvectiveDifferencingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+    void setConvectiveDifferencingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
                                        ConvectiveDifferencingType difference_form);
 
     /*!
      * Set a grid function to provide initial conditions for a quantity that has
      * been registered with the hierarchy integrator.
      */
-    void setInitialConditions(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+    void setInitialConditions(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
                               SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init);
 
     /*!
      * Set an object to provide boundary conditions for a scalar-valued quantity
      * that has been registered with the hierarchy integrator.
      */
-    void setPhysicalBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+    void setPhysicalBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
                             SAMRAI::solv::RobinBcCoefStrategy<NDIM>* Q_bc_coef);
 
     /*!
      * Set objects to provide boundary conditions for a vector-valued quantity
      * that has been registered with the hierarchy integrator.
      */
-    void setPhysicalBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+    void setPhysicalBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
                             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coef);
 
     /*!
@@ -318,7 +318,7 @@ public:
      * level data on all patch interiors.  That is, both scratch and current
      * data correspond to current_time.
      */
-    void preprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
+    void preprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>& level,
                                      double current_time,
                                      double dt,
                                      bool first_step,
@@ -337,7 +337,7 @@ public:
      * correspond to current_time + dt on patch interiors.  The current data and
      * ghost values correspond to the current_time.
      */
-    void postprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
+    void postprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>& level,
                                       double current_time,
                                       double dt,
                                       bool first_step,
@@ -375,8 +375,8 @@ protected:
      * \brief Get a pointer to the requested flux integral patch data on the
      * specified patch.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >
-    getFluxIntegralData(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>>
+    getFluxIntegralData(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
                         SAMRAI::hier::Patch<NDIM>& patch,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context);
 
@@ -384,8 +384,8 @@ protected:
      * \brief Get a pointer to the requested q integral patch data on the
      * specified patch.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >
-    getQIntegralData(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>>
+    getQIntegralData(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
                      SAMRAI::hier::Patch<NDIM>& patch,
                      SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context);
 
@@ -393,8 +393,8 @@ protected:
      * \brief Get a pointer to the requested u integral patch data on the
      * specified patch.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >
-    getUIntegralData(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>>
+    getUIntegralData(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
                      SAMRAI::hier::Patch<NDIM>& patch,
                      SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context);
 
@@ -413,46 +413,46 @@ protected:
     /*
      * Advection velocity data.
      */
-    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_u_var = {};
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >, bool> d_u_is_div_free = {};
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>> d_u_var = {};
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>, bool> d_u_is_div_free = {};
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>,
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction>>
         d_u_fcn = {};
     bool d_compute_init_velocity = true, d_compute_half_velocity = true, d_compute_final_velocity = true;
 
     /*
      * Source term data.
      */
-    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_F_var = {};
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>> d_F_var = {};
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction>>
         d_F_fcn = {};
 
     /*
      * Transported quantities.
      */
-    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_Q_var = {};
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > >
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>> d_Q_var = {};
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>>
         d_Q_u_map = {};
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > >
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_Q_F_map = {};
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, ConvectiveDifferencingType>
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, ConvectiveDifferencingType>
         d_Q_difference_form = {};
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction>>
         d_Q_init = {};
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> >
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>>
         d_Q_bc_coef = {};
 
     /*
      * When conservative differencing is employed for a quantity Q, we maintain
      * the time integral of the advective flux corresponding to that quantity.
      */
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > >
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>>
         d_flux_integral_var = {};
 
     /*
@@ -463,10 +463,12 @@ protected:
      * These values must also be maintained in the case in which the advection
      * velocity is not discretely divergence free.
      */
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_q_integral_var;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_u_integral_var;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>>
+        d_q_integral_var;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>>
+        d_u_integral_var;
 
     /*
      * Boolean indicating whether or not to overwrite tag data (default is
@@ -533,8 +535,8 @@ private:
      * set up initial data, set physical boundary conditions, and register plot
      * variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
-    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> d_grid_geometry;
+    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM>> d_visit_writer = nullptr;
 
     /*
      * Boundary condition extrapolation helpers.

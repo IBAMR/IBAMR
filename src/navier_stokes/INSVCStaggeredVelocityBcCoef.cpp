@@ -216,10 +216,10 @@ INSVCStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                         Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                         Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                         const Pointer<Variable<NDIM> >& variable,
+INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
+                                         Pointer<ArrayData<NDIM, double>>& bcoef_data,
+                                         Pointer<ArrayData<NDIM, double>>& gcoef_data,
+                                         const Pointer<Variable<NDIM>>& variable,
                                          const Patch<NDIM>& patch,
                                          const BoundaryBox<NDIM>& bdry_box,
                                          double fill_time) const
@@ -245,7 +245,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     if (d_homogeneous_bc) gcoef_data->fillAll(0.0);
 
     // Get the target velocity data.
-    Pointer<SideData<NDIM, double> > u_target_data;
+    Pointer<SideData<NDIM, double>> u_target_data;
     if (d_u_target_data_idx >= 0)
         u_target_data = patch.getPatchData(d_u_target_data_idx);
     else if (d_target_data_idx >= 0)
@@ -274,15 +274,15 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
     const Box<NDIM>& ghost_box = u_target_data->getGhostBox();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
     int mu_idx = -1;
 #if (NDIM == 2)
-    Pointer<NodeData<NDIM, double> > mu_data;
+    Pointer<NodeData<NDIM, double>> mu_data;
 #elif (NDIM == 3)
-    Pointer<EdgeData<NDIM, double> > mu_data;
+    Pointer<EdgeData<NDIM, double>> mu_data;
 #endif
     if (!d_fluid_solver->muIsConstant())
     {

@@ -2270,7 +2270,7 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
                 // number, and meter node indices of each of the instrumented IB
                 // points in the input file.
                 std::vector<bool> encountered_instrument_idx;
-                std::map<size_t, std::vector<bool> > encountered_node_idx;
+                std::map<size_t, std::vector<bool>> encountered_node_idx;
                 for (int k = 0; k < num_inst_pts; ++k)
                 {
                     int n;
@@ -2665,12 +2665,12 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
     return;
 } // readSourceFiles
 
-std::vector<Pointer<Streamable> >
+std::vector<Pointer<Streamable>>
 IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index,
                                           const unsigned int global_index_offset,
                                           const int level_number) const
 {
-    std::vector<Pointer<Streamable> > node_data;
+    std::vector<Pointer<Streamable>> node_data;
 
     const int j = point_index.first;
     const int mastr_idx = getCanonicalLagrangianIndex(point_index, level_number);
@@ -2678,7 +2678,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
     // Initialize any spring specifications associated with the present vertex.
     {
         std::vector<int> slave_idxs, force_fcn_idxs;
-        std::vector<std::vector<double> > parameters;
+        std::vector<std::vector<double>> parameters;
         if (d_enable_springs[level_number][j])
         {
             for (auto it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
@@ -2742,7 +2742,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
     // Initialize any beam specifications associated with the present vertex.
     if (d_enable_beams[level_number][j])
     {
-        std::vector<std::pair<int, int> > beam_neighbor_idxs;
+        std::vector<std::pair<int, int>> beam_neighbor_idxs;
         std::vector<double> beam_bend_rigidity;
         std::vector<Vector> beam_mesh_dependent_curvature;
         for (auto it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx);
@@ -2765,7 +2765,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
     if (d_enable_rods[level_number][j])
     {
         std::vector<int> rod_next_idxs;
-        std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
+        std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS>> rod_material_params;
         for (auto it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
              it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx);
              ++it)

@@ -95,8 +95,8 @@ public:
      * \see setDataOnPatch
      */
     virtual void setDataOnPatchHierarchy(int data_idx,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
+                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                                          double data_time,
                                          bool initial_time = false,
                                          int coarsest_ln = -1,
@@ -109,8 +109,8 @@ public:
      * \see setDataOnPatch
      */
     virtual void setDataOnPatchLevel(int data_idx,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
+                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
                                      double data_time,
                                      bool initial_time = false);
 
@@ -119,12 +119,12 @@ public:
      * interior.
      */
     virtual void setDataOnPatch(int data_idx,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                 double data_time,
                                 bool initial_time = false,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr)) = 0;
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level =
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>(nullptr)) = 0;
 
     //\}
 

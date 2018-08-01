@@ -147,10 +147,10 @@ static const int REFINE_OP_STENCIL_WIDTH = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 bool
-CartSideDoubleSpecializedConstantRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
+CartSideDoubleSpecializedConstantRefine::findRefineOperator(const Pointer<Variable<NDIM>>& var,
                                                             const std::string& op_name) const
 {
-    const Pointer<SideVariable<NDIM, double> > sc_var = var;
+    const Pointer<SideVariable<NDIM, double>> sc_var = var;
     return (sc_var && op_name == s_op_name);
 } // findRefineOperator
 
@@ -181,8 +181,8 @@ CartSideDoubleSpecializedConstantRefine::refine(Patch<NDIM>& fine,
                                                 const IntVector<NDIM>& ratio) const
 {
     // Get the patch data.
-    Pointer<SideData<NDIM, double> > fdata = fine.getPatchData(dst_component);
-    Pointer<SideData<NDIM, double> > cdata = coarse.getPatchData(src_component);
+    Pointer<SideData<NDIM, double>> fdata = fine.getPatchData(dst_component);
+    Pointer<SideData<NDIM, double>> cdata = coarse.getPatchData(src_component);
 #if !defined(NDEBUG)
     TBOX_ASSERT(fdata);
     TBOX_ASSERT(cdata);

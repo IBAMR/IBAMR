@@ -145,8 +145,8 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorRe
 #endif
         d_f->allocateVectorData();
         d_r->allocateVectorData();
-        d_f->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&f, false), false);
-        d_r->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&f, false), false);
+        d_f->copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&f, false), false);
+        d_r->copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&f, false), false);
         switch (d_cycle_type)
         {
         case F_CYCLE:

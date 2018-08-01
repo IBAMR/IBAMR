@@ -61,7 +61,7 @@ static const std::string PATTERN_NAME = "FACE_SYNCH_COPY_FILL_PATTERN";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Pointer<BoxOverlap<NDIM> >
+Pointer<BoxOverlap<NDIM>>
 FaceSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
                                            const BoxGeometry<NDIM>& src_geometry,
                                            const Box<NDIM>& /*dst_patch_box*/,
@@ -69,7 +69,7 @@ FaceSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry
                                            const bool overwrite_interior,
                                            const IntVector<NDIM>& src_offset) const
 {
-    Pointer<FaceOverlap<NDIM> > box_geom_overlap =
+    Pointer<FaceOverlap<NDIM>> box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 #if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);

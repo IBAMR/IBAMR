@@ -336,8 +336,8 @@ CIBFEMethod::setComputeVelL2Projection(const bool compute_L2_projection)
 
 void
 CIBFEMethod::interpolateVelocity(const int u_data_idx,
-                                 const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                 const std::vector<Pointer<CoarsenSchedule<NDIM>>>& /*u_synch_scheds*/,
+                                 const std::vector<Pointer<RefineSchedule<NDIM>>>& u_ghost_fill_scheds,
                                  const double data_time)
 {
     if (d_lag_velvec_is_initialized)
@@ -385,8 +385,8 @@ CIBFEMethod::eulerStep(const double current_time, const double new_time)
         const unsigned int X_sys_num = X_system.number();
         PetscVector<double>& X_half = *d_X_half_vecs[part];
 
-        std::vector<std::vector<numeric_index_type> > nodal_X_indices(NDIM);
-        std::vector<std::vector<double> > nodal_X0_values(NDIM);
+        std::vector<std::vector<numeric_index_type>> nodal_X_indices(NDIM);
+        std::vector<std::vector<double>> nodal_X0_values(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             nodal_X_indices[d].reserve(total_local_nodes);
@@ -461,8 +461,8 @@ CIBFEMethod::midpointStep(const double current_time, const double new_time)
         const unsigned int X_sys_num = X_system.number();
         PetscVector<double>& X_new = *d_X_new_vecs[part];
 
-        std::vector<std::vector<numeric_index_type> > nodal_X_indices(NDIM);
-        std::vector<std::vector<double> > nodal_X0_values(NDIM);
+        std::vector<std::vector<numeric_index_type>> nodal_X_indices(NDIM);
+        std::vector<std::vector<double>> nodal_X0_values(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             nodal_X_indices[d].reserve(total_local_nodes);
@@ -537,7 +537,7 @@ void
 CIBFEMethod::spreadForce(
     int f_data_idx,
     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_prolongation_scheds,
     double data_time)
 {
     if (d_constraint_force_is_initialized)
@@ -633,13 +633,13 @@ CIBFEMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double sca
         // Extract the FE system and DOF map, and setup the FE object.
         System& L_system = *d_F_systems[part];
         DofMap& L_dof_map = L_system.get_dof_map();
-        std::vector<std::vector<unsigned int> > L_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> L_dof_indices(NDIM);
         FEType L_fe_type = L_dof_map.variable_type(0);
         std::unique_ptr<FEBase> L_fe_autoptr(FEBase::build(dim, L_fe_type));
         FEBase* L_fe = L_fe_autoptr.get();
         L_fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = L_fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = L_fe->get_phi();
+        const std::vector<std::vector<double>>& phi = L_fe->get_phi();
 
         double L_qp[NDIM];
         boost::multi_array<double, 2> L_node;
@@ -675,11 +675,11 @@ CIBFEMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double sca
     const double vol_domain = getHierarchyMathOps()->getVolumeOfPhysicalDomain();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double> > p_data = patch->getPatchData(f_data_idx);
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<SideData<NDIM, double>> p_data = patch->getPatchData(f_data_idx);
             const Box<NDIM>& patch_box = patch->getBox();
             for (int axis = 0; axis < NDIM; ++axis)
             {
@@ -766,8 +766,8 @@ CIBFEMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rig
     System& X_system = *d_X_systems[part];
     DofMap& L_dof_map = L_system.get_dof_map();
     DofMap& X_dof_map = X_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > L_dof_indices(NDIM);
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> L_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
     FEType L_fe_type = L_dof_map.variable_type(0);
     FEType X_fe_type = X_dof_map.variable_type(0);
     std::unique_ptr<FEBase> L_fe_autoptr(FEBase::build(dim, L_fe_type)), X_fe_autoptr;
@@ -783,8 +783,8 @@ CIBFEMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rig
         X_fe->attach_quadrature_rule(qrule.get());
     }
     const std::vector<double>& JxW_L = L_fe->get_JxW();
-    const std::vector<std::vector<double> >& phi_L = L_fe->get_phi();
-    const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
+    const std::vector<std::vector<double>>& phi_L = L_fe->get_phi();
+    const std::vector<std::vector<double>>& phi_X = X_fe->get_phi();
 
     const Eigen::Vector3d& X_com = d_center_of_mass_half[part];
     libMesh::PetscVector<double>& X_petsc = *d_X_half_vecs[part];
@@ -980,8 +980,8 @@ CIBFEMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector&
         const unsigned int X_sys_num = X_system.number();
         const unsigned int U_sys_num = U_system.number();
 
-        std::vector<std::vector<numeric_index_type> > nodal_X_indices(NDIM), nodal_U_indices(NDIM);
-        std::vector<std::vector<double> > nodal_X_values(NDIM);
+        std::vector<std::vector<numeric_index_type>> nodal_X_indices(NDIM), nodal_U_indices(NDIM);
+        std::vector<std::vector<double>> nodal_X_values(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             nodal_X_indices[d].reserve(total_local_nodes);
@@ -1105,11 +1105,11 @@ CIBFEMethod::registerEulerianCommunicationAlgorithms()
 } // registerEulerianCommunicationAlgorithms
 
 void
-CIBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                      Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+CIBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                      Pointer<GriddingAlgorithm<NDIM>> gridding_alg,
                                       int u_data_idx,
-                                      const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                      const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                      const std::vector<Pointer<CoarsenSchedule<NDIM>>>& u_synch_scheds,
+                                      const std::vector<Pointer<RefineSchedule<NDIM>>>& u_ghost_fill_scheds,
                                       int integrator_step,
                                       double init_data_time,
                                       bool initial_time)
@@ -1132,11 +1132,11 @@ CIBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
         // Initialize the S[lambda] variable.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double> > lambda_data = patch->getPatchData(d_eul_lambda_idx);
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CellData<NDIM, double>> lambda_data = patch->getPatchData(d_eul_lambda_idx);
                 lambda_data->fillAll(0.0);
             }
         }
@@ -1187,7 +1187,7 @@ CIBFEMethod::preprocessSolveFluidEquations(double current_time, double new_time,
 } // preprocessSolveFluidEquations
 
 void
-CIBFEMethod::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > visit_writer)
+CIBFEMethod::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM>> visit_writer)
 {
     d_visit_writer = visit_writer;
 } // registerVisItDataWriter
@@ -1198,7 +1198,7 @@ CIBFEMethod::getStructuresLevelNumber()
     return d_hierarchy->getFinestLevelNumber();
 } // getStructuresLevelNumber
 
-Pointer<PatchHierarchy<NDIM> >
+Pointer<PatchHierarchy<NDIM>>
 CIBFEMethod::getPatchHierarchy()
 {
     return d_hierarchy;
@@ -1334,13 +1334,13 @@ CIBFEMethod::computeCOMOfStructure(Eigen::Vector3d& center_of_mass, EquationSyst
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     X_system.solution->localize(*X_system.current_local_solution);
     DofMap& X_dof_map = X_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
 
     std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();
-    const std::vector<std::vector<double> >& phi = fe->get_phi();
+    const std::vector<std::vector<double>>& phi = fe->get_phi();
 
     // Extract the nodal coordinates.
     auto& X_petsc = dynamic_cast<PetscVector<double>&>(*X_system.current_local_solution.get());

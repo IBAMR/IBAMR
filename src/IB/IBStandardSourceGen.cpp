@@ -69,8 +69,8 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 std::vector<int> IBStandardSourceGen::s_num_sources;
-std::vector<std::vector<std::string> > IBStandardSourceGen::s_source_names;
-std::vector<std::vector<double> > IBStandardSourceGen::s_source_radii;
+std::vector<std::vector<std::string>> IBStandardSourceGen::s_source_names;
+std::vector<std::vector<double>> IBStandardSourceGen::s_source_radii;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -143,7 +143,7 @@ IBStandardSourceGen::getSourcePressures(const int ln) const
 } // getSourcePressures
 
 void
-IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
                                          const int level_number,
                                          const double /*init_data_time*/,
                                          const bool /*initial_time*/,
@@ -184,7 +184,7 @@ IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*
 } // initializeLevelData
 
 unsigned int
-IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
                                    const int level_number,
                                    const double /*data_time*/,
                                    LDataManager* const /*l_data_manager*/)
@@ -199,7 +199,7 @@ void
 IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
                                         std::vector<double>& r_src,
                                         Pointer<LData> X_data,
-                                        const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                        const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
                                         const int level_number,
                                         const double /*data_time*/,
                                         LDataManager* const l_data_manager)
@@ -254,7 +254,7 @@ IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
 
 void
 IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
-                                        const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                        const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
                                         const int level_number,
                                         const double /*data_time*/,
                                         LDataManager* const /*l_data_manager*/)
@@ -265,7 +265,7 @@ IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
 
 void
 IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
-                                            const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                            const Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
                                             const int level_number,
                                             const double /*data_time*/,
                                             LDataManager* const /*l_data_manager*/)

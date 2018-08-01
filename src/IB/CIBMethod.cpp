@@ -174,8 +174,8 @@ CIBMethod::registerEulerianCommunicationAlgorithms()
 {
     IBMethod::registerEulerianCommunicationAlgorithms();
 
-    Pointer<RefineAlgorithm<NDIM> > refine_alg_lambda;
-    Pointer<RefineOperator<NDIM> > refine_op;
+    Pointer<RefineAlgorithm<NDIM>> refine_alg_lambda;
+    Pointer<RefineOperator<NDIM>> refine_op;
     refine_alg_lambda = new RefineAlgorithm<NDIM>();
     refine_op = nullptr;
     refine_alg_lambda->registerRefine(d_eul_lambda_idx, d_eul_lambda_idx, d_eul_lambda_idx, refine_op);
@@ -377,7 +377,7 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
     if (d_output_eul_lambda)
     {
         // Prepare the LData to spread
-        std::vector<Pointer<LData> > spread_lag_data(finest_ln + 1, Pointer<LData>(nullptr)),
+        std::vector<Pointer<LData>> spread_lag_data(finest_ln + 1, Pointer<LData>(nullptr)),
             position_lag_data(finest_ln + 1, Pointer<LData>(nullptr));
 
         spread_lag_data[finest_ln] = d_l_data_manager->getLData("lambda", finest_ln);
@@ -387,11 +387,11 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
         // Initialize the S[lambda] variable to zero.
         for (int ln = 0; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double> > lambda_data = patch->getPatchData(d_eul_lambda_idx);
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CellData<NDIM, double>> lambda_data = patch->getPatchData(d_eul_lambda_idx);
                 lambda_data->fillAll(0.0);
             }
         }
@@ -411,12 +411,12 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
 } // postprocessIntegrateData
 
 void
-CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                int level_number,
                                double init_data_time,
                                bool can_be_refined,
                                bool initial_time,
-                               Pointer<BasePatchLevel<NDIM> > old_level,
+                               Pointer<BasePatchLevel<NDIM>> old_level,
                                bool allocate_data)
 {
     IBMethod::initializeLevelData(
@@ -450,11 +450,11 @@ CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
 } // initializeLevelData
 
 void
-CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                    Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                    Pointer<GriddingAlgorithm<NDIM>> gridding_alg,
                                     int u_data_idx,
-                                    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                    const std::vector<Pointer<CoarsenSchedule<NDIM>>>& u_synch_scheds,
+                                    const std::vector<Pointer<RefineSchedule<NDIM>>>& u_ghost_fill_scheds,
                                     int integrator_step,
                                     double init_data_time,
                                     bool initial_time)
@@ -493,11 +493,11 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
         // Initialize Eulerian lambda (S[lambda]) variable.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double> > lambda_data = patch->getPatchData(d_eul_lambda_idx);
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CellData<NDIM, double>> lambda_data = patch->getPatchData(d_eul_lambda_idx);
                 lambda_data->fillAll(0.0);
             }
         }
@@ -557,7 +557,7 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
 
     // Initialize initial center of mass of structures.
     std::vector<Eigen::Vector3d> X0_com(d_num_rigid_parts, Eigen::Vector3d::Zero());
-    std::vector<Pointer<LData> > X0_unshifted_data_vec(finest_ln + 1, Pointer<LData>(nullptr));
+    std::vector<Pointer<LData>> X0_unshifted_data_vec(finest_ln + 1, Pointer<LData>(nullptr));
     X0_unshifted_data_vec[finest_ln] = d_l_data_manager->getLData("X0_unshifted", finest_ln);
     computeCOMOfStructures(X0_com, X0_unshifted_data_vec);
     for (int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
@@ -576,8 +576,8 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
 
 void
 CIBMethod::interpolateVelocity(const int u_data_idx,
-                               const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                               const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                               const std::vector<Pointer<CoarsenSchedule<NDIM>>>& u_synch_scheds,
+                               const std::vector<Pointer<RefineSchedule<NDIM>>>& u_ghost_fill_scheds,
                                const double data_time)
 {
     if (d_lag_velvec_is_initialized)
@@ -585,7 +585,7 @@ CIBMethod::interpolateVelocity(const int u_data_idx,
 #if !defined(NDEBUG)
         TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
-        std::vector<Pointer<LData> > *U_half_data, *X_half_data;
+        std::vector<Pointer<LData>>*U_half_data, *X_half_data;
         bool* X_half_needs_ghost_fill;
         getVelocityData(&U_half_data, d_half_time);
         getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
@@ -602,7 +602,7 @@ void
 CIBMethod::spreadForce(
     int f_data_idx,
     IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_prolongation_scheds,
     double data_time)
 {
     if (d_constraint_force_is_initialized)
@@ -636,7 +636,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
     setRotationMatrix(d_rot_vel_current, d_quaternion_current, d_quaternion_half, rotation_mat, 0.5 * dt);
 
     // Get the domain limits.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     double domain_length[NDIM];
@@ -648,7 +648,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
 
     // Rotate the body with current rotational velocity about origin
     // and translate the body to predicted position X^n+1/2.
-    std::vector<Pointer<LData> >* X_half_data;
+    std::vector<Pointer<LData>>* X_half_data;
     bool* X_half_needs_ghost_fill;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -756,7 +756,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
         is_steady_stokes ? d_rot_vel_new : d_rot_vel_half, d_quaternion_current, d_quaternion_new, rotation_mat, dt);
 
     // Get the grid extents.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     double domain_length[NDIM];
@@ -878,7 +878,7 @@ CIBMethod::trapezoidalStep(double /*current_time*/, double /*new_time*/)
 } // trapezoidalStep
 
 void
-CIBMethod::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > visit_writer)
+CIBMethod::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM>> visit_writer)
 {
     d_visit_writer = visit_writer;
     return;
@@ -920,7 +920,7 @@ CIBMethod::setConstraintForce(Vec L, const double data_time, const double scale)
 
     const int struct_ln = getStructuresLevelNumber();
 
-    std::vector<Pointer<LData> >* F_half_data;
+    std::vector<Pointer<LData>>* F_half_data;
     bool* F_half_needs_ghost_fill;
     getForceData(&F_half_data, &F_half_needs_ghost_fill, d_half_time);
     Vec F_half = (*F_half_data)[struct_ln]->getVec();
@@ -1004,11 +1004,11 @@ CIBMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double scale
     const double vol_domain = getHierarchyMathOps()->getVolumeOfPhysicalDomain();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double> > p_data = patch->getPatchData(f_data_idx);
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<SideData<NDIM, double>> p_data = patch->getPatchData(f_data_idx);
             const Box<NDIM>& patch_box = patch->getBox();
             for (int axis = 0; axis < NDIM; ++axis)
             {
@@ -1046,7 +1046,7 @@ CIBMethod::getInterpolatedVelocity(Vec V, const double data_time, const double s
 #endif
 
     const int struct_ln = getStructuresLevelNumber();
-    std::vector<Pointer<LData> >* U_half_data;
+    std::vector<Pointer<LData>>* U_half_data;
     getVelocityData(&U_half_data, d_half_time);
     VecCopy((*U_half_data)[struct_ln]->getVec(), V);
     VecScale(V, scale);
@@ -1396,7 +1396,7 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
     }
     else
     {
-        std::vector<Pointer<LData> >* X_half_data;
+        std::vector<Pointer<LData>>* X_half_data;
         bool* X_half_needs_ghost_fill;
         getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
         X = (*X_half_data)[struct_ln]->getVec();
@@ -1722,7 +1722,7 @@ CIBMethod::getFromRestart()
 } // getFromRestart
 
 void
-CIBMethod::computeCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass, std::vector<Pointer<LData> >& X_data)
+CIBMethod::computeCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass, std::vector<Pointer<LData>>& X_data)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1776,7 +1776,7 @@ void
 CIBMethod::setRegularizationWeight(const int level_number)
 {
     Pointer<LData> reg_data = d_l_data_manager->getLData("regulator", level_number);
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
     const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(level_number)->getRatio();
 
     const double* const dx0 = grid_geom->getDx();

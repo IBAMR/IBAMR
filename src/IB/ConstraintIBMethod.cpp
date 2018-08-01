@@ -110,7 +110,7 @@ public:
     inline bool operator()(Pointer<ConstraintIBKinematics> ib_kinematics_ptr)
     {
         const StructureParameters& struct_param = ib_kinematics_ptr->getStructureParameters();
-        const std::vector<std::pair<int, int> >& range = struct_param.getLagIdxRange();
+        const std::vector<std::pair<int, int>>& range = struct_param.getLagIdxRange();
 
         bool is_in_range = false;
         for (const auto& i : range)
@@ -375,7 +375,7 @@ ConstraintIBMethod::~ConstraintIBMethod()
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_u_fluidSolve_cib_idx)) level->deallocatePatchData(d_u_fluidSolve_cib_idx);
         if (!d_rho_is_const && level->checkAllocated(d_rho_scratch_idx))
             level->deallocatePatchData(d_rho_scratch_idx);
@@ -467,19 +467,19 @@ ConstraintIBMethod::calculateEulerianMomentum()
 
     for (int active = 0; active < NDIM; ++active)
     {
-        Pointer<SAMRAIVectorReal<NDIM, double> > wgt_sc_active = wgt_sc.cloneVector("");
+        Pointer<SAMRAIVectorReal<NDIM, double>> wgt_sc_active = wgt_sc.cloneVector("");
         wgt_sc_active->allocateVectorData();
-        wgt_sc_active->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&wgt_sc, false));
+        wgt_sc_active->copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&wgt_sc, false));
 
         // Zero out components other than active dimension.
         const int wgt_sc_active_idx = wgt_sc_active->getComponentDescriptorIndex(0);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<SideData<NDIM, double> > wgt_sc_active_data = patch->getPatchData(wgt_sc_active_idx);
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<SideData<NDIM, double>> wgt_sc_active_data = patch->getPatchData(wgt_sc_active_idx);
                 for (int d = 0; d < NDIM; ++d)
                 {
                     if (d != active)
@@ -601,9 +601,9 @@ ConstraintIBMethod::initializeHierarchyOperatorsandData()
 {
     // Obtain the Hierarchy data operations objects
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<CellVariable<NDIM, double> > cc_var = new CellVariable<NDIM, double>("cc_var");
+    Pointer<CellVariable<NDIM, double>> cc_var = new CellVariable<NDIM, double>("cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
-    Pointer<SideVariable<NDIM, double> > sc_var = new SideVariable<NDIM, double>("sc_var");
+    Pointer<SideVariable<NDIM, double>> sc_var = new SideVariable<NDIM, double>("sc_var");
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
     d_wgt_cc_idx = getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
     d_wgt_sc_idx = getHierarchyMathOps()->getSideWeightPatchDescriptorIndex();
@@ -617,7 +617,7 @@ ConstraintIBMethod::initializeHierarchyOperatorsandData()
 } // initializeHierarchyOperatorsandData
 
 void
-ConstraintIBMethod::registerConstraintIBKinematics(const std::vector<Pointer<ConstraintIBKinematics> >& ib_kinematics)
+ConstraintIBMethod::registerConstraintIBKinematics(const std::vector<Pointer<ConstraintIBKinematics>>& ib_kinematics)
 {
     if (ib_kinematics.size() != static_cast<unsigned int>(d_no_structures))
     {
@@ -903,7 +903,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
             d_center_of_mass_new[struct_no][d] = 0.0;
         }
     }
-    std::vector<std::vector<double> > tagged_position(d_no_structures, std::vector<double>(3, 0.0));
+    std::vector<std::vector<double>> tagged_position(d_no_structures, std::vector<double>(3, 0.0));
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -1179,7 +1179,7 @@ ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_han
     Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
     const int coarsest_ln = struct_param.getCoarsestLevelNumber();
     const int finest_ln = struct_param.getFinestLevelNumber();
-    const std::vector<std::pair<int, int> >& range = struct_param.getLagIdxRange();
+    const std::vector<std::pair<int, int>>& range = struct_param.getLagIdxRange();
     const int total_nodes = struct_param.getTotalNodes();
 
     // Zero out linear momentum of kinematics velocity of the structure.
@@ -1200,7 +1200,7 @@ ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_han
         // on this level.
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        const std::vector<std::vector<double> >& def_vel = ptr_ib_kinematics->getKinematicsVelocity(ln);
+        const std::vector<std::vector<double>>& def_vel = ptr_ib_kinematics->getKinematicsVelocity(ln);
 
         for (auto node_idx : local_nodes)
         {
@@ -1259,7 +1259,7 @@ ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_han
             const boost::multi_array_ref<double, 2>& X_data = *ptr_x_lag_data->getLocalFormVecArray();
             const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            const std::vector<std::vector<double> >& def_vel = ptr_ib_kinematics->getKinematicsVelocity(ln);
+            const std::vector<std::vector<double>>& def_vel = ptr_ib_kinematics->getKinematicsVelocity(ln);
 
             for (auto node_idx : local_nodes)
             {
@@ -1319,7 +1319,7 @@ ConstraintIBMethod::calculateVolumeElement()
     // Initialize variables and variable contexts associated with Eulerian tracking of the Lagrangian points.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const IntVector<NDIM> cell_ghosts = 0;
-    Pointer<CellVariable<NDIM, int> > vol_cc_var = new CellVariable<NDIM, int>(d_object_name + "::vol_cc_var");
+    Pointer<CellVariable<NDIM, int>> vol_cc_var = new CellVariable<NDIM, int>(d_object_name + "::vol_cc_var");
     const int vol_cc_scratch_idx = var_db->registerVariableAndContext(vol_cc_var, d_scratch_context, cell_ghosts);
 
     const int coarsest_ln = 0;
@@ -1327,12 +1327,12 @@ ConstraintIBMethod::calculateVolumeElement()
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(vol_cc_scratch_idx, 0.0);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM, int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, int>> vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
             vol_cc_scratch_idx_data->fill(0, 0);
         }
     }
@@ -1344,7 +1344,7 @@ ConstraintIBMethod::calculateVolumeElement()
 
         // Get LData corresponding to the present position of the structures.
         const boost::multi_array_ref<double, 2>& X_data = *d_l_data_manager->getLData("X", ln)->getLocalFormVecArray();
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
 
         // Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
@@ -1367,10 +1367,10 @@ ConstraintIBMethod::calculateVolumeElement()
 
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CellData<NDIM, int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
-                Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-                Pointer<CartesianGridGeometry<NDIM> > ggeom = level->getGridGeometry();
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CellData<NDIM, int>> vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
+                Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+                Pointer<CartesianGridGeometry<NDIM>> ggeom = level->getGridGeometry();
                 const IntVector<NDIM>& ratio = level->getRatio();
                 const double* const dx = pgeom->getDx();
                 const Box<NDIM>& patch_box = patch->getBox();
@@ -1445,7 +1445,7 @@ ConstraintIBMethod::calculateVolumeElement()
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(vol_cc_scratch_idx)) level->deallocatePatchData(vol_cc_scratch_idx);
     }
     var_db->removePatchDataIndex(vol_cc_scratch_idx);
@@ -1687,7 +1687,7 @@ ConstraintIBMethod::calculateCurrentLagrangianVelocity()
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
             const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
-            const std::vector<std::vector<double> >& current_vel = ptr_ib_kinematics->getKinematicsVelocity(ln);
+            const std::vector<std::vector<double>>& current_vel = ptr_ib_kinematics->getKinematicsVelocity(ln);
 
             for (auto node_idx : local_nodes)
             {
@@ -1793,7 +1793,7 @@ ConstraintIBMethod::correctVelocityOnLagrangianMesh()
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
             const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
-            const std::vector<std::vector<double> >& new_vel = ptr_ib_kinematics->getKinematicsVelocity(ln);
+            const std::vector<std::vector<double>>& new_vel = ptr_ib_kinematics->getKinematicsVelocity(ln);
 
             for (auto node_idx : local_nodes)
             {
@@ -1881,7 +1881,7 @@ ConstraintIBMethod::applyProjection()
     scratch_idxs.setFlag(d_Div_u_scratch_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(scratch_idxs, d_FuRMoRP_new_time);
     }
 
@@ -1891,10 +1891,10 @@ ConstraintIBMethod::applyProjection()
                                d_Div_u_var, // dst
                                +1.0,        // alpha
                                d_u_fluidSolve_idx,
-                               Pointer<SideVariable<NDIM, double> >(d_u_fluidSolve_var), // src
-                               d_no_fill_op,                                             // src_bdry_fill
-                               d_FuRMoRP_new_time,                                       // src_bdry_fill_time
-                               U_current_cf_bdry_synch);                                 // src_cf_bdry_synch
+                               Pointer<SideVariable<NDIM, double>>(d_u_fluidSolve_var), // src
+                               d_no_fill_op,                                            // src_bdry_fill
+                               d_FuRMoRP_new_time,                                      // src_bdry_fill_time
+                               U_current_cf_bdry_synch);                                // src_cf_bdry_synch
 
     if (d_do_log)
     {
@@ -1973,35 +1973,35 @@ ConstraintIBMethod::applyProjection()
     if (!d_rho_is_const)
     {
         getHierarchyMathOps()->grad(d_u_fluidSolve_idx,
-                                    Pointer<SideVariable<NDIM, double> >(d_u_var),
+                                    Pointer<SideVariable<NDIM, double>>(d_u_var),
                                     U_scratch_cf_bdry_synch,
                                     d_rho_scratch_idx,
-                                    Pointer<SideVariable<NDIM, double> >(d_rho_var),
+                                    Pointer<SideVariable<NDIM, double>>(d_rho_var),
                                     d_phi_idx,
                                     d_phi_var,
                                     d_no_fill_op,
                                     d_FuRMoRP_new_time,
                                     1.0,
                                     d_u_fluidSolve_idx,
-                                    Pointer<SideVariable<NDIM, double> >(d_u_var));
+                                    Pointer<SideVariable<NDIM, double>>(d_u_var));
     }
     else
     {
         getHierarchyMathOps()->grad(d_u_fluidSolve_idx,
-                                    Pointer<SideVariable<NDIM, double> >(d_u_var),
+                                    Pointer<SideVariable<NDIM, double>>(d_u_var),
                                     U_scratch_cf_bdry_synch,
-                                    -1.0/d_rho_fluid,
+                                    -1.0 / d_rho_fluid,
                                     d_phi_idx,
                                     d_phi_var,
                                     d_no_fill_op,
                                     d_FuRMoRP_new_time,
                                     1.0,
                                     d_u_fluidSolve_idx,
-                                    Pointer<SideVariable<NDIM, double> >(d_u_var));
+                                    Pointer<SideVariable<NDIM, double>>(d_u_var));
     }
 
     // Update pressure p = p + phi/dt
-    const Pointer<Variable<NDIM> > p_var = d_ib_solver->getPressureVariable();
+    const Pointer<Variable<NDIM>> p_var = d_ib_solver->getPressureVariable();
     const Pointer<VariableContext> p_ctx = d_ib_solver->getNewContext();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
@@ -2017,10 +2017,10 @@ ConstraintIBMethod::applyProjection()
                                    d_Div_u_var, // dst
                                    +1.0,        // alpha
                                    d_u_fluidSolve_idx,
-                                   Pointer<SideVariable<NDIM, double> >(d_u_fluidSolve_var), // src
-                                   d_no_fill_op,                                             // src_bdry_fill
-                                   d_FuRMoRP_new_time,                                       // src_bdry_fill_time
-                                   U_current_cf_bdry_synch);                                 // src_cf_bdry_synch
+                                   Pointer<SideVariable<NDIM, double>>(d_u_fluidSolve_var), // src
+                                   d_no_fill_op,                                            // src_bdry_fill
+                                   d_FuRMoRP_new_time,                                      // src_bdry_fill_time
+                                   U_current_cf_bdry_synch);                                // src_cf_bdry_synch
 
         const double Div_u_norm_1 = d_hier_cc_data_ops->L1Norm(d_Div_u_scratch_idx, d_wgt_cc_idx);
         const double Div_u_norm_2 = d_hier_cc_data_ops->L2Norm(d_Div_u_scratch_idx, d_wgt_cc_idx);
@@ -2034,7 +2034,7 @@ ConstraintIBMethod::applyProjection()
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(scratch_idxs);
     }
 
@@ -2077,7 +2077,7 @@ ConstraintIBMethod::updateStructurePositionEulerStep()
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
             const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
             const std::string position_update_method = struct_param.getPositionUpdateMethod();
-            const std::vector<std::vector<double> >& current_shape = ptr_ib_kinematics->getShape(ln);
+            const std::vector<std::vector<double>>& current_shape = ptr_ib_kinematics->getShape(ln);
 
             for (auto node_idx : local_nodes)
             {
@@ -2180,7 +2180,7 @@ ConstraintIBMethod::updateStructurePositionMidPointStep()
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
             const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
             const std::string position_update_method = struct_param.getPositionUpdateMethod();
-            const std::vector<std::vector<double> >& new_shape = ptr_ib_kinematics->getShape(ln);
+            const std::vector<std::vector<double>>& new_shape = ptr_ib_kinematics->getShape(ln);
 
             for (auto node_idx : local_nodes)
             {
@@ -2268,7 +2268,7 @@ ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(copy_to_idx)) level->allocatePatchData(copy_to_idx);
     }
 
@@ -2278,7 +2278,7 @@ ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
     u_from.addComponent(d_u_fluidSolve_var, copy_from_idx, d_wgt_sc_idx);
     u_to.addComponent(d_u_fluidSolve_var, copy_to_idx, d_wgt_sc_idx);
 
-    u_to.copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&u_from, false));
+    u_to.copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&u_from, false));
 
     using InterpolationTransactionComponent = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
@@ -2309,7 +2309,7 @@ ConstraintIBMethod::copyDensityVariable(int copy_from_idx, int copy_to_idx)
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(copy_to_idx)) level->allocatePatchData(copy_to_idx);
     }
 
@@ -2324,8 +2324,8 @@ ConstraintIBMethod::interpolateFluidSolveVelocity()
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > F_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > X_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData>> F_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData>> X_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -2345,8 +2345,8 @@ ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > F_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > X_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData>> F_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData>> X_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -2367,8 +2367,8 @@ ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
     u_cib.setToScalar(0.0);
     d_l_data_manager->spread(d_u_fluidSolve_cib_idx, F_data, X_data, d_u_phys_bdry_op);
 
-    u_ins.add(Pointer<SAMRAIVectorReal<NDIM, double> >(&u_ins, false),
-              Pointer<SAMRAIVectorReal<NDIM, double> >(&u_cib, false));
+    u_ins.add(Pointer<SAMRAIVectorReal<NDIM, double>>(&u_ins, false),
+              Pointer<SAMRAIVectorReal<NDIM, double>>(&u_cib, false));
 
     return;
 } // spreadCorrectedLagrangianVelocity
@@ -2401,8 +2401,8 @@ ConstraintIBMethod::calculateDrag()
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = d_FuRMoRP_new_time - d_FuRMoRP_current_time;
 
-    std::vector<std::vector<double> > inertia_force(d_no_structures, std::vector<double>(3, 0.0));
-    std::vector<std::vector<double> > constraint_force(d_no_structures, std::vector<double>(3, 0.0));
+    std::vector<std::vector<double>> inertia_force(d_no_structures, std::vector<double>(3, 0.0));
+    std::vector<std::vector<double>> constraint_force(d_no_structures, std::vector<double>(3, 0.0));
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -2483,8 +2483,8 @@ ConstraintIBMethod::calculateTorque()
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = d_FuRMoRP_new_time - d_FuRMoRP_current_time;
 
-    std::vector<std::vector<double> > inertia_torque(d_no_structures, std::vector<double>(3, 0.0));
-    std::vector<std::vector<double> > constraint_torque(d_no_structures, std::vector<double>(3, 0.0));
+    std::vector<std::vector<double>> inertia_torque(d_no_structures, std::vector<double>(3, 0.0));
+    std::vector<std::vector<double>> constraint_torque(d_no_structures, std::vector<double>(3, 0.0));
     double R_cross_U_inertia[3] = { 0.0 }, R_cross_U_constraint[3] = { 0.0 };
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -2593,8 +2593,8 @@ ConstraintIBMethod::calculatePower()
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = d_FuRMoRP_new_time - d_FuRMoRP_current_time;
 
-    std::vector<std::vector<double> > inertia_power(d_no_structures, std::vector<double>(3, 0.0));
-    std::vector<std::vector<double> > constraint_power(d_no_structures, std::vector<double>(3, 0.0));
+    std::vector<std::vector<double>> inertia_power(d_no_structures, std::vector<double>(3, 0.0));
+    std::vector<std::vector<double>> constraint_power(d_no_structures, std::vector<double>(3, 0.0));
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {

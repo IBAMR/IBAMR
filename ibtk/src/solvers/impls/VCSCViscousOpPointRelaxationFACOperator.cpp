@@ -400,7 +400,7 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
 
     IBTK_TIMER_START(t_smooth_error);
 
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(level_num);
     const int error_idx = error.getComponentDescriptorIndex(0);
     const int scratch_idx = d_scratch_idx;
 
@@ -419,9 +419,9 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
         int patch_counter = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double> > error_data = error.getComponentPatchData(0, *patch);
-            Pointer<SideData<NDIM, double> > scratch_data = patch->getPatchData(scratch_idx);
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<SideData<NDIM, double>> error_data = error.getComponentPatchData(0, *patch);
+            Pointer<SideData<NDIM, double>> scratch_data = patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
             const Box<NDIM>& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
@@ -451,9 +451,9 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
                 int patch_counter = 0;
                 for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    Pointer<SideData<NDIM, double> > error_data = error.getComponentPatchData(0, *patch);
-                    Pointer<SideData<NDIM, double> > scratch_data = patch->getPatchData(scratch_idx);
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                    Pointer<SideData<NDIM, double>> error_data = error.getComponentPatchData(0, *patch);
+                    Pointer<SideData<NDIM, double>> scratch_data = patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
                     const Box<NDIM>& ghost_box = error_data->getGhostBox();
                     TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
@@ -478,7 +478,7 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
             const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
                 const IntVector<NDIM>& ghost_width_to_fill = d_gcw;
                 d_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
             }
@@ -492,14 +492,14 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
         int patch_counter = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double> > error_data = error.getComponentPatchData(0, *patch);
-            Pointer<SideData<NDIM, double> > residual_data = residual.getComponentPatchData(0, *patch);
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<SideData<NDIM, double>> error_data = error.getComponentPatchData(0, *patch);
+            Pointer<SideData<NDIM, double>> residual_data = residual.getComponentPatchData(0, *patch);
 #if (NDIM == 2)
-            Pointer<NodeData<NDIM, double> > mu_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
+            Pointer<NodeData<NDIM, double>> mu_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
 #endif
 #if (NDIM == 3)
-            Pointer<EdgeData<NDIM, double> > mu_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
+            Pointer<EdgeData<NDIM, double>> mu_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
 #endif
 #if !defined(NDEBUG)
             const Box<NDIM>& ghost_box = error_data->getGhostBox();
@@ -511,15 +511,15 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
             TBOX_ASSERT(error_data->getDepth() == residual_data->getDepth());
             TBOX_ASSERT(error_data->getDepth() == mu_data->getDepth());
 #endif
-            Pointer<SideData<NDIM, double> > C_data = nullptr;
+            Pointer<SideData<NDIM, double>> C_data = nullptr;
             if (d_poisson_spec.cIsVariable())
             {
                 C_data = patch->getPatchData(d_poisson_spec.getCPatchDataId());
             }
 
-            Pointer<SideData<NDIM, int> > mask_data = patch->getPatchData(d_mask_idx);
+            Pointer<SideData<NDIM, int>> mask_data = patch->getPatchData(d_mask_idx);
             const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
 
             // Copy updated values from neighboring local patches.
@@ -527,14 +527,14 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
             {
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
-                    const std::map<int, Box<NDIM> > neighbor_overlap =
+                    const std::map<int, Box<NDIM>> neighbor_overlap =
                         d_patch_neighbor_overlap[level_num][patch_counter][axis];
                     for (const auto& cit : neighbor_overlap)
                     {
                         const int src_patch_num = cit.first;
                         const Box<NDIM>& overlap = cit.second;
-                        Pointer<Patch<NDIM> > src_patch = level->getPatch(src_patch_num);
-                        Pointer<SideData<NDIM, double> > src_error_data = error.getComponentPatchData(0, *src_patch);
+                        Pointer<Patch<NDIM>> src_patch = level->getPatch(src_patch_num);
+                        Pointer<SideData<NDIM, double>> src_error_data = error.getComponentPatchData(0, *src_patch);
                         error_data->getArrayData(axis).copy(
                             src_error_data->getArrayData(axis), overlap, IntVector<NDIM>(0));
                     }
@@ -830,9 +830,9 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
     const int sol_idx = solution.getComponentDescriptorIndex(0);
     const int rhs_idx = rhs.getComponentDescriptorIndex(0);
 
-    const Pointer<SideVariable<NDIM, double> > res_var = residual.getComponentVariable(0);
-    const Pointer<SideVariable<NDIM, double> > sol_var = solution.getComponentVariable(0);
-    const Pointer<SideVariable<NDIM, double> > rhs_var = rhs.getComponentVariable(0);
+    const Pointer<SideVariable<NDIM, double>> res_var = residual.getComponentVariable(0);
+    const Pointer<SideVariable<NDIM, double>> sol_var = solution.getComponentVariable(0);
+    const Pointer<SideVariable<NDIM, double>> rhs_var = rhs.getComponentVariable(0);
 
     // Fill ghost-cell values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -889,10 +889,10 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
                                                    beta,
                                                    d_poisson_spec.getDPatchDataId(),
 #if (NDIM == 2)
-                                                   Pointer<NodeVariable<NDIM, double> >(nullptr),
+                                                   Pointer<NodeVariable<NDIM, double>>(nullptr),
 #endif
 #if (NDIM == 3)
-                                                   Pointer<EdgeVariable<NDIM, double> >(nullptr),
+                                                   Pointer<EdgeVariable<NDIM, double>>(nullptr),
 #endif
                                                    sol_idx,
                                                    sol_var,

@@ -94,9 +94,9 @@ coarsen(const Index<NDIM>& index, const IntVector<NDIM>& ratio)
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 bool
-CartCellDoubleQuadraticRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
+CartCellDoubleQuadraticRefine::findRefineOperator(const Pointer<Variable<NDIM>>& var, const std::string& op_name) const
 {
-    const Pointer<CellVariable<NDIM, double> > cc_var = var;
+    const Pointer<CellVariable<NDIM, double>> cc_var = var;
     return (cc_var && op_name == s_op_name);
 } // findRefineOperator
 
@@ -127,8 +127,8 @@ CartCellDoubleQuadraticRefine::refine(Patch<NDIM>& fine,
                                       const IntVector<NDIM>& ratio) const
 {
     // Get the patch data.
-    Pointer<CellData<NDIM, double> > fdata = fine.getPatchData(dst_component);
-    Pointer<CellData<NDIM, double> > cdata = coarse.getPatchData(src_component);
+    Pointer<CellData<NDIM, double>> fdata = fine.getPatchData(dst_component);
+    Pointer<CellData<NDIM, double>> cdata = coarse.getPatchData(src_component);
 #if !defined(NDEBUG)
     TBOX_ASSERT(fdata);
     TBOX_ASSERT(cdata);
@@ -138,13 +138,13 @@ CartCellDoubleQuadraticRefine::refine(Patch<NDIM>& fine,
 
     const Box<NDIM>& patch_box_fine = fine.getBox();
     const Index<NDIM>& patch_lower_fine = patch_box_fine.lower();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom_fine = fine.getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom_fine = fine.getPatchGeometry();
     const double* const XLower_fine = pgeom_fine->getXLower();
     const double* const dx_fine = pgeom_fine->getDx();
 
     const Box<NDIM>& patch_box_crse = coarse.getBox();
     const Index<NDIM>& patch_lower_crse = patch_box_crse.lower();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom_crse = coarse.getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom_crse = coarse.getPatchGeometry();
     const double* const XLower_crse = pgeom_crse->getXLower();
     const double* const dx_crse = pgeom_crse->getDx();
 

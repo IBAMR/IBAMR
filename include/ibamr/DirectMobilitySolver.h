@@ -149,7 +149,7 @@ public:
      * have been registered with a particular processor.
      */
     void registerStructIDsWithMobilityMat(const std::string& mat_name,
-                                          const std::vector<std::vector<unsigned> >& struct_ids);
+                                          const std::vector<std::vector<unsigned>>& struct_ids);
 
     /*!
      * \brief Initialize the solver.
@@ -219,7 +219,7 @@ public:
      *
      * \return Vector of structure ids associated with the mobility matrix.
      */
-    const std::vector<std::vector<unsigned> >& getStructIDs(const std::string& mat_name);
+    const std::vector<std::vector<unsigned>>& getStructIDs(const std::string& mat_name);
 
     /////////////////////////////// PRIVATE //////////////////////////////////////
 private:
@@ -266,21 +266,21 @@ private:
 
     // Structure(s) stuff.
     //\{
-    std::map<std::string, std::pair<double*, double*> > d_mat_map;
+    std::map<std::string, std::pair<double*, double*>> d_mat_map;
     std::map<std::string, double*> d_geometric_mat_map;
     std::map<std::string, int> d_mat_proc_map;
-    std::map<std::string, std::vector<unsigned> > d_mat_prototype_id_map;
-    std::map<std::string, std::vector<std::vector<unsigned> > > d_mat_actual_id_map;
+    std::map<std::string, std::vector<unsigned>> d_mat_prototype_id_map;
+    std::map<std::string, std::vector<std::vector<unsigned>>> d_mat_actual_id_map;
     std::map<std::string, MobilityMatrixType> d_mat_type_map;
-    std::map<std::string, std::pair<MobilityMatrixInverseType, MobilityMatrixInverseType> > d_mat_inv_type_map;
+    std::map<std::string, std::pair<MobilityMatrixInverseType, MobilityMatrixInverseType>> d_mat_inv_type_map;
     std::map<std::string, unsigned int> d_mat_nodes_map;
     std::map<std::string, unsigned int> d_mat_parts_map;
-    std::map<std::string, std::pair<double, double> > d_mat_scale_map;
+    std::map<std::string, std::pair<double, double>> d_mat_scale_map;
     std::map<std::string, std::string> d_mat_filename_map;
-    std::map<std::string, std::pair<int*, int*> > d_ipiv_map; // permutation matrices for LU
+    std::map<std::string, std::pair<int*, int*>> d_ipiv_map; // permutation matrices for LU
 
     // PETSc representation of matrices.
-    std::map<std::string, std::pair<Mat, Mat> > d_petsc_mat_map;
+    std::map<std::string, std::pair<Mat, Mat>> d_petsc_mat_map;
     std::map<std::string, Mat> d_petsc_geometric_mat_map;
     //\}
 

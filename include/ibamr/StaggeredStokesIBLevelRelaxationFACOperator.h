@@ -304,7 +304,7 @@ private:
     std::string d_level_solver_type, d_level_solver_default_options_prefix;
     double d_level_solver_abs_residual_tol, d_level_solver_rel_residual_tol;
     int d_level_solver_max_iterations;
-    std::vector<SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPETScLevelSolver> > d_level_solvers;
+    std::vector<SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPETScLevelSolver>> d_level_solvers;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
 
     /*
@@ -320,10 +320,10 @@ private:
     /*
      * Eulerian data for storing u and p DOFs indexing.
      */
-    std::vector<std::vector<int> > d_num_dofs_per_proc;
+    std::vector<std::vector<int>> d_num_dofs_per_proc;
     int d_u_dof_index_idx, d_p_dof_index_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_u_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_p_dof_index_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int>> d_u_dof_index_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
 
     /*
      * The time stepping type.
@@ -351,8 +351,8 @@ private:
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
-    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
+    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>, NDIM>>> d_patch_side_bc_box_overlap;
+    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM>>> d_patch_cell_bc_box_overlap;
 };
 } // namespace IBTK
 
