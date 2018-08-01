@@ -319,12 +319,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
-    // Whether or not the current density field has been set.
-    bool d_rho_is_set;
-
-    // Whether or not the current velocity field has been set.
-    bool d_V_current_is_set;
-
     // Number of RK steps to take.
     int d_num_steps;
 

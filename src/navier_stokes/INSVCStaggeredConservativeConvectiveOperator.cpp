@@ -983,8 +983,6 @@ INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvecti
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
-      d_rho_is_set(false),
-      d_V_current_is_set(false),
       d_num_steps(1),
       d_rho_sc_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_V_var(NULL),
@@ -1221,20 +1219,7 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                    << "  operator must be initialized prior to call to applyConvectiveOperator\n");
     }
 
-    if (!d_rho_is_set)
-    {
-        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  a side-centered density field must be set via setSideCenteredDensityPatchDataIndex()\n"
-                   << "  prior to call to applyConvectiveOperator\n");
-    }
     TBOX_ASSERT(d_rho_sc_current_idx >= 0);
-
-    if (!d_V_current_is_set)
-    {
-        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  a side-centered fluid velocity field must be set via setFluidVelocityPatchDataIndices()\n"
-                   << "  prior to a call to applyConvectiveOperator\n");
-    }
     TBOX_ASSERT(d_V_old_idx >= 0);
     TBOX_ASSERT(d_V_current_idx >= 0);
     TBOX_ASSERT(d_V_new_idx >= 0);
@@ -1575,11 +1560,9 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
 
     // Reset select options
     d_rho_sc_current_idx = -1;
-    d_rho_is_set = false;
     d_V_old_idx = -1;
     d_V_current_idx = -1;
     d_V_new_idx = -1;
-    d_V_current_is_set = false;
     d_cycle_num = -1;
     d_dt_prev = -1.0;
 
@@ -1722,7 +1705,6 @@ INSVCStaggeredConservativeConvectiveOperator::setSideCenteredDensityPatchDataInd
 #if !defined(NDEBUG)
     TBOX_ASSERT(rho_sc_idx >= 0);
 #endif
-    d_rho_is_set = true;
     d_rho_sc_current_idx = rho_sc_idx;
 } // setSideCenteredDensityPatchDataIndex
 
@@ -1776,7 +1758,6 @@ INSVCStaggeredConservativeConvectiveOperator::setFluidVelocityPatchDataIndices(i
     }
 
     // Set the current velocity
-    d_V_current_is_set = true;
     d_V_current_idx = V_current_idx;
 
     // Set the new velocity if it has been set, otherwise set to current.
