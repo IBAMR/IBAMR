@@ -197,12 +197,12 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    for (auto& d_transaction_comp : d_transaction_comps)
+    for (auto& transaction_comp : d_transaction_comps)
     {
-        const std::string& coarsen_op_name = d_transaction_comp.d_coarsen_op_name;
+        const std::string& coarsen_op_name = transaction_comp.d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
         {
-            const int src_data_idx = d_transaction_comp.d_src_data_idx;
+            const int src_data_idx = transaction_comp.d_src_data_idx;
             Pointer<Variable<NDIM>> var;
             var_db->mapIndexToVariable(src_data_idx, var);
 #if !defined(NDEBUG)
@@ -403,12 +403,12 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    for (auto& d_transaction_comp : d_transaction_comps)
+    for (auto& transaction_comp : d_transaction_comps)
     {
-        const std::string& coarsen_op_name = d_transaction_comp.d_coarsen_op_name;
+        const std::string& coarsen_op_name = transaction_comp.d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
         {
-            const int src_data_idx = d_transaction_comp.d_src_data_idx;
+            const int src_data_idx = transaction_comp.d_src_data_idx;
             Pointer<Variable<NDIM>> var;
             var_db->mapIndexToVariable(src_data_idx, var);
 #if !defined(NDEBUG)

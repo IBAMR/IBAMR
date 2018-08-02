@@ -773,9 +773,9 @@ PETScKrylovLinearSolver::deallocateNullspaceData()
     {
         PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_nullspace_constant_vec);
     }
-    for (auto& d_petsc_nullspace_basis_vec : d_petsc_nullspace_basis_vecs)
+    for (auto& petsc_nullspace_basis_vec : d_petsc_nullspace_basis_vecs)
     {
-        PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_nullspace_basis_vec);
+        PETScSAMRAIVectorReal::destroyPETScVector(petsc_nullspace_basis_vec);
     }
     d_petsc_nullspace_constant_vec = nullptr;
     d_petsc_nullspace_basis_vecs.clear();

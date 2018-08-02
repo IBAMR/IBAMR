@@ -445,9 +445,9 @@ INSCollocatedHierarchyIntegrator::~INSCollocatedHierarchyIntegrator()
     if (d_U_adv_vec) d_U_adv_vec->freeVectorComponents();
     if (d_N_vec) d_N_vec->freeVectorComponents();
     if (d_Phi_rhs_vec) d_Phi_rhs_vec->freeVectorComponents();
-    for (auto& d_U_nul_vec : d_U_nul_vecs)
+    for (auto& U_nul_vec : d_U_nul_vecs)
     {
-        if (d_U_nul_vec) d_U_nul_vec->freeVectorComponents();
+        if (U_nul_vec) U_nul_vec->freeVectorComponents();
     }
     return;
 } // ~INSCollocatedHierarchyIntegrator
@@ -2105,9 +2105,9 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
         d_N_vec = d_U_scratch_vec->cloneVector(d_object_name + "::N_vec");
         d_Phi_rhs_vec = d_Phi_vec->cloneVector(d_object_name + "::Phi_rhs_vec");
 
-        for (auto& d_U_nul_vec : d_U_nul_vecs)
+        for (auto& U_nul_vec : d_U_nul_vecs)
         {
-            if (d_U_nul_vec) d_U_nul_vec->freeVectorComponents();
+            if (U_nul_vec) U_nul_vec->freeVectorComponents();
         }
         const int n_U_nul_vecs = (has_velocity_nullspace ? NDIM : 0);
         d_U_nul_vecs.resize(n_U_nul_vecs);

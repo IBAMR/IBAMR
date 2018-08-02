@@ -324,9 +324,9 @@ IBHydrodynamicForceEvaluator::computeLaggedMomentumIntegral(
     // Whether or not the simulation has adaptive mesh refinement
     const bool amr_case = (coarsest_ln != finest_ln);
 
-    for (auto& d_hydro_obj : d_hydro_objs)
+    for (auto& hydro_obj : d_hydro_objs)
     {
-        IBHydrodynamicForceObject& fobj = d_hydro_obj.second;
+        IBHydrodynamicForceObject& fobj = hydro_obj.second;
 
         // Compute the momentum integral:= (rho * u * dv) for the previous time step (integral is over new control
         // volume)
@@ -493,9 +493,9 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
     // Whether or not the simulation has adaptive mesh refinement
     const bool amr_case = (coarsest_ln != finest_ln);
 
-    for (auto& d_hydro_obj : d_hydro_objs)
+    for (auto& hydro_obj : d_hydro_objs)
     {
-        IBHydrodynamicForceObject& fobj = d_hydro_obj.second;
+        IBHydrodynamicForceObject& fobj = hydro_obj.second;
 
         // Compute the momentum integral:= (rho * u * dv)
         fobj.P_box_new.setZero();
@@ -790,9 +790,9 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
 void
 IBHydrodynamicForceEvaluator::postprocessIntegrateData(double /*current_time*/, double new_time)
 {
-    for (auto& d_hydro_obj : d_hydro_objs)
+    for (auto& hydro_obj : d_hydro_objs)
     {
-        IBHydrodynamicForceObject& force_obj = d_hydro_obj.second;
+        IBHydrodynamicForceObject& force_obj = hydro_obj.second;
 
         // Output drag and torque to stream
         if (SAMRAI_MPI::getRank() == 0)

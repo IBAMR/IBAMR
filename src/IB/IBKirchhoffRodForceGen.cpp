@@ -93,19 +93,19 @@ IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(Pointer<Database> input_db)
 IBKirchhoffRodForceGen::~IBKirchhoffRodForceGen()
 {
     int ierr;
-    for (auto& d_D_next_mat : d_D_next_mats)
+    for (auto& D_next_mat : d_D_next_mats)
     {
-        if (d_D_next_mat)
+        if (D_next_mat)
         {
-            ierr = MatDestroy(&d_D_next_mat);
+            ierr = MatDestroy(&D_next_mat);
             IBTK_CHKERRQ(ierr);
         }
     }
-    for (auto& d_X_next_mat : d_X_next_mats)
+    for (auto& X_next_mat : d_X_next_mats)
     {
-        if (d_X_next_mat)
+        if (X_next_mat)
         {
-            ierr = MatDestroy(&d_X_next_mat);
+            ierr = MatDestroy(&X_next_mat);
             IBTK_CHKERRQ(ierr);
         }
     }
