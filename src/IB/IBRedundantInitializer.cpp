@@ -364,9 +364,9 @@ IBRedundantInitializer::initializeSprings()
 
                 int min_idx = 0;
                 int max_idx = d_num_vertex[ln][j];
-                for (auto& it : d_spring_edge_map[ln][j])
+                for (const auto& it : d_spring_edge_map[ln][j])
                 {
-                    Edge& e = it.second;
+                    const Edge& e = it.second;
                     const SpringSpec& spec = d_spring_spec_data[ln][j][e];
                     if ((e.first < min_idx) || (e.first > max_idx))
                     {
@@ -419,9 +419,9 @@ IBRedundantInitializer::initializeXSprings()
                 d_init_xspring_on_level_fcn(j, ln, d_xspring_edge_map[ln][j], d_xspring_spec_data[ln][j]);
                 const int min_idx = 0;
                 const int max_idx = std::accumulate(d_num_vertex[ln].begin(), d_num_vertex[ln].end(), 0);
-                for (auto& it : d_xspring_edge_map[ln][j])
+                for (const auto& it : d_xspring_edge_map[ln][j])
                 {
-                    Edge& e = it.second;
+                    const Edge& e = it.second;
                     const XSpringSpec& spec = d_xspring_spec_data[ln][j][e];
                     if ((e.first < min_idx) || (e.first > max_idx))
                     {
@@ -795,7 +795,7 @@ IBRedundantInitializer::initializeInstrumentationData()
                 d_init_instrumentation_on_level_fcn(j, ln, new_names, d_instrument_idx[ln][j]);
                 std::vector<bool> encountered_instrument_idx;
                 std::map<int, std::vector<bool>> encountered_node_idxs;
-                for (auto& new_name : new_names) instrument_names.push_back(new_name);
+                for (const auto& new_name : new_names) instrument_names.push_back(new_name);
                 const int min_idx = 0;
                 const int max_idx = d_num_vertex[ln][j];
                 for (auto it = d_instrument_idx[ln][j].begin(); it != d_instrument_idx[ln][j].end(); ++it)
@@ -895,7 +895,7 @@ IBRedundantInitializer::initializeSourceData()
                                              << source_names.size() << " is not equal to number of radii "
                                              << source_radii.size() << ".\n");
                 }
-                for (auto& new_name : new_names) source_names.push_back(new_name);
+                for (const auto& new_name : new_names) source_names.push_back(new_name);
                 for (double& i : new_radii) source_radii.push_back(i);
                 num_source = new_names.size();
                 for (auto it = d_source_idx[ln][j].begin(); it != d_source_idx[ln][j].end(); ++it)
@@ -1032,7 +1032,7 @@ IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
             // vertex.
             std::vector<Pointer<Streamable>> node_data =
                 initializeNodeData(point_idx, global_index_offset, level_number);
-            for (auto& it : node_data)
+            for (const auto& it : node_data)
             {
                 it->registerPeriodicShift(periodic_offset, periodic_displacement);
             }

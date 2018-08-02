@@ -289,16 +289,16 @@ BGaussSeidelPreconditioner::deallocateSolverState()
     if (!d_is_initialized) return;
 
     // Deallocate the component preconditioners.
-    for (auto& it : d_pc_map)
+    for (const auto& it : d_pc_map)
     {
         it.second->deallocateSolverState();
     }
 
     // Deallocate the component operators.
-    for (auto& it : d_linear_ops_map)
+    for (const auto& it : d_linear_ops_map)
     {
-        std::vector<Pointer<LinearOperator>>& comp_linear_ops = it.second;
-        for (auto& comp_linear_op : comp_linear_ops)
+        const std::vector<Pointer<LinearOperator>>& comp_linear_ops = it.second;
+        for (const auto& comp_linear_op : comp_linear_ops)
         {
             if (comp_linear_op) comp_linear_op->deallocateOperatorState();
         }

@@ -372,7 +372,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperator(Pointer<CellVariab
 void
 AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorsNeedInit()
 {
-    for (auto& Q_var : d_Q_var)
+    for (const auto& Q_var : d_Q_var)
     {
         setConvectiveOperatorNeedsInit(Q_var);
     }
@@ -459,7 +459,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::getNumberOfCycles() const
     int num_cycles = d_num_cycles;
     if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
     {
-        for (auto Q_var : d_Q_var)
+        for (const auto Q_var : d_Q_var)
         {
             if (!d_Q_u_map.find(Q_var)->second) continue;
             if (is_multistep_time_stepping_type(d_Q_convective_time_stepping_type.find(Q_var)->second) &&

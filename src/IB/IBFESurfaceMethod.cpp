@@ -1663,7 +1663,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 #if (NDIM == 3)
                     intersect_line_with_face(intersections, static_cast<Face*>(elem), r, q, tolerance);
 #endif
-                    for (auto& intersection : intersections)
+                    for (const auto& intersection : intersections)
                     {
                         const libMesh::Point x = r + intersection.first * q;
                         const libMesh::Point& xi = intersection.second;

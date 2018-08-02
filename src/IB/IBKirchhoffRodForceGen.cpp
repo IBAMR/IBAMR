@@ -169,7 +169,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM>> 
 
     // Determine the "next" node indices for all rods associated with the
     // present MPI process.
-    for (auto node_idx : local_nodes)
+    for (const auto node_idx : local_nodes)
     {
         const IBRodForceSpec* const force_spec = node_idx->getNodeDataItem<IBRodForceSpec>();
         if (force_spec)

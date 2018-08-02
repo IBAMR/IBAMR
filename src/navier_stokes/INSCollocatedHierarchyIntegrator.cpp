@@ -445,7 +445,7 @@ INSCollocatedHierarchyIntegrator::~INSCollocatedHierarchyIntegrator()
     if (d_U_adv_vec) d_U_adv_vec->freeVectorComponents();
     if (d_N_vec) d_N_vec->freeVectorComponents();
     if (d_Phi_rhs_vec) d_Phi_rhs_vec->freeVectorComponents();
-    for (auto& U_nul_vec : d_U_nul_vecs)
+    for (const auto& U_nul_vec : d_U_nul_vecs)
     {
         if (U_nul_vec) U_nul_vec->freeVectorComponents();
     }
@@ -2105,7 +2105,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
         d_N_vec = d_U_scratch_vec->cloneVector(d_object_name + "::N_vec");
         d_Phi_rhs_vec = d_Phi_vec->cloneVector(d_object_name + "::Phi_rhs_vec");
 
-        for (auto& U_nul_vec : d_U_nul_vecs)
+        for (const auto& U_nul_vec : d_U_nul_vecs)
         {
             if (U_nul_vec) U_nul_vec->freeVectorComponents();
         }

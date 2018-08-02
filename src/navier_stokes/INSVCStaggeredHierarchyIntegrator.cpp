@@ -546,11 +546,11 @@ INSVCStaggeredHierarchyIntegrator::~INSVCStaggeredHierarchyIntegrator()
     if (d_U_adv_vec) d_U_adv_vec->freeVectorComponents();
     if (d_N_vec) d_N_vec->freeVectorComponents();
     if (d_P_rhs_vec) d_P_rhs_vec->freeVectorComponents();
-    for (auto& nul_vec : d_nul_vecs)
+    for (const auto& nul_vec : d_nul_vecs)
     {
         if (nul_vec) nul_vec->freeVectorComponents();
     }
-    for (auto& U_nul_vec : d_U_nul_vecs)
+    for (const auto& U_nul_vec : d_U_nul_vecs)
     {
         if (U_nul_vec) U_nul_vec->freeVectorComponents();
     }
@@ -1359,7 +1359,7 @@ void
 INSVCStaggeredHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorReal<NDIM, double>>& sol_vec)
 {
     if (d_nul_vecs.empty()) return;
-    for (auto& nul_vec : d_nul_vecs)
+    for (const auto& nul_vec : d_nul_vecs)
     {
         const double sol_dot_nul = sol_vec->dot(nul_vec);
         const double nul_L2_norm = sqrt(nul_vec->dot(nul_vec));
@@ -2114,14 +2114,14 @@ INSVCStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double cu
         const int P_rhs_idx = d_P_rhs_vec->getComponentDescriptorIndex(0);
         d_rhs_vec->addComponent(d_P_var, P_rhs_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
-        for (auto& nul_vec : d_nul_vecs)
+        for (const auto& nul_vec : d_nul_vecs)
         {
             if (nul_vec) nul_vec->freeVectorComponents();
         }
         const int n_nul_vecs = (has_pressure_nullspace ? 1 : 0) + (has_velocity_nullspace ? NDIM : 0);
         d_nul_vecs.resize(n_nul_vecs);
 
-        for (auto& U_nul_vec : d_U_nul_vecs)
+        for (const auto& U_nul_vec : d_U_nul_vecs)
         {
             if (U_nul_vec) U_nul_vec->freeVectorComponents();
         }

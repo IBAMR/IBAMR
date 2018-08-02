@@ -2346,7 +2346,7 @@ LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
     // Create the VecScatters to scatter data from the global PETSc Vec to
     // contiguous local subgrids.  VecScatter objects are individually created
     // for data depths as necessary.
-    for (auto& src_is_idx : src_is_idxs)
+    for (const auto& src_is_idx : src_is_idxs)
     {
         const int depth = src_is_idx.first;
         const std::vector<int>& idxs = src_is_idx.second;

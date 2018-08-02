@@ -145,7 +145,7 @@ DirectMobilitySolver::DirectMobilitySolver(const std::string& object_name,
 
 DirectMobilitySolver::~DirectMobilitySolver()
 {
-    for (auto& it : d_petsc_mat_map)
+    for (const auto& it : d_petsc_mat_map)
     {
         const std::string& mat_name = it.first;
         Mat& mobility_mat = d_petsc_mat_map[mat_name].first;
@@ -154,24 +154,24 @@ DirectMobilitySolver::~DirectMobilitySolver()
         MatDestroy(&body_mobility_mat);
     }
 
-    for (auto& it : d_mat_map)
+    for (const auto& it : d_mat_map)
     {
         delete[](it.second).first;
         delete[](it.second).second;
     }
 
-    for (auto& it : d_petsc_geometric_mat_map)
+    for (const auto& it : d_petsc_geometric_mat_map)
     {
         Mat& geometric_mat = d_petsc_geometric_mat_map[it.first];
         MatDestroy(&geometric_mat);
     }
 
-    for (auto& it : d_geometric_mat_map)
+    for (const auto& it : d_geometric_mat_map)
     {
         delete[] it.second;
     }
 
-    for (auto& it : d_ipiv_map)
+    for (const auto& it : d_ipiv_map)
     {
         delete[](it.second).first;
         delete[](it.second).second;
@@ -348,7 +348,7 @@ DirectMobilitySolver::solveSystem(Vec x, Vec b)
     const int rank = SAMRAI_MPI::getRank();
     static const int data_depth = NDIM;
 
-    for (auto& it : d_petsc_mat_map)
+    for (const auto& it : d_petsc_mat_map)
     {
         const std::string& mat_name = it.first;
         Mat& mat = d_petsc_mat_map[mat_name].first;
@@ -402,7 +402,7 @@ DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
     const int rank = SAMRAI_MPI::getRank();
     static const int data_depth = s_max_free_dofs;
 
-    for (auto& it : d_petsc_mat_map)
+    for (const auto& it : d_petsc_mat_map)
     {
         const std::string& mat_name = it.first;
         Mat& mat = d_petsc_mat_map[mat_name].second;
@@ -591,7 +591,7 @@ void
 DirectMobilitySolver::factorizeMobilityMatrix()
 {
     int rank = SAMRAI_MPI::getRank();
-    for (auto& it : d_petsc_mat_map)
+    for (const auto& it : d_petsc_mat_map)
     {
         const std::string& mat_name = it.first;
         if (rank != d_mat_proc_map[mat_name]) continue;
@@ -612,7 +612,7 @@ void
 DirectMobilitySolver::constructBodyMobilityMatrix()
 {
     int rank = SAMRAI_MPI::getRank();
-    for (auto& it : d_petsc_mat_map)
+    for (const auto& it : d_petsc_mat_map)
     {
         const std::string& mat_name = it.first;
         if (rank != d_mat_proc_map[mat_name]) continue;
@@ -652,7 +652,7 @@ void
 DirectMobilitySolver::factorizeBodyMobilityMatrix()
 {
     int rank = SAMRAI_MPI::getRank();
-    for (auto& it : d_petsc_mat_map)
+    for (const auto& it : d_petsc_mat_map)
     {
         const std::string& mat_name = it.first;
         if (rank != d_mat_proc_map[mat_name]) continue;

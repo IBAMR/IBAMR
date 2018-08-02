@@ -158,7 +158,7 @@ WallForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
                 // if particles exist in this cell, add forces to them
                 if (search_node_set)
                 {
-                    for (auto& particle_node_idx : *search_node_set)
+                    for (const auto& particle_node_idx : *search_node_set)
                     {
                         // get node data
                         const int particle_petsc_idx = particle_node_idx->getLocalPETScIndex();

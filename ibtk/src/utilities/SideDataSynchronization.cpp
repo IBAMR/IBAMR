@@ -114,7 +114,7 @@ SideDataSynchronization::initializeOperatorState(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    for (auto& transaction_comp : d_transaction_comps)
+    for (const auto& transaction_comp : d_transaction_comps)
     {
         const std::string& coarsen_op_name = transaction_comp.d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
@@ -150,7 +150,7 @@ SideDataSynchronization::initializeOperatorState(
 
     // Setup cached refine algorithms and schedules.
     d_refine_alg = new RefineAlgorithm<NDIM>();
-    for (auto& transaction_comp : d_transaction_comps)
+    for (const auto& transaction_comp : d_transaction_comps)
     {
         const int data_idx = transaction_comp.d_data_idx;
         Pointer<Variable<NDIM>> var;
@@ -220,7 +220,7 @@ SideDataSynchronization::resetTransactionComponents(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    for (auto& transaction_comp : d_transaction_comps)
+    for (const auto& transaction_comp : d_transaction_comps)
     {
         const std::string& coarsen_op_name = transaction_comp.d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
@@ -252,7 +252,7 @@ SideDataSynchronization::resetTransactionComponents(
 
     // Reset cached refine algorithms and schedules.
     d_refine_alg = new RefineAlgorithm<NDIM>();
-    for (auto& transaction_comp : d_transaction_comps)
+    for (const auto& transaction_comp : d_transaction_comps)
     {
         const int data_idx = transaction_comp.d_data_idx;
         Pointer<Variable<NDIM>> var;

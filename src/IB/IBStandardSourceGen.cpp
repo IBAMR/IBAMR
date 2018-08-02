@@ -171,7 +171,7 @@ IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM>> /*h
     std::fill(d_num_perimeter_nodes[level_number].begin(), d_num_perimeter_nodes[level_number].end(), 0);
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    for (auto node_idx : local_nodes)
+    for (const auto node_idx : local_nodes)
     {
         const IBSourceSpec* const spec = node_idx->getNodeDataItem<IBSourceSpec>();
         if (!spec) continue;
@@ -219,7 +219,7 @@ IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
     const double* const X_node = X_data->getLocalFormVecArray()->data();
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    for (auto node_idx : local_nodes)
+    for (const auto node_idx : local_nodes)
     {
         const IBSourceSpec* const spec = node_idx->getNodeDataItem<IBSourceSpec>();
         if (!spec) continue;

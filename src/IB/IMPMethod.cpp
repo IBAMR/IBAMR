@@ -477,7 +477,7 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
                 const Index<NDIM>& i = *it;
                 LNodeSet* const node_set = idx_data->getItem(i);
                 if (!node_set) continue;
-                for (auto& it : *node_set)
+                for (const auto& it : *node_set)
                 {
                     const LNode* const node_idx = it;
                     const int local_idx = node_idx->getLocalPETScIndex();
@@ -585,7 +585,7 @@ IMPMethod::forwardEulerStep(const double current_time, const double new_time)
         boost::multi_array_ref<double, 2>& Grad_U_array = *(*Grad_U_data)[ln]->getVecArray();
         TensorValue<double> F_current, F_new, F_half, Grad_U;
         TensorValue<double> I(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-        for (auto node_idx : local_nodes)
+        for (const auto node_idx : local_nodes)
         {
             const int idx = node_idx->getGlobalPETScIndex();
             for (int i = 0; i < NDIM; ++i)
@@ -641,7 +641,7 @@ IMPMethod::midpointStep(const double current_time, const double new_time)
         boost::multi_array_ref<double, 2>& Grad_U_array = *(*Grad_U_data)[ln]->getVecArray();
         TensorValue<double> F_current, F_new, Grad_U;
         TensorValue<double> I(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-        for (auto node_idx : local_nodes)
+        for (const auto node_idx : local_nodes)
         {
             const int idx = node_idx->getGlobalPETScIndex();
             for (int i = 0; i < NDIM; ++i)
@@ -700,7 +700,7 @@ IMPMethod::trapezoidalStep(const double current_time, const double new_time)
         boost::multi_array_ref<double, 2>& Grad_U_new_array = *(*Grad_U_new_data)[ln]->getVecArray();
         TensorValue<double> F_current, F_new, Grad_U_current, Grad_U_new;
         TensorValue<double> I(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-        for (auto node_idx : local_nodes)
+        for (const auto node_idx : local_nodes)
         {
             const int idx = node_idx->getGlobalPETScIndex();
             for (int i = 0; i < NDIM; ++i)
@@ -750,7 +750,7 @@ IMPMethod::computeLagrangianForce(const double data_time)
         boost::multi_array_ref<double, 2>& tau_array = *d_tau_data[ln]->getVecArray();
         TensorValue<double> FF, PP, tau;
         VectorValue<double> X, x;
-        for (auto node_idx : local_nodes)
+        for (const auto node_idx : local_nodes)
         {
             const int idx = node_idx->getGlobalPETScIndex();
             auto mp_spec = node_idx->getNodeDataItem<MaterialPointSpec>();
@@ -866,7 +866,7 @@ IMPMethod::spreadForce(const int f_data_idx,
                 const Index<NDIM>& i = *it;
                 LNodeSet* const node_set = idx_data->getItem(i);
                 if (!node_set) continue;
-                for (auto& it : *node_set)
+                for (const auto& it : *node_set)
                 {
                     const LNode* const node_idx = it;
                     auto mp_spec = node_idx->getNodeDataItem<MaterialPointSpec>();
@@ -1062,7 +1062,7 @@ IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         boost::multi_array_ref<double, 2>& F_array = *F_data->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& tau_array = *tau_data->getLocalFormVecArray();
-        for (auto node_idx : local_nodes)
+        for (const auto node_idx : local_nodes)
         {
             const int idx = node_idx->getLocalPETScIndex();
             for (int i = 0; i < NDIM; ++i)

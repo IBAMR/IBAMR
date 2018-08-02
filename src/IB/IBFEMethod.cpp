@@ -2375,7 +2375,7 @@ IBFEMethod::resetOverlapNodalValues(const unsigned int part,
     const unsigned int k_slave = 0;
     const unsigned int k_master = 1;
     std::map<dof_id_type, dof_id_type>& node_to_elem_map = d_overlap_velocity_part_node_to_elem_map[part_idx[k_slave]];
-    for (auto& n : node_to_elem_map)
+    for (const auto& n : node_to_elem_map)
     {
         const Node* const node = mesh[k_slave]->node_ptr(n.first);
         const libMesh::Point& X = *node;
@@ -2485,7 +2485,7 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
             const std::vector<libMesh::Point>& q_point = fe[k]->get_xyz();
             const std::vector<double>& JxW = fe[k]->get_JxW();
             const std::vector<std::vector<double>>& phi = fe[k]->get_phi();
-            for (auto& it : elem_map[k])
+            for (const auto& it : elem_map[k])
             {
                 const Elem* const elem = mesh[k]->elem_ptr(it.first);
                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -2497,7 +2497,7 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
                 fe[k]->reinit(elem);
                 get_values_for_interpolation(x_node[k], *X_vec[part_idx[k]], X_dof_indices[k]);
                 const size_t n_basis = phi.size();
-                for (auto& qp_it : it.second)
+                for (const auto& qp_it : it.second)
                 {
                     const unsigned int qp = qp_it.first;
                     const libMesh::Point& X = q_point[qp];
@@ -3045,7 +3045,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 #if (NDIM == 3)
                         intersect_line_with_face(intersections, static_cast<Face*>(side_elem.get()), r, q);
 #endif
-                        for (auto& intersection : intersections)
+                        for (const auto& intersection : intersections)
                         {
                             libMesh::Point x = r + intersection.first * q;
                             SideIndex<NDIM> i_s(i_c, axis, 0);

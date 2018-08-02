@@ -187,7 +187,7 @@ inline void
 collect_unique_elems(std::vector<Elem*>& elems, const ContainerOfContainers& elem_patch_map)
 {
     std::set<Elem*, ElemComp> elem_set;
-    for (auto& elem_patch : elem_patch_map)
+    for (const auto& elem_patch : elem_patch_map)
     {
         elem_set.insert(elem_patch.begin(), elem_patch.end());
     }
@@ -428,7 +428,7 @@ FEDataManager::reinitElementMappings()
     d_active_patch_elem_map.clear();
     d_active_patch_node_map.clear();
     d_active_patch_ghost_dofs.clear();
-    for (auto& it : d_system_ghost_vec)
+    for (const auto& it : d_system_ghost_vec)
     {
         delete it.second;
     }
@@ -2378,19 +2378,19 @@ FEDataManager::FEDataManager(const std::string& object_name,
 
 FEDataManager::~FEDataManager()
 {
-    for (auto& it : d_system_ghost_vec)
+    for (const auto& it : d_system_ghost_vec)
     {
         delete it.second;
     }
-    for (auto& it : d_L2_proj_solver)
+    for (const auto& it : d_L2_proj_solver)
     {
         delete it.second;
     }
-    for (auto& it : d_L2_proj_matrix)
+    for (const auto& it : d_L2_proj_matrix)
     {
         delete it.second;
     }
-    for (auto& it : d_L2_proj_matrix_diag)
+    for (const auto& it : d_L2_proj_matrix_diag)
     {
         delete it.second;
     }
@@ -2683,7 +2683,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*>>& activ
             const double* const patch_dx = patch_geom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-            for (auto& elem : frontier_elems)
+            for (const auto& elem : frontier_elems)
             {
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
@@ -2733,7 +2733,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*>>& activ
             frontier_elems.clear();
             if (local_elems.empty()) continue;
 
-            for (auto elem : local_elems)
+            for (const auto elem : local_elems)
             {
                 for (unsigned int n = 0; n < elem->n_neighbors(); ++n)
                 {
@@ -2783,7 +2783,7 @@ FEDataManager::collectActivePatchNodes(std::vector<std::vector<Node*>>& active_p
     for (unsigned int k = 0; k < num_local_patches; ++k)
     {
         std::set<dof_id_type> active_node_ids;
-        for (auto elem : active_patch_elems[k])
+        for (const auto elem : active_patch_elems[k])
         {
             for (unsigned int n = 0; n < elem->n_nodes(); ++n)
             {
@@ -2833,7 +2833,7 @@ FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
 
     // Record the local DOFs associated with the active local elements.
     std::set<unsigned int> ghost_dof_set(constraint_dependency_dof_list.begin(), constraint_dependency_dof_list.end());
-    for (auto elem : active_elems)
+    for (const auto elem : active_elems)
     {
         // DOFs associated with the element.
         for (unsigned int var_num = 0; var_num < elem->n_vars(sys_num); ++var_num)

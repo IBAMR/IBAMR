@@ -1556,7 +1556,7 @@ IBMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM>> hierarchy,
 
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        for (auto node_idx : local_nodes)
+        for (const auto node_idx : local_nodes)
         {
             const IBAnchorPointSpec* const anchor_point_spec = node_idx->getNodeDataItem<IBAnchorPointSpec>();
             if (anchor_point_spec)

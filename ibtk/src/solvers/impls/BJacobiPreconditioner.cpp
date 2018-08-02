@@ -170,7 +170,7 @@ BJacobiPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double
     // Initialize the component preconditioners.
     const std::string& x_name = x.getName();
     const std::string& b_name = b.getName();
-    for (auto& it : d_pc_map)
+    for (const auto& it : d_pc_map)
     {
         const int comp = it.first;
         SAMRAIVectorReal<NDIM, double> x_comp(x_name + "_component", hierarchy, coarsest_ln, finest_ln);
@@ -193,7 +193,7 @@ BJacobiPreconditioner::deallocateSolverState()
     if (!d_is_initialized) return;
 
     // Deallocate the component preconditioners.
-    for (auto& it : d_pc_map)
+    for (const auto& it : d_pc_map)
     {
         const int comp = it.first;
         d_pc_map[comp]->deallocateSolverState();

@@ -538,7 +538,7 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
 
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        for (auto node_idx : local_nodes)
+        for (const auto node_idx : local_nodes)
         {
             const int local_idx = node_idx->getLocalPETScIndex();
             const Vector& displacement_0 = node_idx->getInitialPeriodicDisplacement();
@@ -667,7 +667,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
 #if !defined(NDEBUG)
         TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
-        for (auto node_idx : local_nodes)
+        for (const auto node_idx : local_nodes)
         {
             const int lag_idx = node_idx->getLagrangianIndex();
             const int local_idx = node_idx->getLocalPETScIndex();
@@ -787,7 +787,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
         TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
 
-        for (auto node_idx : local_nodes)
+        for (const auto node_idx : local_nodes)
         {
             const int lag_idx = node_idx->getLagrangianIndex();
             const int local_idx = node_idx->getLocalPETScIndex();
@@ -1107,7 +1107,7 @@ CIBMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[part];
-        for (auto node_idx : local_nodes)
+        for (const auto node_idx : local_nodes)
         {
             const int lag_idx = node_idx->getLagrangianIndex();
             if (part_idx_range.first <= lag_idx && lag_idx < part_idx_range.second)
@@ -1162,7 +1162,7 @@ CIBMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rigid
     F.setZero();
     const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    for (auto node_idx : local_nodes)
+    for (const auto node_idx : local_nodes)
     {
         const int lag_idx = node_idx->getLagrangianIndex();
         const int local_idx = node_idx->getLocalPETScIndex();
@@ -1748,7 +1748,7 @@ CIBMethod::computeCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass, 
         TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
 
-        for (auto node_idx : local_nodes)
+        for (const auto node_idx : local_nodes)
         {
             const int lag_idx = node_idx->getLagrangianIndex();
             const int local_idx = node_idx->getLocalPETScIndex();
@@ -1802,7 +1802,7 @@ CIBMethod::setRegularizationWeight(const int level_number)
         const std::pair<int, int>& lag_idx_range = d_struct_lag_idx_range[struct_no];
         if (d_reg_filename[struct_no].empty())
         {
-            for (auto node_idx : local_nodes)
+            for (const auto node_idx : local_nodes)
             {
                 const int lag_idx = node_idx->getLagrangianIndex();
                 if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
@@ -1868,7 +1868,7 @@ CIBMethod::setRegularizationWeight(const int level_number)
             }
         }
 
-        for (auto node_idx : local_nodes)
+        for (const auto node_idx : local_nodes)
         {
             const int lag_idx = node_idx->getLagrangianIndex();
             if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
@@ -1970,7 +1970,7 @@ CIBMethod::setInitialLambda(const int level_number)
             }
         }
 
-        for (auto node_idx : local_nodes)
+        for (const auto node_idx : local_nodes)
         {
             const int lag_idx = node_idx->getLagrangianIndex();
             if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)

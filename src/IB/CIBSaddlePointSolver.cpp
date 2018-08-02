@@ -639,14 +639,14 @@ CIBSaddlePointSolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
     const bool has_velocity_nullspace = d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0);
     const bool has_pressure_nullspace = d_normalize_pressure;
 
-    for (auto& nul_vec : d_nul_vecs)
+    for (const auto& nul_vec : d_nul_vecs)
     {
         if (nul_vec) nul_vec->freeVectorComponents();
     }
     const int n_nul_vecs = (has_pressure_nullspace ? 1 : 0) + (has_velocity_nullspace ? NDIM : 0);
     d_nul_vecs.resize(n_nul_vecs);
 
-    for (auto& U_nul_vec : d_U_nul_vecs)
+    for (const auto& U_nul_vec : d_U_nul_vecs)
     {
         if (U_nul_vec) U_nul_vec->freeVectorComponents();
     }

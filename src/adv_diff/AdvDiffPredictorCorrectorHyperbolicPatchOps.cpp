@@ -205,7 +205,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch
     const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    for (auto Q_var : d_Q_var)
+    for (const auto Q_var : d_Q_var)
     {
         Pointer<CellData<NDIM, double>> Q_data = patch.getPatchData(Q_var, getDataContext());
         Pointer<FaceVariable<NDIM, double>> u_var = d_Q_u_map[Q_var];
@@ -382,7 +382,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const P
     if (!d_compute_init_velocity) return;
 
     // Update the advection velocity (or velocities).
-    for (auto u_var : d_u_var)
+    for (const auto u_var : d_u_var)
     {
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
@@ -405,7 +405,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const 
     if (!d_compute_final_velocity) return;
 
     // Update the advection velocity (or velocities).
-    for (auto u_var : d_u_var)
+    for (const auto u_var : d_u_var)
     {
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {

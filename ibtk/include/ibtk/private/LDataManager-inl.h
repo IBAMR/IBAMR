@@ -165,7 +165,7 @@ LDataManager::getLagrangianStructureNames(const int level_number) const
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 #endif
     std::vector<std::string> ret_val;
-    for (auto& strct_id_to_strct_name : d_strct_id_to_strct_name_map[level_number])
+    for (const auto& strct_id_to_strct_name : d_strct_id_to_strct_name_map[level_number])
     {
         ret_val.push_back(strct_id_to_strct_name.second);
     }
@@ -179,7 +179,7 @@ LDataManager::getLagrangianStructureIDs(const int level_number) const
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 #endif
     std::vector<int> ret_val;
-    for (auto& strct_name_to_strct_id : d_strct_name_to_strct_id_map[level_number])
+    for (const auto& strct_name_to_strct_id : d_strct_name_to_strct_id_map[level_number])
     {
         ret_val.push_back(strct_name_to_strct_id.second);
     }
