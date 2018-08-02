@@ -187,9 +187,9 @@ inline void
 collect_unique_elems(std::vector<Elem*>& elems, const ContainerOfContainers& elem_patch_map)
 {
     std::set<Elem*, ElemComp> elem_set;
-    for (auto it = elem_patch_map.begin(); it != elem_patch_map.end(); ++it)
+    for (auto& elem_patch : elem_patch_map)
     {
-        elem_set.insert(it->begin(), it->end());
+        elem_set.insert(elem_patch.begin(), elem_patch.end());
     }
     elems.assign(elem_set.begin(), elem_set.end());
     return;
@@ -2683,11 +2683,8 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*>>& activ
             const double* const patch_dx = patch_geom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-            auto el_it = frontier_elems.begin();
-            const std::set<Elem*>::const_iterator el_end = frontier_elems.end();
-            for (; el_it != el_end; ++el_it)
+            for (auto& elem : frontier_elems)
             {
-                Elem* const elem = *el_it;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);

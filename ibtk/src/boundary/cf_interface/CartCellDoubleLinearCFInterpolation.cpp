@@ -139,7 +139,7 @@ CartCellDoubleLinearCFInterpolation::postprocessRefine(Patch<NDIM>& fine,
                                                        const Box<NDIM>& fine_box,
                                                        const IntVector<NDIM>& ratio)
 {
-    for (int patch_data_index : d_patch_data_indices)
+    for (auto& patch_data_index : d_patch_data_indices)
     {
         d_refine_op->refine(fine, coarse, patch_data_index, patch_data_index, fine_box, ratio);
     }
