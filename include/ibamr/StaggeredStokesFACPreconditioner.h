@@ -86,7 +86,7 @@ public:
     /*!
      * Destructor.
      */
-    ~StaggeredStokesFACPreconditioner() override;
+    ~StaggeredStokesFACPreconditioner() override = default;
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the

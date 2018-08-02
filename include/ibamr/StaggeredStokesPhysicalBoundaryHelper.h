@@ -74,7 +74,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~StaggeredStokesPhysicalBoundaryHelper() override;
+    ~StaggeredStokesPhysicalBoundaryHelper() override = default;
 
     /*!
      * \brief At Dirichlet boundaries, set values to enforce normal velocity

@@ -63,7 +63,7 @@ public:
     /*!
      * \brief Empty destructor.
      */
-    ~StokesBcCoefStrategy() override;
+    ~StokesBcCoefStrategy() override = default;
 
     /*!
      * \brief Set the StokesSpecifications object used by this boundary condition

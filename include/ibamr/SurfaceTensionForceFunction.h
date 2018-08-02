@@ -102,7 +102,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~SurfaceTensionForceFunction() override;
+    ~SurfaceTensionForceFunction() override = default;
 
     /*!
      * \brief Set the smoother (kernel function) to mollify the Heaviside function.
