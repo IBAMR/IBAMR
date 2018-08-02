@@ -48,7 +48,7 @@ if GTEST_ENABLED
 gtest: $(GTESTS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input3d.test $(PWD) ; \
-	  cp -f $(srcdir)/eel3d.vertex $(PWD) ; \
+	  cp -f $(srcdir)/sphere3d.vertex $(PWD) ; \
 	fi ;
 
 gtest-long:
