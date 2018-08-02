@@ -207,9 +207,9 @@ private:
     /*!
      * The mu::Parser objects which evaluate the data-setting functions.
      */
-    std::vector<mu::Parser> d_acoef_parsers = std::vector<mu::Parser>(2 * NDIM);
-    std::vector<mu::Parser> d_bcoef_parsers = std::vector<mu::Parser>(2 * NDIM);
-    std::vector<mu::Parser> d_gcoef_parsers = std::vector<mu::Parser>(2 * NDIM);
+    std::vector<mu::Parser> d_acoef_parsers{ 2 * NDIM };
+    std::vector<mu::Parser> d_bcoef_parsers{ 2 * NDIM };
+    std::vector<mu::Parser> d_gcoef_parsers{ 2 * NDIM };
 
     /*!
      * Time and position variables.
