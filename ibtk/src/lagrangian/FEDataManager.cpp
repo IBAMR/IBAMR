@@ -643,7 +643,7 @@ FEDataManager::spread(const int f_data_idx,
                 const Node* const n = patch_nodes[k];
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
-                    F_dof_map.dof_indices(n, F_idxs, i);
+                    IBTK::get_nodal_dof_indices(F_dof_map, n, i, F_idxs);
                     for (std::vector<dof_id_type>::iterator it = F_idxs.begin(); it != F_idxs.end(); ++it)
                     {
                         F_dX_node.push_back(F_dX_local_soln[F_dX_petsc_vec->map_global_to_local_index(*it)]);
@@ -651,7 +651,7 @@ FEDataManager::spread(const int f_data_idx,
                 }
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X_dof_map.dof_indices(n, X_idxs, d);
+                    IBTK::get_nodal_dof_indices(X_dof_map, n, d, X_idxs);
                     for (std::vector<dof_id_type>::iterator it = X_idxs.begin(); it != X_idxs.end(); ++it)
                     {
                         X_node.push_back(X_local_soln[X_petsc_vec->map_global_to_local_index(*it)]);
@@ -1216,7 +1216,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 bool inside_patch = true;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X_dof_map.dof_indices(n, X_idxs, d);
+                    IBTK::get_nodal_dof_indices(X_dof_map, n, d, X_idxs);
                     X[d] = X_local_soln[X_petsc_vec->map_global_to_local_index(X_idxs[0])];
                     inside_patch = inside_patch && (X[d] >= patch_x_lower[d]) &&
                                    ((touches_upper_regular_bdry[d] && X[d] <= patch_x_upper[d]) ||
@@ -1228,7 +1228,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     X_node.insert(X_node.end(), &X[0], &X[0] + NDIM);
                     for (unsigned int i = 0; i < n_vars; ++i)
                     {
-                        F_dof_map.dof_indices(n, F_idxs, i);
+                        IBTK::get_nodal_dof_indices(F_dof_map, n, i, F_idxs);
                         F_node_idxs.insert(F_node_idxs.end(), F_idxs.begin(), F_idxs.end());
                     }
                 }
