@@ -2120,6 +2120,7 @@ void
 IBFESurfaceMethod::registerEulerianVariables()
 {
 
+
     mask_var = new CellVariable<NDIM, double>(d_object_name + "::mask");
     registerVariable(mask_current_idx,
                      mask_new_idx,
@@ -2942,6 +2943,10 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
 
             double* WSS_o_begin = &WSS_o_qp[NDIM * qp_offset];
             std::fill(WSS_o_begin, WSS_o_begin + NDIM * n_qp, 0.0);
+            
+            double* TAU_begin = &TAU_qp[NDIM * qp_offset];
+            std::fill(TAU_begin, TAU_begin + NDIM * n_qp, 0.0);
+            
 
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -3038,7 +3043,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
                 {
                     // Using the exterior traciton tau_e
 
-                    TAU_qp[NDIM * local_indices[k] + axis] =
+                    TAU_qp[NDIM * local_indices[k] + axis] = 
                         (da / dA) * (WSS_o_qp[NDIM * local_indices[k] + axis] -
                                      P_o_qp[local_indices[k]] * N_qp[NDIM * local_indices[k] + axis]);
                 }
@@ -3100,6 +3105,10 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     d_X_current_vecs[part]->close();
     d_X_new_vecs[part]->close();
     d_TAU_half_vecs[part]->close();
+    d_WSS_o_half_vecs[part]->close();
+    d_P_j_half_vecs[part]->close();
+    d_P_o_half_vecs[part]->close();
+    
     
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
@@ -3112,6 +3121,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
 
     for (unsigned int d = 0; d < NDIM; ++d)
     {
+		d_DU_j_half_vecs[part][d]->close();
         d_DU_j_IB_ghost_vecs[part][d]->close();
     }
 
