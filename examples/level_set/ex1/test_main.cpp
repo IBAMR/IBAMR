@@ -3,8 +3,9 @@
 
 int ex_argc;
 char** ex_argv;
+std::vector<double> Q_err;
 bool ex_runs;
-bool run_example(int, char**);
+bool run_example(int, char**, std::vector<double>&);
 
 // Set names of test based on if compiled with 2D or 3D libraries
 #if (NDIM == 2)
@@ -25,6 +26,6 @@ main(int argc, char** argv)
     testing::InitGoogleTest(&argc, argv);
     ex_argc = argc;
     ex_argv = argv;
-    ex_runs = run_example(ex_argc, ex_argv);
+    ex_runs = run_example(ex_argc, ex_argv, Q_err);
     return RUN_ALL_TESTS();
 }
