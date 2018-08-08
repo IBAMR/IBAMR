@@ -1312,7 +1312,6 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     }
 
     // Compute the convective derivative.
-    bool N_computed = false;
     for (int step = 0; step < d_num_steps; ++step)
     {
         double eval_time = std::numeric_limits<double>::quiet_NaN();
@@ -1472,7 +1471,6 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
 
                     computeConvectiveDerivative(
                         N_data, P_half_data, V_adv_data, R_half_data, V_half_data, side_boxes, dx);
-                    N_computed = true;
                 }
 
                 // Compute the updated density
@@ -1522,14 +1520,7 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
             }
         }
     }
-    // Ensure that the density has been updated
-    if (!N_computed)
-    {
-        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  convective derivative has not been computed by INSVCStaggeredConservativeConvectiveOperator.\n"
-                   << " Something went wrong\n");
-    }
-
+    
     // Refill boundary values of newest density
     const double new_time = d_current_time + dt;
     std::vector<InterpolationTransactionComponent> new_transaction_comps(1);
