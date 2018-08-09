@@ -271,7 +271,10 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","Silo"
-   viz_dump_interval           = int(END_TIME/(3*DT))
+   // Do not write any output (previous versions of IBStandardInitializer had a
+   // bug where setting this to zero triggered an abort, so its set to zero now
+   // to ensure that that bug is fixed)
+   viz_dump_interval           = 0
    viz_dump_dirname            = "viz_cylinder2d"
    visit_number_procs_per_file = 1
 

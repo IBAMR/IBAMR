@@ -200,7 +200,7 @@ IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Poi
         d_data_processed = true;
     }
 
-    return;
+    init();
 } // IBStandardInitializer
 
 IBStandardInitializer::~IBStandardInitializer()
