@@ -106,6 +106,7 @@
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
+#include "libmesh/enum_xdr_mode.h"
 #include "petscvec.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
