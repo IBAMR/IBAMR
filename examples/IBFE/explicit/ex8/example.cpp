@@ -343,7 +343,16 @@ bool run_example(int argc, char** argv)
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
         const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
+#ifdef LIBMESH_HAVE_EXODUS_API
         const bool uses_exodus = dump_viz_data && !app_initializer->getExodusIIFilename().empty();
+#else
+        const bool uses_exodus = false;
+        if (!app_initializer->getExodusIIFilename().empty())
+        {
+            plog << "WARNING: libMesh was compiled without Exodus support, so no "
+                 << "Exodus output will be written in this program.\n";
+        }
+#endif
         const string block1_exodus_filename = app_initializer->getExodusIIFilename("block1");
         const string block2_exodus_filename = app_initializer->getExodusIIFilename("block2");
         const string beam_exodus_filename = app_initializer->getExodusIIFilename("beam");
