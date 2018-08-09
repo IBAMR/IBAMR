@@ -6,10 +6,6 @@ MAX_LEVELS = 1                            // maximum number of levels in locally
 REF_RATIO  = 2                            // refinement ratio between levels
 N = 16                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
-DX  = L/NFINEST                                // mesh width on finest   grid level
-DT                         = 0.25*DX           // maximum timestep size
-START_TIME                 = 0.0e0             // initial simulation time
-END_TIME                   = 10*DT               // final simulation time
 
 AdvectorExplicitPredictorPatchOps {
 // Available values for limiter_type:
@@ -23,7 +19,7 @@ AdvectorExplicitPredictorPatchOps {
 
 AdvDiffPredictorCorrectorHierarchyIntegrator {
    start_time           = 0.0e0  // initial simulation time
-   end_time             = END_TIME    // final simulation time
+   end_time             = 0.2    // final simulation time
    grow_dt              = 2.0e0  // growth factor for timesteps
    max_integrator_steps = 10000  // max number of simulation timesteps
    regrid_interval      = 10000  // effectively disable regridding
@@ -140,7 +136,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = int(END_TIME/(3*DT))
+   viz_dump_interval           = NFINEST/8
    viz_dump_dirname            = "viz_adv_diff3d"
    visit_number_procs_per_file = 1
 
