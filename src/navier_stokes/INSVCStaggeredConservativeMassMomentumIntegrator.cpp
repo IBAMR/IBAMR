@@ -1,4 +1,4 @@
-// Filename: INSVCStaggeredConservativeConvectiveOperator.cpp
+// Filename: INSVCStaggeredConservativeMassMomentumIntegrator.cpp
 // Created on 01 April 2018 by Nishant Nangia and Amneet Bhalla
 //
 // Copyright (c) 2002-2018, Nishant Nangia and Amneet Bhalla
@@ -58,16 +58,13 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "boost/array.hpp"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/INSVCStaggeredConservativeConvectiveOperator.h"
+#include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
@@ -964,54 +961,54 @@ static const int CF_GHOST_WIDTH = 1;
 
 // Timers.
 static Timer* t_apply_convective_operator;
-static Timer* t_apply;
-static Timer* t_initialize_operator_state;
-static Timer* t_deallocate_operator_state;
+static Timer* t_integrate;
+static Timer* t_initialize_integrator;
+static Timer* t_deallocate_integrator;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvectiveOperator(
+INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMassMomentumIntegrator(
     const std::string& object_name,
-    Pointer<Database> input_db,
-    const ConvectiveDifferencingType difference_form,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
-    : ConvectiveOperator(object_name, difference_form),
-      d_bc_coefs(bc_coefs),
-      d_velocity_bdry_extrap_type("CONSTANT"),
-      d_density_bdry_extrap_type("CONSTANT"),
-      d_hierarchy(NULL),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_num_steps(1),
-      d_rho_sc_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
-      d_V_var(NULL),
-      d_V_scratch_idx(-1),
-      d_V_old_idx(-1),
-      d_V_current_idx(-1),
-      d_V_new_idx(-1),
-      d_rho_sc_var(NULL),
-      d_rho_sc_current_idx(-1),
-      d_rho_sc_scratch_idx(-1),
-      d_rho_sc_new_idx(-1),
-      d_velocity_convective_limiter(UPWIND),
-      d_density_convective_limiter(UPWIND),
-      d_velocity_limiter_gcw(1),
-      d_density_limiter_gcw(1),
-      d_density_time_stepping_type(FORWARD_EULER),
-      d_S_var(NULL),
-      d_S_scratch_idx(-1),
-      d_S_fcn(NULL),
-      d_cycle_num(-1),
-      d_dt_prev(-1.0)
+    Pointer<Database> input_db)
 {
-    if (d_difference_form != CONSERVATIVE)
-    {
-        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvectiveOperator():\n"
-                   << "  unsupported differencing form: "
-                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                   << "  valid choices are: CONSERVATIVE\n");
-    }
+    // Set some default values
+    d_object_name = object_name;
+    d_velocity_bdry_extrap_type = "CONSTANT";
+    d_density_bdry_extrap_type = "CONSTANT";
+    d_hierarchy = NULL;
+    d_coarsest_ln = -1;
+    d_finest_ln = -1;
+    d_num_steps = 1;
+    d_u_sc_bc_coefs.resize(NDIM);
+    d_rho_sc_bc_coefs.resize(NDIM);
+    d_V_var = NULL;
+    d_V_scratch_idx = -1;
+    d_V_old_idx = -1;
+    d_V_current_idx = -1;
+    d_V_new_idx = -1;
+    d_N_idx = -1;
+    d_rho_sc_var = NULL;
+    d_rho_sc_current_idx = -1;
+    d_rho_sc_scratch_idx = -1;
+    d_rho_sc_new_idx = -1;
+    d_velocity_convective_limiter = UPWIND;
+    d_density_convective_limiter = UPWIND;
+    d_velocity_limiter_gcw = 1;
+    d_density_limiter_gcw = 1;
+    d_density_time_stepping_type = FORWARD_EULER;
+    d_S_var = NULL;
+    d_S_scratch_idx = -1;
+    d_S_fcn = NULL;
+    d_is_initialized = false;
+    d_enable_logging = false;
+    d_cycle_num = -1;
+    d_dt_prev = -1.0;
+    d_solution_time = std::numeric_limits<double>::quiet_NaN();
+    d_current_time = std::numeric_limits<double>::quiet_NaN();
+    d_new_time = std::numeric_limits<double>::quiet_NaN();
+    d_hier_math_ops = NULL;
+    d_hier_math_ops_external = false;
 
     if (input_db)
     {
@@ -1075,10 +1072,11 @@ INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvecti
         d_velocity_limiter_gcw = GPPMG;
         break;
     default:
-        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvectiveOperator():\n"
-                   << "  unsupported velocity convective limiter: "
-                   << IBAMR::enum_to_string<LimiterType>(d_velocity_convective_limiter) << " \n"
-                   << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
+        TBOX_ERROR(
+            "INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMassMomentumIntegrator():\n"
+            << "  unsupported velocity convective limiter: "
+            << IBAMR::enum_to_string<LimiterType>(d_velocity_convective_limiter) << " \n"
+            << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
     }
 
     switch (d_density_convective_limiter)
@@ -1099,10 +1097,11 @@ INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvecti
         d_density_limiter_gcw = GPPMG;
         break;
     default:
-        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvectiveOperator():\n"
-                   << "  unsupported density convective limiter: "
-                   << IBAMR::enum_to_string<LimiterType>(d_density_convective_limiter) << " \n"
-                   << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
+        TBOX_ERROR(
+            "INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMassMomentumIntegrator():\n"
+            << "  unsupported density convective limiter: "
+            << IBAMR::enum_to_string<LimiterType>(d_density_convective_limiter) << " \n"
+            << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
     }
 
     switch (d_density_time_stepping_type)
@@ -1117,16 +1116,17 @@ INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvecti
         d_num_steps = 3;
         break;
     default:
-        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvectiveOperator():\n"
-                   << "  unsupported density time stepping type: "
-                   << IBAMR::enum_to_string<TimeSteppingType>(d_density_time_stepping_type) << " \n"
-                   << "  valid choices are: FORWARD_EULER, SSPRK2, SSPRK3\n");
+        TBOX_ERROR(
+            "INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMassMomentumIntegrator():\n"
+            << "  unsupported density time stepping type: "
+            << IBAMR::enum_to_string<TimeSteppingType>(d_density_time_stepping_type) << " \n"
+            << "  valid choices are: FORWARD_EULER, SSPRK2, SSPRK3\n");
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext("INSVCStaggeredConservativeConvectiveOperator::CONTEXT");
+    Pointer<VariableContext> context = var_db->getContext("INSVCStaggeredConservativeMassMomentumIntegrator::CONTEXT");
 
-    const std::string V_var_name = "INSVCStaggeredConservativeConvectiveOperator::V";
+    const std::string V_var_name = "INSVCStaggeredConservativeMassMomentumIntegrator::V";
     d_V_var = var_db->getVariable(V_var_name);
     if (d_V_var)
     {
@@ -1147,7 +1147,7 @@ INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvecti
     TBOX_ASSERT(d_V_composite_idx >= 0);
 #endif
 
-    const std::string rho_sc_name = "INSVCStaggeredConservativeConvectiveOperator::RHO_SIDE_CENTERED";
+    const std::string rho_sc_name = "INSVCStaggeredConservativeMassMomentumIntegrator::RHO_SIDE_CENTERED";
     d_rho_sc_var = var_db->getVariable(rho_sc_name);
     if (d_rho_sc_var)
     {
@@ -1169,7 +1169,7 @@ INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvecti
     TBOX_ASSERT(d_rho_sc_new_idx >= 0);
 #endif
 
-    const std::string S_var_name = "INSVCStaggeredConservativeConvectiveOperator::S";
+    const std::string S_var_name = "INSVCStaggeredConservativeMassMomentumIntegrator::S";
     d_S_var = var_db->getVariable(S_var_name);
     if (d_S_var)
     {
@@ -1186,37 +1186,37 @@ INSVCStaggeredConservativeConvectiveOperator::INSVCStaggeredConservativeConvecti
 #endif
 
     // Setup Timers.
-    IBAMR_DO_ONCE(
-        t_apply_convective_operator = TimerManager::getManager()->getTimer(
-            "IBAMR::INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator()");
-        t_apply = TimerManager::getManager()->getTimer("IBAMR::INSVCStaggeredConservativeConvectiveOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->getTimer(
-            "IBAMR::INSVCStaggeredConservativeConvectiveOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->getTimer(
-            "IBAMR::INSVCStaggeredConservativeConvectiveOperator::deallocateOperatorState()"););
+    IBAMR_DO_ONCE(t_apply_convective_operator = TimerManager::getManager()->getTimer(
+                      "IBAMR::INSVCStaggeredConservativeMassMomentumIntegrator::applyConvectiveOperator()");
+                  t_integrate = TimerManager::getManager()->getTimer(
+                      "IBAMR::INSVCStaggeredConservativeMassMomentumIntegrator::integrate()");
+                  t_initialize_integrator = TimerManager::getManager()->getTimer(
+                      "IBAMR::INSVCStaggeredConservativeMassMomentumIntegrator::initializeTimeIntegrator()");
+                  t_deallocate_integrator = TimerManager::getManager()->getTimer(
+                      "IBAMR::INSVCStaggeredConservativeMassMomentumIntegrator::deallocateTimeIntegrator()"););
     return;
-} // INSVCStaggeredConservativeConvectiveOperator
+} // INSVCStaggeredConservativeMassMomentumIntegrator
 
-INSVCStaggeredConservativeConvectiveOperator::~INSVCStaggeredConservativeConvectiveOperator()
+INSVCStaggeredConservativeMassMomentumIntegrator::~INSVCStaggeredConservativeMassMomentumIntegrator()
 {
-    deallocateOperatorState();
+    deallocateTimeIntegrator();
     return;
-} // ~INSVCStaggeredConservativeConvectiveOperator
+} // ~INSVCStaggeredConservativeMassMomentumIntegrator
 
 void
-INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int /*U_idx*/, const int N_idx)
+INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
 {
     // Get hierarchy operation object
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
     d_hier_sc_data_ops =
         hier_ops_manager->getOperationsDouble(new SideVariable<NDIM, double>("sc_var"), d_hierarchy, true);
 
-    IBAMR_TIMER_START(t_apply_convective_operator);
+    IBAMR_TIMER_START(t_integrate)
 #if !defined(NDEBUG)
     if (!d_is_initialized)
     {
-        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+        TBOX_ERROR("INSVCStaggeredConservativeMassMomentumIntegrator::integrate():\n"
+                   << "  time integrator must be initialized prior to call to integrate()\n");
     }
 
     TBOX_ASSERT(d_rho_sc_current_idx >= 0);
@@ -1225,8 +1225,10 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     TBOX_ASSERT(d_V_new_idx >= 0);
 #endif
 
-    // Get the time step size
-    const double dt = getDt();
+#if !defined(NDEBUG)
+    TBOX_ASSERT(MathUtilities<double>::equalEps(dt, getDt()));
+#endif
+
     if (d_V_old_idx == d_V_current_idx)
     {
 #if !defined(NDEBUG)
@@ -1238,7 +1240,7 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
 #if !defined(NDEBUG)
     if (!(dt > 0.0))
     {
-        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
+        TBOX_ERROR("INSVCStaggeredConservativeMassMomentumIntegrator::integrate():\n"
                    << " invalid time step size dt = " << dt << "\n");
     }
 #endif
@@ -1247,17 +1249,13 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
 #if !defined(NDEBUG)
     if (d_cycle_num < 0)
     {
-        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  invalid cycle number = "
-                   << d_cycle_num
-                   << "\n");
+        TBOX_ERROR("INSVCStaggeredConservativeMassMomentumIntegrator::integrate():\n"
+                   << "  invalid cycle number = " << d_cycle_num << "\n");
     }
     if (d_dt_prev <= 0.0 && d_density_time_stepping_type != FORWARD_EULER)
     {
-        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  invalid previous time step size = "
-                   << d_dt_prev
-                   << "\n");
+        TBOX_ERROR("INSVCStaggeredConservativeMassMomentumIntegrator::integrate():\n"
+                   << "  invalid previous time step size = " << d_dt_prev << "\n");
     }
 #endif
 
@@ -1291,15 +1289,16 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                                                "CONSERVATIVE_COARSEN",
                                                                d_velocity_bdry_extrap_type,
                                                                false,
-                                                               d_bc_coefs);
+                                                               d_u_sc_bc_coefs);
     d_hier_v_bdry_fill->resetTransactionComponents(v_transaction_comps);
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_bc_coefs, NULL, d_V_scratch_idx, -1, homogeneous_bc);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+        d_u_sc_bc_coefs, NULL, d_V_scratch_idx, -1, homogeneous_bc);
     d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_v_bdry_fill->fillData(d_current_time);
     d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
         d_V_scratch_idx, d_coarsest_ln, d_finest_ln, /*enforce_at_all_phy_bdrys*/ true);
     enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
-    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, NULL);
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_sc_bc_coefs, NULL);
     d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
 
     // Compute the old mass
@@ -1307,8 +1306,8 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     const double old_mass = d_hier_sc_data_ops->integral(d_rho_sc_current_idx, wgt_sc_idx);
     if (d_enable_logging)
     {
-        plog << "INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(): old mass in the domain = "
-             << old_mass << "\n";
+        plog << "INSVCStaggeredConservativeMassMomentumIntegrator::integrate(): old mass in the domain = " << old_mass
+             << "\n";
     }
 
     // Compute the convective derivative.
@@ -1384,16 +1383,16 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                                                               "CONSERVATIVE_COARSEN",
                                                                               d_velocity_bdry_extrap_type,
                                                                               false,
-                                                                              d_bc_coefs);
+                                                                              d_u_sc_bc_coefs);
             d_hier_v_bdry_fill->resetTransactionComponents(v_transaction_comps);
             StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-                d_bc_coefs, NULL, d_V_scratch_idx, -1, homogeneous_bc);
+                d_u_sc_bc_coefs, NULL, d_V_scratch_idx, -1, homogeneous_bc);
             d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
             d_hier_v_bdry_fill->fillData(eval_time);
             d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
                 d_V_scratch_idx, d_coarsest_ln, d_finest_ln, /*enforce_at_all_phy_bdrys*/ true);
             enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
-            StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, NULL);
+            StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_sc_bc_coefs, NULL);
             d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
         }
 
@@ -1421,7 +1420,7 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                 const IntVector<NDIM>& patch_lower = patch_box.lower();
                 const IntVector<NDIM>& patch_upper = patch_box.upper();
 
-                Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(N_idx);
+                Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(d_N_idx);
                 Pointer<SideData<NDIM, double> > V_data = patch->getPatchData(d_V_scratch_idx);
                 Pointer<SideData<NDIM, double> > R_cur_data = patch->getPatchData(d_rho_sc_current_idx);
                 Pointer<SideData<NDIM, double> > R_pre_data = patch->getPatchData(d_rho_sc_scratch_idx);
@@ -1469,8 +1468,12 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                             side_boxes,
                                             d_velocity_convective_limiter);
 
+                    IBAMR_TIMER_START(t_apply_convective_operator);
+
                     computeConvectiveDerivative(
                         N_data, P_half_data, V_adv_data, R_half_data, V_half_data, side_boxes, dx);
+
+                    IBAMR_TIMER_STOP(t_apply_convective_operator);
                 }
 
                 // Compute the updated density
@@ -1520,7 +1523,7 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
             }
         }
     }
-    
+
     // Refill boundary values of newest density
     const double new_time = d_current_time + dt;
     std::vector<InterpolationTransactionComponent> new_transaction_comps(1);
@@ -1543,13 +1546,14 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     const double new_mass = d_hier_sc_data_ops->integral(d_rho_sc_new_idx, wgt_sc_idx);
     if (d_enable_logging)
     {
-        plog << "INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(): new mass in the domain = "
-             << new_mass << "\n";
-        plog << "INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(): change in mass         = "
+        plog << "INSVCStaggeredConservativeMassMomentumIntegrator::integrate(): new mass in the domain = " << new_mass
+             << "\n";
+        plog << "INSVCStaggeredConservativeMassMomentumIntegrator::integrate(): change in mass = "
              << new_mass - old_mass << "\n";
     }
 
     // Reset select options
+    d_N_idx = -1;
     d_rho_sc_current_idx = -1;
     d_V_old_idx = -1;
     d_V_current_idx = -1;
@@ -1557,29 +1561,23 @@ INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     d_cycle_num = -1;
     d_dt_prev = -1.0;
 
-    IBAMR_TIMER_STOP(t_apply_convective_operator);
+    IBAMR_TIMER_STOP(t_integrate);
     return;
-} // applyConvectiveOperator
+} // integrate
 
 void
-INSVCStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                                      const SAMRAIVectorReal<NDIM, double>& out)
+INSVCStaggeredConservativeMassMomentumIntegrator::initializeTimeIntegrator(
+    Pointer<BasePatchHierarchy<NDIM> > base_hierarchy)
 {
-    IBAMR_TIMER_START(t_initialize_operator_state);
+    IBAMR_TIMER_START(t_initialize_integrator);
 
-    if (d_is_initialized) deallocateOperatorState();
+    if (d_is_initialized) deallocateTimeIntegrator();
 
     // Get the hierarchy configuration.
-    d_hierarchy = in.getPatchHierarchy();
-    d_coarsest_ln = in.getCoarsestLevelNumber();
-    d_finest_ln = in.getFinestLevelNumber();
-#if !defined(NDEBUG)
-    TBOX_ASSERT(d_hierarchy == out.getPatchHierarchy());
-    TBOX_ASSERT(d_coarsest_ln == out.getCoarsestLevelNumber());
-    TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());
-#else
-    NULL_USE(out);
-#endif
+    Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    d_hierarchy = hierarchy;
+    d_coarsest_ln = 0;
+    d_finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Setup the interpolation transaction information.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -1601,7 +1599,7 @@ INSVCStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMR
                                                                  "CONSERVATIVE_COARSEN",
                                                                  d_velocity_bdry_extrap_type,
                                                                  false,
-                                                                 d_bc_coefs);
+                                                                 d_u_sc_bc_coefs);
 
     // Initialize the interpolation operators.
     d_hier_rho_bdry_fill = new HierarchyGhostCellInterpolation();
@@ -1611,7 +1609,7 @@ INSVCStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMR
 
     // Initialize the BC helper.
     d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
-    d_bc_helper->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
+    d_bc_helper->cacheBcCoefData(d_u_sc_bc_coefs, d_solution_time, d_hierarchy);
 
     // Create the coarse-fine boundary boxes.
     d_cf_boundary.resize(d_finest_ln + 1);
@@ -1634,8 +1632,10 @@ INSVCStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMR
 
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops = new HierarchyMathOps(
-            "INSVCStaggeredConservativeConvectiveOperator::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        d_hier_math_ops = new HierarchyMathOps("INSVCStaggeredConservativeMassMomentumIntegrator::HierarchyMathOps",
+                                               d_hierarchy,
+                                               d_coarsest_ln,
+                                               d_finest_ln);
     }
     else
     {
@@ -1646,16 +1646,16 @@ INSVCStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMR
 
     d_is_initialized = true;
 
-    IBAMR_TIMER_STOP(t_initialize_operator_state);
+    IBAMR_TIMER_STOP(t_initialize_integrator);
     return;
-} // initializeOperatorState
+} // initializeTimeIntegrator
 
 void
-INSVCStaggeredConservativeConvectiveOperator::deallocateOperatorState()
+INSVCStaggeredConservativeMassMomentumIntegrator::deallocateTimeIntegrator()
 {
     if (!d_is_initialized) return;
 
-    IBAMR_TIMER_START(t_deallocate_operator_state);
+    IBAMR_TIMER_START(t_deallocate_integrator);
 
     // Deallocate the communications operators and BC helpers.
     d_hier_rho_bdry_fill.setNull();
@@ -1686,12 +1686,12 @@ INSVCStaggeredConservativeConvectiveOperator::deallocateOperatorState()
 
     d_is_initialized = false;
 
-    IBAMR_TIMER_STOP(t_deallocate_operator_state);
+    IBAMR_TIMER_STOP(t_deallocate_integrator);
     return;
 } // deallocateOperatorState
 
 void
-INSVCStaggeredConservativeConvectiveOperator::setSideCenteredDensityPatchDataIndex(int rho_sc_idx)
+INSVCStaggeredConservativeMassMomentumIntegrator::setSideCenteredDensityPatchDataIndex(int rho_sc_idx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(rho_sc_idx >= 0);
@@ -1700,7 +1700,27 @@ INSVCStaggeredConservativeConvectiveOperator::setSideCenteredDensityPatchDataInd
 } // setSideCenteredDensityPatchDataIndex
 
 void
-INSVCStaggeredConservativeConvectiveOperator::setSideCenteredDensityBoundaryConditions(
+INSVCStaggeredConservativeMassMomentumIntegrator::setSideCenteredConvectiveDerivativePatchDataIndex(int N_sc_idx)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(N_sc_idx >= 0);
+#endif
+    d_N_idx = N_sc_idx;
+} // setSideCenteredConvectiveDerivativePatchDataIndex
+
+void
+INSVCStaggeredConservativeMassMomentumIntegrator::setSideCenteredVelocityBoundaryConditions(
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_sc_bc_coefs)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(u_sc_bc_coefs.size() == NDIM);
+#endif
+    d_u_sc_bc_coefs = u_sc_bc_coefs;
+    return;
+} // setSideCenteredVelocityBoundaryConditions
+
+void
+INSVCStaggeredConservativeMassMomentumIntegrator::setSideCenteredDensityBoundaryConditions(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& rho_sc_bc_coefs)
 {
 #if !defined(NDEBUG)
@@ -1711,7 +1731,7 @@ INSVCStaggeredConservativeConvectiveOperator::setSideCenteredDensityBoundaryCond
 } // setSideCenteredDensityBoundaryConditions
 
 int
-INSVCStaggeredConservativeConvectiveOperator::getUpdatedSideCenteredDensityPatchDataIndex()
+INSVCStaggeredConservativeMassMomentumIntegrator::getUpdatedSideCenteredDensityPatchDataIndex()
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_rho_sc_new_idx >= 0);
@@ -1720,7 +1740,7 @@ INSVCStaggeredConservativeConvectiveOperator::getUpdatedSideCenteredDensityPatch
 } // getUpdatedSideCenteredDensityPatchDataIndex
 
 void
-INSVCStaggeredConservativeConvectiveOperator::setMassDensitySourceTerm(const Pointer<CartGridFunction> S_fcn)
+INSVCStaggeredConservativeMassMomentumIntegrator::setMassDensitySourceTerm(const Pointer<CartGridFunction> S_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(S_fcn);
@@ -1730,9 +1750,9 @@ INSVCStaggeredConservativeConvectiveOperator::setMassDensitySourceTerm(const Poi
 } // setMassDensitySourceTerm
 
 void
-INSVCStaggeredConservativeConvectiveOperator::setFluidVelocityPatchDataIndices(int V_old_idx,
-                                                                               int V_current_idx,
-                                                                               int V_new_idx)
+INSVCStaggeredConservativeMassMomentumIntegrator::setFluidVelocityPatchDataIndices(int V_old_idx,
+                                                                                   int V_current_idx,
+                                                                                   int V_new_idx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(V_current_idx >= 0);
@@ -1761,34 +1781,74 @@ INSVCStaggeredConservativeConvectiveOperator::setFluidVelocityPatchDataIndices(i
         d_V_new_idx = V_current_idx;
     }
     return;
-}
+} // setFluidVelocityPatchDataIndices
 
 void
-INSVCStaggeredConservativeConvectiveOperator::setCycleNumber(int cycle_num)
+INSVCStaggeredConservativeMassMomentumIntegrator::setCycleNumber(int cycle_num)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(cycle_num >= 0);
 #endif
     d_cycle_num = cycle_num;
     return;
-}
+} // setCycleNumber
 
 void
-INSVCStaggeredConservativeConvectiveOperator::setPreviousTimeStepSize(double dt_prev)
+INSVCStaggeredConservativeMassMomentumIntegrator::setSolutionTime(double solution_time)
+{
+    d_solution_time = solution_time;
+} // setSolutionTime
+
+void
+INSVCStaggeredConservativeMassMomentumIntegrator::setTimeInterval(double current_time, double new_time)
+{
+    d_current_time = current_time;
+    d_new_time = new_time;
+    return;
+} // setTimeInterval
+
+std::pair<double, double>
+INSVCStaggeredConservativeMassMomentumIntegrator::getTimeInterval() const
+{
+    return std::make_pair(d_current_time, d_new_time);
+} // getTimeInterval
+
+double
+INSVCStaggeredConservativeMassMomentumIntegrator::getDt() const
+{
+    return d_new_time - d_current_time;
+} // getDt
+
+void
+INSVCStaggeredConservativeMassMomentumIntegrator::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
+{
+    d_hier_math_ops = hier_math_ops;
+    d_hier_math_ops_external = d_hier_math_ops;
+    return;
+} // setHierarchyMathOps
+
+Pointer<HierarchyMathOps>
+INSVCStaggeredConservativeMassMomentumIntegrator::getHierarchyMathOps() const
+{
+    return d_hier_math_ops;
+} // getHierarchyMathOps
+
+void
+INSVCStaggeredConservativeMassMomentumIntegrator::setPreviousTimeStepSize(double dt_prev)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(dt_prev > 0.0);
 #endif
     d_dt_prev = dt_prev;
     return;
-}
+} // setPreviousTimeStepSize
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-INSVCStaggeredConservativeConvectiveOperator::computeAdvectionVelocity(
+INSVCStaggeredConservativeMassMomentumIntegrator::computeAdvectionVelocity(
     boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
     const Pointer<SideData<NDIM, double> > U_data,
     const IntVector<NDIM>& patch_lower,
@@ -1874,7 +1934,7 @@ INSVCStaggeredConservativeConvectiveOperator::computeAdvectionVelocity(
 } // computeAdvectionVelocity
 
 void
-INSVCStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
+INSVCStaggeredConservativeMassMomentumIntegrator::interpolateSideQuantity(
     boost::array<Pointer<FaceData<NDIM, double> >, NDIM> Q_half_data,
     const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
     const Pointer<SideData<NDIM, double> > Q_data,
@@ -2341,7 +2401,7 @@ INSVCStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
         }
         break;
     default:
-        TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
+        TBOX_ERROR("INSVCStaggeredConservativeMassMomentumIntegrator::interpolateSideQuantity():\n"
                    << "  unsupported convective limiter: " << IBAMR::enum_to_string<LimiterType>(convective_limiter)
                    << " \n"
                    << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
@@ -2349,7 +2409,7 @@ INSVCStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
 } // interpolateSideQuantity
 
 void
-INSVCStaggeredConservativeConvectiveOperator::computeConvectiveDerivative(
+INSVCStaggeredConservativeMassMomentumIntegrator::computeConvectiveDerivative(
     Pointer<SideData<NDIM, double> > N_data,
     boost::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data,
     const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
@@ -2470,64 +2530,54 @@ INSVCStaggeredConservativeConvectiveOperator::computeConvectiveDerivative(
 
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        switch (d_difference_form)
-        {
-        case CONSERVATIVE:
 #if (NDIM == 2)
-            CONVECT_DERIVATIVE_FC(dx,
-                                  side_boxes[axis].lower(0),
-                                  side_boxes[axis].upper(0),
-                                  side_boxes[axis].lower(1),
-                                  side_boxes[axis].upper(1),
-                                  U_adv_data[axis]->getGhostCellWidth()(0),
-                                  U_adv_data[axis]->getGhostCellWidth()(1),
-                                  P_half_data[axis]->getGhostCellWidth()(0),
-                                  P_half_data[axis]->getGhostCellWidth()(1),
-                                  U_adv_data[axis]->getPointer(0),
-                                  U_adv_data[axis]->getPointer(1),
-                                  P_half_data[axis]->getPointer(0),
-                                  P_half_data[axis]->getPointer(1),
-                                  N_data->getGhostCellWidth()(0),
-                                  N_data->getGhostCellWidth()(1),
-                                  N_data->getPointer(axis));
+        CONVECT_DERIVATIVE_FC(dx,
+                              side_boxes[axis].lower(0),
+                              side_boxes[axis].upper(0),
+                              side_boxes[axis].lower(1),
+                              side_boxes[axis].upper(1),
+                              U_adv_data[axis]->getGhostCellWidth()(0),
+                              U_adv_data[axis]->getGhostCellWidth()(1),
+                              P_half_data[axis]->getGhostCellWidth()(0),
+                              P_half_data[axis]->getGhostCellWidth()(1),
+                              U_adv_data[axis]->getPointer(0),
+                              U_adv_data[axis]->getPointer(1),
+                              P_half_data[axis]->getPointer(0),
+                              P_half_data[axis]->getPointer(1),
+                              N_data->getGhostCellWidth()(0),
+                              N_data->getGhostCellWidth()(1),
+                              N_data->getPointer(axis));
 #endif
 #if (NDIM == 3)
-            CONVECT_DERIVATIVE_FC(dx,
-                                  side_boxes[axis].lower(0),
-                                  side_boxes[axis].upper(0),
-                                  side_boxes[axis].lower(1),
-                                  side_boxes[axis].upper(1),
-                                  side_boxes[axis].lower(2),
-                                  side_boxes[axis].upper(2),
-                                  U_adv_data[axis]->getGhostCellWidth()(0),
-                                  U_adv_data[axis]->getGhostCellWidth()(1),
-                                  U_adv_data[axis]->getGhostCellWidth()(2),
-                                  P_half_data[axis]->getGhostCellWidth()(0),
-                                  P_half_data[axis]->getGhostCellWidth()(1),
-                                  P_half_data[axis]->getGhostCellWidth()(2),
-                                  U_adv_data[axis]->getPointer(0),
-                                  U_adv_data[axis]->getPointer(1),
-                                  U_adv_data[axis]->getPointer(2),
-                                  P_half_data[axis]->getPointer(0),
-                                  P_half_data[axis]->getPointer(1),
-                                  P_half_data[axis]->getPointer(2),
-                                  N_data->getGhostCellWidth()(0),
-                                  N_data->getGhostCellWidth()(1),
-                                  N_data->getGhostCellWidth()(2),
-                                  N_data->getPointer(axis));
+        CONVECT_DERIVATIVE_FC(dx,
+                              side_boxes[axis].lower(0),
+                              side_boxes[axis].upper(0),
+                              side_boxes[axis].lower(1),
+                              side_boxes[axis].upper(1),
+                              side_boxes[axis].lower(2),
+                              side_boxes[axis].upper(2),
+                              U_adv_data[axis]->getGhostCellWidth()(0),
+                              U_adv_data[axis]->getGhostCellWidth()(1),
+                              U_adv_data[axis]->getGhostCellWidth()(2),
+                              P_half_data[axis]->getGhostCellWidth()(0),
+                              P_half_data[axis]->getGhostCellWidth()(1),
+                              P_half_data[axis]->getGhostCellWidth()(2),
+                              U_adv_data[axis]->getPointer(0),
+                              U_adv_data[axis]->getPointer(1),
+                              U_adv_data[axis]->getPointer(2),
+                              P_half_data[axis]->getPointer(0),
+                              P_half_data[axis]->getPointer(1),
+                              P_half_data[axis]->getPointer(2),
+                              N_data->getGhostCellWidth()(0),
+                              N_data->getGhostCellWidth()(1),
+                              N_data->getGhostCellWidth()(2),
+                              N_data->getPointer(axis));
 #endif
-            break;
-        default:
-            TBOX_ERROR("INSVCStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                       << "  unsupported differencing form: "
-                       << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                       << "  valid choices are: CONSERVATIVE\n");
-        }
     }
 } // computeConvectiveDerivative
 
 void
-INSVCStaggeredConservativeConvectiveOperator::computeDensityUpdate(
+INSVCStaggeredConservativeMassMomentumIntegrator::computeDensityUpdate(
     Pointer<SideData<NDIM, double> > R_data,
     const double& a0,
     const Pointer<SideData<NDIM, double> > R0_data,
@@ -2619,7 +2669,7 @@ INSVCStaggeredConservativeConvectiveOperator::computeDensityUpdate(
 } // computeDensityUpdate
 
 void
-INSVCStaggeredConservativeConvectiveOperator::enforceDivergenceFreeConditionAtCoarseFineInterface(int U_idx)
+INSVCStaggeredConservativeMassMomentumIntegrator::enforceDivergenceFreeConditionAtCoarseFineInterface(int U_idx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);

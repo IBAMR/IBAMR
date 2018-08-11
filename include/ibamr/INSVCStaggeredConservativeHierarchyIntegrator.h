@@ -42,6 +42,7 @@
 
 namespace IBAMR
 {
+class INSVCStaggeredConservativeMassMomentumIntegrator;
 } // namespace IBAMR
 namespace IBTK
 {
@@ -59,14 +60,16 @@ namespace IBAMR
  * for the incompressible Navier-Stokes equations on an AMR grid hierarchy, with variable
  * coefficients.
  *
- * This class always uses a conservative discretization of the form of the momentum equation
+ * This class integrates the conservative form of the momentum equation
  * \f$(\frac{\partial \rho u}{\partial t} + N(\rho u)) = -\nabla p + \nabla \cdot \mu (\nabla u) + (\nabla u)^T )\f$
  * where \f$ N(u) = \nabla \cdot (\rho u u) \f$.
  *
- * In other words, this class will ALWAYS treat the left-hand side of the momentum equation in conservative form.
- * This class is specialized to always use INSVCStaggeredConservativeConvectiveOperator, which will produce an update
- * for the newest density by solving the mass transport equation \f$\frac{D \rho}{Dt} = 0\f$. Therefore, the density
- * variable must be registered and maintained by this class, and not by any other integrator.
+ * In other words, the class treats the left-hand side of the momentum equation in conservative form.
+ * This class is specialized to use INSVCStaggeredConservativeMassMomentumIntegrator,
+ * which produces an update for the newest density by solving the mass transport equation
+ * \f$ \frac{\partial \rho}{\partial t} + \nabla \cdot (\rho u) = 0 \f$.
+ * Therefore, the density variable must be registered and maintained by this class,
+ * and not by any other integrator (such AdvDiffHierarchyIntegrator).
  * It is also assumed that this density variable is side-centered. In other words, given a density at the beginning
  * of the time step \f$rho^n\f$, an interpolated face density \f$rho^{n+\frac{1}{2}}\f$ is produced and used in the
  * momentum convection to obtain \f$N(\rho u)\f$ and mass advection to obtain \f$rho^{n+1}\f$. Hence, a consistent
@@ -173,6 +176,15 @@ public:
      * Returns the number of cycles to perform for the present time step.
      */
     int getNumberOfCycles() const;
+
+    /*!
+     * Get the convective operator being used by the integrator class.
+     *
+     * \note The class employs INSVCStaggeredConservativeMassMomentum integrator
+     * to compute convective derivative. Therefore, ConvectiveOperator is a NULL
+     * object.
+     */
+    SAMRAI::tbox::Pointer<ConvectiveOperator> getConvectiveOperator();
 
 protected:
     /*!
@@ -303,6 +315,11 @@ private:
      * Source term function for the mass density update
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
+
+    /*
+     * Conservative density and momentum integrator.
+     */
+    SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredConservativeMassMomentumIntegrator> d_rho_p_integrator;
 };
 } // namespace IBAMR
 

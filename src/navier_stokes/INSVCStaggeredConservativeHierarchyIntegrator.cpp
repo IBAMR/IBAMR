@@ -96,9 +96,8 @@
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/INSProjectionBcCoef.h"
-#include "ibamr/INSStaggeredConvectiveOperatorManager.h"
-#include "ibamr/INSVCStaggeredConservativeConvectiveOperator.h"
 #include "ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
 #include "ibamr/INSVCStaggeredPressureBcCoef.h"
 #include "ibamr/INSVCStaggeredVelocityBcCoef.h"
 #include "ibamr/PETScKrylovStaggeredStokesSolver.h"
@@ -189,23 +188,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
                                  << " requires non-constant density\n");
     }
 
-    // Check to see whether the convective operator type has been set.
-    d_convective_op_type = INSStaggeredConvectiveOperatorManager::DEFAULT;
-    if (input_db->keyExists("convective_op_type"))
-        d_convective_op_type = input_db->getString("convective_op_type");
-    else if (input_db->keyExists("convective_operator_type"))
-        d_convective_op_type = input_db->getString("convective_operator_type");
-    else if (input_db->keyExists("default_convective_op_type"))
-        d_convective_op_type = input_db->getString("default_convective_op_type");
-    else if (input_db->keyExists("default_convective_operator_type"))
-        d_convective_op_type = input_db->getString("default_convective_operator_type");
-
-    if (d_convective_op_type != "VC_CONSERVATIVE_OP")
-    {
-        TBOX_ERROR(d_object_name << "::INSVCStaggeredConservativeHierarchyIntegrator():\n"
-                                 << " variable coefficient conservative discretization\n"
-                                 << " requires VC_CONSERVATIVE_OP convective operator\n");
-    }
+    // Initialize conservative mass and momentum integrator.
+    d_rho_p_integrator = new INSVCStaggeredConservativeMassMomentumIntegrator(
+        "INSVCStaggeredConservativeHierarchyIntegrator::MassMomentumIntegrator",
+        input_db->getDatabase("mass_momentum_integrator_db"));
+    d_convective_op_type = "NONE";
 
     // Side centered state variable for density and interpolated density variable for plotting.
     d_rho_sc_var = new SideVariable<NDIM, double>(d_object_name + "::rho_sc");
@@ -287,21 +274,10 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
                      "CONSERVATIVE_LINEAR_REFINE",
                      d_U_init);
 
-    // Set the optional density source function.
-    INSVCStaggeredConservativeConvectiveOperator* p_vc_convective_op =
-        dynamic_cast<INSVCStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
-    if (p_vc_convective_op)
-    {
-        p_vc_convective_op->setSideCenteredDensityBoundaryConditions(d_rho_sc_bc_coefs);
-        if (d_S_fcn) p_vc_convective_op->setMassDensitySourceTerm(d_S_fcn);
-    }
-    else
-    {
-        TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
-                                 << " variable coefficient conservative discretization form \n"
-                                 << " presently requires VC_CONSERVATIVE_OP convective operator\n"
-                                 << " this statement should not have been reached\n");
-    }
+    // Set various objects with conservative time integrator.
+    d_rho_p_integrator->setSideCenteredVelocityBoundaryConditions(d_U_bc_coefs);
+    d_rho_p_integrator->setSideCenteredDensityBoundaryConditions(d_rho_sc_bc_coefs);
+    if (d_S_fcn) d_rho_p_integrator->setMassDensitySourceTerm(d_S_fcn);
 
     return;
 } // initializeHierarchyIntegrator
@@ -555,45 +531,38 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     // Account for the convective acceleration term.
     if (!d_creeping_flow)
     {
-        d_convective_op->setSolutionTime(current_time);
-        d_convective_op->setTimeInterval(current_time, new_time);
+        d_rho_p_integrator->setSolutionTime(current_time);
+        d_rho_p_integrator->setTimeInterval(current_time, new_time);
 
         // For conservative momentum discretization, an approximation to rho^{n+1}
         // will be computed from rho^{n}, which requires additional options to be set.
-        INSVCStaggeredConservativeConvectiveOperator* p_vc_convective_op =
-            dynamic_cast<INSVCStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
-        if (p_vc_convective_op)
+
+        // Set the rho^{n} density
+        d_rho_p_integrator->setSideCenteredDensityPatchDataIndex(d_rho_sc_current_idx);
+
+        // Set the convective derivative patch data index.
+        const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
+        d_rho_p_integrator->setSideCenteredConvectiveDerivativePatchDataIndex(N_idx);
+
+        // Data for the conservative time integrator is for cycle 0
+        const int ins_cycle_num = 0;
+        d_rho_p_integrator->setCycleNumber(ins_cycle_num);
+
+        // Set the velocities used to update the density and the previous time step size
+        if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
         {
-            // Set the rho^{n} density
-            p_vc_convective_op->setSideCenteredDensityPatchDataIndex(d_rho_sc_current_idx);
-
-            // Data for the convective operator is for cycle 0
-            const int ins_cycle_num = 0;
-            p_vc_convective_op->setCycleNumber(ins_cycle_num);
-
-            // Set the velocities used to update the density and the previous time step size
-            if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
-            {
-                p_vc_convective_op->setFluidVelocityPatchDataIndices(
-                    /*old*/ -1, /*current*/ d_U_current_idx, /*new*/ -1);
-            }
-            else
-            {
-                p_vc_convective_op->setFluidVelocityPatchDataIndices(
-                    /*old*/ d_U_old_current_idx, /*current*/ d_U_current_idx, /*new*/ -1);
-                p_vc_convective_op->setPreviousTimeStepSize(d_dt_previous[0]);
-            }
+            d_rho_p_integrator->setFluidVelocityPatchDataIndices(
+                /*old*/ -1, /*current*/ d_U_current_idx, /*new*/ -1);
         }
         else
         {
-            TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                     << " variable coefficient conservative discretization form \n"
-                                     << " presently requires VC_CONSERVATIVE_OP convective operator\n"
-                                     << " this statement should not have been reached\n");
+            d_rho_p_integrator->setFluidVelocityPatchDataIndices(
+                /*old*/ d_U_old_current_idx, /*current*/ d_U_current_idx, /*new*/ -1);
+            d_rho_p_integrator->setPreviousTimeStepSize(d_dt_previous[0]);
         }
 
-        // Compute the convective operator
-        d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
+        // Integrate density and convective momentum.
+        d_rho_p_integrator->integrate(dt);
 
         // Keep track of the time-lagged velocity
         d_hier_sc_data_ops->copyData(d_U_old_new_idx, d_U_current_idx);
@@ -640,21 +609,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
     }
 
     // In the special case of a conservative discretization form, the updated density is previously calculated by
-    // application of the convective operator
-    INSVCStaggeredConservativeConvectiveOperator* p_vc_convective_op =
-        dynamic_cast<INSVCStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
-    if (p_vc_convective_op)
-    {
-        const int rho_sc_new_idx = p_vc_convective_op->getUpdatedSideCenteredDensityPatchDataIndex();
-        d_hier_sc_data_ops->copyData(d_rho_sc_new_idx, rho_sc_new_idx, /*interior_only*/ true);
-    }
-    else
-    {
-        TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                 << " variable coefficient conservative discretization form \n"
-                                 << " presently requires VC_CONSERVATIVE_OP convective operator\n"
-                                 << " this statement should not have been reached\n");
-    }
+    // application of the mass and convective momentum integrator.
+    const int rho_sc_new_idx = d_rho_p_integrator->getUpdatedSideCenteredDensityPatchDataIndex();
+    d_hier_sc_data_ops->copyData(d_rho_sc_new_idx, rho_sc_new_idx, /*interior_only*/ true);
 
     if (!d_mu_is_const)
     {
@@ -904,6 +861,14 @@ INSVCStaggeredConservativeHierarchyIntegrator::getNumberOfCycles() const
     return d_num_cycles;
 } // getNumberOfCycles
 
+Pointer<ConvectiveOperator>
+INSVCStaggeredConservativeHierarchyIntegrator::getConvectiveOperator()
+{
+    d_convective_op.setNull();
+    d_convective_op_needs_init = false;
+    return d_convective_op;
+} // getConvectiveOperator
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
@@ -929,6 +894,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetHierarchyConfigurationSpecia
 {
     INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
         base_hierarchy, coarsest_level, finest_level);
+    d_rho_p_integrator->setHierarchyMathOps(d_hier_math_ops);
+    d_rho_p_integrator->initializeTimeIntegrator(base_hierarchy);
     return;
 } // resetHierarchyConfigurationSpecialized
 
@@ -1393,40 +1360,31 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
         // Update N_idx if necessary
         if (cycle_num > 0)
         {
-            double apply_time = half_time;
-            d_convective_op->setSolutionTime(apply_time);
+            d_rho_p_integrator->setSolutionTime(half_time);
 
-            INSVCStaggeredConservativeConvectiveOperator* p_vc_convective_op =
-                dynamic_cast<INSVCStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
-            if (p_vc_convective_op)
+            // Set the cycle number
+            d_rho_p_integrator->setCycleNumber(cycle_num);
+
+            // Set the patch data index for convective derivative.
+            d_rho_p_integrator->setSideCenteredConvectiveDerivativePatchDataIndex(N_idx);
+
+            // Always set to current because we want to update rho^{n} to rho^{n+1}
+            d_rho_p_integrator->setSideCenteredDensityPatchDataIndex(d_rho_sc_current_idx);
+
+            // Set the velocities used to update the density
+            if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
             {
-                // Always set to current because we want to update rho^{n} to rho^{n+1}
-                p_vc_convective_op->setSideCenteredDensityPatchDataIndex(d_rho_sc_current_idx);
-
-                // Set the cycle number
-                p_vc_convective_op->setCycleNumber(cycle_num);
-
-                // Set the velocities used to update the density
-                if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
-                {
-                    p_vc_convective_op->setFluidVelocityPatchDataIndices(
-                        /*old*/ -1, /*current*/ d_U_current_idx, /*new*/ d_U_new_idx);
-                }
-                else
-                {
-                    p_vc_convective_op->setFluidVelocityPatchDataIndices(
-                        /*old*/ d_U_old_current_idx, /*current*/ d_U_current_idx, /*new*/ d_U_new_idx);
-                    p_vc_convective_op->setPreviousTimeStepSize(d_dt_previous[0]);
-                }
+                d_rho_p_integrator->setFluidVelocityPatchDataIndices(
+                    /*old*/ -1, /*current*/ d_U_current_idx, /*new*/ d_U_new_idx);
             }
             else
             {
-                TBOX_ERROR(d_object_name << "::setupSolverVectors():\n"
-                                         << " variable coefficient conservative discretization form \n"
-                                         << " presently requires VC_CONSERVATIVE_OP convective operator\n"
-                                         << " this statement should not have been reached\n");
+                d_rho_p_integrator->setFluidVelocityPatchDataIndices(
+                    /*old*/ d_U_old_current_idx, /*current*/ d_U_current_idx, /*new*/ d_U_new_idx);
+                d_rho_p_integrator->setPreviousTimeStepSize(d_dt_previous[0]);
             }
-            d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
+
+            d_rho_p_integrator->integrate(dt);
         }
 
         // Set the full convective term depending on the time stepping type
