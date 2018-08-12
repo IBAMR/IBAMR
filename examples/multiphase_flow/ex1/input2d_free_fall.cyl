@@ -47,8 +47,8 @@ V_GRAVITY = sqrt(RHO_RATIO*G*2*R)
 DT_GRAVITY = H/V_GRAVITY
 
 // Parameters for setting rho and mu
-NUM_SOLID_INTERFACE_CELLS = 2.5
-NUM_GAS_INTERFACE_CELLS   = 2.5
+NUM_SOLID_INTERFACE_CELLS = 1.0
+NUM_GAS_INTERFACE_CELLS   = 1.0
 
 // Level set option parameters
 LS_ORDER              = "THIRD_ORDER_WENO"
