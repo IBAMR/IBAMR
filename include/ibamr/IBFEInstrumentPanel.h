@@ -126,6 +126,11 @@ private:
      * \brief write out meshes and equation systems in Exodus file.
      */
     void outputExodus(IBAMR::IBFEMethod* ib_method_ops, int timestep, double loop_time);
+    
+    /*!
+     * \brief write out meshes in STL file.
+     */
+    void outputSTL(IBAMR::IBFEMethod* ib_method_ops, int timestep, double loop_time);
 
     /*!
      * \brief write out nodes.

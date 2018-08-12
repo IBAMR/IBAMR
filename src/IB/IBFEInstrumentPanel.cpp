@@ -1140,6 +1140,18 @@ IBFEInstrumentPanel::outputExodus(IBFEMethod* ib_method_ops, const int timestep,
 }
 
 void
+IBFEInstrumentPanel::outputSTL(IBFEMethod* ib_method_ops, const int timestep, const double loop_time)
+{
+    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
+    {
+        initializeSystemDependentData(ib_method_ops, ii);
+        std::ostringstream mesh_output;
+        mesh_output << d_plot_directory_name << "/"
+                    << "" << d_meter_mesh_names[ii] << ".stl";
+    }
+}
+
+void
 IBFEInstrumentPanel::outputNodes()
 {
     for (unsigned int ii = 0; ii < d_num_meters; ++ii)
