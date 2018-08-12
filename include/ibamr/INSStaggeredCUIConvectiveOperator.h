@@ -1,4 +1,4 @@
-// Filename: INSStaggeredConvectiveOperator.h
+// Filename: INSStaggeredCUIConvectiveOperator.h
 // Created on 17 June 2018 by Nishant Nangia
 //
 // Copyright (c) 2002-2018, Nishant Nangia

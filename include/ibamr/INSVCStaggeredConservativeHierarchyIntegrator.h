@@ -180,9 +180,9 @@ public:
     /*!
      * Get the convective operator being used by the integrator class.
      *
-     * \note The class employs INSVCStaggeredConservativeMassMomentum integrator
-     * to compute convective derivative. Therefore, ConvectiveOperator is a NULL
-     * object.
+     * \note The class employs INSVCStaggeredConservativeMassMomentumIntegrator
+     * to compute the conservative convective derivative. Therefore,
+     * ConvectiveOperator is a NULL object.
      */
     SAMRAI::tbox::Pointer<ConvectiveOperator> getConvectiveOperator();
 
