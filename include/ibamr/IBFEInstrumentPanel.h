@@ -44,7 +44,6 @@
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
-#include "libmesh/exodusII_io.h"
 #include "libmesh/mesh.h"
 #include "libmesh/point.h"
 #include "libmesh/serial_mesh.h"

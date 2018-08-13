@@ -78,7 +78,6 @@
 #include "libmesh/dense_vector.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
-#include "libmesh/exodusII_io.h"
 #include "libmesh/face_tri3.h"
 #include "libmesh/linear_implicit_system.h"
 #include "libmesh/mesh.h"
@@ -316,7 +315,7 @@ IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Dat
       d_meter_meshes(),
       d_meter_mesh_names(),
       d_nodeset_IDs_for_meters(),
-      d_instrument_dump_interval(),
+      d_instrument_dump_interval(), 
       d_flow_values(),
       d_mean_pressure_values(),
       d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d"),
@@ -1064,7 +1063,7 @@ IBFEInstrumentPanel::initializeSystemDependentData(IBFEMethod* ib_method_ops, co
         displacement_coords.set(disp_dof_idx, mean_dX_dofs[d]);
     }
 
-    // also populate solution vector in the system for exodus IO
+    // also populate solution vector in the system
     MeshBase::const_node_iterator node_it = d_meter_meshes[meter_mesh_number]->local_nodes_begin();
     const MeshBase::const_node_iterator end_node_it = d_meter_meshes[meter_mesh_number]->local_nodes_end();
     for (; node_it != end_node_it; ++node_it)
