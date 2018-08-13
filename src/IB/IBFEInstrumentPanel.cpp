@@ -313,7 +313,6 @@ IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Dat
       d_nodes(),
       d_node_dof_IDs(),
       d_meter_systems(),
-      d_exodus_io(),
       d_meter_meshes(),
       d_meter_mesh_names(),
       d_nodeset_IDs_for_meters(),
@@ -360,7 +359,6 @@ IBFEInstrumentPanel::~IBFEInstrumentPanel()
     // delete vectors of pointers
     for (unsigned int ii = 0; ii < d_num_meters; ++ii)
     {
-        delete d_exodus_io[ii];
         delete d_meter_systems[ii];
         delete d_meter_meshes[ii];
     }
@@ -521,7 +519,6 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
         }
         d_meter_meshes[ii]->allow_renumbering(false);
         d_meter_meshes[ii]->prepare_for_use();
-        d_exodus_io.push_back(new ExodusII_IO(*d_meter_meshes[ii]));
     } // loop over meters
 
     // initialize meter mesh equation systems, for both velocity and displacement
@@ -1141,19 +1138,6 @@ IBFEInstrumentPanel::outputData(const double data_time)
         }
         d_mean_pressure_stream << "\n";
         d_flux_stream << "\n";
-    }
-}
-
-void
-IBFEInstrumentPanel::outputExodus(IBFEMethod* ib_method_ops, const int timestep, const double loop_time)
-{
-    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
-    {
-        initializeSystemDependentData(ib_method_ops, ii);
-        std::ostringstream mesh_output;
-        mesh_output << d_plot_directory_name << "/"
-                    << "" << d_meter_mesh_names[ii] << ".ex2";
-        d_exodus_io[ii]->write_timestep(mesh_output.str(), *d_meter_systems[ii], timestep, loop_time);
     }
 }
 

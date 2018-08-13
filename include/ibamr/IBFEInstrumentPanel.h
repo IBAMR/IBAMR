@@ -138,11 +138,6 @@ private:
     void outputData(double data_time);
 
     /*!
-     * \brief write out meshes and equation systems in Exodus file.
-     */
-    void outputExodus(IBAMR::IBFEMethod* ib_method_ops, int timestep, double loop_time);
-
-    /*!
      * \brief write out nodes.
      */
     void outputNodes();
@@ -225,11 +220,6 @@ private:
      * \brief contains pointers to the equation systems for the meter mesh.
      */
     std::vector<libMesh::EquationSystems*> d_meter_systems;
-
-    /*!
-     * \brief vector of exodus io objects for data output.
-     */
-    std::vector<libMesh::ExodusII_IO*> d_exodus_io;
 
     /*!
      * \brief vector of meter mesh pointers.
