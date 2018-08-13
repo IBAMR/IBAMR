@@ -106,6 +106,7 @@
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
+#include "libmesh/point_locator_base.h"
 #include "petscvec.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
@@ -514,6 +515,12 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
 		if ( (!d_use_pressure_jump_conditions || !d_use_velocity_jump_conditions) && d_compute_fluid_traction)
 		{
 			TBOX_ERROR(d_object_name << ": To compute the traction both velocity and preussure jumps need to be turned on!"
+                                                     << std::endl);
+		}
+		
+		if ( (!d_use_pressure_jump_conditions || !d_use_velocity_jump_conditions) && d_use_codim1_codim0_coupling)
+		{
+			TBOX_ERROR(d_object_name << ": To do the coupling velocity and preussure jumps plus the traction calc need to be turned on!"
                                                      << std::endl);
 		}
 		
@@ -1691,20 +1698,47 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                     // Compute the value of the surface force at the quadrature
                     // point and add the corresponding force to the
                     // right-hand-side vector.
-                    fe_interpolator.setInterpolatedDataPointers(
-                        surface_force_var_data, surface_force_grad_var_data, surface_force_fcn_system_idxs, elem, qp);
-                    d_lag_surface_force_fcn_data[part].fcn(F_s,
-                                                           n,
-                                                           N,
-                                                           FF,
-                                                           x,
-                                                           X,
-                                                           elem,
-                                                           /*side*/ 0,
-                                                           surface_force_var_data,
-                                                           surface_force_grad_var_data,
-                                                           data_time,
-                                                           d_lag_surface_force_fcn_data[part].ctx);
+                    
+                    if (d_use_codim1_codim0_coupling)
+                    {
+						UniquePtr<PointLocatorBase> locator_ptr = mesh.sub_point_locator();
+					    PointLocatorBase & locator = *locator_ptr;
+						if (!mesh.is_serial()) locator.enable_out_of_mesh_mode(); 
+						const Elem* e = locator(x);
+						fe_interpolator.setInterpolatedDataPointers(
+							surface_force_var_data, surface_force_grad_var_data, surface_force_fcn_system_idxs, e, qp);
+								d_lag_surface_force_fcn_data[part].fcn(F_s,
+															   n,
+															   N,
+															   FF,
+															   x,
+															   X,
+															   const_cast<libMesh::Elem*>(e),
+															   /*side*/ 0,
+															   surface_force_var_data,
+															   surface_force_grad_var_data,
+															   data_time,
+															   d_lag_surface_force_fcn_data[part].ctx);
+															   
+					}
+                    else
+                    {
+						fe_interpolator.setInterpolatedDataPointers(
+							surface_force_var_data, surface_force_grad_var_data, surface_force_fcn_system_idxs, elem, qp);
+						d_lag_surface_force_fcn_data[part].fcn(F_s,
+															   n,
+															   N,
+															   FF,
+															   x,
+															   X,
+															   elem,
+															   /*side*/ 0,
+															   surface_force_var_data,
+															   surface_force_grad_var_data,
+															   data_time,
+															   d_lag_surface_force_fcn_data[part].ctx);
+					}
+					
                     F += F_s;
                 }
 
@@ -2271,6 +2305,7 @@ IBFESurfaceMethod::putToDatabase(Pointer<Database> db)
     db->putBool("d_use_velocity_jump_conditions", d_use_velocity_jump_conditions);
     db->putBool("d_use_pressure_jump_conditions", d_use_pressure_jump_conditions);
     db->putBool("d_compute_fluid_traction", d_compute_fluid_traction);
+    db->putBool("d_codim1_codim0_coupling", d_use_codim1_codim0_coupling);
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
     db->putBool("d_use_direct_forcing", d_use_direct_forcing);
     return;
@@ -3930,6 +3965,7 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     d_use_velocity_jump_conditions = false;
     d_use_pressure_jump_conditions = false;
     d_compute_fluid_traction = false;
+    d_use_codim1_codim0_coupling = false;
     d_perturb_fe_mesh_nodes = true;
     d_normalize_pressure_jump = false;
     d_use_consistent_mass_matrix = true;
@@ -4098,6 +4134,7 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         if (db->isDouble("p_calc_width")) d_p_calc_width = db->getDouble("p_calc_width");
         if (db->isDouble("wss_calc_width")) d_wss_calc_width = db->getDouble("wss_calc_width");
         if (db->isBool("compute_fluid_traction")) d_compute_fluid_traction = db->getBool("compute_fluid_traction");
+        if (db->isBool("use_codim1_codim0_coupling")) d_use_codim1_codim0_coupling = db->getBool("use_codim1_codim0_coupling");
     }
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
@@ -4152,6 +4189,7 @@ IBFESurfaceMethod::getFromRestart()
     d_use_pressure_jump_conditions = db->getBool("d_use_pressure_jump_conditions");
     d_use_velocity_jump_conditions = db->getBool("d_use_velocity_jump_conditions");
     d_compute_fluid_traction = db->getBool("d_compute_fluid_traction");
+    d_use_codim1_codim0_coupling = db->getBool("d_use_codim1_codim0_coupling");
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     d_use_direct_forcing = db->getBool("d_use_direct_forcing");
     return;
