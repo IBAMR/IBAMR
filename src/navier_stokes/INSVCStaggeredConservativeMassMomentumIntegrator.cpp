@@ -1296,7 +1296,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
     d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_v_bdry_fill->fillData(d_current_time);
     d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
-        d_V_scratch_idx, d_coarsest_ln, d_finest_ln, /*enforce_at_all_phy_bdrys*/ true);
+        d_V_scratch_idx, d_coarsest_ln, d_finest_ln, StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
     enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_sc_bc_coefs, NULL);
     d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
@@ -1390,7 +1390,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
             d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
             d_hier_v_bdry_fill->fillData(eval_time);
             d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
-                d_V_scratch_idx, d_coarsest_ln, d_finest_ln, /*enforce_at_all_phy_bdrys*/ true);
+                d_V_scratch_idx, d_coarsest_ln, d_finest_ln, StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
             enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
             StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_sc_bc_coefs, NULL);
             d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
