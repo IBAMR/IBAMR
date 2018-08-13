@@ -560,6 +560,10 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
             d_U_dof_idx[jj].push_back(U_dof_index);
         }
     }
+    
+    // output the nodes of each meter mesh into a .dat file
+    outputNodes();
+    
     d_initialized = true;
 }
 
@@ -960,13 +964,6 @@ IBFEInstrumentPanel::getFromInput(Pointer<Database> db)
                    << " is only supported with QuadratureType QGRID.");
     }
     return;
-}
-
-void
-IBFEInstrumentPanel::outputMeterMeshes(IBFEMethod* ib_method_ops, const int timestep_num, const double data_time)
-{
-    // things to do at initial timestep
-    if (timestep_num == 1) outputNodes();
 }
 
 int

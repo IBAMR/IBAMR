@@ -100,11 +100,6 @@ public:
                             double data_time);
 
     /*!
-     * \brief output exodus files and .dat file for meshes and nodes.
-     */
-    void outputMeterMeshes(IBAMR::IBFEMethod* ib_method_ops, int timestep_num, double data_time);
-
-    /*!
      * \return get the instrument dump interval.
      */
     int getInstrumentDumpInterval() const;
