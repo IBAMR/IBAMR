@@ -967,7 +967,6 @@ IBFEInstrumentPanel::outputMeterMeshes(IBFEMethod* ib_method_ops, const int time
 {
     // things to do at initial timestep
     if (timestep_num == 1) outputNodes();
-    outputExodus(ib_method_ops, timestep_num, data_time);
 }
 
 int
