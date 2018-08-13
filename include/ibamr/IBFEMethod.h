@@ -817,6 +817,7 @@ protected:
     bool d_phi_current_config;
     bool d_has_stress_normalization_parts;
     std::vector<bool> d_is_stress_normalization_part;
+    double d_dt_previous;
 
     /*
      * Data related to constraining overlaps between pairs of parts.

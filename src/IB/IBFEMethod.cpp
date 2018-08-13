@@ -811,6 +811,7 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
     d_equation_systems[part]->parameters.set<Real>("cg_penalty") = d_cg_penalty;
     d_equation_systems[part]->parameters.set<std::string>("Phi_solver") = d_phi_solver;
     d_equation_systems[part]->parameters.set<Real>("Phi_diffusion") = d_phi_diffusion;
+    d_equation_systems[part]->parameters.set<Real>("dt") = d_dt_previous;
 
     // assign function for building Phi linear system.  defaults to CG discretization
     if (d_phi_solver == CG_PHI_SOLVER_NAME)
@@ -1498,6 +1499,7 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
         if (d_is_stress_normalization_part[part])
         {
             d_equation_systems[part]->parameters.set<Real>("dt") = dt;
+            d_dt_previous = dt; // update timestep
             if (d_phi_solver == CG_DIFFUSION_PHI_SOLVER_NAME)
             {
                 EquationSystems* equation_systems = d_equation_systems[part];
@@ -1505,6 +1507,8 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
                         equation_systems->get_system<TransientLinearImplicitSystem>(PHI_SYSTEM_NAME);
                 Phi_system.time = new_time;
                 *Phi_system.old_local_solution = *Phi_system.current_local_solution;
+                // assemble diffusion system again if timestep has changed
+                if(dt != d_dt_previous) Phi_system.assemble();
             }
         }
             
@@ -4387,6 +4391,7 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     d_ipdg_beta1 = db->getDoubleWithDefault("ipdg_beta1", 2.0);
     d_cg_penalty = db->getDoubleWithDefault("cg_penalty", 1.0e10);
     d_phi_fe_order = static_cast<Order>(db->getIntegerWithDefault("Phi_fe_order", 2));
+    d_dt_previous =  db->getDouble("DT");
 
     return;
 } // getFromInput
