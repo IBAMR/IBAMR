@@ -15,10 +15,10 @@
 void
 callTagLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
                                          const int level_number,
-                                         const double error_data_time,
+                                         const double /*error_data_time*/,
                                          const int tag_index,
                                          const bool initial_time,
-                                         const bool uses_richardson_extrapolation_too,
+                                         const bool /*uses_richardson_extrapolation_too*/,
                                          void* ctx)
 {
     if (initial_time || level_number == hierarchy->getFinestLevelNumber()) return;
@@ -45,7 +45,7 @@ callTagLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy<NDIM> 
 
         for (CellIterator<NDIM> ic(patch_box); ic; ic++)
         {
-            const Index<NDIM>& i = ic();
+            const hier::Index<NDIM>& i = ic();
             const double dist_norm = std::abs((*ls_data)(i)-ptr_ls_tagger->d_tag_value);
 
             if (dist_norm <= ptr_ls_tagger->d_tag_abs_thresh)

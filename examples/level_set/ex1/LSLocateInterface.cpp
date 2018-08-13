@@ -13,7 +13,7 @@ circular_interface_neighborhood(int D_idx,
                                 Pointer<HierarchyMathOps> hier_math_ops,
                                 double /*time*/,
                                 bool /*initial_time*/,
-                                void* ctx)
+                                void* /*ctx*/)
 {
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
@@ -35,7 +35,7 @@ circular_interface_neighborhood(int D_idx,
                 IBTK::Vector coord = IBTK::Vector::Zero();
                 Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
                 const double* patch_X_lower = patch_geom->getXLower();
-                const Index<NDIM>& patch_lower_idx = patch_box.lower();
+                const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
                 const double* const patch_dx = patch_geom->getDx();
                 for (int d = 0; d < NDIM; ++d)
                 {

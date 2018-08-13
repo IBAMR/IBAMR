@@ -1008,7 +1008,7 @@ clean-local:
 @GTEST_ENABLED_TRUE@gtest: $(GTESTS)
 @GTEST_ENABLED_TRUE@	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 @GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/input3d.test $(PWD) ; \
-@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/eel3d.vertex $(PWD) ; \
+@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/sphere3d.vertex $(PWD) ; \
 @GTEST_ENABLED_TRUE@	fi ;
 
 @GTEST_ENABLED_TRUE@gtest-long:

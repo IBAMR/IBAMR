@@ -358,7 +358,7 @@ IBRedundantInitializer::initializeStructurePosition()
 
             d_init_structure_on_level_fcn(j, ln, d_num_vertex[ln][j], d_vertex_posn[ln][j]);
 #if !defined(NDEBUG)
-            if (d_vertex_posn[ln][j].size() != d_num_vertex[ln][j])
+            if (d_vertex_posn[ln][j].size() != std::size_t(d_num_vertex[ln][j]))
             {
                 TBOX_ERROR(d_object_name << ":\n Invalid number of vertices " << d_vertex_posn[ln][j].size() << " of structure "
                                          << j << " on level " << ln << ".\n"
@@ -367,7 +367,7 @@ IBRedundantInitializer::initializeStructurePosition()
 #endif
 
             // Shift and scale the position of structures
-            for (int k = 0; k < d_num_vertex[ln][j]; ++k)
+            for (unsigned int k = 0; k < unsigned(d_num_vertex[ln][j]); ++k)
             {
                 Point& X = d_vertex_posn[ln][j][k];
                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -616,14 +616,14 @@ IBRedundantInitializer::initializeDirectorAndRods()
                 d_init_director_and_rod_on_level_fcn(
                     j, ln, d_directors[ln][j], d_rod_edge_map[ln][j], d_rod_spec_data[ln][j]);
 
-                int min_idx = 0;
-                int max_idx = d_num_vertex[ln][j];
-                if (d_directors[ln][j].size() != max_idx)
+                const int min_idx = 0;
+                const int max_idx = d_num_vertex[ln][j];
+                if (d_directors[ln][j].size() != unsigned(max_idx))
                 {
                     TBOX_ERROR(d_object_name << "\n Not enough director vectors supplied for structure " << j
                                              << "on level " << ln << ".");
                 }
-                for (int k = 0; k < d_directors[ln][j].size(); ++k)
+                for (unsigned int k = 0; k < d_directors[ln][j].size(); ++k)
                 {
                     if (d_directors[ln][j][k].size() != 9)
                     {
@@ -847,7 +847,7 @@ IBRedundantInitializer::initializeInstrumentationData()
                                                  << " is out of range.\n");
                     }
                     std::pair<int, int>& meter_map = it->second;
-                    if (meter_map.first < 0 || meter_map.first >= instrument_names.size())
+                    if (meter_map.first < 0 || unsigned(meter_map.first) >= instrument_names.size())
                     {
                         TBOX_ERROR(d_object_name << ":\n Invalid meter number on level " << ln
                                                  << " and structure number " << j << ".\n Meter index "
@@ -899,7 +899,7 @@ IBRedundantInitializer::initializeInstrumentationData()
                         }
                     }
                 }
-                if (static_cast<int>(encountered_instrument_idx.size()) != new_names.size())
+                if (encountered_instrument_idx.size() != new_names.size())
                 {
                     TBOX_ERROR(d_object_name << ":\n Not all anticipated instrument indices were found on level " << ln
                                              << " and structure number " << j << ". Expected to find "
