@@ -105,10 +105,25 @@ public:
     void outputMeterMeshes(IBAMR::IBFEMethod* ib_method_ops, int timestep_num, double data_time);
 
     /*!
-     * \return return the instrument dump interval.
+     * \return get the instrument dump interval.
      */
     int getInstrumentDumpInterval() const;
-
+    
+    /*!
+     * \return get a pointer to the jjth meter mesh
+     */
+    libMesh::SerialMesh* getMeterMesh(const unsigned int jj) const;
+    
+    /*!
+     * \return get a pointer to the EquationSystem object for jjth meter mesh
+     */
+    libMesh::EquationSystems* getMeterMeshSystem(const unsigned int jj) const;
+    
+    /*!
+     * \return get the name for jjth meter mesh
+     */
+    std::string getMeterMeshName(const unsigned int jj) const;
+    
 private:
     /*!
      * \brief initialize data which depend on the FE equation systems for
@@ -126,11 +141,6 @@ private:
      * \brief write out meshes and equation systems in Exodus file.
      */
     void outputExodus(IBAMR::IBFEMethod* ib_method_ops, int timestep, double loop_time);
-    
-    /*!
-     * \brief write out meshes in STL file.
-     */
-    void outputSTL(IBAMR::IBFEMethod* ib_method_ops, int timestep, double loop_time);
 
     /*!
      * \brief write out nodes.

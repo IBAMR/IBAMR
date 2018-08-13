@@ -700,7 +700,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
                 for (unsigned int d = 0; d < NDIM; ++d) normal[d] = normal_temp(d);
 
                 // loop over quadrature points, compute their physical locations
-                // after displacement, and stores their indices.
+                // after displacement, and store their indices.
                 for (unsigned int qp = 0; qp < qp_points.size(); ++qp)
                 {
                     Vector qp_temp;
@@ -979,6 +979,24 @@ IBFEInstrumentPanel::getInstrumentDumpInterval() const
     return d_instrument_dump_interval;
 }
 
+SerialMesh*
+IBFEInstrumentPanel::getMeterMesh(const unsigned int jj) const
+{
+    return d_meter_meshes[jj];
+}
+
+EquationSystems*
+IBFEInstrumentPanel::getMeterMeshSystem(const unsigned int jj) const
+{
+    return d_meter_systems[jj];
+}
+
+std::string
+IBFEInstrumentPanel::getMeterMeshName(const unsigned int jj) const
+{
+    return d_meter_mesh_names[jj];
+}
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
@@ -1136,18 +1154,6 @@ IBFEInstrumentPanel::outputExodus(IBFEMethod* ib_method_ops, const int timestep,
         mesh_output << d_plot_directory_name << "/"
                     << "" << d_meter_mesh_names[ii] << ".ex2";
         d_exodus_io[ii]->write_timestep(mesh_output.str(), *d_meter_systems[ii], timestep, loop_time);
-    }
-}
-
-void
-IBFEInstrumentPanel::outputSTL(IBFEMethod* ib_method_ops, const int timestep, const double loop_time)
-{
-    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
-    {
-        initializeSystemDependentData(ib_method_ops, ii);
-        std::ostringstream mesh_output;
-        mesh_output << d_plot_directory_name << "/"
-                    << "" << d_meter_mesh_names[ii] << ".stl";
     }
 }
 
