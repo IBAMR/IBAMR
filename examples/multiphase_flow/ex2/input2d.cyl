@@ -42,8 +42,8 @@ H_COARSEST = LENGTH/Nx
 H          = LENGTH/NFINEST
 
 // Parameters for setting rho and mu
-NUM_SOLID_INTERFACE_CELLS = 3.0
-NUM_GAS_INTERFACE_CELLS   = 3.0
+NUM_SOLID_INTERFACE_CELLS = 2.0
+NUM_GAS_INTERFACE_CELLS   = 2.0
 
 // Level set option parameters
 LS_ORDER              = "THIRD_ORDER_WENO"
