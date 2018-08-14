@@ -21,10 +21,12 @@ clean-local:
 
 ## Dimension-independent library
 libIBTK_a_SOURCES = \
-$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f
+$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f \
+../src/utilities/IBTK_MPI.cpp
 
 pkg_include_HEADERS = \
 ../include/ibtk/IBTK_CHKERRQ.h \
+../include/ibtk/IBTK_MPI.h \
 ../include/ibtk/app_namespaces.h \
 ../include/ibtk/compiler_hints.h \
 ../include/ibtk/ibtk_enums.h \

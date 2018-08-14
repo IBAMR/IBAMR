@@ -1,0 +1,440 @@
+// Filename: IBTK_MPI.h
+//
+// Copyright (c) 2002-2017, Boyce Griffith
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
+//
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+
+#ifndef included_IBTK_MPI
+#define included_IBTK_MPI
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include "SAMRAI_config.h"
+
+#include "mpi.h"
+
+#include "tbox/Utilities.h"
+
+namespace IBTK
+{
+/**
+ * @brief Provides C++ wrapper around MPI routines.
+ *
+ * The IBTK_MPI struct provides simple interfaces to common MPI routines. All function calls allow a communicator to be
+ * used. If a null communicator or none is present, the default communicator set by setCommunicator() is used.
+ *
+ * Note that this class is a utility class to group function calls in one
+ * name space (all calls are to static functions).  Thus, you should never
+ * attempt to instantiate a class of type MPI; simply call the functions
+ * as static functions using the MPI::function(...) syntax.
+ */
+
+struct IBTK_MPI
+{
+    /**
+     * MPI Types
+     */
+    typedef MPI_Comm comm;
+    typedef MPI_Group group;
+    typedef MPI_Request request;
+    typedef MPI_Status status;
+
+    /**
+     * Set the communicator that is used for the MPI communication routines.
+     * The default communicator is MPI_COMM_WORLD.
+     */
+    static void setCommunicator(IBTK_MPI::comm communicator);
+
+    /**
+     * Get the current MPI communicator.  The default communicator is
+     * MPI_COMM_WORLD.
+     */
+    static IBTK_MPI::comm getCommunicator();
+
+    /**
+     * Return the processor rank (identifier) from 0 through the number of
+     * processors minus one.
+     */
+    static int getRank(IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Return the number of processors (nodes).
+     */
+    static int getNodes(IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform a global barrier across all processors.
+     */
+    static void barrier(IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform a scalar sum reduction on a double across all nodes.  Each
+     * processor contributes a value x of type double, and the sum is returned
+     * from the function.
+     */
+    static double sumReduction(const double x, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform an array sum reduction on doubles across all nodes.  Each
+     * processor contributes an array of values of type double, and the
+     * element-wise sum is returned in the same array.
+     */
+    static void sumReduction(double* x, const int n = 1, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform a scalar sum reduction on a float across all nodes.  Each
+     * processor contributes a value x of type float, and the sum is returned
+     * from the function.
+     */
+    static float sumReduction(const float x, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform an array sum reduction on floats across all nodes.  Each
+     * processor contributes an array of values of type float, and the
+     * element-wise sum is returned in the same array.
+     */
+    static void sumReduction(float* x, const int n = 1, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform a scalar sum reduction on an integer across all nodes.  Each
+     * processor contributes a value x of type int, and the sum is returned
+     * from the function.
+     */
+    static int sumReduction(const int x, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform an array sum reduction on integers across all nodes.
+     * Each processor contributes an array of values of type int, and
+     * the element-wise sum is returned in the same array.
+     */
+    static void sumReduction(int* x, const int n = 1, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform a scalar min reduction on a double across all nodes.  Each
+     * processor contributes a value x of type double, and the minimum is
+     * returned from the function.
+     *
+     * If a 'rank_of_min' argument is provided, it will set it to the
+     * rank of process holding the minimum value.
+     */
+    static double minReduction(const double x, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform an array min reduction on doubles across all nodes.  Each
+     * processor contributes an array of values of type double, and the
+     * element-wise minimum is returned in the same array.
+     *
+     * If a 'rank_of_min' argument is provided, it will set the array to the
+     * rank of process holding the minimum value.  Like the double argument,
+     * the size of the supplied 'rank_of_min' array should be n.
+     */
+    static void
+    minReduction(double* x, const int n = 1, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform a scalar min reduction on a float across all nodes.  Each
+     * processor contributes a value x of type float, and the minimum is
+     * returned from the function.
+     *
+     * If a 'rank_of_min' argument is provided, it will set it to the
+     * rank of process holding the minimum value.
+     */
+    static float minReduction(const float x, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform an array min reduction on floats across all nodes.  Each
+     * processor contributes an array of values of type float, and the
+     * element-wise minimum is returned in the same array.
+     *
+     * If a 'rank_of_min' argument is provided, it will set the array to the
+     * rank of process holding the minimum value. Like the double argument,
+     * the size of the supplied 'rank_of_min' array should be n.
+     */
+    static void
+    minReduction(float* x, const int n = 1, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform a scalar min reduction on an integer across all nodes.  Each
+     * processor contributes a value x of type int, and the minimum is returned
+     * from the function.
+     *
+     * If a 'rank_of_min' argument is provided, it will set it to the
+     * rank of process holding the minimum value.
+     */
+    static int minReduction(const int x, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform an array min reduction on integers across all nodes.
+     * Each processor contributes an array of values of type int, and
+     * the element-wise minimum is returned in the same array.
+     *
+     * If a 'rank_of_min' argument is provided, it will set the array to the
+     * rank of process holding the minimum value. Like the double argument,
+     * the size of the supplied 'rank_of_min' array should be n.
+     */
+    static void
+    minReduction(int* x, const int n = 1, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform a scalar max reduction on a double across all nodes.  Each
+     * processor contributes a value x of type double, and the maximum is
+     * returned from the function.
+     *
+     * If a 'rank_of_max' argument is provided, it will set it to the
+     * rank of process holding the maximum value.
+     */
+    static double maxReduction(const double x, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform an array max reduction on doubles across all nodes.  Each
+     * processor contributes an array of values of type double, and the
+     * element-wise maximum is returned in the same array.
+     *
+     * If a 'rank_of_max' argument is provided, it will set the array to the
+     * rank of process holding the maximum value. Like the double argument,
+     * the size of the supplied 'rank_of_max' array should be n.
+     */
+    static void
+    maxReduction(double* x, const int n = 1, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform a scalar max reduction on a float across all nodes.  Each
+     * processor contributes a value x of type float, and the maximum is
+     * returned from the function.
+     *
+     * If a 'rank_of_max' argument is provided, it will set it to the
+     * rank of process holding the maximum value.
+     */
+    static float maxReduction(const float x, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform an array max reduction on floats across all nodes.  Each
+     * processor contributes an array of values of type float, and the
+     * element-wise maximum is returned in the same array.
+     *
+     * If a 'rank_of_max' argument is provided, it will set the array to the
+     * rank of process holding the maximum value. Like the double argument,
+     * the size of the supplied 'rank_of_max' array should be n.
+     */
+    static void
+    maxReduction(float* x, const int n = 1, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform a scalar max reduction on an integer across all nodes.  Each
+     * processor contributes a value x of type int, and the maximum is returned
+     * from the function.
+     *
+     * If a 'rank_of_max' argument is provided, it will set it to the
+     * rank of process holding the maximum value.
+     */
+    static int maxReduction(const int x, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform an array max reduction on integers across all nodes.
+     * Each processor contributes an array of values of type int, and
+     * the element-wise maximum is returned in the same array.
+     *
+     * If a 'rank_of_max' argument is provided, it will set the array to the
+     * rank of process holding the maximum value. Like the double argument,
+     * the size of the supplied 'rank_of_max' array should be n.
+     */
+    static void
+    maxReduction(int* x, const int n = 1, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform an all-to-one sum reduction on an integer array.
+     * The final result is only available on the root processor.
+     */
+    static void
+    allToOneSumReduction(int* x, const int n, const int root = 0, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Broadcast integer from specified root process to all other processes.
+     * All processes other than root, receive a copy of the integer value.
+     */
+    static int bcast(const int x, const int root, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Broadcast integer array from specified root processor to all other
+     * processors.  For the root processor, "array" and "length"
+     * are treated as const.
+     */
+    static void bcast(int* x, int& length, const int root, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Broadcast char array from specified root processor to all other
+     * processors.  For the root processor, "array" and "length"
+     * are treated as const.
+     */
+    static void bcast(char* x, int& length, const int root, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /*!
+     * @brief This function sends an MPI message with an integer
+     * array to another processer.
+     *
+     * If the receiving processor knows in advance the length
+     * of the array, use "send_length = false;"  otherwise,
+     * this processor will first send the length of the array,
+     * then send the data.  This call must be paired  with a
+     * matching call to IBTK_MPI::recv.
+     *
+     * @param buf Pointer to integer array buffer with length integers.
+     * @param length Number of integers in buf that we want to send.
+     * @param receiving_proc_number Receiving processor number.
+     * @param send_length Optional boolean argument specifiying if
+     * we first need to send a message with the array size.
+     * Default value is true.
+     * @param tag Optional integer argument specifying an integer tag
+     * to be sent with this message.  Default tag is 0.
+     */
+
+    static void send(const int* buf,
+                     const int length,
+                     const int receiving_proc_number,
+                     const bool send_length = true,
+                     int tag = -1,
+                     IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /*!
+     * @brief This function sends an MPI message with an array of bytes
+     * (MPI_BYTES) to receiving_proc_number.
+     *
+     * This call must be paired with a matching call to IBTK_MPI::recvBytes.
+     *
+     * @param buf Void pointer to an array of number_bytes bytes to send.
+     * @param number_bytes Integer number of bytes to send.
+     * @param receiving_proc_number Receiving processor number.
+     */
+    static void sendBytes(const void* buf,
+                          const int number_bytes,
+                          const int receiving_proc_number,
+                          IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /*!
+     * @brief This function receives an MPI message with an array of
+     * max size number_bytes (MPI_BYTES) from any processer.
+     *
+     * This call must be paired with a matching call to IBTK_MPI::sendBytes.
+     *
+     * This function returns the processor number of the sender.
+     *
+     * @param buf Void pointer to a buffer of size number_bytes bytes.
+     * @param number_bytes Integer number specifing size of buf in bytes.
+     */
+    static int recvBytes(void* buf, int number_bytes, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /*!
+     * @brief This function receives an MPI message with an integer
+     * array from another processer.
+     *
+     * If this processor knows in advance the length of the array,
+     * use "get_length = false;" otherwise, the sending processor
+     * will first send the length of the array, then send the data.
+     * This call must be paired with a matching call to IBTK_MPI::send.
+     *
+     * @param buf Pointer to integer array buffer with capacity of
+     * length integers.
+     * @param length Maximum number of integers that can be stored in
+     * buf.
+     * @param sending_proc_number Processor number of sender.
+     * @param get_length Optional boolean argument specifiying if
+     * we first need to send a message to determine the array size.
+     * Default value is true.
+     * @param tag Optional integer argument specifying a tag which
+     * must be matched by the tag of the incoming message. Default
+     * tag is 0.
+     */
+    static void recv(int* buf,
+                     int& length,
+                     const int sending_proc_number,
+                     const bool get_length = true,
+                     int tag = -1,
+                     IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    //@}
+    /**
+     * Each processor sends an array of integers or doubles to all other
+     * processors; each processor's array may differ in length.
+     * The x_out array must be pre-allocated to the correct length
+     * (this is a bit cumbersome, but is necessary to avoid th allGather
+     * function from allocating memory that is freed elsewhere).
+     * To properly preallocate memory, before calling this method, call
+     *
+     *   size_out = IBTK_MPI::sumReduction(size_in)
+     *
+     * then allocate the x_out array.
+     */
+    static void
+    allGather(const int* x_in, int size_in, int* x_out, int size_out, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static void allGather(const double* x_in,
+                          int size_in,
+                          double* x_out,
+                          int size_out,
+                          IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    //@}
+
+    //@{
+    /**
+     * Each processor sends every other processor an integer or double.
+     * The x_out array should be preallocated to a length equal
+     * to the number of processors.
+     */
+    static void allGather(int x_in, int* x_out, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static void allGather(double x_in, double* x_out, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    //@}
+
+private:
+    static IBTK_MPI::comm d_communicator;
+
+    /**
+     * Performs common functions needed by some of the allToAll methods.
+     */
+    static void
+    allGatherSetup(int size_in, int size_out, int*& rcounts, int*& disps, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    // Structs for passing arguments to MPI
+    struct DoubleIntStruct
+    {
+        double d;
+        int i;
+    };
+    struct FloatIntStruct
+    {
+        float f;
+        int i;
+    };
+    struct IntIntStruct
+    {
+        int j;
+        int i;
+    };
+};
+
+} // namespace IBTK
+
+#endif
