@@ -438,9 +438,9 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(const std::
     }
 
     // Get the scaling coefficients
-    if (input_db->keyExists("condition_no_scaling"))
+    if (input_db->keyExists("operator_scale_factors"))
     {
-        d_A_scale = input_db->getDoubleArray("condition_no_scaling");
+        d_A_scale = input_db->getDoubleArray("operator_scale_factors");
         for (int k = 0; k < d_A_scale.size(); ++k)
         {
             if (d_A_scale[k] <= 0.0)
@@ -448,7 +448,7 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(const std::
                 TBOX_ERROR(d_object_name << "::INSVCStaggeredHierarchyIntegrator():\n"
                                          << " scaling for improving the condition number of\n"
                                          << " the Stokes system must be positive.\n"
-                                         << " condition_no_scaling["
+                                         << " operator_scale_factors["
                                          << k
                                          << "] = "
                                          << d_A_scale[k]
