@@ -81,9 +81,9 @@ SetFluidProperties::~SetFluidProperties()
 void
 SetFluidProperties::setDensityPatchData(int rho_idx,
                                         SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
-                                        const int integrator_step,
+                                        const int /*integrator_step*/,
                                         const double /*current_time*/,
-                                        const bool initial_time,
+                                        const bool /*initial_time*/,
                                         const bool /*regrid_time*/)
 {
     pout << "Resetting density data" << std::endl;
@@ -142,9 +142,9 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
 void
 SetFluidProperties::setViscosityPatchData(int mu_idx,
                                           SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
-                                          const int integrator_step,
+                                          const int /*integrator_step*/,
                                           const double /*current_time*/,
-                                          const bool initial_time,
+                                          const bool /*initial_time*/,
                                           const bool /*regrid_time*/)
 {
     pout << "Resetting viscosity data" << std::endl;

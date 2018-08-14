@@ -44,6 +44,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBMethod.h>
+#include <ibamr/IBRedundantInitializer.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
@@ -64,6 +65,177 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const int iteration_num,
                  const double loop_time,
                  const string& data_dump_dirname);
+
+int finest_ln;
+boost::array<int, NDIM> N;
+SAMRAI::tbox::Array<std::string> struct_list;
+SAMRAI::tbox::Array<int> num_node;
+SAMRAI::tbox::Array<double> ds;
+int num_node_circum, num_node_radial;
+double dr;
+void
+generate_structure(const unsigned int& strct_num,
+                   const int& ln,
+                   int& num_vertices,
+                   std::vector<IBTK::Point>& vertex_posn)
+{
+    if (ln != finest_ln)
+    {
+        num_vertices = 0;
+        vertex_posn.resize(num_vertices);
+    }
+    double beta = 0.25;
+    double alpha = 0.25 * 0.25 / beta;
+    double A = M_PI * alpha * beta; // Area of ellipse
+    double R = sqrt(A / M_PI);      // Radius of disc with equivalent area as ellipse
+    double perim = 2 * M_PI * R;    // Perimenter of equivalent disc
+    double dx = 1.0 / static_cast<double>(N[0]);
+    if (struct_list[strct_num].compare("curve2d") == 0)
+    {
+        //         double sdf = perim/(1.0/(3.0*64.0))/4.0;
+        //         double aa = ceil(sdf);
+        //         double aaa = aa*4.0;
+        //         double aaaa = dx/64.0*aaa;
+        //         int aaaaa = static_cast<int>(aaaa);
+        num_node[strct_num] = static_cast<int>((1.0 / (dx * 64.0)) * ceil(perim / (1.0 / (3.0 * 64.0)) / 4.0) * 4.0);
+        ds[strct_num] = 2.0 * M_PI * R / num_node[strct_num];
+        num_vertices = num_node[strct_num];
+        vertex_posn.resize(num_vertices);
+        for (std::vector<IBTK::Point>::iterator it = vertex_posn.begin(); it != vertex_posn.end(); ++it)
+        {
+            Point& X = *it;
+            int num = std::distance(vertex_posn.begin(), it);
+            double theta = 2.0 * M_PI * num / num_vertices;
+            X(0) = 0.5 + alpha * std::cos(theta);
+            X(1) = 0.5 + beta * std::sin(theta);
+        }
+    }
+    else if (struct_list[strct_num].compare("shell2d") == 0)
+    {
+        double w = 0.0625;
+        num_node_circum = static_cast<int>((dx / 64) * ceil(perim / (1.0 / (3.0 * 64.0)) / 4.0) * 4.0);
+        ds[strct_num] = perim / num_node_circum;
+        num_node_radial = static_cast<int>((dx / 64) * ceil(w / (1.0 / (3.0 * 64.0)) / 4.0) * 4.0);
+        dr = w / num_node_radial;
+        num_node[strct_num] = num_node_circum * num_node_radial;
+        num_vertices = num_node[strct_num];
+        vertex_posn.resize(num_vertices);
+        for (int k = 0; k < num_node_radial; ++k)
+        {
+            for (int l = 0; l < num_node_circum; ++l)
+            {
+                IBTK::Point& X = vertex_posn[num_node_radial * k + l];
+                double theta = 2.0 * M_PI * l / num_node_circum;
+                double r = k * w / (num_node_radial - 1);
+                X(0) = 0.5 + (alpha + r) * std::cos(theta);
+                X(1) = 0.5 + (beta + r) * std::sin(theta);
+            }
+        }
+    }
+    else if (struct_list[strct_num].compare("shell2d_radial") == 0)
+    {
+        double w = 0.0625;
+        num_node_circum = static_cast<int>((dx / 64) * ceil(perim / (1.0 / (3.0 * 64.0)) / 4.0) * 4.0);
+        ds[strct_num] = perim / num_node_circum;
+        num_node_radial = static_cast<int>((dx / 64) * ceil(w / (1.0 / (3.0 * 64.0)) / 4.0) * 4.0);
+        dr = w / num_node_radial;
+        num_node[strct_num] = num_node_circum * num_node_radial;
+        num_vertices = num_node[strct_num];
+        vertex_posn.resize(num_vertices);
+        for (int k = 0; k < num_node_radial; ++k)
+        {
+            for (int l = 0; l < num_node_circum; ++l)
+            {
+                IBTK::Point& X = vertex_posn[num_node_radial * k + l];
+                double theta = 2.0 * M_PI * l / num_node_circum;
+                double r = k * w / (num_node_radial - 1);
+                X(0) = 0.5 + (alpha + r) * std::cos(theta);
+                X(1) = 0.5 + (beta + r) * std::sin(theta);
+            }
+        }
+    }
+    return;
+}
+
+void
+generate_springs(
+    const unsigned int& strct_num,
+    const int& ln,
+    std::multimap<int, IBRedundantInitializer::Edge>& spring_map,
+    std::map<IBRedundantInitializer::Edge, IBRedundantInitializer::SpringSpec, IBRedundantInitializer::EdgeComp>&
+        spring_spec)
+{
+    if (ln != finest_ln) return;
+    double K = 1.0;
+    if (struct_list[strct_num].compare("curve2d") == 0)
+    {
+        for (int k = 0; k < num_node[strct_num]; ++k)
+        {
+            IBRedundantInitializer::Edge e;
+            std::vector<double> parameters(2);
+            int force_fcn_idx = 0;
+            e.first = k;
+            e.second = (k + 1) % num_node[strct_num];
+            if (e.first > e.second) std::swap(e.first, e.second);
+            spring_map.insert(std::make_pair(e.first, e));
+            IBRedundantInitializer::SpringSpec spec_data;
+            parameters[0] = K / ds[strct_num]; // spring constant
+            parameters[1] = 0.0;               // resting length
+            spec_data.parameters = parameters;
+            spec_data.force_fcn_idx = force_fcn_idx;
+            spring_spec.insert(std::make_pair(e, spec_data));
+        }
+    }
+    else if (struct_list[strct_num].compare("shell2d") == 0)
+    {
+        double w = 0.0625;
+        K /= w;
+        for (int k = 0; k < num_node_radial; ++k)
+        {
+            for (int l = 0; l < num_node_circum; ++l)
+            {
+                IBRedundantInitializer::Edge e;
+                std::vector<double> parameters(2);
+                int force_fcn_idx = 0;
+                e.first = l + k * num_node_circum;
+                e.second = (l + 1) % num_node_circum + k * num_node_circum;
+                if (e.first > e.second) std::swap(e.first, e.second);
+                spring_map.insert(std::make_pair(e.first, e));
+                IBRedundantInitializer::SpringSpec spec_data;
+                parameters[0] = K * dr / ds[strct_num];
+                parameters[1] = 0.0;
+                spec_data.parameters = parameters;
+                spec_data.force_fcn_idx = force_fcn_idx;
+                spring_spec.insert(std::make_pair(e, spec_data));
+            }
+        }
+    }
+    else if (struct_list[strct_num].compare("shell2d_radial") == 0)
+    {
+        double w = 0.0625;
+        K /= w;
+        for (int k = 0; k < num_node_radial - 1; ++k)
+        {
+            for (int l = 0; l < num_node_circum; ++l)
+            {
+                IBRedundantInitializer::Edge e;
+                std::vector<double> parameters(2);
+                int force_fcn_idx = 0;
+                e.first = l + k * num_node_circum;
+                e.second = l + (k + 1) * num_node_circum;
+                if (e.first > e.second) std::swap(e.first, e.second);
+                spring_map.insert(std::make_pair(e.first, e));
+                IBRedundantInitializer::SpringSpec spec_data;
+                parameters[0] = K * ds[strct_num] / dr;
+                parameters[1] = 0.0;
+                spec_data.parameters = parameters;
+                spec_data.force_fcn_idx = force_fcn_idx;
+                spring_spec.insert(std::make_pair(e, spec_data));
+            }
+        }
+    }
+    return;
+}
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -163,8 +335,20 @@ bool run_example(int argc, char* argv[],  std::vector<double>& u_err,  std::vect
                                         load_balancer);
 
         // Configure the IB solver.
-        Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
-            "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
+        Pointer<IBRedundantInitializer> ib_initializer = new IBRedundantInitializer(
+            "IBRedundantInitializer", app_initializer->getComponentDatabase("IBRedundantInitializer"));
+        struct_list.resizeArray(input_db->getArraySize("STRUCTURE_LIST"));
+        //         input_db->getStringArray("STRUCTURE_LIST", struct_list, input_db->getArraySize("STRUCTURE_LIST"));
+        struct_list = input_db->getStringArray("STRUCTURE_LIST");
+        std::vector<std::string> struct_list_vec(struct_list.getSize());
+        for (int i = 0; i < struct_list.size(); ++i) struct_list_vec[i] = struct_list[i];
+        ds.resizeArray(struct_list.size());
+        num_node.resizeArray(struct_list.getSize());
+        N[0] = N[1] = input_db->getInteger("N");
+        finest_ln = input_db->getInteger("MAX_LEVELS") - 1;
+        ib_initializer->setStructureNamesOnLevel(finest_ln, struct_list_vec);
+        ib_initializer->registerInitStructureFunction(generate_structure);
+        ib_initializer->registerInitSpringDataFunction(generate_springs);
         ib_method_ops->registerLInitStrategy(ib_initializer);
         Pointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
         ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);

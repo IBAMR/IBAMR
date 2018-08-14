@@ -41,6 +41,8 @@
 #include "ibamr/IBFEMethod.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/ibtk_utilities.h"
+#include "libmesh/enum_order.h"
+#include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/exodusII_io.h"
 #include "libmesh/mesh.h"
@@ -56,7 +58,7 @@ namespace IBAMR
 /*!
  * \brief Class IBFEInstrumentPanel provides support for meters to measure flow
  * and pressure.
-*/
+ */
 class IBFEInstrumentPanel
 {
 public:
@@ -100,7 +102,7 @@ public:
     /*!
      * \brief output exodus files and .dat file for meshes and nodes.
      */
-    void outputMeterMeshes(int timestep_num, double data_time);
+    void outputMeterMeshes(IBAMR::IBFEMethod* ib_method_ops, int timestep_num, double data_time);
 
     /*!
      * \return return the instrument dump interval.
@@ -109,9 +111,11 @@ public:
 
 private:
     /*!
-     * \brief update system data.
+     * \brief initialize data which depend on the FE equation systems for
+     * the meter mesh.  this includes computing the max radius of the mesh
+     * in the current configuration, and updating the mesh's system data.
      */
-    void updateSystemData(IBAMR::IBFEMethod* ib_method_ops, int meter_num);
+    void initializeSystemDependentData(IBAMR::IBFEMethod* ib_method_ops, int meter_mesh_number);
 
     /*!
      * \brief write out data to file.
@@ -121,7 +125,7 @@ private:
     /*!
      * \brief write out meshes and equation systems in Exodus file.
      */
-    void outputExodus(int timestep, double loop_time);
+    void outputExodus(IBAMR::IBFEMethod* ib_method_ops, int timestep, double loop_time);
 
     /*!
      * \brief write out nodes.
@@ -129,19 +133,41 @@ private:
     void outputNodes();
 
     /*!
+     * \brief vector storing radius for each meter
+     */
+    std::vector<double> d_meter_radii;
+
+    /*!
+     * \brief get the maximum radius of the meter in its current configuration
+     */
+    double getMeterRadius(int meter_mesh_number);
+
+    /*!
      * \brief number of mesh meters.
      */
     unsigned int d_num_meters;
 
     /*!
-     * \brief quad order used for the meter meshes.
+     * \brief quadrature order used for the meter meshes.
      */
-    libMesh::Order d_quad_order;
+    std::vector<libMesh::Order> d_quad_order;
 
     /*!
-     * \brief total number of quadrature points in the meter mesh.
+     * \brief quadrature order from input file
      */
-    std::vector<int> d_num_quad_points;
+    libMesh::Order d_input_quad_order;
+
+    /*!
+     * \brief whether we use a grid based quadrature rule.
+     * if false, then we default to using a high order Gauss
+     * quadrature.
+     */
+    bool d_use_adaptive_quadrature;
+
+    /*!
+     * \brief quadrature type used for the meter meshes.
+     */
+    libMesh::QuadratureType d_quad_type;
 
     /*!
      * \brief part ID where the meter mesh lives, i.e. its parent mesh.
@@ -224,14 +250,12 @@ private:
         {
             return (lhs(0) < rhs(0)
 #if (NDIM > 1)
-                    ||
-                    (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                    || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM > 2)
-                    ||
-                    (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                    || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
-                        );
+            );
         }
     };
 

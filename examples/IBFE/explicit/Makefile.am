@@ -1,18 +1,15 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = ex0 ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 
+SUBDIRS = ex0 ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 ex9 ex10 ex11
 
-## Standard make targets.
-examples:
-	@(cd ex0 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd ex1 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd ex2 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd ex3 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd ex4 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd ex5 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd ex6 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd ex7 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd ex8 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+COMPLETE_EXAMPLES = $(SUBDIRS)
+INCOMPLETE_EXAMPLES =
+.PHONY: examples $(COMPLETE_EXAMPLES)
+examples: $(COMPLETE_EXAMPLES)
+
+$(COMPLETE_EXAMPLES):
+	cd $@ && $(MAKE) $(AM_MAKEFLAGS) examples
+
 gtest:
 	@(cd ex0 && make gtest) || exit 1;
 	@(cd ex1 && make gtest) || exit 1;
@@ -23,6 +20,9 @@ gtest:
 	@(cd ex6 && make gtest) || exit 1;
 	@(cd ex7 && make gtest) || exit 1;
 	@(cd ex8 && make gtest) || exit 1;
+	@(cd ex9 && make gtest) || exit 1;
+	@(cd ex10 && make gtest) || exit 1;
+	@(cd ex11 && make gtest) || exit 1;
 
 gtest-long:
 	@(cd ex0 && make gtest) || exit 1;
@@ -34,6 +34,9 @@ gtest-long:
 	@(cd ex6 && make gtest) || exit 1;
 	@(cd ex7 && make gtest-long) || exit 1;
 	@(cd ex8 && make gtest-long) || exit 1;
+	@(cd ex9 && make gtest) || exit 1;
+	@(cd ex10 && make gtest-long) || exit 1;
+	@(cd ex11 && make gtest-long) || exit 1;
 
 gtest-all:
 	@(cd ex0 && make gtest-long) || exit 1;
@@ -45,3 +48,6 @@ gtest-all:
 	@(cd ex6 && make gtest-long) || exit 1;
 	@(cd ex7 && make gtest-long) || exit 1;
 	@(cd ex8 && make gtest-long) || exit 1;
+	@(cd ex9 && make gtest-long) || exit 1;
+	@(cd ex10 && make gtest-long) || exit 1;
+	@(cd ex11 && make gtest-long) || exit 1;

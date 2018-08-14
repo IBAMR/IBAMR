@@ -45,6 +45,7 @@
 #include "IntVector.h"
 #include "LoadBalancer.h"
 #include "PatchHierarchy.h"
+#include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBStrategy.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/libmesh_utilities.h"
@@ -181,6 +182,11 @@ public:
     void registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data, unsigned int part = 0);
 
     /*!
+     * Get the initial coordinate mapping function data.
+     */
+    CoordinateMappingFcnData getInitialCoordinateMappingFunction(unsigned int part = 0) const;
+
+    /*!
      * Typedef specifying interface for initial velocity specification function.
      */
     typedef void (*InitialVelocityFcnPtr)(libMesh::VectorValue<double>& U0, const libMesh::Point& X0, void* ctx);
@@ -206,6 +212,11 @@ public:
      * zero.
      */
     void registerInitialVelocityFunction(const InitialVelocityFcnData& data, unsigned int part = 0);
+
+    /*!
+     * Get the initial velocity function data.
+     */
+    InitialVelocityFcnData getInitialVelocityFunction(unsigned int part = 0) const;
 
     /*!
      * Typedef specifying interface for PK1 stress tensor function.
@@ -245,6 +256,11 @@ public:
     void registerPK1StressFunction(const PK1StressFcnData& data, unsigned int part = 0);
 
     /*!
+     * Get the PK1 stress function data.
+     */
+    std::vector<PK1StressFcnData> getPK1StressFunction(unsigned int part = 0) const;
+
+    /*!
      * Typedef specifying interface for Lagrangian body force distribution
      * function.
      */
@@ -275,6 +291,11 @@ public:
      * with this class.
      */
     void registerLagBodyForceFunction(const LagBodyForceFcnData& data, unsigned int part = 0);
+
+    /*!
+     * Get the Lagrangian body force function data.
+     */
+    LagBodyForceFcnData getLagBodyForceFunction(unsigned int part = 0) const;
 
     /*!
      * Typedef specifying interface for Lagrangian pressure force distribution
@@ -309,6 +330,11 @@ public:
     void registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& data, unsigned int part = 0);
 
     /*!
+     * Get the Lagrangian surface pressure function data.
+     */
+    LagSurfacePressureFcnData getLagSurfacePressureFunction(unsigned int part = 0) const;
+
+    /*!
      * Typedef specifying interface for Lagrangian surface force distribution
      * function.
      */
@@ -341,6 +367,11 @@ public:
     void registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, unsigned int part = 0);
 
     /*!
+     * Get the Lagrangian surface force function data.
+     */
+    LagSurfaceForceFcnData getLagSurfaceForceFunction(unsigned int part = 0) const;
+
+    /*!
      * Typedef specifying interface for Lagrangian mass source/sink distribution
      * function.
      */
@@ -370,6 +401,20 @@ public:
     void registerLagBodySourceFunction(const LagBodySourceFcnData& data, unsigned int part = 0);
 
     /*!
+     * Get the Lagrangian body source function data.
+     */
+    LagBodySourceFcnData getLagBodySourceFunction(unsigned int part = 0) const;
+
+    /*!
+     * Use tether forces to constrain the motion of a pair of parts.
+     */
+    void constrainPartOverlap(unsigned int part1,
+                              unsigned int part2,
+                              double kappa,
+                              libMesh::QBase* qrule1 = NULL,
+                              libMesh::QBase* qrule2 = NULL);
+    
+    /*!
      * Always reset the velocity of the nodes of part1 that overlap part2 to
      * equal the velocity of part2.
      */
@@ -383,6 +428,13 @@ public:
                                             double kappa,
                                             libMesh::QBase* qrule1 = NULL,
                                             libMesh::QBase* qrule2 = NULL);
+
+    /*!
+     * Register the (optional) direct forcing kinematics object with the finite
+     * element mesh.
+     */
+    void registerDirectForcingKinematics(SAMRAI::tbox::Pointer<IBAMR::IBFEDirectForcingKinematics> data,
+                                         unsigned int part = 0);
 
     /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian
@@ -781,6 +833,11 @@ protected:
      * Functions used to compute the first Piola-Kirchhoff stress tensor.
      */
     std::vector<std::vector<PK1StressFcnData> > d_PK1_stress_fcn_data;
+
+    /*
+     * Objects used to impose direct forcing kinematics.
+     */
+    std::vector<SAMRAI::tbox::Pointer<IBAMR::IBFEDirectForcingKinematics> > d_direct_forcing_kinematics_data;
 
     /*
      * Functions used to compute additional body and surface forces on the

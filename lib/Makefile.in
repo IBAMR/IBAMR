@@ -96,6 +96,7 @@ host_triplet = @host@
 @LIBMESH_ENABLED_TRUE@am__append_5 = \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/CIBFEMethod.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFECentroidPostProcessor.cpp \
+@LIBMESH_ENABLED_TRUE@  ../src/IB/IBFEDirectForcingKinematics.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFEInstrumentPanel.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFEMethod.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFEPostProcessor.cpp \
@@ -108,6 +109,7 @@ host_triplet = @host@
 @LIBMESH_ENABLED_TRUE@am__append_6 = \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/CIBFEMethod.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFECentroidPostProcessor.h \
+@LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEDirectForcingKinematics.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEInstrumentPanel.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEMethod.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEPostProcessor.h \
@@ -222,6 +224,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/IB/IBLagrangianSourceStrategy.cpp \
 	../src/IB/IBMethod.cpp \
 	../src/IB/IBMethodPostProcessStrategy.cpp \
+	../src/IB/IBRedundantInitializer.cpp \
 	../src/IB/IBRodForceSpec.cpp \
 	../src/IB/IBRodForceSpecFactory.cpp \
 	../src/IB/IBHydrodynamicSurfaceForceEvaluator.cpp \
@@ -307,6 +310,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
 	../src/IB/CIBFEMethod.cpp \
 	../src/IB/IBFECentroidPostProcessor.cpp \
+	../src/IB/IBFEDirectForcingKinematics.cpp \
 	../src/IB/IBFEInstrumentPanel.cpp ../src/IB/IBFEMethod.cpp \
 	../src/IB/IBFEPostProcessor.cpp \
 	../src/IB/IBFESurfaceMethod.cpp ../src/IB/IMPInitializer.cpp \
@@ -329,6 +333,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_surface_tension_forcing2d.f
 @LIBMESH_ENABLED_TRUE@am__objects_2 = ../src/IB/libIBAMR2d_a-CIBFEMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFEDirectForcingKinematics.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFEMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFEPostProcessor.$(OBJEXT) \
@@ -367,6 +372,7 @@ am__objects_3 = ../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBMethodPostProcessStrategy.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-IBRedundantInitializer.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBRodForceSpec.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBRodForceSpecFactory.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBHydrodynamicSurfaceForceEvaluator.$(OBJEXT) \
@@ -503,6 +509,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/IB/IBLagrangianSourceStrategy.cpp \
 	../src/IB/IBMethod.cpp \
 	../src/IB/IBMethodPostProcessStrategy.cpp \
+	../src/IB/IBRedundantInitializer.cpp \
 	../src/IB/IBRodForceSpec.cpp \
 	../src/IB/IBRodForceSpecFactory.cpp \
 	../src/IB/IBHydrodynamicSurfaceForceEvaluator.cpp \
@@ -588,6 +595,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
 	../src/IB/CIBFEMethod.cpp \
 	../src/IB/IBFECentroidPostProcessor.cpp \
+	../src/IB/IBFEDirectForcingKinematics.cpp \
 	../src/IB/IBFEInstrumentPanel.cpp ../src/IB/IBFEMethod.cpp \
 	../src/IB/IBFEPostProcessor.cpp \
 	../src/IB/IBFESurfaceMethod.cpp ../src/IB/IMPInitializer.cpp \
@@ -610,6 +618,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_surface_tension_forcing3d.f
 @LIBMESH_ENABLED_TRUE@am__objects_4 = ../src/IB/libIBAMR3d_a-CIBFEMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFEDirectForcingKinematics.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFEMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFEPostProcessor.$(OBJEXT) \
@@ -648,6 +657,7 @@ am__objects_5 = ../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBMethodPostProcessStrategy.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-IBRedundantInitializer.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBRodForceSpec.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBRodForceSpecFactory.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBHydrodynamicSurfaceForceEvaluator.$(OBJEXT) \
@@ -787,6 +797,7 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBExplicitHierarchyIntegrator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEDirectForcingKinematics.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEInstrumentPanel.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Po \
@@ -805,6 +816,7 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethodPostProcessStrategy.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBSourceSpec.Po \
@@ -849,6 +861,7 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBExplicitHierarchyIntegrator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEDirectForcingKinematics.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEInstrumentPanel.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Po \
@@ -867,6 +880,7 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethodPostProcessStrategy.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBSourceSpec.Po \
@@ -1134,6 +1148,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/IBLagrangianSourceStrategy.h \
 	../include/ibamr/IBMethod.h \
 	../include/ibamr/IBMethodPostProcessStrategy.h \
+	../include/ibamr/IBRedundantInitializer.h \
 	../include/ibamr/IBRodForceSpec.h \
 	../include/ibamr/IBHydrodynamicSurfaceForceEvaluator.h \
 	../include/ibamr/IBSourceSpec.h \
@@ -1201,6 +1216,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/Wall.h ../include/ibamr/WallForceEvaluator.h \
 	../include/ibamr/CIBFEMethod.h \
 	../include/ibamr/IBFECentroidPostProcessor.h \
+	../include/ibamr/IBFEDirectForcingKinematics.h \
 	../include/ibamr/IBFEInstrumentPanel.h \
 	../include/ibamr/IBFEMethod.h \
 	../include/ibamr/IBFEPostProcessor.h \
@@ -1577,6 +1593,7 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/IBLagrangianSourceStrategy.h \
 	../include/ibamr/IBMethod.h \
 	../include/ibamr/IBMethodPostProcessStrategy.h \
+	../include/ibamr/IBRedundantInitializer.h \
 	../include/ibamr/IBRodForceSpec.h \
 	../include/ibamr/IBHydrodynamicSurfaceForceEvaluator.h \
 	../include/ibamr/IBSourceSpec.h \
@@ -1673,6 +1690,7 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/CIBMethod.cpp \
 	../src/IB/IBLagrangianSourceStrategy.cpp \
 	../src/IB/IBMethod.cpp \
 	../src/IB/IBMethodPostProcessStrategy.cpp \
+	../src/IB/IBRedundantInitializer.cpp \
 	../src/IB/IBRodForceSpec.cpp \
 	../src/IB/IBRodForceSpecFactory.cpp \
 	../src/IB/IBHydrodynamicSurfaceForceEvaluator.cpp \
@@ -1956,6 +1974,8 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBMethodPostProcessStrategy.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-IBRedundantInitializer.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBRodForceSpec.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBRodForceSpecFactory.$(OBJEXT):  \
@@ -2217,6 +2237,8 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-IBFEDirectForcingKinematics.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBFEMethod.$(OBJEXT):  \
@@ -2360,6 +2382,8 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/IB/libIBAMR3d_a-IBMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBMethodPostProcessStrategy.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-IBRedundantInitializer.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBRodForceSpec.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
@@ -2604,6 +2628,8 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-IBFEDirectForcingKinematics.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBFEMethod.$(OBJEXT):  \
@@ -2706,6 +2732,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBExplicitHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEDirectForcingKinematics.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEInstrumentPanel.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Po@am__quote@ # am--include-marker
@@ -2724,6 +2751,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethodPostProcessStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBSourceSpec.Po@am__quote@ # am--include-marker
@@ -2768,6 +2796,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBExplicitHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEDirectForcingKinematics.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEInstrumentPanel.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Po@am__quote@ # am--include-marker
@@ -2786,6 +2815,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethodPostProcessStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBSourceSpec.Po@am__quote@ # am--include-marker
@@ -3393,6 +3423,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBMethodPostProcessStrategy.cpp' object='../src/IB/libIBAMR2d_a-IBMethodPostProcessStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBMethodPostProcessStrategy.obj `if test -f '../src/IB/IBMethodPostProcessStrategy.cpp'; then $(CYGPATH_W) '../src/IB/IBMethodPostProcessStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBMethodPostProcessStrategy.cpp'; fi`
+
+../src/IB/libIBAMR2d_a-IBRedundantInitializer.o: ../src/IB/IBRedundantInitializer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBRedundantInitializer.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Tpo -c -o ../src/IB/libIBAMR2d_a-IBRedundantInitializer.o `test -f '../src/IB/IBRedundantInitializer.cpp' || echo '$(srcdir)/'`../src/IB/IBRedundantInitializer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBRedundantInitializer.cpp' object='../src/IB/libIBAMR2d_a-IBRedundantInitializer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBRedundantInitializer.o `test -f '../src/IB/IBRedundantInitializer.cpp' || echo '$(srcdir)/'`../src/IB/IBRedundantInitializer.cpp
+
+../src/IB/libIBAMR2d_a-IBRedundantInitializer.obj: ../src/IB/IBRedundantInitializer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBRedundantInitializer.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Tpo -c -o ../src/IB/libIBAMR2d_a-IBRedundantInitializer.obj `if test -f '../src/IB/IBRedundantInitializer.cpp'; then $(CYGPATH_W) '../src/IB/IBRedundantInitializer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBRedundantInitializer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBRedundantInitializer.cpp' object='../src/IB/libIBAMR2d_a-IBRedundantInitializer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBRedundantInitializer.obj `if test -f '../src/IB/IBRedundantInitializer.cpp'; then $(CYGPATH_W) '../src/IB/IBRedundantInitializer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBRedundantInitializer.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-IBRodForceSpec.o: ../src/IB/IBRodForceSpec.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBRodForceSpec.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Tpo -c -o ../src/IB/libIBAMR2d_a-IBRodForceSpec.o `test -f '../src/IB/IBRodForceSpec.cpp' || echo '$(srcdir)/'`../src/IB/IBRodForceSpec.cpp
@@ -4640,6 +4684,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.obj `if test -f '../src/IB/IBFECentroidPostProcessor.cpp'; then $(CYGPATH_W) '../src/IB/IBFECentroidPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFECentroidPostProcessor.cpp'; fi`
 
+../src/IB/libIBAMR2d_a-IBFEDirectForcingKinematics.o: ../src/IB/IBFEDirectForcingKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBFEDirectForcingKinematics.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEDirectForcingKinematics.Tpo -c -o ../src/IB/libIBAMR2d_a-IBFEDirectForcingKinematics.o `test -f '../src/IB/IBFEDirectForcingKinematics.cpp' || echo '$(srcdir)/'`../src/IB/IBFEDirectForcingKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEDirectForcingKinematics.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEDirectForcingKinematics.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFEDirectForcingKinematics.cpp' object='../src/IB/libIBAMR2d_a-IBFEDirectForcingKinematics.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBFEDirectForcingKinematics.o `test -f '../src/IB/IBFEDirectForcingKinematics.cpp' || echo '$(srcdir)/'`../src/IB/IBFEDirectForcingKinematics.cpp
+
+../src/IB/libIBAMR2d_a-IBFEDirectForcingKinematics.obj: ../src/IB/IBFEDirectForcingKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBFEDirectForcingKinematics.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEDirectForcingKinematics.Tpo -c -o ../src/IB/libIBAMR2d_a-IBFEDirectForcingKinematics.obj `if test -f '../src/IB/IBFEDirectForcingKinematics.cpp'; then $(CYGPATH_W) '../src/IB/IBFEDirectForcingKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFEDirectForcingKinematics.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEDirectForcingKinematics.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEDirectForcingKinematics.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFEDirectForcingKinematics.cpp' object='../src/IB/libIBAMR2d_a-IBFEDirectForcingKinematics.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBFEDirectForcingKinematics.obj `if test -f '../src/IB/IBFEDirectForcingKinematics.cpp'; then $(CYGPATH_W) '../src/IB/IBFEDirectForcingKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFEDirectForcingKinematics.cpp'; fi`
+
 ../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.o: ../src/IB/IBFEInstrumentPanel.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEInstrumentPanel.Tpo -c -o ../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.o `test -f '../src/IB/IBFEInstrumentPanel.cpp' || echo '$(srcdir)/'`../src/IB/IBFEInstrumentPanel.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEInstrumentPanel.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEInstrumentPanel.Po
@@ -5171,6 +5229,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBMethodPostProcessStrategy.cpp' object='../src/IB/libIBAMR3d_a-IBMethodPostProcessStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBMethodPostProcessStrategy.obj `if test -f '../src/IB/IBMethodPostProcessStrategy.cpp'; then $(CYGPATH_W) '../src/IB/IBMethodPostProcessStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBMethodPostProcessStrategy.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-IBRedundantInitializer.o: ../src/IB/IBRedundantInitializer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBRedundantInitializer.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Tpo -c -o ../src/IB/libIBAMR3d_a-IBRedundantInitializer.o `test -f '../src/IB/IBRedundantInitializer.cpp' || echo '$(srcdir)/'`../src/IB/IBRedundantInitializer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBRedundantInitializer.cpp' object='../src/IB/libIBAMR3d_a-IBRedundantInitializer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBRedundantInitializer.o `test -f '../src/IB/IBRedundantInitializer.cpp' || echo '$(srcdir)/'`../src/IB/IBRedundantInitializer.cpp
+
+../src/IB/libIBAMR3d_a-IBRedundantInitializer.obj: ../src/IB/IBRedundantInitializer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBRedundantInitializer.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Tpo -c -o ../src/IB/libIBAMR3d_a-IBRedundantInitializer.obj `if test -f '../src/IB/IBRedundantInitializer.cpp'; then $(CYGPATH_W) '../src/IB/IBRedundantInitializer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBRedundantInitializer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBRedundantInitializer.cpp' object='../src/IB/libIBAMR3d_a-IBRedundantInitializer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBRedundantInitializer.obj `if test -f '../src/IB/IBRedundantInitializer.cpp'; then $(CYGPATH_W) '../src/IB/IBRedundantInitializer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBRedundantInitializer.cpp'; fi`
 
 ../src/IB/libIBAMR3d_a-IBRodForceSpec.o: ../src/IB/IBRodForceSpec.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBRodForceSpec.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Tpo -c -o ../src/IB/libIBAMR3d_a-IBRodForceSpec.o `test -f '../src/IB/IBRodForceSpec.cpp' || echo '$(srcdir)/'`../src/IB/IBRodForceSpec.cpp
@@ -6418,6 +6490,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.obj `if test -f '../src/IB/IBFECentroidPostProcessor.cpp'; then $(CYGPATH_W) '../src/IB/IBFECentroidPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFECentroidPostProcessor.cpp'; fi`
 
+../src/IB/libIBAMR3d_a-IBFEDirectForcingKinematics.o: ../src/IB/IBFEDirectForcingKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBFEDirectForcingKinematics.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEDirectForcingKinematics.Tpo -c -o ../src/IB/libIBAMR3d_a-IBFEDirectForcingKinematics.o `test -f '../src/IB/IBFEDirectForcingKinematics.cpp' || echo '$(srcdir)/'`../src/IB/IBFEDirectForcingKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEDirectForcingKinematics.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEDirectForcingKinematics.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFEDirectForcingKinematics.cpp' object='../src/IB/libIBAMR3d_a-IBFEDirectForcingKinematics.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBFEDirectForcingKinematics.o `test -f '../src/IB/IBFEDirectForcingKinematics.cpp' || echo '$(srcdir)/'`../src/IB/IBFEDirectForcingKinematics.cpp
+
+../src/IB/libIBAMR3d_a-IBFEDirectForcingKinematics.obj: ../src/IB/IBFEDirectForcingKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBFEDirectForcingKinematics.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEDirectForcingKinematics.Tpo -c -o ../src/IB/libIBAMR3d_a-IBFEDirectForcingKinematics.obj `if test -f '../src/IB/IBFEDirectForcingKinematics.cpp'; then $(CYGPATH_W) '../src/IB/IBFEDirectForcingKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFEDirectForcingKinematics.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEDirectForcingKinematics.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEDirectForcingKinematics.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFEDirectForcingKinematics.cpp' object='../src/IB/libIBAMR3d_a-IBFEDirectForcingKinematics.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBFEDirectForcingKinematics.obj `if test -f '../src/IB/IBFEDirectForcingKinematics.cpp'; then $(CYGPATH_W) '../src/IB/IBFEDirectForcingKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFEDirectForcingKinematics.cpp'; fi`
+
 ../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.o: ../src/IB/IBFEInstrumentPanel.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEInstrumentPanel.Tpo -c -o ../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.o `test -f '../src/IB/IBFEInstrumentPanel.cpp' || echo '$(srcdir)/'`../src/IB/IBFEInstrumentPanel.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEInstrumentPanel.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEInstrumentPanel.Po
@@ -6734,6 +6820,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBExplicitHierarchyIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEDirectForcingKinematics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEInstrumentPanel.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Po
@@ -6752,6 +6839,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethodPostProcessStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBSourceSpec.Po
@@ -6796,6 +6884,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBExplicitHierarchyIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEDirectForcingKinematics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEInstrumentPanel.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Po
@@ -6814,6 +6903,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethodPostProcessStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBSourceSpec.Po
@@ -7035,6 +7125,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBExplicitHierarchyIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEDirectForcingKinematics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEInstrumentPanel.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Po
@@ -7053,6 +7144,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethodPostProcessStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBSourceSpec.Po
@@ -7097,6 +7189,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBExplicitHierarchyIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEDirectForcingKinematics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEInstrumentPanel.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Po
@@ -7115,6 +7208,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethodPostProcessStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBSourceSpec.Po

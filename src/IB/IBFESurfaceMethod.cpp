@@ -106,6 +106,7 @@
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
+#include "libmesh/enum_xdr_mode.h"
 #include "petscvec.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
@@ -1042,13 +1043,13 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                     F += F_s;
                 }
 
+                for (unsigned int d = 0; d < NDIM; ++d) F_integral(d) += F(d) * JxW[qp];
+
                 const double C_p = F * n * dA / da;
                 if (d_use_jump_conditions)
                 {
                     F -= (F * n) * n;
                 }
-
-                for (unsigned int d = 0; d < NDIM; ++d) F_integral(d) += F(d) * JxW[qp];
 
                 // Add the boundary forces to the right-hand-side vector.
                 for (unsigned int k = 0; k < n_basis; ++k)
@@ -1902,11 +1903,17 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     // Set some default values.
     const bool use_adaptive_quadrature = true;
     const int point_density = 2.0;
+    const bool use_nodal_quadrature = false;
     const bool interp_use_consistent_mass_matrix = true;
-    d_default_interp_spec = FEDataManager::InterpSpec(
-        "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, interp_use_consistent_mass_matrix);
-    d_default_spread_spec =
-        FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density);
+    d_default_interp_spec = FEDataManager::InterpSpec("IB_4",
+                                                      QGAUSS,
+                                                      INVALID_ORDER,
+                                                      use_adaptive_quadrature,
+                                                      point_density,
+                                                      interp_use_consistent_mass_matrix,
+                                                      use_nodal_quadrature);
+    d_default_spread_spec = FEDataManager::SpreadSpec(
+        "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, use_nodal_quadrature);
     d_ghosts = 0;
     d_use_jump_conditions = false;
     d_perturb_fe_mesh_nodes = true;
@@ -2032,6 +2039,11 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     else if (db->isBool("IB_use_consistent_mass_matrix"))
         d_default_interp_spec.use_consistent_mass_matrix = db->getBool("IB_use_consistent_mass_matrix");
 
+    if (db->isBool("interp_use_nodal_quadrature"))
+        d_default_interp_spec.use_nodal_quadrature = db->getBool("interp_use_nodal_quadrature");
+    else if (db->isBool("IB_use_nodal_quadrature"))
+        d_default_interp_spec.use_nodal_quadrature = db->getBool("IB_use_nodal_quadrature");
+
     // Spreading settings.
     if (db->isString("spread_delta_fcn"))
         d_default_spread_spec.kernel_fcn = db->getString("spread_delta_fcn");
@@ -2061,6 +2073,11 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_default_spread_spec.point_density = db->getDouble("spread_point_density");
     else if (db->isDouble("IB_point_density"))
         d_default_spread_spec.point_density = db->getDouble("IB_point_density");
+
+    if (db->isBool("spread_use_nodal_quadrature"))
+        d_default_spread_spec.use_nodal_quadrature = db->getBool("spread_use_nodal_quadrature");
+    else if (db->isBool("IB_use_nodal_quadrature"))
+        d_default_spread_spec.use_nodal_quadrature = db->getBool("IB_use_nodal_quadrature");
 
     // Force computation settings.
     if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");

@@ -33,10 +33,10 @@ PressureInitialConditions {
    p0_sharp = mu*PI*R
 
 // smooth case
-// function = "if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R,(p0_smooth + (mu/R)),if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w,(p0_smooth + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))),p0_smooth))"
+// function = "(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R ? (p0_smooth + (mu/R)) : (sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w ? (p0_smooth + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))) : p0_smooth))"
 
 // sharp case
-   function = "if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R,(p0_sharp - mu/(R+w)),if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w,(p0_sharp + (mu/w)*R/(R+w)),p0_sharp)) + if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R,(p0_smooth + (mu/R)),if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w,(p0_smooth + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))),p0_smooth))"
+   function = "(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R ? (p0_sharp - mu/(R+w)) : (sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w ? (p0_sharp + (mu/w)*R/(R+w)) : p0_sharp)) + (sqrt((X0-0.5)^2 + (X1-0.5)^2) < R ? (p0_smooth + (mu/R)) : (sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w ? (p0_smooth + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))) : p0_smooth))"
 }
 
 // solver parameters

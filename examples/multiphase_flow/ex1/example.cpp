@@ -326,7 +326,7 @@ run_example(int argc, char* argv[])
         const double tag_value = input_db->getDouble("LS_TAG_VALUE");
         const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
         TagLSRefinementCells ls_tagger;
-        ls_tagger.d_ls_gas_var = phi_var_solid;
+        ls_tagger.d_ls_gas_var = phi_var_gas;
         ls_tagger.d_tag_value = tag_value;
         ls_tagger.d_tag_abs_thresh = tag_thresh;
         ls_tagger.d_adv_diff_solver = adv_diff_integrator;

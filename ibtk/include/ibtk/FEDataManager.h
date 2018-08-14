@@ -155,13 +155,15 @@ public:
                    const libMesh::Order& quad_order,
                    bool use_adaptive_quadrature,
                    double point_density,
-                   bool use_consistent_mass_matrix)
+                   bool use_consistent_mass_matrix,
+                   bool use_nodal_quadrature)
             : kernel_fcn(kernel_fcn),
               quad_type(quad_type),
               quad_order(quad_order),
               use_adaptive_quadrature(use_adaptive_quadrature),
               point_density(point_density),
-              use_consistent_mass_matrix(use_consistent_mass_matrix)
+              use_consistent_mass_matrix(use_consistent_mass_matrix),
+              use_nodal_quadrature(use_nodal_quadrature)
         {
         }
 
@@ -171,6 +173,7 @@ public:
         bool use_adaptive_quadrature;
         double point_density;
         bool use_consistent_mass_matrix;
+        bool use_nodal_quadrature;
     };
 
     /*!
@@ -188,12 +191,14 @@ public:
                    const libMesh::QuadratureType& quad_type,
                    const libMesh::Order& quad_order,
                    bool use_adaptive_quadrature,
-                   double point_density)
+                   double point_density,
+                   bool use_nodal_quadrature)
             : kernel_fcn(kernel_fcn),
               quad_type(quad_type),
               quad_order(quad_order),
               use_adaptive_quadrature(use_adaptive_quadrature),
-              point_density(point_density)
+              point_density(point_density),
+              use_nodal_quadrature(use_nodal_quadrature)
         {
         }
 
@@ -202,6 +207,7 @@ public:
         libMesh::Order quad_order;
         bool use_adaptive_quadrature;
         double point_density;
+        bool use_nodal_quadrature;
     };
 
     /*!
@@ -343,6 +349,12 @@ public:
      * active elements.
      */
     const std::vector<std::vector<libMesh::Elem*> >& getActivePatchElementMap() const;
+
+    /*!
+     * \return A const reference to the map from local patch number to local
+     * active nodes.
+     */
+    const std::vector<std::vector<libMesh::Node*> >& getActivePatchNodeMap() const;
 
     /*!
      * \brief Reinitialize the mappings from elements to Cartesian grid patches.
@@ -523,7 +535,7 @@ public:
                                      libMesh::Order quad_order,
                                      bool use_adaptive_quadrature,
                                      double point_density,
-                                     libMesh::Elem* elem,
+                                     const libMesh::Elem* elem,
                                      const boost::multi_array<double, 2>& X_node,
                                      double dx_min);
 
@@ -538,7 +550,7 @@ public:
      */
     static bool updateInterpQuadratureRule(libMesh::UniquePtr<libMesh::QBase>& qrule,
                                            const InterpSpec& spec,
-                                           libMesh::Elem* elem,
+                                           const libMesh::Elem* elem,
                                            const boost::multi_array<double, 2>& X_node,
                                            double dx_min);
 
@@ -553,7 +565,7 @@ public:
      */
     static bool updateSpreadQuadratureRule(libMesh::UniquePtr<libMesh::QBase>& qrule,
                                            const SpreadSpec& spec,
-                                           libMesh::Elem* elem,
+                                           const libMesh::Elem* elem,
                                            const boost::multi_array<double, 2>& X_node,
                                            double dx_min);
 
@@ -717,6 +729,13 @@ private:
                                     const SAMRAI::hier::IntVector<NDIM>& ghost_width);
 
     /*!
+     * Collect all of the nodes of the active elements that are located within a
+     * local Cartesian grid patch grown by the specified ghost cell width.
+     */
+    void collectActivePatchNodes(std::vector<std::vector<libMesh::Node*> >& active_patch_nodes,
+                                 const std::vector<std::vector<libMesh::Elem*> >& active_patch_elems);
+
+    /*!
      * Collect all ghost DOF indices for the specified collection of elements.
      */
     void collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
@@ -816,6 +835,7 @@ private:
      * Data to manage mappings between mesh elements and grid patches.
      */
     std::vector<std::vector<libMesh::Elem*> > d_active_patch_elem_map;
+    std::vector<std::vector<libMesh::Node*> > d_active_patch_node_map;
     std::map<std::string, std::vector<unsigned int> > d_active_patch_ghost_dofs;
     std::vector<std::pair<Point, Point> > d_active_elem_bboxes;
 

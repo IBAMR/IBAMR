@@ -23458,7 +23458,7 @@ $as_echo_n "checking for libMesh version 1.0.0 or newer... " >&6; }
 #if !defined LIBMESH_SUBMINOR_VERSION
 #define LIBMESH_SUBMINOR_VERSION LIBMESH_MICRO_VERSION
 #endif
-#if ((LIBMESH_MAJOR_VERSION >= 1) || ((LIBMESH_MINOR_VERSION >= 1) && (LIBMESH_SUBMINOR_VERSION >= 0)))
+#if LIBMESH_MAJOR_VERSION >= 1
 #else
 asdf
 #endif
