@@ -30,21 +30,16 @@ find( \&selectAllSourceFiles, $replaceDir );
 print "@filesToProcess\n";
 
 for my $file (@filesToProcess) {
-    print "Replacing Pointer<> for source file $file\n";
+    print "Removing DescribedClass for source file $file\n";
     my $directory = dirname $file;
     my $filebasename = basename $file;
     my $tempFile = $filebasename . ".tmp";
     open FILE, "< $file" || die "Cannot open file $file";
     open TEMPFILE, "> $tempFile" || die "Cannot open temporary work file $tempFile";
     while ( my $str = <FILE> ) {
-        # Delete SAMRAI::Pointer header include
-        $str =~ s/#include\ "SAMRAI\/tbox\/Pointer\.h"//g;
-        $str =~ s/#include\ [<"]tbox\/Pointer\.h[>"]//g;
-
-        # Replace Pointer<STUFF> with shared_ptr<STUFF>
-        $str =~ s/(SAMRAI::tbox::)?Pointer\</std::shared_ptr\</g;
-        # Replace constructor with new STUFF to make_shared
-        $str =~ s/([\=\s])new\ ([^\(]*)(\(.*)/$1std::make_shared<$2>$3/g;
+        # Replace Base* with *
+        $str =~ s/#include\ ["<]tbox\/DescribedClass(.h)?[">]//g;
+        $str =~ s/(SAMRAI::)?(tbox::)?DescribedClass//g;
         print TEMPFILE $str;
     }
 

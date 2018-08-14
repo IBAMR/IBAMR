@@ -3,7 +3,6 @@ set -e
 # Run script that removes dimension template first.
 perl ./removeTemplateOnDim.pl "$1"
 perl ./loadBalancer.pl "$1"
-perl ./convertIncludePaths.pl "$2" "$1"
 perl ./removePointer.pl "$1"
 perl ./use_static_pointer_cast.pl "$1"
 for filename in *.pl; do
@@ -14,3 +13,5 @@ for filename in *.pl; do
         perl "$filename" "$1"
     fi
 done
+perl ./convertIncludePaths.pl "$2" "$1"
+

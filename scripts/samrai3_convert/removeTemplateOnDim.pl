@@ -143,6 +143,10 @@ for my $file (@filesToProcess) {
         $str =~ s/$classname(<.*>)?\ ([\w_]*);/$classname$1 $2(Dimension(NDIM));/g;
     }
 
+    $str =~ s/template\ <int DIM>//g;
+    $str =~ s/template\ <int DIM,\s*(.*)>/template <$1>/g;
+
+
     print TEMPFILE $str;
     }
 
