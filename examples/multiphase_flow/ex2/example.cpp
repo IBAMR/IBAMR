@@ -601,6 +601,9 @@ run_example(int argc, char* argv[])
             const Eigen::Vector3d& structure_COM = df_kinematics_ops->getStructureCOM();
             circle.X0(0) = structure_COM[0];
             circle.X0(1) = structure_COM[1];
+#if (NDIM == 3)
+            circle.X0(2) = structure_COM[0][2];
+#endif
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";
