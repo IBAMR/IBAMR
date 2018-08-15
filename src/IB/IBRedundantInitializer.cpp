@@ -176,8 +176,9 @@ IBRedundantInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_wr
     // restart file.
     if (!is_from_restart)
     {
-        // Check if data has been processed.
-        init();
+#if !defined(NDEBUG)
+        TBOX_ASSERT(d_data_processed);
+#endif
 
         for (int ln = 0; ln < d_max_levels; ++ln)
         {
@@ -193,6 +194,10 @@ IBRedundantInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_wr
 bool
 IBRedundantInitializer::getLevelHasLagrangianData(const int level_number, const bool /*can_be_refined*/) const
 {
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_data_processed);
+#endif
+
     return !d_num_vertex[level_number].empty();
 } // getLevelHasLagrangianData
 
@@ -203,8 +208,9 @@ IBRedundantInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHi
                                                            const bool /*can_be_refined*/,
                                                            const bool /*initial_time*/)
 {
-    // Check if data has been processed.
-    init();
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_data_processed);
+#endif
 
     return std::accumulate(d_num_vertex[level_number].begin(), d_num_vertex[level_number].end(), 0);
 }
@@ -216,8 +222,9 @@ IBRedundantInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHie
                                                           const bool /*can_be_refined*/,
                                                           const bool /*initial_time*/)
 {
-    // Check if data has been processed.
-    init();
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_data_processed);
+#endif
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
 
@@ -248,8 +255,9 @@ IBRedundantInitializer::initializeStructureIndexingOnPatchLevel(
     const bool /*initial_time*/,
     LDataManager* const /*l_data_manager*/)
 {
-    // Check if data has been processed.
-    init();
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_data_processed);
+#endif
 
     int offset = 0;
     for (int j = 0; j < static_cast<int>(d_base_filename[level_number].size()); ++j)
@@ -984,8 +992,9 @@ IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                                                    const bool /*initial_time*/,
                                                    LDataManager* const /*l_data_manager*/)
 {
-    // Check if data has been processed.
-    init();
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_data_processed);
+#endif
 
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
@@ -1130,8 +1139,9 @@ IBRedundantInitializer::initializeMassDataOnPatchLevel(const unsigned int /*glob
                                                        const bool /*initial_time*/,
                                                        LDataManager* const /*l_data_manager*/)
 {
-    // Check if data has been processed.
-    init();
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_data_processed);
+#endif
 
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
@@ -1193,8 +1203,9 @@ IBRedundantInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*
                                                            const bool /*initial_time*/,
                                                            LDataManager* const /*l_data_manager*/)
 {
-    // Check if data has been processed.
-    init();
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_data_processed);
+#endif
 
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
@@ -1238,8 +1249,9 @@ IBRedundantInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarch
                                                      const double /*error_data_time*/,
                                                      const int tag_index)
 {
-    // Check if data has been processed.
-    init();
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_data_processed);
+#endif
 
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
@@ -1299,10 +1311,6 @@ IBRedundantInitializer::setStructureNamesOnLevel(const int& level_num, const std
     return;
 }
 
-/////////////////////////////// PROTECTED ////////////////////////////////////
-
-/////////////////////////////// PRIVATE //////////////////////////////////////
-
 void
 IBRedundantInitializer::init()
 {
@@ -1330,6 +1338,10 @@ IBRedundantInitializer::init()
 
     return;
 }
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
 IBRedundantInitializer::initializeLSiloDataWriter(const int level_number)

@@ -845,6 +845,7 @@ LDataManager::registerLInitStrategy(Pointer<LInitStrategy> lag_init)
     TBOX_ASSERT(lag_init);
 #endif
     d_lag_init = lag_init;
+    d_lag_init->init();
     return;
 } // registerLInitStrategy
 
