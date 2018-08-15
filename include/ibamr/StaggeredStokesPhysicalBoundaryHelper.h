@@ -67,6 +67,11 @@ class StaggeredStokesPhysicalBoundaryHelper : public IBTK::StaggeredPhysicalBoun
 {
 public:
     /*!
+     * \brief Boundary tags.
+     */
+    static const short int NORMAL_TRACTION_BDRY, NORMAL_VELOCITY_BDRY, ALL_BDRY;
+
+    /*!
      * \brief Default constructor.
      */
     StaggeredStokesPhysicalBoundaryHelper();
@@ -88,20 +93,31 @@ public:
                                             bool homogeneous_bc,
                                             int coarsest_ln = -1,
                                             int finest_ln = -1) const;
-    /*!
-     * \brief At open boundaries, set normal velocity ghost cell values to
-     * enforce the discrete divergence-free condition in the ghost cell abutting
-     * the physical boundary.
-     */
-    void enforceDivergenceFreeConditionAtBoundary(int u_data_idx, int coarsest_ln = -1, int finest_ln = -1) const;
 
     /*!
-     * \brief At open boundaries, set normal velocity ghost cell values to
-     * enforce the discrete divergence-free condition in the ghost cell abutting
-     * the physical boundary.
+     * \brief Set normal velocity ghost cell values to enforce discrete
+     * divergence-free condition in the ghost cells abutting the physical boundary.
+     *
+     * \note The default behavior is to set these values only in cells adjacent to
+     * boundary locations where normal traction conditions are imposed. Values can also
+     * be set where normal velocity boundary conditions, or both.
+     */
+    void enforceDivergenceFreeConditionAtBoundary(int u_data_idx,
+                                                  int coarsest_ln = -1,
+                                                  int finest_ln = -1,
+                                                  short int bdry_tag = NORMAL_TRACTION_BDRY) const;
+
+    /*!
+     * \brief Set normal velocity ghost cell values to enforce discrete
+     * divergence-free condition in the ghost cells abutting the physical boundary.
+     *
+     * \note The default behavior is to set these values only in cells adjacent to
+     * boundary locations where normal traction conditions are imposed. Values can also
+     * be set where normal velocity boundary conditions, or both.
      */
     void enforceDivergenceFreeConditionAtBoundary(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > u_data,
-                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                                  short int bdry_tag = NORMAL_TRACTION_BDRY) const;
 
     /*!
      * \brief Setup physical boundary condition specification objects for

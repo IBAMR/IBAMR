@@ -509,6 +509,9 @@ run_example(int argc, char* argv[])
             const std::vector<std::vector<double> >& structure_COM = ib_method_ops->getCurrentStructureCOM();
             circle.X0(0) = structure_COM[0][0];
             circle.X0(1) = structure_COM[0][1];
+#if (NDIM == 3)
+            circle.X0(2) = structure_COM[0][2];
+#endif
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";

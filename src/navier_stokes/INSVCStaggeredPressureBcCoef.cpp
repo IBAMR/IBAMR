@@ -273,7 +273,8 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     // conditions are converted into Neumann conditions for the pressure, and
     // normal traction boundary conditions are converted into Dirichlet
     // conditions for the pressure.
-    const double p_scale = d_fluid_solver->getPressureScalingFactor();
+    Array<double> A_scale = d_fluid_solver->getScalingFactor();
+    const double p_scale = A_scale[patch.getPatchLevelNumber()];
     double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
     int mu_idx = -1;
     Pointer<CellData<NDIM, double> > mu_data;
