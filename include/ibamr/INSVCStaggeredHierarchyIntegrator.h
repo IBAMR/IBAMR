@@ -103,15 +103,15 @@ namespace IBAMR
  *
  * An optional re-scaling factor c can be specified to minimize the loss of floating point precision for poorly
  * scaling linear systems. The scaling acts on the momentum part of the saddle-point system, yielding
- * \f$c A + G(c x_p) = c b_u\f$
+ * \f$ c A + G(c x_p) = c b_u\f$
  * in which the viscous block, the pressure degrees of freedom, and the velocity RHS have been scaled.
  *
- * Scaling \f$c\f$ is chosen such that
+ * Scaling \f$ c \f$ is chosen such that
  * \f$ c(\frac{\rho}{dt} - \frac{\mu}{dx^2}) \sim \frac{1}{dx} \f$.
  * The above scaling is chosen from the incompressiblity operator which scales
  * as \f$ (\nabla \cdot) \sim \frac{1}{dx} \f$.
- * Assuming \f$ dt \sim dx$ and \f$ 1/dx = N $, we have
- * \f$ c \sim \frac{1}{\rho - \mu N} \f$. Here N is the number of cells for
+ * Assuming \f$ dt \sim dx \f$ and \f$ 1/dx = N \f$, we have
+ * \f$ c \sim \frac{1}{\rho - \mu N} \f$. Here \f$ N \f$ is the number of cells for
  * a unit length of the physical domain.
  *
  * Different levels of patch hierarchy can have different scaling because
