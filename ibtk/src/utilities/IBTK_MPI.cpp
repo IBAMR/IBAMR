@@ -55,6 +55,24 @@ IBTK_MPI::getCommunicator()
     return (d_communicator);
 } // getCommunicator
 
+int
+IBTK_MPI::getNodes(IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
+{
+    communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
+    int nodes = 1;
+    MPI_Comm_size(communicator, &nodes);
+    return nodes;
+} // getNodes
+
+int
+IBTK_MPI::getRank(IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
+{
+    communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
+    int node = 0;
+    MPI_Comm_rank(communicator, &node);
+    return node;
+} // getRank
+
 void
 IBTK_MPI::barrier(IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
 {
@@ -62,501 +80,82 @@ IBTK_MPI::barrier(IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
     (void)MPI_Barrier(communicator);
 } // barrier
 
-double
-IBTK_MPI::sumReduction(const double x, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
-{
-    double recv = x;
-    communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
-    if (getNodes(communicator) > 1)
-    {
-        double send = x;
-        MPI_Allreduce(&send, &recv, 1, MPI_DOUBLE, MPI_SUM, communicator);
-    }
-    return (recv);
-} // sumReduction
-
+template <typename T>
 void
-IBTK_MPI::sumReduction(double* x, const int n, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
+IBTK_MPI::minReduction(T* x, const int n, int* rank_of_min, IBTK_MPI::comm communicator)
 {
     communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
-    if (getNodes(communicator) > 1)
+    if (n == 0) return;
+    if (rank_of_min == NULL)
     {
-        double* send = new double[n];
-        memcpy(send, x, n * sizeof(double));
-        MPI_Allreduce(send, x, n, MPI_DOUBLE, MPI_SUM, communicator);
-        delete[] send;
+        std::vector<T> send(n);
+        std::copy(x, x + n, send.begin());
+        MPI_Allreduce(send.data(), x, n, mpi_type_id(send[0]), MPI_MIN, communicator);
     }
-} // sumReduction
-
-float
-IBTK_MPI::sumReduction(const float x, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
-{
-    communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
-    float recv = x;
-    if (getNodes(communicator) > 1)
+    else
     {
-        float send = x;
-        MPI_Allreduce(&send, &recv, 1, MPI_FLOAT, MPI_SUM, communicator);
-    }
-    return (recv);
-} // sumReduction
-
-void
-IBTK_MPI::sumReduction(float* x, const int n, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
-{
-    communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
-    if (getNodes(communicator) > 1)
-    {
-        float* send = new float[n];
-        memcpy(send, x, n * sizeof(float));
-        MPI_Allreduce(send, x, n, MPI_FLOAT, MPI_SUM, communicator);
-        delete[] send;
-    }
-} // sumReduction
-
-int
-IBTK_MPI::sumReduction(const int x, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
-{
-    communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
-    int recv = x;
-    if (getNodes(communicator) > 1)
-    {
-        int send = x;
-        MPI_Allreduce(&send, &recv, 1, MPI_INT, MPI_SUM, communicator);
-    }
-    return (recv);
-} // sumReduction
-
-void
-IBTK_MPI::sumReduction(int* x, const int n, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
-{
-    communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
-    if (getNodes(communicator) > 1)
-    {
-        int* send = new int[n];
-        memcpy(send, x, n * sizeof(int));
-        MPI_Allreduce(send, x, n, MPI_INT, MPI_SUM, communicator);
-        delete[] send;
-    }
-} // sumReduction
-
-double
-IBTK_MPI::minReduction(const double x, int* rank_of_min, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
-{
-    double rval = x;
-    communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
-    /*
-     * If a rank_of_min argument is provided, set it to the current
-     * rank of the process.
-     */
-    if (rank_of_min != NULL)
-    {
-        *rank_of_min = getRank(communicator);
-    }
-
-    if (getNodes(communicator) > 1)
-    {
-        if (rank_of_min == NULL)
+        // TODO: both this approach and SAMRAI's assume that we can define
+        // byte-for-byte compatible types with, e.g.,
+        // MPI_FLOAT_INT. Check this with a unit test!
+        std::vector<std::pair<T, int> > recv(n);
+        std::vector<std::pair<T, int> > send(n);
+        for (int i = 0; i < n; ++i)
         {
-            double send = x;
-            MPI_Allreduce(&send, &rval, 1, MPI_DOUBLE, MPI_MIN, communicator);
+            send[i].first = x[i];
+            send[i].second = getRank(communicator);
         }
-        else
+        MPI_Allreduce(send, recv, n, mpi_type_id(recv[0]), MPI_MINLOC, communicator);
+        for (int i = 0; i < n; ++i)
         {
-            DoubleIntStruct recv;
-            DoubleIntStruct send;
-            send.d = x;
-            send.i = getRank();
-            MPI_Allreduce(&send, &recv, 1, MPI_DOUBLE_INT, MPI_MINLOC, communicator);
-            rval = recv.d;
-            *rank_of_min = recv.i;
-        }
-    }
-    return (rval);
-} // minReduction
-
-void
-IBTK_MPI::minReduction(double* x, const int n, int* rank_of_min, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
-{
-    communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
-    if (getNodes(communicator) > 1)
-    {
-        if (rank_of_min == NULL)
-        {
-            double* send = new double[n];
-            memcpy(send, x, n * sizeof(double));
-            MPI_Allreduce(send, x, n, MPI_DOUBLE, MPI_MIN, communicator);
-            delete[] send;
-        }
-        else
-        {
-            DoubleIntStruct* recv = new DoubleIntStruct[n];
-            DoubleIntStruct* send = new DoubleIntStruct[n];
-            for (int i = 0; i < n; ++i)
-            {
-                send[i].d = x[i];
-                send[i].i = getRank(communicator);
-            }
-            MPI_Allreduce(send, recv, n, MPI_DOUBLE_INT, MPI_MINLOC, communicator);
-            for (int i = 0; i < n; ++i)
-            {
-                x[i] = recv[i].d;
-                rank_of_min[i] = send[i].i;
-            }
-            delete[] recv;
-            delete[] send;
+            x[i] = recv[i].first;
+            rank_of_min[i] = send[i].second;
         }
     }
 } // minReduction
 
-float
-IBTK_MPI::minReduction(const float x, int* rank_of_min, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
-{
-    float rval = x;
-
-    communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
-    /*
-     * If a rank_of_min argument is provided, set it to the current
-     * rank of the process.
-     */
-    if (rank_of_min != NULL)
-    {
-        *rank_of_min = getRank(communicator);
-    }
-
-    if (getNodes(communicator) > 1)
-    {
-        if (rank_of_min == NULL)
-        {
-            float send = x;
-            MPI_Allreduce(&send, &rval, 1, MPI_FLOAT, MPI_MIN, communicator);
-        }
-        else
-        {
-            FloatIntStruct recv;
-            FloatIntStruct send;
-            send.f = x;
-            send.i = getRank(communicator);
-            MPI_Allreduce(&send, &recv, 1, MPI_FLOAT_INT, MPI_MINLOC, communicator);
-            rval = recv.f;
-            *rank_of_min = recv.i;
-        }
-    }
-    return (rval);
-} // minReduction
-
+template <typename T>
 void
-IBTK_MPI::minReduction(float* x, const int n, int* rank_of_min, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
+IBTK_MPI::maxReduction(T* x, const int n, int* rank_of_max, IBTK_MPI::comm communicator)
 {
     communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
-    if (getNodes(communicator) > 1)
+    if (n == 0) return;
+    if (rank_of_max == NULL)
     {
-        if (rank_of_min == NULL)
+        std::vector<T> send(n);
+        std::copy(x, x + n, send.begin());
+        MPI_Allreduce(send.data(), x, n, mpi_type_id(send[0]), MPI_MAX, communicator);
+    }
+    else
+    {
+        // TODO: both this approach and SAMRAI's assume that we can define
+        // byte-for-byte compatible types with, e.g.,
+        // MPI_FLOAT_INT. Check this with a unit test!
+        std::vector<std::pair<T, int> > recv(n);
+        std::vector<std::pair<T, int> > send(n);
+        for (int i = 0; i < n; ++i)
         {
-            float* send = new float[n];
-            memcpy(send, x, n * sizeof(float));
-            MPI_Allreduce(send, x, n, MPI_FLOAT, MPI_MIN, communicator);
-            delete[] send;
+            send[i].first = x[i];
+            send[i].second = getRank(communicator);
         }
-        else
+        MPI_Allreduce(send, recv, n, mpi_type_id(recv[0]), MPI_MAXLOC, communicator);
+        for (int i = 0; i < n; ++i)
         {
-            FloatIntStruct* recv = new FloatIntStruct[n];
-            FloatIntStruct* send = new FloatIntStruct[n];
-            for (int i = 0; i < n; ++i)
-            {
-                send[i].f = x[i];
-                send[i].i = getRank(communicator);
-            }
-            MPI_Allreduce(send, recv, n, MPI_FLOAT_INT, MPI_MINLOC, communicator);
-            for (int i = 0; i < n; ++i)
-            {
-                x[i] = recv[i].f;
-                rank_of_min[i] = send[i].i;
-            }
-            delete[] recv;
-            delete[] send;
+            x[i] = recv[i].first;
+            rank_of_max[i] = send[i].second;
         }
     }
-} // minReduction
+} // maxReduction
 
-int
-IBTK_MPI::minReduction(const int x, int* rank_of_min, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
-{
-    int rval = x;
-
-    communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
-    /*
-     * If a rank_of_min argument is provided, set it to the current
-     * rank of the process.
-     */
-    if (rank_of_min != NULL)
-    {
-        *rank_of_min = getRank(communicator);
-    }
-
-    if (getNodes(communicator) > 1)
-    {
-        if (rank_of_min == NULL)
-        {
-            int send = x;
-            MPI_Allreduce(&send, &rval, 1, MPI_INT, MPI_MIN, communicator);
-        }
-        else
-        {
-            IntIntStruct recv;
-            IntIntStruct send;
-            send.j = x;
-            send.i = getRank(communicator);
-            MPI_Allreduce(&send, &recv, 1, MPI_2INT, MPI_MINLOC, communicator);
-            rval = recv.j;
-            *rank_of_min = recv.i;
-        }
-    }
-    return (rval);
-} // minReduction
-
+template <typename T>
 void
-IBTK_MPI::minReduction(int* x, const int n, int* rank_of_min, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
+IBTK_MPI::sumReduction(T* x, const int n, IBTK_MPI::comm communicator)
 {
     communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
-    if (getNodes(communicator) > 1)
-    {
-        if (rank_of_min == NULL)
-        {
-            int* send = new int[n];
-            memcpy(send, x, n * sizeof(int));
-            MPI_Allreduce(send, x, n, MPI_INT, MPI_MIN, communicator);
-            delete[] send;
-        }
-        else
-        {
-            IntIntStruct* recv = new IntIntStruct[n];
-            IntIntStruct* send = new IntIntStruct[n];
-            for (int i = 0; i < n; ++i)
-            {
-                send[i].j = x[i];
-                send[i].i = getRank(communicator);
-            }
-            MPI_Allreduce(send, recv, n, MPI_2INT, MPI_MINLOC, communicator);
-            for (int i = 0; i < n; ++i)
-            {
-                x[i] = recv[i].j;
-                rank_of_min[i] = send[i].i;
-            }
-            delete[] recv;
-            delete[] send;
-        }
-    }
-} // minReduction
-
-double
-IBTK_MPI::maxReduction(const double x, int* rank_of_max, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
-{
-    double rval = x;
-
-    communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
-    /*
-     * If a rank_of_max argument is provided, set it to the current
-     * rank of the process.
-     */
-    if (rank_of_max != NULL)
-    {
-        *rank_of_max = getRank(communicator);
-    }
-
-    if (getNodes() > 1)
-    {
-        if (rank_of_max == NULL)
-        {
-            double send = x;
-            MPI_Allreduce(&send, &rval, 1, MPI_DOUBLE, MPI_MAX, communicator);
-        }
-        else
-        {
-            DoubleIntStruct recv;
-            DoubleIntStruct send;
-            send.d = x;
-            send.i = getRank(communicator);
-            MPI_Allreduce(&send, &recv, 1, MPI_DOUBLE_INT, MPI_MAXLOC, communicator);
-            rval = recv.d;
-            *rank_of_max = recv.i;
-        }
-    }
-    return (rval);
-} // maxReduction
-
-void
-IBTK_MPI::maxReduction(double* x, const int n, int* rank_of_max, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
-{
-    communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
-    if (getNodes(communicator) > 1)
-    {
-        if (rank_of_max == NULL)
-        {
-            double* send = new double[n];
-            memcpy(send, x, n * sizeof(double));
-            MPI_Allreduce(send, x, n, MPI_DOUBLE, MPI_MAX, communicator);
-            delete[] send;
-        }
-        else
-        {
-            DoubleIntStruct* recv = new DoubleIntStruct[n];
-            DoubleIntStruct* send = new DoubleIntStruct[n];
-            for (int i = 0; i < n; ++i)
-            {
-                send[i].d = x[i];
-                send[i].i = getRank(communicator);
-            }
-            MPI_Allreduce(send, recv, n, MPI_DOUBLE_INT, MPI_MAXLOC, communicator);
-            for (int i = 0; i < n; ++i)
-            {
-                x[i] = recv[i].d;
-                rank_of_max[i] = send[i].i;
-            }
-            delete[] recv;
-            delete[] send;
-        }
-    }
-} // maxReduction
-
-float
-IBTK_MPI::maxReduction(const float x, int* rank_of_max, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
-{
-    float rval = x;
-
-    /*
-     * If a rank_of_max argument is provided, set it to the current
-     * rank of the process.
-     */
-    if (rank_of_max != NULL)
-    {
-        *rank_of_max = getRank(communicator);
-    }
-
-    if (getNodes(communicator) > 1)
-    {
-        if (rank_of_max == NULL)
-        {
-            float send = x;
-            MPI_Allreduce(&send, &rval, 1, MPI_FLOAT, MPI_MAX, communicator);
-        }
-        else
-        {
-            FloatIntStruct recv;
-            FloatIntStruct send;
-            send.f = x;
-            send.i = getRank(communicator);
-            MPI_Allreduce(&send, &recv, 1, MPI_FLOAT_INT, MPI_MAXLOC, communicator);
-            rval = recv.f;
-            *rank_of_max = recv.i;
-        }
-    }
-    return (rval);
-} // maxReduction
-
-void
-IBTK_MPI::maxReduction(float* x, const int n, int* rank_of_max, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
-{
-    communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
-    if (getNodes(communicator) > 1)
-    {
-        if (rank_of_max == NULL)
-        {
-            float* send = new float[n];
-            memcpy(send, x, n * sizeof(float));
-            MPI_Allreduce(send, x, n, MPI_FLOAT, MPI_MAX, communicator);
-            delete[] send;
-        }
-        else
-        {
-            FloatIntStruct* recv = new FloatIntStruct[n];
-            FloatIntStruct* send = new FloatIntStruct[n];
-            for (int i = 0; i < n; ++i)
-            {
-                send[i].f = x[i];
-                send[i].i = getRank(communicator);
-            }
-            MPI_Allreduce(send, recv, n, MPI_FLOAT_INT, MPI_MAXLOC, communicator);
-            for (int i = 0; i < n; ++i)
-            {
-                x[i] = recv[i].f;
-                rank_of_max[i] = send[i].i;
-            }
-            delete[] recv;
-            delete[] send;
-        }
-    }
-} // maxReduction
-
-int
-IBTK_MPI::maxReduction(const int x, int* rank_of_max, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
-{
-    int rval = x;
-
-    communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
-    /*
-     * If a rank_of_max argument is provided, set it to the current
-     * rank of the process.
-     */
-    if (rank_of_max != NULL)
-    {
-        *rank_of_max = getRank(communicator);
-    }
-
-    if (getNodes(communicator) > 1)
-    {
-        if (rank_of_max == NULL)
-        {
-            int send = x;
-            MPI_Allreduce(&send, &rval, 1, MPI_INT, MPI_MAX, communicator);
-        }
-        else
-        {
-            IntIntStruct recv;
-            IntIntStruct send;
-            send.j = x;
-            send.i = getRank(communicator);
-            MPI_Allreduce(&send, &recv, 1, MPI_2INT, MPI_MAXLOC, communicator);
-            rval = recv.j;
-            *rank_of_max = recv.i;
-        }
-    }
-    return (rval);
-} // maxReduction
-
-void
-IBTK_MPI::maxReduction(int* x, const int n, int* rank_of_max, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)
-{
-    communicator = communicator == MPI_COMM_NULL ? d_communicator : communicator;
-    if (getNodes(communicator) > 1)
-    {
-        if (rank_of_max == NULL)
-        {
-            int* send = new int[n];
-            memcpy(send, x, n * sizeof(int));
-            MPI_Allreduce(send, x, n, MPI_INT, MPI_MAX, communicator);
-            delete[] send;
-        }
-        else
-        {
-            IntIntStruct* recv = new IntIntStruct[n];
-            IntIntStruct* send = new IntIntStruct[n];
-            for (int i = 0; i < n; ++i)
-            {
-                send[i].j = x[i];
-                send[i].i = getRank(communicator);
-            }
-            MPI_Allreduce(send, recv, n, MPI_2INT, MPI_MAXLOC, communicator);
-            for (int i = 0; i < n; ++i)
-            {
-                x[i] = recv[i].j;
-                rank_of_max[i] = send[i].i;
-            }
-            delete[] recv;
-            delete[] send;
-        }
-    }
-} // maxReduction
+    if (n == 0 || getNodes(communicator) < 2) return;
+    std::vector<T> send(n);
+    std::copy(x, x + n, send.begin());
+    MPI_Allreduce(send.data(), x, n, mpi_type_id(send[0]), MPI_SUM, communicator);
+} // sumReduction
 
 void
 IBTK_MPI::allToOneSumReduction(int* x, const int n, const int root, IBTK_MPI::comm communicator /* = MPI_COMM_NULL */)

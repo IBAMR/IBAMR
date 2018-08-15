@@ -39,6 +39,7 @@
 #include "mpi.h"
 
 #include "tbox/Utilities.h"
+#include <boost/iterator/iterator_concepts.hpp>
 
 namespace IBTK
 {
@@ -92,179 +93,60 @@ struct IBTK_MPI
      */
     static void barrier(IBTK_MPI::comm communicator = MPI_COMM_NULL);
 
-    /**
-     * Perform a scalar sum reduction on a double across all nodes.  Each
-     * processor contributes a value x of type double, and the sum is returned
-     * from the function.
-     */
-    static double sumReduction(const double x, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    inline static MPI_Datatype mpi_type_id(const double)
+    {
+        return MPI_DOUBLE;
+    }
+
+    inline static MPI_Datatype mpi_type_id(const std::pair<double, int>)
+    {
+        return MPI_DOUBLE_INT;
+    }
+
+    inline static MPI_Datatype mpi_type_id(const int)
+    {
+        return MPI_INT;
+    }
+
+    inline static MPI_Datatype mpi_type_id(const std::pair<int, int>)
+    {
+        return MPI_2INT;
+    }
+
+    inline static MPI_Datatype mpi_type_id(const float)
+    {
+        return MPI_FLOAT;
+    }
+
+    inline static MPI_Datatype mpi_type_id(const std::pair<float, int>)
+    {
+        return MPI_FLOAT_INT;
+    }
 
     /**
-     * Perform an array sum reduction on doubles across all nodes.  Each
-     * processor contributes an array of values of type double, and the
+     * Perform a min reduction on a type T data structure. Each processor contributes an array of values and
+     * element-wise min is returned in the same array. If the rank_of_min is not null, the rank of which processor the
+     * min is located is stored in the array.
+     */
+    template <typename T>
+    static void
+    minReduction(T* x, const int n = 1, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform a max reduction on a type T data structure. Each processor contributes an array of values and
+     * element-wise max is returned in the same array. If the rank_of_max is not null, the rank of which processor the
+     * max is located is stored in the array.
+     */
+    template <typename T>
+    static void
+    maxReduction(T* x, const int n = 1, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    /**
+     * Perform a sum reduction on a type T data structure. Each processor contributes an array of values and
      * element-wise sum is returned in the same array.
      */
-    static void sumReduction(double* x, const int n = 1, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-
-    /**
-     * Perform a scalar sum reduction on a float across all nodes.  Each
-     * processor contributes a value x of type float, and the sum is returned
-     * from the function.
-     */
-    static float sumReduction(const float x, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-
-    /**
-     * Perform an array sum reduction on floats across all nodes.  Each
-     * processor contributes an array of values of type float, and the
-     * element-wise sum is returned in the same array.
-     */
-    static void sumReduction(float* x, const int n = 1, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-
-    /**
-     * Perform a scalar sum reduction on an integer across all nodes.  Each
-     * processor contributes a value x of type int, and the sum is returned
-     * from the function.
-     */
-    static int sumReduction(const int x, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-
-    /**
-     * Perform an array sum reduction on integers across all nodes.
-     * Each processor contributes an array of values of type int, and
-     * the element-wise sum is returned in the same array.
-     */
-    static void sumReduction(int* x, const int n = 1, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-
-    /**
-     * Perform a scalar min reduction on a double across all nodes.  Each
-     * processor contributes a value x of type double, and the minimum is
-     * returned from the function.
-     *
-     * If a 'rank_of_min' argument is provided, it will set it to the
-     * rank of process holding the minimum value.
-     */
-    static double minReduction(const double x, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-
-    /**
-     * Perform an array min reduction on doubles across all nodes.  Each
-     * processor contributes an array of values of type double, and the
-     * element-wise minimum is returned in the same array.
-     *
-     * If a 'rank_of_min' argument is provided, it will set the array to the
-     * rank of process holding the minimum value.  Like the double argument,
-     * the size of the supplied 'rank_of_min' array should be n.
-     */
-    static void
-    minReduction(double* x, const int n = 1, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-
-    /**
-     * Perform a scalar min reduction on a float across all nodes.  Each
-     * processor contributes a value x of type float, and the minimum is
-     * returned from the function.
-     *
-     * If a 'rank_of_min' argument is provided, it will set it to the
-     * rank of process holding the minimum value.
-     */
-    static float minReduction(const float x, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-
-    /**
-     * Perform an array min reduction on floats across all nodes.  Each
-     * processor contributes an array of values of type float, and the
-     * element-wise minimum is returned in the same array.
-     *
-     * If a 'rank_of_min' argument is provided, it will set the array to the
-     * rank of process holding the minimum value. Like the double argument,
-     * the size of the supplied 'rank_of_min' array should be n.
-     */
-    static void
-    minReduction(float* x, const int n = 1, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-
-    /**
-     * Perform a scalar min reduction on an integer across all nodes.  Each
-     * processor contributes a value x of type int, and the minimum is returned
-     * from the function.
-     *
-     * If a 'rank_of_min' argument is provided, it will set it to the
-     * rank of process holding the minimum value.
-     */
-    static int minReduction(const int x, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-
-    /**
-     * Perform an array min reduction on integers across all nodes.
-     * Each processor contributes an array of values of type int, and
-     * the element-wise minimum is returned in the same array.
-     *
-     * If a 'rank_of_min' argument is provided, it will set the array to the
-     * rank of process holding the minimum value. Like the double argument,
-     * the size of the supplied 'rank_of_min' array should be n.
-     */
-    static void
-    minReduction(int* x, const int n = 1, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-
-    /**
-     * Perform a scalar max reduction on a double across all nodes.  Each
-     * processor contributes a value x of type double, and the maximum is
-     * returned from the function.
-     *
-     * If a 'rank_of_max' argument is provided, it will set it to the
-     * rank of process holding the maximum value.
-     */
-    static double maxReduction(const double x, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-
-    /**
-     * Perform an array max reduction on doubles across all nodes.  Each
-     * processor contributes an array of values of type double, and the
-     * element-wise maximum is returned in the same array.
-     *
-     * If a 'rank_of_max' argument is provided, it will set the array to the
-     * rank of process holding the maximum value. Like the double argument,
-     * the size of the supplied 'rank_of_max' array should be n.
-     */
-    static void
-    maxReduction(double* x, const int n = 1, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-
-    /**
-     * Perform a scalar max reduction on a float across all nodes.  Each
-     * processor contributes a value x of type float, and the maximum is
-     * returned from the function.
-     *
-     * If a 'rank_of_max' argument is provided, it will set it to the
-     * rank of process holding the maximum value.
-     */
-    static float maxReduction(const float x, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-
-    /**
-     * Perform an array max reduction on floats across all nodes.  Each
-     * processor contributes an array of values of type float, and the
-     * element-wise maximum is returned in the same array.
-     *
-     * If a 'rank_of_max' argument is provided, it will set the array to the
-     * rank of process holding the maximum value. Like the double argument,
-     * the size of the supplied 'rank_of_max' array should be n.
-     */
-    static void
-    maxReduction(float* x, const int n = 1, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-
-    /**
-     * Perform a scalar max reduction on an integer across all nodes.  Each
-     * processor contributes a value x of type int, and the maximum is returned
-     * from the function.
-     *
-     * If a 'rank_of_max' argument is provided, it will set it to the
-     * rank of process holding the maximum value.
-     */
-    static int maxReduction(const int x, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-
-    /**
-     * Perform an array max reduction on integers across all nodes.
-     * Each processor contributes an array of values of type int, and
-     * the element-wise maximum is returned in the same array.
-     *
-     * If a 'rank_of_max' argument is provided, it will set the array to the
-     * rank of process holding the maximum value. Like the double argument,
-     * the size of the supplied 'rank_of_max' array should be n.
-     */
-    static void
-    maxReduction(int* x, const int n = 1, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    template <typename T>
+    static void sumReduction(T* x, const int n = 1, IBTK_MPI::comm communicator = MPI_COMM_NULL);
 
     /**
      * Perform an all-to-one sum reduction on an integer array.
@@ -416,23 +298,6 @@ private:
      */
     static void
     allGatherSetup(int size_in, int size_out, int*& rcounts, int*& disps, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-
-    // Structs for passing arguments to MPI
-    struct DoubleIntStruct
-    {
-        double d;
-        int i;
-    };
-    struct FloatIntStruct
-    {
-        float f;
-        int i;
-    };
-    struct IntIntStruct
-    {
-        int j;
-        int i;
-    };
 };
 
 } // namespace IBTK
