@@ -123,6 +123,7 @@ struct IBTK_MPI
         return MPI_FLOAT_INT;
     }
 
+    //@{
     /**
      * Perform a min reduction on a type T data structure. Each processor contributes an array of values and
      * element-wise min is returned in the same array. If the rank_of_min is not null, the rank of which processor the
@@ -131,7 +132,11 @@ struct IBTK_MPI
     template <typename T>
     static void
     minReduction(T* x, const int n = 1, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    template <typename T>
+    static T minReduction(T x, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    //@}
 
+    //@{
     /**
      * Perform a max reduction on a type T data structure. Each processor contributes an array of values and
      * element-wise max is returned in the same array. If the rank_of_max is not null, the rank of which processor the
@@ -140,13 +145,20 @@ struct IBTK_MPI
     template <typename T>
     static void
     maxReduction(T* x, const int n = 1, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    template <typename T>
+    static T maxReduction(T x, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    //@}
 
+    //@{
     /**
      * Perform a sum reduction on a type T data structure. Each processor contributes an array of values and
      * element-wise sum is returned in the same array.
      */
     template <typename T>
     static void sumReduction(T* x, const int n = 1, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    template <typename T>
+    static T sumReduction(T x, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    //@}
 
     /**
      * Perform an all-to-one sum reduction on an integer array.
@@ -257,7 +269,7 @@ struct IBTK_MPI
                      const bool get_length = true,
                      int tag = -1,
                      IBTK_MPI::comm communicator = MPI_COMM_NULL);
-    //@}
+    //@{
     /**
      * Each processor sends an array of integers or doubles to all other
      * processors; each processor's array may differ in length.

@@ -114,6 +114,14 @@ IBTK_MPI::minReduction(T* x, const int n, int* rank_of_min, IBTK_MPI::comm commu
 } // minReduction
 
 template <typename T>
+T
+IBTK_MPI::minReduction(T x, int* rank_of_min, IBTK_MPI::comm communicator)
+{
+    minReduction(&x, 1, rank_of_min, communicator);
+    return x;
+} // minReduction
+
+template <typename T>
 void
 IBTK_MPI::maxReduction(T* x, const int n, int* rank_of_max, IBTK_MPI::comm communicator)
 {
@@ -147,6 +155,14 @@ IBTK_MPI::maxReduction(T* x, const int n, int* rank_of_max, IBTK_MPI::comm commu
 } // maxReduction
 
 template <typename T>
+T
+IBTK_MPI::maxReduction(T x, int* rank_of_max, IBTK_MPI::comm communicator)
+{
+    maxReduction(&x, 1, rank_of_max, communicator);
+    return x;
+} // maxReduction
+
+template <typename T>
 void
 IBTK_MPI::sumReduction(T* x, const int n, IBTK_MPI::comm communicator)
 {
@@ -155,6 +171,14 @@ IBTK_MPI::sumReduction(T* x, const int n, IBTK_MPI::comm communicator)
     std::vector<T> send(n);
     std::copy(x, x + n, send.begin());
     MPI_Allreduce(send.data(), x, n, mpi_type_id(send[0]), MPI_SUM, communicator);
+} // sumReduction
+
+template <typename T>
+T
+IBTK_MPI::sumReduction(T x, IBTK_MPI::comm communicator)
+{
+    sumReduction(&x, 1, communicator);
+    return x;
 } // sumReduction
 
 void
