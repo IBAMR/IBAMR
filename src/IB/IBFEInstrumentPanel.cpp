@@ -315,7 +315,7 @@ IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Dat
       d_meter_meshes(),
       d_meter_mesh_names(),
       d_nodeset_IDs_for_meters(),
-      d_instrument_dump_interval(), 
+      d_instrument_dump_interval(),
       d_flow_values(),
       d_mean_pressure_values(),
       d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d"),
@@ -559,10 +559,6 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
             d_U_dof_idx[jj].push_back(U_dof_index);
         }
     }
-    
-    // output the nodes of each meter mesh into a .dat file
-    outputNodes();
-    
     d_initialized = true;
 }
 
@@ -971,22 +967,40 @@ IBFEInstrumentPanel::getInstrumentDumpInterval() const
     return d_instrument_dump_interval;
 }
 
-SerialMesh*
-IBFEInstrumentPanel::getMeterMesh(const unsigned int jj) const
+int 
+IBFEInstrumentPanel::getNumberOfMeterMeshes() const
 {
-    return d_meter_meshes[jj];
+    return d_num_meters;
 }
 
-EquationSystems*
-IBFEInstrumentPanel::getMeterMeshSystem(const unsigned int jj) const
+MeshBase&
+IBFEInstrumentPanel::getMeterMesh(const unsigned int jj) const
 {
-    return d_meter_systems[jj];
+    return *d_meter_meshes[jj];
+}
+
+EquationSystems&
+IBFEInstrumentPanel::getMeterMeshEquationSystems(const unsigned int jj) const
+{
+    return *d_meter_systems[jj];
 }
 
 std::string
 IBFEInstrumentPanel::getMeterMeshName(const unsigned int jj) const
 {
     return d_meter_mesh_names[jj];
+}
+
+std::vector<libMesh::Point>
+IBFEInstrumentPanel::getMeterMeshNodes(const unsigned int jj) const
+{
+    return d_nodes[jj];
+}
+
+Order
+IBFEInstrumentPanel::getMeterMeshQuadOrder(const unsigned int jj) const
+{
+    return d_quad_order[jj];
 }
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
@@ -1133,27 +1147,6 @@ IBFEInstrumentPanel::outputData(const double data_time)
         }
         d_mean_pressure_stream << "\n";
         d_flux_stream << "\n";
-    }
-}
-
-void
-IBFEInstrumentPanel::outputNodes()
-{
-    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
-    {
-        std::ofstream stuff_stream;
-        std::ostringstream node_output;
-        node_output << d_plot_directory_name << "/"
-                    << "" << d_meter_mesh_names[ii] << "_nodes.dat";
-        if (SAMRAI_MPI::getRank() == 0)
-        {
-            stuff_stream.open(node_output.str().c_str());
-            for (unsigned int dd = 0; dd < d_nodes[ii].size(); ++dd)
-            {
-                stuff_stream << d_nodes[ii][dd](0) << " " << d_nodes[ii][dd](1) << " " << d_nodes[ii][dd](2) << "\n";
-            }
-            stuff_stream.close();
-        }
     }
 }
 

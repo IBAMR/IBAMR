@@ -99,24 +99,39 @@ public:
                             double data_time);
 
     /*!
-     * \return get the instrument dump interval.
+     * \return get the instrument dump interval
      */
     int getInstrumentDumpInterval() const;
     
     /*!
+     * \return get the number of meter meshes
+     */
+    int getNumberOfMeterMeshes() const;
+    
+    /*!
      * \return get a pointer to the jjth meter mesh
      */
-    libMesh::SerialMesh* getMeterMesh(const unsigned int jj) const;
+    libMesh::MeshBase& getMeterMesh(const unsigned int jj) const;
     
     /*!
      * \return get a pointer to the EquationSystem object for jjth meter mesh
      */
-    libMesh::EquationSystems* getMeterMeshSystem(const unsigned int jj) const;
+    libMesh::EquationSystems& getMeterMeshEquationSystems(const unsigned int jj) const;
     
     /*!
      * \return get the name for jjth meter mesh
      */
     std::string getMeterMeshName(const unsigned int jj) const;
+    
+    /*!
+     * \return get the ordered vector or nodes for the jjth meter mesh
+     */
+    std::vector<libMesh::Point> getMeterMeshNodes(const unsigned int jj) const;
+    
+    /*!
+     * \return get the quadrature order for the jjth meter mesh
+     */
+    libMesh::Order getMeterMeshQuadOrder(const unsigned int jj) const;
     
 private:
     /*!
