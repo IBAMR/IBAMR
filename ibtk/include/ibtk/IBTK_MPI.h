@@ -78,6 +78,11 @@ struct IBTK_MPI
     static IBTK_MPI::comm getCommunicator();
 
     /**
+     * Get SAMRAI World communicator.
+     */
+    static IBTK_MPI::comm getSAMRAIWorld();
+
+    /**
      * Return the processor rank (identifier) from 0 through the number of
      * processors minus one.
      */
