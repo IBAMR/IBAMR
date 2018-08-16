@@ -111,12 +111,12 @@ public:
     /*!
      * \return A reference to the jjth meter mesh
      */
-    const libMesh::MeshBase& getMeterMesh(const unsigned int jj) const;
+    libMesh::MeshBase& getMeterMesh(const unsigned int jj) const;
     
     /*!
      * \return A reference to the EquationSystems object for jjth meter mesh
      */
-    const libMesh::EquationSystems& getMeterMeshEquationSystems(const unsigned int jj) const;
+    libMesh::EquationSystems& getMeterMeshEquationSystems(const unsigned int jj) const;
     
     /*!
      * \return The name for jjth meter mesh

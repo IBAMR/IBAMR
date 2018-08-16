@@ -973,13 +973,13 @@ IBFEInstrumentPanel::getNumberOfMeterMeshes() const
     return d_num_meters;
 }
 
-const MeshBase&
+MeshBase&
 IBFEInstrumentPanel::getMeterMesh(const unsigned int jj) const
 {
     return *d_meter_meshes[jj];
 }
 
-const EquationSystems&
+EquationSystems&
 IBFEInstrumentPanel::getMeterMeshEquationSystems(const unsigned int jj) const
 {
     return *d_meter_systems[jj];
