@@ -114,7 +114,7 @@ public:
     const libMesh::MeshBase& getMeterMesh(const unsigned int jj) const;
     
     /*!
-     * \return A reference to the EquationSystem object for jjth meter mesh
+     * \return A reference to the EquationSystems object for jjth meter mesh
      */
     const libMesh::EquationSystems& getMeterMeshEquationSystems(const unsigned int jj) const;
     
