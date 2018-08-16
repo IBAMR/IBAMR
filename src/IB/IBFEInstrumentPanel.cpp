@@ -973,25 +973,25 @@ IBFEInstrumentPanel::getNumberOfMeterMeshes() const
     return d_num_meters;
 }
 
-MeshBase&
+const MeshBase&
 IBFEInstrumentPanel::getMeterMesh(const unsigned int jj) const
 {
     return *d_meter_meshes[jj];
 }
 
-EquationSystems&
+const EquationSystems&
 IBFEInstrumentPanel::getMeterMeshEquationSystems(const unsigned int jj) const
 {
     return *d_meter_systems[jj];
 }
 
-std::string
+const std::string&
 IBFEInstrumentPanel::getMeterMeshName(const unsigned int jj) const
 {
     return d_meter_mesh_names[jj];
 }
 
-std::vector<libMesh::Point>
+const std::vector<libMesh::Point>&
 IBFEInstrumentPanel::getMeterMeshNodes(const unsigned int jj) const
 {
     return d_nodes[jj];
