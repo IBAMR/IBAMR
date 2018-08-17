@@ -35,22 +35,20 @@ for my $file (@filesToProcess) {
     my $tempFile = $filebasename . ".tmp";
     open FILE, "< $file" || die "Cannot open file $file";
     open TEMPFILE, "> $tempFile" || die "Cannot open temporary file $tempFile";
-    my $printed = 1;
-    my ($ending) = $filebasename =~ /(\.[^.]+)$/;
-    if ($ending eq ".h") {
-        $printed = 0;
-    }
+    my $found = 0;
     while ( my $str = <FILE> ) {
-        # Search for default ghost cell registers
-        $str =~ s/SAMRAI_MPI::/IBTK_MPI::/g;
-        $str =~ s/IBTK_MPI::commWorld/IBTK_MPI::getSAMRAIWorld()/g;
-        print TEMPFILE $str;
-        if ($printed == 0 && ($str =~ /#include\ "ibtk/ || $str =~ /#include\ "ibamr/))
-        {
-            my $str_new = "#include \"ibtk/IBTK_MPI.h\"\n";
-            print TEMPFILE $str_new;
-            $printed = 1;
+
+        # Search for SAMRAI_MPI calls
+        if ($str =~ s/SAMRAI_MPI::/IBTK_MPI::/g) {
+            $found = 1;
         }
+        if ($str =~ /IBTK_MPI::setCommunicator/ || $str =~ /IBTK_MPI::setCallAbortInSerialInsteadOfExit/) {
+            $str =~ s/IBTK_MPI::/SAMRAI_MPI::/g;
+        }
+        if ($str =~ s/IBTK_MPI::commWorld/IBTK_MPI::getSAMRAIWorld()/g) {
+            $found = 1;
+        }
+        print TEMPFILE $str;
     }
     close FILE || die "Cannot close file $file\n";
     close TEMPFILE || die "Cannot close file $tempFile\n";
@@ -60,4 +58,26 @@ for my $file (@filesToProcess) {
         unlink($file);
         rename($tempFile, $file);
     }
+
+    if ($found) {
+        my $printed = 0;
+        open FILE, "< $file" || die "Cannot open file $file";
+        open TEMPFILE, "> $tempFile" || die "Cannot open temporary file $tempFile";
+        while ( my $str = <FILE> ) {
+            if ($printed == 0 && ($str =~ /#include\ "ibtk/ || $str =~ /#include\ "ibamr/)) {
+                print TEMPFILE "#include \"ibtk/IBTK_MPI.h\"\n";
+                $printed = 1;
+            }
+            print TEMPFILE $str;
+        }
+        close FILE || die "Cannot close file $file\n";
+        close TEMPFILE || die "Cannot close file $tempFile\n";
+        if (compare($file,$tempFile) == 0) {
+            unlink($tempFile);
+        } else {
+            unlink($file);
+            rename($tempFile, $file);
+        }
+    }
+
 }
