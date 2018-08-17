@@ -128,7 +128,7 @@ VelocityInitialCondition::setDataOnPatch(const int data_idx,
                 IBTK::Vector coord_lower = IBTK::Vector::Zero();
                 IBTK::Vector coord_upper = IBTK::Vector::Zero();
                 const double* patch_X_lower = patch_geom->getXLower();
-                const Index<NDIM>& patch_lower_idx = patch_box.lower();
+                const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
                 const double* const patch_dx = patch_geom->getDx();
                 for (int d = 0; d < NDIM; ++d)
                 {
