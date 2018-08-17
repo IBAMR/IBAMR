@@ -102,37 +102,37 @@ public:
      * \return The instrument dump interval
      */
     int getInstrumentDumpInterval() const;
-    
+
     /*!
      * \return The number of meter meshes
      */
     int getNumberOfMeterMeshes() const;
-    
+
     /*!
      * \return A reference to the jjth meter mesh
      */
     libMesh::MeshBase& getMeterMesh(const unsigned int jj) const;
-    
+
     /*!
      * \return A reference to the EquationSystems object for jjth meter mesh
      */
     libMesh::EquationSystems& getMeterMeshEquationSystems(const unsigned int jj) const;
-    
+
     /*!
      * \return The name for jjth meter mesh
      */
     const std::string& getMeterMeshName(const unsigned int jj) const;
-    
+
     /*!
      * \return An ordered vector of nodes for the jjth meter mesh
      */
     const std::vector<libMesh::Point>& getMeterMeshNodes(const unsigned int jj) const;
-    
+
     /*!
      * \return The quadrature order for the jjth meter mesh
      */
     libMesh::Order getMeterMeshQuadOrder(const unsigned int jj) const;
-    
+
 private:
     /*!
      * \brief initialize data which depend on the FE equation systems for

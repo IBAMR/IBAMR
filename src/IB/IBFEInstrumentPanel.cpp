@@ -967,7 +967,7 @@ IBFEInstrumentPanel::getInstrumentDumpInterval() const
     return d_instrument_dump_interval;
 }
 
-int 
+int
 IBFEInstrumentPanel::getNumberOfMeterMeshes() const
 {
     return d_num_meters;
