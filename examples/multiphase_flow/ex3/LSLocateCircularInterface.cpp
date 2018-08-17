@@ -43,7 +43,7 @@ LSLocateCircularInterface::~LSLocateCircularInterface()
 void
 LSLocateCircularInterface::setLevelSetPatchData(int D_idx,
                                                 Pointer<HierarchyMathOps> hier_math_ops,
-                                                double time,
+                                                double /*time*/,
                                                 bool initial_time)
 {
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
