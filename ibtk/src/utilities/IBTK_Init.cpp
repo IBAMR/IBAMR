@@ -36,7 +36,7 @@
 
 namespace IBTK
 {
-IBTK_Init::IBTK_Init(int argc, char** argv, IBTK_MPI::comm communicator)
+IBTK_Init::IBTK_Init(int argc, char** argv, IBTK_MPI::comm communicator, char* petsc_file, char* petsc_help)
 {
 #ifdef IBTK_HAVE_LIBMESH
     d_libmesh_init = std::make_shared<LibMeshInit>(argc, argv);
@@ -44,7 +44,7 @@ IBTK_Init::IBTK_Init(int argc, char** argv, IBTK_MPI::comm communicator)
 #else
     // We need to initialize PETSc.
     // TODO: Should we include a way to pass these extra options to PetscInitialize?
-    PetscInitialize(&argc, &argv, NULL, NULL);
+    PetscInitialize(&argc, &argv, petsc_file, petsc_help);
 #endif
 #if SAMRAI_VERSION_MAJOR > 2
     SAMRAIManager::initialize();

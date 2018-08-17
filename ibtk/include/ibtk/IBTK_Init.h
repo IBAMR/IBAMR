@@ -63,7 +63,11 @@ public:
     /**
      * Constructor for IBTK_Init. Initializes libraries and sets the SAMRAI world communicator.
      */
-    IBTK_Init(int argc, char** argvmake, IBTK_MPI::comm communicator = PETSC_COMM_WORLD);
+    IBTK_Init(int argc,
+              char** argvmake,
+              IBTK_MPI::comm communicator = PETSC_COMM_WORLD,
+              char* petsc_file = nullptr,
+              char* petsc_help = nullptr);
 
     /**
      * Destructor. Closes libraries appropriately.
