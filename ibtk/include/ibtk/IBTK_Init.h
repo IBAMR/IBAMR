@@ -37,10 +37,12 @@
 #include "SAMRAI_config.h"
 #include "tbox/SAMRAIManager.h"
 #include "tbox/SAMRAI_MPI.h"
+#include <IBTK_config.h>
 
 #include <petscsys.h>
-#ifdef LIBMESH_HAVE_PETSC
+#ifdef IBTK_HAVE_LIBMESH
 #include "libmesh/libmesh.h"
+#include "libmesh/reference_counter.h"
 #endif
 
 #include "ibtk/IBTK_MPI.h"
@@ -57,19 +59,33 @@ namespace IBTK
 
 class IBTK_Init
 {
+public:
     /**
      * Constructor for IBTK_Init. Initializes libraries and sets the SAMRAI world communicator.
      */
-    IBTK_Init(int argc, char* argv[], IBTK_MPI::comm communicator = PETSC_COMM_WORLD);
+    IBTK_Init(int argc, char** argvmake, IBTK_MPI::comm communicator = PETSC_COMM_WORLD);
 
     /**
      * Destructor. Closes libraries appropriately.
      */
     ~IBTK_Init();
 
+    /**
+     * Get libMesh initialization object.
+     */
+    std::shared_ptr<libMesh::LibMeshInit> getLibMeshInit()
+    {
+#ifdef IBTK_HAVE_LIBMESH
+        return d_libmesh_init;
+#else
+        TBOX_ERROR("IBTK_Init::getLibMeshInit() \n"
+                   << "IBAMR not compiled with libMesh!\n");
+#endif
+    }
+
 private:
-#ifdef LIBMESH_HAVE_PETSC
-    LibMeshInit d_libmesh_init;
+#ifdef IBTK_HAVE_LIBMESH
+    std::shared_ptr<libMesh::LibMeshInit> d_libmesh_init;
 #endif
 };
 

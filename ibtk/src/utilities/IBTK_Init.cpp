@@ -36,13 +36,13 @@
 
 namespace IBTK
 {
-IBTK_Init::IBTK_Init(int argc, char* argv[], IBTK_MPI::comm communicator)
-#ifdef LIBMESH_HAVE_PETSC
-    : d_libmesh_init(argc, argv)
+IBTK_Init::IBTK_Init(int argc, char** argv, IBTK_MPI::comm communicator)
 {
+#ifdef IBTK_HAVE_LIBMESH
+    d_libmesh_init = std::make_shared<LibMeshInit>(argc, argv);
+    libMesh::ReferenceCounter::disable_print_counter_info();
 #else
-{
-    // We only need to initialize PETSc.
+    // We need to initialize PETSc.
     // TODO: Should we include a way to pass these extra options to PetscInitialize?
     PetscInitialize(&argc, &argv, NULL, NULL);
 #endif
@@ -58,8 +58,9 @@ IBTK_Init::IBTK_Init(int argc, char* argv[], IBTK_MPI::comm communicator)
 
 IBTK_Init::~IBTK_Init()
 {
+    pout << "IBTK_Init destructor called. Shutting down libraries.\n";
     SAMRAIManager::shutdown();
-#ifndef LIBMESH_HAVE_PETSC
+#ifndef IBTK_HAVE_LIBMESH
     PetscFinalize();
 #endif
 }
