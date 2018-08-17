@@ -130,39 +130,49 @@ struct IBTK_MPI
 
     //@{
     /**
-     * Perform a min reduction on a type T data structure. Each processor contributes an array of values and
-     * element-wise min is returned in the same array. If the rank_of_min is not null, the rank of which processor the
-     * min is located is stored in the array.
+     * Perform a min reduction on a data structure of type double, int or float. Each processor contributes an array of
+     * values and element-wise min is returned in the same array. If the rank_of_min is not null, the rank of which
+     * processor the min is located is stored in the array.
      */
-    template <typename T>
     static void
-    minReduction(T* x, const int n = 1, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-    template <typename T>
-    static T minReduction(T x, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    minReduction(double* x, const int n = 1, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static void
+    minReduction(int* x, const int n = 1, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static void
+    minReduction(float* x, const int n = 1, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static double minReduction(double x, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static int minReduction(int x, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static float minReduction(float x, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
     //@}
 
     //@{
     /**
-     * Perform a max reduction on a type T data structure. Each processor contributes an array of values and
-     * element-wise max is returned in the same array. If the rank_of_max is not null, the rank of which processor the
-     * max is located is stored in the array.
+     * Perform a max reduction on a data structure of type double, int or float. Each processor contributes an array of
+     * values and element-wise max is returned in the same array. If the rank_of_max is not null, the rank of which
+     * processor the max is located is stored in the array.
      */
-    template <typename T>
     static void
-    maxReduction(T* x, const int n = 1, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-    template <typename T>
-    static T maxReduction(T x, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    maxReduction(double* x, const int n = 1, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static void
+    maxReduction(int* x, const int n = 1, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static void
+    maxReduction(float* x, const int n = 1, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static double maxReduction(double x, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static int maxReduction(int x, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static float maxReduction(float x, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
     //@}
 
     //@{
     /**
-     * Perform a sum reduction on a type T data structure. Each processor contributes an array of values and
-     * element-wise sum is returned in the same array.
+     * Perform a sum reduction on a data structure of type double, int or float. Each processor contributes an array of
+     * values and element-wise sum is returned in the same array.
      */
-    template <typename T>
-    static void sumReduction(T* x, const int n = 1, IBTK_MPI::comm communicator = MPI_COMM_NULL);
-    template <typename T>
-    static T sumReduction(T x, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static void sumReduction(double* x, const int n = 1, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static void sumReduction(int* x, const int n = 1, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static void sumReduction(float* x, const int n = 1, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static double sumReduction(double x, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static int sumReduction(int x, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    static float sumReduction(float x, IBTK_MPI::comm communicator = MPI_COMM_NULL);
     //@}
 
     /**
@@ -308,13 +318,25 @@ struct IBTK_MPI
     //@}
 
 private:
-    static IBTK_MPI::comm d_communicator;
+    /**
+     * Private functions for MPI calls.
+     */
+    template <typename T>
+    static void
+    minReduction(T* x, const int n = 1, int* rank_of_min = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    template <typename T>
+    static void
+    maxReduction(T* x, const int n = 1, int* rank_of_max = NULL, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+    template <typename T>
+    static void sumReduction(T* x, const int n = 1, IBTK_MPI::comm communicator = MPI_COMM_NULL);
 
     /**
      * Performs common functions needed by some of the allToAll methods.
      */
     static void
     allGatherSetup(int size_in, int size_out, int*& rcounts, int*& disps, IBTK_MPI::comm communicator = MPI_COMM_NULL);
+
+    static IBTK_MPI::comm d_communicator;
 };
 
 } // namespace IBTK
