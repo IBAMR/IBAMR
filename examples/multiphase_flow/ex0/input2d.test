@@ -12,6 +12,7 @@ RHO_O = 1.0
 RHO_I = 10.0
 MU_O  = sqrt(RHO_O*2*R*SIGMA/LA)
 MU_I  = sqrt(RHO_I*2*R*SIGMA/LA)
+ST_TIMESTEPPING = "MIDPOINT_RULE"
 
 // grid spacing parameters
 L          = 1.0
@@ -243,7 +244,7 @@ SurfaceTensionForceFunction {
     smoother            = DELTA_FUNCTION
     sigma               = SIGMA
     num_interface_cells = NUM_INTERFACE_CELLS
-
+    time_stepping_type  = ST_TIMESTEPPING
 }
 
 Main {

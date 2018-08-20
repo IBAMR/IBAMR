@@ -188,12 +188,18 @@ SurfaceTensionForceFunction::SurfaceTensionForceFunction(const std::string& obje
     : CartGridFunction(object_name), d_adv_diff_solver(adv_diff_solver), d_ls_var(level_set_var)
 {
     // Set some default values
+    d_ts_type = MIDPOINT_RULE;
     d_kernel_fcn = "none";
     d_sigma = 1.0;
     d_num_interface_cells = 2.0;
 
     if (input_db)
     {
+        if (input_db->keyExists("time_stepping_type"))
+        {
+            d_ts_type = string_to_enum<TimeSteppingType>(input_db->getString("time_stepping_type"));
+        }
+
         d_kernel_fcn = input_db->getStringWithDefault("kernel", d_kernel_fcn);
         d_kernel_fcn = input_db->getStringWithDefault("smoother", d_kernel_fcn);
         d_kernel_fcn = input_db->getStringWithDefault("kernel_fcn", d_kernel_fcn);
@@ -259,9 +265,13 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     TBOX_ASSERT(!phi_cc_var.isNull());
 #endif
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int phi_adv_diff_idx = var_db->mapVariableAndContextToIndex(phi_cc_var, d_adv_diff_solver->getNewContext());
+    const int phi_adv_diff_new_idx =
+        var_db->mapVariableAndContextToIndex(phi_cc_var, d_adv_diff_solver->getNewContext());
+    const int phi_adv_diff_current_idx =
+        var_db->mapVariableAndContextToIndex(phi_cc_var, d_adv_diff_solver->getCurrentContext());
 #if !defined(NDEBUG)
-    TBOX_ASSERT(phi_adv_diff_idx >= 0);
+    TBOX_ASSERT(phi_adv_diff_new_idx >= 0);
+    TBOX_ASSERT(phi_adv_diff_current_idx >= 0);
 #endif
 
     IntVector<NDIM> cell_ghosts = getMinimumGhostWidth(d_kernel_fcn);
@@ -279,8 +289,25 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
 
     // Copy level set into phi and C.
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
-    hier_cc_data_ops.copyData(d_phi_idx, phi_adv_diff_idx, /*interior_only*/ true);
-    hier_cc_data_ops.copyData(d_C_idx, phi_adv_diff_idx, /*interior_only*/ true);
+    if (d_ts_type == MIDPOINT_RULE)
+    {
+        hier_cc_data_ops.linearSum(
+            d_phi_idx, 0.5, phi_adv_diff_new_idx, 0.5, phi_adv_diff_current_idx, /*interior_only*/ true);
+    }
+    else if (d_ts_type == BACKWARD_EULER)
+    {
+        hier_cc_data_ops.copyData(d_phi_idx, phi_adv_diff_new_idx, /*interior_only*/ true);
+    }
+    else if (d_ts_type == FORWARD_EULER)
+    {
+        hier_cc_data_ops.copyData(d_phi_idx, phi_adv_diff_current_idx, /*interior_only*/ true);
+    }
+    else
+    {
+        TBOX_ERROR("SurfaceTensionForceFunction::setDataOnPatchHierarchy : "
+                   << "The class only supports BACKWARD_EULER, FORWARD_EULER, and MIDPOINT_RULE" << std::endl);
+    }
+    hier_cc_data_ops.copyData(d_C_idx, d_phi_idx, /*interior_only*/ true);
 
     // Convert C to a smoothed heaviside to ensure that the force is only
     // applied near the interface
