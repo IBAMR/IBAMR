@@ -52,6 +52,7 @@
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LNodeSetData.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
+#include "ibtk/SideDataSynchronization.h"
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
@@ -1961,6 +1962,14 @@ ConstraintIBMethod::applyProjection()
         copyDensityVariable(d_rho_ins_idx, d_rho_scratch_idx);
         d_hier_sc_data_ops->reciprocal(d_rho_scratch_idx, d_rho_scratch_idx);
         d_hier_sc_data_ops->scale(d_rho_scratch_idx, -1.0, d_rho_scratch_idx);
+
+        // Synchronize the coefficient patch data
+        typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+          SynchronizationTransactionComponent coef_synch_transaction =
+        SynchronizationTransactionComponent(d_rho_scratch_idx, "CONSERVATIVE_COARSEN");
+        Pointer<SideDataSynchronization> side_synch_op = new SideDataSynchronization();
+        side_synch_op->initializeOperatorState(coef_synch_transaction, d_hierarchy);
+        side_synch_op->synchronizeData(d_FuRMoRP_new_time);
         d_velcorrection_projection_spec->setDPatchDataId(d_rho_scratch_idx);
     }
     else

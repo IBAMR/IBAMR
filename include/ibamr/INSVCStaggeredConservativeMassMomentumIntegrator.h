@@ -1,4 +1,4 @@
-// Filename: INSVCStaggeredConservativeConvectiveOperator.h
+// Filename: INSVCStaggeredConservativeMassMomentumIntegrator.h
 // Created on 01 April 2018 by Nishant Nangia and Amneet Bhalla
 //
 // Copyright (c) 2002-2018, Nishant Nangia and Amneet Bhalla
@@ -30,25 +30,27 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBAMR_INSVCStaggeredConservativeConvectiveOperator
-#define included_IBAMR_INSVCStaggeredConservativeConvectiveOperator
+#ifndef included_IBAMR_INSVCStaggeredConservativeMassMomentumIntegrator
+#define included_IBAMR_INSVCStaggeredConservativeMassMomentumIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <string>
 #include <vector>
 
+#include "CoarseFineBoundary.h"
 #include "HierarchySideDataOpsReal.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SideVariable.h"
 #include "boost/array.hpp"
-#include "ibamr/ConvectiveOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyMathOps.h"
 #include "tbox/Database.h"
+#include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -60,6 +62,11 @@ class SAMRAIVectorReal;
 template <int DIM>
 class RobinBcCoefStrategy;
 } // namespace solv
+namespace hier
+{
+template <int DIM>
+class BasePatchHierarchy;
+} // namespace hier
 } // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -67,14 +74,21 @@ class RobinBcCoefStrategy;
 namespace IBAMR
 {
 /*!
- * \brief Class INSVCStaggeredConservativeConvectiveOperator is a concrete
- * ConvectiveOperator that implements an upwind convective differencing operator.
+ * \brief Class INSVCStaggeredConservativeMassMomentumIntegrator integrates
+ * the staggered density field
  *
- * Class INSVCStaggeredConservativeConvectiveOperator computes the convective derivative of
- * a side-centered velocity field using various limiters described by Patel and Natarajan.
+ *  \f$ \frac{\partial \rho}{\partial t} + \nabla \cdot (\rho u) = S(x,t) \f$
  *
- * A side-centered density update is provided by this class, which is used in the conservative discretization
- * of the Stokes operator. There is an optional mass density source term that can be set to easily check order
+ * and computes the conservative form of the convective operator
+ * \f$ \nabla \cdot (\rho u u)\f$.
+ *
+ * Class INSVCStaggeredConservativeMassMomentumIntegrator computes the convective
+ * derivative of a side-centered velocity field using various bounded-limiters
+ * described by Patel and Natarajan.
+ *
+ * A side-centered density update is provided by this class, which is used in the
+ * conservative discretization of the incompressible Navier-Stokes equation.
+ * There is an optional mass density source term \f$ S(x,t) \f$ that can be set to check the order
  * of accuracy via manufactured solutions.
  *
  * References
@@ -88,38 +102,24 @@ namespace IBAMR
  *
  * \see INSVCStaggeredHierarchyIntegrator
  */
-class INSVCStaggeredConservativeConvectiveOperator : public ConvectiveOperator
+class INSVCStaggeredConservativeMassMomentumIntegrator : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * \brief Class constructor.
      */
-    INSVCStaggeredConservativeConvectiveOperator(const std::string& object_name,
-                                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                                 ConvectiveDifferencingType difference_form,
-                                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    INSVCStaggeredConservativeMassMomentumIntegrator(const std::string& object_name,
+                                                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.
      */
-    ~INSVCStaggeredConservativeConvectiveOperator();
+    virtual ~INSVCStaggeredConservativeMassMomentumIntegrator();
 
     /*!
-     * \brief Static function to construct an INSVCStaggeredConservativeConvectiveOperator.
+     * \brief Integrate density and momentum field.
      */
-    static SAMRAI::tbox::Pointer<ConvectiveOperator>
-    allocate_operator(const std::string& object_name,
-                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                      ConvectiveDifferencingType difference_form,
-                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
-    {
-        return new INSVCStaggeredConservativeConvectiveOperator(object_name, input_db, difference_form, bc_coefs);
-    } // allocate_operator
-
-    /*!
-     * \brief Compute the action of the convective operator.
-     */
-    void applyConvectiveOperator(int U_idx, int N_idx);
+    void integrate(double dt);
 
     /*!
      * \name General operator functionality.
@@ -127,48 +127,20 @@ public:
     //\{
 
     /*!
-     * \brief Compute hierarchy dependent data required for computing y=F[x] and
-     * z=F[x]+y.
-     *
-     * The vector arguments for apply(), applyAdjoint(), etc, need not match
-     * those for initializeOperatorState().  However, there must be a certain
-     * degree of similarity, including
-     * - hierarchy configuration (hierarchy pointer and level range)
-     * - number, type and alignment of vector component data
-     * - ghost cell widths of data in the input and output vectors
-     *
-     * \note It is generally necessary to reinitialize the operator state when
-     * the hierarchy configuration changes.
-     *
-     * It is safe to call initializeOperatorState() when the state is already
-     * initialized.  In this case, the operator state is first deallocated and
-     * then reinitialized.
-     *
-     * Conditions on arguments:
-     * - input and output vectors must have same hierarchy
-     * - input and output vectors must have same structure, depth, etc.
-     *
-     * Call deallocateOperatorState() to remove any data allocated by this
-     * method.
-     *
-     * \see deallocateOperatorState
-     *
-     * \param in input vector
-     * \param out output vector
+     * \brief Compute hierarchy dependent data required for time integrating variables.
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+    void initializeTimeIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > base_hierarchy);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
-     * initializeOperatorState().
+     * initializeTimeIntegrator().
      *
-     * \note It is safe to call deallocateOperatorState() when the operator
-     * state is already deallocated.
+     * \note It is safe to call deallocateTimeIntegrator() when the time integrator
+     * is already deallocated.
      *
-     * \see initializeOperatorState
+     * \see initializeTimeIntegrator
      */
-    void deallocateOperatorState();
+    void deallocateTimeIntegrator();
 
     //\}
 
@@ -176,6 +148,17 @@ public:
      * \brief Set the current side-centered density patch data index.
      */
     void setSideCenteredDensityPatchDataIndex(int rho_sc_idx);
+
+    /*!
+     * \brief Set the new side-centered convective derivative patch data index.
+     */
+    void setSideCenteredConvectiveDerivativePatchDataIndex(int N_sc_idx);
+
+    /*
+     * \brief Set the boundary condition object for the side-centered velocity.
+     */
+    void setSideCenteredVelocityBoundaryConditions(
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_sc_bc_coefs);
 
     /*
      * \brief Set the boundary condition object for the side-centered density.
@@ -196,13 +179,66 @@ public:
      */
     void setMassDensitySourceTerm(const SAMRAI::tbox::Pointer<IBTK::CartGridFunction> S_fcn);
 
+    /*!
+     * \brief Set the patch data indices corresponding to the velocity at the previous time step
+     * to be used when computing the density update
+     *
+     * \note This velocities will be used to compute an approximation to velocities required for SSPRK updates
+     * V_old_idx = n-1, V_current_idx = n, V_new_idx = n+1,k (after an INS cycle)
+     * If V_old_idx or V_new_idx are not set, then they will degenerate to V_current automatically, for the very first
+     * simulation time step and cases where an INS cycle has not been executed, respectively.
+     */
+    void setFluidVelocityPatchDataIndices(int V_old_idx, int V_current_idx, int V_new_idx);
+
+    /*!
+     * \brief Set the cycle number currently being executed by the INS integrator. This will determine the rho advection
+     * velocity.
+     */
+    void setCycleNumber(int cycle_num);
+
+    /*!
+     * \brief Set solution time.
+     */
+    void setSolutionTime(double solution_time);
+
+    /*!
+     * \brief Set the current time interval.
+     */
+    void setTimeInterval(double current_time, double new_time);
+
+    /*!
+     * \brief Get the current time interval.
+     */
+    std::pair<double, double> getTimeInterval() const;
+
+    /*!
+     * \brief Get the current time step size.
+     */
+    double getDt() const;
+
+    /*!
+     * \brief Set the previous time step value between times n - 1 (old) and n (current). This is used during velocity
+     * extrapolation.
+     */
+    void setPreviousTimeStepSize(double dt_prev);
+
+    /*!
+     * \brief Set the HierarchyMathOps object used by the operator.
+     */
+    void setHierarchyMathOps(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops);
+
+    /*!
+     * \brief Get the HierarchyMathOps object used by the operator.
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> getHierarchyMathOps() const;
+
 private:
     /*!
      * \brief Default constructor.
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSVCStaggeredConservativeConvectiveOperator();
+    INSVCStaggeredConservativeMassMomentumIntegrator();
 
     /*!
      * \brief Copy constructor.
@@ -211,7 +247,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSVCStaggeredConservativeConvectiveOperator(const INSVCStaggeredConservativeConvectiveOperator& from);
+    INSVCStaggeredConservativeMassMomentumIntegrator(const INSVCStaggeredConservativeMassMomentumIntegrator& from);
 
     /*!
      * \brief Assignment operator.
@@ -222,7 +258,8 @@ private:
      *
      * \return A reference to this object.
      */
-    INSVCStaggeredConservativeConvectiveOperator& operator=(const INSVCStaggeredConservativeConvectiveOperator& that);
+    INSVCStaggeredConservativeMassMomentumIntegrator&
+    operator=(const INSVCStaggeredConservativeMassMomentumIntegrator& that);
 
     /*!
      * \brief Compute the advection velocity using simple averages
@@ -275,54 +312,84 @@ private:
         const double& dt,
         const double* const dx);
 
+    /*!
+     * \brief Enforce divergence free condition at the coarse-fine interface to ensure conservation of mass.
+     */
+    void enforceDivergenceFreeConditionAtCoarseFineInterface(const int U_idx);
+
+    // Book keeping
+    std::string d_object_name;
+
     // Boundary condition helper object.
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     // Cached communications operators.
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
-    std::string d_bdry_extrap_type;
-    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
+    std::string d_velocity_bdry_extrap_type, d_density_bdry_extrap_type;
+    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_rho_transaction_comps;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_rho_bdry_fill;
+    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_v_transaction_comps;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_v_bdry_fill;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
-    // Whether or not the current density field has been set.
-    bool d_rho_is_set;
-
     // Number of RK steps to take.
     int d_num_steps;
+
+    // Boundary condition object for side-centered velocity field.
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_sc_bc_coefs;
 
     // Boundary condition object for side-centered density field.
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_rho_sc_bc_coefs;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
-    int d_U_scratch_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_V_var;
+    int d_V_scratch_idx, d_V_old_idx, d_V_current_idx, d_V_new_idx, d_V_composite_idx, d_N_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var;
     int d_rho_sc_current_idx, d_rho_sc_scratch_idx, d_rho_sc_new_idx;
 
-    // Hierarchy operation obect.
+    // Hierarchy operation objects.
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
+
+    // Mathematical operators.
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
+    bool d_hier_math_ops_external;
+
+    // Boolean value to indicate whether the integrator is presently
+    // initialized.
+    bool d_is_initialized;
+
+    // Logging configuration.
+    bool d_enable_logging;
 
     // The limiter type for interpolation onto faces.
     LimiterType d_velocity_convective_limiter;
     LimiterType d_density_convective_limiter;
 
-    // The required number of ghost cells for the chosen interpolation
+    // The required number of ghost cells for the chosen interpolation.
     int d_velocity_limiter_gcw, d_density_limiter_gcw;
 
     // Variable to indicate the density update time-stepping type.
     TimeSteppingType d_density_time_stepping_type;
 
-    // Source term variable and function for the mass density update
+    // Source term variable and function for the mass density update.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_S_var;
     int d_S_scratch_idx;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
+
+    // Variable to indicate the cycle number.
+    int d_cycle_num;
+
+    // Variable to indicate time and time step size.
+    double d_current_time, d_new_time, d_solution_time, d_dt, d_dt_prev;
+
+    // Coarse-fine boundary object
+    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM>*> d_cf_boundary;
 };
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_INSVCStaggeredConservativeConvectiveOperator
+#endif //#ifndef included_IBAMR_INSVCStaggeredConservativeMassMomentumIntegrator

@@ -68,6 +68,10 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+const short int StaggeredStokesPhysicalBoundaryHelper::NORMAL_TRACTION_BDRY = 0x100;
+const short int StaggeredStokesPhysicalBoundaryHelper::NORMAL_VELOCITY_BDRY = 0x200;
+const short int StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY = 0x100 | 0x200;
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesPhysicalBoundaryHelper::StaggeredStokesPhysicalBoundaryHelper()
@@ -158,7 +162,8 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
 void
 StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(const int u_data_idx,
                                                                                 const int coarsest_ln,
-                                                                                const int finest_ln) const
+                                                                                const int finest_ln,
+                                                                                const short int bdry_tag) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
@@ -173,7 +178,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
                 Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_data_idx);
-                enforceDivergenceFreeConditionAtBoundary(u_data, patch);
+                enforceDivergenceFreeConditionAtBoundary(u_data, patch, bdry_tag);
             }
         }
     }
@@ -182,7 +187,8 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
 
 void
 StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(Pointer<SideData<NDIM, double> > u_data,
-                                                                                Pointer<Patch<NDIM> > patch) const
+                                                                                Pointer<Patch<NDIM> > patch,
+                                                                                const short int bdry_tag) const
 {
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return;
     const int ln = patch->getPatchLevelNumber();
@@ -204,7 +210,8 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
         for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
         {
             const Index<NDIM>& i = it();
-            if (!bdry_locs_data(i, 0))
+            if (bdry_locs_data(i, 0) == 0.0 && (bdry_tag & NORMAL_TRACTION_BDRY) ||
+                bdry_locs_data(i, 0) == 1.0 && (bdry_tag & NORMAL_VELOCITY_BDRY))
             {
                 // Place i_g in the ghost cell abutting the boundary.
                 Index<NDIM> i_g = i;

@@ -542,8 +542,7 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 EXAMPLE_DRIVER = ex_main.cpp SetFluidProperties.cpp
 GTEST_DRIVER = test_main.cpp SetFluidProperties.cpp
-EXTRA_DIST = input2d input2d.test
-# EXTRA_DIST    += input3d input3d.test input3d.amr
+EXTRA_DIST = input2d input2d.test input2d.amr extract_error.sh
 GTESTS = $(am__append_1) $(am__append_4)
 EXAMPLES = $(am__append_2) $(am__append_5)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -1000,6 +999,7 @@ uninstall-am:
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d* $(PWD) ; \
+	  cp -f $(srcdir)/extract_error.sh $(PWD) ; \
 	fi ;
 
 @GTEST_ENABLED_TRUE@gtest: $(GTESTS)

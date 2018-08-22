@@ -145,6 +145,18 @@ public:
                          int coarsest_level_num,
                          int finest_level_num);
 
+    /*!
+     * \brief Restrict the residual quantity to the specified level from the
+     * next finer level.
+     *
+     * \param src source residual
+     * \param dst destination residual
+     * \param dst_ln destination level number
+     */
+    void restrictResidual(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
+                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
+                          int dst_ln);
+
     //\}
 
     /*!
@@ -152,6 +164,11 @@ public:
      * variable coefficient viscous Laplacian.
      */
     void setDPatchDataInterpolationType(IBTK::VCInterpType D_interp_type);
+
+    /*!
+     * \brief Set the scaling of the viscous operator and right-hand side
+     */
+    void setOperatorScaling(SAMRAI::tbox::Array<double> A_scale);
 
     /*!
      * \brief Get the coarse level solver
@@ -199,6 +216,11 @@ private:
      * The interpolation type to be used in computing the variable coefficient viscous Laplacian.
      */
     IBTK::VCInterpType d_D_interp_type;
+
+    /*
+     * Array to indicate the scaling of the viscous operator and RHS.
+     */
+    SAMRAI::tbox::Array<double> d_A_scale;
 };
 } // namespace IBTK
 

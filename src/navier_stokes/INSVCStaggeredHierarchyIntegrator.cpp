@@ -97,7 +97,6 @@
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/INSProjectionBcCoef.h"
 #include "ibamr/INSStaggeredConvectiveOperatorManager.h"
-#include "ibamr/INSVCStaggeredConservativeConvectiveOperator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/INSVCStaggeredPressureBcCoef.h"
 #include "ibamr/INSVCStaggeredVelocityBcCoef.h"
@@ -438,14 +437,30 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(const std::
                                  << "  valid choices are: VC_HARMONIC_INTERP, VC_AVERAGE_INTERP\n");
     }
 
-    // Get the scaling coefficient
-    d_A_scale = 1.0;
-    if (input_db->keyExists("condition_no_scaling")) d_A_scale = input_db->getDouble("condition_no_scaling");
-    if (d_A_scale <= 0.0)
+    // Get the scaling coefficients
+    if (input_db->keyExists("operator_scale_factors"))
     {
-        TBOX_ERROR(d_object_name << "::INSVCStaggeredHierarchyIntegrator():\n"
-                                 << " scaling for improving the condition number of\n"
-                                 << " the Stokes system must be positive.");
+        d_A_scale = input_db->getDoubleArray("operator_scale_factors");
+        for (int k = 0; k < d_A_scale.size(); ++k)
+        {
+            if (d_A_scale[k] <= 0.0)
+            {
+                TBOX_ERROR(d_object_name << "::INSVCStaggeredHierarchyIntegrator():\n"
+                                         << " scaling for improving the condition number of\n"
+                                         << " the Stokes system must be positive.\n"
+                                         << " operator_scale_factors["
+                                         << k
+                                         << "] = "
+                                         << d_A_scale[k]
+                                         << "\n");
+            }
+        }
+    }
+    else
+    {
+        // The default is no scaling, which will be applied to all levels of the patch hierarchy
+        d_A_scale.resizeArray(1);
+        d_A_scale[0] = 1.0;
     }
 
     // By default, reinitialize the preconditioner every time step
@@ -663,6 +678,21 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
+    const int max_levels = gridding_alg->getMaxLevels();
+
+    // Setup the condition number scaling array.
+    // Extra entries will be stripped, while unset values will be set to that of the next coarsest level.
+    const int orig_size = d_A_scale.size();
+    const int size_difference = max_levels - orig_size;
+    d_A_scale.resizeArray(max_levels);
+    if (size_difference > 0)
+    {
+        const double last_scale = d_A_scale[orig_size - 1];
+        for (int k = orig_size; k < max_levels; ++k)
+        {
+            d_A_scale[k] = last_scale;
+        }
+    }
 
     // Setup solvers.
     if (d_stokes_solver_type == StaggeredStokesSolverManager::UNDEFINED)
@@ -687,7 +717,6 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
     if (d_velocity_precond_type == SCPoissonSolverManager::UNDEFINED)
     {
-        const int max_levels = gridding_alg->getMaxLevels();
         if (max_levels == 1)
         {
             d_velocity_precond_type = DEFAULT_VC_VELOCITY_LEVEL_SOLVER;
@@ -710,7 +739,6 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
     if (d_pressure_precond_type == CCPoissonSolverManager::UNDEFINED)
     {
-        const int max_levels = gridding_alg->getMaxLevels();
         if (max_levels == 1)
         {
             d_pressure_precond_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
@@ -729,7 +757,6 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
     if (d_regrid_projection_precond_type == CCPoissonSolverManager::UNDEFINED)
     {
-        const int max_levels = gridding_alg->getMaxLevels();
         if (max_levels == 1)
         {
             d_regrid_projection_precond_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
@@ -1021,9 +1048,9 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     d_temp_cc_idx = var_db->registerVariableAndContext(d_temp_cc_var, getCurrentContext(), cell_ghosts);
 
 #if (NDIM == 2)
-    d_mu_interp_var = new NodeVariable<NDIM, double>(d_object_name + "mu_interp");
+    d_mu_interp_var = new NodeVariable<NDIM, double>(d_object_name + "::mu_interp");
 #elif (NDIM == 3)
-    d_mu_interp_var = new EdgeVariable<NDIM, double>(d_object_name + "mu_interp");
+    d_mu_interp_var = new EdgeVariable<NDIM, double>(d_object_name + "::mu_interp");
 #endif
     d_mu_interp_idx =
         var_db->registerVariableAndContext(d_mu_interp_var, getCurrentContext(), NDIM == 2 ? node_ghosts : edge_ghosts);
@@ -1095,6 +1122,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         Pointer<VCSCViscousOpPointRelaxationFACOperator> p_vc_point_fac_op =
             p_poisson_fac_pc->getFACPreconditionerStrategy();
         if (p_vc_point_fac_op) p_vc_point_fac_op->setDPatchDataInterpolationType(d_mu_vc_interp_type);
+        if (p_vc_point_fac_op) p_vc_point_fac_op->setOperatorScaling(d_A_scale);
 
         Pointer<VCSCViscousOperator> p_velocity_op = p_velocity_solver->getOperator();
         if (p_velocity_op) p_velocity_op->setDPatchDataInterpolationType(d_mu_vc_interp_type);
@@ -1906,120 +1934,6 @@ INSVCStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
     }
     return;
 } // setupPlotDataSpecialized
-
-void
-INSVCStaggeredHierarchyIntegrator::regridProjection()
-{
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-    const double volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
-
-    // Setup the solver vectors.
-    SAMRAIVectorReal<NDIM, double> sol_vec(d_object_name + "::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
-    sol_vec.addComponent(d_P_var, d_P_scratch_idx, wgt_cc_idx, d_hier_cc_data_ops);
-
-    SAMRAIVectorReal<NDIM, double> rhs_vec(d_object_name + "::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
-    rhs_vec.addComponent(d_Div_U_var, d_Div_U_idx, wgt_cc_idx, d_hier_cc_data_ops);
-
-    // Setup the regrid Poisson solver.
-    Pointer<PoissonSolver> regrid_projection_solver =
-        CCPoissonSolverManager::getManager()->allocateSolver(d_regrid_projection_solver_type,
-                                                             d_object_name + "::regrid_projection_solver",
-                                                             d_regrid_projection_solver_db,
-                                                             "regrid_projection_",
-                                                             d_regrid_projection_precond_type,
-                                                             d_object_name + "::regrid_projection_precond",
-                                                             d_regrid_projection_precond_db,
-                                                             "regrid_projection_pc_");
-    PoissonSpecifications regrid_projection_spec(d_object_name + "::regrid_projection_spec");
-    regrid_projection_spec.setCZero();
-    regrid_projection_spec.setDConstant(-1.0);
-    LocationIndexRobinBcCoefs<NDIM> Phi_bc_coef;
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        Phi_bc_coef.setBoundarySlope(2 * d, 0.0);
-        Phi_bc_coef.setBoundarySlope(2 * d + 1, 0.0);
-    }
-    regrid_projection_solver->setPoissonSpecifications(regrid_projection_spec);
-    regrid_projection_solver->setPhysicalBcCoef(&Phi_bc_coef);
-    regrid_projection_solver->setHomogeneousBc(true);
-    regrid_projection_solver->setSolutionTime(d_integrator_time);
-    regrid_projection_solver->setTimeInterval(d_integrator_time, d_integrator_time);
-    LinearSolver* p_regrid_projection_solver = dynamic_cast<LinearSolver*>(regrid_projection_solver.getPointer());
-    if (p_regrid_projection_solver)
-    {
-        p_regrid_projection_solver->setInitialGuessNonzero(false);
-        p_regrid_projection_solver->setNullspace(true);
-    }
-
-    // Allocate temporary data.
-    ComponentSelector scratch_idxs;
-    scratch_idxs.setFlag(d_U_scratch_idx);
-    scratch_idxs.setFlag(d_P_scratch_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(scratch_idxs, d_integrator_time);
-    }
-
-    // Setup the right-hand-side vector for the projection-Poisson solve.
-    d_hier_math_ops->div(d_Div_U_idx,
-                         d_Div_U_var,
-                         -1.0,
-                         d_U_current_idx,
-                         d_U_var,
-                         d_no_fill_op,
-                         d_integrator_time,
-                         /*synch_cf_bdry*/ false,
-                         +1.0,
-                         d_Q_current_idx,
-                         d_Q_var);
-    const double Div_U_mean = (1.0 / volume) * d_hier_cc_data_ops->integral(d_Div_U_idx, wgt_cc_idx);
-    d_hier_cc_data_ops->addScalar(d_Div_U_idx, d_Div_U_idx, -Div_U_mean);
-
-    // Solve the projection pressure-Poisson problem.
-    regrid_projection_solver->solveSystem(sol_vec, rhs_vec);
-    if (d_enable_logging)
-        plog << d_object_name << "::regridProjection(): regrid projection solve number of iterations = "
-             << regrid_projection_solver->getNumIterations() << "\n";
-    if (d_enable_logging)
-        plog << d_object_name << "::regridProjection(): regrid projection solve residual norm        = "
-             << regrid_projection_solver->getResidualNorm() << "\n";
-
-    // Fill ghost cells for Phi, compute Grad Phi, and set U := U - Grad Phi
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent Phi_bc_component(d_P_scratch_idx,
-                                                       DATA_REFINE_TYPE,
-                                                       USE_CF_INTERPOLATION,
-                                                       DATA_COARSEN_TYPE,
-                                                       d_bdry_extrap_type,
-                                                       CONSISTENT_TYPE_2_BDRY,
-                                                       &Phi_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
-    Phi_bdry_bc_fill_op->setHomogeneousBc(true);
-    Phi_bdry_bc_fill_op->fillData(d_integrator_time);
-    d_hier_math_ops->grad(d_U_current_idx,
-                          d_U_var,
-                          /*synch_cf_bdry*/ true,
-                          -1.0,
-                          d_P_scratch_idx,
-                          d_P_var,
-                          d_no_fill_op,
-                          d_integrator_time,
-                          +1.0,
-                          d_U_current_idx,
-                          d_U_var);
-
-    // Deallocate scratch data.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(scratch_idxs);
-    }
-    return;
-} // regridProjection
 
 double
 INSVCStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const

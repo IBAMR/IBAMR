@@ -1,32 +1,32 @@
 // physical parameters
 L   = 1.0
 RHO0 = 1.0                            // Outside density
-RHO1 = -RHO0+1.0e1                     // Inside density - 1.0
-MU0  = 0.01
-MU1  = -MU0+1.0e1
-DELTA = 0.01                        // Width of smoothed region
+RHO1 = -RHO0+1.0e3                     // Inside density - 1.0
+MU0  = 1.0e-4
+MU1  = -MU0+1.0e-2
+DELTA = 0.05                           // Width of smoothed region
 
 // grid spacing parameters
 MAX_LEVELS  = 2
-REF_RATIO  = 4                            // refinement ratio between levels
-N = 16                                    // actual    number of grid cells on coarsest grid level
+REF_RATIO  = 2                            // refinement ratio between levels
+N = 32                                    // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
 
 // solver parameters
 SOLVER_TYPE         = "STAGGERED"          // the fluid solver to use (STAGGERED or COLLOCATED)
 DISCRETIZATION_FORM = "NON_CONSERVATIVE"    // the discretization form to use (CONSERVATIVE or NON_CONSERVATIVE)
 START_TIME         = 0.0e0                // initial simulation time
-END_TIME           = 0.001                  // final simulation time
+END_TIME           = 0.1                  // final simulation time
 MAX_INTEGRATOR_STEPS = 1000000
 GROW_DT            = 2.0e0                // growth factor for timesteps
-NUM_CYCLES         = 1                    // number of cycles of fixed-point iteration
-INIT_CONVECTIVE_TS_TYPE = "FORWARD_EULER"
-CONVECTIVE_TS_TYPE = "ADAMS_BASHFORTH"    // convective time stepping type
-CONVECTIVE_OP_TYPE = "PPM"                // convective differencing discretization type
+NUM_CYCLES         = 2                    // number of cycles of fixed-point iteration
+INIT_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE"
+CONVECTIVE_TS_TYPE = "MIDPOINT_RULE"    // convective time stepping type
+CONVECTIVE_OP_TYPE = "CUI"                // convective differencing discretization type
 CONVECTIVE_FORM    = "ADVECTIVE"          // how to compute the convective terms
 NORMALIZE_PRESSURE = TRUE                 // whether to explicitly force the pressure to have mean zero
-CFL_MAX            = 0.3                  // maximum CFL number
-DT_MAX             = 0.0001               // maximum timestep size
+CFL_MAX            = 0.5                  // maximum CFL number
+DT_MAX             = 0.001/(REF_RATIO^(MAX_LEVELS - 1))
 VORTICITY_TAGGING  = TRUE                 // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER         = 1                    // sized of tag buffer used by grid generation algorithm
 REGRID_INTERVAL    = 10000000             // effectively disable regridding
@@ -46,31 +46,16 @@ PRECOND_REINIT_INTERVAL = 1
 
 // How to interpolate from cell centers to sides (rho) and nodes (mu)
 // Harmonic averaging is better in cases where there is a large density of viscosity ratio
-VC_INTERPOLATION_TYPE   = "VC_HARMONIC_INTERP"
+VC_INTERPOLATION_TYPE   = "VC_AVERAGE_INTERP"
 
 // Scaling c is chosen such that c(rho/dt - mu/dx^2) ~ 1/dx
 // Assuming dt ~ dx and 1/dx = N, we have
 // c ~ 1/(rho - mu*N)
-CONDITION_NO_SCALE = abs(1.0/(RHO1/2.0 - MU1/2.0*N*REF_RATIO^(MAX_LEVELS - 1)))
-//CONDITION_NO_SCALE = 1.0
+//OPERATOR_SCALE_FACTORS = abs(1.0/(RHO1/2.0 - MU1/2.0*N*REF_RATIO^(MAX_LEVELS - 1)))
+OPERATOR_SCALE_FACTORS = 1.0
 
-EXPLICITLY_REMOVE_NULLSPACE = FALSE
+EXPLICITLY_REMOVE_NULLSPACE = TRUE
 ENABLE_LOGGING     = TRUE
-
-// supply some variable density field for testing
-DensityFunction {
-rho0 = RHO0
-rho1 = RHO1
-delta = DELTA
-function = "rho0 + 0.5*rho1*(1 + tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2 + (-0.5 + X_2)^2))/delta))"
-}
-
-// supply some variable viscosity field for testing
-ViscosityFunction {
-   mu0 = MU0
-   mu1 = MU1
-   function = "mu1*sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2) + mu1 + mu0"
-}
 
 // exact solution function expressions
 // exact solution function expressions
@@ -78,7 +63,6 @@ U = "2*PI*cos(2*PI*X_0)*cos(2*PI*X_1 - 2*PI*t)*sin(2*PI*X_2)"
 V = "2*PI*sin(2*PI*X_0)*sin(2*PI*X_1 - 2*PI*t)*cos(2*PI*X_2)"
 W = "PI*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*X_0)*(-2*cos(2*PI*X_2) - 2*sin(2*PI*X_2))"
 P = "2*PI*sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t))*sin(2*PI*(X_2-t))"
-//P = "1.0"
 
 F_U = "PI^2*(-4*cos(2*PI*(t - X_0))*cos(2*PI*(t - X_1))*sin(2*PI*(t - X_2)) +8*PI*cos(2*PI*X_0)*sin(2*PI*X_2)*(mu1*sin(2*PI*X_0)*sin(2*PI*(t - X_1))*sin(2*PI*X_1)*(-cos(2*PI*X_2) + sin(2*PI*X_2)) + cos(2*PI*(t - X_1))*(3*(mu0 + mu1) + mu1*cos(2*PI*X_1)*sin(2*PI*X_0)*(cos(2*PI*X_2) + 5*sin(2*PI*X_2)))) + cos(2*PI*X_0)*(-(PI*cos(2*PI*(X_0 - 2*X_2))) - cos(2*PI*(t - X_1 - X_2)) + cos(2*PI*(t - X_1 + X_2)) + PI*cos(2*PI*(X_0 + 2*X_2)) - 2*PI*sin(2*PI*X_0) + PI*sin(2*PI*(2*t - X_0 - 2*X_1)) - PI*sin(2*PI*(2*t + X_0 - 2*X_1)))*(2*rho0 + rho1 + rho1*tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2 + (-0.5 + X_2)^2))/delta)))"
 
@@ -97,6 +81,24 @@ T_t_yz = "(mu0 + mu1 + mu1*cos(2*PI*X_1)*sin(2*PI*X_0)*sin(2*PI*X_2))*(2*PI^2*si
 // normal traction
 T_n = "8*PI^2*cos(2*PI*t - 2*PI*X_1)*cos(2*PI*X_2)*sin(2*PI*X_0)*(mu0 + mu1 + mu1*cos(2*PI*X_1)*sin(2*PI*X_0)*sin(2*PI*X_2)) - 2*PI*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*t - 2*PI*X_0)*sin(2*PI*t - 2*PI*X_2)"
 
+RHO = "rho0 + 0.5*rho1*(1 + tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2 + (-0.5 + X_2)^2))/delta))"
+MU = "mu1*sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2) + mu1 + mu0"
+
+// supply some variable density field
+DensityFunction {
+rho0 = RHO0
+rho1 = RHO1
+delta = DELTA
+function = RHO
+}
+
+// supply some variable viscosity field
+ViscosityFunction {
+   mu0 = MU0
+   mu1 = MU1
+   function = MU
+}
+
 VelocityInitialConditions {
    function_0 = U
    function_1 = V
@@ -104,29 +106,33 @@ VelocityInitialConditions {
 }
 
 VelocityBcCoefs_0 {
+   mu0 = MU0
+   mu1 = MU1
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
    acoef_function_4 = "1.0"
    acoef_function_5 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
    bcoef_function_4 = "0.0"
    bcoef_function_5 = "0.0"
 
    gcoef_function_0 = U
    gcoef_function_1 = U
-   gcoef_function_2 = U
-   gcoef_function_3 = U
+   gcoef_function_2 = T_t_xy
+   gcoef_function_3 = T_t_xy
    gcoef_function_4 = U
    gcoef_function_5 = U
 }
 
 VelocityBcCoefs_1 {
+   mu0 = MU0
+   mu1 = MU1
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
@@ -150,6 +156,40 @@ VelocityBcCoefs_1 {
 }
 
 VelocityBcCoefs_2 {
+   mu0 = MU0
+   mu1 = MU1
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = W
+   gcoef_function_1 = W
+   gcoef_function_2 = T_t_yz
+   gcoef_function_3 = T_t_yz
+   gcoef_function_4 = W
+   gcoef_function_5 = W
+}
+
+
+PressureInitialConditions {
+   function = P
+}
+
+DensityBoundaryConditions {
+   rho0 = RHO0
+   rho1 = RHO1
+   delta = DELTA
+
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
@@ -164,16 +204,40 @@ VelocityBcCoefs_2 {
    bcoef_function_4 = "0.0"
    bcoef_function_5 = "0.0"
 
-   gcoef_function_0 = W
-   gcoef_function_1 = W
-   gcoef_function_2 = W
-   gcoef_function_3 = W
-   gcoef_function_4 = W
-   gcoef_function_5 = W
+   gcoef_function_0 = RHO
+   gcoef_function_1 = RHO
+   gcoef_function_2 = RHO  
+   gcoef_function_3 = RHO
+   gcoef_function_4 = RHO  
+   gcoef_function_5 = RHO
+
 }
 
-PressureInitialConditions {
-   function = P
+ViscosityBoundaryConditions {
+   mu0 = MU0
+   mu1 = MU1
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = MU
+   gcoef_function_1 = MU
+   gcoef_function_2 = MU  
+   gcoef_function_3 = MU
+   gcoef_function_4 = MU  
+   gcoef_function_5 = MU
+
 }
 
 ForcingFunction {
@@ -186,7 +250,6 @@ ForcingFunction {
    function_1 = F_V
    function_2 = F_W
 }
-
 
 INSVCStaggeredNonConservativeHierarchyIntegrator {
    start_time                    = START_TIME
@@ -213,8 +276,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
    output_mu                     = OUTPUT_MU
    rho_is_const                  = RHO_IS_CONST
    mu_is_const                   = MU_IS_CONST
-   condition_no_scaling          = CONDITION_NO_SCALE 
-   vc_interpolation_type         = VC_INTERPOLATION_TYPE    
+   operator_scale_factors        = OPERATOR_SCALE_FACTORS 
+   vc_interpolation_type         = VC_INTERPOLATION_TYPE
    precond_reinit_interval       = PRECOND_REINIT_INTERVAL
    enable_logging                = ENABLE_LOGGING
    max_integrator_steps          = MAX_INTEGRATOR_STEPS
@@ -225,8 +288,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
    velocity_precond_type = "VC_VELOCITY_POINT_RELAXATION_FAC_PRECONDITIONER"
    velocity_solver_db {
       ksp_type = "richardson"
-      max_iterations = 1
-      rel_residual_tol = 1.0e-1
+      max_iterations = 5
+      rel_residual_tol = 1.0e-5
    }
    velocity_precond_db {
       num_pre_sweeps = 0
@@ -234,9 +297,10 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
       prolongation_method = "CONSERVATIVE_LINEAR_REFINE"
       restriction_method = "CONSERVATIVE_COARSEN"
       coarse_solver_type = "VC_VELOCITY_PETSC_LEVEL_SOLVER"
+      coarse_solver_prefix = "bottom_velocity_"
       coarse_solver_rel_residual_tol = 1.0e-12
       coarse_solver_abs_residual_tol = 1.0e-50
-      coarse_solver_max_iterations = 100
+      coarse_solver_max_iterations = 10
       coarse_solver_db {
          ksp_type = "gmres"
          pc_type = "jacobi"
@@ -247,26 +311,24 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
     pressure_solver_db 
     {
       ksp_type = "richardson"
-      max_iterations = 1
-      rel_residual_tol = 1.0e-1
+      max_iterations = 5
+      rel_residual_tol = 1.0e-5
     }
     pressure_precond_db {
       num_pre_sweeps  = 0
       num_post_sweeps = 3
       prolongation_method = "LINEAR_REFINE"
       restriction_method  = "CONSERVATIVE_COARSEN"
+      coarse_solver_type = "PETSC_LEVEL_SOLVER"
       coarse_solver_rel_residual_tol = 1.0e-12
       coarse_solver_abs_residual_tol = 1.0e-50
-      coarse_solver_max_iterations = 1
-      coarse_solver_db 
-      {
-          solver_type          = "PFMG"
-          num_pre_relax_steps  = 0
-          num_post_relax_steps = 3
-          enable_logging       = FALSE
+      coarse_solver_max_iterations = 10
+      coarse_solver_db {
+         ksp_type = "gmres"
+         pc_type = "jacobi"
       }
     }
-
+   
 }
 
 Main {
@@ -279,8 +341,8 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = NFINEST/8
-   viz_dump_dirname            = "viz_INS3d"
+   viz_dump_interval           = 100
+   viz_dump_dirname            = "viz_INS2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
@@ -295,7 +357,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0,0),(N - 1,N - 1,N - 1) ]
    x_lo = 0,0,0
    x_up = L,L,L
-   periodic_dimension = 1,1,1
+   periodic_dimension = 1,0,1
 }
 
 GriddingAlgorithm {
