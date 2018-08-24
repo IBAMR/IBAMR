@@ -298,10 +298,10 @@ linear_interp(const Vector& X,
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const int part)
-    : d_num_meters(0),
+    : d_meter_radii(),
+      d_num_meters(0),
       d_quad_order(),
       d_input_quad_order(),
-      d_meter_radii(),
       d_use_adaptive_quadrature(),
       d_quad_type(),
       d_part(part),
