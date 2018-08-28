@@ -705,6 +705,16 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
     // Copy new into scratch
     d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx, d_rho_sc_new_idx);
 
+    // Synchronize newest density
+    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    SynchronizationTransactionComponent rho_scratch_synch_transaction =
+        SynchronizationTransactionComponent(d_rho_sc_scratch_idx, "CONSERVATIVE_COARSEN");
+    d_side_synch_op->resetTransactionComponent(rho_scratch_synch_transaction);
+    d_side_synch_op->synchronizeData(d_integrator_time);
+    SynchronizationTransactionComponent default_synch_transaction =
+        SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+    d_side_synch_op->resetTransactionComponent(default_synch_transaction);
+
     // Store the density for later use
     d_hier_sc_data_ops->copyData(d_rho_linear_op_idx, d_rho_sc_scratch_idx, /*interior_only*/ true);
 
