@@ -48,6 +48,14 @@ ENABLE_LOGGING             = TRUE
 KAPPA_S = 2.5*DX/DT^2
 ETA_S = 1.5*DX/DT
 
+// tether penalty data. These values are small enough that we can keep a
+// constant time-step (unlike the values in input2d).
+C1_S = 1.0
+KAPPA_S_BODY = 1.0
+ETA_S_BODY = 1.0
+KAPPA_S_SURFACE = 1.0
+ETA_S_SURFACE = 1.0
+
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
