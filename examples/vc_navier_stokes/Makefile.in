@@ -496,7 +496,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = ex0 ex1
+SUBDIRS = ex0 ex1 ex2
 COMPLETE_EXAMPLES = $(SUBDIRS)
 INCOMPLETE_EXAMPLES = 
 all: all-recursive
@@ -827,14 +827,17 @@ $(COMPLETE_EXAMPLES):
 gtest:
 	@(cd ex0 && make gtest) || exit 1;
 	@(cd ex1 && make gtest) || exit 1;
+	@(cd ex2 && make gtest) || exit 1;
 
 gtest-long:
 	@(cd ex0 && make gtest-long) || exit 1;
 	@(cd ex1 && make gtest-long) || exit 1;
+	@(cd ex2 && make gtest-long) || exit 1;
 
 gtest-all:
 	@(cd ex0 && make gtest-long) || exit 1;
 	@(cd ex1 && make gtest-long) || exit 1;
+	@(cd ex2 && make gtest-long) || exit 1;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
