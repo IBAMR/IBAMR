@@ -206,14 +206,11 @@ run_example(int argc, char* argv[])
         {
             rho_var = new SideVariable<NDIM, double>("rho");
         }
-        else if (!conservative_form)
+        else
         {
             rho_var = new CellVariable<NDIM, double>("rho");
         }
-        else
-        {
-            TBOX_ERROR("This statement should not be reached");
-        }
+        
         time_integrator->registerMassDensityVariable(rho_var);
 
         Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
@@ -430,7 +427,7 @@ run_example(int argc, char* argv[])
                         IBTK::Vector coord = IBTK::Vector::Zero();
                         Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
                         const double* patch_X_lower = patch_geom->getXLower();
-                        const Index<NDIM>& patch_lower_idx = patch_box.lower();
+                        const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
                         const double* const patch_dx = patch_geom->getDx();
                         for (int d = 0; d < NDIM; ++d)
                         {

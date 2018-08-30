@@ -210,13 +210,9 @@ run_example(int argc, char* argv[])
         {
             rho_var = new SideVariable<NDIM, double>("rho");
         }
-        else if (!conservative_form)
-        {
-            rho_var = new CellVariable<NDIM, double>("rho");
-        }
         else
         {
-            TBOX_ERROR("This statement should not be reached");
+            rho_var = new CellVariable<NDIM, double>("rho");
         }
         time_integrator->registerMassDensityVariable(rho_var);
 

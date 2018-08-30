@@ -233,8 +233,8 @@ ERROR_ON_DT_CHANGE                  = FALSE
 
 // More solver parameters
 PRECOND_REINIT_INTERVAL = 1
-// CONDITION_NO_SCALE      = abs(1.0/(RHO_I/2.0 - MU_I/2.0*N*REF_RATIO^(MAX_LEVELS - 1)))
-CONDITION_NO_SCALE   = 1.0
+// OPERATOR_SCALE_FACTORS      = abs(1.0/(RHO_I/2.0 - MU_I/2.0*N*REF_RATIO^(MAX_LEVELS - 1)))
+OPERATOR_SCALE_FACTORS   = 1.0
 VC_INTERPOLATION_TYPE   = "VC_HARMONIC_INTERP"
 DENSITY_CONVECTIVE_LIMITER   = "CUI"
 VELOCITY_CONVECTIVE_LIMITER  = "CUI"
@@ -273,7 +273,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
    rho_is_const               = RHO_IS_CONST
    mu_is_const                = MU_IS_CONST
    precond_reinit_interval    = PRECOND_REINIT_INTERVAL
-   condition_no_scaling       = CONDITION_NO_SCALE 
+   operator_scale_factors     = OPERATOR_SCALE_FACTORS 
    vc_interpolation_type      = VC_INTERPOLATION_TYPE
    enable_logging             = ENABLE_LOGGING
    max_integrator_steps       = MAX_INTEGRATOR_STEPS
@@ -369,7 +369,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
    rho_is_const               = RHO_IS_CONST
    mu_is_const                = MU_IS_CONST
    precond_reinit_interval    = PRECOND_REINIT_INTERVAL
-   condition_no_scaling       = CONDITION_NO_SCALE 
+   operator_scale_factors     = OPERATOR_SCALE_FACTORS 
    vc_interpolation_type      = VC_INTERPOLATION_TYPE
    enable_logging             = ENABLE_LOGGING
    max_integrator_steps       = MAX_INTEGRATOR_STEPS

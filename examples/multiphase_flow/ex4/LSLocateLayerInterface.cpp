@@ -81,7 +81,7 @@ LSLocateLayerInterface::setLevelSetPatchData(int D_idx,
                 // Get physical coordinates
                 Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
                 const double* patch_X_lower = patch_geom->getXLower();
-                const Index<NDIM>& patch_lower_idx = patch_box.lower();
+                const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
                 const double* const patch_dx = patch_geom->getDx();
                 const int d = NDIM - 1;
                 double coord = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);

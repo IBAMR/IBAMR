@@ -45,7 +45,7 @@ callTagLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy<NDIM> 
 
         for (CellIterator<NDIM> ic(patch_box); ic; ic++)
         {
-            const Index<NDIM>& i = ic();
+            const hier::Index<NDIM>& i = ic();
             const double dist_norm = (*ls_data)(i)-ptr_ls_tagger->d_tag_value;
 
             if (dist_norm <= ptr_ls_tagger->d_tag_abs_thresh)

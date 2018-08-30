@@ -51,8 +51,8 @@ VC_INTERPOLATION_TYPE   = "VC_HARMONIC_INTERP"
 // Scaling c is chosen such that c(rho/dt - mu/dx^2) ~ 1/dx
 // Assuming dt ~ dx and 1/dx = N, we have
 // c ~ 1/(rho - mu*N)
-// CONDITION_NO_SCALE = abs(1.0/(R_RHO/2.0 - R_MU/2.0*N*REF_RATIO^(MAX_LEVELS - 1)))
-CONDITION_NO_SCALE = 1.0/R_RHO
+// OPERATOR_SCALE_FACTORS = abs(1.0/(R_RHO/2.0 - R_MU/2.0*N*REF_RATIO^(MAX_LEVELS - 1)))
+OPERATOR_SCALE_FACTORS = 1.0/R_RHO
 
 EXPLICITLY_REMOVE_NULLSPACE = FALSE
 ENABLE_LOGGING     = TRUE
@@ -228,7 +228,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
    output_mu                     = OUTPUT_MU
    rho_is_const                  = RHO_IS_CONST
    mu_is_const                   = MU_IS_CONST
-   condition_no_scaling          = CONDITION_NO_SCALE 
+   operator_scale_factors        = OPERATOR_SCALE_FACTORS 
    vc_interpolation_type         = VC_INTERPOLATION_TYPE
    precond_reinit_interval       = PRECOND_REINIT_INTERVAL
    enable_logging                = ENABLE_LOGGING

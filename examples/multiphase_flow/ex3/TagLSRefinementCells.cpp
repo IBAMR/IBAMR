@@ -45,7 +45,7 @@ callTagLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy<NDIM> 
 
         for (CellIterator<NDIM> ic(patch_box); ic; ic++)
         {
-            const Index<NDIM>& i = ic();
+            const hier::Index<NDIM>& i = ic();
             // In this case, we want to tag inside the bubble as well
             if ((*ls_data)(i) <= ptr_ls_tagger->d_tag_thresh)
             {
