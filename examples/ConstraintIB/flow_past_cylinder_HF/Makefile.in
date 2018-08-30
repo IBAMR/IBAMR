@@ -942,7 +942,6 @@ examples: $(EXAMPLES)
 @GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/cylinder2d_3h.elem $(PWD) ; \
 @GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/cylinder2d_3h.ghost $(PWD) ; \
 @GTEST_ENABLED_TRUE@	fi ;
-@GTEST_ENABLED_TRUE@	./test2d input2d.test
 
 @GTEST_ENABLED_TRUE@gtest-long:
 @GTEST_ENABLED_TRUE@	make gtest

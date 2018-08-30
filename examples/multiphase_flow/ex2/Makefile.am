@@ -35,13 +35,14 @@ examples: $(EXAMPLES)
 	fi ;
 
 if GTEST_ENABLED
+
+# This test is known to be excessively long and is disabled for the 0.3 release.
 gtest: $(GTESTS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d.test $(PWD) ; \
 	fi ;
-	./test2d input2d.test
 
-gtest-long: 
+gtest-long:
 	make gtest
 
 else
