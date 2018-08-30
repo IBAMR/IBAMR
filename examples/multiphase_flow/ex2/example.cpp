@@ -358,14 +358,11 @@ run_example(int argc, char* argv[])
         {
             rho_var = new SideVariable<NDIM, double>("rho");
         }
-        else if (!conservative_form)
+        else
         {
             rho_var = new CellVariable<NDIM, double>("rho");
         }
-        else
-        {
-            TBOX_ERROR("This statement should not be reached");
-        }
+        
         navier_stokes_integrator->registerMassDensityVariable(rho_var);
         navier_stokes_integrator->registerViscosityVariable(mu_var);
 

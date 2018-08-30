@@ -444,18 +444,18 @@ Main {
    adv_diff_solver_type = ADV_DIFF_SOLVER_TYPE
 
 // log file parameters
-   log_file_name               = "INS2d.log"
+   log_file_name               = "INS3d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = 50*REF_RATIO^(MAX_LEVELS - 1)
-   viz_dump_dirname            = "viz_INS2d"
+   viz_dump_dirname            = "viz_INS3d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_dump_interval       = 0
-   restart_dump_dirname        = "restart_INS2d"
+   restart_dump_dirname        = "restart_INS3d"
 
 // timer dump parameters
    timer_dump_interval         = 0
