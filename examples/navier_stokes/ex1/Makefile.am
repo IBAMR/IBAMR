@@ -58,12 +58,12 @@ examples: $(EXAMPLES) $(CONVERGENCE_TESTERS)
 	fi ;
 
 if GTEST_ENABLED
+# test3d is known to be excessively long and is disabled for the 0.3 release.
 gtest: $(GTESTS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d* $(PWD) ; \
 	fi ;
 	./test2d input2d.test
-	./test3d input3d.test
 
 gtest-long:
 	make gtest

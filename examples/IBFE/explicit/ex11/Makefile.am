@@ -41,9 +41,9 @@ gtest: $(GTESTS)
 	  cp -f $(srcdir)/input* $(PWD) ; \
 	fi ;
 
+# This test is known to be excessively long and is disabled for the 0.3 release.
 gtest-long:
-	make gtest
-	./test2d input2d.test
+
 else
 gtest:
 	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"

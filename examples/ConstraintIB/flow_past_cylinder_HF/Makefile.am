@@ -39,6 +39,7 @@ examples: $(EXAMPLES)
 	fi ;
 
 if GTEST_ENABLED
+# This test consumes an unbounded amount of memory and is disabled for the 0.3 release.
 gtest: $(GTESTS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d.test $(PWD) ; \
@@ -49,7 +50,6 @@ gtest: $(GTESTS)
 	  cp -f $(srcdir)/cylinder2d_3h.elem $(PWD) ; \
 	  cp -f $(srcdir)/cylinder2d_3h.ghost $(PWD) ; \
 	fi ;
-	./test2d input2d.test
 
 gtest-long:
 	make gtest
