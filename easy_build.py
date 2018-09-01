@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 import os, sys
 import subprocess
 from timeit import time
 
-ibamr_config_options = ''
-petsc_config_options = ''
+ibamr_config_options = ' --with-visibility=0 '
+petsc_config_options = ' --with-visibility=0 '
 SKIP_PETSC           = False
 QUIET                = False
 
@@ -131,7 +131,7 @@ fetch_petsc     = 'mkdir -p $PETSC_DIR && cd $PETSC_DIR && git fetch origin && g
 configure_petsc = 'cd $PETSC_DIR && ./configure --download-openmpi --download-fblaslapack --download-hypre' + petsc_config_options
 make_petsc      = 'cd $PETSC_DIR && make'
 # NOTE: libmesh breaks when HDF5 is built by PETSc, but works when built by IBAMR.
-configure_ibamr = './configure.new --IBAMR_ARCH=$IBAMR_ARCH --download-muparser --download-silo '
+configure_ibamr = 'python2 ./configure.new --IBAMR_ARCH=$IBAMR_ARCH --download-muparser --download-silo '
 configure_ibamr += ' --download-hdf5 --download-libmesh --download-boost --boost-headers-only '
 configure_ibamr += ' --download-samrai --download-fblaslapack --with-mpi-dir=$PETSC_DIR/$PETSC_ARCH '
 configure_ibamr += ' --download-eigen --download-hypre ' + ibamr_config_options
