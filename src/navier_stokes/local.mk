@@ -4,6 +4,7 @@ srcs-core.cpp += $(call thisdir, \
 	INSCollocatedHierarchyIntegrator.cpp \
 	INSCollocatedPPMConvectiveOperator.cpp \
 	INSCollocatedVelocityBcCoef.cpp \
+	INSCollocatedWavePropConvectiveOperator.cpp \
 	INSHierarchyIntegrator.cpp \
 	INSIntermediateVelocityBcCoef.cpp \
 	INSProjectionBcCoef.cpp \
@@ -16,6 +17,13 @@ srcs-core.cpp += $(call thisdir, \
 	INSStaggeredStochasticForcing.cpp \
 	INSStaggeredUpwindConvectiveOperator.cpp \
 	INSStaggeredVelocityBcCoef.cpp \
+	INSStaggeredWavePropConvectiveOperator.cpp \
+	INSVCStaggeredConservativeConvectiveOperator.cpp \
+	INSVCStaggeredConservativeHierarchyIntegrator.cpp \
+	INSVCStaggeredHierarchyIntegrator.cpp \
+	INSVCStaggeredNonConservativeHierarchyIntegrator.cpp \
+	INSVCStaggeredPressureBcCoef.cpp \
+	INSVCStaggeredVelocityBcCoef.cpp \
 	KrylovLinearSolverStaggeredStokesSolverInterface.cpp \
 	PETScKrylovStaggeredStokesSolver.cpp \
 	SpongeLayerForceFunction.cpp \
@@ -24,7 +32,7 @@ srcs-core.cpp += $(call thisdir, \
 	StaggeredStokesBoxRelaxationFACOperator.cpp \
 	StaggeredStokesFACPreconditioner.cpp \
 	StaggeredStokesFACPreconditionerStrategy.cpp \
-    StaggeredStokesLevelRelaxationFACOperator.cpp \
+	StaggeredStokesLevelRelaxationFACOperator.cpp \
 	StaggeredStokesOpenBoundaryStabilizer.cpp \
 	StaggeredStokesOperator.cpp \
 	StaggeredStokesPETScLevelSolver.cpp \
@@ -36,6 +44,9 @@ srcs-core.cpp += $(call thisdir, \
 	StaggeredStokesSolverManager.cpp \
 	StokesBcCoefStrategy.cpp \
 	StokesSpecifications.cpp \
+	SurfaceTensionForceFunction.cpp \
+	VCStaggeredStokesOperator.cpp \
+	VCStaggeredStokesProjectionPreconditioner.cpp \
 	)
 
 include $(call incsubdirs,fortran)
