@@ -6,7 +6,7 @@ class Configure(config.package.GNUPackage):
     self.download  = ['http://ftp.mcs.anl.gov/pub/petsc/externalpackages/SAMRAI-v2.4.4p.tar.gz', 'https://computation-rnd.llnl.gov/SAMRAI/download/SAMRAI-v2.4.4.tar.gz']
     self.functions = []
     self.includes  = ['Box.h']
-    self.liblist   = [['libSAMRAI.a']]
+    self.liblist   = [['libSAMRAI.a', 'libSAMRAI2d_algs.a', 'libSAMRAI2d_appu.a', 'libSAMRAI2d_geom.a', 'libSAMRAI2d_hier.a', 'libSAMRAI2d_math_std.a', 'libSAMRAI2d_mesh.a', 'libSAMRAI2d_pdat_std.a', 'libSAMRAI2d_solv.a', 'libSAMRAI2d_xfer.a']]
     self.pkgname   = 'SAMRAI-2.4.4'
     self.cxx       = 1
     return
