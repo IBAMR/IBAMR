@@ -23,7 +23,7 @@ What Is the IB Method?
 
 The immersed boundary (IB) method is a general-purpose numerical method for simulating fluid-structure interaction.  The IB formulation of such problems uses an Eulerian description of the fluid and a Lagrangian description of the structure.  Interaction equations that couple the Eulerian and Lagrangian variables take the form of integral equations with delta function kernels.
 
-For general information about the IB method, see http://math.nyu.edu/faculty/peskin.  For visualizations of simulations that use IBAMR, see http://cims.nyu.edu/~griffith.
+For general information about the IB method, see [here](http://math.nyu.edu/faculty/peskin).  For visualizations of simulations that use IBAMR, see [here](http://ibamr.github.io).
 
 Getting Started
 ---------------
@@ -33,7 +33,7 @@ IBAMR requires a number of [third-party libraries](../../wiki/ThirdPartyLibrarie
 Documentation
 -------------
 
-Source code documentation [for IBAMR is available on-line](http://ibamr.github.io/IBAMR/ibamr/html).  Source code documentation is also available [for the IBTK support library](http://ibamr.github.io/IBAMR/ibtk/html).  File format documentation [is also available on-line](http://ibamr.github.io/IBAMR/ibamr/html/class_i_b_a_m_r_1_1_i_b_standard_initializer.html#details).  There is also list of [frequently asked questions](../../wiki/FAQ).
+Source code documentation [for the IBAMR library and supporting IBTK library is available on-line](http://ibamr.github.io/docs). File format documentation [is also available on-line](https://ibamr.github.io/IBAMR-docs/ibamr/html/class_i_b_a_m_r_1_1_i_b_standard_initializer.html#details).  There is also list of [frequently asked questions](https://ibamr.github.io/faq).
 
 Support
 -------
