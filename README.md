@@ -23,7 +23,7 @@ What Is the IB Method?
 
 The immersed boundary (IB) method is a general-purpose numerical method for simulating fluid-structure interaction.  The IB formulation of such problems uses an Eulerian description of the fluid and a Lagrangian description of the structure.  Interaction equations that couple the Eulerian and Lagrangian variables take the form of integral equations with delta function kernels.
 
-For general information about the IB method, see [here](http://math.nyu.edu/faculty/peskin).  For additional information about the IBAMR software, see [here](http://ibamr.github.io).  We are happy to host visualizations of simulations that use IBAMR.
+For general information about the IB method, see [math.nyu.edu/faculty/peskin](http://math.nyu.edu/faculty/peskin).  For additional information about the IBAMR software, see [ibamr.github.io](http://ibamr.github.io).  We are happy to host visualizations of simulations that use IBAMR.
 
 Getting Started
 ---------------
