@@ -15,10 +15,10 @@
 void
 callTagLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
                                          const int level_number,
-                                         const double error_data_time,
+                                         const double /*error_data_time*/,
                                          const int tag_index,
                                          const bool initial_time,
-                                         const bool uses_richardson_extrapolation_too,
+                                         const bool /*uses_richardson_extrapolation_too*/,
                                          void* ctx)
 {
     if (initial_time || level_number == hierarchy->getFinestLevelNumber()) return;
