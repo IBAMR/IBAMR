@@ -541,7 +541,7 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
 			
             interpolatePressureForTraction(mask_scratch_idx, d_half_time, part);
             
-            if (d_compute_fluid_traction)
+            if (d_compute_fluid_traction && d_traction_activation_time <= d_current_time)
             {
 				computeFluidTraction(d_half_time, part);
 			}
@@ -2271,6 +2271,7 @@ IBFESurfaceMethod::putToDatabase(Pointer<Database> db)
     db->putBool("d_use_velocity_jump_conditions", d_use_velocity_jump_conditions);
     db->putBool("d_use_pressure_jump_conditions", d_use_pressure_jump_conditions);
     db->putBool("d_compute_fluid_traction", d_compute_fluid_traction);
+    db->putDouble("d_traction_activation_time", d_traction_activation_time);
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
     db->putBool("d_use_direct_forcing", d_use_direct_forcing);
     return;
@@ -3921,6 +3922,7 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     d_mu = 0.0;
     d_wss_calc_width = 0.0;
     d_p_calc_width = 0.0;
+    d_traction_activation_time = 0.0;
     const bool interp_use_consistent_mass_matrix = true;
     d_default_interp_spec = FEDataManager::InterpSpec(
         "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, interp_use_consistent_mass_matrix);
@@ -4097,6 +4099,7 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     {
         if (db->isDouble("p_calc_width")) d_p_calc_width = db->getDouble("p_calc_width");
         if (db->isDouble("wss_calc_width")) d_wss_calc_width = db->getDouble("wss_calc_width");
+        if (db->isDouble("traction_activation_time")) d_traction_activation_time = db->getDouble("traction_activation_time");
         if (db->isBool("compute_fluid_traction")) d_compute_fluid_traction = db->getBool("compute_fluid_traction");
     }
     if (db->isBool("use_consistent_mass_matrix"))
@@ -4152,6 +4155,7 @@ IBFESurfaceMethod::getFromRestart()
     d_use_pressure_jump_conditions = db->getBool("d_use_pressure_jump_conditions");
     d_use_velocity_jump_conditions = db->getBool("d_use_velocity_jump_conditions");
     d_compute_fluid_traction = db->getBool("d_compute_fluid_traction");
+    d_traction_activation_time = db->getDouble("d_traction_activation_time");
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     d_use_direct_forcing = db->getBool("d_use_direct_forcing");
     return;

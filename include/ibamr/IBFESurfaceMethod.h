@@ -579,6 +579,7 @@ protected:
     bool d_use_direct_forcing;
     double d_mu;
     double d_wss_calc_width, d_p_calc_width;
+    double d_traction_activation_time;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
