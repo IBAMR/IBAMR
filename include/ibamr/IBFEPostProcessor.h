@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "boost/tuple/tuple.hpp"
 #include "ibamr/IBFEMethod.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"

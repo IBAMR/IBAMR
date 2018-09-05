@@ -48,7 +48,6 @@
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
-#include <boost/concept_check.hpp>
 
 namespace IBTK
 {
