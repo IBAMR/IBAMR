@@ -307,7 +307,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     TBOX_ASSERT(d_rho_sc_current_idx >= 0);
     TBOX_ASSERT(d_rho_sc_scratch_idx >= 0);
 #endif
-    
+
     // Note that we always reset current context of state variables here, if necessary.
     const double apply_time = current_time;
     for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
@@ -352,7 +352,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
         {
             mu_current_idx = d_mu_current_idx;
         }
-        
+
         d_hier_cc_data_ops->copyData(d_mu_scratch_idx, mu_current_idx, /*interior_only*/ true);
         d_mu_bdry_bc_fill_op->fillData(current_time);
 
@@ -1383,7 +1383,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
     const Pointer<SAMRAIVectorReal<NDIM, double> >& rhs_vec,
     const double current_time,
     const double new_time,
-    const int cycle_num)
+    const int /*cycle_num*/)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
