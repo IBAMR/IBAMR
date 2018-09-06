@@ -97,7 +97,7 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
 {
     // Get the current level set information
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int ls_idx;
+    int ls_idx = -1;
     if (MathUtilities<double>::equalEps(time, current_time))
     {
         ls_idx = var_db->mapVariableAndContextToIndex(d_ls_var, d_adv_diff_solver->getCurrentContext());
@@ -273,7 +273,7 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
 {
     // Get the current level set information
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int ls_idx;
+    int ls_idx = -1;
     if (MathUtilities<double>::equalEps(time, current_time))
     {
         ls_idx = var_db->mapVariableAndContextToIndex(d_ls_var, d_adv_diff_solver->getCurrentContext());
