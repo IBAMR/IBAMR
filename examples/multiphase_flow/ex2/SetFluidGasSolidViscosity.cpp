@@ -78,7 +78,8 @@ SetFluidGasSolidViscosity::setViscosityPatchData(int mu_idx,
 {
     // Get the current level set information
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int ls_solid_idx, ls_gas_idx;
+    int ls_solid_idx = -1;
+    int ls_gas_idx = -1;
 
     if (MathUtilities<double>::equalEps(time, current_time))
     {
