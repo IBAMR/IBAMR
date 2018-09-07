@@ -87,10 +87,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-subdir = examples
+subdir = src/wave_tank
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
-	$(top_srcdir)/m4/ax_prefix_config_h.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/ax_prog_cc_mpi.m4 \
 	$(top_srcdir)/m4/ax_prog_cxx_mpi.m4 $(top_srcdir)/m4/boost.m4 \
 	$(top_srcdir)/m4/check_builtins.m4 \
@@ -241,7 +240,6 @@ FFLAGS = @FFLAGS@
 FGREP = @FGREP@
 FLIBS = @FLIBS@
 GREP = @GREP@
-HAVE_CXX11 = @HAVE_CXX11@
 HAVE_LIBGSL = @HAVE_LIBGSL@
 HAVE_LIBGSLCBLAS = @HAVE_LIBGSLCBLAS@
 HAVE_LIBGTEST = @HAVE_LIBGTEST@
@@ -498,10 +496,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = IB IBFE IMP adv_diff advect navier_stokes ConstraintIB CIB CIBFE level_set multiphase_flow vc_navier_stokes wave_tank
-COMPLETE_EXAMPLES = IB IBFE adv_diff advect navier_stokes ConstraintIB CIB level_set multiphase_flow vc_navier_stokes wave_tank
-# Not all examples can be compiled at the present time
-INCOMPLETE_EXAMPLES = IMP CIBFE
+SUBDIRS = .
 all: all-recursive
 
 .SUFFIXES:
@@ -515,9 +510,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/wave_tank/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign examples/Makefile
+	  $(AUTOMAKE) --foreign src/wave_tank/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -821,61 +816,6 @@ uninstall-am:
 
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
-
-all:
-	if test "$(CONFIGURATION_BUILD_DIR)" != ""; then \
-	  $(MAKE) examples ; \
-	fi ;
-.PHONY: examples $(COMPLETE_EXAMPLES)
-examples: $(COMPLETE_EXAMPLES)
-
-$(COMPLETE_EXAMPLES):
-	cd $@ && $(MAKE) $(AM_MAKEFLAGS) examples
-
-@GTEST_ENABLED_TRUE@gtest:
-@GTEST_ENABLED_TRUE@	@(cd IB               && make gtest) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd IBFE             && make gtest) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd adv_diff         && make gtest) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd advect           && make gtest) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd navier_stokes    && make gtest) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd ConstraintIB     && make gtest) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd CIB              && make gtest) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd level_set        && make gtest) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd multiphase_flow  && make gtest) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd vc_navier_stokes && make gtest) || exit 1;
-
-@GTEST_ENABLED_TRUE@gtest-long:
-@GTEST_ENABLED_TRUE@	@(cd IB               && make gtest-long) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd IBFE             && make gtest-long) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd adv_diff         && make gtest-long) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd advect           && make gtest-long) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd navier_stokes    && make gtest-long) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd ConstraintIB     && make gtest-long) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd CIB              && make gtest-long) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd level_set        && make gtest-long) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd multiphase_flow  && make gtest-long) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd vc_navier_stokes && make gtest-long) || exit 1;
-
-@GTEST_ENABLED_TRUE@gtest-all:
-@GTEST_ENABLED_TRUE@	@(cd IB               && make gtest-all) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd IBFE             && make gtest-all) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd adv_diff         && make gtest-all) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd advect           && make gtest-all) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd navier_stokes    && make gtest-all) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd ConstraintIB     && make gtest-all) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd CIB              && make gtest-all) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd level_set        && make gtest-all) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd multiphase_flow  && make gtest-all) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd vc_navier_stokes && make gtest-all) || exit 1;
-
-@GTEST_ENABLED_FALSE@gtest:
-@GTEST_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-@GTEST_ENABLED_FALSE@	@echo " To run tests, Google Test Framework must be enabled.                "
-@GTEST_ENABLED_FALSE@	@echo " Configure IBAMR with additional options:                            "
-@GTEST_ENABLED_FALSE@	@echo "                      --enable-gtest --with-gtest=path               "
-@GTEST_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-@GTEST_ENABLED_FALSE@gtest-long:
-@GTEST_ENABLED_FALSE@	make gtest
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

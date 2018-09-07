@@ -328,6 +328,19 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
         }
     }
 
+    // Get the updated damping zone coefficient at t^n+1.
+    d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
+    for (unsigned k = 0; k < d_add_L_fcns_ctx.size(); ++k)
+    {
+        d_add_L_fcns[k](d_velocity_L_idx,
+                        d_hier_math_ops,
+                        -1 /*cycle_num*/,
+                        new_time /*time*/,
+                        current_time,
+                        new_time,
+                        d_add_L_fcns_ctx[k]);
+    }
+
     // Get the current value of viscosity
     if (!d_mu_is_const)
     {
@@ -467,11 +480,15 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
                                 current_time,
                                 d_mu_vc_interp_type);
 
+    // Add the damping zone to the RHS
+    // RHS^n = RHS^n - K_rhs*L(x,t^n+1)*U^n
+    d_hier_sc_data_ops->multiply(d_temp_sc_idx, d_velocity_L_idx, d_U_scratch_idx, /*interior_only*/ true);
+    d_hier_sc_data_ops->axpy(U_rhs_idx, -K_rhs, d_temp_sc_idx, U_rhs_idx, /*interior_only*/ true);
+
     // Add the momentum portion of the RHS in the case of conservative discretization form
     // RHS^n = RHS^n + 1/dt*(rho*U)^n
     d_hier_sc_data_ops->multiply(d_temp_sc_idx, d_rho_sc_scratch_idx, d_U_scratch_idx, /*interior_only*/ true);
-    d_hier_sc_data_ops->scale(d_temp_sc_idx, 1.0 / dt, d_temp_sc_idx, /*interior_only*/ true);
-    d_hier_sc_data_ops->add(U_rhs_idx, d_temp_sc_idx, U_rhs_idx, /*interior_only*/ true);
+    d_hier_sc_data_ops->axpy(U_rhs_idx, 1.0 / dt, d_temp_sc_idx, U_rhs_idx, /*interior_only*/ true);
     d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
 
     // Set the initial guess.
@@ -1165,14 +1182,14 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
         // Get the condition number scaling on this level
         const double A_scale = d_A_scale[ln];
 
-        // C_sc = (rho / dt) + K * lambda
+        // C_sc = (rho / dt) + K * lambda + K * L(x,t^n+1)
         d_hier_sc_data_ops->scale(d_velocity_C_idx, A_scale / dt, d_rho_sc_scratch_idx, /*interior_only*/ true);
-
         if (!MathUtilities<double>::equalEps(lambda, 0.0))
         {
             d_hier_sc_data_ops->addScalar(
                 d_velocity_C_idx, d_velocity_C_idx, A_scale * K * lambda, /*interior_only*/ true);
         }
+        d_hier_sc_data_ops->axpy(d_velocity_C_idx, A_scale * K, d_velocity_L_idx, d_velocity_C_idx);
         U_problem_coefs.setCPatchDataId(d_velocity_C_idx);
 
         // D_{ec,nc} = -K * mu

@@ -158,7 +158,8 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 ../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
-../src/utilities/ConvectiveOperator.cpp
+../src/utilities/ConvectiveOperator.cpp \
+../src/wave_tank/StokesFirstOrderWaveBcCoef.cpp
 
 if LIBMESH_ENABLED
   DIM_INDEPENDENT_SOURCES += \
@@ -278,6 +279,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/StaggeredStokesSolver.h \
 ../include/ibamr/StaggeredStokesSolverManager.h \
 ../include/ibamr/StokesBcCoefStrategy.h \
+../include/ibamr/StokesFirstOrderWaveBcCoef.h \
 ../include/ibamr/StokesSpecifications.h \
 ../include/ibamr/SurfaceTensionForceFunction.h \
 ../include/ibamr/VCStaggeredStokesOperator.h \

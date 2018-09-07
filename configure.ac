@@ -197,6 +197,7 @@ AC_CONFIG_FILES([
   examples/vc_navier_stokes/ex0/Makefile
   examples/vc_navier_stokes/ex1/Makefile
   examples/vc_navier_stokes/ex2/Makefile
+  examples/wave_tank/ex0/Makefile
   lib/Makefile
   src/Makefile
   src/fortran/Makefile
@@ -211,6 +212,7 @@ AC_CONFIG_FILES([
   src/navier_stokes/fortran/Makefile
   src/utilities/Makefile
   src/tools/Makefile
+  src/wave_tank/Makefile
   tests/Makefile
   tests/Stokes/Makefile
   tests/Stokes/test0/Makefile
