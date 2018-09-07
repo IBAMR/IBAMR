@@ -1025,6 +1025,9 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     d_velocity_C_var = new SideVariable<NDIM, double>(d_object_name + "::velocity_C");
     d_velocity_C_idx = var_db->registerVariableAndContext(d_velocity_C_var, getCurrentContext(), no_ghosts);
 
+    d_velocity_L_var = new SideVariable<NDIM, double>(d_object_name + "::velocity_L");
+    d_velocity_L_idx = var_db->registerVariableAndContext(d_velocity_L_var, getCurrentContext(), no_ghosts);
+
     d_velocity_rhs_C_var = new SideVariable<NDIM, double>(d_object_name + "::velocity_rhs_C");
     d_velocity_rhs_C_idx = var_db->registerVariableAndContext(d_velocity_rhs_C_var, getCurrentContext(), no_ghosts);
 #if (NDIM == 2)
@@ -1191,6 +1194,7 @@ INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         level->allocatePatchData(d_scratch_data, current_time);
         level->allocatePatchData(d_new_data, new_time);
         level->allocatePatchData(d_velocity_C_idx, current_time);
+        level->allocatePatchData(d_velocity_L_idx, current_time);
         level->allocatePatchData(d_velocity_rhs_C_idx, current_time);
         level->allocatePatchData(d_velocity_D_idx, current_time);
         level->allocatePatchData(d_velocity_D_cc_idx, current_time);
@@ -1299,6 +1303,7 @@ INSVCStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double cu
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_velocity_C_idx);
+        level->deallocatePatchData(d_velocity_L_idx);
         level->deallocatePatchData(d_velocity_D_idx);
         level->deallocatePatchData(d_velocity_D_cc_idx);
         level->deallocatePatchData(d_pressure_D_idx);
@@ -1464,6 +1469,14 @@ INSVCStaggeredHierarchyIntegrator::registerResetFluidViscosityFcn(ResetFluidProp
     d_reset_mu_fcns_ctx.push_back(ctx);
     return;
 } // registerResetFluidViscosityFcn
+
+void
+INSVCStaggeredHierarchyIntegrator::registerAddDampingZoneFcn(AddDampingZoneFcnPtr callback, void* ctx)
+{
+    d_add_L_fcns.push_back(callback);
+    d_add_L_fcns_ctx.push_back(ctx);
+    return;
+} // registerDampingZoneFcn
 
 void
 INSVCStaggeredHierarchyIntegrator::registerMassDensityInitialConditions(const Pointer<CartGridFunction> rho_init_fcn)

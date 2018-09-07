@@ -281,14 +281,33 @@ public:
                                                void* ctx);
 
     /*!
-     * \brief Register interface neighborhood locating functions.
+     * \brief Register function to reset fluid density.
      */
     void registerResetFluidDensityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
 
     /*!
-     * \brief Register interface neighborhood locating functions.
+     * \brief Register function to reset fluid viscosity.
      */
     void registerResetFluidViscosityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
+
+    /*!
+     * \brief Function to add damping zone term to the momentum equation.
+     *
+     * \Note The interface expects additive behavior for damping_coef_idx patch data index. This
+     * allows multiple damping zones to be represented by same patach data index.
+     */
+    typedef void (*AddDampingZoneFcnPtr)(int damping_coef_idx,
+                                         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                         int cycle_num,
+                                         double time,
+                                         double current_time,
+                                         double new_time,
+                                         void* ctx);
+
+    /*!
+     * \brief Register function to add a damping zone in the simulation.
+     */
+    void registerAddDampingZoneFcn(AddDampingZoneFcnPtr callback, void* ctx);
 
     /*!
      * \brief Supply initial conditions for the density field, if maintained by the fluid integrator.
@@ -534,6 +553,7 @@ protected:
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_velocity_D_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_velocity_C_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_velocity_L_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_velocity_rhs_C_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_N_full_var;
@@ -552,6 +572,12 @@ protected:
      */
     std::vector<ResetFluidPropertiesFcnPtr> d_reset_rho_fcns, d_reset_mu_fcns;
     std::vector<void*> d_reset_rho_fcns_ctx, d_reset_mu_fcns_ctx;
+
+    /*!
+     * Functions adding damping zone coefficient if registered with this integrator.
+     */
+    std::vector<AddDampingZoneFcnPtr> d_add_L_fcns;
+    std::vector<void*> d_add_L_fcns_ctx;
 
     /*!
      * Temporary storage variables that contain intermediate quantities
@@ -589,7 +615,7 @@ protected:
      * Scratch variables have only one context: scratch.
      */
     int d_Omega_Norm_idx, d_U_regrid_idx, d_U_src_idx, d_indicator_idx, d_F_div_idx;
-    int d_velocity_C_idx, d_velocity_D_idx, d_velocity_D_cc_idx, d_pressure_D_idx;
+    int d_velocity_C_idx, d_velocity_L_idx, d_velocity_D_idx, d_velocity_D_cc_idx, d_pressure_D_idx;
     int d_velocity_rhs_C_idx, d_velocity_rhs_D_idx, d_pressure_rhs_D_idx;
     int d_mu_interp_idx;
     int d_N_full_idx;
