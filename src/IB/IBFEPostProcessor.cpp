@@ -104,7 +104,7 @@ IBFEPostProcessor::registerScalarVariable(const std::string& name,
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     System& system = equation_systems->add_system<System>(name + " reconstruction system");
-    system.add_variable(name, fe_order, fe_family);
+    if(!system.is_initialized()) system.add_variable(name, fe_order, fe_family);
     d_scalar_var_systems.push_back(&system);
     d_scalar_var_fcns.push_back(fcn);
     d_scalar_var_system_data.push_back(system_data);
@@ -199,7 +199,7 @@ IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     System& system = equation_systems->add_system<System>(var_name + " interpolation system");
-    system.add_variable(var_name, var_fe_order, var_fe_family);
+    if(!system.is_initialized()) system.add_variable(var_name, var_fe_order, var_fe_family);
     d_scalar_interp_var_systems.push_back(&system);
     d_scalar_interp_vars.push_back(var);
     d_scalar_interp_ctxs.push_back(ctx);
