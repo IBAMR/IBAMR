@@ -58,6 +58,7 @@ LAMBDA_S = 2.0*MU_S*NU_S/(1.0 - 2.0*NU_S)
 
 // penalty parameters
 KAPPA_S = 6.25e4 * DX / DT^2
+C1_S = 1.0
 
 VelocityBcCoefs_0 {
    U_bar = U_BAR

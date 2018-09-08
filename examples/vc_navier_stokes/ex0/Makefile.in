@@ -542,8 +542,8 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 EXAMPLE_DRIVER = ex_main.cpp SetFluidProperties.cpp
 GTEST_DRIVER = test_main.cpp SetFluidProperties.cpp
-EXTRA_DIST = input2d input2d.test input2d.amr input3d input3d.test \
-	input3d.amr extract_error.sh
+EXTRA_DIST = input2d input2d.test input2d.amr input2d.bubble input3d \
+	input3d.test input3d.amr extract_error.sh
 GTESTS = $(am__append_1) $(am__append_4)
 EXAMPLES = $(am__append_2) $(am__append_5)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

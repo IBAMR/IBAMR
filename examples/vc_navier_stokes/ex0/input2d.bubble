@@ -1,0 +1,377 @@
+// physical parameters
+L   = 1.0
+RHO0  = 1.0                            // base density
+R_RHO = 1.0e4                            // density ratio
+MU0   = 1.0e-4                         // base viscosity
+R_MU  = 1.0e1                            // viscosity ratio
+DELTA = 0.03                           // Width of smoothed region
+
+// grid spacing parameters
+MAX_LEVELS  = 2
+REF_RATIO  = 2                            // refinement ratio between levels
+N = 32                                    // actual    number of grid cells on coarsest grid level
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
+
+// solver parameters
+SOLVER_TYPE         = "STAGGERED"          // the fluid solver to use (STAGGERED or COLLOCATED)
+DISCRETIZATION_FORM = "NON_CONSERVATIVE"    // the discretization form to use (CONSERVATIVE or NON_CONSERVATIVE)
+START_TIME         = 0.0e0                // initial simulation time
+END_TIME           = 0.1                  // final simulation time
+MAX_INTEGRATOR_STEPS = 1000000
+GROW_DT            = 2.0e0                // growth factor for timesteps
+NUM_CYCLES         = 2                    // number of cycles of fixed-point iteration
+INIT_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE"
+CONVECTIVE_TS_TYPE = "MIDPOINT_RULE"    // convective time stepping type
+CONVECTIVE_OP_TYPE = "CUI"                // convective differencing discretization type
+CONVECTIVE_FORM    = "ADVECTIVE"          // how to compute the convective terms
+NORMALIZE_PRESSURE = TRUE                 // whether to explicitly force the pressure to have mean zero
+CFL_MAX            = 0.5                  // maximum CFL number
+DT_MAX             = 0.005/(REF_RATIO^(MAX_LEVELS - 1))
+VORTICITY_TAGGING  = TRUE                 // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER         = 1                    // sized of tag buffer used by grid generation algorithm
+REGRID_INTERVAL    = 10000000             // effectively disable regridding
+OUTPUT_U           = TRUE
+OUTPUT_P           = TRUE
+OUTPUT_F           = TRUE
+OUTPUT_OMEGA       = TRUE
+OUTPUT_DIV_U       = TRUE
+OUTPUT_RHO         = TRUE
+OUTPUT_MU          = TRUE
+RHO_IS_CONST       = FALSE
+MU_IS_CONST        = FALSE
+
+// Application
+// How often the preconditioner is reinitialized
+PRECOND_REINIT_INTERVAL = 1
+
+// How to interpolate from cell centers to sides (rho) and nodes (mu)
+// Harmonic averaging is better in cases where there is a large density of viscosity ratio
+VC_INTERPOLATION_TYPE   = "VC_HARMONIC_INTERP"
+
+// Scaling c is chosen such that c(rho/dt - mu/dx^2) ~ 1/dx
+// Assuming dt ~ dx and 1/dx = N, we have
+// c ~ 1/(rho - mu*N)
+// OPERATOR_SCALE_FACTORS = abs(1.0/(R_RHO/2.0 - R_MU/2.0*N*REF_RATIO^(MAX_LEVELS - 1)))
+OPERATOR_SCALE_FACTORS = 1.0/R_RHO
+
+EXPLICITLY_REMOVE_NULLSPACE = FALSE
+ENABLE_LOGGING     = TRUE
+
+// exact solution function expressions
+U = "-(cos(2*PI*t - 2*PI*X_0)*sin(2*PI*t - 2*PI*X_1))"
+V = "cos(t - 2*PI*X_0) + cos(2*PI*t - 2*PI*X_1)*sin(2*PI*t - 2*PI*X_0)"
+P = "sin(2*PI*t - 2*PI*X_0)*sin(2*PI*t - 2*PI*X_1)"
+
+F_U = "-2*PI*cos(2*PI*t - 2*PI*X_0)*sin(2*PI*t - 2*PI*X_1) + rho0*(-2*PI*cos(2*PI*t - 2*PI*X_0)*cos(2*PI*t - 2*PI*X_1) + 2*PI*cos(2*PI*t - 2*PI*X_0)*cos(2*PI*t - 2*PI*X_1)*(cos(t - 2*PI*X_0) + cos(2*PI*t - 2*PI*X_1)*sin(2*PI*t - 2*PI*X_0)) + 2*PI*sin(2*PI*t - 2*PI*X_0)*sin(2*PI*t - 2*PI*X_1) + 2*PI*cos(2*PI*t -2*PI*X_0)*sin(2*PI*t - 2*PI*X_0)*sin(2*PI*t - 2*PI*X_1)^2)*((1 + R_rho)/2 + ((-1 + R_rho)*tanh((0.1- sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta))/2) - 2*(-(PI*(-1 + R_mu)*(-0.5 + X_1)*mu0*1/cosh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta)^2*sin(t - 2*PI*X_0))/(2*sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2)*delta) + (PI*(-1 + R_mu)*(-0.5 + X_0)*mu0*1/cosh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta)^2*sin(2*PI*t - 2*PI*X_0)*sin(2*PI*t - 2*PI*X_1))/(sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2)*delta) + 4*PI^2*mu0*cos(2*PI*t - 2*PI*X_0)*sin(2*PI*t - 2*PI*X_1)*((1 + R_mu)/2 + ((-1 + R_mu)*tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta))/2))"
+F_V = "-2*PI*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*t - 2*PI*X_0) + rho0*(2*PI*cos(2*PI*t - 2*PI*X_0)*cos(2*PI*t - 2*PI*X_1) - sin(t - 2*PI*X_0) - cos(2*PI*t - 2*PI*X_0)*(-2*PI*cos(2*PI*t - 2*PI*X_0)*cos(2*PI*t - 2*PI*X_1) + 2*PI*sin(t - 2*PI*X_0))*sin(2*PI*t - 2*PI*X_1) - 2*PI*sin(2*PI*t - 2*PI*X_0)*sin(2*PI*t - 2*PI*X_1) +2*PI*sin(2*PI*t - 2*PI*X_0)*(cos(t - 2*PI*X_0) + cos(2*PI*t - 2*PI*X_1)*sin(2*PI*t - 2*PI*X_0))*sin(2*PI*t - 2*PI*X_1))*((1 + R_rho)/2 + ((-1 + R_rho)*tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta))/2) - 2*(-(PI*(-1 + R_mu)*(-0.5 + X_0)*mu0*1/cosh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta)^2*sin(t - 2*PI*X_0))/(2*sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2)*delta) - (PI*(-1 + R_mu)*(-0.5 + X_1)*mu0*1/cosh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta)^2*sin(2*PI*t - 2*PI*X_0)*sin(2*PI*t - 2*PI*X_1))/(sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2)*delta) - 2*PI^2*mu0*cos(t - 2*PI*X_0)*((1 + R_mu)/2 + ((-1 + R_mu)*tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta))/2) - 4*PI^2*mu0*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*t - 2*PI*X_0)*((1 + R_mu)/2 + ((-1 + R_mu)*tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta))/2))"
+
+// normal tractions
+T_n_x = "-(sin(2*PI*t - 2*PI*X_0)*sin(2*PI*t - 2*PI*X_1)) - 4*PI*mu0*sin(2*PI*t - 2*PI*X_0)*sin(2*PI*t - 2*PI*X_1)*((1 + R_mu)/2 + ((-1 + R_mu)*tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta))/2)"
+T_n_y = "-(sin(2*PI*t - 2*PI*X_0)*sin(2*PI*t - 2*PI*X_1)) + 4*PI*mu0*sin(2*PI*t - 2*PI*X_0)*sin(2*PI*t - 2*PI*X_1)*((1 + R_mu)/2 + ((-1 + R_mu)*tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta))/2)"
+
+// tangential traction
+T_t = "2*PI*mu0*sin(t - 2*PI*X_0)*((1 + R_mu)/2 + ((-1 + R_mu)*tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta))/2)"
+
+RHO = "rho0*((1 + R_rho)/2 + ((-1 + R_rho)*tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta))/2)"
+MU = "mu0*((1 + R_mu)/2 + ((-1 + R_mu)*tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta))/2)"
+
+// supply some variable density field
+DensityFunction {
+   R_rho = R_RHO
+   rho0 = RHO0
+   delta = DELTA
+   function = RHO
+}
+
+// supply some variable viscosity field
+ViscosityFunction {
+   R_mu = R_MU
+   mu0  = MU0
+   delta = DELTA
+   function = MU
+}
+
+VelocityInitialConditions {
+   function_0 = U
+   function_1 = V
+}
+
+VelocityBcCoefs_0 {
+   R_rho = R_RHO
+   rho0 = RHO0
+   mu0  = MU0
+   R_mu  = R_MU
+   delta = DELTA
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = U
+   gcoef_function_1 = U
+   gcoef_function_2 = T_t
+   gcoef_function_3 = T_t
+}
+
+VelocityBcCoefs_1 {
+   R_rho = R_RHO
+   rho0 = RHO0
+   mu0  = MU0
+   R_mu  = R_MU
+   delta = DELTA
+
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = T_t
+   gcoef_function_1 = T_t
+   gcoef_function_2 = V
+   gcoef_function_3 = V
+}
+
+
+PressureInitialConditions {
+   function = P
+}
+
+DensityBoundaryConditions {
+   R_rho = R_RHO
+   delta = DELTA
+   rho0 = RHO0
+   mu0  = MU0
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = RHO
+   gcoef_function_1 = RHO
+   gcoef_function_2 = RHO  
+   gcoef_function_3 = RHO
+
+}
+
+ViscosityBoundaryConditions {
+   R_mu  = R_MU
+   delta = DELTA
+   rho0 = RHO0
+   mu0  = MU0
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = MU
+   gcoef_function_1 = MU
+   gcoef_function_2 = MU  
+   gcoef_function_3 = MU
+
+}
+
+ForcingFunction {
+   R_rho = R_RHO
+   R_mu  = R_MU
+   delta = DELTA
+   rho0 = RHO0
+   mu0  = MU0
+   function_0 = F_U
+   function_1 = F_V
+}
+
+INSVCStaggeredNonConservativeHierarchyIntegrator {
+   start_time                    = START_TIME
+   end_time                      = END_TIME
+   grow_dt                       = GROW_DT
+   num_cycles                    = NUM_CYCLES
+   init_convective_time_stepping_type = INIT_CONVECTIVE_TS_TYPE
+   convective_time_stepping_type = CONVECTIVE_TS_TYPE
+   convective_op_type            = CONVECTIVE_OP_TYPE
+   convective_difference_form    = CONVECTIVE_FORM
+   normalize_pressure            = NORMALIZE_PRESSURE
+   cfl                           = CFL_MAX
+   dt_max                        = DT_MAX
+   using_vorticity_tagging       = VORTICITY_TAGGING
+   vorticity_rel_thresh          = 0.25,0.125
+   tag_buffer                    = TAG_BUFFER
+   regrid_interval               = REGRID_INTERVAL
+   output_U                      = OUTPUT_U
+   output_P                      = OUTPUT_P
+   output_F                      = OUTPUT_F
+   output_Omega                  = OUTPUT_OMEGA
+   output_Div_U                  = OUTPUT_DIV_U
+   output_rho                    = OUTPUT_RHO
+   output_mu                     = OUTPUT_MU
+   rho_is_const                  = RHO_IS_CONST
+   mu_is_const                   = MU_IS_CONST
+   operator_scale_factors        = OPERATOR_SCALE_FACTORS 
+   vc_interpolation_type         = VC_INTERPOLATION_TYPE
+   precond_reinit_interval       = PRECOND_REINIT_INTERVAL
+   enable_logging                = ENABLE_LOGGING
+   max_integrator_steps          = MAX_INTEGRATOR_STEPS
+   explicitly_remove_nullspace   = EXPLICITLY_REMOVE_NULLSPACE
+
+   // Solver parameters
+   velocity_solver_type = "VC_VELOCITY_PETSC_KRYLOV_SOLVER"
+   velocity_precond_type = "VC_VELOCITY_POINT_RELAXATION_FAC_PRECONDITIONER"
+   velocity_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 5
+      rel_residual_tol = 1.0e-2
+   }
+   velocity_precond_db {
+      num_pre_sweeps = 0
+      num_post_sweeps = 3
+      prolongation_method = "CONSERVATIVE_LINEAR_REFINE"
+      restriction_method = "CONSERVATIVE_COARSEN"
+      coarse_solver_type = "VC_VELOCITY_PETSC_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 1
+      coarse_solver_db {
+         ksp_type = "gmres"
+         pc_type = "jacobi"
+      }
+   }
+    pressure_solver_type = "PETSC_KRYLOV_SOLVER"
+    pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+    pressure_solver_db 
+    {
+      ksp_type = "richardson"
+      max_iterations = 1
+      rel_residual_tol = 1.0e-1
+    }
+    // pressure_precond_db {
+    //      num_pre_sweeps  = 0
+    //      num_post_sweeps = 3
+    //      prolongation_method = "LINEAR_REFINE"
+    //      restriction_method  = "CONSERVATIVE_COARSEN"
+    //      coarse_solver_type = "PETSC_LEVEL_SOLVER"
+    //      coarse_solver_rel_residual_tol = 1.0e-12
+    //      coarse_solver_abs_residual_tol = 1.0e-50
+    //      coarse_solver_max_iterations = 1
+    //      coarse_solver_db {
+    //         ksp_type = "gmres"
+    //         pc_type = "gamg"
+    //      }
+    //    }
+    pressure_precond_db {
+      num_pre_sweeps  = 0
+      num_post_sweeps = 3
+      prolongation_method = "LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 1
+      coarse_solver_db 
+      {
+          solver_type          = "PFMG"
+          num_pre_relax_steps  = 0
+          num_post_relax_steps = 3
+          enable_logging       = FALSE
+      }
+    }
+   
+}
+
+Main {
+   solver_type         = SOLVER_TYPE
+   dicretization_form  = DISCRETIZATION_FORM
+
+// log file parameters
+   log_file_name               = "INS2d.log"
+   log_all_nodes               = FALSE
+
+// visualization dump parameters
+   viz_writer                  = "VisIt"
+   viz_dump_interval           = 100
+   viz_dump_dirname            = "viz_INS2d"
+   visit_number_procs_per_file = 1
+
+// restart dump parameters
+   restart_dump_interval       = 0
+   restart_dump_dirname        = "restart_INS2d"
+
+// timer dump parameters
+   timer_dump_interval         = 0
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = L,L
+   periodic_dimension = 0,0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = REF_RATIO,REF_RATIO
+      level_2 = REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO
+      level_4 = REF_RATIO,REF_RATIO
+      level_5 = REF_RATIO,REF_RATIO
+      level_6 = REF_RATIO,REF_RATIO
+      level_7 = REF_RATIO,REF_RATIO
+   }
+   largest_patch_size {
+      level_0 = 512,512  // all finer levels will use same values as level_0
+   }
+   smallest_patch_size {
+      level_0 =   4,  4  // all finer levels will use same values as level_0
+   }
+   efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [( 0 , 0 ),( N - 1 , N - 1 )]
+      level_1 = [( 0 , 0 ),( 2*N - 1 , 2*N - 1 )]
+      level_2 = [( 0 , 0 ),( 4*N - 1 , 4*N - 1 )]
+      level_3 = [( 0 , 0 ),( 8*N - 1 , 8*N - 1 )]
+      level_4 = [( 0 , 0 ),( 16*N - 1 , 16*N - 1 )]
+      level_5 = [( 0 , 0 ),( 32*N - 1 , 32*N - 1 )]
+      level_6 = [( 0 , 0 ),( 64*N - 1 , 64*N - 1 )]
+      level_7 = [( 0 , 0 ),( 128*N - 1 , 128*N - 1 )]
+      level_8 = [( 0 , 0 ),( 256*N - 1 , 256*N - 1 )]
+      level_9 = [( 0 , 0 ),( 512*N - 1 , 512*N - 1 )]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total     = TRUE
+   print_threshold = 0.1
+   timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
+}
