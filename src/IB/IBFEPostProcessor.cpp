@@ -107,7 +107,7 @@ IBFEPostProcessor::registerScalarVariable(const std::string& name,
     System& system = equation_systems->add_system<System>(name + " reconstruction system");
     RestartManager* restart_manager = RestartManager::getManager();
     const bool is_from_restart = restart_manager->isFromRestart();
-    if(!is_from_restart) system.add_variable(name, fe_order, fe_family);
+    if (!is_from_restart) system.add_variable(name, fe_order, fe_family);
     d_scalar_var_systems.push_back(&system);
     d_scalar_var_fcns.push_back(fcn);
     d_scalar_var_system_data.push_back(system_data);
@@ -133,7 +133,7 @@ IBFEPostProcessor::registerVectorVariable(const std::string& name,
     {
         std::ostringstream os;
         os << name << "_" << i;
-        if(!is_from_restart) system.add_variable(os.str(), fe_order, fe_family);
+        if (!is_from_restart) system.add_variable(os.str(), fe_order, fe_family);
     }
     d_vector_var_systems.push_back(&system);
     d_vector_var_fcns.push_back(fcn);
@@ -163,7 +163,7 @@ IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
         {
             std::ostringstream os;
             os << var_name << "_" << i << j;
-            if(!is_from_restart) system.add_variable(os.str(), var_fe_order, var_fe_family);
+            if (!is_from_restart) system.add_variable(os.str(), var_fe_order, var_fe_family);
         }
     }
     d_tensor_var_systems.push_back(&system);
@@ -208,7 +208,7 @@ IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     System& system = equation_systems->add_system<System>(var_name + " interpolation system");
     RestartManager* restart_manager = RestartManager::getManager();
     const bool is_from_restart = restart_manager->isFromRestart();
-    if(!is_from_restart) system.add_variable(var_name, var_fe_order, var_fe_family);
+    if (!is_from_restart) system.add_variable(var_name, var_fe_order, var_fe_family);
     d_scalar_interp_var_systems.push_back(&system);
     d_scalar_interp_vars.push_back(var);
     d_scalar_interp_ctxs.push_back(ctx);
