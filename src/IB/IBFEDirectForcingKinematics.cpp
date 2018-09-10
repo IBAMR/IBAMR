@@ -724,7 +724,7 @@ IBFEDirectForcingKinematics::computeImposedLagrangianForceDensity(PetscVector<do
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         nodal_indices[d].reserve(total_local_nodes);
-        nodal_X_values[d].reserve(total_local_nodes);
+        nodal_X_values[d].resize(total_local_nodes);
     }
 
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
