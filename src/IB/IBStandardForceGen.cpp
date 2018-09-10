@@ -1267,6 +1267,7 @@ IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
     double max_displacement = 0.0;
 
     const int num_target_points = static_cast<int>(d_target_point_data[level_number].petsc_node_idxs.size());
+    if (num_target_points == 0) return;
     const int* const petsc_node_idxs = &d_target_point_data[level_number].petsc_node_idxs[0];
     const double** const kappa = &d_target_point_data[level_number].kappa[0];
     const double** const eta = &d_target_point_data[level_number].eta[0];
