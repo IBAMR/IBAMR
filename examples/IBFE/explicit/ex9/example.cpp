@@ -50,11 +50,13 @@
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_triangle_interface.h>
+#include "libmesh/libmesh_common.h"
+
 
 // Headers for application-specific algorithm/data structure objects
 #include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
-#include <ibamr/IBFEMethod.h>
+#include <ibamr/IBFESurfaceMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibtk/AppInitializer.h>
@@ -73,20 +75,25 @@ namespace ModelData
 static double kappa_s = 1.0e6;
 static double eta_s = 0.0;
 System* x_solid_system, * u_solid_system;
+     
 void
 tether_force_function(VectorValue<double>& F,
+                      const VectorValue<double>& n,
+                      const VectorValue<double>& /*N*/,
                       const TensorValue<double>& /*FF*/,
                       const libMesh::Point& x_bndry,  // x_bndry gives current   coordinates on the boundary mesh
                       const libMesh::Point& X_bndry,  // X_bndry gives reference coordinates on the boundary mesh
                       Elem* const elem,
+                      const unsigned short /*side*/,
                       const vector<const vector<double>*>& var_data,
                       const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                       double /*time*/,
-                      void* /*ctx*/)
+                      void* /*ctx*/)       
 {
     // tether_force_function() is called on elements of the boundary mesh.  Here
     // we look up the element in the solid mesh that the current boundary
     // element was extracted from.
+    
     const Elem* const interior_parent = elem->interior_parent();
 
     // We define "arbitrary" velocity and displacement fields on the solid mesh.
@@ -100,12 +107,18 @@ tether_force_function(VectorValue<double>& F,
 
     // Look up the velocity of the boundary mesh.
     const std::vector<double>& u_bndry = *var_data[0];
-
+    double u_bndry_n = 0.0;
+    double u_solid_n = 0.0;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+		u_bndry_n += n(d) * u_bndry[d];
+		u_solid_n += n(d) * u_solid[d];
+	}
     // The tether force is proportional to the mismatch between the positions
     // and velocities.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        F(d) = kappa_s * (x_solid[d] - x_bndry(d)) + eta_s * (u_solid[d] - u_bndry[d]);
+        F(d) = kappa_s * (x_solid[d] - x_bndry(d)) + eta_s * (u_solid_n - u_bndry_n) * n(d);
     }
     return;
 } // tether_force_function
@@ -246,9 +259,9 @@ bool run_example(int argc, char** argv)
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        Pointer<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod",
-                           app_initializer->getComponentDatabase("IBFEMethod"),
+        Pointer<IBFESurfaceMethod> ib_method_ops =
+            new IBFESurfaceMethod("IBFESurfaceMethod",
+                           app_initializer->getComponentDatabase("IBFESurfaceMethod"),
                            &bndry_mesh,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
         Pointer<IBHierarchyIntegrator> time_integrator =
@@ -277,16 +290,16 @@ bool run_example(int argc, char** argv)
         ib_method_ops->initializeFEEquationSystems();
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
-        vector<SystemData> sys_data(1, SystemData(IBFEMethod::VELOCITY_SYSTEM_NAME, vars));
-        IBFEMethod::LagBodyForceFcnData body_fcn_data(tether_force_function, sys_data);
-        ib_method_ops->registerLagBodyForceFunction(body_fcn_data);
+        vector<SystemData> sys_data(1, SystemData(IBFESurfaceMethod::VELOCITY_SYSTEM_NAME, vars));
+        IBFESurfaceMethod::LagSurfaceForceFcnData body_fcn_data(tether_force_function, sys_data);
+        ib_method_ops->registerLagSurfaceForceFunction(body_fcn_data);
         EquationSystems* bndry_equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Setup solid systems.
         libMesh::UniquePtr<EquationSystems> solid_equation_systems(new EquationSystems(solid_mesh));
         x_solid_system = &solid_equation_systems->add_system<ExplicitSystem>("position");
         u_solid_system = &solid_equation_systems->add_system<ExplicitSystem>("velocity");
-        Order order = SECOND;
+        Order order = FIRST;
         FEFamily family = LAGRANGE;
         for (int d = 0; d < NDIM; ++d)
         {

@@ -11,28 +11,35 @@ N = 16                                         // actual    number of grid cells
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
 DX0 = L/N                                      // mesh width on coarsest grid level
 DX  = L/NFINEST                                // mesh width on finest   grid level
-MFAC = 8.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
-ELEM_TYPE = "HEX27"                            // type of element to use for structure discretization
-PK1_DEV_QUAD_ORDER = "SEVENTH"
-PK1_DIL_QUAD_ORDER = "FIFTH"
+MFAC = 2.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
+ELEM_TYPE = "HEX8"                            // type of element to use for structure discretization
 USE_BOUNDARY_MESH = TRUE
 
 // solver parameters
 IB_DELTA_FUNCTION          = "IB_4"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
-SPLIT_FORCES               = FALSE             // whether to split interior and boundary forces
-USE_JUMP_CONDITIONS        = FALSE             // whether to impose pressure jumps at fluid-structure interfaces
-USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or lumped mass matrix
+SPLIT_NORMAL_FORCES        = TRUE           // whether to split interior and boundary forces
+SPLIT_TANGENTIAL_FORCES	   = TRUE
+USE_PRESSURE_JUMP_CONDITIONS        = TRUE           // whether to impose pressure jumps at fluid-structure interfaces
+USE_VELOCITY_JUMP_CONDITIONS        = TRUE           // whether to impose pressure jumps at fluid-structure interfaces
+USE_CODIM1_CODIM0_COUPLING    = TRUE
+WSS_CALC_WIDTH = 1.05
+P_CALC_WIDTH = 1.5
+TRACTION_ACTIVATION_TIME = 0.0
+COMPUTE_FLUID_TRACTION = TRUE
+
+USE_CONSISTENT_MASS_MATRIX = TRUE          // whether to use a consistent or lumped mass matrix
 IB_POINT_DENSITY           = 4.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
 CFL_MAX                    = 0.2               // maximum CFL number
-DT                         = 0.25*CFL_MAX*DX    // maximum timestep size
+DT                         = 0.1*CFL_MAX*DX //1e-5    // maximum timestep size
 START_TIME                 = 0.0e0             // initial simulation time
-END_TIME                   = 100*DT             // final simulation time
+END_TIME                   = 100             // final simulation time
 GROW_DT                    = 2.0e0             // growth factor for timesteps
+NUM_CYCLES                 = 1                      // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH" // convective time stepping type
-CONVECTIVE_OP_TYPE         = "PPM"             // convective differencing discretization type
+CONVECTIVE_OP_TYPE         = "STABILIZED_PPM"             // convective differencing discretization type
 CONVECTIVE_FORM            = "ADVECTIVE"       // how to compute the convective terms
-NORMALIZE_PRESSURE         = FALSE             // whether to explicitly force the pressure to have mean zero
+NORMALIZE_PRESSURE         = FALSE             // whether to explicitly force the  pressure to have mean zero
 ERROR_ON_DT_CHANGE         = TRUE              // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING          = TRUE              // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                 // size of tag buffer used by grid generation algorithm
@@ -45,8 +52,8 @@ OUTPUT_DIV_U               = TRUE
 ENABLE_LOGGING             = TRUE
 
 // model parameters
-KAPPA_S = 7.5*DX/DT^2
-ETA_S = 1.5*DX/DT
+KAPPA_S = 2.5e-4/DT^2
+ETA_S = 0.1/DT
 
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
@@ -56,6 +63,29 @@ VelocityBcCoefs_0 {
    t_half = 0.5
    tau = 0.125
 
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+   acoef_function_4 = "0.0"
+   acoef_function_5 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
+
+VelocityBcCoefs_1 {
    acoef_function_0 = "1.0"
    acoef_function_1 = "0.0"
    acoef_function_2 = "0.0"
@@ -70,30 +100,7 @@ VelocityBcCoefs_0 {
    bcoef_function_4 = "1.0"
    bcoef_function_5 = "1.0"
 
-   gcoef_function_0 = "(tanh((t-t_half)/tau)+tanh(t_half/tau))/(1+tanh(t_half/tau))"
-   gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
-   gcoef_function_4 = "0.0"
-   gcoef_function_5 = "0.0"
-}
-
-VelocityBcCoefs_1 {
-   acoef_function_0 = "1.0"
-   acoef_function_1 = "0.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
-   acoef_function_4 = "0.0"
-   acoef_function_5 = "0.0"
-
-   bcoef_function_0 = "0.0"
-   bcoef_function_1 = "1.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
-   bcoef_function_4 = "1.0"
-   bcoef_function_5 = "1.0"
-
-   gcoef_function_0 = "cos(pi*X_1/16.0)*exp(-2.0*t)"
+   gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
@@ -106,15 +113,15 @@ VelocityBcCoefs_2 {
    acoef_function_1 = "0.0"
    acoef_function_2 = "0.0"
    acoef_function_3 = "0.0"
-   acoef_function_4 = "1.0"
-   acoef_function_5 = "1.0"
+   acoef_function_4 = "0.0"
+   acoef_function_5 = "0.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "1.0"
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
-   bcoef_function_4 = "0.0"
-   bcoef_function_5 = "0.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "1.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
@@ -134,13 +141,21 @@ IBHierarchyIntegrator {
    enable_logging      = ENABLE_LOGGING
 }
 
-IBFEMethod {
-   IB_delta_fcn                = IB_DELTA_FUNCTION
-   split_forces                = SPLIT_FORCES
-   use_jump_conditions         = USE_JUMP_CONDITIONS
-   use_consistent_mass_matrix  = USE_CONSISTENT_MASS_MATRIX
-   IB_point_density            = IB_POINT_DENSITY
+IBFESurfaceMethod {
+   IB_delta_fcn               = IB_DELTA_FUNCTION
+   split_normal_force          = SPLIT_NORMAL_FORCES
+   split_tangential_force      = SPLIT_TANGENTIAL_FORCES
+   use_pressure_jump_conditions        = USE_PRESSURE_JUMP_CONDITIONS
+   use_velocity_jump_conditions = USE_VELOCITY_JUMP_CONDITIONS
+   use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
+   IB_point_density           = IB_POINT_DENSITY
+   p_calc_width				   = P_CALC_WIDTH
+   wss_calc_width			  = WSS_CALC_WIDTH
+   min_ghost_cell_width = 6
+   traction_activation_time =   TRACTION_ACTIVATION_TIME
+   use_codim1_codim0_coupling  = USE_CODIM1_CODIM0_COUPLING
 }
+
 
 INSCollocatedHierarchyIntegrator {
    mu                            = MU
@@ -199,7 +214,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
-   viz_dump_interval           = int(0.5/DT)
+   viz_dump_interval           = int(0.05/DT)
    viz_dump_dirname            = "viz_IB3d"
    visit_number_procs_per_file = 1
 
@@ -216,9 +231,9 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0,0),(2*N - 1,N - 1,N - 1) ]
-   x_lo = -0.5*L,-0.5*L,-0.5*L
-   x_up =  1.5*L, 0.5*L, 0.5*L
+   domain_boxes = [ (0,0,0),(N - 1, 2*N - 1,N - 1) ]
+   x_lo = -0.5*L,-1.5*L,-0.5*L
+   x_up = 0.5*L, 0.5*L, 0.5*L
    periodic_dimension = 0,0,0
 }
 
