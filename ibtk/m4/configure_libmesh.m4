@@ -116,6 +116,30 @@ int main()
   LIBMESH_FCFLAGS="`$LIBMESH_CONFIG --fflags`"
   LIBMESH_LIBS="`$LIBMESH_CONFIG --libs`"
 
+  # libMesh implements UniquePtr by including parts of boost in
+  # libmesh/unique_ptr.hpp (or in contrib/unique_ptr/unique_ptr.hpp). This
+  # causes compilation errors when one #includes both that file and the original
+  # file from boost, since the preprocessor guards on the libMesh-provided
+  # unique_ptr.hpp do not match the preprocessor guards on the boost headers (so
+  # we get multiple definition errors). To ensure that this does not happen,
+  # check that libMesh will not include unique_ptr.hpp in its own auto_ptr.hpp
+  # file (which we use). libMesh uses the preprocessor guard symbol
+  # UNIQUE_PTR_HPP in 1.0, 1.1, 1.2, and 1.3, so we check for that.
+
+  AC_MSG_CHECKING([for a usable libMesh UniquePtr/unique_ptr configuration])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <libmesh/auto_ptr.h>
+
+#ifdef UNIQUE_PTR_HPP
+#error
+#endif
+
+  ]])],[LIBMESH_UNIQUE_PTR_OK=yes],[LIBMESH_UNIQUE_PTR_OK=no])
+  AC_MSG_RESULT([${LIBMESH_UNIQUE_PTR_OK}])
+  if test "$LIBMESH_UNIQUE_PTR_OK" = no; then
+    AC_MSG_ERROR([If libMesh is compiled without C++11 support then it must be compiled with --disable-unique-ptr or (in version 1.1 or later) compiled with a copy of boost including boost.move.])
+  fi
+
   AC_LIB_HAVE_LINKFLAGS([netcdf])
   if test "$HAVE_LIBNETCDF" = yes ; then
     LIBMESH_LIBS="$LIBMESH_LIBS $LIBNETCDF"

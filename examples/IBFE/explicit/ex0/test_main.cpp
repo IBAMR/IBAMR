@@ -66,11 +66,14 @@ TEST(TEST_CASE_NAME, p_MaxNorm) {
 
 
 int main( int argc, char** argv ) {
-    testing::InitGoogleTest( &argc, argv ); 
-    
-    //error recorded from main2d running input2d.test Oct 28, 2016
-    // benchmark error in Q 
-    
+    testing::InitGoogleTest( &argc, argv );
+
+    // Error recorded from main2d running
+    //     ./test2d input2d.test -ksp_rtol 1e-16 -ksp_max_it 1000
+    // on commit a205f3676cd in August 2018.
+    //
+    // benchmark error in Q
+
     // 2d
     // Error in u at time 0.01953125:
     // L1-norm:  4.63166742e-05
@@ -79,11 +82,11 @@ int main( int argc, char** argv ) {
 
     bench_u_err.resize(3);
     if (NDIM == 2) {
-        bench_u_err[L1_IDX] = 4.63166742e-05;  //2d L1Norm
-        bench_u_err[L2_IDX] = 6.774968741e-05;  //2d L2Norm
-        bench_u_err[MAX_IDX] = 0.0003396844457;  //2d maxNorm
+        bench_u_err[L1_IDX] = 4.6316950814468583e-05;  //2d L1Norm
+        bench_u_err[L2_IDX] = 6.7750371581914943e-05;  //2d L2Norm
+        bench_u_err[MAX_IDX] = 0.00033968718606779092;  //2d maxNorm
     }
-    
+
     // 2d
     // Error in p at time 0.0185546875:
     // L1-norm:  0.2293675067
@@ -92,11 +95,11 @@ int main( int argc, char** argv ) {
 
     bench_p_err.resize(3);
     if (NDIM == 2) {
-        bench_p_err[L1_IDX] = 0.2293675067;  //2d L1Norm
-        bench_p_err[L2_IDX] = 0.9715761264;  //2d L2Norm
-        bench_p_err[MAX_IDX] = 7.749929666;  //2d maxNorm
+        bench_p_err[L1_IDX] = 0.22936750682483956;  //2d L1Norm
+        bench_p_err[L2_IDX] = 0.97157612634508372;  //2d L2Norm
+        bench_p_err[MAX_IDX] = 7.7499296947099507;  //2d maxNorm
     }
-    
+
     ex_argc = argc;
     ex_argv = argv;
     ex_runs = run_example(ex_argc, ex_argv, u_err, p_err);

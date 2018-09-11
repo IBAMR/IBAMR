@@ -4,7 +4,7 @@ include $(top_srcdir)/config/Make-rules
 ## Dimension-dependent testers
 EXAMPLE_DRIVER = ex_main.cpp SetFluidProperties.cpp
 GTEST_DRIVER   = test_main.cpp SetFluidProperties.cpp
-EXTRA_DIST     = input2d input2d.test input2d.amr
+EXTRA_DIST     = input2d input2d.test input2d.amr input2d.bubble
 EXTRA_DIST    += input3d input3d.test input3d.amr
 EXTRA_DIST    += extract_error.sh
 

@@ -307,7 +307,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     TBOX_ASSERT(d_rho_sc_current_idx >= 0);
     TBOX_ASSERT(d_rho_sc_scratch_idx >= 0);
 #endif
-    
+
     // Note that we always reset current context of state variables here, if necessary.
     const double apply_time = current_time;
     for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
@@ -352,7 +352,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
         {
             mu_current_idx = d_mu_current_idx;
         }
-        
+
         d_hier_cc_data_ops->copyData(d_mu_scratch_idx, mu_current_idx, /*interior_only*/ true);
         d_mu_bdry_bc_fill_op->fillData(current_time);
 
@@ -608,11 +608,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
         }
     }
 
-    // In the special case of a conservative discretization form, the updated density is previously calculated by
-    // application of the mass and convective momentum integrator.
-    const int rho_sc_new_idx = d_rho_p_integrator->getUpdatedSideCenteredDensityPatchDataIndex();
-    d_hier_sc_data_ops->copyData(d_rho_sc_new_idx, rho_sc_new_idx, /*interior_only*/ true);
-
     if (!d_mu_is_const)
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -664,8 +659,61 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
 #endif
     }
 
+    // In the special case of a conservative discretization form, the updated density is calculated by
+    // application of the mass and convective momentum integrator.
+    if (!d_creeping_flow)
+    {
+        const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
+        // Update N_idx if necessary
+        if (cycle_num > 0)
+        {
+            const double dt = new_time - current_time;
+            const double half_time = current_time + 0.5 * dt;
+            d_rho_p_integrator->setSolutionTime(half_time);
+
+            // Set the cycle number
+            d_rho_p_integrator->setCycleNumber(cycle_num);
+
+            // Set the patch data index for convective derivative.
+            d_rho_p_integrator->setSideCenteredConvectiveDerivativePatchDataIndex(N_idx);
+
+            // Always set to current because we want to update rho^{n} to rho^{n+1}
+            d_rho_p_integrator->setSideCenteredDensityPatchDataIndex(d_rho_sc_current_idx);
+
+            // Set the velocities used to update the density
+            if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
+            {
+                d_rho_p_integrator->setFluidVelocityPatchDataIndices(
+                    /*old*/ -1, /*current*/ d_U_current_idx, /*new*/ d_U_new_idx);
+            }
+            else
+            {
+                d_rho_p_integrator->setFluidVelocityPatchDataIndices(
+                    /*old*/ d_U_old_current_idx, /*current*/ d_U_current_idx, /*new*/ d_U_new_idx);
+                d_rho_p_integrator->setPreviousTimeStepSize(d_dt_previous[0]);
+            }
+
+            d_rho_p_integrator->integrate(dt);
+        }
+
+        // Set the full convective term depending on the time stepping type
+        d_hier_sc_data_ops->copyData(d_N_full_idx, N_idx, /*interior_only*/ true);
+    }
+    const int rho_sc_new_idx = d_rho_p_integrator->getUpdatedSideCenteredDensityPatchDataIndex();
+    d_hier_sc_data_ops->copyData(d_rho_sc_new_idx, rho_sc_new_idx, /*interior_only*/ true);
+
     // Copy new into scratch
     d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx, d_rho_sc_new_idx);
+
+    // Synchronize newest density
+    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    SynchronizationTransactionComponent rho_scratch_synch_transaction =
+        SynchronizationTransactionComponent(d_rho_sc_scratch_idx, "CONSERVATIVE_COARSEN");
+    d_side_synch_op->resetTransactionComponent(rho_scratch_synch_transaction);
+    d_side_synch_op->synchronizeData(d_integrator_time);
+    SynchronizationTransactionComponent default_synch_transaction =
+        SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+    d_side_synch_op->resetTransactionComponent(default_synch_transaction);
 
     // Store the density for later use
     d_hier_sc_data_ops->copyData(d_rho_linear_op_idx, d_rho_sc_scratch_idx, /*interior_only*/ true);
@@ -1335,7 +1383,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
     const Pointer<SAMRAIVectorReal<NDIM, double> >& rhs_vec,
     const double current_time,
     const double new_time,
-    const int cycle_num)
+    const int /*cycle_num*/)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1356,40 +1404,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
     // Account for the convective acceleration term N_full, which will contain the rho scaling factor.
     if (!d_creeping_flow)
     {
-        const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
-        // Update N_idx if necessary
-        if (cycle_num > 0)
-        {
-            d_rho_p_integrator->setSolutionTime(half_time);
-
-            // Set the cycle number
-            d_rho_p_integrator->setCycleNumber(cycle_num);
-
-            // Set the patch data index for convective derivative.
-            d_rho_p_integrator->setSideCenteredConvectiveDerivativePatchDataIndex(N_idx);
-
-            // Always set to current because we want to update rho^{n} to rho^{n+1}
-            d_rho_p_integrator->setSideCenteredDensityPatchDataIndex(d_rho_sc_current_idx);
-
-            // Set the velocities used to update the density
-            if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
-            {
-                d_rho_p_integrator->setFluidVelocityPatchDataIndices(
-                    /*old*/ -1, /*current*/ d_U_current_idx, /*new*/ d_U_new_idx);
-            }
-            else
-            {
-                d_rho_p_integrator->setFluidVelocityPatchDataIndices(
-                    /*old*/ d_U_old_current_idx, /*current*/ d_U_current_idx, /*new*/ d_U_new_idx);
-                d_rho_p_integrator->setPreviousTimeStepSize(d_dt_previous[0]);
-            }
-
-            d_rho_p_integrator->integrate(dt);
-        }
-
-        // Set the full convective term depending on the time stepping type
-        d_hier_sc_data_ops->copyData(d_N_full_idx, N_idx, /*interior_only*/ true);
-
         d_hier_sc_data_ops->axpy(
             rhs_vec->getComponentDescriptorIndex(0), -1.0, d_N_full_idx, rhs_vec->getComponentDescriptorIndex(0));
     }

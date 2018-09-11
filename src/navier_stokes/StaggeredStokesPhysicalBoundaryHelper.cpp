@@ -210,8 +210,8 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
         for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
         {
             const Index<NDIM>& i = it();
-            if (bdry_locs_data(i, 0) == 0.0 && (bdry_tag & NORMAL_TRACTION_BDRY) ||
-                bdry_locs_data(i, 0) == 1.0 && (bdry_tag & NORMAL_VELOCITY_BDRY))
+            if ((bdry_locs_data(i, 0) == 0.0 && (bdry_tag & NORMAL_TRACTION_BDRY)) ||
+                (bdry_locs_data(i, 0) == 1.0 && (bdry_tag & NORMAL_VELOCITY_BDRY)))
             {
                 // Place i_g in the ghost cell abutting the boundary.
                 Index<NDIM> i_g = i;

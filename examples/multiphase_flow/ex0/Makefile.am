@@ -51,10 +51,10 @@ gtest: $(GTESTS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d* $(PWD) ; \
 	fi ;
+	./test2d input2d.test
 
 gtest-long:
 	make gtest
-	./test2d input2d.test
 	./test3d input3d.test
 
 else

@@ -109,8 +109,28 @@ kernel(double x)
 // Elasticity model data.
 namespace ModelData
 {
+// The tether penalty functions each require some data that is set in the
+// input file. This data is passed to each object through the void *ctx
+// context data pointer. Here we collect all relevant tether data in a struct:
+struct TetherData
+{
+    const double c1_s;
+    const double kappa_s_body;
+    const double eta_s_body;
+    const double kappa_s_surface;
+    const double eta_s_surface;
+
+    TetherData(Pointer<Database> input_db) :
+        c1_s(input_db->getDouble("C1_S")),
+        kappa_s_body(input_db->getDouble("KAPPA_S_BODY")),
+        eta_s_body(input_db->getDouble("ETA_S_BODY")),
+        kappa_s_surface(input_db->getDouble("KAPPA_S_SURFACE")),
+        eta_s_surface(input_db->getDouble("ETA_S_SURFACE"))
+        {}
+};
+
+
 // Tether (penalty) stress function.
-static double c1_s = 1.0e5;
 void
 PK1_stress_function(TensorValue<double>& PP,
                     const TensorValue<double>& FF,
@@ -120,15 +140,15 @@ PK1_stress_function(TensorValue<double>& PP,
                     const vector<const vector<double>*>& /*var_data*/,
                     const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                     double /*time*/,
-                    void* /*ctx*/)
+                    void* ctx)
 {
-    PP = 2.0 * c1_s * (FF - tensor_inverse_transpose(FF, NDIM));
+    const TetherData * const tether_data = reinterpret_cast<TetherData *>(ctx);
+
+    PP = 2.0 * tether_data->c1_s * (FF - tensor_inverse_transpose(FF, NDIM));
     return;
 } // PK1_stress_function
 
 // Tether (penalty) force functions.
-static double kappa_s_body = 1.0e6;
-static double eta_s_body = 0.0;
 void
 tether_force_function(VectorValue<double>& F,
                       const TensorValue<double>& /*FF*/,
@@ -138,18 +158,18 @@ tether_force_function(VectorValue<double>& F,
                       const vector<const vector<double>*>& var_data,
                       const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                       double /*time*/,
-                      void* /*ctx*/)
+                      void* ctx)
 {
+    const TetherData * const tether_data = reinterpret_cast<TetherData *>(ctx);
+
     const std::vector<double>& U = *var_data[0];
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        F(d) = kappa_s_body * (X(d) - x(d)) - eta_s_body * U[d];
+        F(d) = tether_data->kappa_s_body * (X(d) - x(d)) - tether_data->eta_s_body * U[d];
     }
     return;
 } // tether_force_function
 
-static double kappa_s_surface = 1.0e6;
-static double eta_s_surface = 0.0;
 void
 tether_force_function(VectorValue<double>& F,
                       const VectorValue<double>& n,
@@ -162,14 +182,16 @@ tether_force_function(VectorValue<double>& F,
                       const vector<const vector<double>*>& var_data,
                       const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                       double /*time*/,
-                      void* /*ctx*/)
+                      void* ctx)
 {
+    const TetherData * const tether_data = reinterpret_cast<TetherData *>(ctx);
+
     VectorValue<double> D = X - x;
     VectorValue<double> D_n = (D*n)*n;
     VectorValue<double> U;
     for (unsigned int d = 0; d < NDIM; ++d) U(d) = (*var_data[0])[d];
     VectorValue<double> U_t = U - (U*n)*n;
-    F = kappa_s_surface * D - eta_s_surface * U;
+    F = tether_data->kappa_s_surface * D - tether_data->eta_s_surface * U;
     return;
 } // tether_force_function
 } // namespace ModelData
@@ -177,7 +199,8 @@ using namespace ModelData;
 
 // Function prototypes
 static ofstream drag_stream, lift_stream, U_L1_norm_stream, U_L2_norm_stream, U_max_norm_stream;
-void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void postprocess_data(Pointer<Database> input_db,
+                      Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                       Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       Mesh& mesh,
                       EquationSystems* equation_systems,
@@ -310,14 +333,8 @@ run_example(int argc, char** argv)
         bool use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
         Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
 
-        c1_s = input_db->getDouble("C1_S");
-        kappa_s_body = input_db->getDouble("KAPPA_S_BODY");
-        eta_s_body = input_db->getDouble("ETA_S_BODY");
-        kappa_s_surface = input_db->getDouble("KAPPA_S_SURFACE");
-        eta_s_surface = input_db->getDouble("ETA_S_SURFACE");
-
         // Create major algorithm and data objects that comprise the
-        // application.  These objects are configured from the input database
+        // application. These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
@@ -374,6 +391,8 @@ run_example(int argc, char** argv)
                                         load_balancer);
 
         // Configure the IBFE solver.
+        TetherData tether_data(input_db);
+        void * const tether_data_ptr = reinterpret_cast<void *>(&tether_data);
         EquationSystems* equation_systems;
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
@@ -383,7 +402,9 @@ run_example(int argc, char** argv)
             Pointer<IBFESurfaceMethod> ibfe_ops = ib_ops;
             ibfe_ops->initializeFEEquationSystems();
             equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
-            IBFESurfaceMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function, sys_data);
+            IBFESurfaceMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function,
+                                                                       sys_data,
+                                                                       tether_data_ptr);
             ibfe_ops->registerLagSurfaceForceFunction(surface_fcn_data);
         }
         else
@@ -391,15 +412,22 @@ run_example(int argc, char** argv)
             Pointer<IBFEMethod> ibfe_ops = ib_ops;
             ibfe_ops->initializeFEEquationSystems();
             equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
-            IBFEMethod::PK1StressFcnData PK1_stress_data(PK1_stress_function);
+            IBFEMethod::PK1StressFcnData PK1_stress_data(PK1_stress_function,
+                                                         std::vector<IBTK::SystemData>(),
+                                                         tether_data_ptr);
             PK1_stress_data.quad_order =
-                Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_QUAD_ORDER", "THIRD"));
+                Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_QUAD_ORDER",
+                                                                                       "THIRD"));
             ibfe_ops->registerPK1StressFunction(PK1_stress_data);
 
-            IBFEMethod::LagBodyForceFcnData body_fcn_data(tether_force_function, sys_data);
+            IBFEMethod::LagBodyForceFcnData body_fcn_data(tether_force_function,
+                                                          sys_data,
+                                                          tether_data_ptr);
             ibfe_ops->registerLagBodyForceFunction(body_fcn_data);
 
-            IBFEMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function, sys_data);
+            IBFEMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function,
+                                                                sys_data,
+                                                                tether_data_ptr);
             ibfe_ops->registerLagSurfaceForceFunction(surface_fcn_data);
 
             if (input_db->getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
@@ -576,7 +604,8 @@ run_example(int argc, char** argv)
             }
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                postprocess_data(patch_hierarchy,
+                postprocess_data(input_db,
+                                 patch_hierarchy,
                                  navier_stokes_integrator,
                                  mesh,
                                  equation_systems,
@@ -607,7 +636,8 @@ run_example(int argc, char** argv)
 } // run_example
 
 void
-postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+postprocess_data(Pointer<Database> input_db,
+                 Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                  Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
                  Mesh& mesh,
                  EquationSystems* equation_systems,
@@ -615,6 +645,9 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                  const double loop_time,
                  const string& /*data_dump_dirname*/)
 {
+    TetherData tether_data(input_db);
+    void * const tether_data_ptr = reinterpret_cast<void *>(&tether_data);
+
     const unsigned int dim = mesh.mesh_dimension();
     double F_integral[NDIM];
     for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
@@ -651,7 +684,6 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     std::vector<const std::vector<double>*> var_data(1);
     var_data[0] = &U_qp_vec;
     std::vector<const std::vector<libMesh::VectorValue<double> >*> grad_var_data;
-    void* force_fcn_ctx = NULL;
 
     TensorValue<double> FF, FF_inv_trans;
     boost::multi_array<double, 2> x_node, U_node;
@@ -680,7 +712,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
             {
                 U_qp_vec[d] = U(d);
             }
-            tether_force_function(F, FF, x, q_point[qp], elem, var_data, grad_var_data, loop_time, force_fcn_ctx);
+            tether_force_function(F, FF, x, q_point[qp], elem, var_data, grad_var_data, loop_time, tether_data_ptr);
             for (int d = 0; d < NDIM; ++d)
             {
                 F_integral[d] += F(d) * JxW[qp];
@@ -705,7 +737,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                 n = (FF_inv_trans * N).unit();
 
                 tether_force_function(
-                    F, n, N, FF, x, q_point_face[qp], elem, side, var_data, grad_var_data, loop_time, force_fcn_ctx);
+                    F, n, N, FF, x, q_point_face[qp], elem, side, var_data, grad_var_data, loop_time, tether_data_ptr);
                 for (int d = 0; d < NDIM; ++d)
                 {
                     F_integral[d] += F(d) * JxW_face[qp];
