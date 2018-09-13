@@ -67,16 +67,16 @@ VelocityBcCoefs_0 {
    tau = 1.0
 
    acoef_function_0 = "1.0"
-   acoef_function_1 = "if( X1 < X1_lower,1.0,if( X1 > X1_upper,1.0,0.0 ) )"
+   acoef_function_1 = "X1 < X1_lower ? 1.0 : ( X1 > X1_upper ? 1.0 : 0.0)"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
 
    bcoef_function_0 = "0.0"
-   bcoef_function_1 = "if( X1 < X1_lower,0.0,if( X1 > X1_upper,0.0,1.0 ) )"
+   bcoef_function_1 = "X1 < X1_lower ? 0.0 : (X1 > X1_upper ? 0.0 : 1.0)"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "if( X1 < X1_lower,0.0,if( X1 > X1_upper,0.0,1.5*U_bar*(X1-X1_lower)*(X1-X1_upper)/((X1_mid-X1_lower)*(X1_mid-X1_upper))*if(t < tau,0.5*(1.0-cos(pi*t/tau)),1.0) ) )"
+   gcoef_function_0 = " X1 < X1_lower ? 0.0 : (X1 > X1_upper ? 0.0 : 1.5*U_bar*(X1-X1_lower)*(X1-X1_upper)/((X1_mid-X1_lower)*(X1_mid-X1_upper))*(t < tau ? 0.5*(1.0-cos(pi*t/tau)) : 1.0))"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
@@ -99,7 +99,7 @@ VelocityBcCoefs_1 {
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
-   gcoef_function_3 = "-p_e*if(t < tau,0.5*(1.0-cos(pi*t/tau)),1.0)"
+   gcoef_function_3 = "-p_e*(t < tau ? 0.5*(1.0-cos(pi*t/tau)) : 1.0)"
 }
 
 SpongeLayerForceFunction {

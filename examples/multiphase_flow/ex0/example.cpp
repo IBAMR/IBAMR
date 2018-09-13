@@ -43,6 +43,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
+#include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibamr/RelaxationLSMethod.h>
@@ -118,11 +119,17 @@ run_example(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSVCStaggeredNonConservativeHierarchyIntegrator> time_integrator;
-
-        const string discretization_form = app_initializer->getComponentDatabase("Main")->getStringWithDefault(
-            "discretization_form", "NON_CONSERVATIVE");
-        if (discretization_form == "NON_CONSERVATIVE")
+        Pointer<INSVCStaggeredHierarchyIntegrator> time_integrator;
+        const string discretization_form =
+            app_initializer->getComponentDatabase("Main")->getString("discretization_form");
+        const bool conservative_form = (discretization_form == "CONSERVATIVE");
+        if (conservative_form)
+        {
+            time_integrator = new INSVCStaggeredConservativeHierarchyIntegrator(
+                "INSVCStaggeredConservativeHierarchyIntegrator",
+                app_initializer->getComponentDatabase("INSVCStaggeredConservativeHierarchyIntegrator"));
+        }
+        else if (!conservative_form)
         {
             time_integrator = new INSVCStaggeredNonConservativeHierarchyIntegrator(
                 "INSVCStaggeredNonConservativeHierarchyIntegrator",
@@ -130,7 +137,8 @@ run_example(int argc, char* argv[])
         }
         else
         {
-            TBOX_ERROR("This particular example requires non-conservative hierarchy integrator");
+            TBOX_ERROR("Unsupported solver type: " << discretization_form << "\n"
+                                                   << "Valid options are: CONSERVATIVE, NON_CONSERVATIVE");
         }
 
         // Set up the advection diffusion hierarchy integrator
@@ -168,6 +176,9 @@ run_example(int argc, char* argv[])
                                         box_generator,
                                         load_balancer);
 
+        // Get exact pressure jump
+        const double dP_exact = input_db->getDouble("dP_exact");
+
         // Setup level set information
         CircularInterface circle;
         circle.R = input_db->getDouble("R");
@@ -178,30 +189,35 @@ run_example(int argc, char* argv[])
 #endif
 
         const string& ls_name = "level_set";
-
         Pointer<CellVariable<NDIM, double> > phi_var = new CellVariable<NDIM, double>(ls_name);
         adv_diff_integrator->registerTransportedQuantity(phi_var);
         adv_diff_integrator->setDiffusionCoefficient(phi_var, 0.0);
+        // Set the advection velocity of the bubble.
         adv_diff_integrator->setAdvectionVelocity(phi_var, time_integrator->getAdvectionVelocityVariable());
 
-        // Set options for resetting level set data
-         Pointer<RelaxationLSMethod> level_set_ops =
+        Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
         LSLocateCircularInterface* ptr_LSLocateCircularInterface =
             new LSLocateCircularInterface("LSLocateCircularInterface", adv_diff_integrator, phi_var, circle);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateCircularInterfaceCallbackFunction,
                                                                 static_cast<void*>(ptr_LSLocateCircularInterface));
-
         SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(phi_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
 
-        // Setup the advected and diffused quantities.
-        Pointer<CellVariable<NDIM, double> > rho_var = new CellVariable<NDIM, double>("rho");
-        adv_diff_integrator->registerTransportedQuantity(rho_var);
-        adv_diff_integrator->setDiffusionCoefficient(rho_var, 0.0);
+        // Setup the INS maintained material properties.
+        Pointer<Variable<NDIM> > rho_var;
+        if (conservative_form)
+        {
+            rho_var = new SideVariable<NDIM, double>("rho");
+        }
+        else
+        {
+            rho_var = new CellVariable<NDIM, double>("rho");
+        }
+        time_integrator->registerMassDensityVariable(rho_var);
+
         Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
-        adv_diff_integrator->registerTransportedQuantity(mu_var);
-        adv_diff_integrator->setDiffusionCoefficient(mu_var, 0.0);
+        time_integrator->registerViscosityVariable(mu_var);
 
         // Array for input into callback function
         const double rho_inside = input_db->getDouble("RHO_I");
@@ -210,6 +226,8 @@ run_example(int argc, char* argv[])
         const double mu_outside = input_db->getDouble("MU_O");
         const int ls_reinit_interval = input_db->getInteger("LS_REINIT_INTERVAL");
         const double num_interface_cells = input_db->getDouble("NUM_INTERFACE_CELLS");
+
+        // Callback functions can either be registered with the NS integrator, or the advection-diffusion integrator
         SetFluidProperties* ptr_SetFluidProperties = new SetFluidProperties("SetFluidProperties",
                                                                             adv_diff_integrator,
                                                                             phi_var,
@@ -219,21 +237,10 @@ run_example(int argc, char* argv[])
                                                                             mu_inside,
                                                                             ls_reinit_interval,
                                                                             num_interface_cells);
-        adv_diff_integrator->registerResetFunction(rho_var,
-                                                   &callSetFluidDensityCallbackFunction,
-                                                   static_cast<void*>(ptr_SetFluidProperties));
-        adv_diff_integrator->registerResetFunction(mu_var,
-                                                   &callSetFluidViscosityCallbackFunction,
-                                                   static_cast<void*>(ptr_SetFluidProperties));
-
-        adv_diff_integrator->setResetPriority(phi_var, 1);
-        adv_diff_integrator->setResetPriority(mu_var, 10);
-        adv_diff_integrator->setResetPriority(rho_var, 10);
-
-        // Set the transported rho and mu with the fluid solver
-        time_integrator->setTransportedMassDensityVariable(rho_var);
-        time_integrator->setTransportedViscosityVariable(mu_var);
-
+        time_integrator->registerResetFluidDensityFcn(&callSetFluidDensityCallbackFunction,
+                                                      static_cast<void*>(ptr_SetFluidProperties));
+        time_integrator->registerResetFluidViscosityFcn(&callSetFluidViscosityCallbackFunction,
+                                                        static_cast<void*>(ptr_SetFluidProperties));
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
@@ -285,21 +292,36 @@ run_example(int argc, char* argv[])
             adv_diff_integrator->setPhysicalBcCoef(phi_var, phi_bc_coef);
         }
 
-        // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
-        if (uses_visit)
+        RobinBcCoefStrategy<NDIM>* rho_bc_coef = NULL;
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("RhoBcCoefs"))
         {
-            time_integrator->registerVisItDataWriter(visit_data_writer);
+            rho_bc_coef = new muParserRobinBcCoefs(
+                "rho_bc_coef", app_initializer->getComponentDatabase("RhoBcCoefs"), grid_geometry);
+            time_integrator->registerMassDensityBoundaryConditions(rho_bc_coef);
+        }
+
+        RobinBcCoefStrategy<NDIM>* mu_bc_coef = NULL;
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("MuBcCoefs"))
+        {
+            mu_bc_coef = new muParserRobinBcCoefs(
+                "mu_bc_coef", app_initializer->getComponentDatabase("MuBcCoefs"), grid_geometry);
+            time_integrator->registerViscosityBoundaryConditions(mu_bc_coef);
         }
 
         // Set up the surface tension force
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<SurfaceTensionForceFunction> surface_tension_force =
             new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
                                             app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
                                             adv_diff_integrator,
                                             phi_var);
         time_integrator->registerBodyForceFunction(surface_tension_force);
+
+        // Set up visualization plot file writers.
+        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        if (uses_visit)
+        {
+            time_integrator->registerVisItDataWriter(visit_data_writer);
+        }
 
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
@@ -322,8 +344,13 @@ run_example(int argc, char* argv[])
         }
 
         // File to write to for fluid mass data
-        ofstream mass_file;
+        ofstream mass_file, dP_file, dP_abs_file, dP_rel_file, Umax_file, UL1_file;
         mass_file.open("mass_fluid.txt");
+        dP_file.open("dP.txt");
+        dP_abs_file.open("dP_abs_err.txt");
+        dP_rel_file.open("dP_rel_err.txt");
+        Umax_file.open("Umax.txt");
+        UL1_file.open("UL1.txt");
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -347,20 +374,52 @@ run_example(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
 
-            // Compute the fluid mass in the domain
-            const Pointer<VariableContext> rho_postproc_ctx = adv_diff_integrator->getCurrentContext();
-            const int rho_postproc_idx = var_db->mapVariableAndContextToIndex(rho_var, rho_postproc_ctx);
+            // Compute the fluid mass in the domain from interpolated density
+            const int rho_ins_idx = time_integrator->getLinearOperatorRhoPatchDataIndex();
+#if !defined(NDEBUG)
+            TBOX_ASSERT(rho_ins_idx >= 0);
+#endif
             const int coarsest_ln = 0;
             const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-            HierarchyCellDataOpsReal<NDIM, double> hier_rho_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
             hier_math_ops.setPatchHierarchy(patch_hierarchy);
             hier_math_ops.resetLevels(coarsest_ln, finest_ln);
-            const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
-            const double mass_fluid = hier_rho_data_ops.integral(rho_postproc_idx, wgt_cc_idx);
+            const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
+            const double mass_fluid = hier_sc_data_ops.integral(rho_ins_idx, wgt_sc_idx);
+
+            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            const int p_idx = var_db->mapVariableAndContextToIndex(time_integrator->getPressureVariable(),
+                                                                   time_integrator->getCurrentContext());
+            HierarchyCellDataOpsReal<NDIM, double> hier_p_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            const double dP = hier_p_data_ops.max(p_idx) - hier_p_data_ops.min(p_idx);
+            pout << std::setprecision(16) << "At time t = " << loop_time << ", pressure difference = " << dP
+                 << std::endl;
+
+            pout << std::setprecision(16) << "Absolute pressure error = |dP - dP_exact| = " << std::abs(dP - dP_exact)
+                 << std::endl;
+            pout << std::setprecision(16)
+                 << "Relative pressure error = |dP - dP_exact|/dP_exact = " << std::abs(dP - dP_exact) / dP_exact
+                 << std::endl;
+
+            const int u_idx = var_db->mapVariableAndContextToIndex(time_integrator->getVelocityVariable(),
+                                                                   time_integrator->getCurrentContext());
+            const double Umax = hier_sc_data_ops.maxNorm(u_idx, wgt_sc_idx);
+            const double UL1 = hier_sc_data_ops.L1Norm(u_idx, wgt_sc_idx);
+            pout << std::setprecision(16) << "|U|_max = " << Umax << std::endl;
+            pout << std::setprecision(16) << "|U|_L1 = " << UL1 << std::endl;
 
             // Write to file
-            mass_file << std::setprecision(13) << loop_time << "\t" << mass_fluid << std::endl;
+            if (!SAMRAI_MPI::getRank())
+            {
+                mass_file << std::setprecision(13) << loop_time << "\t" << mass_fluid << std::endl;
+                dP_file << std::setprecision(16) << loop_time << "\t" << dP << std::endl;
+                dP_abs_file << std::setprecision(16) << loop_time << "\t" << std::abs(dP - dP_exact) << std::endl;
+                dP_rel_file << std::setprecision(16) << loop_time << "\t" << std::abs(dP - dP_exact) / dP_exact
+                            << std::endl;
+                Umax_file << std::setprecision(16) << loop_time << "\t" << Umax << std::endl;
+                UL1_file << std::setprecision(16) << loop_time << "\t" << UL1 << std::endl;
+            }
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
@@ -391,10 +450,20 @@ run_example(int argc, char* argv[])
 
         // Close file
         mass_file.close();
+        dP_file.close();
+        dP_abs_file.close();
+        dP_rel_file.close();
+        Umax_file.close();
+        UL1_file.close();
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
+
+        // Cleanup other dumb pointers
+        delete ptr_SetLSProperties;
+        delete ptr_SetFluidProperties;
+        delete ptr_LSLocateCircularInterface;
 
     } // cleanup dynamically allocated objects prior to shutdown
 

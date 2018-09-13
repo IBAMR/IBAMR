@@ -483,6 +483,13 @@ public:
      */
     void setStructureNamesOnLevel(const int& level_num, const std::vector<std::string>& strct_names);
 
+    /*!
+     * \brief Initialize structure specific configurations.
+     *
+     * \note All functions should be registered with the object before init is called.
+     */
+    virtual void init();
+
 protected:
     /*!
      * \brief Default constructor.
@@ -510,11 +517,6 @@ protected:
      * \return A reference to this object.
      */
     IBRedundantInitializer& operator=(const IBRedundantInitializer& that);
-
-    /*!
-     * \brief Initialize structure specific configurations.
-     */
-    virtual void init();
 
     /*!
      * \brief Configure the Lagrangian Silo data writer to plot the data

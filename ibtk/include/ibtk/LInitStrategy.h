@@ -113,6 +113,13 @@ public:
                                       bool initial_time) = 0;
 
     /*!
+     * \brief Initialize structure specific configurations.
+     *
+     * \note A default empty implementation is provided.
+     */
+    virtual void init() {};
+
+    /*!
      * \brief Initialize the structure indexing information on the patch level.
      *
      * \note A default empty implementation is provided.

@@ -46,7 +46,7 @@ test3d_SOURCES = $(GTEST_DRIVER)
 
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/{README,input[23]d} $(PWD) ; \
+	  cp -f $(srcdir)/{README,input[23]d*} $(PWD) ; \
 	fi ;
 
 if GTEST_ENABLED

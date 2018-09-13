@@ -190,12 +190,10 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
     const size_t num_scalar_vars = d_scalar_var_systems.size();
     std::vector<const DofMap*> scalar_var_dof_maps(num_scalar_vars);
     std::vector<std::vector<unsigned int> > scalar_var_dof_indices(num_scalar_vars);
-    std::vector<unsigned int> scalar_var_system_num(num_scalar_vars);
     std::vector<std::vector<size_t> > scalar_var_fcn_system_idxs(num_scalar_vars);
     for (unsigned int k = 0; k < num_scalar_vars; ++k)
     {
         scalar_var_dof_maps[k] = &d_scalar_var_systems[k]->get_dof_map();
-        scalar_var_system_num[k] = d_scalar_var_systems[k]->number();
         fe.setupInterpolatedSystemDataIndexes(
             scalar_var_fcn_system_idxs[k], d_scalar_var_system_data[k], equation_systems);
     }
@@ -203,13 +201,11 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
     const size_t num_vector_vars = d_vector_var_systems.size();
     std::vector<const DofMap*> vector_var_dof_maps(num_vector_vars);
     std::vector<std::vector<std::vector<unsigned int> > > vector_var_dof_indices(num_vector_vars);
-    std::vector<unsigned int> vector_var_system_num(num_vector_vars);
     std::vector<std::vector<size_t> > vector_var_fcn_system_idxs(num_vector_vars);
     for (unsigned int k = 0; k < num_vector_vars; ++k)
     {
         vector_var_dof_maps[k] = &d_vector_var_systems[k]->get_dof_map();
         vector_var_dof_indices[k].resize(d_vector_var_dims[k]);
-        vector_var_system_num[k] = d_vector_var_systems[k]->number();
         fe.setupInterpolatedSystemDataIndexes(
             vector_var_fcn_system_idxs[k], d_vector_var_system_data[k], equation_systems);
     }
@@ -217,7 +213,6 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
     const size_t num_tensor_vars = d_tensor_var_systems.size();
     std::vector<const DofMap*> tensor_var_dof_maps(num_tensor_vars);
     std::vector<boost::multi_array<std::vector<unsigned int>, 2> > tensor_var_dof_indices(num_tensor_vars);
-    std::vector<unsigned int> tensor_var_system_num(num_tensor_vars);
     std::vector<std::vector<size_t> > tensor_var_fcn_system_idxs(num_tensor_vars);
     for (unsigned int k = 0; k < num_tensor_vars; ++k)
     {
@@ -225,7 +220,6 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
         typedef boost::multi_array<std::vector<unsigned int>, 2> array_type;
         array_type::extent_gen extents;
         tensor_var_dof_indices[k].resize(extents[d_tensor_var_dims[k]][d_tensor_var_dims[k]]);
-        tensor_var_system_num[k] = d_tensor_var_systems[k]->number();
         fe.setupInterpolatedSystemDataIndexes(
             tensor_var_fcn_system_idxs[k], d_tensor_var_system_data[k], equation_systems);
     }

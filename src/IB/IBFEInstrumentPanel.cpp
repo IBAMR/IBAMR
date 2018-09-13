@@ -78,7 +78,6 @@
 #include "libmesh/dense_vector.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
-#include "libmesh/exodusII_io.h"
 #include "libmesh/face_tri3.h"
 #include "libmesh/linear_implicit_system.h"
 #include "libmesh/mesh.h"
@@ -299,10 +298,10 @@ linear_interp(const Vector& X,
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const int part)
-    : d_num_meters(0),
+    : d_meter_radii(),
+      d_num_meters(0),
       d_quad_order(),
       d_input_quad_order(),
-      d_meter_radii(),
       d_use_adaptive_quadrature(),
       d_quad_type(),
       d_part(part),
@@ -313,7 +312,6 @@ IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Dat
       d_nodes(),
       d_node_dof_IDs(),
       d_meter_systems(),
-      d_exodus_io(),
       d_meter_meshes(),
       d_meter_mesh_names(),
       d_nodeset_IDs_for_meters(),
@@ -360,7 +358,6 @@ IBFEInstrumentPanel::~IBFEInstrumentPanel()
     // delete vectors of pointers
     for (unsigned int ii = 0; ii < d_num_meters; ++ii)
     {
-        delete d_exodus_io[ii];
         delete d_meter_systems[ii];
         delete d_meter_meshes[ii];
     }
@@ -521,7 +518,6 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
         }
         d_meter_meshes[ii]->allow_renumbering(false);
         d_meter_meshes[ii]->prepare_for_use();
-        d_exodus_io.push_back(new ExodusII_IO(*d_meter_meshes[ii]));
     } // loop over meters
 
     // initialize meter mesh equation systems, for both velocity and displacement
@@ -607,7 +603,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
     }
     const double h_finest = *std::min_element(dx_finest.begin(), dx_finest.end());
 
-    for (int jj = 0; jj < d_num_meters; ++jj)
+    for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
         // set the quadrature rule adaptively according to the fluid mesh size
         if (d_use_adaptive_quadrature)
@@ -700,7 +696,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
                 for (unsigned int d = 0; d < NDIM; ++d) normal[d] = normal_temp(d);
 
                 // loop over quadrature points, compute their physical locations
-                // after displacement, and stores their indices.
+                // after displacement, and store their indices.
                 for (unsigned int qp = 0; qp < qp_points.size(); ++qp)
                 {
                     Vector qp_temp;
@@ -965,18 +961,46 @@ IBFEInstrumentPanel::getFromInput(Pointer<Database> db)
     return;
 }
 
-void
-IBFEInstrumentPanel::outputMeterMeshes(IBFEMethod* ib_method_ops, const int timestep_num, const double data_time)
-{
-    // things to do at initial timestep
-    if (timestep_num == 1) outputNodes();
-    outputExodus(ib_method_ops, timestep_num, data_time);
-}
-
 int
 IBFEInstrumentPanel::getInstrumentDumpInterval() const
 {
     return d_instrument_dump_interval;
+}
+
+int
+IBFEInstrumentPanel::getNumberOfMeterMeshes() const
+{
+    return d_num_meters;
+}
+
+MeshBase&
+IBFEInstrumentPanel::getMeterMesh(const unsigned int jj) const
+{
+    return *d_meter_meshes[jj];
+}
+
+EquationSystems&
+IBFEInstrumentPanel::getMeterMeshEquationSystems(const unsigned int jj) const
+{
+    return *d_meter_systems[jj];
+}
+
+const std::string&
+IBFEInstrumentPanel::getMeterMeshName(const unsigned int jj) const
+{
+    return d_meter_mesh_names[jj];
+}
+
+const std::vector<libMesh::Point>&
+IBFEInstrumentPanel::getMeterMeshNodes(const unsigned int jj) const
+{
+    return d_nodes[jj];
+}
+
+Order
+IBFEInstrumentPanel::getMeterMeshQuadOrder(const unsigned int jj) const
+{
+    return d_quad_order[jj];
 }
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
@@ -1053,7 +1077,7 @@ IBFEInstrumentPanel::initializeSystemDependentData(IBFEMethod* ib_method_ops, co
         displacement_coords.set(disp_dof_idx, mean_dX_dofs[d]);
     }
 
-    // also populate solution vector in the system for exodus IO
+    // also populate solution vector in the system
     MeshBase::const_node_iterator node_it = d_meter_meshes[meter_mesh_number]->local_nodes_begin();
     const MeshBase::const_node_iterator end_node_it = d_meter_meshes[meter_mesh_number]->local_nodes_end();
     for (; node_it != end_node_it; ++node_it)
@@ -1123,40 +1147,6 @@ IBFEInstrumentPanel::outputData(const double data_time)
         }
         d_mean_pressure_stream << "\n";
         d_flux_stream << "\n";
-    }
-}
-
-void
-IBFEInstrumentPanel::outputExodus(IBFEMethod* ib_method_ops, const int timestep, const double loop_time)
-{
-    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
-    {
-        initializeSystemDependentData(ib_method_ops, ii);
-        std::ostringstream mesh_output;
-        mesh_output << d_plot_directory_name << "/"
-                    << "" << d_meter_mesh_names[ii] << ".ex2";
-        d_exodus_io[ii]->write_timestep(mesh_output.str(), *d_meter_systems[ii], timestep, loop_time);
-    }
-}
-
-void
-IBFEInstrumentPanel::outputNodes()
-{
-    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
-    {
-        std::ofstream stuff_stream;
-        std::ostringstream node_output;
-        node_output << d_plot_directory_name << "/"
-                    << "" << d_meter_mesh_names[ii] << "_nodes.dat";
-        if (SAMRAI_MPI::getRank() == 0)
-        {
-            stuff_stream.open(node_output.str().c_str());
-            for (unsigned int dd = 0; dd < d_nodes[ii].size(); ++dd)
-            {
-                stuff_stream << d_nodes[ii][dd](0) << " " << d_nodes[ii][dd](1) << " " << d_nodes[ii][dd](2) << "\n";
-            }
-            stuff_stream.close();
-        }
     }
 }
 

@@ -130,7 +130,6 @@ discard_comments(const std::string& input_string)
 IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Pointer<Database> input_db)
     : IBRedundantInitializer(object_name, input_db),
       d_object_name(object_name),
-      d_data_processed(false),
       d_use_file_batons(true),
       d_max_levels(-1),
       d_level_is_initialized(),
@@ -195,6 +194,7 @@ IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Poi
     // user data.
     RestartManager* restart_manager = RestartManager::getManager();
     const bool is_from_restart = restart_manager->isFromRestart();
+    d_data_processed = false;
     if (is_from_restart)
     {
         d_data_processed = true;
@@ -208,10 +208,6 @@ IBStandardInitializer::~IBStandardInitializer()
     pout << d_object_name << ":  Deallocating initialization data.\n";
     return;
 } // ~IBStandardInitializer
-
-/////////////////////////////// PROTECTED ////////////////////////////////////
-
-/////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
 IBStandardInitializer::init()
@@ -261,6 +257,10 @@ IBStandardInitializer::init()
 
     return;
 }
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
 IBStandardInitializer::readVertexFiles(const std::string& extension)

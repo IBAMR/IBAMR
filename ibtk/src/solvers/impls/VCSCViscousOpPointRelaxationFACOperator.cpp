@@ -296,6 +296,7 @@ namespace IBTK
 namespace
 {
 // Timers.
+static Timer* t_restrict_residual;
 static Timer* t_smooth_error;
 static Timer* t_solve_coarsest_level;
 static Timer* t_compute_residual;
@@ -369,12 +370,15 @@ VCSCViscousOpPointRelaxationFACOperator::VCSCViscousOpPointRelaxationFACOperator
     : SCPoissonPointRelaxationFACOperator(object_name, input_db, default_options_prefix)
 {
     // Setup Timers.
-    IBTK_DO_ONCE(t_smooth_error =
-                     TimerManager::getManager()->getTimer("IBTK::VCSCViscousOpPointRelaxationFACOperator::smoothError()");
-                 t_solve_coarsest_level = TimerManager::getManager()->getTimer(
-                     "IBTK::VCSCViscousOpPointRelaxationFACOperator::solveCoarsestLevel()");
-                 t_compute_residual = TimerManager::getManager()->getTimer(
-                     "IBTK::VCSCViscousOpPointRelaxationFACOperator::computeResidual()"););
+    IBTK_DO_ONCE(
+        t_restrict_residual =
+            TimerManager::getManager()->getTimer("IBTK::VCSCViscousOpPointRelaxationFACOperator::restrictResidual()");
+        t_smooth_error =
+            TimerManager::getManager()->getTimer("IBTK::VCSCViscousOpPointRelaxationFACOperator::smoothError()");
+        t_solve_coarsest_level =
+            TimerManager::getManager()->getTimer("IBTK::VCSCViscousOpPointRelaxationFACOperator::solveCoarsestLevel()");
+        t_compute_residual =
+            TimerManager::getManager()->getTimer("IBTK::VCSCViscousOpPointRelaxationFACOperator::computeResidual()"););
 
     // Set a default interpolation type.
     d_D_interp_type = IBTK::VC_HARMONIC_INTERP;
@@ -912,11 +916,43 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
 } // computeResidual
 
 void
+VCSCViscousOpPointRelaxationFACOperator::restrictResidual(const SAMRAIVectorReal<NDIM, double>& src,
+                                                          SAMRAIVectorReal<NDIM, double>& dst,
+                                                          int dst_ln)
+{
+    IBTK_TIMER_START(t_restrict_residual);
+
+    const int src_idx = src.getComponentDescriptorIndex(0);
+    const int dst_idx = dst.getComponentDescriptorIndex(0);
+
+    // Copy src into scratch and rescale
+    d_level_data_ops[dst_ln + 1]->copyData(d_scratch_idx, src_idx, /*interior_only*/ false);
+    d_level_data_ops[dst_ln + 1]->scale(
+        d_scratch_idx, d_A_scale[dst_ln] / d_A_scale[dst_ln + 1], d_scratch_idx, /*interior_only*/ false);
+
+    if (src_idx != dst_idx)
+    {
+        d_level_data_ops[dst_ln]->copyData(dst_idx, src_idx, /*interior_only*/ false);
+    }
+    xeqScheduleRestriction(dst_idx, d_scratch_idx, dst_ln);
+
+    IBTK_TIMER_STOP(t_restrict_residual);
+    return;
+} // restrictResidual
+
+void
 VCSCViscousOpPointRelaxationFACOperator::setDPatchDataInterpolationType(const IBTK::VCInterpType D_interp_type)
 {
     d_D_interp_type = D_interp_type;
     return;
 } // setDPatchDataInterpolationType
+
+void
+VCSCViscousOpPointRelaxationFACOperator::setOperatorScaling(const Array<double> A_scale)
+{
+    d_A_scale = A_scale;
+    return;
+} // setOperatorScaling
 
 Pointer<PoissonSolver>
 VCSCViscousOpPointRelaxationFACOperator::getCoarseSolver()

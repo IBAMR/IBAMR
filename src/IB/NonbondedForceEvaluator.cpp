@@ -151,14 +151,6 @@ NonbondedForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
     assert(grid_geom->getDomainIsSingleBox());
     const double* const x_lower = grid_geom->getXLower();
     const double* const x_upper = grid_geom->getXUpper();
-    const double* const domain_dx = grid_geom->getDx();
-
-    // Maximum index in our domain.
-    std::vector<int> max_cell_idx(NDIM);
-    for (int k = 0; k < NDIM; ++k)
-    {
-        max_cell_idx[k] = int((x_upper[k] - x_lower[k]) / domain_dx[k]);
-    }
 
     // we will grow the search box by interaction_radius + 2.0*regrid_alpha
     IntVector<NDIM> grow_amount(int(ceil(d_interaction_radius + 2.0 * d_regrid_alpha)));

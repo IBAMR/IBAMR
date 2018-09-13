@@ -2,10 +2,10 @@
 MU_F       = 1.0e-3
 MU_G       = 1.8e-5
 RHO_F      = 1.0e3
-RHO_S      = RHO_F // doesn't really matter?
+RHO_S      = RHO_F/2.0 // half buoyant
 RHO_G      = 1.2
 RHO_RATIO  = (RHO_S - RHO_G)/RHO_G
-G          =  9.81
+G          = 9.81
 GRAV_CONST = 0.0,-G
 
 // Optional flag to set viscosity in the solid region
@@ -21,9 +21,9 @@ R           = 0.055
 D           = 2.0*R
 HEIGHT      = 12.0*D
 LENGTH      = 20.0*D
-GAS_LS_INIT = 6.0*D
+GAS_LS_INIT = 3.0*D
 XCOM        = LENGTH/2.0
-YCOM        = GAS_LS_INIT+D
+YCOM        = GAS_LS_INIT+5.05*D // 4.55D to bottom of cyl and 0.5D for up to COM
 
 
 // Surface tension parameters
@@ -32,15 +32,13 @@ SMOOTHER            = "IB_4"
 NUM_INTERFACE_CELLS = 2.5 
 
 // grid spacing parameters
-MAX_LEVELS = 2        // maximum number of levels in locally refined grid
-REF_RATIO  = 2        // refinement ratio between levels
-REF_RATIO_FINEST = 2  // refinement ratio for the finest level.
+MAX_LEVELS = 1        // maximum number of levels in locally refined grid
+REF_RATIO  = 4        // refinement ratio between levels
+REF_RATIO_FINEST = 4  // refinement ratio for the finest level.
 
-
-Nx =  440
-Ny =  264                                 // coarsest grid spacing
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
-H_COARSEST = LENGTH/Nx
+N = 220                                  // coarsest grid spacing
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
+H_COARSEST = LENGTH/N
 H = LENGTH/NFINEST
 VOL_ELEM = H*H
 
@@ -49,16 +47,16 @@ V_GRAVITY = sqrt(RHO_RATIO*G*2*R)
 DT_GRAVITY = H/V_GRAVITY
 
 // Parameters for setting rho and mu
-NUM_SOLID_INTERFACE_CELLS = 3.0
-NUM_GAS_INTERFACE_CELLS   = 3.0
+NUM_SOLID_INTERFACE_CELLS = 1.0
+NUM_GAS_INTERFACE_CELLS   = 1.0
 
 // Level set option parameters
-LS_ORDER              = "THIRD_ORDER_ENO"
-LS_ABS_TOL            = 1.0e-8
+LS_ORDER              = "THIRD_ORDER_WENO"
+LS_ABS_TOL            = 1.0e-6
 LS_REINIT_INTERVAL    = 1
 MAX_ITERATIONS        = 50
 LS_TAG_VALUE          = 0.0
-LS_TAG_ABS_THRESH     = 5.0*H_COARSEST
+LS_TAG_ABS_THRESH     = 2*H_COARSEST
 APPLY_SIGN_FIX        = TRUE
 APPLY_SUBCELL_FIX     = TRUE
 APPLY_MASS_CONSTRAINT = FALSE
@@ -68,10 +66,6 @@ VelocityInitialConditions {
    function_1 = "0.0"
 }
 
-ViscosityInitialConditions {
-  mu_g = MU_G
-  function = "mu_g"
-}
 
 VelocityBcCoefs_0 {
    acoef_function_0 = "1.0"
@@ -169,7 +163,6 @@ GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   1  // max number of simulation timesteps
 CFL_MAX              =   0.3   
 NUM_INS_CYCLES       =   1
-CONSERVATIVE_CONVECTIVE_OP_TYPE     = "VC_CONSERVATIVE_OP" // convective differencing discretization type
 NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "PPM"
 CONVECTIVE_FORM      = "CONSERVATIVE"                // how to compute the convective terms
 INIT_CONVECTIVE_TS_TYPE = "FORWARD_EULER"
@@ -197,12 +190,13 @@ VC_INTERPOLATION_TYPE   = "VC_HARMONIC_INTERP"
 DENSITY_CONVECTIVE_LIMITER   = "CUI"
 VELOCITY_CONVECTIVE_LIMITER  = "CUI"
 DENSITY_TS           = "SSPRK3"
-CONDITION_NO_SCALE = abs(1.0/(RHO_F/2.0 - MU_G/2.0*NFINEST))
+OPERATOR_SCALE_FACTORS = abs(1.0/(RHO_F/2.0 - MU_G/2.0*NFINEST))
 
 EXPLICITLY_REMOVE_NULLSPACE = FALSE
 ENABLE_LOGGING       = TRUE
 
 // ConstraintIBMethod parameters
+FLUID_VELOCITY_CORRECTION_TYPE = "CORRECT_VELOCITY"
 NEEDS_DIVFREE_PROJ             = FALSE
 
 // AdvDiff solver parameters
@@ -233,6 +227,7 @@ ConstraintIBMethod {
    num_INS_cycles                 = NUM_INS_CYCLES
    needs_divfree_projection       = NEEDS_DIVFREE_PROJ
    rho_solid                      = RHO_S
+   fluid_velocity_correction_type = FLUID_VELOCITY_CORRECTION_TYPE
 
    
    PrintOutput {
@@ -254,9 +249,10 @@ ConstraintIBMethod {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   structure_names = "cylinder2d"
+   structure_names = "cylinder2d_free_fall"
+   posn_shift = 0.0, 0.0 // none needed since I changed the matlab code accordingly
 
-  cylinder2d{
+  cylinder2d_free_fall{
   level_number = MAX_LEVELS - 1
   }
    
@@ -267,11 +263,8 @@ INSVCStaggeredConservativeHierarchyIntegrator {
    start_time                 = START_TIME
    end_time                   = END_TIME
    grow_dt                    = GROW_DT
-   convective_op_type         = CONSERVATIVE_CONVECTIVE_OP_TYPE
    convective_difference_form = CONVECTIVE_FORM
    normalize_pressure         = NORMALIZE_PRESSURE
-   init_convective_time_stepping_type = INIT_CONVECTIVE_TS_TYPE
-   convective_time_stepping_type = CONVECTIVE_TS_TYPE
    cfl                        = CFL_MAX
    dt_max                     = DT_MAX
    using_vorticity_tagging    = VORTICITY_TAGGING
@@ -288,7 +281,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
    rho_is_const               = RHO_IS_CONST
    mu_is_const                = MU_IS_CONST
    precond_reinit_interval    = PRECOND_REINIT_INTERVAL
-   condition_no_scaling       = CONDITION_NO_SCALE 
+   operator_scale_factors     = OPERATOR_SCALE_FACTORS 
    vc_interpolation_type      = VC_INTERPOLATION_TYPE
    enable_logging             = ENABLE_LOGGING
    max_integrator_steps       = MAX_INTEGRATOR_STEPS
@@ -356,7 +349,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
     //       enable_logging       = FALSE
     //   }
     // }
-    convective_op_db {
+    mass_momentum_integrator_db {
       density_time_stepping_type = DENSITY_TS
       velocity_convective_limiter = VELOCITY_CONVECTIVE_LIMITER
       density_convective_limiter = DENSITY_CONVECTIVE_LIMITER
@@ -389,7 +382,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
    rho_is_const               = RHO_IS_CONST
    mu_is_const                = MU_IS_CONST
    precond_reinit_interval    = PRECOND_REINIT_INTERVAL
-   condition_no_scaling       = CONDITION_NO_SCALE 
+   operator_scale_factors     = OPERATOR_SCALE_FACTORS 
    vc_interpolation_type      = VC_INTERPOLATION_TYPE
    enable_logging             = ENABLE_LOGGING
    max_integrator_steps       = MAX_INTEGRATOR_STEPS
@@ -534,15 +527,15 @@ LevelSet_Gas {
 ConstraintIBKinematics {
 
      Cylinder {
-     structure_names                  = "cylinder2d" 
+     structure_names                  = "cylinder2d_free_fall" 
      structure_levels                 = MAX_LEVELS - 1
-     calculate_translational_momentum = 0,0,0
+     calculate_translational_momentum = 0,1,0
      calculate_rotational_momentum    = 0,0,0
      lag_position_update_method       = "CONSTRAINT_VELOCITY"
      tagged_pt_identifier             = MAX_LEVELS - 1, 0  // level, relative idx of lag point
 
      kinematics_velocity_function_0   = "0.0"
-     kinematics_velocity_function_1   = "-1.0"
+     kinematics_velocity_function_1   = "0.0"
      kinematics_velocity_function_2   = "0.0"
 
     }
@@ -568,7 +561,7 @@ IBHydrodynamicSurfaceForceEvaluator {
 
       
       output_dirname              = "./cylinder_dump"
-      base_filename               = "cylinder2d"
+      base_filename               = "cylinder2d_free_fall"
   }                 
 
 SurfaceTensionForceFunction {
@@ -590,7 +583,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt","Silo"
-   viz_dump_interval     = 100    //zero to turn off
+   viz_dump_interval     = 50    //zero to turn off
    viz_dump_dirname      = "viz_cylinder2d"
    visit_number_procs_per_file = 1
 
@@ -610,7 +603,7 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0) , (Nx - 1, Ny - 1) ]
+   domain_boxes = [ (0,0) , (N - 1, 3*N/5 - 1) ]
    x_lo         =   0.0,   0.0           // lower end of computational domain.
    x_up         =   LENGTH, HEIGHT         // upper end of computational domain.
    periodic_dimension = 0, 0
@@ -645,11 +638,7 @@ GriddingAlgorithm {
 }
 
 StandardTagAndInitialize {
-          tagging_method =  "GRADIENT_DETECTOR"   //, "REFINE_BOXES"
-       //   RefineBoxes {
-       //        level_0 = [ ( 0, int(4.0*D/H_COARSEST) ), ( Nx - 1, int(8.0*D/H_COARSEST) ) ]
-       //    }
-
+   tagging_method = "GRADIENT_DETECTOR"
 }
 
 LoadBalancer {

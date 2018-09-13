@@ -141,7 +141,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = int(END_TIME/(3*DT))
+   viz_dump_interval           = 0
    viz_dump_dirname            = "viz_adv_diff2d"
    visit_number_procs_per_file = 1
 

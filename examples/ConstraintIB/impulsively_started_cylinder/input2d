@@ -96,8 +96,8 @@ ForcingFunction {
     YCOM = 0.0
     RADIUS = R
     F      = RHO/DT_MAX
-    
-    function_0 = "if( (X0 - XCOM)^2 + (X1-YCOM)^2  < RADIUS^2, 400*exp(-400*t), 0)"
+
+    function_0 = "(X0 - XCOM)^2 + (X1-YCOM)^2  < RADIUS^2 ? 400*exp(-400*t) : 0"
     function_1 = "0.0"
 }
 

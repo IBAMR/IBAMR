@@ -89,7 +89,7 @@ PressureInitialConditions {
    w = W
    mu = K
    p0 = (mu*PI/(3*w))*(R^2 - (R+w)^3/R)
-   function = "if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R,(p0 + (mu/R)),if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w,(p0 + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))),p0))"
+   function = "sqrt((X0-0.5)^2 + (X1-0.5)^2) < R ? (p0 + (mu/R)) : (sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w ? (p0 + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))) : p0)"
 }
 
 IBHierarchyIntegrator {

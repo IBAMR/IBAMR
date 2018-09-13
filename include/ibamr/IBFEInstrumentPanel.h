@@ -44,7 +44,6 @@
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
-#include "libmesh/exodusII_io.h"
 #include "libmesh/mesh.h"
 #include "libmesh/point.h"
 #include "libmesh/serial_mesh.h"
@@ -100,14 +99,39 @@ public:
                             double data_time);
 
     /*!
-     * \brief output exodus files and .dat file for meshes and nodes.
-     */
-    void outputMeterMeshes(IBAMR::IBFEMethod* ib_method_ops, int timestep_num, double data_time);
-
-    /*!
-     * \return return the instrument dump interval.
+     * \return The instrument dump interval
      */
     int getInstrumentDumpInterval() const;
+
+    /*!
+     * \return The number of meter meshes
+     */
+    int getNumberOfMeterMeshes() const;
+
+    /*!
+     * \return A reference to the jjth meter mesh
+     */
+    libMesh::MeshBase& getMeterMesh(const unsigned int jj) const;
+
+    /*!
+     * \return A reference to the EquationSystems object for jjth meter mesh
+     */
+    libMesh::EquationSystems& getMeterMeshEquationSystems(const unsigned int jj) const;
+
+    /*!
+     * \return The name for jjth meter mesh
+     */
+    const std::string& getMeterMeshName(const unsigned int jj) const;
+
+    /*!
+     * \return An ordered vector of nodes for the jjth meter mesh
+     */
+    const std::vector<libMesh::Point>& getMeterMeshNodes(const unsigned int jj) const;
+
+    /*!
+     * \return The quadrature order for the jjth meter mesh
+     */
+    libMesh::Order getMeterMeshQuadOrder(const unsigned int jj) const;
 
 private:
     /*!
@@ -121,11 +145,6 @@ private:
      * \brief write out data to file.
      */
     void outputData(double data_time);
-
-    /*!
-     * \brief write out meshes and equation systems in Exodus file.
-     */
-    void outputExodus(IBAMR::IBFEMethod* ib_method_ops, int timestep, double loop_time);
 
     /*!
      * \brief write out nodes.
@@ -210,11 +229,6 @@ private:
      * \brief contains pointers to the equation systems for the meter mesh.
      */
     std::vector<libMesh::EquationSystems*> d_meter_systems;
-
-    /*!
-     * \brief vector of exodus io objects for data output.
-     */
-    std::vector<libMesh::ExodusII_IO*> d_exodus_io;
 
     /*!
      * \brief vector of meter mesh pointers.

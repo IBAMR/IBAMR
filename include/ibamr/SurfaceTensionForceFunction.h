@@ -41,6 +41,7 @@
 #include "IntVector.h"
 #include "PatchLevel.h"
 #include "boost/array.hpp"
+#include "ibamr/ibamr_enums.h"
 #include "ibtk/CartGridFunction.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
@@ -259,6 +260,7 @@ private:
 
     const AdvDiffHierarchyIntegrator* const d_adv_diff_solver;
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_ls_var;
+    TimeSteppingType d_ts_type;
     int d_C_idx, d_phi_idx;
     std::string d_kernel_fcn;
     double d_sigma, d_num_interface_cells;

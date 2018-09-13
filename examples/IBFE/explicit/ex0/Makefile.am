@@ -45,7 +45,7 @@ gtest: $(GTESTS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input* $(PWD) ; \
 	fi ;
-	./test2d input2d.test
+	./test2d input2d.test -ksp_rtol 1e-16 -ksp_max_it 1000
 
 gtest-long:
 	make gtest

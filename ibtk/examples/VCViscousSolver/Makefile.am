@@ -43,13 +43,13 @@ test3d_SOURCES = $(GTEST_DRIVER)
 
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/{README,input[23]d.periodic} $(PWD) ; \
+	  cp -f $(srcdir)/{README,input[23]d*} $(PWD) ; \
 	fi ;
 
 if GTEST_ENABLED
 gtest: $(GTESTS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/{README,input[23]d.periodic*} $(PWD) ; \
+	  cp -f $(srcdir)/{README,input[23]d*} $(PWD) ; \
 	fi ;
 	./test2d input2d.test
 
@@ -71,5 +71,5 @@ endif
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/{README,input[23]d.periodic} ; \
+	  rm -f $(builddir)/{README,input[23]d*} ; \
 	fi ;

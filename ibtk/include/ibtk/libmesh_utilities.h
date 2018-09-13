@@ -811,6 +811,51 @@ struct PETSC_VISIBILITY_PUBLIC DofObjectComp
         return lhs->id() < rhs->id();
     }
 };
+
+
+/*!
+ * Recent versions of libMesh acquired a useful function that lets us extract
+ * the DoFs corresponding to basis functions with node value functionals. This
+ * compatibility function either calls that function directly or uses our own
+ * implementation if the present libMesh is too old.
+ */
+inline void
+get_nodal_dof_indices(const libMesh::DofMap &dof_map,
+                      const libMesh::Node* const node,
+                      const unsigned int variable_n,
+                      std::vector<libMesh::dof_id_type> &nodal_indices)
+{
+#if LIBMESH_MINOR_VERSION < 2
+    // See dof_map.C, circa line 2208
+
+    // We only call this function with variable numbers 0, 1, or 2, so skip
+    // implementing some stuff
+    TBOX_ASSERT(variable_n != libMesh::invalid_uint);
+
+    nodal_indices.clear();
+    const unsigned int system_n = dof_map.sys_number();
+
+    // Get the dof numbers
+    const libMesh::Variable &var = dof_map.variable(variable_n);
+    if (var.type().family == libMesh::SCALAR)
+    {
+        dof_map.SCALAR_dof_indices(nodal_indices, variable_n);
+    }
+    else
+    {
+        const int n_components = node->n_comp(system_n, variable_n);
+        for (int component_n = 0; component_n != n_components; ++component_n)
+        {
+            libmesh_assert_not_equal_to(node->dof_number(system_n, variable_n, component_n),
+                                        libMesh::DofObject::invalid_id);
+            nodal_indices.push_back(node->dof_number(system_n, variable_n, component_n));
+        }
+    }
+#else
+    dof_map.dof_indices(node, nodal_indices, variable_n);
+#endif
+}
+
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

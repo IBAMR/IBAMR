@@ -2,11 +2,15 @@
 include $(top_srcdir)/config/Make-rules
 SUBDIRS = explicit
 
-## Standard make targets.
-examples:
-	@(cd explicit && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+COMPLETE_EXAMPLES = $(SUBDIRS)
+INCOMPLETE_EXAMPLES =
+.PHONY: examples $(COMPLETE_EXAMPLES)
+examples: $(COMPLETE_EXAMPLES)
 
-gtest: 
+$(COMPLETE_EXAMPLES):
+	cd $@ && $(MAKE) $(AM_MAKEFLAGS) examples
+
+gtest:
 	@(cd explicit && make gtest) || exit 1;
 
 gtest-long:

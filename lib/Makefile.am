@@ -124,6 +124,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/INSProjectionBcCoef.cpp \
 ../src/navier_stokes/INSStaggeredCenteredConvectiveOperator.cpp \
 ../src/navier_stokes/INSStaggeredConvectiveOperatorManager.cpp \
+../src/navier_stokes/INSStaggeredCUIConvectiveOperator.cpp \
 ../src/navier_stokes/INSStaggeredHierarchyIntegrator.cpp \
 ../src/navier_stokes/INSStaggeredPPMConvectiveOperator.cpp \
 ../src/navier_stokes/INSStaggeredPressureBcCoef.cpp \
@@ -132,8 +133,8 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/INSStaggeredUpwindConvectiveOperator.cpp \
 ../src/navier_stokes/INSStaggeredWavePropConvectiveOperator.cpp \
 ../src/navier_stokes/INSStaggeredVelocityBcCoef.cpp \
-../src/navier_stokes/INSVCStaggeredConservativeConvectiveOperator.cpp \
 ../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp \
+../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp \
 ../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp \
 ../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp \
 ../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp \
@@ -165,6 +166,7 @@ if LIBMESH_ENABLED
   DIM_INDEPENDENT_SOURCES += \
   ../src/IB/CIBFEMethod.cpp \
   ../src/IB/IBFECentroidPostProcessor.cpp \
+  ../src/IB/IBFEDirectForcingKinematics.cpp \
   ../src/IB/IBFEInstrumentPanel.cpp \
   ../src/IB/IBFEMethod.cpp \
   ../src/IB/IBFEPostProcessor.cpp \
@@ -237,6 +239,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/INSProjectionBcCoef.h \
 ../include/ibamr/INSStaggeredCenteredConvectiveOperator.h \
 ../include/ibamr/INSStaggeredConvectiveOperatorManager.h \
+../include/ibamr/INSStaggeredCUIConvectiveOperator.h \
 ../include/ibamr/INSStaggeredHierarchyIntegrator.h \
 ../include/ibamr/INSStaggeredPPMConvectiveOperator.h \
 ../include/ibamr/INSStaggeredPressureBcCoef.h \
@@ -244,8 +247,8 @@ pkg_include_HEADERS += \
 ../include/ibamr/INSStaggeredStochasticForcing.h \
 ../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
 ../include/ibamr/INSStaggeredVelocityBcCoef.h \
-../include/ibamr/INSVCStaggeredConservativeConvectiveOperator.h \
 ../include/ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h \
+../include/ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h \
 ../include/ibamr/INSVCStaggeredHierarchyIntegrator.h \
 ../include/ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h \
 ../include/ibamr/INSVCStaggeredPressureBcCoef.h \
@@ -288,6 +291,7 @@ if LIBMESH_ENABLED
   pkg_include_HEADERS += \
   ../include/ibamr/CIBFEMethod.h \
   ../include/ibamr/IBFECentroidPostProcessor.h \
+  ../include/ibamr/IBFEDirectForcingKinematics.h \
   ../include/ibamr/IBFEInstrumentPanel.h \
   ../include/ibamr/IBFEMethod.h \
   ../include/ibamr/IBFEPostProcessor.h \

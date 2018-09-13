@@ -147,10 +147,6 @@ PhysicalBoundaryUtilities::isLower(int loc, int codim, int direction)
             return (loc == 0 || loc == 1 || loc == 4 || loc == 6);
         }
     }
-    else if (codim == 2)
-    {
-        return false;
-    }
 #endif
 
     TBOX_ERROR("this statement should not be reached!\n");
@@ -189,10 +185,6 @@ PhysicalBoundaryUtilities::isUpper(int loc, int codim, int direction)
         {
             return (loc == 2 || loc == 3 || loc == 5 || loc == 7);
         }
-    }
-    else if (codim == 2)
-    {
-        return false;
     }
 #endif
 

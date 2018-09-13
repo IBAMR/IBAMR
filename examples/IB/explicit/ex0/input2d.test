@@ -38,6 +38,8 @@ OUTPUT_OMEGA        = TRUE
 OUTPUT_DIV_U        = TRUE
 ENABLE_LOGGING      = TRUE
 
+STRUCTURE_LIST = "curve2d"
+
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
@@ -84,7 +86,7 @@ VelocityBcCoefs_1 {
 PressureInitialConditions {
    R = 0.25
    mu = K
-   function = "if( (X_0-0.5)^2 + (X_1-0.5)^2 <= R^2,mu*(1/R - pi*R),-mu*pi*R )"
+   function = "(X_0-0.5)^2 + (X_1-0.5)^2 <= R^2 ? mu*(1/R - pi*R) : -mu*pi*R"
 }
 
 IBHierarchyIntegrator {
@@ -104,26 +106,8 @@ IBMethod {
    enable_logging = ENABLE_LOGGING
 }
 
-IBStandardInitializer {
+IBRedundantInitializer {
    max_levels      = MAX_LEVELS
-   structure_names = "curve2d_64"
-
-   beta  = 0.25
-   alpha = 0.25^2/beta
-
-   A = PI*alpha*beta  // area of ellipse
-   R = sqrt(A/PI)     // radius of disc with equivalent area as the ellipse
-   perim = 2*PI*R     // perimeter of the equivalent disc
-
-   dx = L/NFINEST
-   dx_64 = L/64
-   num_node_circum = (dx_64/dx)*ceil(perim/(dx_64/3)/4)*4
-   ds = 2.0*PI*R/num_node_circum
-
-   curve2d_64 {
-      level_number = MAX_LEVELS - 1
-      uniform_spring_stiffness = K/ds
-   }
 }
 
 INSCollocatedHierarchyIntegrator {

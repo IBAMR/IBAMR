@@ -42,6 +42,7 @@
 
 namespace IBAMR
 {
+class INSVCStaggeredConservativeMassMomentumIntegrator;
 } // namespace IBAMR
 namespace IBTK
 {
@@ -59,14 +60,16 @@ namespace IBAMR
  * for the incompressible Navier-Stokes equations on an AMR grid hierarchy, with variable
  * coefficients.
  *
- * This class always uses a conservative discretization of the form of the momentum equation
+ * This class integrates the conservative form of the momentum equation
  * \f$(\frac{\partial \rho u}{\partial t} + N(\rho u)) = -\nabla p + \nabla \cdot \mu (\nabla u) + (\nabla u)^T )\f$
  * where \f$ N(u) = \nabla \cdot (\rho u u) \f$.
  *
- * In other words, this class will ALWAYS treat the left-hand side of the momentum equation in conservative form.
- * This class is specialized to always use INSVCStaggeredConservativeConvectiveOperator, which will produce an update
- * for the newest density by solving the mass transport equation \f$\frac{D \rho}{Dt} = 0\f$. Therefore, the density
- * variable must be registered and maintained by this class, and not by any other integrator.
+ * In other words, the class treats the left-hand side of the momentum equation in conservative form.
+ * This class is specialized to use INSVCStaggeredConservativeMassMomentumIntegrator,
+ * which produces an update for the newest density by solving the mass transport equation
+ * \f$ \frac{\partial \rho}{\partial t} + \nabla \cdot (\rho u) = 0 \f$.
+ * Therefore, the density variable must be registered and maintained by this class,
+ * and not by any other integrator (such AdvDiffHierarchyIntegrator).
  * It is also assumed that this density variable is side-centered. In other words, given a density at the beginning
  * of the time step \f$rho^n\f$, an interpolated face density \f$rho^{n+\frac{1}{2}}\f$ is produced and used in the
  * momentum convection to obtain \f$N(\rho u)\f$ and mass advection to obtain \f$rho^{n+1}\f$. Hence, a consistent
@@ -169,6 +172,20 @@ public:
      */
     void registerMassDensitySourceTerm(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> S_fcn);
 
+    /*!
+     * Returns the number of cycles to perform for the present time step.
+     */
+    int getNumberOfCycles() const;
+
+    /*!
+     * Get the convective operator being used by the integrator class.
+     *
+     * \note The class employs INSVCStaggeredConservativeMassMomentumIntegrator
+     * to compute the conservative convective derivative. Therefore,
+     * ConvectiveOperator is a NULL object.
+     */
+    SAMRAI::tbox::Pointer<ConvectiveOperator> getConvectiveOperator();
+
 protected:
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -240,12 +257,6 @@ private:
     INSVCStaggeredConservativeHierarchyIntegrator& operator=(const INSVCStaggeredConservativeHierarchyIntegrator& that);
 
     /*!
-     * Determine the convective time stepping type for the current time step and
-     * cycle number.
-     */
-    TimeSteppingType getConvectiveTimeSteppingType(int cycle_num);
-
-    /*!
      * Update the operators and solvers to account for changes due to time-dependent coefficients
      */
     void updateOperatorsAndSolvers(double current_time, double new_time);
@@ -274,6 +285,11 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var;
 
+    /*!
+     * Side-centered velocity variable maintained from previous time step
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_old_var;
+
     /*
      * Patch data descriptor indices for all "state" variables managed by the
      * integrator.
@@ -281,6 +297,7 @@ private:
      * State variables have three contexts: current, scratch, and new.
      */
     int d_rho_sc_current_idx, d_rho_sc_scratch_idx, d_rho_sc_new_idx;
+    int d_U_old_current_idx, d_U_old_new_idx, d_U_old_scratch_idx;
 
     /*
      * Boundary condition object for the side-centered density variable maintained
@@ -298,6 +315,11 @@ private:
      * Source term function for the mass density update
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
+
+    /*
+     * Conservative density and momentum integrator.
+     */
+    SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredConservativeMassMomentumIntegrator> d_rho_p_integrator;
 };
 } // namespace IBAMR
 

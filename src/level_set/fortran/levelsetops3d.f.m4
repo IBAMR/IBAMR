@@ -89,8 +89,11 @@ c
       REAL function S_eps(x,eps)
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
-      REAL H_eps
       REAL x,eps
+c
+c     Prevent compiler warning about unused variables.
+c
+      eps = eps
 
 C       S_eps = two*H_eps(x,eps) - one
 C       S_eps = x/sqrt(x**2+eps**2)
@@ -409,39 +412,6 @@ c
       REAL    h1,h2,h3
       REAL    Q,R,S
       REAL    dtil,dbar
-      REAL    U_wall_coef
-      REAL    h_wall_coef
-
-      if (patch_touches_bdry .eq. 1) then
-        if ((i0 .eq. dlower0) .and.
-     &     touches_wall_loc_idx(0) .eq. 1) then
-           U_wall_coef   = zero
-           h_wall_coef   = half
-        elseif ((i0 .eq. dupper0) .and.
-     &     touches_wall_loc_idx(1) .eq. 1) then
-           U_wall_coef   = zero
-           h_wall_coef   = half
-        elseif ((i1 .eq. dlower1) .and.
-     &     touches_wall_loc_idx(2) .eq. 1) then
-           U_wall_coef   = zero
-           h_wall_coef   = half
-        elseif ((i1 .eq. dupper1) .and.
-     &     touches_wall_loc_idx(3) .eq. 1) then
-           U_wall_coef   = zero
-           h_wall_coef   = half
-        elseif ((i2 .eq. dlower2) .and.
-     &     touches_wall_loc_idx(4) .eq. 1) then
-           U_wall_coef   = zero
-           h_wall_coef   = half
-        elseif ((i2 .eq. dupper2) .and.
-     &     touches_wall_loc_idx(5) .eq. 1) then
-           U_wall_coef   = zero
-           h_wall_coef   = half
-        else
-           U_wall_coef   = one
-           h_wall_coef   = one
-        endif
-      endif
       
 c     Carry out a single sweep
       if (U(i0,i1,i2) .eq. zero) then
@@ -458,27 +428,35 @@ c     Carry out a single sweep
       c  = sgn*dmin1(sgn*U(i0,i1,i2-1),sgn*U(i0,i1,i2+1))
 
 c     Take care of physical boundaries.
+c     The grid spacing to the boundary will be h/2
+c     The distance value imposed at the boundary should be zero
       if (patch_touches_bdry .eq. 1) then
-        if (i0 .eq. dlower0) then 
-          a  = U(i0+1,i1,i2)*U_wall_coef   
-          hx = hx*h_wall_coef                
-        elseif (i0 .eq. dupper0) then
-          a  = U(i0-1,i1,i2)*U_wall_coef
-          hx = hx*h_wall_coef
+        if (i0 .eq. dlower0 .and. 
+     &      touches_wall_loc_idx(0) .eq. 1) then 
+          a  = zero   
+          hx = hx*half                
+        elseif (i0 .eq. dupper0 .and. 
+     &      touches_wall_loc_idx(1) .eq. 1) then
+          a  = zero
+          hx = hx*half
         endif
-        if (i1 .eq. dlower1) then 
-          b  = U(i0,i1+1,i2)*U_wall_coef   
-          hy = hy*h_wall_coef                
-        elseif (i1 .eq. dupper1) then
-          b  = U(i0,i1-1,i2)*U_wall_coef
-          hy = hy*h_wall_coef
+        if (i1 .eq. dlower1 .and. 
+     &      touches_wall_loc_idx(2) .eq. 1) then 
+          b  = zero  
+          hy = hy*half               
+        elseif (i1 .eq. dupper1 .and. 
+     &      touches_wall_loc_idx(3) .eq. 1) then
+          b  = zero
+          hy = hy*half
         endif
-        if (i2 .eq. dlower2) then
-          c = U(i0,i1,i2+1)*U_wall_coef
-          hz = hz*h_wall_coef
-        elseif (i2 .eq. dupper2) then
-          c = U(i0,i1,i2-1)*U_wall_coef
-          hz = hz*h_wall_coef
+        if (i2 .eq. dlower2 .and. 
+     &      touches_wall_loc_idx(4) .eq. 1) then
+          c = zero
+          hz = hz*half
+        elseif (i2 .eq. dupper2 .and. 
+     &      touches_wall_loc_idx(5) .eq. 1) then
+          c = zero
+          hz = hz*half
         endif
       endif
 

@@ -1,6 +1,6 @@
 f {
-   function_0 = "if(X0 < 0, -X0, X0)"
-   function_1 = "if(X1 < 0, -X1, X1)"
+   function_0 = "X0 < 0 ? -X0 : X0"
+   function_1 = "X1 < 0 ? -X1 : X1"
 }
 
 prolongation_op_type = "LINEAR"

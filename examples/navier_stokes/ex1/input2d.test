@@ -38,7 +38,7 @@ SECOND_ORDER_PRESSURE_UPDATE = TRUE
 VelocityInitialConditions {
    rho = 80.0
    delta = 0.05
-   function_0 = "if(X1 < 0.5,tanh(rho*(X1-0.25)),tanh(rho*(0.75-X1)))"
+   function_0 = "X1 < 0.5 ? tanh(rho*(X1-0.25)) : tanh(rho*(0.75-X1))"
    function_1 = "delta*sin(2.0*pi*(X0+0.25))"
 }
 
