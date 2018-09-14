@@ -56,7 +56,7 @@ namespace IBTK
 /*!
  * \brief Class PoissonSolver is an abstract base class for Poisson solvers.
  */
-class PETSC_VISIBILITY_PUBLIC PoissonSolver : public virtual GeneralSolver
+class PoissonSolver : public virtual GeneralSolver
 {
 public:
     /*!

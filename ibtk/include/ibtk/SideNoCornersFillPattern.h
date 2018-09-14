@@ -66,7 +66,7 @@ namespace IBTK
  * 3D, it is also possible to configure this fill pattern object also to exclude
  * all edges.
  */
-class PETSC_VISIBILITY_PUBLIC SideNoCornersFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
+class SideNoCornersFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
 {
 public:
     /*!

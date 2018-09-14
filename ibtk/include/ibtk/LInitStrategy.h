@@ -73,7 +73,7 @@ namespace IBTK
  * \brief Class LInitStrategy provides a mechanism for specifying the
  * initial configuration of the curvilinear mesh.
  */
-class PETSC_VISIBILITY_PUBLIC LInitStrategy : public virtual SAMRAI::tbox::DescribedClass
+class LInitStrategy : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

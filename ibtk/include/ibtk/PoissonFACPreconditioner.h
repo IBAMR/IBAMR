@@ -71,7 +71,7 @@ namespace IBTK
  * \brief Class PoissonFACPreconditioner is a FACPreconditioner that has been
  * specialized for Poisson problems.
 */
-class PETSC_VISIBILITY_PUBLIC PoissonFACPreconditioner : public FACPreconditioner, public PoissonSolver
+class PoissonFACPreconditioner : public FACPreconditioner, public PoissonSolver
 {
 public:
     /*!

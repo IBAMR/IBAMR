@@ -81,7 +81,7 @@ namespace IBTK
  * the two classes is that class CartCellRobinPhysBdryOp allows for the
  * specification of boundary conditions for vector-valued quantities.
  */
-class PETSC_VISIBILITY_PUBLIC CartCellRobinPhysBdryOp : public RobinPhysBdryPatchStrategy
+class CartCellRobinPhysBdryOp : public RobinPhysBdryPatchStrategy
 {
 public:
     /*!

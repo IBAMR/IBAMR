@@ -51,7 +51,7 @@ namespace IBTK
  * \brief Class KrylovLinearSolverManager is a singleton manager class to
  * provide access to generic KrylovLinearSolver implementations.
  */
-class PETSC_VISIBILITY_PUBLIC KrylovLinearSolverManager
+class KrylovLinearSolverManager
 {
 public:
     /*!

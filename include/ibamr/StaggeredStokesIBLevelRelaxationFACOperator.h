@@ -125,7 +125,7 @@ namespace IBAMR
  level solver
  \endverbatim
 */
-class PETSC_VISIBILITY_PUBLIC StaggeredStokesIBLevelRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
+class StaggeredStokesIBLevelRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
 {
 public:
     /*!

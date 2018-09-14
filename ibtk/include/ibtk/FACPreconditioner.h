@@ -84,7 +84,7 @@ namespace IBTK
  enable_logging = FALSE  // see setLoggingEnabled()
  \endverbatim
 */
-class PETSC_VISIBILITY_PUBLIC FACPreconditioner : public LinearSolver
+class FACPreconditioner : public LinearSolver
 {
 public:
     /*!

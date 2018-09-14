@@ -49,7 +49,7 @@ namespace IBTK
  * \brief Class ParallelEdgeMap is a utility class for managing edge maps (i.e.,
  * maps from vertices to links between vertices) in parallel.
  */
-class PETSC_VISIBILITY_PUBLIC ParallelEdgeMap : public SAMRAI::tbox::DescribedClass
+class ParallelEdgeMap : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

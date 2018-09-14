@@ -69,7 +69,7 @@ namespace IBTK
  * functionality of SAMRAI::xfer::RefinePatchStrategy to facilitate the
  * implementation of coarse-fine interface discretizations.
  */
-class PETSC_VISIBILITY_PUBLIC CoarseFineBoundaryRefinePatchStrategy : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
+class CoarseFineBoundaryRefinePatchStrategy : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
 public:
     /*!

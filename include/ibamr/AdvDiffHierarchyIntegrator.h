@@ -99,7 +99,7 @@ namespace IBAMR
  * equations on an AMR grid hierarchy, along with basic data management for
  * variables defined on that hierarchy.
  */
-class PETSC_VISIBILITY_PUBLIC AdvDiffHierarchyIntegrator : public IBTK::HierarchyIntegrator
+class AdvDiffHierarchyIntegrator : public IBTK::HierarchyIntegrator
 {
 public:
     /*!

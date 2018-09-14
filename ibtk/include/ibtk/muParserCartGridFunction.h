@@ -75,7 +75,7 @@ namespace IBTK
  * (possibly spatially- and temporally-varying) functions which are used to set
  * double precision values on standard SAMRAI SAMRAI::hier::PatchData objects.
  */
-class PETSC_VISIBILITY_PUBLIC muParserCartGridFunction : public CartGridFunction
+class muParserCartGridFunction : public CartGridFunction
 {
 public:
     /*!

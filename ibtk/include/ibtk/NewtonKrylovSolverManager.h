@@ -51,7 +51,7 @@ namespace IBTK
  * \brief Class NewtonKrylovSolverManager is a singleton manager class to
  * provide access to generic NewtonKrylovSolver implementations.
  */
-class PETSC_VISIBILITY_PUBLIC NewtonKrylovSolverManager
+class NewtonKrylovSolverManager
 {
 public:
     /*!

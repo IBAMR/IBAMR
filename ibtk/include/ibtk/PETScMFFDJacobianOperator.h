@@ -56,7 +56,7 @@ namespace IBTK
  * Jacobian-vector products, i.e., \f$ F'[x]v \f$, via a matrix-free
  * finite-difference approach.
  */
-class PETSC_VISIBILITY_PUBLIC PETScMFFDJacobianOperator : public JacobianOperator
+class PETScMFFDJacobianOperator : public JacobianOperator
 {
 public:
     /*!

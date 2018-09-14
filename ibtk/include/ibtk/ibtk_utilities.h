@@ -146,7 +146,7 @@ static const bool ENABLE_TIMERS = true;
 namespace IBTK
 {
 template <class T, unsigned N>
-PETSC_VISIBILITY_PUBLIC inline boost::array<T, N>
+inline boost::array<T, N>
 array_constant(const T& v)
 {
     boost::array<T, N> arr;
@@ -155,7 +155,7 @@ array_constant(const T& v)
 } // array_constant
 
 template <class T, unsigned N>
-PETSC_VISIBILITY_PUBLIC inline boost::array<T, N>
+inline boost::array<T, N>
 array_one()
 {
     boost::array<T, N> arr;
@@ -164,7 +164,7 @@ array_one()
 } // array_one
 
 template <class T, unsigned N>
-PETSC_VISIBILITY_PUBLIC inline boost::array<T, N>
+inline boost::array<T, N>
 array_zero()
 {
     boost::array<T, N> arr;
@@ -172,7 +172,7 @@ array_zero()
     return arr;
 } // array_zero
 
-PETSC_VISIBILITY_PUBLIC inline bool
+inline bool
 level_can_be_refined(int level_number, int max_levels)
 {
     const int finest_level_number = max_levels - 1;

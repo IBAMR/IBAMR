@@ -100,7 +100,7 @@ namespace IBTK
  \endverbatim
  *
  */
-class PETSC_VISIBILITY_PUBLIC BGaussSeidelPreconditioner : public LinearSolver
+class BGaussSeidelPreconditioner : public LinearSolver
 {
 public:
     /*!

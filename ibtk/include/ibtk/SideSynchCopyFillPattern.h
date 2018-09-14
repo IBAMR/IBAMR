@@ -65,7 +65,7 @@ namespace IBTK
  * side-centered ghost region surrounding a patch appropriate for
  * "synchronizing" side-centered values at patch boundaries.
  */
-class PETSC_VISIBILITY_PUBLIC SideSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
+class SideSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
 {
 public:
     /*!

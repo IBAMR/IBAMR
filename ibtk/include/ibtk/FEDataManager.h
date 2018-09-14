@@ -105,7 +105,7 @@ namespace IBTK
  *
  * \note Multiple FEDataManager objects may be instantiated simultaneously.
  */
-class PETSC_VISIBILITY_PUBLIC FEDataManager : public SAMRAI::tbox::Serializable,
+class FEDataManager : public SAMRAI::tbox::Serializable,
                                               public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
 {
 public:

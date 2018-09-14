@@ -66,7 +66,7 @@ namespace IBTK
  * \brief Class FaceDataSynchronization encapsulates the operations required to
  * "synchronize" face-centered values defined at patch boundaries.
  */
-class PETSC_VISIBILITY_PUBLIC FaceDataSynchronization : public SAMRAI::tbox::DescribedClass
+class FaceDataSynchronization : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

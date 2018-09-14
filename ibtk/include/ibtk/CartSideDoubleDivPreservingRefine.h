@@ -62,7 +62,7 @@ namespace IBTK
  * precision patch data via conservative linear interpolation with divergence-
  * and curl-preserving corrections.
  */
-class PETSC_VISIBILITY_PUBLIC CartSideDoubleDivPreservingRefine : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
+class CartSideDoubleDivPreservingRefine : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
 public:
     /*!

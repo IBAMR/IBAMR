@@ -53,7 +53,7 @@ namespace IBTK
 /*!
  * \brief Class LMesh is a collection of LNode objects.
  */
-class PETSC_VISIBILITY_PUBLIC LMesh : public SAMRAI::tbox::DescribedClass
+class LMesh : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

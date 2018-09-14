@@ -63,7 +63,7 @@ namespace IBTK
  *
  * \note This class is designed to be used with uniform grid data only.
  */
-class PETSC_VISIBILITY_PUBLIC CopyToRootTransaction : public SAMRAI::tbox::Transaction
+class CopyToRootTransaction : public SAMRAI::tbox::Transaction
 {
 public:
     /*!

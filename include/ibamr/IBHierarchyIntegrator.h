@@ -100,7 +100,7 @@ namespace IBAMR
  * grid hierarchy, along with basic data management for variables defined on
  * that hierarchy.
  */
-class PETSC_VISIBILITY_PUBLIC IBHierarchyIntegrator : public IBTK::HierarchyIntegrator
+class IBHierarchyIntegrator : public IBTK::HierarchyIntegrator
 {
 public:
     friend class IBStrategy;

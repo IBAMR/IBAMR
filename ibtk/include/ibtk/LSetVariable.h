@@ -49,7 +49,7 @@ namespace IBTK
  * corresponding to patch data of type LSetData.
  */
 template <class T>
-class PETSC_VISIBILITY_PUBLIC LSetVariable : public SAMRAI::hier::Variable<NDIM>
+class LSetVariable : public SAMRAI::hier::Variable<NDIM>
 {
 public:
     /*!

@@ -59,7 +59,7 @@ namespace IBTK
  * \brief Class LaplaceOperator is an abstract base class for a Laplace-type
  * operators.
  */
-class PETSC_VISIBILITY_PUBLIC LaplaceOperator : public LinearOperator
+class LaplaceOperator : public LinearOperator
 {
 public:
     /*!

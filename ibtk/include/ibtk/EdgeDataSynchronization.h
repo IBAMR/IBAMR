@@ -67,7 +67,7 @@ namespace IBTK
  * \brief Class EdgeDataSynchronization encapsulates the operations required to
  * "synchronize" edge-centered values defined at patch boundaries.
  */
-class PETSC_VISIBILITY_PUBLIC EdgeDataSynchronization : public SAMRAI::tbox::DescribedClass
+class EdgeDataSynchronization : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

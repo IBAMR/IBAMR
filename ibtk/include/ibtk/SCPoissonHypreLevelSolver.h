@@ -131,7 +131,7 @@ namespace IBTK
  *
  HREF="https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html">https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html</A>.
  */
-class PETSC_VISIBILITY_PUBLIC SCPoissonHypreLevelSolver : public LinearSolver, public PoissonSolver
+class SCPoissonHypreLevelSolver : public LinearSolver, public PoissonSolver
 {
 public:
     /*!

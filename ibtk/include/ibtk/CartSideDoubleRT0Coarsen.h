@@ -64,7 +64,7 @@ namespace IBTK
  * SAMRAI::xfer::CoarsenOperator for restricting side-centered double precision
  * patch data via the adjoint of RT0 interpolation.
  */
-class PETSC_VISIBILITY_PUBLIC CartSideDoubleRT0Coarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
+class CartSideDoubleRT0Coarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
 {
 public:
     /*!
