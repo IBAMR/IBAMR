@@ -18,8 +18,8 @@ srcs-core.cpp += $(call thisdir, \
 	INSStaggeredUpwindConvectiveOperator.cpp \
 	INSStaggeredVelocityBcCoef.cpp \
 	INSStaggeredWavePropConvectiveOperator.cpp \
-	INSVCStaggeredConservativeConvectiveOperator.cpp \
 	INSVCStaggeredConservativeHierarchyIntegrator.cpp \
+	INSVCStaggeredConservativeMassMomentumIntegrator.cpp \
 	INSVCStaggeredHierarchyIntegrator.cpp \
 	INSVCStaggeredNonConservativeHierarchyIntegrator.cpp \
 	INSVCStaggeredPressureBcCoef.cpp \
