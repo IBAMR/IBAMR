@@ -497,13 +497,6 @@ IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SUBDIRS = contrib scripts src lib
-ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
-	$(top_srcdir)/doc/Doxyfile.in $(top_srcdir)/doc/footer.html \
-	$(top_srcdir)/doc/header.html $(top_srcdir)/doc/libstdc++.tag \
-	$(top_srcdir)/doc/mainpage.dox \
-	$(top_srcdir)/doc/online_Doxyfile.in \
-	$(top_srcdir)/doc/samrai.tag $(top_srcdir)/doc/stylesheet.css
 all: all-recursive
 
 .SUFFIXES:
@@ -764,7 +757,7 @@ install-dvi: install-dvi-recursive
 
 install-dvi-am:
 
-install-exec-am: install-exec-local
+install-exec-am:
 
 install-html: install-html-recursive
 
@@ -811,14 +804,13 @@ uninstall-am:
 	ctags-am distclean distclean-generic distclean-libtool \
 	distclean-tags distdir dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-exec-local \
-	install-html install-html-am install-info install-info-am \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-am uninstall \
-	uninstall-am
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	installdirs-am maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
+	ps ps-am tags tags-am uninstall uninstall-am
 
 .PRECIOUS: Makefile
 
@@ -846,17 +838,6 @@ examples: lib
 @GTEST_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 @GTEST_ENABLED_FALSE@gtest-long:
 @GTEST_ENABLED_FALSE@	make gtest
-
-install-exec-local:
-	@echo "===================================================================="
-	@echo "===================================================================="
-	@echo "WARNING: make install is not officially supported by IBTK!"
-	@echo "         use at your own risk!"
-	@echo "===================================================================="
-	@echo "===================================================================="
-
-refresh_tags:
-	cd $(top_srcdir) && find . -name "*.[ChIf]" -print | etags -
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
