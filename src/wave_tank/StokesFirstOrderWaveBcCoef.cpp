@@ -167,19 +167,13 @@ StokesFirstOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
             const double z_cell_surface =
                 (domain_x_lower[dir] + dz * (static_cast<double>(i(dir) - domain_box_lower(dir)) + 0.5)) - d_depth;
             const double eta = d_amplitude * cos(d_wave_number * dof_posn[0] - d_omega * fill_time);
-            const double vol_frac = 1.0;
-            //(std::max(std::min(eta - z_cell_surface, dz/2.0), -dz/2.0) + dz/2.0)/dz;
-
-            /* if (z_cell_surface > dz)
-             {
-                 std::cout << " z_cell_surface = " << z_cell_surface << "  and vol_frac = " <<  vol_frac << "\n";
-             }*/
+            const double vol_frac = (std::max(std::min(eta - z_cell_surface, dz / 2.0), -dz / 2.0) + dz / 2.0) / dz;
 
             if (d_comp_idx == 0)
             {
                 if (gcoef_data)
                     (*gcoef_data)(i, 0) = vol_frac * fac * cosh(d_wave_number * (z_cell_surface + d_depth)) *
-                                          sin(d_wave_number * dof_posn[0] - d_omega * fill_time) /
+                                          cos(d_wave_number * dof_posn[0] - d_omega * fill_time) /
                                           cosh(d_wave_number * d_depth);
             }
 
@@ -188,7 +182,7 @@ StokesFirstOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
 #if (NDIM == 2)
                 if (gcoef_data)
                     (*gcoef_data)(i, 0) = vol_frac * fac * sinh(d_wave_number * (z_cell_surface - dz / 2.0 + d_depth)) *
-                                          cos(d_wave_number * dof_posn[0] - d_omega * fill_time) /
+                                          sin(d_wave_number * dof_posn[0] - d_omega * fill_time) /
                                           cosh(d_wave_number * d_depth);
 #elif (NDIM == 3)
                 if (gcoef_data) (*gcoef_data)(i, 0) = 0.0;
@@ -200,7 +194,7 @@ StokesFirstOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
             {
                 if (gcoef_data)
                     (*gcoef_data)(i, 0) = vol_frac * fac * sinh(d_wave_number * (z_cell_surface - dz / 2.0 + d_depth)) *
-                                          cos(d_wave_number * dof_posn[0] - d_omega * fill_time) /
+                                          sin(d_wave_number * dof_posn[0] - d_omega * fill_time) /
                                           cosh(d_wave_number * d_depth);
             }
 #endif

@@ -2,8 +2,8 @@
 PI = 3.14159265358979e+0
 
 // application parameters
-L     = 16.0
-H     = 1.0
+L     = 32.0
+H     = 2.0
 X_UR  = 32.0,0.6
 G     = 9.81
 GRAV_CONST = 0.0,-G
@@ -28,8 +28,8 @@ NUM_INTERFACE_CELLS = 2.0
 MAX_LEVELS = 1        // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 
-Ny = 16
-Nx = 256                                   // coarsest grid spacing
+Ny = 32
+Nx = 512                                   // coarsest grid spacing
 NXFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
 NYFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Ny  // finest   grid spacing
 
@@ -50,14 +50,16 @@ VORTICITY_REL_THRESH = 0.5
 
 // surface tension parameters
 DELTA_FUNCTION = "IB_4"
-SIGMA = 0.0728
+SIGMA = 0.0 //0.0728
 
 U = "0.0"
 V = "0.0"
 
+X_ZONE_START = L - 2 * WAVELENGTH
+X_ZONE_END = L
 OutletDampingZone {
-    x_zone_start = L - 2 * WAVELENGTH
-    x_zone_end   = L
+    x_zone_start = X_ZONE_START
+    x_zone_end   = X_ZONE_END
     theta        = 0.0
 }
 
@@ -69,14 +71,14 @@ VelocityInitialConditions {
 
 VelocityBcCoefs_0 {
    acoef_function_0 = "1.0"
-   acoef_function_1 = "0.0"
+   acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
+   acoef_function_3 = "0.0"
 
    bcoef_function_0 = "0.0"
-   bcoef_function_1 = "1.0"
+   bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
+   bcoef_function_3 = "1.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
@@ -94,14 +96,14 @@ VelocityBcCoefs_0 {
 
 VelocityBcCoefs_1 {
    acoef_function_0 = "1.0"
-   acoef_function_1 = "0.0"
+   acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
+   acoef_function_3 = "0.0"
 
    bcoef_function_0 = "0.0"
-   bcoef_function_1 = "1.0"
+   bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
+   bcoef_function_3 = "1.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
@@ -177,12 +179,12 @@ MuBcCoefs {
 SOLVER_TYPE                         = "STAGGERED"
 DISCRETIZATION_FORM                 = "CONSERVATIVE"
 START_TIME                          =  0.0e0     // initial simulation time
-END_TIME                            =  0.4e0    // final simulation time
+END_TIME                            =  100.0e0    // final simulation time
 GROW_DT                             =  2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS                =  500000  // max number of simulation timesteps
 REGRID_INTERVAL                     =  1
 CFL_MAX                             =  0.5   
-NUM_INS_CYCLES                      =  2
+NUM_INS_CYCLES                      =  1
 NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "CUI"
 CONVECTIVE_FORM                     = "CONSERVATIVE"                // how to compute the convective terms
 INIT_CONVECTIVE_TS_TYPE             = "MIDPOINT_RULE"
@@ -191,7 +193,7 @@ NORMALIZE_PRESSURE                  = FALSE
 VORTICITY_TAGGING                   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                          = 2                          // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL                 = 0.3                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
-DT_MAX                              = 0.001/(REF_RATIO^(MAX_LEVELS - 1))/2.0
+DT_MAX                              = 0.01/(REF_RATIO^(MAX_LEVELS - 1))/2.0
 OUTPUT_U                            = TRUE
 OUTPUT_P                            = TRUE
 OUTPUT_F                            = TRUE
@@ -449,7 +451,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 1
+   viz_dump_interval           = 50
    viz_dump_dirname            = "viz_INS2d"
    visit_number_procs_per_file = 1
 

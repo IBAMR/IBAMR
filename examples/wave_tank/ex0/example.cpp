@@ -70,6 +70,18 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const double loop_time,
                  const string& data_dump_dirname);
 
+void damp_outlet_waves(double current_time,
+                       double new_time,
+                       bool skip_synchronize_new_state_data,
+                       int num_cycles,
+                       void* ctx);
+
+struct WaveDamper
+{
+    Pointer<INSVCStaggeredHierarchyIntegrator> d_ins_integrator;
+    double d_x_zone_start, d_x_zone_end;
+};
+
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
  * be given on the command line.  For non-restarted case, command line is:     *
@@ -297,11 +309,22 @@ run_example(int argc, char* argv[])
             time_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
-        // Create a damping zone near the channel outlet to absorb water waves.
+        // Create a damping zone near the channel outlet to absorb water waves through momentum equation.
+        // This method adds an implicit damping term in the momentum equation.
         DampingZone* ptr_DampingZone = new DampingZone(
             "OutletDampingZone", time_integrator, app_initializer->getComponentDatabase("OutletDampingZone"));
         time_integrator->registerAddDampingZoneFcn(&callDampingZoneCallbackFunction,
                                                    static_cast<void*>(ptr_DampingZone));
+
+        // Create a damping zone near the channel outlet to absorb water waves via time-splitting approach.
+        // This method uses a time splitting approach and modifies the fluid momentum in the
+        // post processing step.
+        WaveDamper smooth_damper;
+        smooth_damper.d_ins_integrator = time_integrator;
+        smooth_damper.d_x_zone_start = input_db->getDouble("X_ZONE_START");
+        smooth_damper.d_x_zone_end = input_db->getDouble("X_ZONE_END");
+        time_integrator->registerPostprocessIntegrateHierarchyCallback(&damp_outlet_waves,
+                                                                       static_cast<void*>(&smooth_damper));
 
         RobinBcCoefStrategy<NDIM>* phi_bc_coef = NULL;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
@@ -500,3 +523,55 @@ output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     hier_db->close();
     return;
 } // output_data
+
+void
+damp_outlet_waves(double current_time, double new_time, bool skip_synchronize_new_state_data, int num_cycles, void* ctx)
+{
+    pout << "Damping waves at outlet ...\n";
+    WaveDamper* ptr_wave_damper = static_cast<WaveDamper*>(ctx);
+    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = ptr_wave_damper->d_ins_integrator->getPatchHierarchy();
+    const double& x_zone_start = ptr_wave_damper->d_x_zone_start;
+    const double& x_zone_end = ptr_wave_damper->d_x_zone_end;
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    int u_new_idx = var_db->mapVariableAndContextToIndex(ptr_wave_damper->d_ins_integrator->getVelocityVariable(),
+                                                         ptr_wave_damper->d_ins_integrator->getNewContext());
+
+    const int coarsest_ln = 0;
+    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_dx = patch_geom->getDx();
+            const double* const patch_x_lower = patch_geom->getXLower();
+            const Box<NDIM>& patch_box = patch->getBox();
+            const IntVector<NDIM>& patch_lower = patch_box.lower();
+
+            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_new_idx);
+
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                {
+                    Index<NDIM> i = it();
+                    SideIndex<NDIM> i_side(i, axis, SideIndex<NDIM>::Lower);
+                    const double x_posn =
+                        patch_x_lower[0] +
+                        patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)) + axis == 0 ? 0.0 : 0.5);
+                    if (x_posn >= x_zone_start)
+                    {
+                        double xtilde = (x_posn - x_zone_start) / (x_zone_end - x_zone_start);
+                        double gamma = 1.0 - (exp(std::pow(xtilde, 1.5)) - 1.0) / (exp(1.0) - 1.0);
+                        (*u_data)(i_side, 0) *= gamma;
+                    }
+                }
+            }
+        }
+    }
+
+    return;
+} // damp_outlet_waves
