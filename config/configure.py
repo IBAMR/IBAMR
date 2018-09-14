@@ -286,8 +286,22 @@ def configure(configure_options):
   bsDir     = os.path.join(configDir, 'BuildSystem')
   if not os.path.isdir(bsDir):
     if not 'PETSC_DIR' in os.environ:
-      raise RuntimeError('Need to set PETSC_DIR in the environment')
+        msg = "\n\
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\
+Need to set PETSC_DIR in the environment to point to an installation of PETSc,\n\
+and to set PETSC_ARCH in the environment to set a valid PETSc configuration\n\
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+        raise RuntimeError(msg)
     ret, aversion, version = chkpetscversion(os.environ['PETSC_DIR'])
+    if str(version) == 'unknown' or str(version) == 'not found':
+        msg = "\n\
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\
+Need to set PETSC_DIR in the environment to point to an installation of PETSc,\n\
+and to set PETSC_ARCH in the environment to set a valid PETSc configuration\n\
+Environment variable PETSC_DIR  is set to: '%s'\n\
+Environment variable PETSC_ARCH is set to: '%s'\n\
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n" % (str(os.environ['PETSC_DIR']), str(os.environ['PETSC_ARCH']))
+        raise RuntimeError(msg)
     if ret:
       msg = "\n\
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\
@@ -298,7 +312,13 @@ http://www.mcs.anl.gov/petsc/download/index.html\n\
       print msg
     bsDir   = os.path.join(os.environ['PETSC_DIR'], 'config', 'BuildSystem')
     if not os.path.isdir(bsDir):
-      raise RuntimeError('Could not find BuildSystem')
+      msg = "\n\
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\
+Could not find BuildSystem\n\
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+      raise RuntimeError(msg)
+
+    
   sys.path.insert(0, bsDir)
   sys.path.insert(0, configDir)
   import config.base
