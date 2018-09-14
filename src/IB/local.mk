@@ -54,8 +54,7 @@ srcs-core.cpp += $(call thisdir, \
 	WallForceEvaluator.cpp \
 	)
 
-ifneq ($(IBAMR_LIBMESH_LIB),)
-
+ifneq ($(LIBMESH_LIB),)
 srcs-core.cpp += $(call thisdir, \
 	CIBFEMethod.cpp \
 	IBFECentroidPostProcessor.cpp \
@@ -69,5 +68,4 @@ srcs-core.cpp += $(call thisdir, \
 	MaterialPointSpec.cpp \
 	MaterialPointSpecFactory.cpp \
 	)
-
 endif

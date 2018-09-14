@@ -1,4 +1,5 @@
 include $(PETSC_DIR)/$(PETSC_ARCH)/lib/petsc/conf/petscvariables
+include $(IBAMR_DIR)/$(IBAMR_ARCH)/lib/petsc/conf/ibamrvariables
 
 IBAMR_ARCH := $(if $(IBAMR_ARCH),$(IBAMR_ARCH),build)
 
