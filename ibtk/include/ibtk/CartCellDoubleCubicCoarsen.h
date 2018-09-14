@@ -72,7 +72,7 @@ namespace IBTK
  * refinement ratio is at least 4.  For refinement ratios less than 4, a warning
  * is emitted and simple weighted averaging is used instead.
  */
-class PETSC_VISIBILITY_PUBLIC CartCellDoubleCubicCoarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
+class CartCellDoubleCubicCoarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
 {
 public:
     /*!

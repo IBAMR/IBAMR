@@ -59,7 +59,7 @@ namespace IBTK
  * PETScKrylovLinearSolver that provides an implementation of the PoissonSolver
  * interface.
  */
-class PETSC_VISIBILITY_PUBLIC PETScKrylovPoissonSolver : public PETScKrylovLinearSolver,
+class PETScKrylovPoissonSolver : public PETScKrylovLinearSolver,
                                                          public KrylovLinearSolverPoissonSolverInterface
 {
 public:

@@ -423,7 +423,7 @@ namespace IBAMR
  ...
  \endverbatim
 */
-class PETSC_VISIBILITY_PUBLIC IBStandardInitializer : public IBAMR::IBRedundantInitializer
+class IBStandardInitializer : public IBAMR::IBRedundantInitializer
 {
 public:
     /*!

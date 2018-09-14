@@ -74,7 +74,7 @@ namespace IBAMR
  * \see IBStandardForceGen
  * \see IBTargetPointForceGen
  */
-class PETSC_VISIBILITY_PUBLIC IBLagrangianForceStrategy : public virtual SAMRAI::tbox::DescribedClass
+class IBLagrangianForceStrategy : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

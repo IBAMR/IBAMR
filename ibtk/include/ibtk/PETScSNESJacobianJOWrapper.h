@@ -54,7 +54,7 @@ namespace IBTK
  * \brief Class PETScSNESJacobianJOWrapper provides a JacobianOperator interface
  * for a <A HREF="http://www.mcs.anl.gov/petsc">PETSc</A> SNES Jacobian.
  */
-class PETSC_VISIBILITY_PUBLIC PETScSNESJacobianJOWrapper : public JacobianOperator
+class PETScSNESJacobianJOWrapper : public JacobianOperator
 {
 public:
     /*!

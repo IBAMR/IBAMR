@@ -111,7 +111,7 @@ namespace IBTK
  coarse_solver_max_iterations = 10            // see setCoarseSolverMaxIterations()
  \endverbatim
 */
-class PETSC_VISIBILITY_PUBLIC PoissonFACPreconditionerStrategy : public FACPreconditionerStrategy
+class PoissonFACPreconditionerStrategy : public FACPreconditionerStrategy
 {
 public:
     /*!

@@ -62,7 +62,7 @@ namespace IBTK
  *
  * \note This class is designed to be used with uniform grid data only.
  */
-class PETSC_VISIBILITY_PUBLIC CopyToRootSchedule
+class CopyToRootSchedule
 {
 public:
     /*!

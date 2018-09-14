@@ -65,7 +65,7 @@ namespace IBTK
  * boundaries via constant, linear, or quadratic extrapolation from interior
  * values.
  */
-class PETSC_VISIBILITY_PUBLIC CartExtrapPhysBdryOp : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
+class CartExtrapPhysBdryOp : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
 public:
     /*!

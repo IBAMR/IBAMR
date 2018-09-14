@@ -67,7 +67,7 @@ namespace IBTK
  * \brief Class NodeDataSynchronization encapsulates the operations required to
  * "synchronize" node-centered values defined at patch boundaries.
  */
-class PETSC_VISIBILITY_PUBLIC NodeDataSynchronization : public SAMRAI::tbox::DescribedClass
+class NodeDataSynchronization : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

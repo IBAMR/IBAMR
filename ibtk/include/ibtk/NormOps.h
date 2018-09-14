@@ -53,7 +53,7 @@ namespace IBTK
  * \brief Class NormOps provides functionality for computing discrete vector
  * norms.
  */
-class PETSC_VISIBILITY_PUBLIC NormOps
+class NormOps
 {
 public:
     /*!

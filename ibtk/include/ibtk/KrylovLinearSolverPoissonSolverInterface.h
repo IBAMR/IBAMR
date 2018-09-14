@@ -64,7 +64,7 @@ namespace IBTK
  *
  * \see PETScKrylovPoissonSolver
  */
-class PETSC_VISIBILITY_PUBLIC KrylovLinearSolverPoissonSolverInterface : public PoissonSolver
+class KrylovLinearSolverPoissonSolverInterface : public PoissonSolver
 {
 public:
     /*!

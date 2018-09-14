@@ -71,7 +71,7 @@ namespace IBTK
  * interpolation in the normal and tangential directions at coarse-fine
  * interfaces.
  */
-class PETSC_VISIBILITY_PUBLIC CartCellDoubleQuadraticCFInterpolation : public CoarseFineBoundaryRefinePatchStrategy
+class CartCellDoubleQuadraticCFInterpolation : public CoarseFineBoundaryRefinePatchStrategy
 {
 public:
     /*!

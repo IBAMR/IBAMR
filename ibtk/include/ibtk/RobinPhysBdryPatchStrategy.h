@@ -70,7 +70,7 @@ namespace IBTK
  * SAMRAI::xfer::RefinePatchStrategy that are generally not needed for filling
  * ghost cell values at physical boundaries.
  */
-class PETSC_VISIBILITY_PUBLIC RobinPhysBdryPatchStrategy : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
+class RobinPhysBdryPatchStrategy : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
 public:
     /*!

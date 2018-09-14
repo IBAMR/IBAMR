@@ -76,7 +76,7 @@ namespace IBTK
  * boundary conditions for the normal component of the vector field.  Mixed
  * (Robin) boundary conditions are \em not supported in the normal direction.
  */
-class PETSC_VISIBILITY_PUBLIC CartSideRobinPhysBdryOp : public RobinPhysBdryPatchStrategy
+class CartSideRobinPhysBdryOp : public RobinPhysBdryPatchStrategy
 {
 public:
     /*!

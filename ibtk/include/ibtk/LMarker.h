@@ -63,7 +63,7 @@ namespace IBTK
  * \brief Class LMarker provides inter-processor communications functionality
  * for a Lagrangian marker.
  */
-class PETSC_VISIBILITY_PUBLIC LMarker : public SAMRAI::tbox::DescribedClass
+class LMarker : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

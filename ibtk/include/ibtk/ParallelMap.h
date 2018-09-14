@@ -54,7 +54,7 @@ namespace IBTK
  * \brief Class ParallelMap is a utility class for associating integer keys with
  * arbitrary data items in parallel.
  */
-class PETSC_VISIBILITY_PUBLIC ParallelMap : public SAMRAI::tbox::DescribedClass
+class ParallelMap : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

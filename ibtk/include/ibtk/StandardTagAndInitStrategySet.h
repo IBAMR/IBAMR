@@ -82,7 +82,7 @@ namespace IBTK
  * SAMRAI::mesh::StandardTagAndInitStrategy will work properly with class
  * StandardTagAndInitStrategySet.
  */
-class PETSC_VISIBILITY_PUBLIC StandardTagAndInitStrategySet : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+class StandardTagAndInitStrategySet : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
 {
 public:
     /*!

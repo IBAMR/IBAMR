@@ -99,7 +99,7 @@ namespace IBTK
  * SAMRAI::hier::Variable / SAMRAI::hier::VariableContext pairs that have been
  * registered with the SAMRAI::hier::VariableDatabase.
  */
-class PETSC_VISIBILITY_PUBLIC HierarchyMathOps : public SAMRAI::tbox::DescribedClass
+class HierarchyMathOps : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

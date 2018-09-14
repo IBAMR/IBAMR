@@ -65,7 +65,7 @@ namespace IBTK
  * \see SAMRAI::pdat::IndexData
  */
 template <class T>
-class PETSC_VISIBILITY_PUBLIC LIndexSetData : public LSetData<T>
+class LIndexSetData : public LSetData<T>
 {
 public:
     /*!

@@ -99,7 +99,7 @@ namespace IBAMR
  * IBImplicitStrategy that provides functionality required by the standard IB
  * method.
  */
-class PETSC_VISIBILITY_PUBLIC IBMethod : public IBImplicitStrategy
+class IBMethod : public IBImplicitStrategy
 {
 public:
     /*!

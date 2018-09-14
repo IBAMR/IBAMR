@@ -51,7 +51,7 @@ namespace IBTK
  * \brief Class CCPoissonSolverManager is a singleton manager class to provide
  * access to generic cell-centered PoissonSolver implementations.
  */
-class PETSC_VISIBILITY_PUBLIC CCPoissonSolverManager
+class CCPoissonSolverManager
 {
 public:
     /*!

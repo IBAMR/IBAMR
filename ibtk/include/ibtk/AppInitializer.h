@@ -53,7 +53,7 @@ namespace IBTK
  * \brief Class AppInitializer provides functionality to simplify the
  * initialization code in an application code.
  */
-class PETSC_VISIBILITY_PUBLIC AppInitializer : public SAMRAI::tbox::DescribedClass
+class AppInitializer : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

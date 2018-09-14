@@ -66,7 +66,7 @@ namespace IBTK
  * \brief Class LData provides storage for a single scalar- or vector-valued
  * Lagrangian quantity.
  */
-class PETSC_VISIBILITY_PUBLIC LData : public SAMRAI::tbox::Serializable
+class LData : public SAMRAI::tbox::Serializable
 {
 public:
     /*!

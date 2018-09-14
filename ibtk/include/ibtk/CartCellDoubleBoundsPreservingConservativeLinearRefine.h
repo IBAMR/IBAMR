@@ -66,7 +66,7 @@ namespace IBTK
  * double precision patch data via conservative linear interpolation with an
  * additional bounds preservation repair step.
  */
-class PETSC_VISIBILITY_PUBLIC CartCellDoubleBoundsPreservingConservativeLinearRefine
+class CartCellDoubleBoundsPreservingConservativeLinearRefine
     : public SAMRAI::xfer::RefineOperator<NDIM>
 {
 public:

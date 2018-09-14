@@ -60,7 +60,7 @@ namespace IBTK
 /*!
  * \brief Class DebuggingUtilities provides debugging functionality.
  */
-class PETSC_VISIBILITY_PUBLIC DebuggingUtilities
+class DebuggingUtilities
 {
 public:
     /*!

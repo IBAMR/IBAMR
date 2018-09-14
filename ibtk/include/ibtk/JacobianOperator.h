@@ -59,7 +59,7 @@ namespace IBTK
  * specification of general operators to compute Jacobian-vector products, i.e.,
  * \f$ F'[x]v \f$.
  */
-class PETSC_VISIBILITY_PUBLIC JacobianOperator : public LinearOperator
+class JacobianOperator : public LinearOperator
 {
 public:
     /*!

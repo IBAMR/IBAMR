@@ -71,7 +71,7 @@ namespace IBTK
  * in three spatial dimensions, we first synchronize values in the x direction,
  * then in the y direction, and finally in the z direction.
  */
-class PETSC_VISIBILITY_PUBLIC EdgeSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
+class EdgeSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
 {
 public:
     /*!

@@ -73,7 +73,7 @@ namespace IBTK
  * \note Coarse-fine interface discretizations are handled in an implicit manner
  * via ghost cells.
  */
-class PETSC_VISIBILITY_PUBLIC PatchMathOps : public SAMRAI::tbox::DescribedClass
+class PatchMathOps : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

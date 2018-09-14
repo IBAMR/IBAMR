@@ -70,7 +70,7 @@ namespace IBTK
  * values for cell-centered double precision patch data via linear interpolation
  * in the normal and tangential directions at coarse-fine interfaces.
  */
-class PETSC_VISIBILITY_PUBLIC CartCellDoubleLinearCFInterpolation : public CoarseFineBoundaryRefinePatchStrategy
+class CartCellDoubleLinearCFInterpolation : public CoarseFineBoundaryRefinePatchStrategy
 {
 public:
     /*!

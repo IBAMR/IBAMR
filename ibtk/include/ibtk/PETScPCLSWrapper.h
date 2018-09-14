@@ -52,7 +52,7 @@ namespace IBTK
  * \brief Class PETScPCLSWrapper provides a LinearSolver interface for a <A
  * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> PC object.
  */
-class PETSC_VISIBILITY_PUBLIC PETScPCLSWrapper : public LinearSolver
+class PETScPCLSWrapper : public LinearSolver
 {
 public:
     /*!

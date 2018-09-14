@@ -52,7 +52,7 @@ namespace IBTK
  * \brief Class LinearSolver provides an abstract interface for the
  * implementation of solvers for linear problems of the form \f$Ax=b\f$.
  */
-class PETSC_VISIBILITY_PUBLIC LinearSolver : public virtual GeneralSolver
+class LinearSolver : public virtual GeneralSolver
 {
 public:
     /*!

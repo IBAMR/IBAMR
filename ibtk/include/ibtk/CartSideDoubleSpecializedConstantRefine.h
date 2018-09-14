@@ -63,7 +63,7 @@ namespace IBTK
  * SAMRAI::xfer::RefineOperator object that prolongs side-centered double
  * precision patch data via constant prolongation.
  */
-class PETSC_VISIBILITY_PUBLIC CartSideDoubleSpecializedConstantRefine : public SAMRAI::xfer::RefineOperator<NDIM>
+class CartSideDoubleSpecializedConstantRefine : public SAMRAI::xfer::RefineOperator<NDIM>
 {
 public:
     /*!

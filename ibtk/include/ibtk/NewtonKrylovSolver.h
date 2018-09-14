@@ -58,7 +58,7 @@ namespace IBTK
  * implementation of inexact Newton-Krylov solvers for nonlinear problems of the
  * form \f$ F[x]=b \f$.
  */
-class PETSC_VISIBILITY_PUBLIC NewtonKrylovSolver : public GeneralSolver
+class NewtonKrylovSolver : public GeneralSolver
 {
 public:
     /*!

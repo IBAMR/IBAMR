@@ -111,7 +111,7 @@ namespace IBTK
  level solver
  \endverbatim
 */
-class PETSC_VISIBILITY_PUBLIC SCPoissonPointRelaxationFACOperator : public PoissonFACPreconditionerStrategy
+class SCPoissonPointRelaxationFACOperator : public PoissonFACPreconditionerStrategy
 {
 public:
     /*!

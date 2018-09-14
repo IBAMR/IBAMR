@@ -77,7 +77,7 @@ namespace IBTK
  * \see Streamable
  * \see StreamableManager
  */
-class PETSC_VISIBILITY_PUBLIC StreamableFactory : public virtual SAMRAI::tbox::DescribedClass
+class StreamableFactory : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

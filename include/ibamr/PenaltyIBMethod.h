@@ -80,7 +80,7 @@ namespace IBAMR
  * IBStrategy that provides functionality required by the penalty IB (pIB)
  * method.
  */
-class PETSC_VISIBILITY_PUBLIC PenaltyIBMethod : public IBMethod
+class PenaltyIBMethod : public IBMethod
 {
 public:
     /*!

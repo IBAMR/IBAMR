@@ -102,7 +102,7 @@ namespace IBAMR
  *
  * \see IBAMR::AdvectorPredictorCorrectorHyperbolicPatchOps
  */
-class PETSC_VISIBILITY_PUBLIC AdvectorExplicitPredictorPatchOps : public SAMRAI::tbox::Serializable
+class AdvectorExplicitPredictorPatchOps : public SAMRAI::tbox::Serializable
 {
 public:
     /*!

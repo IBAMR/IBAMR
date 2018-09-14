@@ -73,7 +73,7 @@ namespace IBTK
  * \see Streamable
  * \see StreamableFactory
  */
-class PETSC_VISIBILITY_PUBLIC StreamableManager
+class StreamableManager
 {
 public:
     /*!

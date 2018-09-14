@@ -65,7 +65,7 @@ namespace IBTK
  * \brief Class SideDataSynchronization encapsulates the operations required to
  * "synchronize" side-centered values defined at patch boundaries.
  */
-class PETSC_VISIBILITY_PUBLIC SideDataSynchronization : public SAMRAI::tbox::DescribedClass
+class SideDataSynchronization : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

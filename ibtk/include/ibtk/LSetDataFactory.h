@@ -75,7 +75,7 @@ namespace IBTK
  * class corresponding to patch data of type LSetData.
  */
 template <class T>
-class PETSC_VISIBILITY_PUBLIC LSetDataFactory
+class LSetDataFactory
     : public SAMRAI::pdat::IndexDataFactory<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> >
 {
 public:
