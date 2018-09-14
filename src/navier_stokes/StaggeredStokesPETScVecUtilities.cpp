@@ -46,7 +46,7 @@
 #include "CellGeometry.h"
 #include "CellIndex.h"
 #include "CellVariable.h"
-#include "ibamr/ibamr_enums.h"
+#include "IBAMR_config.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
@@ -64,6 +64,7 @@
 #include "VariableFillPattern.h"
 #include "boost/array.hpp"
 #include "ibamr/StaggeredStokesPETScVecUtilities.h"
+#include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"

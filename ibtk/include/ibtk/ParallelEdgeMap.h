@@ -38,7 +38,6 @@
 #include <map>
 #include <utility>
 
-#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

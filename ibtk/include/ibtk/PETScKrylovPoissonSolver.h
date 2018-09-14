@@ -39,7 +39,6 @@
 
 #include "ibtk/KrylovLinearSolverPoissonSolverInterface.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -59,8 +58,7 @@ namespace IBTK
  * PETScKrylovLinearSolver that provides an implementation of the PoissonSolver
  * interface.
  */
-class PETScKrylovPoissonSolver : public PETScKrylovLinearSolver,
-                                                         public KrylovLinearSolverPoissonSolverInterface
+class PETScKrylovPoissonSolver : public PETScKrylovLinearSolver, public KrylovLinearSolverPoissonSolverInterface
 {
 public:
     /*!

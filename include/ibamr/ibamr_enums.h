@@ -39,19 +39,6 @@
 
 #include "tbox/Utilities.h"
 
-/////////////////////////////// FUNC DEFINITIONS /////////////////////////////
-
-/* Define to a macro mangling the given C identifier (in lower and upper
-   case), which must not contain underscores, for linking with Fortran. */
-#ifndef IBAMR_FC_FUNC
-#define IBAMR_FC_FUNC(name,NAME) name ## _
-#endif
-
-/* As FC_FUNC, but for C identifiers containing underscores. */
-#ifndef IBAMR_FC_FUNC_
-#define IBAMR_FC_FUNC_(name,NAME) name ## _
-#endif
-
 /////////////////////////////// ENUM DEFINITIONS /////////////////////////////
 
 namespace IBAMR

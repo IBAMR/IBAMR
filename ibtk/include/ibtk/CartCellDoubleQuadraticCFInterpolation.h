@@ -44,7 +44,6 @@
 #include "PatchHierarchy.h"
 #include "RefineOperator.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI

@@ -44,7 +44,6 @@
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "petscao.h"
-#include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"

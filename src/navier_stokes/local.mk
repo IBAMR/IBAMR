@@ -8,6 +8,7 @@ srcs-core.cpp += $(call thisdir, \
 	INSHierarchyIntegrator.cpp \
 	INSIntermediateVelocityBcCoef.cpp \
 	INSProjectionBcCoef.cpp \
+	INSStaggeredCUIConvectiveOperator.cpp \
 	INSStaggeredCenteredConvectiveOperator.cpp \
 	INSStaggeredConvectiveOperatorManager.cpp \
 	INSStaggeredHierarchyIntegrator.cpp \

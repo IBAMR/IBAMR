@@ -39,7 +39,6 @@
 #include <string>
 
 #include "ibtk/KrylovLinearSolver.h"
-#include "petscsys.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 

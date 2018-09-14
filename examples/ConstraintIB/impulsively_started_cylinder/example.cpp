@@ -31,6 +31,7 @@
 
 // Config files
 #include "IBAMR_config.h"
+#include "IBTK_config.h"
 #include "SAMRAI_config.h"
 
 // Headers for basic PETSc functions

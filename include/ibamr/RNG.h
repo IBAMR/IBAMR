@@ -1,8 +1,6 @@
 #ifndef included_IBAMR_RNG
 #define included_IBAMR_RNG
 
-#include <petscsys.h>
-
 namespace IBAMR
 {
 /*!

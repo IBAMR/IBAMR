@@ -2,8 +2,8 @@
 #define __IBAMRVERSION_H
 
 #define IBAMR_VERSION_RELEASE    0
-#define IBAMR_VERSION_MAJOR      1
-#define IBAMR_VERSION_MINOR      0
+#define IBAMR_VERSION_MAJOR 0
+#define IBAMR_VERSION_MINOR 3
 #define IBAMR_VERSION_SUBMINOR   0
 #define IBAMR_VERSION_PATCH      0
 #define IBAMR_RELEASE_DATE       "unknown"

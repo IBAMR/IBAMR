@@ -37,7 +37,6 @@
 
 #include <cstring>
 
-#include "petscsys.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// ENUM DEFINITIONS /////////////////////////////

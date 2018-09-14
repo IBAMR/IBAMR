@@ -36,7 +36,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-
 #include <iosfwd>
 #include <vector>
 
@@ -45,7 +44,6 @@
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/LSet.h"
 #include "ibtk/ibtk_utilities.h"
-#include "petscsys.h"
 #include "tbox/Transaction.h"
 
 namespace SAMRAI

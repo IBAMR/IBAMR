@@ -44,7 +44,8 @@
 #include "CellIndex.h"
 #include "EdgeData.h"
 #include "EdgeGeometry.h"
-#include "IBAMR_config.h"
+#include "Eigen/Dense"
+#include "IBTK_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "NodeData.h"
@@ -64,7 +65,6 @@
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
-#include <Eigen/Dense>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

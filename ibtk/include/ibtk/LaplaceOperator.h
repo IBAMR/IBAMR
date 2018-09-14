@@ -40,7 +40,6 @@
 
 #include "PoissonSpecifications.h"
 #include "ibtk/LinearOperator.h"
-#include "petscsys.h"
 
 namespace SAMRAI
 {

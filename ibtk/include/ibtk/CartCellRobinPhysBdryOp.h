@@ -41,7 +41,6 @@
 #include "ComponentSelector.h"
 #include "IntVector.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "petscsys.h"
 #include "tbox/Array.h"
 
 namespace SAMRAI

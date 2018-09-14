@@ -41,7 +41,6 @@
 #include "SAMRAIVectorReal.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK

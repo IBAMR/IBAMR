@@ -38,7 +38,6 @@
 #include "Box.h"
 #include "IndexData.h"
 #include "ibtk/LSet.h"
-#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 
 namespace SAMRAI

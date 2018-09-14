@@ -47,7 +47,6 @@
 #include "libmesh/type_tensor.h"
 #include "libmesh/type_vector.h"
 #include "libmesh/vector_value.h"
-#include "petscsys.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
@@ -802,8 +801,7 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
     return is_interior_intersection;
 } // intersect_line_with_face
 
-struct DofObjectComp
-    : std::binary_function<const libMesh::DofObject* const, const libMesh::DofObject* const, bool>
+struct DofObjectComp : std::binary_function<const libMesh::DofObject* const, const libMesh::DofObject* const, bool>
 {
     inline bool operator()(const libMesh::DofObject* const lhs, const libMesh::DofObject* const rhs)
     {

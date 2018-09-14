@@ -39,7 +39,6 @@
 #include <string>
 
 #include "ibtk/LinearSolver.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI

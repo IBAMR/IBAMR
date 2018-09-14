@@ -41,7 +41,6 @@
 #include "IntVector.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/GeneralSolver.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

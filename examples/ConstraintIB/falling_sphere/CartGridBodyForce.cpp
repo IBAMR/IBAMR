@@ -33,6 +33,11 @@
 
 ////////////////////////////// INCLUDES /////////////////////////////////////
 
+#ifndef included_IBTK_config
+#include <IBTK_config.h>
+#define included_IBTK_config
+#endif
+
 #ifndef included_SAMRAI_config
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config

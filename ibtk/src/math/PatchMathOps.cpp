@@ -40,7 +40,7 @@
 #include "EdgeData.h" // IWYU pragma: keep
 #include "FaceData.h"
 #include "FaceGeometry.h"
-#include "IBAMR_config.h"
+#include "IBTK_config.h"
 #include "IntVector.h"
 #include "NodeData.h"
 #include "NodeGeometry.h"

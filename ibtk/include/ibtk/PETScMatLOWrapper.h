@@ -41,7 +41,6 @@
 #include "SAMRAIVectorReal.h"
 #include "ibtk/LinearOperator.h"
 #include "petscmat.h"
-#include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 

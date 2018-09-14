@@ -36,7 +36,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-
 #include <ostream>
 #include <string>
 #include <vector>
@@ -48,7 +47,6 @@
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
 #include "VariableFillPattern.h"
-#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 

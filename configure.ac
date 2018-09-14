@@ -170,6 +170,7 @@ AC_CONFIG_FILES([
   ibtk/examples/SCLaplace/Makefile
   ibtk/examples/SCPoisson/Makefile
   ibtk/examples/VCLaplace/Makefile
+  ibtk/examples/VCViscousSolver/Makefile
   ibtk/lib/Makefile
   ibtk/scripts/Makefile
   ibtk/src/Makefile

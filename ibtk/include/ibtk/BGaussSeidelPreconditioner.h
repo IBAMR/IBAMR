@@ -40,7 +40,6 @@
 #include <vector>
 
 #include "ibtk/LinearSolver.h"
-#include "petscsys.h"
 #include "tbox/ConstPointer.h"
 #include "tbox/Pointer.h"
 

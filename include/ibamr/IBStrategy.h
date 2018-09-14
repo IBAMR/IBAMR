@@ -40,8 +40,6 @@
 #include <string>
 #include <vector>
 
-#include <petscsys.h>
-
 #include "IntVector.h"
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
@@ -120,8 +118,7 @@ namespace IBAMR
  * \brief Class IBStrategy provides a generic interface for specifying the
  * implementation details of a particular version of the IB method.
  */
-class IBStrategy : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,
-                                           public SAMRAI::tbox::Serializable
+class IBStrategy : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>, public SAMRAI::tbox::Serializable
 {
 public:
     /*!

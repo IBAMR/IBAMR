@@ -40,7 +40,6 @@
 #include "Box.h"
 #include "IntVector.h"
 #include "ibtk/LSetDataFactory.h"
-#include "petscsys.h"
 #include "tbox/Arena.h"
 #include "tbox/Pointer.h"
 

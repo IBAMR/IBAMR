@@ -40,7 +40,6 @@
 #include <utility>
 
 #include "ibtk/FACPreconditioner.h"
-#include "petscsys.h"
 #include "tbox/ConstPointer.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"

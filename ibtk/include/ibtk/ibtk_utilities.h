@@ -39,7 +39,6 @@
 
 #include "Eigen/Core" // IWYU pragma: export
 #include "boost/array.hpp"
-#include "petscsys.h"
 #include "tbox/PIO.h"
 #include "tbox/Utilities.h"
 

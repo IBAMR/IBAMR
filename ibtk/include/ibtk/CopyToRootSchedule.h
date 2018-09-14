@@ -39,7 +39,6 @@
 
 #include "IntVector.h"
 #include "PatchLevel.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 #include "tbox/Schedule.h"
 

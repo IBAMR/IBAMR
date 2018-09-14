@@ -41,11 +41,11 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/libmesh_utilities.h"
 #include "libmesh/mesh.h"
+#include "libmesh/periodic_boundary.h"
 #include "libmesh/petsc_vector.h"
 #include "libmesh/point.h"
 #include "libmesh/system.h"
 #include "libmesh/vector_value.h"
-#include "libmesh/periodic_boundary.h"
 #include "petscsys.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

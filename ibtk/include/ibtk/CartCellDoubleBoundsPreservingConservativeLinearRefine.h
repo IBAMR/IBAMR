@@ -42,7 +42,6 @@
 #include "CellDoubleConstantRefine.h"
 #include "IntVector.h"
 #include "RefineOperator.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -66,8 +65,7 @@ namespace IBTK
  * double precision patch data via conservative linear interpolation with an
  * additional bounds preservation repair step.
  */
-class CartCellDoubleBoundsPreservingConservativeLinearRefine
-    : public SAMRAI::xfer::RefineOperator<NDIM>
+class CartCellDoubleBoundsPreservingConservativeLinearRefine : public SAMRAI::xfer::RefineOperator<NDIM>
 {
 public:
     /*!

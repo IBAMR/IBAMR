@@ -41,7 +41,6 @@
 #include "ComponentSelector.h"
 #include "IntVector.h"
 #include "RefinePatchStrategy.h"
-#include "petscsys.h"
 
 namespace SAMRAI
 {

@@ -36,14 +36,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-
 #include <functional>
 #include <ostream>
 
 #include "IntVector.h"
 #include "boost/multi_array.hpp"
 #include "ibtk/ibtk_utilities.h"
-#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Utilities.h"

@@ -37,7 +37,6 @@
 
 #include "BoundaryBox.h"
 #include "Box.h"
-#include "petscsys.h"
 #include "tbox/Array.h"
 
 namespace SAMRAI

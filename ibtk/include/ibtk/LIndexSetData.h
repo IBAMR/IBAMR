@@ -40,7 +40,6 @@
 #include "Box.h"
 #include "IntVector.h"
 #include "ibtk/LSetData.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI

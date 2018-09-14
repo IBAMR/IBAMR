@@ -36,14 +36,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <math.h>
-
 #include <vector>
 
 #include "PoissonSpecifications.h"
 #include "ibtk/ibtk_enums.h"
 #include "petscao.h"
 #include "petscmat.h"
-#include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 
