@@ -191,8 +191,12 @@ CCPoissonSolverManager::CCPoissonSolverManager() : d_solver_maker_map()
                                   CCPoissonLevelRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(POINT_RELAXATION_FAC_PRECONDITIONER,
                                   CCPoissonPointRelaxationFACOperator::allocate_solver);
+#if PETSC_HAVE_HYPRE
     registerSolverFactoryFunction(DEFAULT_LEVEL_SOLVER, CCPoissonHypreLevelSolver::allocate_solver);
     registerSolverFactoryFunction(HYPRE_LEVEL_SOLVER, CCPoissonHypreLevelSolver::allocate_solver);
+#else
+    registerSolverFactoryFunction(DEFAULT_LEVEL_SOLVER, CCPoissonPETScLevelSolver::allocate_solver);
+#endif
     registerSolverFactoryFunction(PETSC_LEVEL_SOLVER, CCPoissonPETScLevelSolver::allocate_solver);
     return;
 } // CCPoissonSolverManager

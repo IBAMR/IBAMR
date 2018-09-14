@@ -1,3 +1,5 @@
+include $(PETSC_DIR)/$(PETSC_ARCH)/lib/petsc/conf/petscvariables
+
 IBAMR_ARCH := $(if $(IBAMR_ARCH),$(IBAMR_ARCH),build)
 
 all : $(IBAMR_ARCH)/conf/configure.log $(IBAMR_ARCH)/gmakefile
