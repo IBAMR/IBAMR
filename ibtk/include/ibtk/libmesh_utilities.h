@@ -632,7 +632,6 @@ intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals
 // WARNING: This code is specialized to the case in which q is a unit vector
 // aligned with the coordinate axes.
 inline bool
-inline bool
 intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals,
                          libMesh::Face* elem,
                          libMesh::Point r,
