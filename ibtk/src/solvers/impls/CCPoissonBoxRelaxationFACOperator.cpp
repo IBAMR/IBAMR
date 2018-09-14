@@ -52,7 +52,7 @@
 #include "CellVariable.h"
 #include "CoarsenOperator.h"
 #include "HierarchyCellDataOpsReal.h"
-#include "IBAMR_config.h"
+#include "IBTK_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"

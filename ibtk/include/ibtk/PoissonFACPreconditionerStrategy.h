@@ -52,7 +52,6 @@
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK

@@ -37,8 +37,6 @@
 
 #include <string>
 
-#include <petscsys.h>
-
 #include "ibamr/ibamr_enums.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"

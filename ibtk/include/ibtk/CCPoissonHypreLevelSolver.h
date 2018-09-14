@@ -35,9 +35,9 @@
 
 //////////////////////////////////////////////////////////////////////////////
 
-#include "IBAMR_config.h"
+#include "IBTK_config.h"
 #include "petscconf.h"
-#if IBAMR_HAVE_LIBHYPRE || PETSC_HAVE_HYPRE
+#if defined(IBAMR_HAVE_HYPRE) || defined(PETSC_HAVE_HYPRE)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -53,7 +53,6 @@
 #include "PatchHierarchy.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
-#include "petscsys.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 

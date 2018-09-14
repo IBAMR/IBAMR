@@ -41,7 +41,6 @@
 #include "BoxList.h"
 #include "IntVector.h"
 #include "RefinePatchStrategy.h"
-#include "petscsys.h"
 
 namespace SAMRAI
 {

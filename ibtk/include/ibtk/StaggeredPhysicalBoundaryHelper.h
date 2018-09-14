@@ -40,7 +40,6 @@
 
 #include "IntVector.h"
 #include "PatchHierarchy.h"
-#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 

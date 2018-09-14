@@ -36,14 +36,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-
 #include <string>
 #include <vector>
 
 #include "IntVector.h"
 #include "PatchLevel.h"
 #include "ibtk/CartGridFunction.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI

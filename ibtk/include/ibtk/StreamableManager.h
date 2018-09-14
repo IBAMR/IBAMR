@@ -36,12 +36,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-
 #include <map>
 #include <vector>
 
 #include "ibtk/StreamableFactory.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK

@@ -43,7 +43,6 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/LSetDataIterator.h"
-#include "petscsys.h"
 
 namespace IBTK
 {
@@ -77,8 +76,7 @@ namespace IBTK
  * \see SAMRAI::pdat::IndexData
  */
 template <class T>
-class LSetData
-    : public SAMRAI::pdat::IndexData<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> >
+class LSetData : public SAMRAI::pdat::IndexData<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> >
 {
 public:
     /*!

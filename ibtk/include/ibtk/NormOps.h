@@ -33,8 +33,6 @@
 #ifndef included_IBTK_NormOps
 #define included_IBTK_NormOps
 
-#include "petscsys.h"
-
 namespace SAMRAI
 {
 namespace solv

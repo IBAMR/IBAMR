@@ -28,6 +28,12 @@
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
+/* Define if you have the hdf5 library. */
+#undef HAVE_HDF5
+
+/* Define if you have the hypre library. */
+#undef HAVE_HYPRE
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 

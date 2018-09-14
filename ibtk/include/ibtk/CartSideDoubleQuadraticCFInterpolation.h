@@ -45,7 +45,6 @@
 #include "RefineOperator.h"
 #include "SideVariable.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI

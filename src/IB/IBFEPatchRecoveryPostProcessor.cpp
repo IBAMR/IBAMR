@@ -32,9 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
-#include "eigen3/Eigen/Dense"
 #include "ibamr/IBFEPatchRecoveryPostProcessor.h"
+#include "Eigen/Dense"
+#include "IBAMR_config.h"
 #include "SAMRAI_config.h"
 #include "boost/multi_array.hpp"
 #include "ibamr/IBHierarchyIntegrator.h"
@@ -50,10 +50,10 @@
 #include "libmesh/fe_base.h"
 #include "libmesh/fe_interface.h"
 #include "libmesh/mesh.h"
-#include "libmesh/petsc_vector.h"
-#include "libmesh/quadrature.h"
 #include "libmesh/periodic_boundaries.h"
 #include "libmesh/periodic_boundary.h"
+#include "libmesh/petsc_vector.h"
+#include "libmesh/quadrature.h"
 #include "libmesh/string_to_enum.h"
 
 using namespace libMesh;

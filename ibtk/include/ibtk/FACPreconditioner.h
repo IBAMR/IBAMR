@@ -42,7 +42,6 @@
 #include "SAMRAIVectorReal.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/ibtk_enums.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI

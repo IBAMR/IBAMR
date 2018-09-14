@@ -145,19 +145,27 @@ am__v_lt_1 =
 main2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-main3d_SOURCES = main3d.c
-main3d_OBJECTS = main3d.$(OBJEXT)
-main3d_LDADD = $(LDADD)
-am__objects_2 = test2d-test_main.$(OBJEXT)
-am_test2d_OBJECTS = $(am__objects_2)
+am__objects_2 = main3d-ex_main.$(OBJEXT)
+am_main3d_OBJECTS = $(am__objects_2)
+main3d_OBJECTS = $(am_main3d_OBJECTS)
+main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+main3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main3d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am__objects_3 = test2d-test_main.$(OBJEXT)
+am_test2d_OBJECTS = $(am__objects_3)
 test2d_OBJECTS = $(am_test2d_OBJECTS)
 test2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 test2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(test2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-test3d_SOURCES = test3d.c
-test3d_OBJECTS = test3d.$(OBJEXT)
-test3d_LDADD = $(LDADD)
+am__objects_4 = test3d-test_main.$(OBJEXT)
+am_test3d_OBJECTS = $(am__objects_4)
+test3d_OBJECTS = $(am_test3d_OBJECTS)
+test3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+test3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(test3d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -174,27 +182,9 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/main2d-ex_main.Po \
-	./$(DEPDIR)/main3d.Po ./$(DEPDIR)/test2d-test_main.Po \
-	./$(DEPDIR)/test3d.Po
+	./$(DEPDIR)/main3d-ex_main.Po ./$(DEPDIR)/test2d-test_main.Po \
+	./$(DEPDIR)/test3d-test_main.Po
 am__mv = mv -f
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CFLAGS) $(CFLAGS)
-AM_V_CC = $(am__v_CC_@AM_V@)
-am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
-am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 = 
-CCLD = $(CC)
-LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-AM_V_CCLD = $(am__v_CCLD_@AM_V@)
-am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
-am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 = 
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
@@ -213,8 +203,10 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(main2d_SOURCES) main3d.c $(test2d_SOURCES) test3d.c
-DIST_SOURCES = $(main2d_SOURCES) main3d.c $(test2d_SOURCES) test3d.c
+SOURCES = $(main2d_SOURCES) $(main3d_SOURCES) $(test2d_SOURCES) \
+	$(test3d_SOURCES)
+DIST_SOURCES = $(main2d_SOURCES) $(main3d_SOURCES) $(test2d_SOURCES) \
+	$(test3d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -547,13 +539,19 @@ GTESTS = $(am__append_2) $(am__append_5)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = $(EXAMPLE_DRIVER)
+main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+main3d_SOURCES = $(EXAMPLE_DRIVER)
 test2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 test2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 test2d_SOURCES = $(GTEST_DRIVER)
+test3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+test3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+test3d_SOURCES = $(GTEST_DRIVER)
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .f.m4 .c .cpp .f .lo .o .obj
+.SUFFIXES: .f.m4 .cpp .f .lo .o .obj
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/config/Make-rules $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -591,7 +589,7 @@ main2d$(EXEEXT): $(main2d_OBJECTS) $(main2d_DEPENDENCIES) $(EXTRA_main2d_DEPENDE
 
 main3d$(EXEEXT): $(main3d_OBJECTS) $(main3d_DEPENDENCIES) $(EXTRA_main3d_DEPENDENCIES) 
 	@rm -f main3d$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(main3d_OBJECTS) $(main3d_LDADD) $(LIBS)
+	$(AM_V_CXXLD)$(main3d_LINK) $(main3d_OBJECTS) $(main3d_LDADD) $(LIBS)
 
 test2d$(EXEEXT): $(test2d_OBJECTS) $(test2d_DEPENDENCIES) $(EXTRA_test2d_DEPENDENCIES) 
 	@rm -f test2d$(EXEEXT)
@@ -599,7 +597,7 @@ test2d$(EXEEXT): $(test2d_OBJECTS) $(test2d_DEPENDENCIES) $(EXTRA_test2d_DEPENDE
 
 test3d$(EXEEXT): $(test3d_OBJECTS) $(test3d_DEPENDENCIES) $(EXTRA_test3d_DEPENDENCIES) 
 	@rm -f test3d$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(test3d_OBJECTS) $(test3d_LDADD) $(LIBS)
+	$(AM_V_CXXLD)$(test3d_LINK) $(test3d_OBJECTS) $(test3d_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -608,39 +606,15 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-ex_main.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-ex_main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-test_main.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-test_main.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
 	@echo '# dummy' >$@-t && $(am__mv) $@-t $@
 
 am--depfiles: $(am__depfiles_remade)
-
-.c.o:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
-
-.c.obj:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-.c.lo:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
-@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -680,6 +654,20 @@ main2d-ex_main.obj: ex_main.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
 
+main3d-ex_main.o: ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-ex_main.o -MD -MP -MF $(DEPDIR)/main3d-ex_main.Tpo -c -o main3d-ex_main.o `test -f 'ex_main.cpp' || echo '$(srcdir)/'`ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-ex_main.Tpo $(DEPDIR)/main3d-ex_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex_main.cpp' object='main3d-ex_main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-ex_main.o `test -f 'ex_main.cpp' || echo '$(srcdir)/'`ex_main.cpp
+
+main3d-ex_main.obj: ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-ex_main.obj -MD -MP -MF $(DEPDIR)/main3d-ex_main.Tpo -c -o main3d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-ex_main.Tpo $(DEPDIR)/main3d-ex_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex_main.cpp' object='main3d-ex_main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
+
 test2d-test_main.o: test_main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-test_main.o -MD -MP -MF $(DEPDIR)/test2d-test_main.Tpo -c -o test2d-test_main.o `test -f 'test_main.cpp' || echo '$(srcdir)/'`test_main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-test_main.Tpo $(DEPDIR)/test2d-test_main.Po
@@ -693,6 +681,20 @@ test2d-test_main.obj: test_main.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test_main.cpp' object='test2d-test_main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-test_main.obj `if test -f 'test_main.cpp'; then $(CYGPATH_W) 'test_main.cpp'; else $(CYGPATH_W) '$(srcdir)/test_main.cpp'; fi`
+
+test3d-test_main.o: test_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-test_main.o -MD -MP -MF $(DEPDIR)/test3d-test_main.Tpo -c -o test3d-test_main.o `test -f 'test_main.cpp' || echo '$(srcdir)/'`test_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-test_main.Tpo $(DEPDIR)/test3d-test_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test_main.cpp' object='test3d-test_main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-test_main.o `test -f 'test_main.cpp' || echo '$(srcdir)/'`test_main.cpp
+
+test3d-test_main.obj: test_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-test_main.obj -MD -MP -MF $(DEPDIR)/test3d-test_main.Tpo -c -o test3d-test_main.obj `if test -f 'test_main.cpp'; then $(CYGPATH_W) 'test_main.cpp'; else $(CYGPATH_W) '$(srcdir)/test_main.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-test_main.Tpo $(DEPDIR)/test3d-test_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test_main.cpp' object='test3d-test_main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-test_main.obj `if test -f 'test_main.cpp'; then $(CYGPATH_W) 'test_main.cpp'; else $(CYGPATH_W) '$(srcdir)/test_main.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -826,9 +828,9 @@ clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/main2d-ex_main.Po
-	-rm -f ./$(DEPDIR)/main3d.Po
+	-rm -f ./$(DEPDIR)/main3d-ex_main.Po
 	-rm -f ./$(DEPDIR)/test2d-test_main.Po
-	-rm -f ./$(DEPDIR)/test3d.Po
+	-rm -f ./$(DEPDIR)/test3d-test_main.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -875,9 +877,9 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/main2d-ex_main.Po
-	-rm -f ./$(DEPDIR)/main3d.Po
+	-rm -f ./$(DEPDIR)/main3d-ex_main.Po
 	-rm -f ./$(DEPDIR)/test2d-test_main.Po
-	-rm -f ./$(DEPDIR)/test3d.Po
+	-rm -f ./$(DEPDIR)/test3d-test_main.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -930,7 +932,7 @@ examples: $(EXAMPLES)
 
 @GTEST_ENABLED_TRUE@gtest-long:
 @GTEST_ENABLED_TRUE@	make gtest
-@GTEST_ENABLED_TRUE@	./test3d input3d.test
+###	./test3d input3d.test
 
 @GTEST_ENABLED_FALSE@gtest:
 @GTEST_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"

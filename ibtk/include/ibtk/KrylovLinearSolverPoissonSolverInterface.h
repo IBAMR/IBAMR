@@ -39,7 +39,6 @@
 
 #include "PoissonSpecifications.h"
 #include "ibtk/PoissonSolver.h"
-#include "petscsys.h"
 
 namespace SAMRAI
 {

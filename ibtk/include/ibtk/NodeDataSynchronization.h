@@ -44,7 +44,6 @@
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
 #include "boost/array.hpp"
-#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 

@@ -40,7 +40,6 @@
 
 #include "ibtk/LMarkerSetData.h"
 #include "ibtk/ibtk_utilities.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI

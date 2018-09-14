@@ -39,7 +39,6 @@
 
 #include "CoarsenPatchStrategy.h"
 #include "IntVector.h"
-#include "petscsys.h"
 
 namespace SAMRAI
 {

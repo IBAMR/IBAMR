@@ -32,15 +32,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
-#include "petscconf.h"
-
 #include <stddef.h>
 #include <map>
 #include <ostream>
 #include <string>
 #include <utility>
 
+#include "IBTK_config.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"
@@ -52,6 +50,7 @@
 #include "ibtk/SCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "petscconf.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
@@ -186,7 +185,7 @@ SCPoissonSolverManager::SCPoissonSolverManager() : d_solver_maker_map()
     registerSolverFactoryFunction(DEFAULT_FAC_PRECONDITIONER, SCPoissonPointRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(POINT_RELAXATION_FAC_PRECONDITIONER,
                                   SCPoissonPointRelaxationFACOperator::allocate_solver);
-#if IBAMR_HAVE_LIBHYPRE || PETSC_HAVE_HYPRE
+#if defined(IBAMR_HAVE_HYPRE) || defined(PETSC_HAVE_HYPRE)
     registerSolverFactoryFunction(DEFAULT_LEVEL_SOLVER, SCPoissonHypreLevelSolver::allocate_solver);
     registerSolverFactoryFunction(HYPRE_LEVEL_SOLVER, SCPoissonHypreLevelSolver::allocate_solver);
 #else

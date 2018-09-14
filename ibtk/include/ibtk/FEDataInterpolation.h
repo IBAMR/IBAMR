@@ -39,7 +39,6 @@
 #include "ibtk/FEDataManager.h"
 #include "ibtk/libmesh_utilities.h"
 #include "libmesh/equation_systems.h"
-#include "petscsys.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

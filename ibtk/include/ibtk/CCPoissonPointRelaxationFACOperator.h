@@ -44,7 +44,6 @@
 #include "ibtk/PoissonFACPreconditioner.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "ibtk/PoissonSolver.h"
-#include "petscsys.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 

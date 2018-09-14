@@ -44,7 +44,6 @@
 #include "CellIndex.h"
 #include "Index.h"
 #include "IntVector.h"
-#include "petscsys.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

@@ -38,7 +38,6 @@
 #include <string>
 
 #include "Variable.h"
-#include "petscsys.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

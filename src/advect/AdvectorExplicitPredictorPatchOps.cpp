@@ -47,6 +47,7 @@
 #include "Patch.h"
 #include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 #include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"

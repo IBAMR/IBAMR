@@ -44,7 +44,6 @@
 #include "VariableFillPattern.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/LaplaceOperator.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

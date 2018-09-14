@@ -40,7 +40,6 @@
 #include <utility>
 
 #include "ibtk/HierarchyMathOps.h"
-#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 

@@ -36,7 +36,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-
 #include <string>
 #include <vector>
 
@@ -59,7 +58,6 @@
 #include "SideVariable.h"
 #include "VariableContext.h"
 #include "ibtk/PatchMathOps.h"
-#include "petscsys.h"
 #include "ibtk/ibtk_enums.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"

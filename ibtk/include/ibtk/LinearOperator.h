@@ -38,7 +38,6 @@
 #include <string>
 
 #include "ibtk/GeneralOperator.h"
-#include "petscsys.h"
 
 namespace SAMRAI
 {

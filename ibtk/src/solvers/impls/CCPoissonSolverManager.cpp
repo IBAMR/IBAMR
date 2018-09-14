@@ -32,20 +32,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
-#include "petscconf.h"
-
 #include <stddef.h>
 #include <map>
 #include <ostream>
 #include <string>
 #include <utility>
 
+#include "IBTK_config.h"
 #include "ibtk/CCLaplaceOperator.h"
-#include "ibtk/CCPoissonHypreLevelSolver.h"
-#include "ibtk/CCPoissonPETScLevelSolver.h"
 #include "ibtk/CCPoissonBoxRelaxationFACOperator.h"
+#include "ibtk/CCPoissonHypreLevelSolver.h"
 #include "ibtk/CCPoissonLevelRelaxationFACOperator.h"
+#include "ibtk/CCPoissonPETScLevelSolver.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/KrylovLinearSolver.h"
@@ -54,6 +52,7 @@
 #include "ibtk/PETScKrylovPoissonSolver.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "petscconf.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
@@ -194,7 +193,7 @@ CCPoissonSolverManager::CCPoissonSolverManager() : d_solver_maker_map()
                                   CCPoissonLevelRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(POINT_RELAXATION_FAC_PRECONDITIONER,
                                   CCPoissonPointRelaxationFACOperator::allocate_solver);
-#if IBAMR_HAVE_LIBHYPRE || PETSC_HAVE_HYPRE
+#if defined(IBAMR_HAVE_HYPRE) || defined(PETSC_HAVE_HYPRE)
     registerSolverFactoryFunction(DEFAULT_LEVEL_SOLVER, CCPoissonHypreLevelSolver::allocate_solver);
     registerSolverFactoryFunction(HYPRE_LEVEL_SOLVER, CCPoissonHypreLevelSolver::allocate_solver);
 #else

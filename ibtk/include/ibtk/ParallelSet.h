@@ -38,7 +38,6 @@
 #include <set>
 #include <vector>
 
-#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

@@ -36,14 +36,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-
 #include <vector>
 
 #include "IntVector.h"
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/ibtk_utilities.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI

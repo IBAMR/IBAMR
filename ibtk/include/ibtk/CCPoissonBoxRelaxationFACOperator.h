@@ -46,7 +46,6 @@
 #include "ibtk/PoissonSolver.h"
 #include "petscksp.h"
 #include "petscmat.h"
-#include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"

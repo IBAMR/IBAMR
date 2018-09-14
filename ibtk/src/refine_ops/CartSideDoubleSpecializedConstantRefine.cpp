@@ -36,7 +36,7 @@
 #include <string>
 
 #include "Box.h"
-#include "IBAMR_config.h"
+#include "IBTK_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"

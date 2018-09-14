@@ -38,7 +38,6 @@
 #include <string>
 #include <vector>
 
-#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 
 namespace IBTK

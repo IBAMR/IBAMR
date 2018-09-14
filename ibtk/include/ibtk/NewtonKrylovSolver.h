@@ -41,7 +41,6 @@
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/JacobianOperator.h"
 #include "ibtk/KrylovLinearSolver.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK

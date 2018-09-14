@@ -40,7 +40,6 @@
 
 #include "VisItDataWriter.h"
 #include "ibtk/LSiloDataWriter.h"
-#include "petscsys.h"
 #include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"

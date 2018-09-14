@@ -40,7 +40,6 @@
 #include "Box.h"
 #include "IntVector.h"
 #include "VariableFillPattern.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI

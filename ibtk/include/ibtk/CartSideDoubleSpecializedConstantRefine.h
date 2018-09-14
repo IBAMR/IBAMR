@@ -40,7 +40,6 @@
 #include "Box.h"
 #include "IntVector.h"
 #include "RefineOperator.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI

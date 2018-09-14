@@ -44,7 +44,6 @@
 #include "ibtk/LMarker.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
-#include "petscsys.h"
 #include "tbox/Arena.h"
 #include "tbox/Pointer.h"
 
@@ -75,8 +74,7 @@ namespace IBTK
  * class corresponding to patch data of type LSetData.
  */
 template <class T>
-class LSetDataFactory
-    : public SAMRAI::pdat::IndexDataFactory<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> >
+class LSetDataFactory : public SAMRAI::pdat::IndexDataFactory<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> >
 {
 public:
     /*!

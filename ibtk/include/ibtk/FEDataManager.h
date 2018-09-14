@@ -37,7 +37,6 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-
 #include <map>
 #include <ostream>
 #include <string>
@@ -61,7 +60,6 @@
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/system.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
@@ -105,8 +103,7 @@ namespace IBTK
  *
  * \note Multiple FEDataManager objects may be instantiated simultaneously.
  */
-class FEDataManager : public SAMRAI::tbox::Serializable,
-                                              public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+class FEDataManager : public SAMRAI::tbox::Serializable, public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
 {
 public:
     class SystemDofMapCache

@@ -37,7 +37,6 @@
 
 #include <vector>
 
-#include "petscsys.h"
 #include "tbox/AbstractStream.h"
 #include "tbox/Complex.h"
 
