@@ -89,8 +89,6 @@ DampingZone::setDampingZoneCoefPatchData(int damping_coef_idx,
                         patch_x_lower[0] +
                         patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)) + axis == 0 ? 0.0 : 0.5);
 
-                    // C = rho * theta * (x - x0)/(x1 - x0)
-
                     if (x_posn >= d_x_zone_start)
                     {
                         (*L_data)(i_side, 0) = (*rho_data)(i_side, 0) * d_theta * (x_posn - d_x_zone_start) /
