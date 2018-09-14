@@ -11,6 +11,7 @@ PACKAGE_SETUP_ENVIRONMENT
 if test `grep -c HYPRE "${PETSC_DIR}/${PETSC_ARCH}/lib/petsc/conf/petscvariables"` != 0 ; then
   AC_MSG_NOTICE([PETSc appears to provide hypre; using PETSc hypre library])
   PETSC_BUNDLES_HYPRE=yes
+  AC_DEFINE(HAVE_LIBHYPRE,1)
 else
   PETSC_BUNDLES_HYPRE=no
 

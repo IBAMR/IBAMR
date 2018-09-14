@@ -19,13 +19,11 @@ srcs-ibtk.cpp += $(call thisdir, \
 	LTransaction.cpp \
 	)
 
-ifneq ($(IBAMR_LIBMESH_LIB),)
-
+ifneq ($(LIBMESH_LIB),)
 srcs-ibtk.cpp += $(call thisdir, \
 	FEDataInterpolation.cpp \
 	FEDataManager.cpp \
 	)
-
 endif
 
 include $(call incsubdirs,fortran)

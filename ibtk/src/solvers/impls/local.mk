@@ -29,11 +29,11 @@ srcs-ibtk.cpp += $(call thisdir, \
 	VCSCViscousPETScLevelSolver.cpp \
 	)
 
-###ifneq ($(PETSC_HYPRE_LIB),)   # this seems to be broken?
+ifneq ($(HYPRE_LIB),)
 srcs-ibtk.cpp += $(call thisdir, \
 	CCPoissonHypreLevelSolver.cpp \
 	SCPoissonHypreLevelSolver.cpp \
 	)
-###endif
+endif
 
 include $(call incsubdirs,fortran)

@@ -160,6 +160,7 @@ AC_CONFIG_FILES([
   examples/vc_navier_stokes/ex0/Makefile
   examples/vc_navier_stokes/ex1/Makefile
   examples/vc_navier_stokes/ex2/Makefile
+  ibtk/Makefile
   ibtk/examples/Makefile
   ibtk/examples/CCLaplace/Makefile
   ibtk/examples/CCPoisson/Makefile

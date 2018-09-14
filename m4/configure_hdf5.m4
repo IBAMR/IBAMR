@@ -11,6 +11,7 @@ PACKAGE_SETUP_ENVIRONMENT
 if test `grep -c HDF5 "${PETSC_DIR}/${PETSC_ARCH}/lib/petsc/conf/petscvariables"` != 0 ; then
   AC_MSG_NOTICE([PETSc appears to provide HDF5; using PETSc HDF5 library])
   PETSC_BUNDLES_HDF5=yes
+  AC_DEFINE(HAVE_LIBHDF5,1)
   CPPFLAGS_PREPEND("-I${PETSC_DIR}/${PETSC_ARCH}/include")
 else
   PETSC_BUNDLES_HDF5=no
