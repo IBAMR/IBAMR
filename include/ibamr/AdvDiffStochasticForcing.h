@@ -78,7 +78,7 @@ namespace IBAMR
  * \brief Class AdvDiffStochasticForcing provides an interface for specifying a
  * stochastic forcing term for cell-centered advection-diffusion solver solver.
  */
-class PETSC_VISIBILITY_PUBLIC AdvDiffStochasticForcing : public IBTK::CartGridFunction
+class AdvDiffStochasticForcing : public IBTK::CartGridFunction
 {
 public:
     /*!

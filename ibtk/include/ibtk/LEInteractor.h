@@ -94,7 +94,7 @@ namespace IBTK
  * spread values (\em not densities) from Lagrangian meshes to Eulerian grid
  * patches.
  */
-class PETSC_VISIBILITY_PUBLIC LEInteractor
+class LEInteractor
 {
 public:
     /*!

@@ -53,7 +53,7 @@ namespace IBTK
  * \brief Class PETScMatLOWrapper provides a LinearOperator interface for a <A
  * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> Mat object.
  */
-class PETSC_VISIBILITY_PUBLIC PETScMatLOWrapper : public LinearOperator
+class PETScMatLOWrapper : public LinearOperator
 {
 public:
     /*!

@@ -63,7 +63,7 @@ namespace IBTK
  * SAMRAI::xfer::RefineOperator object which prolongs cell-centered double
  * precision patch data via quadratic interpolation.
  */
-class PETSC_VISIBILITY_PUBLIC CartCellDoubleQuadraticRefine : public SAMRAI::xfer::RefineOperator<NDIM>
+class CartCellDoubleQuadraticRefine : public SAMRAI::xfer::RefineOperator<NDIM>
 {
 public:
     /*!

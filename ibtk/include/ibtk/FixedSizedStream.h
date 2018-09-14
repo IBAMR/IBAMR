@@ -58,7 +58,7 @@ namespace IBTK
  * heterogeneous networks, which require a machine-independent storage format
  * such as XDR.
  */
-class PETSC_VISIBILITY_PUBLIC FixedSizedStream : public SAMRAI::tbox::AbstractStream
+class FixedSizedStream : public SAMRAI::tbox::AbstractStream
 {
 public:
     /*!

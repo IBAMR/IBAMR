@@ -49,7 +49,7 @@ namespace IBTK
  * corresponding to patch data of type LIndexSetData.
  */
 template <class T>
-class PETSC_VISIBILITY_PUBLIC LIndexSetVariable : public SAMRAI::hier::Variable<NDIM>
+class LIndexSetVariable : public SAMRAI::hier::Variable<NDIM>
 {
 public:
     /*!

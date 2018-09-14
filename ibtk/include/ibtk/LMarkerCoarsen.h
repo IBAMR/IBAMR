@@ -63,7 +63,7 @@ namespace IBTK
  * restricting IB marker data from finer levels to coarser levels in the patch
  * hierarchy.
  */
-class PETSC_VISIBILITY_PUBLIC LMarkerCoarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
+class LMarkerCoarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
 {
 public:
     /*!

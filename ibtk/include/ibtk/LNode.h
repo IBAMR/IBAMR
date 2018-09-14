@@ -70,7 +70,7 @@ namespace IBTK
  * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> indexing information and data
  * storage for a single node of a Lagrangian mesh.
  */
-class PETSC_VISIBILITY_PUBLIC LNode : public LNodeIndex
+class LNode : public LNodeIndex
 {
 public:
     /*!

@@ -62,7 +62,7 @@ namespace IBTK
  * specification of general operators to compute \f$ y=F[x] \f$ and \f$ z=F[x]+y
  * \f$.
  */
-class PETSC_VISIBILITY_PUBLIC GeneralOperator : public virtual SAMRAI::tbox::DescribedClass
+class GeneralOperator : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

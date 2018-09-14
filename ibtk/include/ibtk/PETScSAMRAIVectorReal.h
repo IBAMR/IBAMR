@@ -73,7 +73,7 @@ namespace IBTK
  *
  * \see SAMRAI::solv::SAMRAIVectorReal
  */
-class PETSC_VISIBILITY_PUBLIC PETScSAMRAIVectorReal
+class PETScSAMRAIVectorReal
 {
 public:
     /*!

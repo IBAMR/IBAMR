@@ -58,7 +58,7 @@ namespace IBTK
  * implementation of Krylov subspace solvers for linear problems of the form
  * \f$Ax=b\f$.
  */
-class PETSC_VISIBILITY_PUBLIC KrylovLinearSolver : public LinearSolver
+class KrylovLinearSolver : public LinearSolver
 {
 public:
     /*!

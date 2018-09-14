@@ -64,7 +64,7 @@ namespace IBTK
  * precision patch data via linear interpolation in the normal direction and
  * MC-limited piecewise-linear interpolation in the tangential direction.
  */
-class PETSC_VISIBILITY_PUBLIC CartSideDoubleSpecializedLinearRefine : public SAMRAI::xfer::RefineOperator<NDIM>
+class CartSideDoubleSpecializedLinearRefine : public SAMRAI::xfer::RefineOperator<NDIM>
 {
 public:
     /*!

@@ -49,7 +49,7 @@ namespace IBTK
  * \brief Class ParallelSet is a utility class for storing collections of
  * integer keys in parallel.
  */
-class PETSC_VISIBILITY_PUBLIC ParallelSet : public SAMRAI::tbox::DescribedClass
+class ParallelSet : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

@@ -65,7 +65,7 @@ namespace IBTK
  * face-centered ghost region surrounding a patch appropriate for
  * "synchronizing" face-centered values at patch boundaries.
  */
-class PETSC_VISIBILITY_PUBLIC FaceSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
+class FaceSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
 {
 public:
     /*!

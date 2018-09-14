@@ -51,7 +51,7 @@
 namespace IBTK
 {
 template <typename T>
-struct PETSC_VISIBILITY_PUBLIC IndexOrder : std::binary_function<T, T, bool>
+struct IndexOrder : std::binary_function<T, T, bool>
 {
     inline bool operator()(const T& lhs, const T& rhs) const
     {
@@ -76,7 +76,7 @@ typedef struct IndexOrder<SAMRAI::pdat::CellIndex<NDIM> > CellIndexFortranOrder;
  * such as conversion routines between physical coordinates and Cartesian index
  * space.
  */
-class PETSC_VISIBILITY_PUBLIC IndexUtilities
+class IndexUtilities
 {
 public:
     /*

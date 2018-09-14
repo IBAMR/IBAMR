@@ -70,7 +70,7 @@ namespace IBTK
  * functionality to a collection of Lagrangian objects.
  */
 template <class T>
-class PETSC_VISIBILITY_PUBLIC LSet : public SAMRAI::tbox::DescribedClass
+class LSet : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

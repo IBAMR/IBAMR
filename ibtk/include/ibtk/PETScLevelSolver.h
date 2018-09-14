@@ -87,7 +87,7 @@ namespace IBTK
  * Computer Science Division.  For more information about \em PETSc, see <A
  * HREF="http://www.mcs.anl.gov/petsc">http://www.mcs.anl.gov/petsc</A>.
  */
-class PETSC_VISIBILITY_PUBLIC PETScLevelSolver : public LinearSolver
+class PETScLevelSolver : public LinearSolver
 {
 public:
     /*!

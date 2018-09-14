@@ -67,7 +67,7 @@ namespace IBTK
  * \brief Class CartGridFunctionSet is a concrete CartGridFunction that is used
  * to allow multiple CartGridFunction objects to act as a single function.
  */
-class PETSC_VISIBILITY_PUBLIC CartGridFunctionSet : public CartGridFunction
+class CartGridFunctionSet : public CartGridFunction
 {
 public:
     /*!

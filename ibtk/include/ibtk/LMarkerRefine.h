@@ -63,7 +63,7 @@ namespace IBTK
  * prolonging IB marker data from coarser levels to finer levels in the patch
  * hierarchy.
  */
-class PETSC_VISIBILITY_PUBLIC LMarkerRefine : public SAMRAI::xfer::RefineOperator<NDIM>
+class LMarkerRefine : public SAMRAI::xfer::RefineOperator<NDIM>
 {
 public:
     /*!

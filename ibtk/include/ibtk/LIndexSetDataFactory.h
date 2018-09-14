@@ -67,7 +67,7 @@ namespace IBTK
  * LIndexSetData.
  */
 template <class T>
-class PETSC_VISIBILITY_PUBLIC LIndexSetDataFactory : public LSetDataFactory<T>
+class LIndexSetDataFactory : public LSetDataFactory<T>
 {
 public:
     /*!

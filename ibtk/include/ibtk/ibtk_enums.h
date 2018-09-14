@@ -48,7 +48,7 @@ namespace IBTK
  * \brief Routine for converting strings to enums.
  */
 template <typename T>
-PETSC_VISIBILITY_PUBLIC inline T
+inline T
 string_to_enum(const std::string& /*val*/)
 {
     TBOX_ERROR("UNSUPPORTED ENUM TYPE\n");
@@ -59,7 +59,7 @@ string_to_enum(const std::string& /*val*/)
  * \brief Routine for converting enums to strings.
  */
 template <typename T>
-PETSC_VISIBILITY_PUBLIC inline std::string enum_to_string(T /*val*/)
+inline std::string enum_to_string(T /*val*/)
 {
     TBOX_ERROR("UNSUPPORTED ENUM TYPE\n");
     return "UNKNOWN";
@@ -78,7 +78,7 @@ enum MGCycleType
 };
 
 template <>
-PETSC_VISIBILITY_PUBLIC inline MGCycleType
+inline MGCycleType
 string_to_enum<MGCycleType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "F") == 0) return F_CYCLE;
@@ -97,7 +97,7 @@ string_to_enum<MGCycleType>(const std::string& val)
 } // string_to_enum
 
 template <>
-PETSC_VISIBILITY_PUBLIC inline std::string
+inline std::string
 enum_to_string<MGCycleType>(MGCycleType val)
 {
     if (val == F_CYCLE) return "F_CYCLE";
@@ -118,7 +118,7 @@ enum RegridMode
 };
 
 template <>
-PETSC_VISIBILITY_PUBLIC inline RegridMode
+inline RegridMode
 string_to_enum<RegridMode>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "STANDARD") == 0) return STANDARD;
@@ -127,7 +127,7 @@ string_to_enum<RegridMode>(const std::string& val)
 } // string_to_enum
 
 template <>
-PETSC_VISIBILITY_PUBLIC inline std::string
+inline std::string
 enum_to_string<RegridMode>(RegridMode val)
 {
     if (val == STANDARD) return "STANDARD";
@@ -147,7 +147,7 @@ enum VariableContextType
 };
 
 template <>
-PETSC_VISIBILITY_PUBLIC inline VariableContextType
+inline VariableContextType
 string_to_enum<VariableContextType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "CURRENT_DATA") == 0) return CURRENT_DATA;
@@ -157,7 +157,7 @@ string_to_enum<VariableContextType>(const std::string& val)
 } // string_to_enum
 
 template <>
-PETSC_VISIBILITY_PUBLIC inline std::string
+inline std::string
 enum_to_string<VariableContextType>(VariableContextType val)
 {
     if (val == CURRENT_DATA) return "CURRENT_DATA";

@@ -92,7 +92,7 @@ namespace IBTK
  * from interior values, setting ghost cell values may require both coarsening
  * and refining.
  */
-class PETSC_VISIBILITY_PUBLIC HierarchyGhostCellInterpolation : public SAMRAI::tbox::DescribedClass
+class HierarchyGhostCellInterpolation : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

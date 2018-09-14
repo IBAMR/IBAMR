@@ -83,7 +83,7 @@ namespace IBTK
  * linear solvers in IBTK are presently designed to support spatially and
  * temporally varying \em inhomogeneous boundary coefficients.
  */
-class PETSC_VISIBILITY_PUBLIC muParserRobinBcCoefs : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
+class muParserRobinBcCoefs : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
 {
 public:
     /*!

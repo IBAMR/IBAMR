@@ -82,7 +82,7 @@ namespace IBTK
  \endverbatim
  *
  */
-class PETSC_VISIBILITY_PUBLIC BJacobiPreconditioner : public LinearSolver
+class BJacobiPreconditioner : public LinearSolver
 {
 public:
     /*!

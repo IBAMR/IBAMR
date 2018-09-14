@@ -89,7 +89,7 @@ namespace IBAMR
  * \brief Class GeneralizedIBMethod is an extension of class IBMethod that
  * provides functionality required by the generalized IB (gIB) method.
  */
-class PETSC_VISIBILITY_PUBLIC GeneralizedIBMethod : public IBMethod
+class GeneralizedIBMethod : public IBMethod
 {
 public:
     /*!

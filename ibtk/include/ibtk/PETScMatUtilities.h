@@ -71,7 +71,7 @@ namespace IBTK
  * \brief Class PETScMatUtilities provides utility functions for <A
  * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> Mat objects.
  */
-class PETSC_VISIBILITY_PUBLIC PETScMatUtilities
+class PETScMatUtilities
 {
 public:
     /*!

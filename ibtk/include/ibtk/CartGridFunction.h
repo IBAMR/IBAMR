@@ -65,7 +65,7 @@ namespace IBTK
  * \brief Class CartGridFunction provides an abstract interface for objects for
  * evaluating functions to set values in SAMRAI::hier::PatchData objects.
  */
-class PETSC_VISIBILITY_PUBLIC CartGridFunction : public virtual SAMRAI::tbox::DescribedClass
+class CartGridFunction : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

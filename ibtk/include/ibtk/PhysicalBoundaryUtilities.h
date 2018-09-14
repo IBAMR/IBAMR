@@ -57,7 +57,7 @@ namespace IBTK
  * \brief Class PhysicalBoundaryUtilities is a utility class to organize
  * functions related to setting values at physical boundaries.
  */
-class PETSC_VISIBILITY_PUBLIC PhysicalBoundaryUtilities
+class PhysicalBoundaryUtilities
 {
 public:
     /*!

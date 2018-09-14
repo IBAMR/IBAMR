@@ -69,7 +69,7 @@ namespace IBTK
  * \see SAMRAI::tbox::Transaction
  */
 template <class T>
-class PETSC_VISIBILITY_PUBLIC LTransaction : public SAMRAI::tbox::Transaction
+class LTransaction : public SAMRAI::tbox::Transaction
 {
 public:
     /*!

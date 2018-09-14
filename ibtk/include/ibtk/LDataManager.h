@@ -103,7 +103,7 @@ namespace IBTK
  *
  * \note Multiple LDataManager objects may be instantiated simultaneously.
  */
-class PETSC_VISIBILITY_PUBLIC LDataManager : public SAMRAI::tbox::Serializable,
+class LDataManager : public SAMRAI::tbox::Serializable,
                                              public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
 {
 public:

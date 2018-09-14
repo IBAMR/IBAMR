@@ -62,7 +62,7 @@ namespace IBTK
  * implementation of linear or nonlinear solvers for systems of equations
  * defined on an AMR patch hierarchy.
  */
-class PETSC_VISIBILITY_PUBLIC GeneralSolver : public virtual SAMRAI::tbox::DescribedClass
+class GeneralSolver : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

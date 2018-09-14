@@ -61,7 +61,7 @@ namespace IBTK
  * SAMRAI::xfer::RefinePatchStrategy objects to be employed by a single
  * SAMRAI::xfer::RefineSchedule.
  */
-class PETSC_VISIBILITY_PUBLIC RefinePatchStrategySet : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
+class RefinePatchStrategySet : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
 public:
     /*!

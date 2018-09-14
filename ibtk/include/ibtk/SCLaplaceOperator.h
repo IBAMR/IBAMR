@@ -61,7 +61,7 @@ namespace IBTK
  * discretization of a scalar elliptic operator of the form \f$ L = C I + \nabla
  * \cdot D \nabla\f$.
  */
-class PETSC_VISIBILITY_PUBLIC SCLaplaceOperator : public LaplaceOperator
+class SCLaplaceOperator : public LaplaceOperator
 {
 public:
     /*!

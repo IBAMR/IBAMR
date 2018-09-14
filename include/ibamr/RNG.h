@@ -9,7 +9,7 @@ namespace IBAMR
  * \brief Class RNG organizes functions that provide random-number generator
  * functionality.
  */
-class PETSC_VISIBILITY_PUBLIC RNG
+class RNG
 {
 public:
     static void srandgen(unsigned long seed);

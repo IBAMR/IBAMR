@@ -67,7 +67,7 @@ namespace IBTK
  * \brief Class LMarkerUtilities is a utility class that defines useful
  * functions for dealing with Lagrangian marker particles.
  */
-class PETSC_VISIBILITY_PUBLIC LMarkerUtilities
+class LMarkerUtilities
 {
 public:
     /*!

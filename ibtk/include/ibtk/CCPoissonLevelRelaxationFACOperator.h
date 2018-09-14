@@ -119,7 +119,7 @@ namespace IBTK
  }
  \endverbatim
 */
-class PETSC_VISIBILITY_PUBLIC CCPoissonLevelRelaxationFACOperator : public PoissonFACPreconditionerStrategy
+class CCPoissonLevelRelaxationFACOperator : public PoissonFACPreconditionerStrategy
 {
 public:
     /*!

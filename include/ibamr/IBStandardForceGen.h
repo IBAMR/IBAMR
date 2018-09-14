@@ -80,7 +80,7 @@ namespace IBAMR
  * registerSpringForceFunction().  Users may also specify additional force
  * functions that may be associated with arbitrary integer indices.
  */
-class PETSC_VISIBILITY_PUBLIC IBStandardForceGen : public IBLagrangianForceStrategy
+class IBStandardForceGen : public IBLagrangianForceStrategy
 {
 public:
     /*!

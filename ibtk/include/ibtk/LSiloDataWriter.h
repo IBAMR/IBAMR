@@ -73,7 +73,7 @@ namespace IBTK
  * For more information about Silo, see the Silo manual <A
  * HREF="http://www.llnl.gov/bdiv/meshtv/manuals/silo.pdf">here</A>.
  */
-class PETSC_VISIBILITY_PUBLIC LSiloDataWriter : public SAMRAI::tbox::Serializable
+class LSiloDataWriter : public SAMRAI::tbox::Serializable
 {
 public:
     /*!
