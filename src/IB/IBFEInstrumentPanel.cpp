@@ -581,7 +581,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
         // update FE system data for meter_mesh
         initializeSystemDependentData(ib_method_ops, jj);
     }
-
+    
     // get info about levels in AMR mesh
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
@@ -965,6 +965,12 @@ int
 IBFEInstrumentPanel::getInstrumentDumpInterval() const
 {
     return d_instrument_dump_interval;
+}
+
+std::string
+IBFEInstrumentPanel::getPlotDirectoryName() const
+{
+    return d_plot_directory_name;
 }
 
 int
