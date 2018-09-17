@@ -222,6 +222,15 @@ def print_final_timestamp(framework):
   return
 
 def configure(configure_options):
+  # Check for IBAMR_DIR and IBAMR_ARCH in the environment
+  if not package.upper()+'_DIR' in os.environ or not package.upper()+'_ARCH' in os.environ:
+    msg = "\n\
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\
+Need to set IBAMR_DIR in the environment to point to an installation of IBAMR,\n\
+and to set IBAMR_ARCH in the environment to specify the name of the IBAMR configuration\n\
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+    raise RuntimeError(msg)
+
   # Perhaps insert version nagging
   print '==============================================================================='
   print '             Configuring '+package+' to compile on your system                       '
@@ -289,7 +298,7 @@ def configure(configure_options):
         msg = "\n\
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\
 Need to set PETSC_DIR in the environment to point to an installation of PETSc,\n\
-and to set PETSC_ARCH in the environment to set a valid PETSc configuration\n\
+and to set PETSC_ARCH in the environment to specify the name of a valid PETSc configuration\n\
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
         raise RuntimeError(msg)
     ret, aversion, version = chkpetscversion(os.environ['PETSC_DIR'])
