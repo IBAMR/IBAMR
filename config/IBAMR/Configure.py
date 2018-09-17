@@ -45,6 +45,7 @@ class Configure(config.base.Configure):
 
   def setupHelp(self, help):
     import nargs
+    #help.addArgument(self.Project, '-DIM=<spatial dimension>', nargs.ArgInt(None, 2, 'Specify the sptial dimension used by '+self.Project+' (eg. 2 or 3)'))  ### this is currently in the SAMRAI package configure
     help.addArgument(self.Project, '-prefix=<path>', nargs.Arg(None, '', 'Specify location to install '+self.Project+' (eg. /usr/local)'))
     help.addArgument(self.Project, '-load-path=<path>', nargs.Arg(None, os.path.join(os.getcwd(), 'modules'), 'Specify location of auxiliary modules'))
     help.addArgument(self.Project, '-with-shared-libraries', nargs.ArgBool(None, 1, 'Make libraries shared'))
@@ -142,6 +143,9 @@ class Configure(config.base.Configure):
     ''' Actually put the values into the configuration files '''
     # eventually everything between -- should be gone
 #-----------------------------------------------------------------------------------------------------    
+
+    # Set the spatial dimension
+    self.addMakeMacro('DIM', self.framework.argDB['DIM'])
 
     # Sometimes we need C compiler, even if built with C++
     self.setCompilers.pushLanguage('C')
