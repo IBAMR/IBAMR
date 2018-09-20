@@ -190,6 +190,12 @@ typedef Eigen::Matrix<double, 1, Eigen::Dynamic> RowVectorXd;
 typedef MatrixNd Matrix;
 typedef VectorNd Point;
 typedef VectorNd Vector;
+
+static const int s_max_free_dofs = NDIM * (NDIM + 1) / 2;
+typedef Eigen::Matrix<double, s_max_free_dofs, 1> RigidDOFVector;
+typedef Eigen::Matrix<int, s_max_free_dofs, 1> FreeRigidDOFVector;
+typedef RigidDOFVector RDV;
+typedef FreeRigidDOFVector FRDV;
 }
 
 //////////////////////////////////////////////////////////////////////////////

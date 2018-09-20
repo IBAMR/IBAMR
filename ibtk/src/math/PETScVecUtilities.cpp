@@ -698,6 +698,8 @@ PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
                 const int dof_idx = (*dof_index_data)(i, d);
 #if !defined(NDEBUG)
                 TBOX_ASSERT(dof_idx >= i_lower && dof_idx < i_upper);
+#else
+                NULL_USE(i_upper);
 #endif
                 petsc_idxs[counter] = dof_idx;
                 samrai_idxs[counter] =

@@ -54,6 +54,14 @@ KAPPA_S_SURFACE =0.0073*DX/DT^2 //100 //0.05 *DX/DT^2
 ETA_S_SURFACE = 0.025*DX/DT
 C1_S = 0.0
 
+// tether penalty data. These values are small enough that we can keep a
+// constant time-step (unlike the values in input2d).
+C1_S = 1.0
+KAPPA_S_BODY = 1.0
+ETA_S_BODY = 1.0
+KAPPA_S_SURFACE = 1.0
+ETA_S_SURFACE = 1.0
+
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE

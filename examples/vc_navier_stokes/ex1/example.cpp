@@ -251,7 +251,7 @@ run_example(int argc, char* argv[])
         // Reset fluid properties if they are time-dependent.
         // Note that for density, one can have the fluid solver evolve density from an initial condition if reset_rho is
         // false
-        const bool reset_rho = app_initializer->getComponentDatabase("Main")->getBoolWithDefault("reset_rho", true);
+        const bool reset_rho = app_initializer->getComponentDatabase("Main")->getBool("reset_rho");
         if (reset_rho)
         {
             time_integrator->registerResetFluidDensityFcn(&callSetFluidDensityCallbackFunction,

@@ -1304,6 +1304,8 @@ PETScMatUtilities::constructConservativeProlongationOp_cell(Mat& mat,
                 local_row[d] = (*dof_fine_data)(i_fine, d);
 #if !defined(NDEBUG)
                 TBOX_ASSERT(local_row[d] >= i_fine_lower && local_row[d] < i_fine_upper);
+#else
+                NULL_USE(i_fine_upper);
 #endif
                 local_row[d] -= i_fine_lower;
             }
@@ -2514,9 +2516,11 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& is_ove
         }
         Pointer<SideData<NDIM, int> > dof_data = patch->getPatchData(dof_index_idx);
 #if !defined(NDEBUG)
-        const int data_depth = dof_data->getDepth();
-        TBOX_ASSERT(data_depth == 1);
-        TBOX_ASSERT(dof_data->getGhostCellWidth().min() >= overlap_size.max());
+        {
+            const int data_depth = dof_data->getDepth();
+            TBOX_ASSERT(data_depth == 1);
+            TBOX_ASSERT(dof_data->getGhostCellWidth().min() >= overlap_size.max());
+        }
 #endif
 
         // Check if the patch touches physical boundary.

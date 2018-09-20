@@ -23458,7 +23458,7 @@ $as_echo_n "checking for libMesh version 1.0.0 or newer... " >&6; }
 #if !defined LIBMESH_SUBMINOR_VERSION
 #define LIBMESH_SUBMINOR_VERSION LIBMESH_MICRO_VERSION
 #endif
-#if ((LIBMESH_MAJOR_VERSION >= 1) || ((LIBMESH_MINOR_VERSION >= 1) && (LIBMESH_SUBMINOR_VERSION >= 0)))
+#if LIBMESH_MAJOR_VERSION >= 1
 #else
 asdf
 #endif
@@ -23597,6 +23597,56 @@ fi
   LIBMESH_CFLAGS="`$LIBMESH_CONFIG --cflags`"
   LIBMESH_FCFLAGS="`$LIBMESH_CONFIG --fflags`"
   LIBMESH_LIBS="`$LIBMESH_CONFIG --libs`"
+
+  # libMesh implements UniquePtr by including parts of boost in
+  # libmesh/unique_ptr.hpp (or in contrib/unique_ptr/unique_ptr.hpp). This
+  # causes compilation errors when one #includes both that file and the original
+  # file from boost, since the preprocessor guards on the libMesh-provided
+  # unique_ptr.hpp do not match the preprocessor guards on the boost headers (so
+  # we get multiple definition errors). To ensure that this does not happen,
+  # check that libMesh will not include unique_ptr.hpp in its own auto_ptr.hpp
+  # file (which we use). libMesh uses the preprocessor guard symbol
+  # UNIQUE_PTR_HPP in 1.0, 1.1, 1.2, and 1.3, so we check for that.
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for a usable libMesh UniquePtr/unique_ptr configuration" >&5
+$as_echo_n "checking for a usable libMesh UniquePtr/unique_ptr configuration... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <libmesh/auto_ptr.h>
+
+#ifdef UNIQUE_PTR_HPP
+#error
+#endif
+
+
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
+#endif
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+  LIBMESH_UNIQUE_PTR_OK=yes
+else
+  LIBMESH_UNIQUE_PTR_OK=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${LIBMESH_UNIQUE_PTR_OK}" >&5
+$as_echo "${LIBMESH_UNIQUE_PTR_OK}" >&6; }
+  if test "$LIBMESH_UNIQUE_PTR_OK" = no; then
+    as_fn_error $? "If libMesh is compiled without C++11 support then it must be compiled with --disable-unique-ptr or (in version 1.1 or later) compiled with a copy of boost including boost.move." "$LINENO" 5
+  fi
 
 
 
@@ -30364,8 +30414,8 @@ fi
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PETSc version 3.7, 3.8, or 3.9" >&5
-$as_echo_n "checking for PETSc version 3.7, 3.8, or 3.9... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PETSc version 3.7 or newer" >&5
+$as_echo_n "checking for PETSc version 3.7 or newer... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -30388,9 +30438,9 @@ int
 main ()
 {
 
-#if ((PETSC_VERSION_GE(3,7,0) && PETSC_VERSION_LT(3,10,0)) || !PETSC_VERSION_RELEASE)
+#if PETSC_VERSION_GE(3,7,0)
 #else
-asdf
+#error
 #endif
 
   ;
@@ -30406,7 +30456,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${PETSC_VERSION_VALID}" >&5
 $as_echo "${PETSC_VERSION_VALID}" >&6; }
 if test "$PETSC_VERSION_VALID" = no; then
-  as_fn_error $? "invalid PETSc version detected: please use PETSc 3.7, 3.8, or 3.9" "$LINENO" 5
+  as_fn_error $? "invalid PETSc version detected: please use PETSc 3.7 or newer" "$LINENO" 5
 fi
 
 LIBS="$PETSC_EXTERNAL_LIB_BASIC $LIBS"

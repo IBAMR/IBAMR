@@ -436,13 +436,13 @@ public:
      */
     ~IBStandardInitializer();
 
-protected:
-private:
     /*!
      * \brief Initialize structure specific configurations.
      */
     void init();
 
+protected:
+private:
     /*!
      * \brief Default constructor.
      *
@@ -545,11 +545,6 @@ private:
      * and for error reporting purposes.
      */
     std::string d_object_name;
-
-    /*!
-     * Checking if user defined data has been processed./
-     */
-    bool d_data_processed;
 
     /*
      * The boolean value determines whether file read batons are employed to

@@ -270,14 +270,11 @@ run_example(int argc, char* argv[])
         {
             rho_var = new SideVariable<NDIM, double>("rho");
         }
-        else if (!conservative_form)
+        else
         {
             rho_var = new CellVariable<NDIM, double>("rho");
         }
-        else
-        {
-            TBOX_ERROR("This statement should not be reached");
-        }
+        
         navier_stokes_integrator->registerMassDensityVariable(rho_var);
 
         Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
@@ -326,7 +323,7 @@ run_example(int argc, char* argv[])
         const double tag_value = input_db->getDouble("LS_TAG_VALUE");
         const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
         TagLSRefinementCells ls_tagger;
-        ls_tagger.d_ls_gas_var = phi_var_solid;
+        ls_tagger.d_ls_gas_var = phi_var_gas;
         ls_tagger.d_tag_value = tag_value;
         ls_tagger.d_tag_abs_thresh = tag_thresh;
         ls_tagger.d_adv_diff_solver = adv_diff_integrator;
@@ -509,6 +506,9 @@ run_example(int argc, char* argv[])
             const std::vector<std::vector<double> >& structure_COM = ib_method_ops->getCurrentStructureCOM();
             circle.X0(0) = structure_COM[0][0];
             circle.X0(1) = structure_COM[0][1];
+#if (NDIM == 3)
+            circle.X0(2) = structure_COM[0][2];
+#endif
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";

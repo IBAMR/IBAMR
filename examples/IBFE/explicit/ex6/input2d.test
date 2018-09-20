@@ -58,6 +58,7 @@ LAMBDA_S = 2.0*MU_S*NU_S/(1.0 - 2.0*NU_S)
 
 // penalty parameters
 KAPPA_S = 6.25e4 * DX / DT^2
+C1_S = 1.0
 
 VelocityBcCoefs_0 {
    U_bar = U_BAR
@@ -72,7 +73,7 @@ VelocityBcCoefs_0 {
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "1.5*U_bar*4.0*X1*(0.41-X1)/0.1681*if(t < 2.0,0.5*(1.0-cos(0.5*pi*t)),1.0)"
+   gcoef_function_0 = "1.5*U_bar*4.0*X1*(0.41-X1)/0.1681*(t < 2.0 ? 0.5*(1.0-cos(0.5*pi*t)) : 1.0)"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"

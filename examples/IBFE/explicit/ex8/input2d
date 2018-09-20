@@ -61,13 +61,13 @@ BLOCK_KAPPA_S = SAFETY * 1.0e2 * DX / DT^2
 BEAM_KAPPA_S  = SAFETY * 5.0e1 * DX / DT^2
 
 VelocityBcCoefs_0 {
-   acoef_function_0 = "if((X_1 < 0.5), 1.0 , 0.0)"
-   acoef_function_1 = "if((X_1 < 0.5), 1.0 , 0.0)"
+   acoef_function_0 = "(X_1 < 0.5) ? 1.0 : 0.0"
+   acoef_function_1 = "(X_1 < 0.5) ? 1.0 : 0.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
 
-   bcoef_function_0 = "if((X_1 < 0.5), 0.0 , 1.0)"
-   bcoef_function_1 = "if((X_1 < 0.5), 0.0 , 1.0)"
+   bcoef_function_0 = "(X_1 < 0.5) ? 0.0 : 1.0"
+   bcoef_function_1 = "(X_1 < 0.5) ? 0.0 : 1.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
@@ -83,17 +83,17 @@ VelocityBcCoefs_1 {
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
-   acoef_function_2 = "if((X_0 > 0.5) && (X_0 < 1.5), 0.0 , 1.0)"
+   acoef_function_2 = "(X_0 > 0.5) && (X_0 < 1.5) ? 0.0 : 1.0"
    acoef_function_3 = "0.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
-   bcoef_function_2 = "if((X_0 > 0.5) && (X_0 < 1.5), 1.0 , 0.0)"
+   bcoef_function_2 = "(X_0 > 0.5) && (X_0 < 1.5) ? 1.0 : 0.0"
    bcoef_function_3 = "1.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
-   gcoef_function_2 = "if((X_0 > 0.5) && (X_0 < 1.5), -p_max * min(1.0 , t/t_end) , 0.0)"
+   gcoef_function_2 = "(X_0 > 0.5) && (X_0 < 1.5) ? -p_max * min(1.0, t/t_end) : 0.0"
    gcoef_function_3 = "0.0"
 }
 

@@ -103,8 +103,23 @@ namespace IBAMR
  *
  * An optional re-scaling factor c can be specified to minimize the loss of floating point precision for poorly
  * scaling linear systems. The scaling acts on the momentum part of the saddle-point system, yielding
- * \f$c A + G(c x_p) = c b_u\f$
+ * \f$ c A + G(c x_p) = c b_u\f$
  * in which the viscous block, the pressure degrees of freedom, and the velocity RHS have been scaled.
+ *
+ * Scaling \f$ c \f$ is chosen such that
+ * \f$ c(\frac{\rho}{dt} - \frac{\mu}{dx^2}) \sim \frac{1}{dx} \f$.
+ * The above scaling is chosen from the incompressiblity operator which scales
+ * as \f$ (\nabla \cdot) \sim \frac{1}{dx} \f$.
+ * Assuming \f$ dt \sim dx \f$ and \f$ 1/dx = N \f$, we have
+ * \f$ c \sim \frac{1}{\rho - \mu N} \f$. Here \f$ N \f$ is the number of cells for
+ * a unit length of the physical domain.
+ *
+ * Different levels of patch hierarchy can have different scaling because
+ * of the difference in the grid spacing \f$ dx \f$. Therefore, an array of scale
+ * factors is read from the input file (corresponding to different levels).
+ * If the scale array does not contain values for all the levels in the hierarchy,
+ * it is filled by the most finest scaling factor provided by the user (for the missing
+ * finer levels).
  */
 
 class INSVCStaggeredHierarchyIntegrator : public INSHierarchyIntegrator
@@ -364,9 +379,9 @@ public:
     }
 
     /*!
-     * \brief Get the scaling factor used for A, p and u_rhs
+     * \brief Get the scaling factor used for A, p and u_rhs.
      */
-    inline double getPressureScalingFactor() const
+    inline SAMRAI::tbox::Array<double> getScalingFactor() const
     {
         return d_A_scale;
     }
@@ -424,9 +439,9 @@ protected:
     virtual void setupPlotDataSpecialized();
 
     /*!
-     * Virtual method to project the velocity field following a regridding operation.
+     * Pure virtual method to project the velocity field following a regridding operation.
      */
-    virtual void regridProjection();
+    virtual void regridProjection() = 0;
 
     /*!
      * Copy data from a side-centered variable to a face-centered variable.
@@ -597,7 +612,7 @@ protected:
     /*
      * Variable to indicate the scaling factor used for A, p and u_rhs.
      */
-    double d_A_scale;
+    SAMRAI::tbox::Array<double> d_A_scale;
 
     /*
      * Variable to set how often the preconditioner is reinitialized.

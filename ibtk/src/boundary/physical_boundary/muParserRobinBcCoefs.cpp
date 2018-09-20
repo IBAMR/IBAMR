@@ -81,16 +81,15 @@ static const int EXTENSIONS_FILLABLE = 128;
 muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
                                            Pointer<Database> input_db,
                                            Pointer<CartesianGridGeometry<NDIM> > grid_geom)
-    : d_grid_geom(grid_geom),
+    : d_parser_time(0.0),
+      d_grid_geom(grid_geom),
       d_constants(),
       d_acoef_function_strings(),
       d_bcoef_function_strings(),
       d_gcoef_function_strings(),
       d_acoef_parsers(2 * NDIM),
       d_bcoef_parsers(2 * NDIM),
-      d_gcoef_parsers(2 * NDIM),
-      d_parser_time(new double),
-      d_parser_posn(new Point)
+      d_gcoef_parsers(2 * NDIM)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
@@ -320,28 +319,21 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         }
 
         // Variables.
-        (*cit)->DefineVar("T", d_parser_time);
-        (*cit)->DefineVar("t", d_parser_time);
+        (*cit)->DefineVar("T", &d_parser_time);
+        (*cit)->DefineVar("t", &d_parser_time);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             std::ostringstream stream;
             stream << d;
             const std::string postfix = stream.str();
-            (*cit)->DefineVar("X" + postfix, &d_parser_posn->data()[d]);
-            (*cit)->DefineVar("x" + postfix, &d_parser_posn->data()[d]);
-            (*cit)->DefineVar("X_" + postfix, &d_parser_posn->data()[d]);
-            (*cit)->DefineVar("x_" + postfix, &d_parser_posn->data()[d]);
+            (*cit)->DefineVar("X" + postfix, d_parser_posn.data() + d);
+            (*cit)->DefineVar("x" + postfix, d_parser_posn.data() + d);
+            (*cit)->DefineVar("X_" + postfix, d_parser_posn.data() + d);
+            (*cit)->DefineVar("x_" + postfix, d_parser_posn.data() + d);
         }
     }
     return;
 } // muParserRobinBcCoefs
-
-muParserRobinBcCoefs::~muParserRobinBcCoefs()
-{
-    delete d_parser_time;
-    delete d_parser_posn;
-    return;
-} // ~muParserRobinBcCoefs
 
 void
 muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
@@ -374,7 +366,7 @@ muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
     const mu::Parser& acoef_parser = d_acoef_parsers[location_index];
     const mu::Parser& bcoef_parser = d_bcoef_parsers[location_index];
     const mu::Parser& gcoef_parser = d_gcoef_parsers[location_index];
-    *d_parser_time = fill_time;
+    d_parser_time = fill_time;
     for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
     {
         const Index<NDIM>& i = b();
@@ -382,11 +374,11 @@ muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
         {
             if (d != bdry_normal_axis)
             {
-                (*d_parser_posn)[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
+                d_parser_posn[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
             }
             else
             {
-                (*d_parser_posn)[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)));
+                d_parser_posn[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)));
             }
         }
         try

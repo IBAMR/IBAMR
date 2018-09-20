@@ -205,6 +205,23 @@ run_example(int argc, char* argv[])
         time_integrator->registerResetFluidViscosityFcn(&callSetFluidViscosityCallbackFunction,
                                                         static_cast<void*>(ptr_SetFluidProperties));
 
+        // Register boundary conditions for rho and mu as they are not set by CartGridFunction
+        RobinBcCoefStrategy<NDIM>* rho_bc_coef = NULL;
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("DensityBoundaryConditions"))
+        {
+            rho_bc_coef = new muParserRobinBcCoefs(
+                "rho_bc_coef", app_initializer->getComponentDatabase("DensityBoundaryConditions"), grid_geometry);
+            time_integrator->registerMassDensityBoundaryConditions(rho_bc_coef);
+        }
+
+        RobinBcCoefStrategy<NDIM>* mu_bc_coef = NULL;
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("ViscosityBoundaryConditions"))
+        {
+            mu_bc_coef = new muParserRobinBcCoefs(
+                "mu_bc_coef", app_initializer->getComponentDatabase("ViscosityBoundaryConditions"), grid_geometry);
+            time_integrator->registerViscosityBoundaryConditions(mu_bc_coef);
+        }
+
         // Create body force function specification objects (when necessary).
         if (input_db->keyExists("ForcingFunction"))
         {

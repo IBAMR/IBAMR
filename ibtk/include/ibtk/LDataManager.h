@@ -476,6 +476,9 @@ public:
     /*!
      * Register a concrete strategy object with the integrator that specifies
      * the initial configuration of the curvilinear mesh nodes.
+     *
+     * \note This function calls LInitStrategy::init(). All preprocessing should be completed before
+     * registering a LInitStrategy object.
      */
     void registerLInitStrategy(SAMRAI::tbox::Pointer<LInitStrategy> lag_init);
 

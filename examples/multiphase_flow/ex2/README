@@ -1,0 +1,2 @@
+Fluid-structure interaction example of a circular cylinder impacting an air-water interface.
+Same as ex1, but uses finite element mesh for the solid body.

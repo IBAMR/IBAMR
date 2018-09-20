@@ -76,7 +76,7 @@ VelocityBcCoefs_0 {
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "1.5*U_bar*X1*(H-X1)/((H/2)^2)*if(t < 2.0,0.5*(1.0-cos(0.5*pi*t)),1.0)"
+   gcoef_function_0 = "1.5*U_bar*X1*(H-X1)/((H/2)^2)*(t < 2.0 ? 0.5*(1.0-cos(0.5*pi*t)) : 1.0)"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"

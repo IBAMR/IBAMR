@@ -41,6 +41,7 @@
 #include "Eigen/Core"
 #include "Eigen/Geometry"
 #include "ibamr/ibamr_enums.h"
+#include "ibtk/ibtk_utilities.h"
 #include "petscmat.h"
 #include "petscvec.h"
 #include "tbox/DescribedClass.h"
@@ -49,11 +50,6 @@
 
 namespace IBAMR
 {
-static const int s_max_free_dofs = NDIM * (NDIM + 1) / 2;
-typedef Eigen::Matrix<double, s_max_free_dofs, 1> RigidDOFVector;
-typedef Eigen::Matrix<int, s_max_free_dofs, 1> FreeRigidDOFVector;
-typedef RigidDOFVector RDV;
-typedef FreeRigidDOFVector FRDV;
 
 /*!
  * \brief Class CIBStrategy is a lightweight abstract strategy class which
@@ -192,12 +188,12 @@ public:
      *
      * \param part The rigid body for which we are setting the free DOFs.
      */
-    void setSolveRigidBodyVelocity(const unsigned int part, const FreeRigidDOFVector& solve_rigid_dofs);
+    void setSolveRigidBodyVelocity(const unsigned int part, const IBTK::FreeRigidDOFVector& solve_rigid_dofs);
 
     /*!
      * \brief Query what rigid DOFs need to be solved for.
      */
-    const FreeRigidDOFVector& getSolveRigidBodyVelocity(const unsigned int part, int& num_free_dofs) const;
+    const IBTK::FreeRigidDOFVector& getSolveRigidBodyVelocity(const unsigned int part, int& num_free_dofs) const;
 
     /*!
      * \brief Set the rigid body velocity at the nodal/marker points
@@ -210,7 +206,7 @@ public:
      * and for three-dimensions the vector values are
      * \f$[u,v,w,\omega_x,\omega_y,\omega_z]\f$.
      */
-    virtual void setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U, Vec V) = 0;
+    virtual void setRigidBodyVelocity(const unsigned int part, const IBTK::RigidDOFVector& U, Vec V) = 0;
 
     /*!
      * \brief Set the rigid body velocity at the nodal/marker points
@@ -264,7 +260,7 @@ public:
      *
      * \param F RDV storing the net generalized force.
      */
-    virtual void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, RigidDOFVector& F) = 0;
+    virtual void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, IBTK::RigidDOFVector& F) = 0;
 
     /*!
      * \brief Compute total force and torque on the structure.
@@ -307,7 +303,7 @@ public:
      *
      * \param part The rigid part.
      */
-    const RigidDOFVector& getNetRigidGeneralizedForce(const unsigned int part);
+    const IBTK::RigidDOFVector& getNetRigidGeneralizedForce(const unsigned int part);
 
     /*!
      * \brief Update the mapping of free DOFs for all structures if they are collected
@@ -319,7 +315,7 @@ public:
      * \brief Update the rigid body velocity obtained from the constraint Stokes
      * solver for free-moving case.
      */
-    void updateNewRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U);
+    void updateNewRigidBodyVelocity(const unsigned int part, const IBTK::RigidDOFVector& U);
 
     /*!
      * \brief Update the rigid body velocity obtained from the constraint Stokes
@@ -435,34 +431,34 @@ public:
     /*!
      * \brief Set the DOFs from PETSc Vec \p U to RigidDOFVector \p Ur.
      */
-    static void vecToRDV(Vec U, RigidDOFVector& Ur);
+    static void vecToRDV(Vec U, IBTK::RigidDOFVector& Ur);
 
     /*!
      * \brief Set the DOFs from RigidDOFVector \p Ur to PETSc Vec \p U.
      */
-    static void rdvToVec(const RigidDOFVector& Ur, Vec& U);
+    static void rdvToVec(const IBTK::RigidDOFVector& Ur, Vec& U);
 
     /*!
      * \brief Set the DOFs from Eigen::Vector3d \p U and \p W to RigidDOFVector \p UW.
      */
-    static void eigenToRDV(const Eigen::Vector3d& U, const Eigen::Vector3d& W, RigidDOFVector& UW);
+    static void eigenToRDV(const Eigen::Vector3d& U, const Eigen::Vector3d& W, IBTK::RigidDOFVector& UW);
 
     /*!
      * \brief Set the DOFs from RigidDOFVector \p UW to Eigen::Vector3d \p U and \p W.
      */
-    static void rdvToEigen(const RigidDOFVector& UW, Eigen::Vector3d& U, Eigen::Vector3d& W);
+    static void rdvToEigen(const IBTK::RigidDOFVector& UW, Eigen::Vector3d& U, Eigen::Vector3d& W);
 
     /*!
      * \brief Get the rigid body translational velocity at the beginning of
      * the timestep.
      */
-    void getCurrentRigidBodyVelocity(const unsigned int part, RigidDOFVector& U);
+    void getCurrentRigidBodyVelocity(const unsigned int part, IBTK::RigidDOFVector& U);
 
     /*!
      * \brief Get the rigid body translational velocity at the end of
      * the timestep.
      */
-    void getNewRigidBodyVelocity(const unsigned int part, RigidDOFVector& U);
+    void getNewRigidBodyVelocity(const unsigned int part, IBTK::RigidDOFVector& U);
 
     /*!
      * \brief Get body center of mass at the current time step.
@@ -604,7 +600,7 @@ protected:
     std::vector<Eigen::Quaterniond> d_quaternion_current, d_quaternion_half, d_quaternion_new;
 
     // Whether to solve for rigid body velocity.
-    std::vector<FRDV> d_solve_rigid_vel;
+    std::vector<IBTK::FRDV> d_solve_rigid_vel;
 
     // PETSc wrappers for free rigid body velocities and external force/torque.
     Vec d_U, d_F;
@@ -618,7 +614,7 @@ protected:
     std::vector<Eigen::Vector3d> d_rot_vel_current, d_rot_vel_half, d_rot_vel_new;
 
     // Net rigid generalized force.
-    std::vector<RigidDOFVector> d_net_rigid_generalized_force;
+    std::vector<IBTK::RigidDOFVector> d_net_rigid_generalized_force;
 
     /////////////////////////////// PRIVATE //////////////////////////////////////
 private:

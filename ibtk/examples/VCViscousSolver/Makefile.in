@@ -929,12 +929,12 @@ uninstall-am:
 
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/{README,input[23]d.periodic} $(PWD) ; \
+	  cp -f $(srcdir)/{README,input[23]d*} $(PWD) ; \
 	fi ;
 
 @GTEST_ENABLED_TRUE@gtest: $(GTESTS)
 @GTEST_ENABLED_TRUE@	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/{README,input[23]d.periodic*} $(PWD) ; \
+@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/{README,input[23]d*} $(PWD) ; \
 @GTEST_ENABLED_TRUE@	fi ;
 @GTEST_ENABLED_TRUE@	./test2d input2d.test
 
@@ -954,7 +954,7 @@ examples: $(EXAMPLES)
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/{README,input[23]d.periodic} ; \
+	  rm -f $(builddir)/{README,input[23]d*} ; \
 	fi ;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

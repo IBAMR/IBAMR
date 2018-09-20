@@ -82,7 +82,8 @@ SetFluidGasSolidDensity::setDensityPatchData(int rho_idx,
     // Get the current level set information
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    int ls_solid_idx, ls_gas_idx;
+    int ls_solid_idx = -1;
+    int ls_gas_idx = -1;
     if (MathUtilities<double>::equalEps(time, current_time))
     {
         ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getCurrentContext());
@@ -369,7 +370,7 @@ SetFluidGasSolidDensity::setDensityPatchData(int rho_idx,
                             {
                                 h_solid = 1.0;
                             }
-                            
+
                             if (phi_gas < -beta)
                             {
                                 h_gas = 0.0;

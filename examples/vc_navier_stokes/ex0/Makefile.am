@@ -4,8 +4,9 @@ include $(top_srcdir)/config/Make-rules
 ## Dimension-dependent testers
 EXAMPLE_DRIVER = ex_main.cpp SetFluidProperties.cpp
 GTEST_DRIVER   = test_main.cpp SetFluidProperties.cpp
-EXTRA_DIST     = input2d input2d.test input2d.amr
+EXTRA_DIST     = input2d input2d.test input2d.amr input2d.bubble
 EXTRA_DIST    += input3d input3d.test input3d.amr
+EXTRA_DIST    += extract_error.sh
 
 GTESTS   =
 EXAMPLES =
@@ -44,6 +45,7 @@ test3d_SOURCES = $(GTEST_DRIVER)
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d* $(PWD) ; \
+	  cp -f $(srcdir)/extract_error.sh $(PWD) ; \
 	fi ;
 
 if GTEST_ENABLED
