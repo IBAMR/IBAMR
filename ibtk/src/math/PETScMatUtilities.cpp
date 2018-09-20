@@ -1279,9 +1279,7 @@ PETScMatUtilities::constructConservativeProlongationOp_cell(Mat& mat,
     const int n_local = num_coarse_dofs_per_proc[mpi_rank];
     const int i_fine_lower =
         std::accumulate(num_fine_dofs_per_proc.begin(), num_fine_dofs_per_proc.begin() + mpi_rank, 0);
-#if !defined(NDEBUG)
     const int i_fine_upper = i_fine_lower + m_local;
-#endif
     const int j_coarse_lower =
         std::accumulate(num_coarse_dofs_per_proc.begin(), num_coarse_dofs_per_proc.begin() + mpi_rank, 0);
     const int j_coarse_upper = j_coarse_lower + n_local;

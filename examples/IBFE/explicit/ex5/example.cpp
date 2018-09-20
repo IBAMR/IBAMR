@@ -175,7 +175,7 @@ tether_force_function(VectorValue<double>& F,
 
 void
 tether_force_function(VectorValue<double>& F,
-                      const VectorValue<double>& n,
+                      const VectorValue<double>& /*n*/,
                       const VectorValue<double>& /*N*/,
                       const TensorValue<double>& /*FF*/,
                       const libMesh::Point& x,
@@ -762,9 +762,9 @@ postprocess_data(Pointer<Database> input_db,
                 U_qp_vec[d] = U(d);
             }
             if (use_boundary_mesh)
-                tether_force_function(F, n, N, FF, x, X, elem, 0, var_data, grad_var_data, loop_time, force_fcn_ctx);
+                tether_force_function(F, n, N, FF, x, X, elem, 0, var_data, grad_var_data, loop_time, tether_data_ptr);
             else
-                tether_force_function(F, n, x, q_point[qp], elem, var_data, grad_var_data, loop_time, force_fcn_ctx);
+                tether_force_function(F, n, x, q_point[qp], elem, var_data, grad_var_data, loop_time, tether_data_ptr);
 
             for (int d = 0; d < NDIM; ++d)
             {
@@ -804,7 +804,7 @@ postprocess_data(Pointer<Database> input_db,
                                           var_data,
                                           grad_var_data,
                                           loop_time,
-                                          force_fcn_ctx);
+                                          tether_data_ptr);
                     for (int d = 0; d < NDIM; ++d)
                     {
                         F_integral[d] += F(d) * JxW_face[qp];
