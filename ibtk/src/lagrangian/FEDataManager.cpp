@@ -578,7 +578,7 @@ FEDataManager::spread(const int f_data_idx,
     for (unsigned d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
-        TBOX_ASSERT(F_dof_map.variable_order(d) == X_order);
+        TBOX_ASSERT(X_dof_map.variable_order(d) == X_order);
     }
     UniquePtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr;
     if (F_fe_type != X_fe_type)
