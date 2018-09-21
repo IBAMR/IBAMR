@@ -6,17 +6,9 @@ class Configure(config.package.GNUPackage):
     self.download  = ['http://ftp.mcs.anl.gov/pub/petsc/externalpackages/SAMRAI-v2.4.4p.tar.gz', 'https://computation-rnd.llnl.gov/SAMRAI/download/SAMRAI-v2.4.4.tar.gz']
     self.functions = []
     self.includes  = ['Box.h']
-    if framework.argDB['DIM'] == 2:
-        self.liblist = [['libSAMRAI.a', 'libSAMRAI2d_algs.a', 'libSAMRAI2d_appu.a', 'libSAMRAI2d_geom.a', 'libSAMRAI2d_hier.a', 'libSAMRAI2d_math_std.a', 'libSAMRAI2d_mesh.a', 'libSAMRAI2d_pdat_std.a', 'libSAMRAI2d_solv.a', 'libSAMRAI2d_xfer.a']]
-    if framework.argDB['DIM'] == 3:
-        self.liblist = [['libSAMRAI.a', 'libSAMRAI3d_algs.a', 'libSAMRAI3d_appu.a', 'libSAMRAI3d_geom.a', 'libSAMRAI3d_hier.a', 'libSAMRAI3d_math_std.a', 'libSAMRAI3d_mesh.a', 'libSAMRAI3d_pdat_std.a', 'libSAMRAI3d_solv.a', 'libSAMRAI3d_xfer.a']]
     self.pkgname   = 'SAMRAI-2.4.4'
     self.cxx       = 1
     return
-
-  def setupHelp(self, help):
-    import nargs
-    help.addArgument(self, '-DIM=<spatial dimension>', nargs.ArgInt(None, 2, 'Specify the spatial dimension (eg. 2 or 3)'))
 
   def setupDependencies(self, framework):
     config.package.GNUPackage.setupDependencies(self, framework)
@@ -69,3 +61,9 @@ class Configure(config.package.GNUPackage):
     # Completely broken shared libraries for Mac
     args.append('--disable-shared')
     return args
+
+  def configure(self):
+    if self.framework.argDB['DIM'] == 2:
+        self.liblist = [['libSAMRAI.a', 'libSAMRAI2d_algs.a', 'libSAMRAI2d_appu.a', 'libSAMRAI2d_geom.a', 'libSAMRAI2d_hier.a', 'libSAMRAI2d_math_std.a', 'libSAMRAI2d_mesh.a', 'libSAMRAI2d_pdat_std.a', 'libSAMRAI2d_solv.a', 'libSAMRAI2d_xfer.a']]
+    if self.framework.argDB['DIM'] == 3:
+        self.liblist = [['libSAMRAI.a', 'libSAMRAI3d_algs.a', 'libSAMRAI3d_appu.a', 'libSAMRAI3d_geom.a', 'libSAMRAI3d_hier.a', 'libSAMRAI3d_math_std.a', 'libSAMRAI3d_mesh.a', 'libSAMRAI3d_pdat_std.a', 'libSAMRAI3d_solv.a', 'libSAMRAI3d_xfer.a']]
