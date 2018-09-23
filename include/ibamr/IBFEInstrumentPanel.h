@@ -102,6 +102,11 @@ public:
      * \return The instrument dump interval
      */
     int getInstrumentDumpInterval() const;
+    
+    /*!
+     * \return The name of the directory for output
+     */
+    std::string getPlotDirectoryName() const;
 
     /*!
      * \return The number of meter meshes
