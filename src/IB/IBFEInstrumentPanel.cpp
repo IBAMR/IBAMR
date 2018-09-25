@@ -967,6 +967,12 @@ IBFEInstrumentPanel::getInstrumentDumpInterval() const
     return d_instrument_dump_interval;
 }
 
+std::string
+IBFEInstrumentPanel::getPlotDirectoryName() const
+{
+    return d_plot_directory_name;
+}
+
 int
 IBFEInstrumentPanel::getNumberOfMeterMeshes() const
 {
