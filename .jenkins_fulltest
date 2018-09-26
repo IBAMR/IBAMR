@@ -29,6 +29,7 @@ config() {
         --with-gtest=$GTEST_DIR
 }
 
+find /tmp -user jenkins -print0 | xargs -0 rm -rf
 config
 make -kj4 lib
 cd examples
