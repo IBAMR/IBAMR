@@ -40,7 +40,6 @@
 #include "CartesianGridGeometry.h"
 #include "IntVector.h"
 #include "PatchLevel.h"
-#include "boost/array.hpp"
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/CartGridFunction.h"
 #include "tbox/Array.h"

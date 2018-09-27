@@ -24,7 +24,6 @@ else
   USING_BUNDLED_BOOST=no
 fi
 CPPFLAGS_PREPEND($BOOST_CPPFLAGS)
-AC_CHECK_HEADER([boost/array.hpp],,AC_MSG_ERROR([cannot find working boost/array.hpp]))
 AC_CHECK_HEADER([boost/multi_array.hpp],,AC_MSG_ERROR([cannot find working boost/multi_array.hpp]))
 PACKAGE_CPPFLAGS_PREPEND("$BOOST_CPPFLAGS")
 PACKAGE_RESTORE_ENVIRONMENT

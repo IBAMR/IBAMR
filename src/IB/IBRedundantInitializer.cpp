@@ -33,6 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <ios>
 #include <iosfwd>
@@ -56,7 +57,6 @@
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "boost/array.hpp"
 #include "boost/math/special_functions/round.hpp"
 #include "boost/multi_array.hpp"
 #include "ibamr/IBAnchorPointSpec.h"
@@ -664,7 +664,7 @@ IBRedundantInitializer::initializeDirectorAndRods()
                 {
                     const Edge& e = it->second;
                     const RodSpec& rod_spec = d_rod_spec_data[ln][j][e];
-                    const boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> parameters = rod_spec.properties;
+                    const std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> parameters = rod_spec.properties;
                     if ((e.first < min_idx) || (e.first > max_idx))
                     {
                         TBOX_ERROR(d_object_name << ":\n Invalid rod edge encountered on level " << ln
@@ -1647,7 +1647,7 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
     // Initialize any rod specifications associated with the present vertex.
     {
         std::vector<int> rod_next_idxs;
-        std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
+        std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
         for (std::multimap<int, Edge>::const_iterator it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
              it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx);
              ++it)

@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <ostream>
 #include <set>
 #include <vector>
@@ -51,7 +52,6 @@
 #include "SideGeometry.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
-#include "boost/array.hpp"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
@@ -686,7 +686,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
 
-    boost::array<Box<NDIM>, NDIM> side_box;
+    std::array<Box<NDIM>, NDIM> side_box;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         side_box[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
@@ -728,7 +728,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
                 // Temporarily reset the patch geometry object associated with
                 // the patch so that boundary conditions are set at the correct
                 // spatial locations.
-                boost::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+                std::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     shifted_patch_x_lower[d] = patch_x_lower[d];
@@ -871,7 +871,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx,
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
 
 #if (NDIM == 3)
-    boost::array<Box<NDIM>, NDIM> side_box;
+    std::array<Box<NDIM>, NDIM> side_box;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         side_box[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);

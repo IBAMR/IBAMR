@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <algorithm>
 #include <numeric>
 #include <ostream>
@@ -62,7 +63,6 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "boost/array.hpp"
 #include "ibamr/StaggeredStokesPETScVecUtilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -364,7 +364,7 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelAO(AO& ao,
     IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(patch_level->getRatio());
 
     const Index<NDIM> p_num_cells = domain_upper - domain_lower + 1;
-    boost::array<Index<NDIM>, NDIM> u_num_cells;
+    std::array<Index<NDIM>, NDIM> u_num_cells;
     for (unsigned d = 0; d < NDIM; ++d)
     {
         Index<NDIM> offset = 1;
@@ -704,7 +704,7 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
         Pointer<SideData<NDIM, bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         p_dof_index_data->fillAll(-1);
-        boost::array<Box<NDIM>, NDIM> data_boxes;
+        std::array<Box<NDIM>, NDIM> data_boxes;
         BoxList<NDIM> data_box_union(patch_box);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {

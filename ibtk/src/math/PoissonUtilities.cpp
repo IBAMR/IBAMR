@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <functional>
 #include <limits>
 #include <map>
@@ -60,7 +61,6 @@
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "Variable.h"
-#include "boost/array.hpp"
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/PoissonUtilities.h"
@@ -230,7 +230,7 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
     }
 #endif
     const int stencil_index_diag = stencil_map[Index<NDIM>(0)];
-    boost::array<int, NDIM> stencil_index_lower, stencil_index_upper;
+    std::array<int, NDIM> stencil_index_lower, stencil_index_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         Index<NDIM> ilower(0), iupper(0);
@@ -437,7 +437,7 @@ PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coeff
     }
 #endif
     const int stencil_index_diag = stencil_map[Index<NDIM>(0)];
-    boost::array<int, NDIM> stencil_index_lower, stencil_index_upper;
+    std::array<int, NDIM> stencil_index_lower, stencil_index_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         Index<NDIM> ilower(0), iupper(0);
@@ -533,7 +533,7 @@ PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coeff
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
             // locations.
-            boost::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+            std::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 shifted_patch_x_lower[d] = patch_x_lower[d];
@@ -911,7 +911,7 @@ typedef std::map<Index<NDIM>, int, IndexFortranOrder> StencilMapType;
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
             // locations.
-            boost::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+            std::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 shifted_patch_x_lower[d] = patch_x_lower[d];
@@ -1030,7 +1030,7 @@ typedef std::map<Index<NDIM>, int, IndexFortranOrder> StencilMapType;
                 // Temporarily reset the patch geometry object associated with the
                 // patch so that boundary conditions are set at the correct spatial
                 // locations.
-                boost::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+                std::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     shifted_patch_x_lower[d] = patch_x_lower[d];
@@ -1421,7 +1421,7 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
             // locations.
-            boost::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+            std::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 shifted_patch_x_lower[d] = patch_x_lower[d];
@@ -1650,7 +1650,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
             // locations.
-            boost::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+            std::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 shifted_patch_x_lower[d] = patch_x_lower[d];
@@ -1766,7 +1766,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
                 // Temporarily reset the patch geometry object associated with the
                 // patch so that boundary conditions are set at the correct spatial
                 // locations.
-                boost::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+                std::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     shifted_patch_x_lower[d] = patch_x_lower[d];

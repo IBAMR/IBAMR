@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <stddef.h>
 #include <algorithm>
 #include <cmath>
@@ -65,7 +66,6 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "boost/array.hpp"
 #include "boost/multi_array.hpp"
 #include "ibamr/IBAnchorPointSpec.h"
 #include "ibamr/IBHierarchyIntegrator.h"
@@ -1134,7 +1134,7 @@ IBMethod::spreadFluidSource(const int q_data_idx,
             {
                 // The source radius must be an integer multiple of the grid
                 // spacing.
-                boost::array<double, NDIM> r;
+                std::array<double, NDIM> r;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     r[d] = std::max(std::floor(d_r_src[ln][n] / dx[d] + 0.5), 2.0) * dx[d];
@@ -1344,7 +1344,7 @@ IBMethod::interpolatePressure(int p_data_idx,
             {
                 // The source radius must be an integer multiple of the grid
                 // spacing.
-                boost::array<double, NDIM> r;
+                std::array<double, NDIM> r;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     r[d] = std::max(std::floor(d_r_src[ln][n] / dx[d] + 0.5), 2.0) * dx[d];
@@ -1669,7 +1669,7 @@ IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarch
         const IntVector<NDIM>& finer_ratio = finer_level->getRatio();
         for (int n = 0; n < d_n_src[finer_level_number]; ++n)
         {
-            boost::array<double, NDIM> dx_finer;
+            std::array<double, NDIM> dx_finer;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 dx_finer[d] = dx[d] / static_cast<double>(finer_level->getRatio()(d));
@@ -1677,7 +1677,7 @@ IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarch
 
             // The source radius must be an integer multiple of the grid
             // spacing.
-            boost::array<double, NDIM> r;
+            std::array<double, NDIM> r;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 r[d] = std::max(std::floor(d_r_src[finer_level_number][n] / dx_finer[d] + 0.5), 2.0) * dx_finer[d];

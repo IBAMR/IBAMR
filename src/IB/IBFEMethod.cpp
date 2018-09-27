@@ -33,6 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <limits>
 #include <ostream>
@@ -531,16 +532,16 @@ IBFEMethod::registerOverlappingVelocityReset(const unsigned int part1, const uns
     d_overlap_velocity_master_part[part1] = part2;
     d_is_overlap_velocity_master_part[part2] = true;
 
-    boost::array<unsigned int, 2> part_idx;
+    std::array<unsigned int, 2> part_idx;
     part_idx[0] = part1;
     part_idx[1] = part2;
 
     // Set up basic data structures.
-    boost::array<EquationSystems*, 2> es;
-    boost::array<MeshBase*, 2> mesh;
-    boost::array<const DofMap*, 2> U_dof_map, X_dof_map;
-    boost::array<UniquePtr<PointLocatorBase>, 2> ploc;
-    boost::array<numeric_index_type, 2> first_local_idx, last_local_idx;
+    std::array<EquationSystems*, 2> es;
+    std::array<MeshBase*, 2> mesh;
+    std::array<const DofMap*, 2> U_dof_map, X_dof_map;
+    std::array<UniquePtr<PointLocatorBase>, 2> ploc;
+    std::array<numeric_index_type, 2> first_local_idx, last_local_idx;
     for (int k = 0; k < 2; ++k)
     {
         es[k] = d_fe_data_managers[part_idx[k]]->getEquationSystems();
@@ -567,7 +568,7 @@ IBFEMethod::registerOverlappingVelocityReset(const unsigned int part1, const uns
     }
 
     // Find the elements of part2 that contain nodes of part1.
-    boost::array<std::vector<std::vector<unsigned int> >, 2> U_dof_indices;
+    std::array<std::vector<std::vector<unsigned int> >, 2> U_dof_indices;
     for (int k = 0; k < 2; ++k)
     {
         U_dof_indices[k].resize(NDIM);
@@ -630,24 +631,24 @@ IBFEMethod::registerOverlappingForceConstraint(const unsigned int part1,
     // Set up basic data structures.
     n_pairs += 1;
     d_overlap_force_part_idxs.resize(n_pairs);
-    boost::array<unsigned int, 2>& part_idx = d_overlap_force_part_idxs.back();
+    std::array<unsigned int, 2>& part_idx = d_overlap_force_part_idxs.back();
     part_idx[0] = part1;
     part_idx[1] = part2;
     d_overlapping_elem_map.resize(n_pairs);
-    boost::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2>& elem_map =
+    std::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2>& elem_map =
         d_overlapping_elem_map.back();
     d_overlap_force_part_kappa.push_back(kappa);
     d_overlap_force_part_qrule.resize(n_pairs);
-    boost::array<QBase*, 2>& qrule = d_overlap_force_part_qrule.back();
+    std::array<QBase*, 2>& qrule = d_overlap_force_part_qrule.back();
     qrule[0] = qrule1;
     qrule[1] = qrule2;
 
-    boost::array<EquationSystems*, 2> es;
-    boost::array<MeshBase*, 2> mesh;
-    boost::array<const DofMap*, 2> F_dof_map, X_dof_map;
-    boost::array<UniquePtr<FEBase>, 2> fe;
-    boost::array<UniquePtr<PointLocatorBase>, 2> ploc;
-    boost::array<numeric_index_type, 2> first_local_idx, last_local_idx;
+    std::array<EquationSystems*, 2> es;
+    std::array<MeshBase*, 2> mesh;
+    std::array<const DofMap*, 2> F_dof_map, X_dof_map;
+    std::array<UniquePtr<FEBase>, 2> fe;
+    std::array<UniquePtr<PointLocatorBase>, 2> ploc;
+    std::array<numeric_index_type, 2> first_local_idx, last_local_idx;
     for (int k = 0; k < 2; ++k)
     {
         es[k] = d_fe_data_managers[part_idx[k]]->getEquationSystems();
@@ -679,7 +680,7 @@ IBFEMethod::registerOverlappingForceConstraint(const unsigned int part1,
     }
 
     // Find quadrature points that overlap with the other part.
-    boost::array<std::vector<std::vector<unsigned int> >, 2> X_dof_indices;
+    std::array<std::vector<std::vector<unsigned int> >, 2> X_dof_indices;
     for (int k = 0; k < 2; ++k)
     {
         X_dof_indices[k].resize(NDIM);
@@ -2454,17 +2455,17 @@ IBFEMethod::resetOverlapNodalValues(const unsigned int part,
     TBOX_ASSERT(part < d_num_parts);
     TBOX_ASSERT(d_is_overlap_velocity_part[part]);
 
-    boost::array<unsigned int, 2> part_idx;
+    std::array<unsigned int, 2> part_idx;
     part_idx[0] = part;
     part_idx[1] = d_overlap_velocity_master_part[part];
 
     // Set up basic data structures.
-    boost::array<EquationSystems*, 2> es;
-    boost::array<MeshBase*, 2> mesh;
-    boost::array<const DofMap*, 2> F_dof_map;
-    boost::array<FEDataManager::SystemDofMapCache*, 2> F_dof_map_cache;
+    std::array<EquationSystems*, 2> es;
+    std::array<MeshBase*, 2> mesh;
+    std::array<const DofMap*, 2> F_dof_map;
+    std::array<FEDataManager::SystemDofMapCache*, 2> F_dof_map_cache;
     FEType fe_type;
-    boost::array<unsigned int, 2> F_sys_num;
+    std::array<unsigned int, 2> F_sys_num;
     for (int k = 0; k < 2; ++k)
     {
         es[k] = d_fe_data_managers[part_idx[k]]->getEquationSystems();
@@ -2481,13 +2482,13 @@ IBFEMethod::resetOverlapNodalValues(const unsigned int part,
     }
 
     // Find the elements of part2 that contain nodes of part1.
-    boost::array<std::vector<std::vector<unsigned int> >, 2> F_dof_indices;
+    std::array<std::vector<std::vector<unsigned int> >, 2> F_dof_indices;
     for (int k = 0; k < 2; ++k)
     {
         F_dof_indices[k].resize(NDIM);
     }
     VectorValue<double> F;
-    boost::array<boost::multi_array<double, 2>, 2> F_node;
+    std::array<boost::multi_array<double, 2>, 2> F_node;
     const unsigned int k_slave = 0;
     const unsigned int k_master = 1;
     std::map<dof_id_type, dof_id_type>& node_to_elem_map = d_overlap_velocity_part_node_to_elem_map[part_idx[k_slave]];
@@ -2549,19 +2550,19 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
     for (unsigned int k = 0; k < n_pairs; ++k)
     {
         // Setup basic data structures.
-        boost::array<unsigned int, 2>& part_idx = d_overlap_force_part_idxs[k];
-        boost::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2>& elem_map =
+        std::array<unsigned int, 2>& part_idx = d_overlap_force_part_idxs[k];
+        std::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2>& elem_map =
             d_overlapping_elem_map[k];
         const double kappa = d_overlap_force_part_kappa[k];
-        boost::array<QBase*, 2>& qrule = d_overlap_force_part_qrule[k];
+        std::array<QBase*, 2>& qrule = d_overlap_force_part_qrule[k];
 
-        boost::array<EquationSystems*, 2> es;
-        boost::array<MeshBase*, 2> mesh;
-        boost::array<System*, 2> F_system, X_system;
-        boost::array<const DofMap*, 2> F_dof_map, X_dof_map;
-        boost::array<FEDataManager::SystemDofMapCache*, 2> F_dof_map_cache, X_dof_map_cache;
+        std::array<EquationSystems*, 2> es;
+        std::array<MeshBase*, 2> mesh;
+        std::array<System*, 2> F_system, X_system;
+        std::array<const DofMap*, 2> F_dof_map, X_dof_map;
+        std::array<FEDataManager::SystemDofMapCache*, 2> F_dof_map_cache, X_dof_map_cache;
         FEType fe_type;
-        boost::array<UniquePtr<FEBase>, 2> fe;
+        std::array<UniquePtr<FEBase>, 2> fe;
         for (int k = 0; k < 2; ++k)
         {
             es[k] = d_fe_data_managers[part_idx[k]]->getEquationSystems();
@@ -2586,14 +2587,14 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
         }
 
         // Loop over the elements that overlap elements of the other part.
-        boost::array<std::vector<std::vector<unsigned int> >, 2> F_dof_indices, X_dof_indices;
+        std::array<std::vector<std::vector<unsigned int> >, 2> F_dof_indices, X_dof_indices;
         for (int k = 0; k < 2; ++k)
         {
             F_dof_indices[k].resize(NDIM);
             X_dof_indices[k].resize(NDIM);
         }
-        boost::array<boost::array<DenseVector<double>, NDIM>, 2> F_rhs_e;
-        boost::array<boost::multi_array<double, 2>, 2> x_node;
+        std::array<std::array<DenseVector<double>, NDIM>, 2> F_rhs_e;
+        std::array<boost::multi_array<double, 2>, 2> x_node;
         VectorValue<double> F, F_qp, other_x, x;
         for (int k = 0; k < 2; ++k)
         {

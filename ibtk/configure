@@ -23838,14 +23838,6 @@ else
 fi
 CPPFLAGS="$BOOST_CPPFLAGS $CPPFLAGS"
 
-ac_fn_cxx_check_header_mongrel "$LINENO" "boost/array.hpp" "ac_cv_header_boost_array_hpp" "$ac_includes_default"
-if test "x$ac_cv_header_boost_array_hpp" = xyes; then :
-
-else
-  as_fn_error $? "cannot find working boost/array.hpp" "$LINENO" 5
-fi
-
-
 ac_fn_cxx_check_header_mongrel "$LINENO" "boost/multi_array.hpp" "ac_cv_header_boost_multi_array_hpp" "$ac_includes_default"
 if test "x$ac_cv_header_boost_multi_array_hpp" = xyes; then :
 

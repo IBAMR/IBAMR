@@ -33,6 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <limits>
 #include <ostream>
@@ -562,7 +563,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         UniquePtr<FEBase> fe = FEBase::build(dim, fe_type);
         const std::vector<double>& JxW = fe->get_JxW();
         const std::vector<std::vector<double> >& phi = fe->get_phi();
-        boost::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
+        std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
         dphi_dxi[0] = &fe->get_dphidxi();
         if (NDIM > 2) dphi_dxi[1] = &fe->get_dphideta();
 
@@ -596,7 +597,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         boost::multi_array<double, 2> X_node, x_node;
         std::vector<double> U_qp, x_qp;
         VectorValue<double> U, U_n, U_t, N, n;
-        boost::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
+        std::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
 
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
         int local_patch_num = 0;
@@ -922,7 +923,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
         const std::vector<std::vector<double> >& phi = fe->get_phi();
-        boost::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
+        std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
         dphi_dxi[0] = &fe->get_dphidxi();
         if (NDIM > 2) dphi_dxi[1] = &fe->get_dphideta();
 
@@ -944,7 +945,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         boost::multi_array<double, 2> X_node, x_node;
         TensorValue<double> FF;
         VectorValue<double> F, F_b, F_s, F_qp, N, X, n, x;
-        boost::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
+        std::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -1526,7 +1527,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 
     UniquePtr<FEBase> fe = FEBase::build(dim, fe_type);
     const std::vector<std::vector<double> >& phi = fe->get_phi();
-    boost::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
+    std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
     dphi_dxi[0] = &fe->get_dphidxi();
     if (NDIM > 2) dphi_dxi[1] = &fe->get_dphideta();
 
@@ -1536,7 +1537,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
     boost::multi_array<double, 1> DP_node;
     boost::multi_array<double, 2> x_node;
-    boost::array<VectorValue<double>, 2> dx_dxi;
+    std::array<VectorValue<double>, 2> dx_dxi;
     VectorValue<double> n;
     std::vector<libMesh::Point> X_node_cache, x_node_cache;
     IBTK::Point x_min, x_max;
@@ -1555,7 +1556,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
         Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
-        boost::array<Box<NDIM>, NDIM> side_ghost_boxes;
+        std::array<Box<NDIM>, NDIM> side_ghost_boxes;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             side_ghost_boxes[d] = SideGeometry<NDIM>::toSideBox(f_data->getGhostBox(), d);
@@ -1564,9 +1565,9 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
         const double* const x_lower = patch_geom->getXLower();
         const double* const dx = patch_geom->getDx();
 
-        boost::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_points,
+        std::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_points,
             intersection_ref_coords;
-        boost::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>
+        std::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>
             intersection_normals;
 
         // Loop over the elements.

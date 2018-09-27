@@ -51,7 +51,6 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "boost/array.hpp"
 #include "ibtk/EdgeDataSynchronization.h"
 #include "ibtk/EdgeSynchCopyFillPattern.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

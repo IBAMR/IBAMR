@@ -35,13 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <stddef.h>
 #include <string>
 
 #include "CartesianGridGeometry.h"
 #include "IntVector.h"
 #include "PatchLevel.h"
-#include "boost/array.hpp"
 #include "ibtk/CartGridFunction.h"
 #include "tbox/Pointer.h"
 
@@ -140,8 +140,8 @@ private:
      */
     StaggeredStokesOpenBoundaryStabilizer& operator=(const StaggeredStokesOpenBoundaryStabilizer& that);
 
-    boost::array<bool, 2 * NDIM> d_open_bdry, d_inflow_bdry, d_outflow_bdry;
-    boost::array<double, 2 * NDIM> d_width;
+    std::array<bool, 2 * NDIM> d_open_bdry, d_inflow_bdry, d_outflow_bdry;
+    std::array<double, 2 * NDIM> d_width;
     const INSHierarchyIntegrator* const d_fluid_solver;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
 };

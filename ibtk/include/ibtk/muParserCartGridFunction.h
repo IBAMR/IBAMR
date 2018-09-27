@@ -42,7 +42,6 @@
 
 #include "CartesianGridGeometry.h"
 #include "PatchLevel.h"
-#include "boost/array.hpp"
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/ibtk_utilities.h"
 #include "muParser.h"

@@ -58,6 +58,8 @@
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
 
+#include <array>
+
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
@@ -67,7 +69,7 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const string& data_dump_dirname);
 
 int finest_ln;
-boost::array<int, NDIM> N;
+std::array<int, NDIM> N;
 SAMRAI::tbox::Array<std::string> struct_list;
 SAMRAI::tbox::Array<int> num_node;
 SAMRAI::tbox::Array<double> ds;

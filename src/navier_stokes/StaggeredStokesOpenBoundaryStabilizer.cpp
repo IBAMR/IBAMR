@@ -49,7 +49,6 @@
 #include "SideIndex.h"
 #include "Variable.h"
 #include "VariableContext.h"
-#include "boost/array.hpp"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesOpenBoundaryStabilizer.h"
 #include "ibamr/StokesSpecifications.h"

@@ -534,13 +534,6 @@ m4_popdef([BOOST_Library])dnl
 ])
 ])
 
-# BOOST_ARRAY()
-# -------------
-# Look for Boost.Array
-BOOST_DEFUN([Array],
-[BOOST_FIND_HEADER([boost/array.hpp])])
-
-
 # BOOST_ASIO()
 # ------------
 # Look for Boost.Asio (new in Boost 1.35).

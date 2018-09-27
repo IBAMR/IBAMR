@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <functional>
 #include <map>
 #include <string>
@@ -42,7 +43,6 @@
 #include <vector>
 
 #include "IntVector.h"
-#include "boost/array.hpp"
 #include "ibamr/IBRodForceSpec.h"
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
@@ -266,7 +266,7 @@ public:
      */
     struct RodSpec
     {
-        boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> properties;
+        std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> properties;
     };
 
     /*!

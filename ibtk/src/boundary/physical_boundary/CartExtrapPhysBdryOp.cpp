@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <stdlib.h>
 #include <ostream>
 #include <set>
@@ -64,7 +65,6 @@
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
-#include "boost/array.hpp"
 #include "ibtk/CartExtrapPhysBdryOp.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/ibtk_utilities.h"
@@ -383,19 +383,19 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
             const unsigned int location_index = it->second.first;
             const int codim = it->second.second;
 #if (NDIM == 2)
-            const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+            const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(
                                                               location_index, codim, 1) } };
-            const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+            const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isUpper(
                                                               location_index, codim, 1) } };
 #endif
 #if (NDIM == 3)
-            const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+            const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
                                                           PhysicalBoundaryUtilities::isLower(
                                                               location_index, codim, 2) } };
-            const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+            const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
                                                           PhysicalBoundaryUtilities::isUpper(
                                                               location_index, codim, 2) } };
@@ -487,19 +487,19 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
             const unsigned int location_index = it->second.first;
             const int codim = it->second.second;
 #if (NDIM == 2)
-            const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+            const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(
                                                               location_index, codim, 1) } };
-            const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+            const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isUpper(
                                                               location_index, codim, 1) } };
 #endif
 #if (NDIM == 3)
-            const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+            const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
                                                           PhysicalBoundaryUtilities::isLower(
                                                               location_index, codim, 2) } };
-            const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+            const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
                                                           PhysicalBoundaryUtilities::isUpper(
                                                               location_index, codim, 2) } };
@@ -599,19 +599,19 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
             const unsigned int location_index = it->second.first;
             const int codim = it->second.second;
 #if (NDIM == 2)
-            const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+            const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(
                                                               location_index, codim, 1) } };
-            const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+            const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isUpper(
                                                               location_index, codim, 1) } };
 #endif
 #if (NDIM == 3)
-            const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+            const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
                                                           PhysicalBoundaryUtilities::isLower(
                                                               location_index, codim, 2) } };
-            const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+            const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
                                                           PhysicalBoundaryUtilities::isUpper(
                                                               location_index, codim, 2) } };
@@ -703,19 +703,19 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
             const unsigned int location_index = it->second.first;
             const int codim = it->second.second;
 #if (NDIM == 2)
-            const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+            const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(
                                                               location_index, codim, 1) } };
-            const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+            const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isUpper(
                                                               location_index, codim, 1) } };
 #endif
 #if (NDIM == 3)
-            const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+            const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
                                                           PhysicalBoundaryUtilities::isLower(
                                                               location_index, codim, 2) } };
-            const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+            const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
                                                           PhysicalBoundaryUtilities::isUpper(
                                                               location_index, codim, 2) } };

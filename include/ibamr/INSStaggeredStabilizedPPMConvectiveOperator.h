@@ -35,13 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <string>
 #include <vector>
 
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SideVariable.h"
-#include "boost/array.hpp"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
@@ -192,8 +192,8 @@ private:
 
     // Operator configuration.
     std::string d_stabilization_type;
-    boost::array<bool, 2 * NDIM> d_open_bdry;
-    boost::array<double, 2 * NDIM> d_width;
+    std::array<bool, 2 * NDIM> d_open_bdry;
+    std::array<double, 2 * NDIM> d_width;
 
     // Boundary condition helper object.
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;

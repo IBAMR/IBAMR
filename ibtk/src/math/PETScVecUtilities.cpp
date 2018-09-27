@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <stddef.h>
 #include <algorithm>
 #include <numeric>
@@ -60,7 +61,6 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "boost/array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScVecUtilities.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
@@ -603,7 +603,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
         const int depth = dof_index_data->getDepth();
         dof_index_data->fillAll(-1);
         Pointer<SideData<NDIM, bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
-        boost::array<Box<NDIM>, NDIM> data_boxes;
+        std::array<Box<NDIM>, NDIM> data_boxes;
         BoxList<NDIM> data_box_union(patch_box);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
@@ -735,7 +735,7 @@ PETScVecUtilities::constructPatchLevelAO_side(AO& ao,
     const Index<NDIM>& domain_upper = domain_boxes[0].upper();
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
     IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(patch_level->getRatio());
-    boost::array<Index<NDIM>, NDIM> num_cells;
+    std::array<Index<NDIM>, NDIM> num_cells;
     for (unsigned d = 0; d < NDIM; ++d)
     {
         Index<NDIM> offset = 1;

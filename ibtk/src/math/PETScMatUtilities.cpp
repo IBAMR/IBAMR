@@ -33,6 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
+#include <array>
 #include <map>
 #include <numeric>
 #include <ostream>
@@ -56,7 +57,6 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "boost/array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/PETScMatUtilities.h"
@@ -1414,7 +1414,7 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
     }
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = coarse_patch_level->getGridGeometry();
     IntVector<NDIM> coarse_periodic_shift = grid_geom->getPeriodicShift(coarse_patch_level->getRatio());
-    boost::array<Index<NDIM>, NDIM> coarse_num_cells;
+    std::array<Index<NDIM>, NDIM> coarse_num_cells;
     for (unsigned d = 0; d < NDIM; ++d)
     {
         Index<NDIM> offset = 1;
@@ -1697,7 +1697,7 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
     }
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = coarse_patch_level->getGridGeometry();
     IntVector<NDIM> coarse_periodic_shift = grid_geom->getPeriodicShift(coarse_patch_level->getRatio());
-    boost::array<Index<NDIM>, NDIM> coarse_num_cells;
+    std::array<Index<NDIM>, NDIM> coarse_num_cells;
     for (unsigned d = 0; d < NDIM; ++d)
     {
         Index<NDIM> offset = 1;

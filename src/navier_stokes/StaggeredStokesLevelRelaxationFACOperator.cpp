@@ -75,7 +75,6 @@
 #include "petscpc.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "boost/array.hpp"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

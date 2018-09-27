@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <limits>
 #include <ostream>
 #include <stddef.h>
@@ -57,7 +58,6 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "boost/array.hpp"
 #include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
@@ -1430,11 +1430,11 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
                 // Define variables that live on the "faces" of control volumes centered about side-centered staggered
                 // velocity components
                 const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
-                boost::array<Box<NDIM>, NDIM> side_boxes;
-                boost::array<Pointer<FaceData<NDIM, double> >, NDIM> V_adv_data;
-                boost::array<Pointer<FaceData<NDIM, double> >, NDIM> V_half_data;
-                boost::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data;
-                boost::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data;
+                std::array<Box<NDIM>, NDIM> side_boxes;
+                std::array<Pointer<FaceData<NDIM, double> >, NDIM> V_adv_data;
+                std::array<Pointer<FaceData<NDIM, double> >, NDIM> V_half_data;
+                std::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data;
+                std::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data;
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
@@ -1849,11 +1849,11 @@ INSVCStaggeredConservativeMassMomentumIntegrator::setPreviousTimeStepSize(double
 
 void
 INSVCStaggeredConservativeMassMomentumIntegrator::computeAdvectionVelocity(
-    boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
+    std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
     const Pointer<SideData<NDIM, double> > U_data,
     const IntVector<NDIM>& patch_lower,
     const IntVector<NDIM>& patch_upper,
-    const boost::array<Box<NDIM>, NDIM>& side_boxes)
+    const std::array<Box<NDIM>, NDIM>& side_boxes)
 {
 #if (NDIM == 2)
     NAVIER_STOKES_INTERP_COMPS_FC(patch_lower(0),
@@ -1935,12 +1935,12 @@ INSVCStaggeredConservativeMassMomentumIntegrator::computeAdvectionVelocity(
 
 void
 INSVCStaggeredConservativeMassMomentumIntegrator::interpolateSideQuantity(
-    boost::array<Pointer<FaceData<NDIM, double> >, NDIM> Q_half_data,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
+    std::array<Pointer<FaceData<NDIM, double> >, NDIM> Q_half_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
     const Pointer<SideData<NDIM, double> > Q_data,
     const IntVector<NDIM>& patch_lower,
     const IntVector<NDIM>& patch_upper,
-    const boost::array<Box<NDIM>, NDIM>& side_boxes,
+    const std::array<Box<NDIM>, NDIM>& side_boxes,
     const LimiterType& convective_limiter)
 {
     switch (convective_limiter)
@@ -2411,11 +2411,11 @@ INSVCStaggeredConservativeMassMomentumIntegrator::interpolateSideQuantity(
 void
 INSVCStaggeredConservativeMassMomentumIntegrator::computeConvectiveDerivative(
     Pointer<SideData<NDIM, double> > N_data,
-    boost::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data,
-    const boost::array<Box<NDIM>, NDIM>& side_boxes,
+    std::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data,
+    const std::array<Box<NDIM>, NDIM>& side_boxes,
     const double* const dx)
 {
 // Compute the upwinded momentum P_half = R_half * U_half
@@ -2584,10 +2584,10 @@ INSVCStaggeredConservativeMassMomentumIntegrator::computeDensityUpdate(
     const double& a1,
     const Pointer<SideData<NDIM, double> > R1_data,
     const double& a2,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
     const Pointer<SideData<NDIM, double> > S_data,
-    const boost::array<Box<NDIM>, NDIM>& side_boxes,
+    const std::array<Box<NDIM>, NDIM>& side_boxes,
     const double& dt,
     const double* const dx)
 {

@@ -31,7 +31,6 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
 #include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
 #include "ArrayDataBasicOps.h"
 #include "CartesianPatchGeometry.h"
@@ -42,7 +41,6 @@
 #include "PatchHierarchy.h"
 #include "SideData.h"
 #include "SideIndex.h"
-#include "boost/array.hpp"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/INSStaggeredPressureBcCoef.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"

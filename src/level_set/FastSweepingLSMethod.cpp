@@ -37,7 +37,6 @@
 #include "HierarchyCellDataOpsReal.h"
 #include "IBAMR_config.h"
 #include "VariableDatabase.h"
-#include "boost/array.hpp"
 #include "ibamr/namespaces.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
