@@ -89,7 +89,8 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = examples/PETScOps
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/ax_cxx_compile_stdcxx.m4 \
+	$(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/ax_prog_cc_mpi.m4 \
 	$(top_srcdir)/m4/ax_prog_cxx_mpi.m4 $(top_srcdir)/m4/boost.m4 \
 	$(top_srcdir)/m4/check_builtins.m4 \
@@ -245,6 +246,7 @@ FFLAGS = @FFLAGS@
 FGREP = @FGREP@
 FLIBS = @FLIBS@
 GREP = @GREP@
+HAVE_CXX11 = @HAVE_CXX11@
 HAVE_DOT = @HAVE_DOT@
 HAVE_DOXYGEN = @HAVE_DOXYGEN@
 HAVE_LIBGSL = @HAVE_LIBGSL@
