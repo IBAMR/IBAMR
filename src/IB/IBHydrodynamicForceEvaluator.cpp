@@ -31,6 +31,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include <array>
 
 #include "ibamr/IBHydrodynamicForceEvaluator.h"
 #include "ArrayDataBasicOps.h"
@@ -42,7 +43,6 @@
 #include "PatchHierarchy.h"
 #include "SideData.h"
 #include "SideIndex.h"
-#include "boost/array.hpp"
 #include "ibamr/INSStaggeredPressureBcCoef.h"
 #include "ibamr/namespaces.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
@@ -642,7 +642,7 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                 if (!boxes_intersect) continue;
 
                 // Store boxes corresponding to integration domain boundaries.
-                boost::array<boost::array<Box<NDIM>, 2>, NDIM> bdry_boxes;
+                std::array<std::array<Box<NDIM>, 2>, NDIM> bdry_boxes;
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
                     Box<NDIM> bdry_box;

@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <ostream>
 #include <string>
 
@@ -43,7 +44,6 @@
 #include "IntVector.h"
 #include "SideGeometry.h"
 #include "SideOverlap.h"
-#include "boost/array.hpp"
 #include "ibtk/SideNoCornersFillPattern.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
@@ -99,7 +99,7 @@ SideNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry
 #if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
 #endif
-    boost::array<BoxList<NDIM>, NDIM> dst_boxes;
+    std::array<BoxList<NDIM>, NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
     {
         const Box<NDIM>& dst_box = t_dst_geometry->getBox();
@@ -171,7 +171,7 @@ SideNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometry<NDIM>& dst_g
 #if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
 #endif
-    boost::array<BoxList<NDIM>, NDIM> dst_boxes;
+    std::array<BoxList<NDIM>, NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
     {
         const Box<NDIM>& dst_box = t_dst_geometry->getBox();

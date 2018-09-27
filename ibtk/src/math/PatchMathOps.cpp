@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <ostream>
 
 #include "Box.h"
@@ -49,7 +50,6 @@
 #include "PatchSideDataOpsReal.h"
 #include "SideData.h"
 #include "SideGeometry.h"
-#include "boost/array.hpp"
 #include "ibtk/PatchMathOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
@@ -5231,14 +5231,14 @@ PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    boost::array<double*, NDIM> F;
+    std::array<double*, NDIM> F;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         F[d] = dst->getPointer(d, l);
     }
     const int F_ghosts = (dst->getGhostCellWidth()).max();
 
-    boost::array<const double*, NDIM> U;
+    std::array<const double*, NDIM> U;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         U[d] = src1->getPointer(d, m);
@@ -5303,7 +5303,7 @@ PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
 
     if (!src2 || (gamma == 0.0))
     {
-        boost::array<int, NDIM> ilower, iupper;
+        std::array<int, NDIM> ilower, iupper;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             for (unsigned int dd = 0; dd < NDIM; ++dd)
@@ -5352,7 +5352,7 @@ PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
     }
     else
     {
-        boost::array<const double*, NDIM> V;
+        std::array<const double*, NDIM> V;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             V[d] = src2->getPointer(d, n);
@@ -5374,7 +5374,7 @@ PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
                        << std::endl);
         }
 #endif
-        boost::array<int, NDIM> ilower, iupper;
+        std::array<int, NDIM> ilower, iupper;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             for (unsigned int dd = 0; dd < NDIM; ++dd)

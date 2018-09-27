@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <stddef.h>
 #include <algorithm>
 #include <cmath>
@@ -56,7 +57,6 @@
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "boost/array.hpp"
 #include "boost/math/special_functions/round.hpp"
 #include "boost/multi_array.hpp"
 #include "ibamr/IBAnchorPointSpec.h"
@@ -1237,7 +1237,7 @@ IBStandardInitializer::readRodFiles(const std::string& extension, const bool inp
                 for (int k = 0; k < num_rods; ++k)
                 {
                     int curr_idx = std::numeric_limits<int>::max(), next_idx = std::numeric_limits<int>::max();
-                    boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> properties;
+                    std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> properties;
                     double& ds = properties[0];
                     double& a1 = properties[1];
                     double& a2 = properties[2];
@@ -2814,7 +2814,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
     if (d_enable_rods[level_number][j])
     {
         std::vector<int> rod_next_idxs;
-        std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
+        std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
         for (std::multimap<int, Edge>::const_iterator it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
              it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx);
              ++it)

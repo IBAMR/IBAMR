@@ -64,7 +64,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "boost/array.hpp"
 #include "ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h"
 #include "ibamr/StaggeredStokesPETScLevelSolver.h"
 #include "ibamr/StaggeredStokesPETScMatUtilities.h"

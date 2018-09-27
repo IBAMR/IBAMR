@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <functional>
 #include <map>
 #include <string>
@@ -42,7 +43,6 @@
 #include <vector>
 
 #include "IntVector.h"
-#include "boost/array.hpp"
 #include "ibamr/IBRedundantInitializer.h"
 #include "ibamr/IBRodForceSpec.h"
 #include "ibtk/LInitStrategy.h"
@@ -632,7 +632,7 @@ private:
     std::vector<std::vector<bool> > d_enable_rods;
 
     std::vector<std::vector<bool> > d_using_uniform_rod_properties;
-    std::vector<std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_uniform_rod_properties;
+    std::vector<std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_uniform_rod_properties;
 
     /*
      * Target point information.

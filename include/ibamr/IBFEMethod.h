@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <set>
 #include <stdbool.h>
 #include <stddef.h>
@@ -812,11 +813,11 @@ protected:
     bool d_has_overlap_force_parts;
     std::vector<bool> d_is_overlap_force_part;
     std::vector<std::set<libMesh::dof_id_type> > d_overlap_force_part_ghost_idxs;
-    std::vector<boost::array<unsigned int, 2> > d_overlap_force_part_idxs;
-    std::vector<boost::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2> >
+    std::vector<std::array<unsigned int, 2> > d_overlap_force_part_idxs;
+    std::vector<std::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2> >
         d_overlapping_elem_map;
     std::vector<double> d_overlap_force_part_kappa;
-    std::vector<boost::array<libMesh::QBase*, 2> > d_overlap_force_part_qrule; // \todo let's try to fix this when we switch to C++11!
+    std::vector<std::array<libMesh::QBase*, 2> > d_overlap_force_part_qrule; // \todo let's try to fix this when we switch to C++11!
     std::vector<std::vector<double> > d_overlap_force_part_max_displacement;
 
     /*

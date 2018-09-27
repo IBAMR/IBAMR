@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <stddef.h>
 #include <ostream>
 #include <string>
@@ -57,7 +58,6 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "boost/array.hpp"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSStaggeredUpwindConvectiveOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
@@ -446,9 +446,9 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
             Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
 
             const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
-            boost::array<Box<NDIM>, NDIM> side_boxes;
-            boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data;
-            boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data;
+            std::array<Box<NDIM>, NDIM> side_boxes;
+            std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data;
+            std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);

@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <math.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -59,7 +60,6 @@
 #include "PatchLevel.h"
 #include "SideData.h"
 #include "SideIndex.h"
-#include "boost/array.hpp"
 #include "boost/multi_array.hpp"
 #include "ibamr/IBInstrumentPanel.h"
 #include "ibamr/IBInstrumentationSpec.h"
@@ -329,7 +329,7 @@ linear_interp(const Point& X,
               const double* const /*x_upper*/,
               const double* const dx)
 {
-    boost::array<bool, NDIM> is_lower;
+    std::array<bool, NDIM> is_lower;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         is_lower[d] = X[d] < X_cell[d];
@@ -390,7 +390,7 @@ linear_interp(const Point& X,
 #if !defined(NDEBUG)
     TBOX_ASSERT(v.getDepth() == N);
 #endif
-    boost::array<bool, NDIM> is_lower;
+    std::array<bool, NDIM> is_lower;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         is_lower[d] = X[d] < X_cell[d];
@@ -456,7 +456,7 @@ linear_interp(const Point& X,
     Vector U(Vector::Zero());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        boost::array<bool, NDIM> is_lower;
+        std::array<bool, NDIM> is_lower;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             if (d == axis)
@@ -848,7 +848,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
     const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
 
     const IntVector<NDIM>& ratio_to_level_zero = hierarchy->getPatchLevel(finest_ln)->getRatio();
-    boost::array<double, NDIM> dx_finest;
+    std::array<double, NDIM> dx_finest;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         dx_finest[d] = dx_coarsest[d] / static_cast<double>(ratio_to_level_zero(d));
@@ -889,7 +889,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
         const Box<NDIM> domain_box_level = Box<NDIM>::refine(domain_box, ratio);
         const Index<NDIM>& domain_box_level_lower = domain_box_level.lower();
         const Index<NDIM>& domain_box_level_upper = domain_box_level.upper();
-        boost::array<double, NDIM> dx;
+        std::array<double, NDIM> dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dx[d] = dx_coarsest[d] / static_cast<double>(ratio(d));
@@ -901,7 +901,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
         const Box<NDIM> finer_domain_box_level = Box<NDIM>::refine(domain_box, finer_ratio);
         const Index<NDIM>& finer_domain_box_level_lower = finer_domain_box_level.lower();
         const Index<NDIM>& finer_domain_box_level_upper = finer_domain_box_level.upper();
-        boost::array<double, NDIM> finer_dx;
+        std::array<double, NDIM> finer_dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             finer_dx[d] = dx_coarsest[d] / static_cast<double>(finer_ratio(d));

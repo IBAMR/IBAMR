@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <stddef.h>
 #include <algorithm>
 #include <functional>
@@ -68,7 +69,6 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "boost/array.hpp"
 #include "ibtk/CCPoissonBoxRelaxationFACOperator.h"
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartCellDoubleCubicCoarsen.h"
@@ -910,7 +910,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
 
     // Setup the finite difference stencil.  The stencil order is chosen to
     // optimize performance when setting the matrix coefficients.
-    boost::array<int, NDIM> num_cells;
+    std::array<int, NDIM> num_cells;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = ghost_box.numberCells(d);
@@ -1037,7 +1037,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
 #endif
 
     // Setup the finite difference stencil.
-    boost::array<int, NDIM> num_cells;
+    std::array<int, NDIM> num_cells;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = ghost_box.numberCells(d);

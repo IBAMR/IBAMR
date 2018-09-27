@@ -50,7 +50,6 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "boost/array.hpp"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"

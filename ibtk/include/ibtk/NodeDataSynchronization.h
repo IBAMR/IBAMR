@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -43,7 +44,6 @@
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
-#include "boost/array.hpp"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
@@ -215,8 +215,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds;
 
-    boost::array<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >, NDIM> d_refine_alg;
-    boost::array<std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >, NDIM> d_refine_scheds;
+    std::array<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >, NDIM> d_refine_alg;
+    std::array<std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >, NDIM> d_refine_scheds;
 };
 } // namespace IBTK
 

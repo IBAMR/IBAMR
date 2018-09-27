@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -66,7 +67,6 @@
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
-#include "boost/array.hpp"
 #include "boost/math/special_functions/round.hpp"
 #include "boost/multi_array.hpp"
 #include "ibamr/IMPMethod.h"
@@ -489,7 +489,7 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
                     // function evaluated about X.
                     Box<NDIM> stencil_box;
                     const int stencil_size = LEInteractor::getStencilSize(KERNEL_FCN);
-                    boost::array<boost::multi_array<double, 1>, NDIM> phi, dphi;
+                    std::array<boost::multi_array<double, 1>, NDIM> phi, dphi;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         phi[d].resize(boost::extents[stencil_size]);
@@ -891,7 +891,7 @@ IMPMethod::spreadForce(const int f_data_idx,
                     // X.
                     Box<NDIM> stencil_box;
                     const int stencil_size = LEInteractor::getStencilSize(KERNEL_FCN);
-                    boost::array<boost::multi_array<double, 1>, NDIM> phi, dphi;
+                    std::array<boost::multi_array<double, 1>, NDIM> phi, dphi;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         phi[d].resize(boost::extents[stencil_size]);

@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <vector>
 
 #include "Box.h"
@@ -40,7 +41,6 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
-#include "boost/array.hpp"
 #include "ibtk/LIndexSetData.h"
 #include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
@@ -111,7 +111,7 @@ LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntVector
 
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    boost::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
+    std::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         patch_touches_lower_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis, 0);
@@ -121,7 +121,7 @@ LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntVector
     for (typename LSetData<T>::SetIterator it(*this); it; it++)
     {
         const CellIndex<NDIM>& i = it.getIndex();
-        boost::array<int, NDIM> offset;
+        std::array<int, NDIM> offset;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             if (patch_touches_lower_periodic_bdry[d] && i(d) < ilower(d))

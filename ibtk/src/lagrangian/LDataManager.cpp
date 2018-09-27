@@ -85,7 +85,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
-#include "boost/array.hpp"
 #include "boost/math/special_functions/round.hpp"
 #include "boost/multi_array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"

@@ -31,6 +31,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include <array>
+
 #include "ibamr/INSStaggeredWavePropConvectiveOperator.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
@@ -49,7 +51,6 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "boost/array.hpp"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
@@ -302,8 +303,8 @@ INSStaggeredWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx,
             Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
             const IntVector<NDIM> U_gcw = U_data->getGhostCellWidth();
 
-            boost::array<Box<NDIM>, NDIM> side_boxes;
-            boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data;
+            std::array<Box<NDIM>, NDIM> side_boxes;
+            std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);

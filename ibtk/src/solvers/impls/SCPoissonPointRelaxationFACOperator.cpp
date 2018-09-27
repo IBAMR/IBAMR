@@ -65,7 +65,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "boost/array.hpp"
 #include "ibtk/CartSideDoubleCubicCoarsen.h"
 #include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"

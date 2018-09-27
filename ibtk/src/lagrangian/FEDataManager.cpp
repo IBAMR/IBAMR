@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <algorithm>
 #include <cmath>
 #include <functional>
@@ -78,7 +79,6 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "boost/array.hpp"
 #include "boost/multi_array.hpp"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -960,7 +960,7 @@ FEDataManager::prolongData(const int f_data_idx,
         const double* const patch_x_lower = patch_geom->getXLower();
         const double* const patch_dx = patch_geom->getDx();
 
-        boost::array<Box<NDIM>, NDIM> side_boxes;
+        std::array<Box<NDIM>, NDIM> side_boxes;
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
@@ -1197,7 +1197,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
-            boost::array<bool, NDIM> touches_upper_regular_bdry;
+            std::array<bool, NDIM> touches_upper_regular_bdry;
             for (unsigned int d = 0; d < NDIM; ++d)
                 touches_upper_regular_bdry[d] = patch_geom->getTouchesRegularBoundary(d, 1);
 
@@ -1578,7 +1578,7 @@ FEDataManager::restrictData(const int f_data_idx,
         double dV = 1.0;
         for (unsigned int d = 0; d < NDIM; ++d) dV *= patch_dx[d];
 
-        boost::array<Box<NDIM>, NDIM> side_boxes;
+        std::array<Box<NDIM>, NDIM> side_boxes;
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
