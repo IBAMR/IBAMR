@@ -64,7 +64,11 @@ LSLocateColumnInterface::setLevelSetPatchData(int D_idx,
     }
 
     // Set the initial condition for locating the interface
-    const IBTK::Vector& X_UR = d_init_column.X_UR;
+    const double& A = d_init_column.AMPLITUDE;
+    const double& k = d_init_column.WAVENUMBER;
+    const double& d = d_init_column.DEPTH;
+    const double& x_zone_start = d_init_column.X_ZONE_START;
+    const double& x_zone_end = d_init_column.X_ZONE_END;
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -89,37 +93,24 @@ LSLocateColumnInterface::setLevelSetPatchData(int D_idx,
                     coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
                 }
 
-                // Check if the coordinate is inside the interface
-                const bool inside_interface = (coord[0] <= X_UR[0]) && (coord[1] <= X_UR[1])
-#if (NDIM == 3)
-                                              && (coord[2] <= X_UR[2])
-#endif
-                    ;
-                if (inside_interface)
+                double x_posn = coord[0];
+                if (x_posn <= x_zone_start)
                 {
-                    // If inside the interface, simply set the distance to be the minimum distance from all faces of the
-                    // column
-                    double abs_dist[NDIM];
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        abs_dist[d] = std::abs(coord[d] - X_UR[d]);
-                    }
-                    (*D_data)(ci) = -(*std::min_element(abs_dist, abs_dist + NDIM));
+#if (NDIM == 2)
+                    (*D_data)(ci) = coord[1] - A * cos(k * x_posn) - d;
+#elif (NDIM == 3)
+                    (*D_data)(ci) = coord[2] - A * cos(k * x_posn) - d;
+#endif
                 }
                 else
                 {
-                    // If outside the interface, figure out the closest face and figure out the distance from that.
-                    // Note that this will make a slight error in distances near the corner, but likely does not matter.
-                    if (coord[0] >= X_UR[0])
-                        (*D_data)(ci) = std::abs(coord[0] - X_UR[0]);
-                    else if (coord[1] >= X_UR[1])
-                        (*D_data)(ci) = std::abs(coord[1] - X_UR[1]);
-#if (NDIM == 3)
-                    else if (coord[2] >= X_UR[2])
-                        (*D_data)(ci) = std::abs(coord[2] - X_UR[2]);
+                    double xtilde = (x_posn - x_zone_start) / (x_zone_end - x_zone_start);
+                    double gamma = 1.0 - (exp(std::pow(xtilde, 2.0)) - 1.0) / (exp(1.0) - 1.0);
+#if (NDIM == 2)
+                    (*D_data)(ci) = coord[1] - gamma * A * cos(k * x_posn) - d;
+#elif (NDIM == 3)
+                    (*D_data)(ci) = coord[2] - gamma * A * cos(k * x_posn) - d;
 #endif
-                    else
-                        TBOX_ERROR("This statement should not be reached");
                 }
             }
         }
