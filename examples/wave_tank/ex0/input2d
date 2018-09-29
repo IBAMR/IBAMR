@@ -2,19 +2,19 @@
 PI = 3.14159265358979e+0
 
 // application parameters
-L     = 32.0
-H     = 2.0
-X_UR  = 32.0,0.6
+L     = 6.0
+H     = 1.0
 G     = 9.81
 GRAV_CONST = 0.0,-G
 
 // WAVE PARAMETRS
-DEPTH       =  0.6
-AMPLITUDE   =  0.1/2.0
-TIME_PERIOD =  2.0
+DEPTH       =  0.5
+AMPLITUDE   =  0.025/2.0
+TIME_PERIOD =  1.5
 OMEGA       =  2*PI/TIME_PERIOD
-WAVELENGTH  =  4.3620               // From Stokes theory
-WAVENUMBER  =  2*PI/WAVELENGTH
+WAVELENGTH  =  2.8264
+WAVENUMBER  =  2.223
+X_UR        = L, DEPTH
 
 // material properties
 MU_I       = 1.137e-3
@@ -22,14 +22,14 @@ MU_O       = 1.78e-5
 RHO_I      = 1.0e3
 RHO_O      = 1.226
 
-NUM_INTERFACE_CELLS = 2.0
+NUM_INTERFACE_CELLS = 1.0
 
 // grid spacing parameters
 MAX_LEVELS = 1        // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 
-Ny = 32
-Nx = 512                                   // coarsest grid spacing
+Ny = 100
+Nx = 600                                   // coarsest grid spacing
 NXFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
 NYFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Ny  // finest   grid spacing
 
@@ -47,6 +47,8 @@ APPLY_MASS_CONSTRAINT = FALSE
 LS_TAG_VALUE = 0.0
 LS_TAG_ABS_THRESH = 2.0*L/Nx
 VORTICITY_REL_THRESH = 0.5
+COLUMN_AMPLITUDE = 0.0
+
 
 // surface tension parameters
 DELTA_FUNCTION = "IB_4"
@@ -55,11 +57,14 @@ SIGMA = 0.0 //0.0728
 U = "0.0"
 V = "0.0"
 
-X_ZONE_START = L - 2 * WAVELENGTH
-X_ZONE_END = L
+X_ZONE_START_DAMPER = L - 1.0 * WAVELENGTH
+X_ZONE_END_DAMPER = L
+X_ZONE_START_GENERATOR = 0.0
+X_ZONE_END_GENERATOR = 3*WAVELENGTH
+
 OutletDampingZone {
-    x_zone_start = X_ZONE_START
-    x_zone_end   = X_ZONE_END
+    x_zone_start = X_ZONE_START_DAMPER
+    x_zone_end   = X_ZONE_END_DAMPER
     theta        = 0.0
 }
 
@@ -73,12 +78,12 @@ VelocityBcCoefs_0 {
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
-   acoef_function_3 = "0.0"
+   acoef_function_3 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
-   bcoef_function_3 = "1.0"
+   bcoef_function_3 = "0.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
@@ -120,6 +125,12 @@ VelocityBcCoefs_1 {
 }
 
 PhiBcCoefs {
+
+    D  =  DEPTH
+    W  =  OMEGA
+    K  =  WAVENUMBER
+    A  =  AMPLITUDE
+
    acoef_function_0 = "0.0"
    acoef_function_1 = "0.0"
    acoef_function_2 = "0.0"
@@ -179,7 +190,7 @@ MuBcCoefs {
 SOLVER_TYPE                         = "STAGGERED"
 DISCRETIZATION_FORM                 = "CONSERVATIVE"
 START_TIME                          =  0.0e0     // initial simulation time
-END_TIME                            =  100.0e0    // final simulation time
+END_TIME                            =  400.0e0    // final simulation time
 GROW_DT                             =  2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS                =  500000  // max number of simulation timesteps
 REGRID_INTERVAL                     =  1
@@ -193,7 +204,7 @@ NORMALIZE_PRESSURE                  = FALSE
 VORTICITY_TAGGING                   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                          = 2                          // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL                 = 0.3                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
-DT_MAX                              = 0.01/(REF_RATIO^(MAX_LEVELS - 1))/2.0
+DT_MAX                              = 0.01
 OUTPUT_U                            = TRUE
 OUTPUT_P                            = TRUE
 OUTPUT_F                            = TRUE
@@ -451,7 +462,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 50
+   viz_dump_interval           = 5
    viz_dump_dirname            = "viz_INS2d"
    visit_number_procs_per_file = 1
 
