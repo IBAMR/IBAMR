@@ -36,7 +36,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <array>
-#include <stddef.h>
 #include <unistd.h>
 #include <vector>
 

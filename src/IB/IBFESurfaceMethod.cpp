@@ -38,8 +38,6 @@
 #include <limits>
 #include <ostream>
 #include <set>
-#include <stdbool.h>
-#include <stddef.h>
 #include <string>
 #include <utility>
 #include <vector>

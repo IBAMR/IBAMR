@@ -43,7 +43,6 @@
 #include <map>
 #include <numeric>
 #include <ostream>
-#include <stddef.h>
 #include <string>
 #include <utility>
 #include <vector>

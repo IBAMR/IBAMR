@@ -34,8 +34,6 @@
 
 #include <array>
 #include <math.h>
-#include <stddef.h>
-#include <stdio.h>
 #include <algorithm>
 #include <fstream>
 #include <limits>

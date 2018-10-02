@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <functional>
 #include <map>

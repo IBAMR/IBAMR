@@ -1,7 +1,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <math.h>
-#include <stdlib.h>
 #include <time.h>
 #include <iosfwd>
 #include <iostream>

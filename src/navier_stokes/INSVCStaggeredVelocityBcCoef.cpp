@@ -35,7 +35,6 @@
 #include <algorithm>
 #include <limits>
 #include <ostream>
-#include <stddef.h>
 #include <string>
 #include <vector>
 

@@ -36,7 +36,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <array>
-#include <stddef.h>
 #include <string>
 
 #include "CartesianGridGeometry.h"

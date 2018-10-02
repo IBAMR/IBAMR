@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <ostream>
 #include <string>
 #include <vector>

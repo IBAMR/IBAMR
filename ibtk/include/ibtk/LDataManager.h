@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <map>
 #include <ostream>
 #include <string>

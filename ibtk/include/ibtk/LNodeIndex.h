@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <functional>
 #include <ostream>
 

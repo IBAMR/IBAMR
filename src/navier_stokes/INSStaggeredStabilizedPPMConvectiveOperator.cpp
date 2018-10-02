@@ -33,7 +33,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <array>
-#include <stddef.h>
 #include <cmath>
 #include <ostream>
 #include <string>

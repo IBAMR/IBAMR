@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 
 #include "IntVector.h"
 #include "SAMRAIVectorReal.h"

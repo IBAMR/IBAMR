@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 
 #include "Box.h"
 #include "CellGeometry.h" // IWYU pragma: keep

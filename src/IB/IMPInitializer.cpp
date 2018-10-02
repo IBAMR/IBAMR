@@ -33,8 +33,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <math.h>
-#include <stdbool.h>
-#include <stddef.h>
 #include <algorithm>
 #include <map>
 #include <ostream>

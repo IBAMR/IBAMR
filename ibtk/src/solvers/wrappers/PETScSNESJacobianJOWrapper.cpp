@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <string>
 
 #include "IntVector.h"

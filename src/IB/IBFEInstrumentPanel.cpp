@@ -39,8 +39,6 @@
 #include <map>
 #include <math.h>
 #include <sstream>
-#include <stddef.h>
-#include <stdio.h>
 #include <string>
 #include <utility>
 #include <vector>

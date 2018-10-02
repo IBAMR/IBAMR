@@ -37,7 +37,6 @@
 #include <limits>
 #include <map>
 #include <ostream>
-#include <stddef.h>
 #include <vector>
 
 #include "ArrayData.h"

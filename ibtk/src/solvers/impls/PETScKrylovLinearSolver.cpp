@@ -35,7 +35,6 @@
 #include <algorithm>
 #include <math.h>
 #include <ostream>
-#include <stddef.h>
 #include <string.h>
 #include <string>
 #include <vector>
