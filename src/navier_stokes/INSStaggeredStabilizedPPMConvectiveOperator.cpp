@@ -33,7 +33,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <array>
-#include <stddef.h>
 #include <cmath>
 #include <ostream>
 #include <string>
@@ -468,7 +467,7 @@ static const int GADVECTG = 4;
 inline double
 smooth_kernel(const double r)
 {
-    return std::abs(r) < 1.0 ? 0.5 * (cos(M_PI * r) + 1.0) : 0.0;
+    return std::abs(r) < 1.0 ? 0.5 * (std::cos(M_PI * r) + 1.0) : 0.0;
 } // smooth_kernel
 
 // Timers.

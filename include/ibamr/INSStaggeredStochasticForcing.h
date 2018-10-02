@@ -33,7 +33,6 @@
 #ifndef included_IBAMR_INSStaggeredStochasticForcing
 #define included_IBAMR_INSStaggeredStochasticForcing
 
-#include <stddef.h>
 #include <string>
 #include <vector>
 

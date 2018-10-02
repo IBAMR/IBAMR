@@ -32,9 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include <cmath>
 #include <algorithm>
 #include <map>
 #include <ostream>

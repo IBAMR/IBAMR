@@ -33,10 +33,8 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <array>
-#include <math.h>
-#include <stdbool.h>
-#include <stddef.h>
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -139,7 +137,7 @@ kernel(const double X,
     const double r5 = r * r4;
     const double r6 = r * r5;
 
-    static const double K = (59.0 / 60.0) * (1.0 - sqrt(1.0 - (3220.0 / 3481.0)));
+    static const double K = (59.0 / 60.0) * (1.0 - std::sqrt(1.0 - (3220.0 / 3481.0)));
     static const double K2 = K * K;
 
     static const double alpha = 28.0;
@@ -154,7 +152,7 @@ kernel(const double X,
 
     const double discr = beta * beta - 4.0 * alpha * gamma;
 
-    phi[0] = (-beta + copysign(1.0, (3.0 / 2.0) - K) * sqrt(discr)) / (2.0 * alpha);
+    phi[0] = (-beta + std::copysign(1.0, (3.0 / 2.0) - K) * std::sqrt(discr)) / (2.0 * alpha);
     phi[1] =
         -3.0 * phi[0] - (1.0 / 16.0) + (1.0 / 8.0) * (K + r2) + (1.0 / 12.0) * (3.0 * K - 1.0) * r + (1.0 / 12.0) * r3;
     phi[2] = 2.0 * phi[0] + (1.0 / 4.0) + (1.0 / 6.0) * (4.0 - 3.0 * K) * r - (1.0 / 6.0) * r3;

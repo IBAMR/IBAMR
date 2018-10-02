@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stdbool.h>
 #include <map>
 #include <string>
 #include <utility>

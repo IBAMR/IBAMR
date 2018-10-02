@@ -32,8 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stdbool.h>
-#include <stddef.h>
 #include <ostream>
 #include <set>
 #include <string>

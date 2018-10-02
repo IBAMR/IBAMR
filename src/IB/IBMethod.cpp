@@ -33,9 +33,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <array>
-#include <stddef.h>
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <functional>
 #include <limits>
 #include <numeric>
@@ -131,7 +131,7 @@ cos_kernel(const double x, const double eps)
     }
     else
     {
-        return 0.5 * (1.0 + cos(M_PI * x / eps)) / eps;
+        return 0.5 * (1.0 + std::cos(M_PI * x / eps)) / eps;
     }
 } // cos_kernel
 
@@ -888,7 +888,7 @@ IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type, const doubl
 {
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    if (!strcmp(mat_type, MATMFFD) || !strcmp(mat_type, MATSHELL))
+    if (!std::strcmp(mat_type, MATMFFD) || !std::strcmp(mat_type, MATSHELL))
     {
         if (!d_force_jac)
         {
@@ -918,7 +918,7 @@ IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type, const doubl
         std::vector<int> d_nnz, o_nnz;
         d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(
             d_nnz, o_nnz, d_hierarchy, finest_ln, d_l_data_manager);
-        if (!strcmp(mat_type, MATBAIJ) || !strcmp(mat_type, MATMPIBAIJ))
+        if (!std::strcmp(mat_type, MATBAIJ) || !std::strcmp(mat_type, MATMPIBAIJ))
         {
             ierr = MatCreateBAIJ(PETSC_COMM_WORLD,
                                  NDIM,
@@ -933,7 +933,7 @@ IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type, const doubl
                                  &A);
             IBTK_CHKERRQ(ierr);
         }
-        else if (!strcmp(mat_type, MATAIJ) || !strcmp(mat_type, MATMPIAIJ))
+        else if (!std::strcmp(mat_type, MATAIJ) || !std::strcmp(mat_type, MATMPIAIJ))
         {
             std::vector<int> d_nnz_unblocked(NDIM * d_nnz.size()), o_nnz_unblocked(NDIM * o_nnz.size());
             for (unsigned int k = 0; k < d_nnz.size(); ++k)
@@ -1544,7 +1544,7 @@ IBMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
     }
 
     // Compute the set of local anchor points.
-    static const double eps = 2.0 * sqrt(std::numeric_limits<double>::epsilon());
+    static const double eps = 2.0 * std::sqrt(std::numeric_limits<double>::epsilon());
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
     const double* const grid_x_lower = grid_geom->getXLower();
     const double* const grid_x_upper = grid_geom->getXUpper();

@@ -32,8 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stddef.h>
+#include <cmath>
 #include <algorithm>
 #include <functional>
 #include <numeric>

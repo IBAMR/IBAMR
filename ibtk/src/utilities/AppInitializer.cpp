@@ -32,9 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <ostream>
 #include <string>
 #include <vector>

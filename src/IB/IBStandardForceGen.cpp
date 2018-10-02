@@ -32,8 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stddef.h>
+#include <cmath>
 #include <algorithm>
 #include <functional>
 #include <iterator>
@@ -600,7 +599,7 @@ IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
             if (!force_deriv_fcn)
             {
                 // Use finite differences to approximate dT/dR.
-                eps = std::max(R, 1.0) * pow(std::numeric_limits<double>::epsilon(), 1.0 / 3.0);
+                eps = std::max(R, 1.0) * std::pow(std::numeric_limits<double>::epsilon(), 1.0 / 3.0);
                 dT_dR = (force_fcn(R + eps, params, lag_mastr_idx, lag_slave_idx) -
                          force_fcn(R - eps, params, lag_mastr_idx, lag_slave_idx)) /
                         (2.0 * eps);
@@ -916,10 +915,10 @@ IBStandardForceGen::computeLagrangianSpringForce(Pointer<LData> F_data,
             D[2] = X_node[slave_idx + 2] - X_node[mastr_idx + 2];
 #endif
 #if (NDIM == 2)
-            R = sqrt(D[0] * D[0] + D[1] * D[1]);
+            R = std::sqrt(D[0] * D[0] + D[1] * D[1]);
 #endif
 #if (NDIM == 3)
-            R = sqrt(D[0] * D[0] + D[1] * D[1] + D[2] * D[2]);
+            R = std::sqrt(D[0] * D[0] + D[1] * D[1] + D[2] * D[2]);
 #endif
             if (UNLIKELY(R < std::numeric_limits<double>::epsilon())) continue;
             T_over_R = (force_fcns[k])(R, parameters[k], lag_mastr_node_idxs[k], lag_slave_node_idxs[k]) / R;
@@ -953,10 +952,10 @@ IBStandardForceGen::computeLagrangianSpringForce(Pointer<LData> F_data,
         D[2] = X_node[slave_idx + 2] - X_node[mastr_idx + 2];
 #endif
 #if (NDIM == 2)
-        R = sqrt(D[0] * D[0] + D[1] * D[1]);
+        R = std::sqrt(D[0] * D[0] + D[1] * D[1]);
 #endif
 #if (NDIM == 3)
-        R = sqrt(D[0] * D[0] + D[1] * D[1] + D[2] * D[2]);
+        R = std::sqrt(D[0] * D[0] + D[1] * D[1] + D[2] * D[2]);
 #endif
         if (UNLIKELY(R < std::numeric_limits<double>::epsilon())) continue;
         T_over_R = (force_fcns[k])(R, parameters[k], lag_mastr_node_idxs[k], lag_slave_node_idxs[k]) / R;
@@ -1316,7 +1315,7 @@ IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
 #if (NDIM == 3)
                 dX += (X_target[2] - X_node[idx + 2]) * (X_target[2] - X_node[idx + 2]);
 #endif
-                dX = sqrt(dX);
+                dX = std::sqrt(dX);
                 max_displacement = std::max(max_displacement, dX);
             }
         }
@@ -1340,7 +1339,7 @@ IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
 #if (NDIM == 3)
             dX += (X_target[2] - X_node[idx + 2]) * (X_target[2] - X_node[idx + 2]);
 #endif
-            dX = sqrt(dX);
+            dX = std::sqrt(dX);
             max_displacement = std::max(max_displacement, dX);
         }
     }

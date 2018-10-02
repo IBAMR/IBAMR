@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <cmath>
 #include <deque>
@@ -1704,7 +1703,7 @@ INSStaggeredHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorReal<
     for (size_t k = 0; k < d_nul_vecs.size(); ++k)
     {
         const double sol_dot_nul = sol_vec->dot(d_nul_vecs[k]);
-        const double nul_L2_norm = sqrt(d_nul_vecs[k]->dot(d_nul_vecs[k]));
+        const double nul_L2_norm = std::sqrt(d_nul_vecs[k]->dot(d_nul_vecs[k]));
         sol_vec->axpy(-sol_dot_nul / nul_L2_norm, d_nul_vecs[k], sol_vec);
     }
     return;
@@ -2001,7 +2000,7 @@ INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<
             double thresh = std::numeric_limits<double>::max();
             if (Omega_rel_thresh > 0.0) thresh = std::min(thresh, Omega_rel_thresh * d_Omega_max);
             if (Omega_abs_thresh > 0.0) thresh = std::min(thresh, Omega_abs_thresh);
-            thresh += sqrt(std::numeric_limits<double>::epsilon());
+            thresh += std::sqrt(std::numeric_limits<double>::epsilon());
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -2023,7 +2022,7 @@ INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<
                     {
                         norm_Omega_sq += (*Omega_data)(i, d) * (*Omega_data)(i, d);
                     }
-                    const double norm_Omega = sqrt(norm_Omega_sq);
+                    const double norm_Omega = std::sqrt(norm_Omega_sq);
                     if (norm_Omega > thresh)
                     {
                         (*tags_data)(i) = 1;

@@ -32,8 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stddef.h>
+#include <cmath>
 #include <algorithm>
 #include <ios>
 #include <iosfwd>
@@ -870,7 +869,7 @@ LMarkerUtilities::preventMarkerEscape(std::vector<double>& X_mark, Pointer<Carte
 {
     const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
     if (periodic_shift.min() > 0) return;
-    static const double edge_tol = sqrt(std::numeric_limits<double>::epsilon());
+    static const double edge_tol = std::sqrt(std::numeric_limits<double>::epsilon());
     const double* const x_lower = grid_geom->getXLower();
     const double* const x_upper = grid_geom->getXUpper();
     for (unsigned int k = 0; k < X_mark.size() / NDIM; ++k)

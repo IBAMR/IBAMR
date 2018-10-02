@@ -965,13 +965,13 @@ ib4_kernel_fcn(double r)
     if (r < 1.0)
     {
         const double t2 = r * r;
-        const double t6 = sqrt(-0.4e1 * t2 + 0.4e1 * r + 0.1e1);
+        const double t6 = std::sqrt(-0.4e1 * t2 + 0.4e1 * r + 0.1e1);
         return -r / 0.4e1 + 0.3e1 / 0.8e1 + t6 / 0.8e1;
     }
     else if (r < 2.0)
     {
         const double t2 = r * r;
-        const double t6 = sqrt(0.12e2 * r - 0.7e1 - 0.4e1 * t2);
+        const double t6 = std::sqrt(0.12e2 * r - 0.7e1 - 0.4e1 * t2);
         return -r / 0.4e1 + 0.5e1 / 0.8e1 - t6 / 0.8e1;
     }
     else

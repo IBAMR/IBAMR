@@ -32,9 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <stddef.h>
 #include <algorithm>
+#include <array>
+#include <cstring>
 #include <functional>
 #include <map>
 #include <ostream>
@@ -682,7 +682,7 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
             KSPType ksp_type;
             ierr = KSPGetType(ksp, &ksp_type);
             IBTK_CHKERRQ(ierr);
-            if (!strcmp(ksp_type, KSPPREONLY))
+            if (!std::strcmp(ksp_type, KSPPREONLY))
             {
                 ierr = KSPSetInitialGuessNonzero(ksp, PETSC_TRUE);
                 IBTK_CHKERRQ(ierr);

@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <cmath>
 #include <deque>
@@ -1781,7 +1780,7 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer
             double thresh = std::numeric_limits<double>::max();
             if (Omega_rel_thresh > 0.0) thresh = std::min(thresh, Omega_rel_thresh * d_Omega_max);
             if (Omega_abs_thresh > 0.0) thresh = std::min(thresh, Omega_abs_thresh);
-            thresh += sqrt(std::numeric_limits<double>::epsilon());
+            thresh += std::sqrt(std::numeric_limits<double>::epsilon());
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -1803,7 +1802,7 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer
                     {
                         norm_Omega_sq += (*Omega_data)(i, d) * (*Omega_data)(i, d);
                     }
-                    const double norm_Omega = sqrt(norm_Omega_sq);
+                    const double norm_Omega = std::sqrt(norm_Omega_sq);
                     if (norm_Omega > thresh)
                     {
                         (*tags_data)(i) = 1;

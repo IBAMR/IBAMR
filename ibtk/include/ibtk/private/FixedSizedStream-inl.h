@@ -349,7 +349,7 @@ inline void
 FixedSizedStream::__pack(const T* const m_data, unsigned int m_bytes)
 {
     void* const ptr = getPointerAndAdvanceCursor(m_bytes);
-    memcpy(ptr, static_cast<const void*>(m_data), m_bytes);
+    std::memcpy(ptr, static_cast<const void*>(m_data), m_bytes);
     return;
 } // _pack
 
@@ -358,7 +358,7 @@ inline void
 FixedSizedStream::__unpack(T* const m_data, unsigned int m_bytes)
 {
     const void* const ptr = getPointerAndAdvanceCursor(m_bytes);
-    memcpy(static_cast<void*>(m_data), ptr, m_bytes);
+    std::memcpy(static_cast<void*>(m_data), ptr, m_bytes);
     return;
 } // _unpack
 

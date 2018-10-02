@@ -1,8 +1,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cmath>
+#include <ctime>
 #include <iosfwd>
 #include <iostream>
 #include <map>
@@ -191,7 +190,7 @@ InvNormDist(double p)
         /*
         ** Rational approximation for lower region.
         */
-        double q = sqrt(-2 * log(p));
+        double q = std::sqrt(-2 * std::log(p));
 
         x = (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
             ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
@@ -201,7 +200,7 @@ InvNormDist(double p)
         /*
         ** Rational approximation for upper region.
         */
-        double q = sqrt(-2 * log(1 - p));
+        double q = std::sqrt(-2 * std::log(1 - p));
 
         x = -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
             ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
@@ -257,7 +256,7 @@ RNG::parallel_seed(int global_seed)
     {
         if (seed == 0)
         {
-            seed = static_cast<int>(time(0));
+            seed = static_cast<int>(std::time(0));
         }
         std::cout << "\nGlobal seed = " << seed << "\n\n";
     }

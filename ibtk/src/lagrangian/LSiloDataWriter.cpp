@@ -32,11 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <algorithm>
+#include <cstdio>
 #include <functional>
 #include <map>
 #include <set>
@@ -1288,14 +1285,14 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
     }
 
     // Create the working directory.
-    sprintf(temp_buf, "%06d", d_time_step_number);
+    std::snprintf(temp_buf, sizeof(temp_buf), "%06d", d_time_step_number);
     std::string current_dump_directory_name = SILO_DUMP_DIR_PREFIX + temp_buf;
     std::string dump_dirname = d_dump_directory_name + "/" + current_dump_directory_name;
 
     Utilities::recursiveMkdir(dump_dirname);
 
     // Create one local DBfile per MPI process.
-    sprintf(temp_buf, "%04d", mpi_rank);
+    std::snprintf(temp_buf, sizeof(temp_buf), "%04d", mpi_rank);
     current_file_name = dump_dirname + "/" + SILO_PROCESSOR_FILE_PREFIX;
     current_file_name += temp_buf;
     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
@@ -1818,7 +1815,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
     {
         // Create and initialize the multimesh Silo database on the root MPI
         // process.
-        sprintf(temp_buf, "%06d", d_time_step_number);
+        std::snprintf(temp_buf, sizeof(temp_buf), "%06d", d_time_step_number);
         std::string summary_file_name =
             dump_dirname + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
         if (!(dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)))
@@ -1845,7 +1842,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
             {
                 for (int cloud = 0; cloud < nclouds_per_proc[ln][proc]; ++cloud)
                 {
-                    sprintf(temp_buf, "%04d", proc);
+                    std::snprintf(temp_buf, sizeof(temp_buf), "%04d", proc);
                     current_file_name = SILO_PROCESSOR_FILE_PREFIX;
                     current_file_name += temp_buf;
                     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
@@ -1871,7 +1868,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
 
                 for (int block = 0; block < nblocks_per_proc[ln][proc]; ++block)
                 {
-                    sprintf(temp_buf, "%04d", proc);
+                    std::snprintf(temp_buf, sizeof(temp_buf), "%04d", proc);
                     current_file_name = SILO_PROCESSOR_FILE_PREFIX;
                     current_file_name += temp_buf;
                     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
@@ -1897,7 +1894,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
 
                 for (int mb = 0; mb < nmbs_per_proc[ln][proc]; ++mb)
                 {
-                    sprintf(temp_buf, "%04d", proc);
+                    std::snprintf(temp_buf, sizeof(temp_buf), "%04d", proc);
                     current_file_name = SILO_PROCESSOR_FILE_PREFIX;
                     current_file_name += temp_buf;
                     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
@@ -1938,7 +1935,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
 
                 for (int mesh = 0; mesh < nucd_meshes_per_proc[ln][proc]; ++mesh)
                 {
-                    sprintf(temp_buf, "%04d", proc);
+                    std::snprintf(temp_buf, sizeof(temp_buf), "%04d", proc);
                     current_file_name = SILO_PROCESSOR_FILE_PREFIX;
                     current_file_name += temp_buf;
                     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
@@ -1966,7 +1963,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                 {
                     for (int cloud = 0; cloud < nclouds_per_proc[ln][proc]; ++cloud)
                     {
-                        sprintf(temp_buf, "%04d", proc);
+                        std::snprintf(temp_buf, sizeof(temp_buf), "%04d", proc);
                         current_file_name = SILO_PROCESSOR_FILE_PREFIX;
                         current_file_name += temp_buf;
                         current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
@@ -1989,7 +1986,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
 
                     for (int block = 0; block < nblocks_per_proc[ln][proc]; ++block)
                     {
-                        sprintf(temp_buf, "%04d", proc);
+                        std::snprintf(temp_buf, sizeof(temp_buf), "%04d", proc);
                         current_file_name = SILO_PROCESSOR_FILE_PREFIX;
                         current_file_name += temp_buf;
                         current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
@@ -2012,7 +2009,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
 
                     for (int mb = 0; mb < nmbs_per_proc[ln][proc]; ++mb)
                     {
-                        sprintf(temp_buf, "%04d", proc);
+                        std::snprintf(temp_buf, sizeof(temp_buf), "%04d", proc);
                         current_file_name = SILO_PROCESSOR_FILE_PREFIX;
                         current_file_name += temp_buf;
                         current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
@@ -2050,7 +2047,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
 
                     for (int mesh = 0; mesh < nucd_meshes_per_proc[ln][proc]; ++mesh)
                     {
-                        sprintf(temp_buf, "%04d", proc);
+                        std::snprintf(temp_buf, sizeof(temp_buf), "%04d", proc);
                         current_file_name = SILO_PROCESSOR_FILE_PREFIX;
                         current_file_name += temp_buf;
                         current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
@@ -2080,7 +2077,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
         // Create or update the dumps file on the root MPI process.
         static bool summary_file_opened = false;
         std::string path = d_dump_directory_name + "/" + VISIT_DUMPS_FILENAME;
-        sprintf(temp_buf, "%06d", d_time_step_number);
+        std::snprintf(temp_buf, sizeof(temp_buf), "%06d", d_time_step_number);
         std::string file =
             current_dump_directory_name + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
         if (!summary_file_opened)

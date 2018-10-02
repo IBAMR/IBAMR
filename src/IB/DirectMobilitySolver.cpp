@@ -33,7 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 
 #include "CartesianGridGeometry.h"
 #include "PatchHierarchy.h"
@@ -837,7 +837,7 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
                 }
                 else
                 {
-                    mat_data[j * mat_size + i] = z[j * mat_size + i] / sqrt(w[j]);
+                    mat_data[j * mat_size + i] = z[j * mat_size + i] / std::sqrt(w[j]);
                 }
             }
         }

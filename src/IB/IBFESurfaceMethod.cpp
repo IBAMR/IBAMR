@@ -38,8 +38,6 @@
 #include <limits>
 #include <ostream>
 #include <set>
-#include <stdbool.h>
-#include <stddef.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -1659,7 +1657,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                             x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]) + 0.5));
                     }
                     std::vector<std::pair<double, libMesh::Point> > intersections;
-                    static const double tolerance = sqrt(std::numeric_limits<double>::epsilon());
+                    static const double tolerance = std::sqrt(std::numeric_limits<double>::epsilon());
 #if (NDIM == 2)
                     intersect_line_with_edge(intersections, static_cast<Edge*>(elem), r, q, tolerance);
 #endif

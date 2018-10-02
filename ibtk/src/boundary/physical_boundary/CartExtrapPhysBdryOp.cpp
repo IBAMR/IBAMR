@@ -33,7 +33,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <array>
-#include <stdlib.h>
 #include <ostream>
 #include <set>
 #include <string>
