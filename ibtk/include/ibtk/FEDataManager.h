@@ -42,6 +42,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <unordered_map>
 
 #include "BasePatchLevel.h"
 #include "CellVariable.h"
@@ -53,7 +54,6 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "boost/multi_array.hpp"
-#include "boost/unordered_map.hpp"
 #include "ibtk/ibtk_utilities.h"
 #include "libmesh/dof_map.h"
 #include "libmesh/elem.h"
@@ -136,7 +136,7 @@ public:
 
     private:
         libMesh::DofMap& d_dof_map;
-        boost::unordered_map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > > d_dof_cache;
+        std::unordered_map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > > d_dof_cache;
     };
 
     /*!
