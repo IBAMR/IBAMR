@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
+#include <cmath>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -394,8 +394,8 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     {
                         const NodeIndex<NDIM> i_n(it(), 0);
                         double avg = 0.5 * ((*W_nc_data)(i_n, 0) + (*W_nc_data)(i_n, 1));
-                        (*W_nc_data)(i_n, 0) = sqrt(2.0) * avg;
-                        (*W_nc_data)(i_n, 1) = sqrt(2.0) * avg;
+                        (*W_nc_data)(i_n, 0) = std::sqrt(2.0) * avg;
+                        (*W_nc_data)(i_n, 1) = std::sqrt(2.0) * avg;
                     }
 #endif
 #if (NDIM == 3)
@@ -405,8 +405,8 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         {
                             const EdgeIndex<NDIM> i_e(it(), axis, 0);
                             double avg = 0.5 * ((*W_ec_data)(i_e, 0) + (*W_ec_data)(i_e, 1));
-                            (*W_ec_data)(i_e, 0) = sqrt(2.0) * avg;
-                            (*W_ec_data)(i_e, 1) = sqrt(2.0) * avg;
+                            (*W_ec_data)(i_e, 0) = std::sqrt(2.0) * avg;
+                            (*W_ec_data)(i_e, 1) = std::sqrt(2.0) * avg;
                         }
                     }
 #endif
@@ -419,7 +419,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                             const Index<NDIM>& i = it();
                             for (int d = 0; d < NDIM; ++d)
                             {
-                                (*W_cc_data)(i, d) *= sqrt(2.0);
+                                (*W_cc_data)(i, d) *= std::sqrt(2.0);
                             }
                         }
                     }
@@ -437,7 +437,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                             }
                             for (int d = 0; d < NDIM; ++d)
                             {
-                                (*W_cc_data)(i, d) = sqrt(2.0) * ((*W_cc_data)(i, d) - trace / double(NDIM));
+                                (*W_cc_data)(i, d) = std::sqrt(2.0) * ((*W_cc_data)(i, d) - trace / double(NDIM));
                             }
                         }
                     }
@@ -680,7 +680,7 @@ INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
     const double mu = d_fluid_solver->getStokesSpecifications()->getMu();
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     // NOTE: We are solving the momentum equation, not the velocity equation.
-    const double scale = d_std * sqrt(2.0 * mu / (dt * dV));
+    const double scale = d_std * std::sqrt(2.0 * mu / (dt * dV));
     Pointer<CellData<NDIM, double> > W_cc_data = patch->getPatchData(d_W_cc_idx);
     const IntVector<NDIM> W_cc_ghosts = W_cc_data->getGhostCellWidth();
 #if (NDIM == 2)

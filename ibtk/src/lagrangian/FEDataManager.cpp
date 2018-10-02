@@ -253,7 +253,7 @@ get_elem_hmax(const Elem* const elem, const boost::multi_array<double, 2>& X_nod
             }
         }
     }
-    return sqrt(hmax_squared);
+    return std::sqrt(hmax_squared);
 } // get_elem_hmax
 }
 
@@ -1021,7 +1021,7 @@ FEDataManager::prolongData(const int f_data_idx,
                                 patch_x_lower[d] +
                                 patch_dx[d] * (static_cast<double>(i_s(d) - patch_lower[d]) + (d == axis ? 0.0 : 0.5));
                         }
-                        static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
+                        static const double TOL = std::sqrt(std::numeric_limits<double>::epsilon());
                         const libMesh::Point ref_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOL, false);
                         if (FEInterface::on_reference_element(ref_coords, elem->type(), TOL))
                         {
@@ -1640,7 +1640,7 @@ FEDataManager::restrictData(const int f_data_idx,
                                 patch_x_lower[d] +
                                 patch_dx[d] * (static_cast<double>(i_s(d) - patch_lower[d]) + (d == axis ? 0.0 : 0.5));
                         }
-                        static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
+                        static const double TOL = std::sqrt(std::numeric_limits<double>::epsilon());
                         const libMesh::Point ref_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOL, false);
                         if (FEInterface::on_reference_element(ref_coords, elem->type(), TOL))
                         {

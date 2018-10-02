@@ -90,7 +90,7 @@ inline double
 compute_mu_avg(const Index<NDIM>& i, const NodeData<NDIM, double>& mu_data)
 {
     Box<NDIM> node_box(i, i);
-    const int n_nodes = pow(2, NDIM);
+    const int n_nodes = std::pow(2, NDIM);
 
     double avg_mu = 0.0;
     int total_nodes = 0;
@@ -109,7 +109,7 @@ inline double
 compute_mu_harmonic_avg(const Index<NDIM>& i, const NodeData<NDIM, double>& mu_data)
 {
     Box<NDIM> node_box(i, i);
-    const int n_nodes = pow(2, NDIM);
+    const int n_nodes = std::pow(2, NDIM);
 
     double avg_mu = 0.0;
     int total_nodes = 0;

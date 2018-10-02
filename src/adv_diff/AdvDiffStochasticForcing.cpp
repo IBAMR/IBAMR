@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
+#include <cmath>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -111,7 +111,7 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_nam
       d_std(std::numeric_limits<double>::quiet_NaN()),
       d_num_rand_vals(0),
       d_weights(),
-      d_dirichlet_bc_scaling(sqrt(2.0)),
+      d_dirichlet_bc_scaling(std::sqrt(2.0)),
       d_neumann_bc_scaling(0.0),
       d_context(NULL),
       d_C_cc_var(NULL),
@@ -407,7 +407,7 @@ AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
     for (unsigned int d = 0; d < NDIM; ++d) dV *= dx[d];
     const double kappa = d_adv_diff_solver->getDiffusionCoefficient(d_C_var);
     const double dt = d_adv_diff_solver->getCurrentTimeStepSize();
-    const double scale = d_std * sqrt(2.0 * kappa / (dt * dV));
+    const double scale = d_std * std::sqrt(2.0 * kappa / (dt * dV));
     double C;
     d_f_parser.DefineVar("c", &C);
     d_f_parser.DefineVar("C", &C);
@@ -470,7 +470,7 @@ AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
                                              << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, "
                                                 "TRAPEZOIDAL_RULE\n");
                 }
-                f_scale_sc_data(is, d) = sqrt(f) * scale;
+                f_scale_sc_data(is, d) = std::sqrt(f) * scale;
             }
             for (BoxIterator<NDIM> i(patch_box); i; i++)
             {

@@ -131,7 +131,7 @@ cos_kernel(const double x, const double eps)
     }
     else
     {
-        return 0.5 * (1.0 + cos(M_PI * x / eps)) / eps;
+        return 0.5 * (1.0 + std::cos(M_PI * x / eps)) / eps;
     }
 } // cos_kernel
 
@@ -1544,7 +1544,7 @@ IBMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
     }
 
     // Compute the set of local anchor points.
-    static const double eps = 2.0 * sqrt(std::numeric_limits<double>::epsilon());
+    static const double eps = 2.0 * std::sqrt(std::numeric_limits<double>::epsilon());
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
     const double* const grid_x_lower = grid_geom->getXLower();
     const double* const grid_x_upper = grid_geom->getXUpper();

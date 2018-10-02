@@ -37,7 +37,7 @@
 #include <fstream>
 #include <limits>
 #include <map>
-#include <math.h>
+#include <cmath>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -1122,9 +1122,9 @@ IBFEInstrumentPanel::initializeSystemDependentData(IBFEMethod* ib_method_ops, co
         double radius_squared = 0.0;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            radius_squared += pow((*centroid_node)(d) + centroid_disp[d] - (*node)(d) + node_disp[d], 2.0);
+            radius_squared += std::pow((*centroid_node)(d) + centroid_disp[d] - (*node)(d) + node_disp[d], 2.0);
         }
-        max_meter_radius = std::max(pow(radius_squared, 0.5), max_meter_radius);
+        max_meter_radius = std::max(std::pow(radius_squared, 0.5), max_meter_radius);
     }
     d_meter_radii[meter_mesh_number] = max_meter_radius;
 }

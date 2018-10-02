@@ -313,7 +313,7 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
                     F[NDIM * i + d] += K[i] * (Y[NDIM * i + d] - X[NDIM * i + d]);
                     dX += (Y[NDIM * i + d] - X[NDIM * i + d]) * (Y[NDIM * i + d] - X[NDIM * i + d]);
                 }
-                dX = sqrt(dX);
+                dX = std::sqrt(dX);
                 max_displacement = std::max(max_displacement, dX);
             }
         }
@@ -343,7 +343,7 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
                     F[NDIM * i + d] += K[i] * (Y_half - X_half);
                     dX += (Y_half - X_half) * (Y_half - X_half);
                 }
-                dX = sqrt(dX);
+                dX = std::sqrt(dX);
                 max_displacement = std::max(max_displacement, dX);
             }
         }
@@ -369,7 +369,7 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
                     F[NDIM * i + d] += K[i] * (Y[NDIM * i + d] - X[NDIM * i + d]);
                     dX += (Y[NDIM * i + d] - X[NDIM * i + d]) * (Y[NDIM * i + d] - X[NDIM * i + d]);
                 }
-                dX = sqrt(dX);
+                dX = std::sqrt(dX);
                 max_displacement = std::max(max_displacement, dX);
             }
         }

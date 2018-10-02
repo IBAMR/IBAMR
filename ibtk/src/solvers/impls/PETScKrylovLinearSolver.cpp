@@ -33,7 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 #include <cstring>
 #include <ostream>
 #include <string>

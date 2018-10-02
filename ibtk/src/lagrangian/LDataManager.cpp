@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 #include <limits>
 #include <map>
@@ -166,7 +166,7 @@ static Timer* t_compute_node_offsets;
 static const int CFL_WIDTH = 2;
 
 // Default floating point tolerance.
-static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
+static const double TOL = std::sqrt(std::numeric_limits<double>::epsilon());
 
 // Version of LDataManager restart file data.
 static const int LDATA_MANAGER_VERSION = 1;

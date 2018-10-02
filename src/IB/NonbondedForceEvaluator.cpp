@@ -119,9 +119,9 @@ NonbondedForceEvaluator::evaluateForces(int mstr_petsc_idx,
     {
         D[k] = (position[mstr_petsc_idx * NDIM + k] - position[search_petsc_idx * NDIM + k] -
                 cell_offset[k] * (x_upper[k] - x_lower[k]));
-        R += pow(D[k], 2);
+        R += std::pow(D[k], 2);
     }
-    R = sqrt(R);
+    R = std::sqrt(R);
 
     double nonbdd_force[NDIM];
     (d_force_fcn_ptr)(D, d_parameters, nonbdd_force);

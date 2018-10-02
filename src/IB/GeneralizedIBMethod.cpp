@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
+#include <cmath>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -360,8 +360,8 @@ GeneralizedIBMethod::forwardEulerStep(const double current_time, const double ne
             {
                 const double theta = norm_e * dt;
                 e /= norm_e;
-                const double c_t = cos(theta);
-                const double s_t = sin(theta);
+                const double c_t = std::cos(theta);
+                const double s_t = std::sin(theta);
                 R << c_t + (1.0 - c_t) * e(0) * e(0), (1.0 - c_t) * e(0) * e(1) - s_t * e(2),
                     (1.0 - c_t) * e(0) * e(2) + s_t * e(1), (1.0 - c_t) * e(1) * e(0) + s_t * e(2),
                     c_t + (1.0 - c_t) * e(1) * e(1), (1.0 - c_t) * e(1) * e(2) - s_t * e(0),
@@ -428,8 +428,8 @@ GeneralizedIBMethod::trapezoidalStep(const double current_time, const double new
             {
                 const double theta = norm_e * dt;
                 e /= norm_e;
-                const double c_t = cos(theta);
-                const double s_t = sin(theta);
+                const double c_t = std::cos(theta);
+                const double s_t = std::sin(theta);
                 R << c_t + (1.0 - c_t) * e(0) * e(0), (1.0 - c_t) * e(0) * e(1) - s_t * e(2),
                     (1.0 - c_t) * e(0) * e(2) + s_t * e(1), (1.0 - c_t) * e(1) * e(0) + s_t * e(2),
                     c_t + (1.0 - c_t) * e(1) * e(1), (1.0 - c_t) * e(1) * e(2) - s_t * e(0),

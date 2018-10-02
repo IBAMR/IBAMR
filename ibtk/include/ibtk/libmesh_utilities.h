@@ -584,7 +584,7 @@ intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals
         std::vector<double> u_vals;
         if (disc > 0.0)
         {
-            const double q = -0.5 * (b + (b > 0.0 ? 1.0 : -1.0) * sqrt(disc));
+            const double q = -0.5 * (b + (b > 0.0 ? 1.0 : -1.0) * std::sqrt(disc));
             const double u0 = q / a;
             u_vals.push_back(u0);
             const double u1 = c / q;
@@ -734,7 +734,7 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
             const double disc = b * b - 4.0 * a * c;
             if (disc > 0.0)
             {
-                const double q = -0.5 * (b + (b > 0.0 ? 1.0 : -1.0) * sqrt(disc));
+                const double q = -0.5 * (b + (b > 0.0 ? 1.0 : -1.0) * std::sqrt(disc));
                 const double v0 = q / a;
                 v_vals.push_back(v0);
                 const double v1 = c / q;

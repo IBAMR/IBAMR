@@ -1,7 +1,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
 #include <time.h>
+#include <cmath>
 #include <iosfwd>
 #include <iostream>
 #include <map>
@@ -190,7 +190,7 @@ InvNormDist(double p)
         /*
         ** Rational approximation for lower region.
         */
-        double q = sqrt(-2 * log(p));
+        double q = std::sqrt(-2 * std::log(p));
 
         x = (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
             ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
@@ -200,7 +200,7 @@ InvNormDist(double p)
         /*
         ** Rational approximation for upper region.
         */
-        double q = sqrt(-2 * log(1 - p));
+        double q = std::sqrt(-2 * std::log(1 - p));
 
         x = -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
             ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);

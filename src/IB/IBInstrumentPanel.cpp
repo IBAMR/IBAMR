@@ -33,8 +33,8 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <array>
-#include <math.h>
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <limits>
 #include <map>

@@ -3188,7 +3188,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 // Evaluate the jump conditions and apply them to the Eulerian
                 // grid.
                 const bool impose_dp_dn_jumps = false;
-                static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
+                static const double TOL = std::sqrt(std::numeric_limits<double>::epsilon());
                 fe.reinit(elem, side, TOL, &intersection_ref_coords);
                 fe.interpolate(elem, side);
                 const size_t n_qp = intersection_ref_coords.size();
@@ -3214,10 +3214,10 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         {
                             const double x_lower_bound = x_lower[d] +
                                                          (static_cast<double>(i_s(d) - patch_lower[d]) - 0.5) * dx[d] -
-                                                         sqrt(std::numeric_limits<double>::epsilon());
+                                                         std::sqrt(std::numeric_limits<double>::epsilon());
                             const double x_upper_bound = x_lower[d] +
                                                          (static_cast<double>(i_s(d) - patch_lower[d]) + 0.5) * dx[d] +
-                                                         sqrt(std::numeric_limits<double>::epsilon());
+                                                         std::sqrt(std::numeric_limits<double>::epsilon());
                             TBOX_ASSERT(x_lower_bound <= x(d) && x(d) <= x_upper_bound);
                         }
                         else
@@ -3228,7 +3228,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                             const double rel_diff =
                                 std::abs(x_intersection - x_interp) /
                                 std::max(1.0, std::max(std::abs(x_intersection), std::abs(x_interp)));
-                            TBOX_ASSERT(rel_diff <= sqrt(std::numeric_limits<double>::epsilon()));
+                            TBOX_ASSERT(rel_diff <= std::sqrt(std::numeric_limits<double>::epsilon()));
                         }
                     }
 #endif

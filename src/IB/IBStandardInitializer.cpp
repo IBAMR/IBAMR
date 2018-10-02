@@ -2152,7 +2152,7 @@ IBStandardInitializer::readDirectorFiles(const std::string& extension)
                                 }
                                 D_norm_squared += d_directors[ln][j][k][3 * n + d] * d_directors[ln][j][k][3 * n + d];
                             }
-                            const double D_norm = sqrt(D_norm_squared);
+                            const double D_norm = std::sqrt(D_norm_squared);
                             if (!MathUtilities<double>::equalEps(D_norm, 1.0))
                             {
                                 TBOX_WARNING(d_object_name << ":\n  Director vector on line " << 3 * k + n + 2
