@@ -33,6 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
+#include <cstring>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -495,7 +496,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, 
         const KSP& petsc_ksp = level_solver->getPETScKSP();
         KSPType ksp_type;
         KSPGetType(petsc_ksp, &ksp_type);
-        if (!strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
+        if (!std::strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
         level_solver->setInitialGuessNonzero(initial_guess_nonzero);
 
         level_solver->solveSystem(*e_level, *r_level);

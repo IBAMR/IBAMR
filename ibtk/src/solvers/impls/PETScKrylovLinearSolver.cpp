@@ -34,8 +34,8 @@
 
 #include <algorithm>
 #include <math.h>
+#include <cstring>
 #include <ostream>
-#include <string.h>
 #include <string>
 #include <vector>
 
@@ -641,7 +641,7 @@ PETScKrylovLinearSolver::resetKSPOperators()
         const char* mat_type;
         ierr = MatGetType(d_petsc_mat, &mat_type);
         IBTK_CHKERRQ(ierr);
-        if (strcmp(mat_type, MATSHELL))
+        if (std::strcmp(mat_type, MATSHELL))
         {
             ierr = MatDestroy(&d_petsc_mat);
             IBTK_CHKERRQ(ierr);

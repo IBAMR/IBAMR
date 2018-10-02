@@ -33,6 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
+#include <cstring>
 #include <functional>
 #include <map>
 #include <ostream>
@@ -344,7 +345,7 @@ CCPoissonLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                     p_petsc_solver ? p_petsc_solver->getPETScKSP() : p_petsc_level_solver->getPETScKSP();
                 KSPType ksp_type;
                 KSPGetType(petsc_ksp, &ksp_type);
-                if (!strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
+                if (!std::strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
             }
             p_level_solver->setInitialGuessNonzero(initial_guess_nonzero);
         }
@@ -381,7 +382,7 @@ CCPoissonLevelRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, d
             KSPType ksp_type;
             KSPGetType(petsc_ksp, &ksp_type);
 
-            if (!strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
+            if (!std::strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
         }
         p_coarse_solver->setInitialGuessNonzero(initial_guess_nonzero);
     }

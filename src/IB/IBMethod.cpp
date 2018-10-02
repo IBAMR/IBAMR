@@ -35,6 +35,7 @@
 #include <array>
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <functional>
 #include <limits>
 #include <numeric>
@@ -887,7 +888,7 @@ IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type, const doubl
 {
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    if (!strcmp(mat_type, MATMFFD) || !strcmp(mat_type, MATSHELL))
+    if (!std::strcmp(mat_type, MATMFFD) || !std::strcmp(mat_type, MATSHELL))
     {
         if (!d_force_jac)
         {
@@ -917,7 +918,7 @@ IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type, const doubl
         std::vector<int> d_nnz, o_nnz;
         d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(
             d_nnz, o_nnz, d_hierarchy, finest_ln, d_l_data_manager);
-        if (!strcmp(mat_type, MATBAIJ) || !strcmp(mat_type, MATMPIBAIJ))
+        if (!std::strcmp(mat_type, MATBAIJ) || !std::strcmp(mat_type, MATMPIBAIJ))
         {
             ierr = MatCreateBAIJ(PETSC_COMM_WORLD,
                                  NDIM,
@@ -932,7 +933,7 @@ IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type, const doubl
                                  &A);
             IBTK_CHKERRQ(ierr);
         }
-        else if (!strcmp(mat_type, MATAIJ) || !strcmp(mat_type, MATMPIAIJ))
+        else if (!std::strcmp(mat_type, MATAIJ) || !std::strcmp(mat_type, MATMPIAIJ))
         {
             std::vector<int> d_nnz_unblocked(NDIM * d_nnz.size()), o_nnz_unblocked(NDIM * o_nnz.size());
             for (unsigned int k = 0; k < d_nnz.size(); ++k)
