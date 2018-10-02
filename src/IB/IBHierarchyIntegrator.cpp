@@ -265,7 +265,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     }
     else
     {
-        d_q_var = NULL;
+        d_q_var = nullptr;
         d_q_idx = -1;
     }
 
@@ -318,7 +318,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     }
 
     d_u_ghostfill_alg = new RefineAlgorithm<NDIM>();
-    d_u_ghostfill_op = NULL;
+    d_u_ghostfill_op = nullptr;
     d_u_ghostfill_alg->registerRefine(d_u_idx, d_u_idx, d_u_idx, d_u_ghostfill_op);
     registerGhostfillRefineAlgorithm(d_object_name + "::u", d_u_ghostfill_alg, d_u_phys_bdry_op);
 
@@ -349,7 +349,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
         }
 
         d_p_ghostfill_alg = new RefineAlgorithm<NDIM>();
-        d_p_ghostfill_op = NULL;
+        d_p_ghostfill_op = nullptr;
         d_p_ghostfill_alg->registerRefine(d_p_idx, d_p_idx, d_p_idx, d_p_ghostfill_op);
         registerGhostfillRefineAlgorithm(d_object_name + "::p", d_p_ghostfill_alg, d_p_phys_bdry_op);
 

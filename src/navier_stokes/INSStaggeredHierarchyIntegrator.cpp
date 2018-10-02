@@ -593,12 +593,12 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         delete d_U_bc_coefs[d];
-        d_U_bc_coefs[d] = NULL;
+        d_U_bc_coefs[d] = nullptr;
     }
     delete d_P_bc_coef;
-    d_P_bc_coef = NULL;
+    d_P_bc_coef = nullptr;
     delete d_fill_after_regrid_phys_bdry_bc_op;
-    d_fill_after_regrid_phys_bdry_bc_op = NULL;
+    d_fill_after_regrid_phys_bdry_bc_op = nullptr;
     d_velocity_solver.setNull();
     d_pressure_solver.setNull();
     if (d_U_rhs_vec) d_U_rhs_vec->freeVectorComponents();
@@ -1144,13 +1144,13 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
     const Pointer<SideVariable<NDIM, double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs,
-                                                              /*P_bc_coef*/ NULL,
+                                                              /*P_bc_coef*/ nullptr,
                                                               d_U_scratch_idx,
                                                               /*P_data_idx*/ -1,
                                                               /*homogeneous_bc*/ false);
     d_U_bdry_bc_fill_op->fillData(current_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
-                                                              /*P_bc_coef*/ NULL);
+                                                              /*P_bc_coef*/ nullptr);
     d_hier_math_ops->laplace(
         U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_no_fill_op, current_time);
     d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
@@ -1787,9 +1787,9 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<Ba
             // location in the new patch level that is a copy of a location from
             // the old patch level.
             RefineAlgorithm<NDIM> copy_data;
-            copy_data.registerRefine(d_U_regrid_idx, d_U_regrid_idx, d_U_regrid_idx, NULL);
-            copy_data.registerRefine(d_U_src_idx, d_U_src_idx, d_U_src_idx, NULL);
-            copy_data.registerRefine(d_indicator_idx, d_indicator_idx, d_indicator_idx, NULL);
+            copy_data.registerRefine(d_U_regrid_idx, d_U_regrid_idx, d_U_regrid_idx, nullptr);
+            copy_data.registerRefine(d_U_src_idx, d_U_src_idx, d_U_src_idx, nullptr);
+            copy_data.registerRefine(d_indicator_idx, d_indicator_idx, d_indicator_idx, nullptr);
             ComponentSelector bc_fill_data;
             bc_fill_data.setFlag(d_U_regrid_idx);
             bc_fill_data.setFlag(d_U_src_idx);
@@ -1801,7 +1801,7 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<Ba
         // algorithm and refine the velocity data.
         RefineAlgorithm<NDIM> fill_div_free_prolongation;
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-        fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, NULL);
+        fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, nullptr);
         Pointer<RefineOperator<NDIM> > refine_op =
             grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
         Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");

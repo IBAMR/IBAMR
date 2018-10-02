@@ -100,7 +100,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
     TBOX_ASSERT(d_hierarchy);
 #endif
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-        u_bc_coefs, /*p_bc_coef*/ NULL, u_data_idx, p_data_idx, homogeneous_bc);
+        u_bc_coefs, /*p_bc_coef*/ nullptr, u_data_idx, p_data_idx, homogeneous_bc);
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
     {
@@ -154,7 +154,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
             }
         }
     }
-    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(u_bc_coefs, /*p_bc_coef*/ NULL);
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(u_bc_coefs, /*p_bc_coef*/ nullptr);
     return;
 } // enforceNormalVelocityBoundaryConditions
 

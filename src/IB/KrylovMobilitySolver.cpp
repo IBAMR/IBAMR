@@ -90,16 +90,16 @@ KrylovMobilitySolver::KrylovMobilitySolver(const std::string& object_name,
     d_pc_type = "none";
     d_is_initialized = false;
     d_reinitializing_solver = false;
-    d_petsc_x = NULL;
-    d_petsc_b = NULL;
+    d_petsc_x = nullptr;
+    d_petsc_b = nullptr;
     d_options_prefix = default_options_prefix;
     d_petsc_comm = petsc_comm;
-    d_petsc_ksp = NULL;
-    d_petsc_mat = NULL;
-    d_samrai_temp.resize(2, Pointer<SAMRAIVectorReal<NDIM, PetscScalar> >(NULL));
+    d_petsc_ksp = nullptr;
+    d_petsc_mat = nullptr;
+    d_samrai_temp.resize(2, Pointer<SAMRAIVectorReal<NDIM, PetscScalar> >(nullptr));
     d_ins_integrator = navier_stokes_integrator;
     d_cib_strategy = cib_strategy;
-    d_LInv = NULL;
+    d_LInv = nullptr;
     d_normalize_pressure = false;
     d_normalize_velocity = false;
     d_current_time = std::numeric_limits<double>::signaling_NaN();
@@ -119,7 +119,7 @@ KrylovMobilitySolver::KrylovMobilitySolver(const std::string& object_name,
     // Create the Stokes solver (LInv) for the linear operator.
     // Create databases for setting up LInv solver.
     std::string stokes_solver_type = StaggeredStokesSolverManager::PETSC_KRYLOV_SOLVER;
-    Pointer<Database> stokes_solver_db = NULL;
+    Pointer<Database> stokes_solver_db = nullptr;
     if (input_db->keyExists("stokes_solver_type"))
     {
         stokes_solver_type = input_db->getString("stokes_solver_type");
@@ -135,7 +135,7 @@ KrylovMobilitySolver::KrylovMobilitySolver(const std::string& object_name,
     }
 
     std::string stokes_precond_type = StaggeredStokesSolverManager::DEFAULT_BLOCK_PRECONDITIONER;
-    Pointer<Database> stokes_precond_db = NULL;
+    Pointer<Database> stokes_precond_db = nullptr;
     if (input_db->keyExists("stokes_precond_type"))
     {
         stokes_precond_type = input_db->getString("stokes_precond_type");
@@ -151,7 +151,7 @@ KrylovMobilitySolver::KrylovMobilitySolver(const std::string& object_name,
     }
 
     std::string velocity_solver_type = IBTK::SCPoissonSolverManager::PETSC_KRYLOV_SOLVER;
-    Pointer<Database> velocity_solver_db = NULL;
+    Pointer<Database> velocity_solver_db = nullptr;
     if (input_db->keyExists("velocity_solver_type"))
     {
         velocity_solver_type = input_db->getString("velocity_solver_type");
@@ -169,7 +169,7 @@ KrylovMobilitySolver::KrylovMobilitySolver(const std::string& object_name,
     }
 
     std::string velocity_precond_type = IBTK::SCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
-    Pointer<Database> velocity_precond_db = NULL;
+    Pointer<Database> velocity_precond_db = nullptr;
     if (input_db->keyExists("velocity_precond_type"))
     {
         velocity_precond_type = input_db->getString("velocity_precond_type");
@@ -186,7 +186,7 @@ KrylovMobilitySolver::KrylovMobilitySolver(const std::string& object_name,
 
     std::string pressure_solver_type = IBTK::CCPoissonSolverManager::PETSC_KRYLOV_SOLVER;
     ;
-    Pointer<Database> pressure_solver_db = NULL;
+    Pointer<Database> pressure_solver_db = nullptr;
     if (input_db->keyExists("pressure_solver_type"))
     {
         pressure_solver_type = input_db->getString("pressure_solver_type");
@@ -204,7 +204,7 @@ KrylovMobilitySolver::KrylovMobilitySolver(const std::string& object_name,
     }
 
     std::string pressure_precond_type = IBTK::CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
-    Pointer<Database> pressure_precond_db = NULL;
+    Pointer<Database> pressure_precond_db = nullptr;
     if (input_db->keyExists("pressure_precond_type"))
     {
         pressure_precond_type = input_db->getString("pressure_precond_type");
@@ -307,12 +307,12 @@ KrylovMobilitySolver::~KrylovMobilitySolver()
     if (d_petsc_mat)
     {
         MatDestroy(&d_petsc_mat);
-        d_petsc_mat = NULL;
+        d_petsc_mat = nullptr;
     }
     if (d_petsc_ksp)
     {
         KSPDestroy(&d_petsc_ksp);
-        d_petsc_ksp = NULL;
+        d_petsc_ksp = nullptr;
     }
 } // ~KrylovMobilitySolver
 
@@ -435,7 +435,7 @@ KrylovMobilitySolver::solveSystem(Vec x, Vec b)
     if (d_enable_logging) reportKSPConvergedReason(reason, plog);
 
     // Deallocate the solver, when necessary.
-    d_petsc_x = NULL;
+    d_petsc_x = nullptr;
     if (deallocate_after_solve) deallocateSolverState();
 
     IBTK_TIMER_STOP(t_solve_system);
@@ -456,8 +456,8 @@ KrylovMobilitySolver::initializeSolverState(Vec x, Vec b)
 
     // Get the Eulerian and Lagrangian components.
     Vec *vx, *vb;
-    VecNestGetSubVecs(x, NULL, &vx);
-    VecNestGetSubVecs(b, NULL, &vb);
+    VecNestGetSubVecs(x, nullptr, &vx);
+    VecNestGetSubVecs(b, nullptr, &vb);
     Pointer<SAMRAIVectorReal<NDIM, double> > vx0, vb0;
 
     // Create the RHS Vec to be used in the KSP object.
@@ -489,7 +489,7 @@ KrylovMobilitySolver::initializeSolverState(Vec x, Vec b)
     IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vb[0], &vb0);
 
     // Setup the interpolation transaction information.
-    d_fill_pattern = NULL;
+    d_fill_pattern = nullptr;
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent component(u_data_idx,
                                                 DATA_REFINE_TYPE,
@@ -537,8 +537,8 @@ KrylovMobilitySolver::deallocateSolverState()
     }
 
     VecDestroy(&d_petsc_b);
-    d_petsc_x = NULL;
-    d_petsc_b = NULL;
+    d_petsc_x = nullptr;
+    d_petsc_b = nullptr;
 
     // Destroy the KSP solver.
     destroyKSP();
@@ -802,14 +802,14 @@ KrylovMobilitySolver::initializeKSP()
     PetscBool initial_guess_nonzero;
     KSPGetInitialGuessNonzero(d_petsc_ksp, &initial_guess_nonzero);
     d_initial_guess_nonzero = (initial_guess_nonzero == PETSC_TRUE);
-    KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
+    KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, nullptr, &d_max_iterations);
 } // initializeKSP
 
 void
 KrylovMobilitySolver::destroyKSP()
 {
     KSPDestroy(&d_petsc_ksp);
-    d_petsc_ksp = NULL;
+    d_petsc_ksp = nullptr;
 } // destroyKSP
 
 void
@@ -834,8 +834,8 @@ KrylovMobilitySolver::resetKSPOptions()
         KSPMonitorSet(
             d_petsc_ksp,
             reinterpret_cast<PetscErrorCode (*)(KSP, PetscInt, PetscReal, void*)>(KrylovMobilitySolver::monitorKSP),
-            NULL,
-            NULL);
+            nullptr,
+            nullptr);
     }
 } // resetKSPOptions
 
@@ -846,7 +846,7 @@ KrylovMobilitySolver::resetKSPOperators()
     if (d_petsc_mat)
     {
         MatDestroy(&d_petsc_mat);
-        d_petsc_mat = NULL;
+        d_petsc_mat = nullptr;
     }
     if (!d_petsc_mat)
     {
@@ -874,7 +874,7 @@ KrylovMobilitySolver::resetKSPPC()
     static const size_t len = 255;
     char pc_type_str[len];
     PetscBool flg;
-    PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+    PetscOptionsGetString(nullptr, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
     std::string pc_type = d_pc_type;
     if (flg)
     {
@@ -936,7 +936,7 @@ KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
     solver->d_samrai_temp[0]->setToScalar(0.0);
     solver->d_cib_strategy->setConstraintForce(x, half_time, gamma);
     ib_method_ops->spreadForce(solver->d_samrai_temp[0]->getComponentDescriptorIndex(0),
-                               NULL,
+                               nullptr,
                                std::vector<Pointer<RefineSchedule<NDIM> > >(),
                                half_time);
     if (solver->d_normalize_spread_force)
@@ -1004,7 +1004,7 @@ KrylovMobilitySolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void* /*mctx*
     char print_normtype[256];
     KSPNormType ksp_normtype;
 
-    KSPBuildResidual(ksp, NULL, NULL, &resid);
+    KSPBuildResidual(ksp, nullptr, nullptr, &resid);
     VecNorm(resid, NORM_2, &truenorm);
     VecDestroy(&resid);
     KSPGetRhs(ksp, &rhs);

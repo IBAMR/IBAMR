@@ -74,7 +74,7 @@ const std::string AdvDiffConvectiveOperatorManager::CUI = "CUI";
 const std::string AdvDiffConvectiveOperatorManager::PPM = "PPM";
 const std::string AdvDiffConvectiveOperatorManager::WAVE_PROP = "WAVE_PROP";
 
-AdvDiffConvectiveOperatorManager* AdvDiffConvectiveOperatorManager::s_operator_manager_instance = NULL;
+AdvDiffConvectiveOperatorManager* AdvDiffConvectiveOperatorManager::s_operator_manager_instance = nullptr;
 bool AdvDiffConvectiveOperatorManager::s_registered_callback = false;
 unsigned char AdvDiffConvectiveOperatorManager::s_shutdown_priority = 200;
 
@@ -97,7 +97,7 @@ void
 AdvDiffConvectiveOperatorManager::freeManager()
 {
     delete s_operator_manager_instance;
-    s_operator_manager_instance = NULL;
+    s_operator_manager_instance = nullptr;
     return;
 } // freeManager
 

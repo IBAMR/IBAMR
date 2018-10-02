@@ -105,11 +105,11 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
     : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true,
                                          /*needs_pressure_solver*/ true),
       d_factorization_type(LOWER_TRIANGULAR),
-      d_P_bdry_fill_op(NULL),
-      d_no_fill_op(NULL),
-      d_U_var(NULL),
+      d_P_bdry_fill_op(nullptr),
+      d_no_fill_op(nullptr),
+      d_U_var(nullptr),
       d_F_U_mod_idx(-1),
-      d_P_var(NULL),
+      d_P_var(nullptr),
       d_P_scratch_idx(-1),
       d_F_P_mod_idx(-1)
 {

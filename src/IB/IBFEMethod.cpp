@@ -988,7 +988,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     {
         if (u_ghost_fill_scheds[k]) u_ghost_fill_scheds[k]->fillData(data_time);
     }
-    std::vector<Pointer<RefineSchedule<NDIM> > > no_fill(u_ghost_fill_scheds.size(), NULL);
+    std::vector<Pointer<RefineSchedule<NDIM> > > no_fill(u_ghost_fill_scheds.size(), nullptr);
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -1396,8 +1396,8 @@ IBFEMethod::initializeFEEquationSystems()
 
     // Create the FE data managers that manage mappings between the FE mesh
     // parts and the Cartesian grid.
-    d_equation_systems.resize(d_num_parts, NULL);
-    d_fe_data_managers.resize(d_num_parts, NULL);
+    d_equation_systems.resize(d_num_parts, nullptr);
+    d_fe_data_managers.resize(d_num_parts, nullptr);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Create FE data managers.
@@ -2171,7 +2171,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     }
     std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
-    System* Phi_system = Phi_vec ? &equation_systems->get_system(PHI_SYSTEM_NAME) : NULL;
+    System* Phi_system = Phi_vec ? &equation_systems->get_system(PHI_SYSTEM_NAME) : nullptr;
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
     std::vector<int> Phi_vars(1, 0);
@@ -3519,7 +3519,7 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     d_has_lag_body_source_parts = false;
     d_lag_body_source_part.resize(d_num_parts, false);
     d_lag_body_source_fcn_data.resize(d_num_parts);
-    d_direct_forcing_kinematics_data.resize(d_num_parts, Pointer<IBFEDirectForcingKinematics>(NULL));
+    d_direct_forcing_kinematics_data.resize(d_num_parts, Pointer<IBFEDirectForcingKinematics>(nullptr));
 
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.

@@ -507,10 +507,10 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        NumericVector<double>* U_vec = NULL;
-        NumericVector<double>* U_n_vec = NULL;
-        NumericVector<double>* U_t_vec = NULL;
-        NumericVector<double>* X_vec = NULL;
+        NumericVector<double>* U_vec = nullptr;
+        NumericVector<double>* U_n_vec = nullptr;
+        NumericVector<double>* U_t_vec = nullptr;
+        NumericVector<double>* X_vec = nullptr;
         NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         if (MathUtilities<double>::equalEps(data_time, d_current_time))
         {
@@ -1166,8 +1166,8 @@ IBFESurfaceMethod::initializeFEEquationSystems()
 
     // Create the FE data managers that manage mappings between the FE mesh
     // parts and the Cartesian grid.
-    d_equation_systems.resize(d_num_parts, NULL);
-    d_fe_data_managers.resize(d_num_parts, NULL);
+    d_equation_systems.resize(d_num_parts, nullptr);
+    d_fe_data_managers.resize(d_num_parts, nullptr);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Create FE data managers.

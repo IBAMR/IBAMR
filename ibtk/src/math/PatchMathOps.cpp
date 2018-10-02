@@ -6108,9 +6108,9 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
     const int mu_ghosts = (coef1->getGhostCellWidth()).max();
 
     const int rho_varying = !(coef2.isNull());
-    const double* rho0 = NULL;
-    const double* rho1 = NULL;
-    const double* rho2 = NULL;
+    const double* rho0 = nullptr;
+    const double* rho1 = nullptr;
+    const double* rho2 = nullptr;
     const int rho_ghosts = rho_varying ? (coef2->getGhostCellWidth()).max() : 0;
     if (rho_varying)
     {

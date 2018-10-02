@@ -120,13 +120,13 @@ HierarchyIntegrator::HierarchyIntegrator(const std::string& object_name,
     }
 
     // Initialize state variables.
-    d_hierarchy = NULL;
-    d_gridding_alg = NULL;
+    d_hierarchy = nullptr;
+    d_gridding_alg = nullptr;
     d_hierarchy_is_initialized = false;
     d_regridding_hierarchy = false;
     d_at_regrid_time_step = false;
-    d_visit_writer = NULL;
-    d_parent_integrator = NULL;
+    d_visit_writer = nullptr;
+    d_parent_integrator = nullptr;
     d_current_num_cycles = -1;
     d_current_cycle_num = -1;
     d_current_dt = std::numeric_limits<double>::quiet_NaN();
@@ -172,7 +172,7 @@ HierarchyIntegrator::HierarchyIntegrator(const std::string& object_name,
     // Create default communications algorithms.
     d_coarsen_algs[SYNCH_CURRENT_DATA_ALG] = new CoarsenAlgorithm<NDIM>();
     d_coarsen_algs[SYNCH_NEW_DATA_ALG] = new CoarsenAlgorithm<NDIM>();
-    d_fill_after_regrid_phys_bdry_bc_op = NULL;
+    d_fill_after_regrid_phys_bdry_bc_op = nullptr;
     return;
 } // HierarchyIntegrator
 

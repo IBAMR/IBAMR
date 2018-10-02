@@ -473,11 +473,11 @@ HierarchyMathOps::curl(const int dst_idx,
                  1.0,
                  src_idx,
                  src_var,
-                 Pointer<HierarchyGhostCellInterpolation>(NULL),
+                 Pointer<HierarchyGhostCellInterpolation>(nullptr),
                  0.0,
                  0.0,
                  -1,
-                 Pointer<SideVariable<NDIM, double> >(NULL),
+                 Pointer<SideVariable<NDIM, double> >(nullptr),
                  d);
 
             for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -830,7 +830,7 @@ HierarchyMathOps::rot(int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<NodeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : NULL, src_ghost_fill_time);
+            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : nullptr, src_ghost_fill_time);
         }
     }
     return;
@@ -873,7 +873,7 @@ HierarchyMathOps::rot(int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : NULL, src_ghost_fill_time);
+            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : nullptr, src_ghost_fill_time);
         }
     }
     return;
@@ -916,7 +916,7 @@ HierarchyMathOps::rot(int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<EdgeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : NULL, src_ghost_fill_time);
+            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : nullptr, src_ghost_fill_time);
         }
     }
     return;
@@ -954,7 +954,7 @@ HierarchyMathOps::rot(int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : NULL, src_ghost_fill_time);
+            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : nullptr, src_ghost_fill_time);
         }
     }
     return;
@@ -1008,7 +1008,7 @@ HierarchyMathOps::div(const int dst_idx,
                true, // synch coarse-fine boundary
                src1_idx,
                src1_var,
-               Pointer<HierarchyGhostCellInterpolation>(NULL),
+               Pointer<HierarchyGhostCellInterpolation>(nullptr),
                0.0);
 
         div(dst_idx,
@@ -1016,7 +1016,7 @@ HierarchyMathOps::div(const int dst_idx,
             alpha,
             d_sc_idx,
             d_sc_var,
-            Pointer<HierarchyGhostCellInterpolation>(NULL),
+            Pointer<HierarchyGhostCellInterpolation>(nullptr),
             0.0,
             false, // don't re-synch cf boundary
             beta,
@@ -1196,11 +1196,11 @@ HierarchyMathOps::grad(const int dst_idx,
              alpha,
              src1_idx,
              src1_var,
-             Pointer<HierarchyGhostCellInterpolation>(NULL),
+             Pointer<HierarchyGhostCellInterpolation>(nullptr),
              0.0,
              0.0,
              -1,
-             Pointer<SideVariable<NDIM, double> >(NULL),
+             Pointer<SideVariable<NDIM, double> >(nullptr),
              src1_depth);
 
         if (beta != 0.0)
@@ -1218,7 +1218,7 @@ HierarchyMathOps::grad(const int dst_idx,
                    cc_var,
                    d_sc_idx,
                    d_sc_var,
-                   Pointer<HierarchyGhostCellInterpolation>(NULL),
+                   Pointer<HierarchyGhostCellInterpolation>(nullptr),
                    0.0,
                    false); // don't re-synch cf boundary
 
@@ -1242,7 +1242,7 @@ HierarchyMathOps::grad(const int dst_idx,
                    dst_var,
                    d_sc_idx,
                    d_sc_var,
-                   Pointer<HierarchyGhostCellInterpolation>(NULL),
+                   Pointer<HierarchyGhostCellInterpolation>(nullptr),
                    0.0,
                    false); // don't re-synch cf boundary
         }
@@ -1402,11 +1402,11 @@ HierarchyMathOps::grad(const int dst_idx,
          alpha_var,
          src1_idx,
          src1_var,
-         Pointer<HierarchyGhostCellInterpolation>(NULL),
+         Pointer<HierarchyGhostCellInterpolation>(nullptr),
          0.0,
          0.0,
          -1,
-         Pointer<FaceVariable<NDIM, double> >(NULL),
+         Pointer<FaceVariable<NDIM, double> >(nullptr),
          src1_depth);
 
     if (beta != 0.0)
@@ -1424,7 +1424,7 @@ HierarchyMathOps::grad(const int dst_idx,
                cc_var,
                d_fc_idx,
                d_fc_var,
-               Pointer<HierarchyGhostCellInterpolation>(NULL),
+               Pointer<HierarchyGhostCellInterpolation>(nullptr),
                0.0,
                false); // don't re-synch cf boundary
 
@@ -1448,7 +1448,7 @@ HierarchyMathOps::grad(const int dst_idx,
                dst_var,
                d_fc_idx,
                d_fc_var,
-               Pointer<HierarchyGhostCellInterpolation>(NULL),
+               Pointer<HierarchyGhostCellInterpolation>(nullptr),
                0.0,
                false); // don't re-synch cf boundary
     }
@@ -1489,11 +1489,11 @@ HierarchyMathOps::grad(const int dst_idx,
          alpha_var,
          src1_idx,
          src1_var,
-         Pointer<HierarchyGhostCellInterpolation>(NULL),
+         Pointer<HierarchyGhostCellInterpolation>(nullptr),
          0.0,
          0.0,
          -1,
-         Pointer<SideVariable<NDIM, double> >(NULL),
+         Pointer<SideVariable<NDIM, double> >(nullptr),
          src1_depth);
 
     if (beta != 0.0)
@@ -1511,7 +1511,7 @@ HierarchyMathOps::grad(const int dst_idx,
                cc_var,
                d_sc_idx,
                d_sc_var,
-               Pointer<HierarchyGhostCellInterpolation>(NULL),
+               Pointer<HierarchyGhostCellInterpolation>(nullptr),
                0.0,
                false); // don't re-synch cf boundary
 
@@ -1535,7 +1535,7 @@ HierarchyMathOps::grad(const int dst_idx,
                dst_var,
                d_sc_idx,
                d_sc_var,
-               Pointer<HierarchyGhostCellInterpolation>(NULL),
+               Pointer<HierarchyGhostCellInterpolation>(nullptr),
                0.0,
                false); // don't re-synch cf boundary
     }
@@ -2255,11 +2255,11 @@ HierarchyMathOps::laplace(const int dst_idx,
                  alpha,
                  src1_idx,
                  src1_var,
-                 Pointer<HierarchyGhostCellInterpolation>(NULL),
+                 Pointer<HierarchyGhostCellInterpolation>(nullptr),
                  0.0,
                  0.0,
                  -1,
-                 Pointer<SideVariable<NDIM, double> >(NULL),
+                 Pointer<SideVariable<NDIM, double> >(nullptr),
                  src1_depth);
         }
         else
@@ -2271,11 +2271,11 @@ HierarchyMathOps::laplace(const int dst_idx,
                  alpha_var,
                  src1_idx,
                  src1_var,
-                 Pointer<HierarchyGhostCellInterpolation>(NULL),
+                 Pointer<HierarchyGhostCellInterpolation>(nullptr),
                  0.0,
                  0.0,
                  -1,
-                 Pointer<SideVariable<NDIM, double> >(NULL),
+                 Pointer<SideVariable<NDIM, double> >(nullptr),
                  src1_depth);
         }
 
@@ -2287,12 +2287,12 @@ HierarchyMathOps::laplace(const int dst_idx,
                 1.0,
                 d_sc_idx,
                 d_sc_var,
-                Pointer<HierarchyGhostCellInterpolation>(NULL),
+                Pointer<HierarchyGhostCellInterpolation>(nullptr),
                 0.0,
                 false, // don't re-synch coarse-fine boundary
                 0.0,
                 -1,
-                Pointer<CellVariable<NDIM, double> >(NULL),
+                Pointer<CellVariable<NDIM, double> >(nullptr),
                 dst_depth);
         }
         else if (MathUtilities<double>::equalEps(beta, 0.0))
@@ -2302,7 +2302,7 @@ HierarchyMathOps::laplace(const int dst_idx,
                 1.0,
                 d_sc_idx,
                 d_sc_var,
-                Pointer<HierarchyGhostCellInterpolation>(NULL),
+                Pointer<HierarchyGhostCellInterpolation>(nullptr),
                 0.0,
                 false, // don't re-synch coarse-fine boundary
                 gamma,
@@ -2318,7 +2318,7 @@ HierarchyMathOps::laplace(const int dst_idx,
                 1.0,
                 d_sc_idx,
                 d_sc_var,
-                Pointer<HierarchyGhostCellInterpolation>(NULL),
+                Pointer<HierarchyGhostCellInterpolation>(nullptr),
                 0.0,
                 false, // don't re-synch coarse-fine boundary
                 beta,
@@ -2344,7 +2344,7 @@ HierarchyMathOps::laplace(const int dst_idx,
                 1.0,
                 d_sc_idx,
                 d_sc_var,
-                Pointer<HierarchyGhostCellInterpolation>(NULL),
+                Pointer<HierarchyGhostCellInterpolation>(nullptr),
                 0.0,
                 false, // don't re-synch coarse-fine boundary
                 beta,

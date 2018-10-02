@@ -256,7 +256,7 @@ RNG::parallel_seed(int global_seed)
     {
         if (seed == 0)
         {
-            seed = static_cast<int>(std::time(0));
+            seed = static_cast<int>(std::time(nullptr));
         }
         std::cout << "\nGlobal seed = " << seed << "\n\n";
     }

@@ -52,7 +52,7 @@ LSInitStrategy::LSInitStrategy(const std::string& object_name, bool register_for
     d_max_its = 100;
     d_abs_tol = 1e-5;
     d_enable_logging = false;
-    d_bc_coef = NULL;
+    d_bc_coef = nullptr;
     d_reinitialize_ls = false;
     d_reinit_interval = 0;
 

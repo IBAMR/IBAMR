@@ -289,7 +289,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
         // NOTE: This does not correctly treat the case in which the structure
         // is close to the physical boundary.
         d_ib_method_ops->spreadFluidSource(
-            d_q_idx, NULL, getProlongRefineSchedules(d_object_name + "::q"), half_time);
+            d_q_idx, nullptr, getProlongRefineSchedules(d_object_name + "::q"), half_time);
     }
 
     // Solve the incompressible Navier-Stokes equations.

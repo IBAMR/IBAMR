@@ -57,7 +57,7 @@ const std::string KrylovLinearSolverManager::UNDEFINED = "UNDEFINED";
 const std::string KrylovLinearSolverManager::DEFAULT = "DEFAULT";
 const std::string KrylovLinearSolverManager::PETSC = "PETSC";
 
-KrylovLinearSolverManager* KrylovLinearSolverManager::s_solver_manager_instance = NULL;
+KrylovLinearSolverManager* KrylovLinearSolverManager::s_solver_manager_instance = nullptr;
 bool KrylovLinearSolverManager::s_registered_callback = false;
 unsigned char KrylovLinearSolverManager::s_shutdown_priority = 200;
 
@@ -80,7 +80,7 @@ void
 KrylovLinearSolverManager::freeManager()
 {
     delete s_solver_manager_instance;
-    s_solver_manager_instance = NULL;
+    s_solver_manager_instance = nullptr;
     return;
 } // freeManager
 

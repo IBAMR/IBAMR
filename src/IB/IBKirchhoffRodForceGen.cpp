@@ -236,9 +236,9 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
                              PETSC_DETERMINE,
                              PETSC_DETERMINE,
                              0,
-                             local_sz ? &next_d_nz[0] : NULL,
+                             local_sz ? &next_d_nz[0] : nullptr,
                              0,
-                             local_sz ? &next_o_nz[0] : NULL,
+                             local_sz ? &next_o_nz[0] : nullptr,
                              &D_next_mat);
         IBTK_CHKERRQ(ierr);
 
@@ -254,7 +254,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
 
         int i_offset;
 
-        ierr = MatGetOwnershipRange(D_next_mat, &i_offset, NULL);
+        ierr = MatGetOwnershipRange(D_next_mat, &i_offset, nullptr);
         IBTK_CHKERRQ(ierr);
         i_offset /= 3 * 3;
 
@@ -278,9 +278,9 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
                              PETSC_DETERMINE,
                              PETSC_DETERMINE,
                              0,
-                             local_sz ? &next_d_nz[0] : NULL,
+                             local_sz ? &next_d_nz[0] : nullptr,
                              0,
-                             local_sz ? &next_o_nz[0] : NULL,
+                             local_sz ? &next_o_nz[0] : nullptr,
                              &X_next_mat);
         IBTK_CHKERRQ(ierr);
 
@@ -294,7 +294,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
 
         int i_offset;
 
-        ierr = MatGetOwnershipRange(X_next_mat, &i_offset, NULL);
+        ierr = MatGetOwnershipRange(X_next_mat, &i_offset, nullptr);
         IBTK_CHKERRQ(ierr);
         i_offset /= NDIM;
 

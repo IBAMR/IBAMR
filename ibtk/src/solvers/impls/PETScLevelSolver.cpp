@@ -132,11 +132,11 @@ PETScLevelSolver::PETScLevelSolver()
       d_ksp_type(KSPGMRES),
       d_shell_pc_type(""),
       d_options_prefix(""),
-      d_petsc_ksp(NULL),
-      d_petsc_mat(NULL),
-      d_petsc_pc(NULL),
-      d_petsc_x(NULL),
-      d_petsc_b(NULL)
+      d_petsc_ksp(nullptr),
+      d_petsc_mat(nullptr),
+      d_petsc_pc(nullptr),
+      d_petsc_x(nullptr),
+      d_petsc_b(nullptr)
 {
     // Setup default options.
     d_max_iterations = 10000;
@@ -384,7 +384,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
     IBTK_CHKERRQ(ierr);
 
     // Reset class data structure to correspond to command-line options.
-    ierr = KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
+    ierr = KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, nullptr, &d_max_iterations);
     IBTK_CHKERRQ(ierr);
     ierr = PCGetType(ksp_pc, &pc_type);
     IBTK_CHKERRQ(ierr);
@@ -410,7 +410,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         if (num_subdomains == 0)
         {
             IS is;
-            ierr = ISCreateGeneral(PETSC_COMM_SELF, 0, NULL, PETSC_OWN_POINTER, &is);
+            ierr = ISCreateGeneral(PETSC_COMM_SELF, 0, nullptr, PETSC_OWN_POINTER, &is);
             IBTK_CHKERRQ(ierr);
             ierr = PCASMSetLocalSubdomains(ksp_pc, 1, &is, &is);
             IBTK_CHKERRQ(ierr);
@@ -498,7 +498,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         for (int i = 0; i < d_n_subdomains_max; ++i)
         {
             int overlap_is_size = 0, nonoverlap_is_size = 0;
-            PetscInt *overlap_indices = NULL, *nonoverlap_indices = NULL;
+            PetscInt *overlap_indices = nullptr, *nonoverlap_indices = nullptr;
             if (i < d_n_local_subdomains)
             {
                 ierr = ISGetLocalSize(d_overlap_is[i], &overlap_is_size);
@@ -579,8 +579,8 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
 #if PETSC_VERSION_GE(3,8,0) 
             ierr = MatCreateSubMatrices(d_petsc_mat,
                                         d_n_local_subdomains,
-                                        d_n_local_subdomains ? &d_overlap_is[0] : NULL,
-                                        d_n_local_subdomains ? &local_idxs[0] : NULL,
+                                        d_n_local_subdomains ? &d_overlap_is[0] : nullptr,
+                                        d_n_local_subdomains ? &local_idxs[0] : nullptr,
                                         MAT_INITIAL_MATRIX,
                                         &d_sub_bc_mat);
 #else
@@ -729,13 +729,13 @@ PETScLevelSolver::deallocateSolverState()
             ierr = MatDestroyMatrices(d_n_local_subdomains, &d_sub_bc_mat);
             IBTK_CHKERRQ(ierr);
         }
-        d_sub_mat = NULL;
+        d_sub_mat = nullptr;
         ierr = VecDestroy(&d_local_x);
         IBTK_CHKERRQ(ierr);
-        d_local_x = NULL;
+        d_local_x = nullptr;
         ierr = VecDestroy(&d_local_y);
         IBTK_CHKERRQ(ierr);
-        d_local_y = NULL;
+        d_local_y = nullptr;
         d_n_local_subdomains = 0;
         d_n_subdomains_max = 0;
 
@@ -748,10 +748,10 @@ PETScLevelSolver::deallocateSolverState()
         d_sub_x.clear();
     }
 
-    d_petsc_ksp = NULL;
-    d_petsc_mat = NULL;
-    d_petsc_x = NULL;
-    d_petsc_b = NULL;
+    d_petsc_ksp = nullptr;
+    d_petsc_mat = nullptr;
+    d_petsc_x = nullptr;
+    d_petsc_b = nullptr;
 
     // Indicate that the solver is NOT initialized.
     d_is_initialized = false;
@@ -813,7 +813,7 @@ PETScLevelSolver::setupNullspace()
     for (unsigned k = 0; k < d_nullspace_basis_vecs.size(); ++k)
     {
         Vec& petsc_nullspace_vec = petsc_nullspace_basis_vecs[k];
-        ierr = MatCreateVecs(d_petsc_mat, NULL, &petsc_nullspace_vec);
+        ierr = MatCreateVecs(d_petsc_mat, nullptr, &petsc_nullspace_vec);
         IBTK_CHKERRQ(ierr);
         copyToPETScVec(petsc_nullspace_vec, *d_nullspace_basis_vecs[k]);
         double norm;
@@ -825,7 +825,7 @@ PETScLevelSolver::setupNullspace()
     ierr = MatNullSpaceCreate(PETSC_COMM_WORLD,
                               d_nullspace_contains_constant_vec ? PETSC_TRUE : PETSC_FALSE,
                               static_cast<int>(petsc_nullspace_basis_vecs.size()),
-                              (petsc_nullspace_basis_vecs.empty() ? NULL : &petsc_nullspace_basis_vecs[0]),
+                              (petsc_nullspace_basis_vecs.empty() ? nullptr : &petsc_nullspace_basis_vecs[0]),
                               &d_petsc_nullsp);
     IBTK_CHKERRQ(ierr);
     ierr = MatSetNullSpace(d_petsc_mat, d_petsc_nullsp);

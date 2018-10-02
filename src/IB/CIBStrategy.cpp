@@ -312,7 +312,7 @@ CIBStrategy::computeNetRigidGeneralizedForce(Vec L,
     // Here we use the fact that all vector enteries of F are on
     // a single processor, and we can set values directly in the array
     // rather than using the costly VecSetValues() followed by VecAssemblyBegin/End().
-    PetscScalar* F_array = NULL;
+    PetscScalar* F_array = nullptr;
     VecGetArray(F, &F_array);
 
     if (only_free_dofs)
@@ -327,7 +327,7 @@ CIBStrategy::computeNetRigidGeneralizedForce(Vec L,
             RigidDOFVector F_part;
             computeNetRigidGeneralizedForce(part, L, F_part);
 
-            if (F_array != NULL)
+            if (F_array != nullptr)
             {
                 PetscScalar* f = &F_array[part_free_dofs_begin];
                 for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
@@ -354,7 +354,7 @@ CIBStrategy::computeNetRigidGeneralizedForce(Vec L,
             RigidDOFVector F_part;
             computeNetRigidGeneralizedForce(part, L, F_part);
 
-            if (F_array != NULL)
+            if (F_array != nullptr)
             {
                 PetscScalar* f = &F_array[part_imposed_dofs_begin];
                 for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
@@ -377,7 +377,7 @@ CIBStrategy::computeNetRigidGeneralizedForce(Vec L,
             RigidDOFVector F_part;
             computeNetRigidGeneralizedForce(part, L, F_part);
 
-            if (F_array != NULL)
+            if (F_array != nullptr)
             {
                 PetscScalar* f = &F_array[part_dofs_begin];
                 for (int k = 0; k < s_max_free_dofs; ++k)
@@ -693,7 +693,7 @@ void
 CIBStrategy::vecToRDV(Vec U, RigidDOFVector& Ur)
 {
     // Extract the underlying array.
-    PetscScalar* a = NULL;
+    PetscScalar* a = nullptr;
     PetscInt s;
     VecGetArray(U, &a);
     VecGetSize(U, &s);
@@ -703,7 +703,7 @@ CIBStrategy::vecToRDV(Vec U, RigidDOFVector& Ur)
 #endif
 
     // Fill in the required vector.
-    if (a != NULL)
+    if (a != nullptr)
     {
         std::copy(&a[0], &a[s], &Ur[0]);
     }
@@ -720,7 +720,7 @@ CIBStrategy::vecToRDV(Vec U, RigidDOFVector& Ur)
 void
 CIBStrategy::rdvToVec(const RigidDOFVector& Ur, Vec& U)
 {
-    if (U == NULL)
+    if (U == nullptr)
     {
         PetscInt n = 0, N = s_max_free_dofs;
         if (!SAMRAI_MPI::getRank()) n = N;

@@ -975,19 +975,19 @@ INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMass
     d_object_name = object_name;
     d_velocity_bdry_extrap_type = "CONSTANT";
     d_density_bdry_extrap_type = "CONSTANT";
-    d_hierarchy = NULL;
+    d_hierarchy = nullptr;
     d_coarsest_ln = -1;
     d_finest_ln = -1;
     d_num_steps = 1;
     d_u_sc_bc_coefs.resize(NDIM);
     d_rho_sc_bc_coefs.resize(NDIM);
-    d_V_var = NULL;
+    d_V_var = nullptr;
     d_V_scratch_idx = -1;
     d_V_old_idx = -1;
     d_V_current_idx = -1;
     d_V_new_idx = -1;
     d_N_idx = -1;
-    d_rho_sc_var = NULL;
+    d_rho_sc_var = nullptr;
     d_rho_sc_current_idx = -1;
     d_rho_sc_scratch_idx = -1;
     d_rho_sc_new_idx = -1;
@@ -996,9 +996,9 @@ INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMass
     d_velocity_limiter_gcw = 1;
     d_density_limiter_gcw = 1;
     d_density_time_stepping_type = FORWARD_EULER;
-    d_S_var = NULL;
+    d_S_var = nullptr;
     d_S_scratch_idx = -1;
-    d_S_fcn = NULL;
+    d_S_fcn = nullptr;
     d_is_initialized = false;
     d_enable_logging = false;
     d_cycle_num = -1;
@@ -1006,7 +1006,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMass
     d_solution_time = std::numeric_limits<double>::quiet_NaN();
     d_current_time = std::numeric_limits<double>::quiet_NaN();
     d_new_time = std::numeric_limits<double>::quiet_NaN();
-    d_hier_math_ops = NULL;
+    d_hier_math_ops = nullptr;
     d_hier_math_ops_external = false;
 
     if (input_db)
@@ -1291,13 +1291,13 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
                                                                d_u_sc_bc_coefs);
     d_hier_v_bdry_fill->resetTransactionComponents(v_transaction_comps);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-        d_u_sc_bc_coefs, NULL, d_V_scratch_idx, -1, homogeneous_bc);
+        d_u_sc_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
     d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_v_bdry_fill->fillData(d_current_time);
     d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
         d_V_scratch_idx, d_coarsest_ln, d_finest_ln, StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
     enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
-    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_sc_bc_coefs, NULL);
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_sc_bc_coefs, nullptr);
     d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
 
     // Compute the old mass
@@ -1385,13 +1385,13 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
                                                                               d_u_sc_bc_coefs);
             d_hier_v_bdry_fill->resetTransactionComponents(v_transaction_comps);
             StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-                d_u_sc_bc_coefs, NULL, d_V_scratch_idx, -1, homogeneous_bc);
+                d_u_sc_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
             d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
             d_hier_v_bdry_fill->fillData(eval_time);
             d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
                 d_V_scratch_idx, d_coarsest_ln, d_finest_ln, StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
             enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
-            StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_sc_bc_coefs, NULL);
+            StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_sc_bc_coefs, nullptr);
             d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
         }
 

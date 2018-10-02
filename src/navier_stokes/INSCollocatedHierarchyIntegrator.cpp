@@ -437,7 +437,7 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::st
 INSCollocatedHierarchyIntegrator::~INSCollocatedHierarchyIntegrator()
 {
     delete d_fill_after_regrid_phys_bdry_bc_op;
-    d_fill_after_regrid_phys_bdry_bc_op = NULL;
+    d_fill_after_regrid_phys_bdry_bc_op = nullptr;
     d_velocity_solver.setNull();
     d_pressure_solver.setNull();
     if (d_U_rhs_vec) d_U_rhs_vec->freeVectorComponents();
@@ -955,7 +955,7 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
                                  current_time,
                                  0.0,
                                  -1,
-                                 Pointer<CellVariable<NDIM, double> >(NULL),
+                                 Pointer<CellVariable<NDIM, double> >(nullptr),
                                  axis,
                                  axis);
     }

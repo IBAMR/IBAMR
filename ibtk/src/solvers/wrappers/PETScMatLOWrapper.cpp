@@ -58,12 +58,12 @@ namespace IBTK
 PETScMatLOWrapper::PETScMatLOWrapper(const std::string& object_name, const Mat& petsc_mat)
     : LinearOperator(object_name),
       d_petsc_mat(petsc_mat),
-      d_x(NULL),
-      d_y(NULL),
-      d_z(NULL),
-      d_petsc_x(NULL),
-      d_petsc_y(NULL),
-      d_petsc_z(NULL)
+      d_x(nullptr),
+      d_y(nullptr),
+      d_z(nullptr),
+      d_petsc_x(nullptr),
+      d_petsc_y(nullptr),
+      d_petsc_z(nullptr)
 {
     // intentionally blank
     return;

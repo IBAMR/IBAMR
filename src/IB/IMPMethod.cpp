@@ -187,8 +187,8 @@ IMPMethod::IMPMethod(const std::string& object_name, Pointer<Database> input_db,
     }
 
     // Ensure all pointers to helper objects are NULL.
-    d_l_initializer = NULL;
-    d_silo_writer = NULL;
+    d_l_initializer = nullptr;
+    d_silo_writer = nullptr;
 
     // Set some default values.
     d_error_if_points_leave_domain = false;

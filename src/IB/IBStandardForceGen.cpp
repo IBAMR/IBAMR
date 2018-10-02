@@ -832,7 +832,7 @@ IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc_idx_
             petsc_mastr_node_idxs[current_spring] = petsc_idx;
             force_fcns[current_spring] = d_spring_force_fcn_map[fcn[k]];
             force_deriv_fcns[current_spring] = d_spring_force_deriv_fcn_map[fcn[k]];
-            parameters[current_spring] = params.empty() ? NULL : &params[k][0];
+            parameters[current_spring] = params.empty() ? nullptr : &params[k][0];
             ++current_spring;
         }
     }
@@ -872,14 +872,14 @@ IBStandardForceGen::computeLagrangianSpringForce(Pointer<LData> F_data,
 {
     const int num_springs = static_cast<int>(d_spring_data[level_number].lag_mastr_node_idxs.size());
     const bool uses_springs = (num_springs > 0);
-    const int* const lag_mastr_node_idxs = uses_springs ? &d_spring_data[level_number].lag_mastr_node_idxs[0] : NULL;
-    const int* const lag_slave_node_idxs = uses_springs ? &d_spring_data[level_number].lag_slave_node_idxs[0] : NULL;
+    const int* const lag_mastr_node_idxs = uses_springs ? &d_spring_data[level_number].lag_mastr_node_idxs[0] : nullptr;
+    const int* const lag_slave_node_idxs = uses_springs ? &d_spring_data[level_number].lag_slave_node_idxs[0] : nullptr;
     const int* const petsc_mastr_node_idxs =
-        uses_springs ? &d_spring_data[level_number].petsc_mastr_node_idxs[0] : NULL;
+        uses_springs ? &d_spring_data[level_number].petsc_mastr_node_idxs[0] : nullptr;
     const int* const petsc_slave_node_idxs =
-        uses_springs ? &d_spring_data[level_number].petsc_slave_node_idxs[0] : NULL;
-    const SpringForceFcnPtr* const force_fcns = uses_springs ? &d_spring_data[level_number].force_fcns[0] : NULL;
-    const double** const parameters = uses_springs ? &d_spring_data[level_number].parameters[0] : NULL;
+        uses_springs ? &d_spring_data[level_number].petsc_slave_node_idxs[0] : nullptr;
+    const SpringForceFcnPtr* const force_fcns = uses_springs ? &d_spring_data[level_number].force_fcns[0] : nullptr;
+    const double** const parameters = uses_springs ? &d_spring_data[level_number].parameters[0] : nullptr;
     double* const F_node = F_data->getLocalFormVecArray()->data();
     const double* const X_node = X_data->getGhostedLocalFormVecArray()->data();
 
@@ -1100,11 +1100,11 @@ IBStandardForceGen::computeLagrangianBeamForce(Pointer<LData> F_data,
 {
     const int num_beams = static_cast<int>(d_beam_data[level_number].petsc_mastr_node_idxs.size());
     const bool uses_beams = (num_beams > 0);
-    const int* const petsc_mastr_node_idxs = uses_beams ? &d_beam_data[level_number].petsc_mastr_node_idxs[0] : NULL;
-    const int* const petsc_next_node_idxs = uses_beams ? &d_beam_data[level_number].petsc_next_node_idxs[0] : NULL;
-    const int* const petsc_prev_node_idxs = uses_beams ? &d_beam_data[level_number].petsc_prev_node_idxs[0] : NULL;
-    const double** const rigidities = uses_beams ? &d_beam_data[level_number].rigidities[0] : NULL;
-    const Vector** const curvatures = uses_beams ? &d_beam_data[level_number].curvatures[0] : NULL;
+    const int* const petsc_mastr_node_idxs = uses_beams ? &d_beam_data[level_number].petsc_mastr_node_idxs[0] : nullptr;
+    const int* const petsc_next_node_idxs = uses_beams ? &d_beam_data[level_number].petsc_next_node_idxs[0] : nullptr;
+    const int* const petsc_prev_node_idxs = uses_beams ? &d_beam_data[level_number].petsc_prev_node_idxs[0] : nullptr;
+    const double** const rigidities = uses_beams ? &d_beam_data[level_number].rigidities[0] : nullptr;
+    const Vector** const curvatures = uses_beams ? &d_beam_data[level_number].curvatures[0] : nullptr;
     double* const F_node = F_data->getLocalFormVecArray()->data();
     const double* const X_node = X_data->getGhostedLocalFormVecArray()->data();
 
@@ -1270,10 +1270,10 @@ IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
     const int num_target_points = static_cast<int>(d_target_point_data[level_number].petsc_node_idxs.size());
     const bool uses_target_points = (num_target_points > 0);
     const int* const petsc_node_idxs =
-        uses_target_points ? &d_target_point_data[level_number].petsc_node_idxs[0] : NULL;
-    const double** const kappa = uses_target_points ? &d_target_point_data[level_number].kappa[0] : NULL;
-    const double** const eta = uses_target_points ? &d_target_point_data[level_number].eta[0] : NULL;
-    const Point** const X0 = uses_target_points ? &d_target_point_data[level_number].X0[0] : NULL;
+        uses_target_points ? &d_target_point_data[level_number].petsc_node_idxs[0] : nullptr;
+    const double** const kappa = uses_target_points ? &d_target_point_data[level_number].kappa[0] : nullptr;
+    const double** const eta = uses_target_points ? &d_target_point_data[level_number].eta[0] : nullptr;
+    const Point** const X0 = uses_target_points ? &d_target_point_data[level_number].X0[0] : nullptr;
     double* const F_node = F_data->getLocalFormVecArray()->data();
     const double* const X_node = X_data->getLocalFormVecArray()->data();
     const double* const U_node = U_data->getLocalFormVecArray()->data();

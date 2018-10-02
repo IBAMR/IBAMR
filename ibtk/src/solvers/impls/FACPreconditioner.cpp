@@ -62,7 +62,7 @@ FACPreconditioner::FACPreconditioner(const std::string& object_name,
                                      tbox::Pointer<tbox::Database> input_db,
                                      const std::string& /*default_options_prefix*/)
     : d_fac_strategy(fac_strategy),
-      d_hierarchy(NULL),
+      d_hierarchy(nullptr),
       d_coarsest_ln(0),
       d_finest_ln(0),
       d_cycle_type(V_CYCLE),

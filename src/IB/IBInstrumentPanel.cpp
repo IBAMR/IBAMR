@@ -655,7 +655,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarc
     {
         d_num_perimeter_nodes[m] = max_node_index[m] + 1;
     }
-    SAMRAI_MPI::maxReduction(d_num_meters > 0 ? &d_num_perimeter_nodes[0] : NULL, d_num_meters);
+    SAMRAI_MPI::maxReduction(d_num_meters > 0 ? &d_num_perimeter_nodes[0] : nullptr, d_num_meters);
 #if !defined(NDEBUG)
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
@@ -894,7 +894,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
         }
 
         Pointer<PatchLevel<NDIM> > finer_level =
-            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel<NDIM> >(NULL));
+            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel<NDIM> >(nullptr));
         const IntVector<NDIM>& finer_ratio = (ln < finest_ln ? finer_level->getRatio() : IntVector<NDIM>(1));
         const Box<NDIM> finer_domain_box_level = Box<NDIM>::refine(domain_box, finer_ratio);
         const Index<NDIM>& finer_domain_box_level_lower = finer_domain_box_level.lower();
@@ -1277,7 +1277,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
     current_file_name += temp_buf;
     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
-    if (!(dbfile = DBCreate(current_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)))
+    if (!(dbfile = DBCreate(current_file_name.c_str(), DB_CLOBBER, DB_LOCAL, nullptr, DB_PDB)))
     {
         TBOX_ERROR(d_object_name + "::writePlotData():\n"
                    << "  Could not create DBfile named "
@@ -1311,7 +1311,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
         sprintf(temp_buf, "%06d", d_instrument_read_timestep_num);
         std::string summary_file_name =
             dump_dirname + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
-        if (!(dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)))
+        if (!(dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, nullptr, DB_PDB)))
         {
             TBOX_ERROR(d_object_name + "::writePlotData():\n"
                        << "  Could not create DBfile named "

@@ -227,13 +227,13 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch
 
             Pointer<FaceData<NDIM, double> > flux_integral_data =
                 (conservation_form ? patch.getPatchData(flux_integral_var, getDataContext()) :
-                                     Pointer<PatchData<NDIM> >(NULL));
+                                     Pointer<PatchData<NDIM> >(nullptr));
             Pointer<FaceData<NDIM, double> > q_integral_data =
                 (!conservation_form || !u_is_div_free ? patch.getPatchData(q_integral_var, getDataContext()) :
-                                                        Pointer<PatchData<NDIM> >(NULL));
+                                                        Pointer<PatchData<NDIM> >(nullptr));
             Pointer<FaceData<NDIM, double> > u_integral_data =
                 (!conservation_form || !u_is_div_free ? patch.getPatchData(u_integral_var, getDataContext()) :
-                                                        Pointer<PatchData<NDIM> >(NULL));
+                                                        Pointer<PatchData<NDIM> >(nullptr));
 
             const IntVector<NDIM>& Q_data_ghost_cells = Q_data->getGhostCellWidth();
             const IntVector<NDIM>& flux_integral_data_ghost_cells =

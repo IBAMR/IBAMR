@@ -196,10 +196,10 @@ INSStaggeredWavePropConvectiveOperator::INSStaggeredWavePropConvectiveOperator(
     : ConvectiveOperator(object_name, difference_form),
       d_bc_coefs(bc_coefs),
       d_bdry_extrap_type("CONSTANT"),
-      d_hierarchy(NULL),
+      d_hierarchy(nullptr),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
-      d_U_var(NULL),
+      d_U_var(nullptr),
       d_U_scratch_idx(-1)
 {
     if (d_difference_form != ADVECTIVE /* && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC*/)
@@ -278,9 +278,9 @@ INSStaggeredWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx,
                                                              d_bc_coefs);
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_bc_coefs, NULL, d_U_scratch_idx, -1, homogeneous_bc);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_bc_coefs, nullptr, d_U_scratch_idx, -1, homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
-    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, NULL);
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, nullptr);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the convective derivative.

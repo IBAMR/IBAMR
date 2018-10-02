@@ -71,7 +71,7 @@ GeneralSolver::GeneralSolver()
       d_max_iterations(100),
       d_current_iterations(0),
       d_current_residual_norm(std::numeric_limits<double>::quiet_NaN()),
-      d_hier_math_ops(NULL),
+      d_hier_math_ops(nullptr),
       d_hier_math_ops_external(false),
       d_enable_logging(false)
 {

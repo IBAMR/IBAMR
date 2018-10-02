@@ -101,7 +101,7 @@ IBRedundantInitializer::IBRedundantInitializer(const std::string& object_name, P
     : d_object_name(object_name),
       d_max_levels(-1),
       d_level_is_initialized(),
-      d_silo_writer(NULL),
+      d_silo_writer(nullptr),
       d_base_filename(),
       d_length_scale_factor(1.0),
       d_posn_shift(Vector::Zero()),
@@ -123,15 +123,15 @@ IBRedundantInitializer::IBRedundantInitializer(const std::string& object_name, P
       d_source_idx(),
       d_global_index_offset(),
       d_data_processed(false),
-      d_init_structure_on_level_fcn(NULL),
-      d_init_spring_on_level_fcn(NULL),
-      d_init_beam_on_level_fcn(NULL),
-      d_init_director_and_rod_on_level_fcn(NULL),
-      d_init_boundary_mass_on_level_fcn(NULL),
-      d_init_target_pt_on_level_fcn(NULL),
-      d_init_anchor_pt_on_level_fcn(NULL),
-      d_init_instrumentation_on_level_fcn(NULL),
-      d_init_source_on_level_fcn(NULL)
+      d_init_structure_on_level_fcn(nullptr),
+      d_init_spring_on_level_fcn(nullptr),
+      d_init_beam_on_level_fcn(nullptr),
+      d_init_director_and_rod_on_level_fcn(nullptr),
+      d_init_boundary_mass_on_level_fcn(nullptr),
+      d_init_target_pt_on_level_fcn(nullptr),
+      d_init_anchor_pt_on_level_fcn(nullptr),
+      d_init_instrumentation_on_level_fcn(nullptr),
+      d_init_source_on_level_fcn(nullptr)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());

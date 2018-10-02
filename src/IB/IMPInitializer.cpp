@@ -118,7 +118,7 @@ IMPInitializer::IMPInitializer(const std::string& object_name,
       d_vertex_posn(d_gridding_alg->getMaxLevels()),
       d_vertex_wgt(d_gridding_alg->getMaxLevels()),
       d_vertex_subdomain_id(d_gridding_alg->getMaxLevels()),
-      d_silo_writer(NULL)
+      d_silo_writer(nullptr)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());

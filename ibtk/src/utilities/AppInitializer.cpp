@@ -62,13 +62,13 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AppInitializer::AppInitializer(int argc, char* argv[], const std::string& default_log_file_name)
-    : d_input_db(NULL),
+    : d_input_db(nullptr),
       d_is_from_restart(false),
       d_viz_dump_interval(0),
       d_viz_dump_dirname(""),
       d_viz_writers(),
-      d_visit_data_writer(NULL),
-      d_silo_data_writer(NULL),
+      d_visit_data_writer(nullptr),
+      d_silo_data_writer(nullptr),
       d_exodus_filename("output.ex2"),
       d_gmv_filename("output.gmv"),
       d_restart_dump_interval(0),
@@ -88,7 +88,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     if (argc >= 4)
     {
         // Check whether this appears to be a restarted run.
-        FILE* fstream = (SAMRAI_MPI::getRank() == 0 ? fopen(argv[2], "r") : NULL);
+        FILE* fstream = (SAMRAI_MPI::getRank() == 0 ? fopen(argv[2], "r") : nullptr);
         if (SAMRAI_MPI::bcast(fstream ? 1 : 0, 0) == 1)
         {
             d_restart_read_dirname = argv[2];
@@ -122,7 +122,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     if (d_input_db->keyExists("petsc_options_file"))
     {
         std::string petsc_options_file = d_input_db->getString("petsc_options_file");
-        PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, petsc_options_file.c_str(), PETSC_TRUE);
+        PetscOptionsInsertFile(PETSC_COMM_WORLD, nullptr, petsc_options_file.c_str(), PETSC_TRUE);
     }
 
     // Process "Main" section of the input database.

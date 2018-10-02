@@ -245,10 +245,10 @@ DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
     d_mat_filename_map[mat_name] = filename;
     d_mat_scale_map[mat_name] = scale;
     d_mat_map[mat_name] = std::make_pair<double*, double*>(NULL, NULL);
-    d_geometric_mat_map[mat_name] = NULL;
+    d_geometric_mat_map[mat_name] = nullptr;
     d_ipiv_map[mat_name] = std::make_pair<int*, int*>(NULL, NULL);
     d_petsc_mat_map[mat_name] = std::make_pair<Mat, Mat>(NULL, NULL);
-    d_petsc_geometric_mat_map[mat_name] = NULL;
+    d_petsc_geometric_mat_map[mat_name] = nullptr;
 
     // Allocate the actual matrices.
     const int mobility_mat_size = num_nodes * NDIM;
@@ -368,7 +368,7 @@ DirectMobilitySolver::solveSystem(Vec x, Vec b)
 
         for (int k = 0; k < num_structs; ++k)
         {
-            double* rhs = NULL;
+            double* rhs = nullptr;
             if (rank == managing_proc) rhs = new double[mat_size];
             d_cib_strategy->copyVecToArray(b, rhs, struct_ids[k], data_depth, managing_proc);
             if (!d_recompute_mob_mat)
@@ -424,7 +424,7 @@ DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
 
         for (int k = 0; k < num_structs; ++k)
         {
-            double* rhs = NULL;
+            double* rhs = nullptr;
             if (rank == managing_proc) rhs = new double[mat_size];
             d_cib_strategy->copyFreeDOFsVecToArray(b, rhs, struct_ids[k], managing_proc);
             if (!d_recompute_mob_mat)
@@ -472,7 +472,7 @@ DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
     {
         // Get grid-info
         Vec* vx;
-        VecNestGetSubVecs(x, NULL, &vx);
+        VecNestGetSubVecs(x, nullptr, &vx);
         Pointer<SAMRAIVectorReal<NDIM, double> > vx0;
         IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = vx0->getPatchHierarchy();
@@ -585,7 +585,7 @@ void
 DirectMobilitySolver::getFromInput(Pointer<Database> input_db)
 {
     Pointer<Database> comp_db;
-    comp_db = input_db->isDatabase("LAPACK_SVD") ? input_db->getDatabase("LAPACK_SVD") : Pointer<Database>(NULL);
+    comp_db = input_db->isDatabase("LAPACK_SVD") ? input_db->getDatabase("LAPACK_SVD") : Pointer<Database>(nullptr);
     if (comp_db)
     {
         d_svd_replace_value = comp_db->getDouble("eigenvalue_replace_value");
@@ -613,7 +613,7 @@ DirectMobilitySolver::factorizeMobilityMatrix()
         Mat& mat = d_petsc_mat_map[mat_name].first;
         const MobilityMatrixInverseType& inv_type = d_mat_inv_type_map[mat_name].first;
         const int mat_size = d_mat_nodes_map[mat_name] * NDIM;
-        double* mat_data = NULL;
+        double* mat_data = nullptr;
         MatDenseGetArray(mat, &mat_data);
         factorizeDenseMatrix(mat_data, mat_size, inv_type, d_ipiv_map[mat_name].first, mat_name, "Mobility");
         MatDenseRestoreArray(mat, &mat_data);
@@ -679,7 +679,7 @@ DirectMobilitySolver::factorizeBodyMobilityMatrix()
         const MobilityMatrixInverseType& inv_type = d_mat_inv_type_map[mat_name].second;
         const int mat_size = d_mat_parts_map[mat_name] * s_max_free_dofs;
 
-        double* mat_data = NULL;
+        double* mat_data = nullptr;
         MatDenseGetArray(mat, &mat_data);
         factorizeDenseMatrix(mat_data, mat_size, inv_type, d_ipiv_map[mat_name].second, mat_name, "Body Mobility");
         MatDenseRestoreArray(mat, &mat_data);
@@ -862,8 +862,8 @@ DirectMobilitySolver::computeSolution(Mat& mat, const MobilityMatrixInverseType&
 {
     // Get pointer to matrix.
     int mat_size;
-    double* mat_data = NULL;
-    MatGetSize(mat, &mat_size, NULL);
+    double* mat_data = nullptr;
+    MatGetSize(mat, &mat_size, nullptr);
     MatDenseGetArray(mat, &mat_data);
 
     int err = 0;

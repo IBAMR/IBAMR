@@ -145,7 +145,7 @@ CCPoissonLevelRelaxationFACOperator::CCPoissonLevelRelaxationFACOperator(const s
       d_level_solver_type(),
       d_level_solvers(),
       d_level_solver_db(),
-      d_coarse_solver(NULL),
+      d_coarse_solver(nullptr),
       d_coarse_solver_db()
 {
     // Set some default values.
@@ -451,7 +451,7 @@ CCPoissonLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
             new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
     d_level_math_ops[finest_level_num]->laplace(
-        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_solution_time);
+        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, nullptr, d_solution_time);
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     hier_cc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
 
@@ -558,7 +558,7 @@ CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     }
     else
     {
-        d_op_stencil_fill_pattern = NULL;
+        d_op_stencil_fill_pattern = nullptr;
     }
 
     // Get overlap information for setting patch boundary conditions.

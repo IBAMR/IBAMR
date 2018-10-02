@@ -102,7 +102,7 @@ CartCellDoubleLinearCFInterpolation::CartCellDoubleLinearCFInterpolation()
     : d_patch_data_indices(),
       d_consistent_type_2_bdry(false),
       d_refine_op(new CellDoubleConstantRefine<NDIM>()),
-      d_hierarchy(NULL),
+      d_hierarchy(nullptr),
       d_cf_boundary(),
       d_periodic_shift()
 {

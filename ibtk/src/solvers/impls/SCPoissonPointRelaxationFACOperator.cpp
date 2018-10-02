@@ -267,7 +267,7 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
           SIDEG,
           input_db,
           default_options_prefix),
-      d_coarse_solver(NULL),
+      d_coarse_solver(nullptr),
       d_coarse_solver_db(),
       d_patch_bc_box_overlap(),
       d_patch_neighbor_overlap()
@@ -734,7 +734,7 @@ SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
             new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
     d_level_math_ops[finest_level_num]->laplace(
-        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_solution_time);
+        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, nullptr, d_solution_time);
     HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     hier_sc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
 
@@ -823,7 +823,7 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     }
     else
     {
-        d_op_stencil_fill_pattern = NULL;
+        d_op_stencil_fill_pattern = nullptr;
     }
     d_synch_fill_pattern = new SideSynchCopyFillPattern();
 

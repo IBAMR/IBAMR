@@ -137,8 +137,8 @@ CIBFEMethod::preprocessIntegrateData(double current_time, double new_time, int n
     d_U_constrained_half_vecs.resize(d_num_rigid_parts);
 
     // PETSc wrappers.
-    d_vL_current.resize(d_num_rigid_parts, NULL);
-    d_vL_new.resize(d_num_rigid_parts, NULL);
+    d_vL_current.resize(d_num_rigid_parts, nullptr);
+    d_vL_new.resize(d_num_rigid_parts, nullptr);
 
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
@@ -161,8 +161,8 @@ CIBFEMethod::preprocessIntegrateData(double current_time, double new_time, int n
     }
 
     // Create data structures for Lagrange multiplier
-    VecCreateNest(PETSC_COMM_WORLD, d_num_rigid_parts, NULL, &d_vL_current[0], &d_mv_L_current);
-    VecCreateNest(PETSC_COMM_WORLD, d_num_rigid_parts, NULL, &d_vL_new[0], &d_mv_L_new);
+    VecCreateNest(PETSC_COMM_WORLD, d_num_rigid_parts, nullptr, &d_vL_current[0], &d_mv_L_current);
+    VecCreateNest(PETSC_COMM_WORLD, d_num_rigid_parts, nullptr, &d_vL_new[0], &d_mv_L_new);
 
     // Get data for free and prescribed bodies.
     int free_dofs_counter = 0;
@@ -557,7 +557,7 @@ CIBFEMethod::setConstraintForce(Vec L, const double data_time, const double scal
 #endif
     // Unpack the Lambda vector.
     Vec* vL;
-    VecNestGetSubVecs(L, NULL, &vL);
+    VecNestGetSubVecs(L, nullptr, &vL);
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
         PetscVector<double>* F_vec = d_F_half_vecs[part];
@@ -611,7 +611,7 @@ CIBFEMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double sca
 {
     // Unpack the Lambda vector.
     Vec* vL;
-    VecNestGetSubVecs(L, NULL, &vL);
+    VecNestGetSubVecs(L, nullptr, &vL);
     double F[NDIM] = { 0.0 };
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
@@ -715,7 +715,7 @@ CIBFEMethod::getInterpolatedVelocity(Vec V, const double data_time, const double
 #endif
     // Unpack the velocity vector.
     Vec* vV;
-    VecNestGetSubVecs(V, NULL, &vV);
+    VecNestGetSubVecs(V, nullptr, &vV);
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
         PetscVector<double>* U_vec = d_U_half_vecs[part];
@@ -730,8 +730,8 @@ CIBFEMethod::computeMobilityRegularization(Vec D, Vec L, const double scale)
     if (!d_compute_L2_projection)
     {
         Vec *vL, *vD;
-        VecNestGetSubVecs(L, NULL, &vL);
-        VecNestGetSubVecs(D, NULL, &vD);
+        VecNestGetSubVecs(L, nullptr, &vL);
+        VecNestGetSubVecs(D, nullptr, &vD);
         for (unsigned part = 0; part < d_num_rigid_parts; ++part)
         {
             std::pair<LinearSolver<double>*, SparseMatrix<double>*> filter =
@@ -759,7 +759,7 @@ CIBFEMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rig
 {
     // Unpack the Lambda vector.
     Vec* vL;
-    VecNestGetSubVecs(L, NULL, &vL);
+    VecNestGetSubVecs(L, nullptr, &vL);
 
     // Get mesh.
     EquationSystems* equation_systems = d_equation_systems[part];
@@ -873,7 +873,7 @@ CIBFEMethod::copyVecToArray(Vec b,
 
     // Get the components of the VecNest.
     Vec* vb;
-    VecNestGetSubVecs(b, NULL, &vb);
+    VecNestGetSubVecs(b, nullptr, &vb);
 
     // Scatter values
     PetscInt offset = 0;
@@ -931,7 +931,7 @@ CIBFEMethod::copyArrayToVec(Vec b,
 
     // Get the components of the VecNest.
     Vec* vb;
-    VecNestGetSubVecs(b, NULL, &vb);
+    VecNestGetSubVecs(b, nullptr, &vb);
 
     // Scatter values
     PetscInt offset = 0;
@@ -1052,7 +1052,7 @@ CIBFEMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector&
     // We filter the rigid body velocity using the basis function of the
     // deformational field, in the case when L2-projection is not performed.
     Vec* vV;
-    VecNestGetSubVecs(V, NULL, &vV);
+    VecNestGetSubVecs(V, nullptr, &vV);
     if (!d_compute_L2_projection)
     {
         std::pair<LinearSolver<double>*, SparseMatrix<double>*> filter =

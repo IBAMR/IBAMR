@@ -132,7 +132,7 @@ IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Poi
       d_use_file_batons(true),
       d_max_levels(-1),
       d_level_is_initialized(),
-      d_silo_writer(NULL),
+      d_silo_writer(nullptr),
       d_base_filename(),
       d_length_scale_factor(1.0),
       d_posn_shift(Vector::Zero()),

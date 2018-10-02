@@ -78,7 +78,7 @@ NodeDataSynchronization::NodeDataSynchronization()
       d_transaction_comps(),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
-      d_coarsen_alg(NULL),
+      d_coarsen_alg(nullptr),
       d_coarsen_scheds(),
       d_refine_alg(),
       d_refine_scheds()
@@ -144,7 +144,7 @@ NodeDataSynchronization::initializeOperatorState(
         }
     }
 
-    CoarsenPatchStrategy<NDIM>* coarsen_strategy = NULL;
+    CoarsenPatchStrategy<NDIM>* coarsen_strategy = nullptr;
     d_coarsen_scheds.resize(d_finest_ln + 1);
     if (registered_coarsen_op)
     {
@@ -172,7 +172,7 @@ NodeDataSynchronization::initializeOperatorState(
                            << "  only double-precision node-centered data is supported."
                            << std::endl);
             }
-            Pointer<RefineOperator<NDIM> > refine_op = NULL;
+            Pointer<RefineOperator<NDIM> > refine_op = nullptr;
             Pointer<VariableFillPattern<NDIM> > fill_pattern = new NodeSynchCopyFillPattern(axis);
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source
@@ -277,7 +277,7 @@ NodeDataSynchronization::resetTransactionComponents(
                            << "  only double-precision node-centered data is supported."
                            << std::endl);
             }
-            Pointer<RefineOperator<NDIM> > refine_op = NULL;
+            Pointer<RefineOperator<NDIM> > refine_op = nullptr;
             Pointer<VariableFillPattern<NDIM> > fill_pattern = new NodeSynchCopyFillPattern(axis);
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source

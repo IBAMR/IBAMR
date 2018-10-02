@@ -252,7 +252,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(Pointer<Cell
     d_Q_init_convective_time_stepping_type[Q_var] = d_default_init_convective_time_stepping_type;
     d_Q_convective_op_type[Q_var] = d_default_convective_op_type;
     d_Q_convective_op_input_db[Q_var] = d_default_convective_op_input_db;
-    d_Q_convective_op[Q_var] = NULL;
+    d_Q_convective_op[Q_var] = nullptr;
     d_Q_convective_op_needs_init[Q_var] = false;
     return;
 } // registerTransportedQuantity
