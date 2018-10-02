@@ -32,10 +32,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <string.h>
 #include <math.h>
+#include <iostream>
 
 #include "ibamr/MobilityFunctions.h"
 
@@ -90,8 +91,8 @@ GetKernelType(const char* IBKernelName)
     if (!strcmp(IBKernelName, "IB_4")) return IB4;
     if (!strcmp(IBKernelName, "IB_6")) return IB6;
 
-    fprintf(stderr, "IBEmpiricalMobility: Unknown interpolation kernel type.\n");
-    exit(EXIT_FAILURE);
+    std::cerr << "IBEmpiricalMobility: Unknown interpolation kernel type.\n";
+    std::exit(EXIT_FAILURE);
 } // GetKernelType
 
 // Returns Hydrodynamic radius value
@@ -424,8 +425,8 @@ _F_R_INF(const double rr, const double Dx, const double L_domain)
 #elif(NDIM == 2)
     if (L_domain < ZERO_TOL)
     {
-        fprintf(stderr, "IBEMpiricalMobility:_F_R_INF()  L_domain must be non specified in 2D!. Abort.\n");
-        exit(EXIT_FAILURE);
+        std::cerr << "IBEMpiricalMobility:_F_R_INF()  L_domain must be non specified in 2D!. Abort.\n";
+        std::exit(EXIT_FAILURE);
     }
     double f_0 = (Z_s[0] + Z_s[1] * log(L_domain / Z_s[2]));
     if (r < 0.1)
