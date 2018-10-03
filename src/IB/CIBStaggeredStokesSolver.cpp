@@ -340,7 +340,7 @@ CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIV
     ib_method_ops->setComputeVelL2Projection(cached_compute_L2_projection);
     d_cib_strategy->getInterpolatedVelocity(V, half_time);
     Vec* vV;
-    VecNestGetSubVecs(V, NULL, &vV);
+    VecNestGetSubVecs(V, nullptr, &vV);
     VecView(vV[0], PETSC_VIEWER_STDOUT_WORLD);
 #endif
 

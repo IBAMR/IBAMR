@@ -101,9 +101,9 @@ public:
      */
     struct ConstrainedVelocityFcnsData
     {
-        ConstrainedVelocityFcnsData(ConstrainedNodalVelocityFcnPtr nodalvelfcn = NULL,
-                                    ConstrainedCOMVelocityFcnPtr comvelfcn = NULL,
-                                    void* ctx = NULL)
+        ConstrainedVelocityFcnsData(ConstrainedNodalVelocityFcnPtr nodalvelfcn = nullptr,
+                                    ConstrainedCOMVelocityFcnPtr comvelfcn = nullptr,
+                                    void* ctx = nullptr)
             : nodalvelfcn(nodalvelfcn), comvelfcn(comvelfcn), ctx(ctx)
         {
             // intentionally left blank
@@ -118,7 +118,7 @@ public:
      */
     struct ExternalForceTorqueFcnData
     {
-        ExternalForceTorqueFcnData(ExternalForceTorqueFcnPtr forcetorquefcn = NULL, void* ctx = NULL)
+        ExternalForceTorqueFcnData(ExternalForceTorqueFcnPtr forcetorquefcn = nullptr, void* ctx = nullptr)
             : forcetorquefcn(forcetorquefcn), ctx(ctx)
         {
             // intentionally left blank
@@ -132,7 +132,7 @@ public:
      */
     void registerConstrainedVelocityFunction(ConstrainedNodalVelocityFcnPtr nodalvelfcn,
                                              ConstrainedCOMVelocityFcnPtr comvelfcn,
-                                             void* ctx = NULL,
+                                             void* ctx = nullptr,
                                              unsigned int part = 0);
 
     /*!
@@ -144,7 +144,7 @@ public:
      * \brief Register an external force and torque function.
      */
     void registerExternalForceTorqueFunction(ExternalForceTorqueFcnPtr forcetorquefcn,
-                                             void* ctx = NULL,
+                                             void* ctx = nullptr,
                                              unsigned int part = 0);
     /*!
      * \brief Register an external force and torque function data.

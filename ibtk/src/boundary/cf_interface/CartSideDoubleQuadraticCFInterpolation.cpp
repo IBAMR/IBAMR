@@ -454,7 +454,7 @@ CartSideDoubleQuadraticCFInterpolation::clearPatchHierarchy()
     for (std::vector<CoarseFineBoundary<NDIM>*>::iterator it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
     {
         delete (*it);
-        (*it) = NULL;
+        (*it) = nullptr;
     }
     d_cf_boundary.clear();
     return;

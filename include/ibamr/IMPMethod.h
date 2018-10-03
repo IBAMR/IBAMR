@@ -129,7 +129,7 @@ public:
      * stress tensor, used to compute the forces on the Lagrangian finite
      * element mesh.
      */
-    void registerPK1StressTensorFunction(PK1StressFcnPtr PK1_stress_fcn, void* PK1_stress_fcn_ctx = NULL);
+    void registerPK1StressTensorFunction(PK1StressFcnPtr PK1_stress_fcn, void* PK1_stress_fcn_ctx = nullptr);
 
     /*!
      * Supply a Lagrangian initialization object.

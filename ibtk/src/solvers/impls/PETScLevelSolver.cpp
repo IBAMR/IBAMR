@@ -476,7 +476,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         }
 
         // Get the local submatrices.
-#if PETSC_VERSION_GE(3,8,0) 
+#if PETSC_VERSION_GE(3,8,0)
         ierr = MatCreateSubMatrices(
             d_petsc_mat, d_n_local_subdomains, &d_overlap_is[0], &d_overlap_is[0], MAT_INITIAL_MATRIX, &d_sub_mat);
 #else
@@ -576,7 +576,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
             ierr = ISCreateStride(PETSC_COMM_WORLD, n_hi - n_lo, n_lo, 1, &local_idx);
             IBTK_CHKERRQ(ierr);
             std::vector<IS> local_idxs(d_n_local_subdomains, local_idx);
-#if PETSC_VERSION_GE(3,8,0) 
+#if PETSC_VERSION_GE(3,8,0)
             ierr = MatCreateSubMatrices(d_petsc_mat,
                                         d_n_local_subdomains,
                                         d_n_local_subdomains ? &d_overlap_is[0] : nullptr,
@@ -586,8 +586,8 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
 #else
             ierr = MatGetSubMatrices(d_petsc_mat,
                                      d_n_local_subdomains,
-                                     d_n_local_subdomains ? &d_overlap_is[0] : NULL,
-                                     d_n_local_subdomains ? &local_idxs[0] : NULL,
+                                     d_n_local_subdomains ? &d_overlap_is[0] : nullptr,
+                                     d_n_local_subdomains ? &local_idxs[0] : nullptr,
                                      MAT_INITIAL_MATRIX,
                                      &d_sub_bc_mat);
 #endif

@@ -383,7 +383,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
         {
             mu_current_idx = d_mu_current_idx;
         }
-        
+
         d_hier_cc_data_ops->copyData(d_mu_scratch_idx, mu_current_idx, /*interior_only*/ true);
         d_mu_bdry_bc_fill_op->fillData(current_time);
 
@@ -499,7 +499,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
                                 0.0,
                                 U_rhs_problem_coefs.getDPatchDataId(),
 #if (NDIM == 2)
-                                Pointer<NodeVariable<NDIM, double> >(NULL),
+                                Pointer<NodeVariable<NDIM, double> >(nullptr),
 #elif (NDIM == 3)
                                 Pointer<EdgeVariable<NDIM, double> >(nullptr),
 #endif

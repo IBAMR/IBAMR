@@ -162,7 +162,7 @@ public:
     void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
              SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > src,
              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-             CartSideRobinPhysBdryOp* bc_op = NULL,
+             CartSideRobinPhysBdryOp* bc_op = nullptr,
              double fill_time = 0.0) const;
 
     /*!
@@ -173,7 +173,7 @@ public:
     void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-             CartSideRobinPhysBdryOp* bc_op = NULL,
+             CartSideRobinPhysBdryOp* bc_op = nullptr,
              double fill_time = 0.0) const;
 
     /*!
@@ -184,7 +184,7 @@ public:
     void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
              SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > src,
              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-             CartSideRobinPhysBdryOp* bc_op = NULL,
+             CartSideRobinPhysBdryOp* bc_op = nullptr,
              double fill_time = 0.0) const;
 
     /*!
@@ -195,7 +195,7 @@ public:
     void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src,
              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-             CartSideRobinPhysBdryOp* bc_op = NULL,
+             CartSideRobinPhysBdryOp* bc_op = nullptr,
              double fill_time = 0.0) const;
 
     /*!

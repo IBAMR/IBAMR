@@ -893,7 +893,7 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
                                                    beta,
                                                    d_poisson_spec.getDPatchDataId(),
 #if (NDIM == 2)
-                                                   Pointer<NodeVariable<NDIM, double> >(NULL),
+                                                   Pointer<NodeVariable<NDIM, double> >(nullptr),
 #endif
 #if (NDIM == 3)
                                                    Pointer<EdgeVariable<NDIM, double> >(nullptr),

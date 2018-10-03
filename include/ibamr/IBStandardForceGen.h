@@ -106,7 +106,7 @@ public:
      */
     void registerSpringForceFunction(int force_fcn_index,
                                      const SpringForceFcnPtr spring_force_fcn_ptr,
-                                     const SpringForceDerivFcnPtr spring_force_deriv_fcn_ptr = NULL);
+                                     const SpringForceDerivFcnPtr spring_force_deriv_fcn_ptr = nullptr);
 
     /*!
      * \brief Setup the data needed to compute the forces on the specified level

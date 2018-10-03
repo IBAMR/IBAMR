@@ -220,7 +220,7 @@ LDataManager::freeAllManagers()
         {
             delete it->second;
         }
-        it->second = NULL;
+        it->second = nullptr;
     }
     return;
 } // freeManager

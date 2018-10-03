@@ -195,7 +195,7 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& 
       d_W_cc_idx(-1),
       d_W_cc_idxs(),
 #if (NDIM == 2)
-      d_W_nc_var(NULL),
+      d_W_nc_var(nullptr),
       d_W_nc_idx(-1),
       d_W_nc_idxs()
 #endif

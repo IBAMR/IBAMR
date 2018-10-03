@@ -370,7 +370,7 @@ public:
      * preprocessIntegrateHierarchy().
      */
     void registerPreprocessIntegrateHierarchyCallback(PreprocessIntegrateHierarchyCallbackFcnPtr callback,
-                                                      void* ctx = NULL);
+                                                      void* ctx = nullptr);
 
     /*!
      * Callback function specification to enable further specialization of
@@ -382,7 +382,7 @@ public:
      * Register a callback function to enable further specialization of
      * integrateHierarchy().
      */
-    void registerIntegrateHierarchyCallback(IntegrateHierarchyCallbackFcnPtr callback, void* ctx = NULL);
+    void registerIntegrateHierarchyCallback(IntegrateHierarchyCallbackFcnPtr callback, void* ctx = nullptr);
 
     /*!
      * Callback function specification to enable further specialization of
@@ -399,7 +399,7 @@ public:
      * postprocessIntegrateHierarchy().
      */
     void registerPostprocessIntegrateHierarchyCallback(PostprocessIntegrateHierarchyCallbackFcnPtr callback,
-                                                       void* ctx = NULL);
+                                                       void* ctx = nullptr);
 
     /*!
      * Callback function specification to enable further specialization of
@@ -418,7 +418,7 @@ public:
      * Register a callback function to enable further specialization of
      * applyGradientDetector().
      */
-    void registerApplyGradientDetectorCallback(ApplyGradientDetectorCallbackFcnPtr callback, void* ctx = NULL);
+    void registerApplyGradientDetectorCallback(ApplyGradientDetectorCallbackFcnPtr callback, void* ctx = nullptr);
 
     /*!
      * Perform data initialization after the entire hierarchy has been constructed.

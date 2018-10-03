@@ -238,13 +238,13 @@ CartCellDoubleLinearCFInterpolation::clearPatchHierarchy()
     for (std::vector<CoarseFineBoundary<NDIM>*>::iterator it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
     {
         delete (*it);
-        (*it) = NULL;
+        (*it) = nullptr;
     }
     d_cf_boundary.clear();
     for (std::vector<BoxArray<NDIM>*>::iterator it = d_domain_boxes.begin(); it != d_domain_boxes.end(); ++it)
     {
         delete (*it);
-        (*it) = NULL;
+        (*it) = nullptr;
     }
     d_domain_boxes.clear();
     d_periodic_shift.clear();

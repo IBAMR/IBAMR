@@ -159,7 +159,7 @@ evaluate_polynomial_basis_fcns(Eigen::VectorXd& P,
 IBFEPatchRecoveryPostProcessor::IBFEPatchRecoveryPostProcessor(MeshBase* mesh, FEDataManager* fe_data_manager)
     : d_mesh(mesh),
       d_fe_data_manager(fe_data_manager),
-      d_periodic_boundaries(NULL),
+      d_periodic_boundaries(nullptr),
       d_interp_order(INVALID_ORDER),
       d_quad_order(INVALID_ORDER)
 {

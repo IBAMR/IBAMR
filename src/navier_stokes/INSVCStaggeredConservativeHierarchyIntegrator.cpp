@@ -466,7 +466,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
                                 0.0,
                                 U_rhs_problem_coefs.getDPatchDataId(),
 #if (NDIM == 2)
-                                Pointer<NodeVariable<NDIM, double> >(NULL),
+                                Pointer<NodeVariable<NDIM, double> >(nullptr),
 #elif (NDIM == 3)
                                 Pointer<EdgeVariable<NDIM, double> >(nullptr),
 #endif
