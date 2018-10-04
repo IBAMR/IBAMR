@@ -84,7 +84,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
-#include "boost/math/special_functions/round.hpp"
 #include "boost/multi_array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
@@ -1448,7 +1447,7 @@ LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int finest
             IntVector<NDIM> periodic_offset;
             for (int d = 0; d < NDIM; ++d)
             {
-                periodic_offset[d] = boost::math::round(periodic_displacement[d] / level_dx[d]);
+                periodic_offset[d] = int(std::round(periodic_displacement[d] / level_dx[d]));
             }
             if (periodic_offset != IntVector<NDIM>(0))
             {

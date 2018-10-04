@@ -65,7 +65,6 @@
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
-#include "boost/math/special_functions/round.hpp"
 #include "boost/multi_array.hpp"
 #include "ibamr/IMPMethod.h"
 #include "ibamr/MaterialPointSpec.h"
@@ -127,7 +126,7 @@ kernel(const double X,
        boost::multi_array<double, 1>& dphi)
 {
     const double X_o_dx = (X - patch_x_lower) / dx;
-    stencil_box_lower = boost::math::round(X_o_dx) + patch_box_lower - kernel_width;
+    stencil_box_lower = int(std::round(X_o_dx)) + patch_box_lower - kernel_width;
     stencil_box_upper = stencil_box_lower + 2 * kernel_width - 1;
     const double r = 1.0 - X_o_dx + ((stencil_box_lower + kernel_width - 1 - patch_box_lower) + 0.5);
 
