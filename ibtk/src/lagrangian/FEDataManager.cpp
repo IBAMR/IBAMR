@@ -303,7 +303,7 @@ FEDataManager::freeAllManagers()
         {
             delete it->second;
         }
-        it->second = NULL;
+        it->second = nullptr;
     }
     return;
 } // freeAllManagers
@@ -1982,11 +1982,11 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
         PetscMatrix<double>* M_mat = static_cast<PetscMatrix<double>*>(proj_solver_components.second);
         PetscBool rtol_set;
         double runtime_rtol;
-        ierr = PetscOptionsGetReal(NULL, "", "-ksp_rtol", &runtime_rtol, &rtol_set);
+        ierr = PetscOptionsGetReal(nullptr, "", "-ksp_rtol", &runtime_rtol, &rtol_set);
         IBTK_CHKERRQ(ierr);
         PetscBool max_it_set;
         int runtime_max_it;
-        ierr = PetscOptionsGetInt(NULL, "", "-ksp_max_it", &runtime_max_it, &max_it_set);
+        ierr = PetscOptionsGetInt(nullptr, "", "-ksp_max_it", &runtime_max_it, &max_it_set);
         IBTK_CHKERRQ(ierr);
         ierr = KSPSetFromOptions(solver->ksp());
         IBTK_CHKERRQ(ierr);
@@ -2321,14 +2321,14 @@ FEDataManager::FEDataManager(const std::string& object_name,
     : COORDINATES_SYSTEM_NAME("coordinates system"),
       d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
-      d_load_balancer(NULL),
-      d_hierarchy(NULL),
+      d_load_balancer(nullptr),
+      d_hierarchy(nullptr),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
       d_default_interp_spec(default_interp_spec),
       d_default_spread_spec(default_spread_spec),
       d_ghost_width(ghost_width),
-      d_es(NULL),
+      d_es(nullptr),
       d_level_number(-1),
       d_L2_proj_solver(),
       d_L2_proj_matrix(),

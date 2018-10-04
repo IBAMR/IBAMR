@@ -91,18 +91,18 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(const std::string& object_name,
                                                  MPI_Comm petsc_comm)
     : d_ksp_type(KSPGMRES),
       d_reinitializing_solver(false),
-      d_petsc_x(NULL),
-      d_petsc_b(NULL),
+      d_petsc_x(nullptr),
+      d_petsc_b(nullptr),
       d_options_prefix(default_options_prefix),
       d_petsc_comm(petsc_comm),
-      d_petsc_ksp(NULL),
-      d_petsc_mat(NULL),
-      d_petsc_nullsp(NULL),
+      d_petsc_ksp(nullptr),
+      d_petsc_mat(nullptr),
+      d_petsc_nullsp(nullptr),
       d_managing_petsc_ksp(true),
       d_user_provided_mat(false),
       d_user_provided_pc(false),
-      d_nullspace_constant_vec(NULL),
-      d_petsc_nullspace_constant_vec(NULL),
+      d_nullspace_constant_vec(nullptr),
+      d_petsc_nullspace_constant_vec(nullptr),
       d_petsc_nullspace_basis_vecs(),
       d_solver_has_attached_nullspace(false)
 {
@@ -137,18 +137,18 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(const std::string& object_name,
 PETScKrylovLinearSolver::PETScKrylovLinearSolver(const std::string& object_name, const KSP& petsc_ksp)
     : d_ksp_type("none"),
       d_reinitializing_solver(false),
-      d_petsc_x(NULL),
-      d_petsc_b(NULL),
+      d_petsc_x(nullptr),
+      d_petsc_b(nullptr),
       d_options_prefix(""),
       d_petsc_comm(PETSC_COMM_WORLD),
       d_petsc_ksp(petsc_ksp),
-      d_petsc_mat(NULL),
-      d_petsc_nullsp(NULL),
+      d_petsc_mat(nullptr),
+      d_petsc_nullsp(nullptr),
       d_managing_petsc_ksp(false),
       d_user_provided_mat(false),
       d_user_provided_pc(false),
-      d_nullspace_constant_vec(NULL),
-      d_petsc_nullspace_constant_vec(NULL),
+      d_nullspace_constant_vec(nullptr),
+      d_petsc_nullspace_constant_vec(nullptr),
       d_petsc_nullspace_basis_vecs(),
       d_solver_has_attached_nullspace(false)
 {
@@ -168,13 +168,13 @@ PETScKrylovLinearSolver::~PETScKrylovLinearSolver()
     {
         ierr = MatDestroy(&d_petsc_mat);
         IBTK_CHKERRQ(ierr);
-        d_petsc_mat = NULL;
+        d_petsc_mat = nullptr;
     }
     if (d_managing_petsc_ksp && d_petsc_ksp)
     {
         ierr = KSPDestroy(&d_petsc_ksp);
         IBTK_CHKERRQ(ierr);
-        d_petsc_ksp = NULL;
+        d_petsc_ksp = nullptr;
     }
     return;
 } // ~PETScKrylovLinearSolver()
@@ -405,7 +405,7 @@ PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, doub
     ierr = KSPGetInitialGuessNonzero(d_petsc_ksp, &initial_guess_nonzero);
     IBTK_CHKERRQ(ierr);
     d_initial_guess_nonzero = (initial_guess_nonzero == PETSC_TRUE);
-    ierr = KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
+    ierr = KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, nullptr, &d_max_iterations);
     IBTK_CHKERRQ(ierr);
 
     // Configure the nullspace object.
@@ -438,12 +438,12 @@ PETScKrylovLinearSolver::deallocateSolverState()
 
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
-    d_petsc_x = NULL;
+    d_petsc_x = nullptr;
     d_x->freeVectorComponents();
     d_x.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_b);
-    d_petsc_b = NULL;
+    d_petsc_b = nullptr;
     d_b->freeVectorComponents();
     d_b.setNull();
 
@@ -455,7 +455,7 @@ PETScKrylovLinearSolver::deallocateSolverState()
     {
         ierr = KSPDestroy(&d_petsc_ksp);
         IBTK_CHKERRQ(ierr);
-        d_petsc_ksp = NULL;
+        d_petsc_ksp = nullptr;
         d_solver_has_attached_nullspace = false;
     }
 
@@ -572,7 +572,7 @@ PETScKrylovLinearSolver::resetWrappedKSP(KSP& petsc_ksp)
         // Create a LinearOperator wrapper to correspond to the PETSc Mat used
         // by the KSP.
         Mat petsc_mat;
-        ierr = KSPGetOperators(d_petsc_ksp, &petsc_mat, NULL);
+        ierr = KSPGetOperators(d_petsc_ksp, &petsc_mat, nullptr);
         IBTK_CHKERRQ(ierr);
         d_A = new PETScMatLOWrapper(d_object_name + "::Mat Wrapper", petsc_mat);
         d_A->setHomogeneousBc(d_homogeneous_bc);
@@ -603,7 +603,7 @@ PETScKrylovLinearSolver::resetWrappedKSP(KSP& petsc_ksp)
     ierr = KSPGetInitialGuessNonzero(d_petsc_ksp, &initial_guess_nonzero);
     IBTK_CHKERRQ(ierr);
     d_initial_guess_nonzero = (initial_guess_nonzero == PETSC_TRUE);
-    ierr = KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
+    ierr = KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, nullptr, &d_max_iterations);
     IBTK_CHKERRQ(ierr);
     return;
 } // resetWrappedKSP
@@ -645,7 +645,7 @@ PETScKrylovLinearSolver::resetKSPOperators()
         {
             ierr = MatDestroy(&d_petsc_mat);
             IBTK_CHKERRQ(ierr);
-            d_petsc_mat = NULL;
+            d_petsc_mat = nullptr;
         }
     }
     if (!d_petsc_mat)
@@ -679,7 +679,7 @@ PETScKrylovLinearSolver::resetKSPPC()
     static const size_t len = 255;
     char pc_type_str[len];
     PetscBool flg;
-    ierr = PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+    ierr = PetscOptionsGetString(nullptr, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
     IBTK_CHKERRQ(ierr);
     std::string pc_type = "shell";
     if (flg)
@@ -728,7 +728,7 @@ PETScKrylovLinearSolver::resetMatNullspace()
     if (!d_petsc_ksp) return;
     int ierr;
     PetscBool flg;
-    ierr = PetscOptionsHasName(NULL, d_options_prefix.c_str(), "-ksp_constant_null_space", &flg);
+    ierr = PetscOptionsHasName(nullptr, d_options_prefix.c_str(), "-ksp_constant_null_space", &flg);
     IBTK_CHKERRQ(ierr);
     if (flg == PETSC_TRUE) d_nullspace_contains_constant_vec = true;
     if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty())
@@ -775,7 +775,7 @@ PETScKrylovLinearSolver::resetMatNullspace()
     else if (d_solver_has_attached_nullspace)
     {
         static const PetscBool has_cnst = PETSC_FALSE;
-        ierr = MatNullSpaceCreate(d_petsc_comm, has_cnst, 0, NULL, &d_petsc_nullsp);
+        ierr = MatNullSpaceCreate(d_petsc_comm, has_cnst, 0, nullptr, &d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
         ierr = MatSetNullSpace(d_petsc_mat, d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
@@ -793,10 +793,10 @@ PETScKrylovLinearSolver::deallocateNullspaceData()
     {
         ierr = MatNullSpaceDestroy(&d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
-        d_petsc_nullsp = NULL;
+        d_petsc_nullsp = nullptr;
         if (d_petsc_mat)
         {
-            ierr = MatSetNullSpace(d_petsc_mat, NULL);
+            ierr = MatSetNullSpace(d_petsc_mat, nullptr);
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -808,7 +808,7 @@ PETScKrylovLinearSolver::deallocateNullspaceData()
     {
         PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_nullspace_basis_vecs[k]);
     }
-    d_petsc_nullspace_constant_vec = NULL;
+    d_petsc_nullspace_constant_vec = nullptr;
     d_petsc_nullspace_basis_vecs.clear();
 
     // Clear SAMRAI data structures.

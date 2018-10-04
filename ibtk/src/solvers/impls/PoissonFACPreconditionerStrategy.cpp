@@ -101,11 +101,11 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::st
     : FACPreconditionerStrategy(object_name),
       d_poisson_spec(object_name + "::poisson_spec"),
       d_default_bc_coef(
-          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_bc_coef", Pointer<Database>(NULL))),
+          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_bc_coef", Pointer<Database>(nullptr))),
       d_bc_coefs(1, d_default_bc_coef),
       d_gcw(ghost_cell_width),
-      d_solution(NULL),
-      d_rhs(NULL),
+      d_solution(nullptr),
+      d_rhs(nullptr),
       d_hierarchy(),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
@@ -123,8 +123,8 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::st
       d_coarse_solver_rel_residual_tol(1.0e-5),
       d_coarse_solver_abs_residual_tol(1.0e-50),
       d_coarse_solver_max_iterations(10),
-      d_context(NULL),
-      d_bc_op(NULL),
+      d_context(nullptr),
+      d_bc_op(nullptr),
       d_cf_bdry_op(),
       d_op_stencil_fill_pattern(),
       d_prolongation_refine_operator(),
@@ -210,7 +210,7 @@ PoissonFACPreconditionerStrategy::~PoissonFACPreconditionerStrategy()
                                  << std::endl);
     }
     delete d_default_bc_coef;
-    d_default_bc_coef = NULL;
+    d_default_bc_coef = nullptr;
     return;
 } // ~PoissonFACPreconditionerStrategy
 
@@ -419,8 +419,8 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
 
     // Setup level operators.
     d_level_data_ops.resize(d_finest_ln + 1);
-    d_level_bdry_fill_ops.resize(d_finest_ln + 1, NULL);
-    d_level_math_ops.resize(d_finest_ln + 1, NULL);
+    d_level_bdry_fill_ops.resize(d_finest_ln + 1, nullptr);
+    d_level_math_ops.resize(d_finest_ln + 1, nullptr);
     HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {

@@ -127,8 +127,8 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
 
     // Get some vectors and unpack them.
     Vec *vx, *vy;
-    VecNestGetSubVecs(x, NULL, &vx);
-    VecNestGetSubVecs(y, NULL, &vy);
+    VecNestGetSubVecs(x, nullptr, &vx);
+    VecNestGetSubVecs(y, nullptr, &vy);
     Pointer<SAMRAIVectorReal<NDIM, double> > vx0, vy0;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0], &vy0);
@@ -201,7 +201,7 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
                              A_U_sc_var);
 
     d_cib_strategy->setConstraintForce(L, half_time, -1.0 * d_scale_spread);
-    ib_method_ops->spreadForce(A_U_idx, NULL, std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
+    ib_method_ops->spreadForce(A_U_idx, nullptr, std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
     if (d_normalize_spread_force)
     {
         d_cib_strategy->subtractMeanConstraintForce(L, A_U_idx, -1 * d_scale_spread);
@@ -271,8 +271,8 @@ CIBStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM,
     d_b = out.cloneVector(out.getName());
 
     // Setup the interpolation transaction information.
-    d_U_fill_pattern = NULL;
-    d_P_fill_pattern = NULL;
+    d_U_fill_pattern = nullptr;
+    d_P_fill_pattern = nullptr;
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     d_transaction_comps.resize(2);
     d_transaction_comps[0] = InterpolationTransactionComponent(d_x->getComponentDescriptorIndex(0),
@@ -326,7 +326,7 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
 
     // Get vectors corresponding to fluid and Lagrangian velocity.
     Vec* vy;
-    VecNestGetSubVecs(y, NULL, &vy);
+    VecNestGetSubVecs(y, nullptr, &vy);
     Pointer<SAMRAIVectorReal<NDIM, double> > vy0;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0], &vy0);
     SAMRAIVectorReal<NDIM, double>& b = *vy0;
@@ -385,7 +385,7 @@ void
 CIBStaggeredStokesOperator::imposeSolBcs(Vec x)
 {
     Vec* vx;
-    VecNestGetSubVecs(x, NULL, &vx);
+    VecNestGetSubVecs(x, nullptr, &vx);
     Pointer<SAMRAIVectorReal<NDIM, double> > vx0;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0], &vx0);
     SAMRAIVectorReal<NDIM, double>& u_p = *vx0;

@@ -103,10 +103,10 @@ VCStaggeredStokesProjectionPreconditioner::VCStaggeredStokesProjectionPreconditi
     const std::string& /*default_options_prefix*/)
     : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true,
                                          /*needs_pressure_solver*/ true),
-      d_Phi_bdry_fill_op(NULL),
-      d_no_fill_op(NULL),
-      d_Phi_var(NULL),
-      d_F_Phi_var(NULL),
+      d_Phi_bdry_fill_op(nullptr),
+      d_no_fill_op(nullptr),
+      d_Phi_var(nullptr),
+      d_F_Phi_var(nullptr),
       d_Phi_scratch_idx(-1),
       d_F_Phi_idx(-1),
       d_velocity_D_cc_idx(-1)
@@ -354,7 +354,7 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
                                   U_sc_var,
                                   /*cf_bdry_synch*/ true,
                                   coef_idx,
-                                  Pointer<SideVariable<NDIM, double> >(NULL),
+                                  Pointer<SideVariable<NDIM, double> >(nullptr),
                                   d_Phi_scratch_idx,
                                   d_Phi_var,
                                   d_Phi_bdry_fill_op,

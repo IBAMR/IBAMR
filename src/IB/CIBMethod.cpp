@@ -54,7 +54,7 @@ CIBMethod::CIBMethod(const std::string& object_name,
     d_output_eul_lambda = false;
     d_lambda_dump_interval = 0;
     d_time_integrator_needs_regrid = false;
-    d_u_phys_bdry_op = NULL;
+    d_u_phys_bdry_op = nullptr;
 
     // Resize some arrays.
     d_constrained_velocity_fcns_data.resize(d_num_rigid_parts);
@@ -189,7 +189,7 @@ CIBMethod::registerEulerianCommunicationAlgorithms()
     Pointer<RefineAlgorithm<NDIM> > refine_alg_lambda;
     Pointer<RefineOperator<NDIM> > refine_op;
     refine_alg_lambda = new RefineAlgorithm<NDIM>();
-    refine_op = NULL;
+    refine_op = nullptr;
     refine_alg_lambda->registerRefine(d_eul_lambda_idx, d_eul_lambda_idx, d_eul_lambda_idx, refine_op);
     registerGhostfillRefineAlgorithm(d_object_name + "::eul_lambda", refine_alg_lambda);
 
@@ -345,8 +345,8 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
     {
         Pointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", finest_ln);
         Vec lambda_petsc_vec_parallel = ptr_lagmultpr->getVec();
-        Vec lambda_lag_vec_parallel = NULL;
-        Vec lambda_lag_vec_seq = NULL;
+        Vec lambda_lag_vec_parallel = nullptr;
+        Vec lambda_lag_vec_seq = nullptr;
 
         VecDuplicate(lambda_petsc_vec_parallel, &lambda_lag_vec_parallel);
         d_l_data_manager->scatterPETScToLagrangian(lambda_petsc_vec_parallel, lambda_lag_vec_parallel, finest_ln);
@@ -389,8 +389,8 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
     if (d_output_eul_lambda)
     {
         // Prepare the LData to spread
-        std::vector<Pointer<LData> > spread_lag_data(finest_ln + 1, Pointer<LData>(NULL)),
-            position_lag_data(finest_ln + 1, Pointer<LData>(NULL));
+        std::vector<Pointer<LData> > spread_lag_data(finest_ln + 1, Pointer<LData>(nullptr)),
+            position_lag_data(finest_ln + 1, Pointer<LData>(nullptr));
 
         spread_lag_data[finest_ln] = d_l_data_manager->getLData("lambda", finest_ln);
         ;
@@ -407,7 +407,7 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
                 lambda_data->fillAll(0.0);
             }
         }
-        d_l_data_manager->spread(d_eul_lambda_idx, spread_lag_data, position_lag_data, /*f_phys_bdry_op*/ NULL);
+        d_l_data_manager->spread(d_eul_lambda_idx, spread_lag_data, position_lag_data, /*f_phys_bdry_op*/ nullptr);
     }
 
     // New state becomes current state for the next timestep.
@@ -570,7 +570,7 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
 
     // Initialize initial center of mass of structures.
     std::vector<Eigen::Vector3d> X0_com(d_num_rigid_parts, Eigen::Vector3d::Zero());
-    std::vector<Pointer<LData> > X0_unshifted_data_vec(finest_ln + 1, Pointer<LData>(NULL));
+    std::vector<Pointer<LData> > X0_unshifted_data_vec(finest_ln + 1, Pointer<LData>(nullptr));
     X0_unshifted_data_vec[finest_ln] = d_l_data_manager->getLData("X0_unshifted", finest_ln);
     computeCOMOfStructures(X0_com, X0_unshifted_data_vec);
     for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
@@ -623,7 +623,7 @@ CIBMethod::spreadForce(
 #if !defined(NDEBUG)
         TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
-        if (f_phys_bdry_op == NULL)
+        if (f_phys_bdry_op == nullptr)
         {
             IBMethod::spreadForce(f_data_idx, d_u_phys_bdry_op, f_prolongation_scheds, data_time);
         }
@@ -1399,7 +1399,7 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
     const int size = num_nodes * NDIM;
 
     // Get the underlying data pointer for the mobility matrix.
-    double* mobility_mat_data = NULL;
+    double* mobility_mat_data = nullptr;
     if (rank == managing_rank)
     {
 #if !defined(NDEBUG)
@@ -1412,7 +1412,7 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
     }
 
     // Get the position data
-    double* XW = NULL;
+    double* XW = nullptr;
     if (rank == managing_rank) XW = new double[size];
     Vec X;
     if (initial_time)
@@ -1500,7 +1500,7 @@ CIBMethod::constructGeometricMatrix(const std::string& /*mat_name*/,
     int block_size = s_max_free_dofs;
 
     // Get the position data.
-    double* X_data = NULL;
+    double* X_data = nullptr;
     if (rank == managing_rank) X_data = new double[row_size];
     Vec X = d_l_data_manager->getLData("X0_unshifted", struct_ln)->getVec();
     copyVecToArray(X, X_data, prototype_struct_ids, /*depth*/ NDIM, managing_rank);
@@ -1514,7 +1514,7 @@ CIBMethod::constructGeometricMatrix(const std::string& /*mat_name*/,
         TBOX_ASSERT(n_rows == row_size);
         TBOX_ASSERT(n_cols == col_size);
 #endif
-        double* geometric_mat_data = NULL;
+        double* geometric_mat_data = nullptr;
         MatDenseGetArray(geometric_mat, &geometric_mat_data);
         std::fill(geometric_mat_data, geometric_mat_data + (row_size * col_size), 0.0);
 

@@ -52,14 +52,14 @@ FEDataInterpolation::FEDataInterpolation(const unsigned int dim, FEDataManager* 
       d_eval_q_point_face(false),
       d_eval_JxW_face(false),
       d_eval_normal_face(false),
-      d_qrule(NULL),
-      d_qrule_face(NULL),
-      d_q_point(NULL),
-      d_q_point_face(NULL),
-      d_JxW(NULL),
-      d_JxW_face(NULL),
-      d_normal_face(NULL),
-      d_current_elem(NULL)
+      d_qrule(nullptr),
+      d_qrule_face(nullptr),
+      d_q_point(nullptr),
+      d_q_point_face(nullptr),
+      d_JxW(nullptr),
+      d_JxW_face(nullptr),
+      d_normal_face(nullptr),
+      d_current_elem(nullptr)
 {
     return;
 }
@@ -313,10 +313,10 @@ FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
     // Set up FE objects and request access to shape functions / gradients, as needed.
     d_fe.resize(num_fe_types);
     d_fe_face.resize(num_fe_types);
-    d_phi.resize(num_fe_types, NULL);
-    d_dphi.resize(num_fe_types, NULL);
-    d_phi_face.resize(num_fe_types, NULL);
-    d_dphi_face.resize(num_fe_types, NULL);
+    d_phi.resize(num_fe_types, nullptr);
+    d_dphi.resize(num_fe_types, nullptr);
+    d_phi_face.resize(num_fe_types, nullptr);
+    d_dphi_face.resize(num_fe_types, nullptr);
     for (unsigned int fe_type_idx = 0; fe_type_idx < num_fe_types; ++fe_type_idx)
     {
         Pointer<FEBase>& fe = d_fe[fe_type_idx];

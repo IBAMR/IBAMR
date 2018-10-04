@@ -73,7 +73,7 @@ INSStaggeredPressureBcCoef::INSStaggeredPressureBcCoef(const INSStaggeredHierarc
                                                        const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                        const TractionBcType traction_bc_type,
                                                        const bool homogeneous_bc)
-    : d_fluid_solver(fluid_solver), d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
+    : d_fluid_solver(fluid_solver), d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr))
 {
     setStokesSpecifications(d_fluid_solver->getStokesSpecifications());
     setPhysicalBcCoefs(bc_coefs);

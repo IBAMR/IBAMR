@@ -246,7 +246,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::AdvectorPredictorCorrectorHyperbol
     Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
     Pointer<CartesianGridGeometry<NDIM> > grid_geom,
     bool register_for_restart)
-    : d_integrator(NULL),
+    : d_integrator(nullptr),
       d_explicit_predictor(explicit_predictor),
       d_u_var(),
       d_u_is_div_free(),
@@ -266,7 +266,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::AdvectorPredictorCorrectorHyperbol
       d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
       d_grid_geometry(grid_geom),
-      d_visit_writer(NULL),
+      d_visit_writer(nullptr),
       d_extrap_bc_helper(),
       d_extrap_type("CONSTANT"),
       d_refinement_criteria(),
@@ -1291,7 +1291,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getFluxIntegralData(Pointer<CellVa
     }
     else
     {
-        return Pointer<FaceData<NDIM, double> >(NULL);
+        return Pointer<FaceData<NDIM, double> >(nullptr);
     }
 } // getFluxIntegralData
 
@@ -1328,7 +1328,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getUIntegralData(Pointer<CellVaria
     }
     else
     {
-        return Pointer<FaceData<NDIM, double> >(NULL);
+        return Pointer<FaceData<NDIM, double> >(nullptr);
     }
 } // getUIntegralData
 

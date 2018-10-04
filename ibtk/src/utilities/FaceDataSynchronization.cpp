@@ -78,9 +78,9 @@ FaceDataSynchronization::FaceDataSynchronization()
       d_transaction_comps(),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
-      d_coarsen_alg(NULL),
+      d_coarsen_alg(nullptr),
       d_coarsen_scheds(),
-      d_refine_alg(NULL),
+      d_refine_alg(nullptr),
       d_refine_scheds()
 {
     // intentionally blank
@@ -144,7 +144,7 @@ FaceDataSynchronization::initializeOperatorState(
         }
     }
 
-    CoarsenPatchStrategy<NDIM>* coarsen_strategy = NULL;
+    CoarsenPatchStrategy<NDIM>* coarsen_strategy = nullptr;
     d_coarsen_scheds.resize(d_finest_ln + 1);
     if (registered_coarsen_op)
     {
@@ -170,7 +170,7 @@ FaceDataSynchronization::initializeOperatorState(
                        << "  only double-precision face-centered data is supported."
                        << std::endl);
         }
-        Pointer<RefineOperator<NDIM> > refine_op = NULL;
+        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new FaceSynchCopyFillPattern();
         d_refine_alg->registerRefine(data_idx, // destination
                                      data_idx, // source
@@ -272,7 +272,7 @@ FaceDataSynchronization::resetTransactionComponents(
                        << "  only double-precision face-centered data is supported."
                        << std::endl);
         }
-        Pointer<RefineOperator<NDIM> > refine_op = NULL;
+        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new FaceSynchCopyFillPattern();
         d_refine_alg->registerRefine(data_idx, // destination
                                      data_idx, // source

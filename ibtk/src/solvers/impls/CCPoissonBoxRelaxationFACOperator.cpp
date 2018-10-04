@@ -189,7 +189,7 @@ CCPoissonBoxRelaxationFACOperator::CCPoissonBoxRelaxationFACOperator(const std::
           CELLG,
           input_db,
           default_options_prefix),
-      d_coarse_solver(NULL),
+      d_coarse_solver(nullptr),
       d_coarse_solver_db(),
       d_petsc_options_prefix("cc_poisson_fac_"),
       d_patch_vec_e(),
@@ -556,7 +556,7 @@ CCPoissonBoxRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double
             new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
     d_level_math_ops[finest_level_num]->laplace(
-        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_solution_time);
+        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, nullptr, d_solution_time);
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     hier_cc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
 
@@ -635,7 +635,7 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
     }
     else
     {
-        d_op_stencil_fill_pattern = NULL;
+        d_op_stencil_fill_pattern = nullptr;
     }
 
     // Initialize PETSc solver data.
@@ -662,9 +662,9 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
             Vec& e = d_patch_vec_e[ln][patch_counter];
             Vec& f = d_patch_vec_f[ln][patch_counter];
             const int bs = 1;
-            ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, bs, size, NULL, &e);
+            ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, bs, size, nullptr, &e);
             IBTK_CHKERRQ(ierr);
-            ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, bs, size, NULL, &f);
+            ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, bs, size, nullptr, &f);
             IBTK_CHKERRQ(ierr);
             Mat& A = d_patch_mat[ln][patch_counter];
             buildPatchLaplaceOperator(A, d_poisson_spec, patch, d_gcw);
@@ -897,7 +897,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
             nnz[ghost_box.offset(b())] = 1;
         }
     }
-    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, 0, size ? &nnz[0] : NULL, &A);
+    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, 0, size ? &nnz[0] : nullptr, &A);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.
@@ -1025,7 +1025,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
             nnz[ghost_box.offset(b())] = 1;
         }
     }
-    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, 0, size ? &nnz[0] : NULL, &A);
+    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, 0, size ? &nnz[0] : nullptr, &A);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.

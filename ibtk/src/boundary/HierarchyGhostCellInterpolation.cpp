@@ -114,15 +114,15 @@ HierarchyGhostCellInterpolation::HierarchyGhostCellInterpolation()
     : d_is_initialized(false),
       d_homogeneous_bc(false),
       d_transaction_comps(),
-      d_hierarchy(NULL),
-      d_grid_geom(NULL),
+      d_hierarchy(nullptr),
+      d_grid_geom(nullptr),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
-      d_coarsen_alg(NULL),
-      d_coarsen_strategy(NULL),
+      d_coarsen_alg(nullptr),
+      d_coarsen_strategy(nullptr),
       d_coarsen_scheds(),
-      d_refine_alg(NULL),
-      d_refine_strategy(NULL),
+      d_refine_alg(nullptr),
+      d_refine_strategy(nullptr),
       d_refine_scheds(),
       d_cf_bdry_ops(),
       d_extrap_bc_ops(),
@@ -228,7 +228,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         }
     }
 
-    d_coarsen_strategy = NULL;
+    d_coarsen_strategy = nullptr;
 
     d_coarsen_scheds.resize(d_finest_ln + 1);
     if (registered_coarsen_op)
@@ -258,8 +258,8 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         Pointer<NodeVariable<NDIM, double> > nc_var = var;
         Pointer<SideVariable<NDIM, double> > sc_var = var;
         Pointer<EdgeVariable<NDIM, double> > ec_var = var;
-        Pointer<RefineOperator<NDIM> > refine_op = NULL;
-        d_cf_bdry_ops[comp_idx] = NULL;
+        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
+        d_cf_bdry_ops[comp_idx] = nullptr;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
         if (cc_var)
         {
@@ -456,7 +456,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         Pointer<NodeVariable<NDIM, double> > nc_var = var;
         Pointer<SideVariable<NDIM, double> > sc_var = var;
         Pointer<EdgeVariable<NDIM, double> > ec_var = var;
-        Pointer<RefineOperator<NDIM> > refine_op = NULL;
+        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
         if (d_cf_bdry_ops[comp_idx]) d_cf_bdry_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
         if (cc_var)
@@ -582,12 +582,12 @@ HierarchyGhostCellInterpolation::deallocateOperatorState()
     // Clear cached communication schedules.
     d_coarsen_alg.setNull();
     delete d_coarsen_strategy;
-    d_coarsen_strategy = NULL;
+    d_coarsen_strategy = nullptr;
     d_coarsen_scheds.clear();
 
     d_refine_alg.setNull();
     delete d_refine_strategy;
-    d_refine_strategy = NULL;
+    d_refine_strategy = nullptr;
     d_refine_scheds.clear();
 
     // Indicate that the operator is NOT initialized.

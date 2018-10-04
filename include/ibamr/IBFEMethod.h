@@ -162,7 +162,7 @@ public:
      */
     struct CoordinateMappingFcnData
     {
-        CoordinateMappingFcnData(CoordinateMappingFcnPtr fcn = NULL, void* ctx = NULL) : fcn(fcn), ctx(ctx)
+        CoordinateMappingFcnData(CoordinateMappingFcnPtr fcn = nullptr, void* ctx = nullptr) : fcn(fcn), ctx(ctx)
         {
         }
 
@@ -195,7 +195,7 @@ public:
      */
     struct InitialVelocityFcnData
     {
-        InitialVelocityFcnData(InitialVelocityFcnPtr fcn = NULL, void* ctx = NULL) : fcn(fcn), ctx(ctx)
+        InitialVelocityFcnData(InitialVelocityFcnPtr fcn = nullptr, void* ctx = nullptr) : fcn(fcn), ctx(ctx)
         {
         }
 
@@ -227,9 +227,9 @@ public:
      */
     struct PK1StressFcnData
     {
-        PK1StressFcnData(PK1StressFcnPtr fcn = NULL,
+        PK1StressFcnData(PK1StressFcnPtr fcn = nullptr,
                          const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                         void* const ctx = NULL,
+                         void* const ctx = nullptr,
                          const libMesh::QuadratureType& quad_type = libMesh::INVALID_Q_RULE,
                          const libMesh::Order& quad_order = libMesh::INVALID_ORDER)
             : fcn(fcn), system_data(system_data), ctx(ctx), quad_type(quad_type), quad_order(quad_order)
@@ -270,9 +270,9 @@ public:
      */
     struct LagBodyForceFcnData
     {
-        LagBodyForceFcnData(LagBodyForceFcnPtr fcn = NULL,
+        LagBodyForceFcnData(LagBodyForceFcnPtr fcn = nullptr,
                             const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                            void* const ctx = NULL)
+                            void* const ctx = nullptr)
             : fcn(fcn), system_data(system_data), ctx(ctx)
         {
         }
@@ -307,9 +307,9 @@ public:
      */
     struct LagSurfacePressureFcnData
     {
-        LagSurfacePressureFcnData(LagSurfacePressureFcnPtr fcn = NULL,
+        LagSurfacePressureFcnData(LagSurfacePressureFcnPtr fcn = nullptr,
                                   const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                                  void* const ctx = NULL)
+                                  void* const ctx = nullptr)
             : fcn(fcn), system_data(system_data), ctx(ctx)
         {
         }
@@ -344,9 +344,9 @@ public:
      */
     struct LagSurfaceForceFcnData
     {
-        LagSurfaceForceFcnData(LagSurfaceForceFcnPtr fcn = NULL,
+        LagSurfaceForceFcnData(LagSurfaceForceFcnPtr fcn = nullptr,
                                const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                               void* const ctx = NULL)
+                               void* const ctx = nullptr)
             : fcn(fcn), system_data(system_data), ctx(ctx)
         {
         }
@@ -381,9 +381,9 @@ public:
      */
     struct LagBodySourceFcnData
     {
-        LagBodySourceFcnData(LagBodySourceFcnPtr fcn = NULL,
+        LagBodySourceFcnData(LagBodySourceFcnPtr fcn = nullptr,
                              const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                             void* const ctx = NULL)
+                             void* const ctx = nullptr)
             : fcn(fcn), system_data(system_data), ctx(ctx)
         {
         }
@@ -410,9 +410,9 @@ public:
     void constrainPartOverlap(unsigned int part1,
                               unsigned int part2,
                               double kappa,
-                              libMesh::QBase* qrule1 = NULL,
-                              libMesh::QBase* qrule2 = NULL);
-    
+                              libMesh::QBase* qrule1 = nullptr,
+                              libMesh::QBase* qrule2 = nullptr);
+
     /*!
      * Always reset the velocity of the nodes of part1 that overlap part2 to
      * equal the velocity of part2.
@@ -425,8 +425,8 @@ public:
     void registerOverlappingForceConstraint(unsigned int part1,
                                             unsigned int part2,
                                             double kappa,
-                                            libMesh::QBase* qrule1 = NULL,
-                                            libMesh::QBase* qrule2 = NULL);
+                                            libMesh::QBase* qrule1 = nullptr,
+                                            libMesh::QBase* qrule2 = nullptr);
 
     /*!
      * Register the (optional) direct forcing kinematics object with the finite

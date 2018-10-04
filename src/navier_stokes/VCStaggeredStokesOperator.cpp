@@ -91,9 +91,9 @@ VCStaggeredStokesOperator::~VCStaggeredStokesOperator()
 {
     deallocateOperatorState();
     delete d_default_U_bc_coef;
-    d_default_U_bc_coef = NULL;
+    d_default_U_bc_coef = nullptr;
     delete d_default_P_bc_coef;
-    d_default_P_bc_coef = NULL;
+    d_default_P_bc_coef = nullptr;
     return;
 } // ~VCStaggeredStokesOperator
 
@@ -170,9 +170,9 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                                 beta,
                                 d_U_problem_coefs.getDPatchDataId(),
 #if (NDIM == 2)
-                                Pointer<NodeVariable<NDIM, double> >(NULL),
+                                Pointer<NodeVariable<NDIM, double> >(nullptr),
 #elif (NDIM == 3)
-                                Pointer<EdgeVariable<NDIM, double> >(NULL),
+                                Pointer<EdgeVariable<NDIM, double> >(nullptr),
 #endif
                                 U_scratch_idx,
                                 U_sc_var,
@@ -180,7 +180,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                                 d_new_time,
                                 d_D_interp_type,
                                 d_U_problem_coefs.cIsVariable() ? d_U_problem_coefs.getCPatchDataId() : -1,
-                                Pointer<SideVariable<NDIM, double> >(NULL),
+                                Pointer<SideVariable<NDIM, double> >(nullptr),
                                 1.0,
                                 A_U_idx,
                                 A_U_sc_var);

@@ -98,7 +98,7 @@ public:
      */
     struct KinematicsFcnData
     {
-        KinematicsFcnData(KinematicsFcnPtr comvelfcn = NULL, void* ctx = NULL) : comvelfcn(comvelfcn), ctx(ctx)
+        KinematicsFcnData(KinematicsFcnPtr comvelfcn = nullptr, void* ctx = nullptr) : comvelfcn(comvelfcn), ctx(ctx)
         {
             // intentionally left blank
         }
@@ -109,7 +109,7 @@ public:
     /*!
      * \brief Register user defined constrained velocity functions.
      */
-    void registerKinematicsFunction(KinematicsFcnPtr comvelfcn, void* ctx = NULL);
+    void registerKinematicsFunction(KinematicsFcnPtr comvelfcn, void* ctx = nullptr);
 
     /*!
      * \brief Register user defined velocity function data.

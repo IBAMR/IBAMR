@@ -190,17 +190,17 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& 
       d_weights(),
       d_velocity_bc_scaling(NDIM == 2 ? 2.0 : 5.0 / 3.0),
       d_traction_bc_scaling(0.0),
-      d_context(NULL),
-      d_W_cc_var(NULL),
+      d_context(nullptr),
+      d_W_cc_var(nullptr),
       d_W_cc_idx(-1),
       d_W_cc_idxs(),
 #if (NDIM == 2)
-      d_W_nc_var(NULL),
+      d_W_nc_var(nullptr),
       d_W_nc_idx(-1),
       d_W_nc_idxs()
 #endif
 #if (NDIM == 3)
-          d_W_ec_var(NULL),
+          d_W_ec_var(nullptr),
       d_W_ec_idx(-1),
       d_W_ec_idxs()
 #endif
@@ -636,7 +636,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
 
         // Communicate ghost-cell data.
-        LocationIndexRobinBcCoefs<NDIM> bc_coef(d_object_name + "::bc_coef", Pointer<Database>(NULL));
+        LocationIndexRobinBcCoefs<NDIM> bc_coef(d_object_name + "::bc_coef", Pointer<Database>(nullptr));
         for (int d = 0; d < NDIM; ++d)
         {
             bc_coef.setBoundarySlope(2 * d, 0.0);

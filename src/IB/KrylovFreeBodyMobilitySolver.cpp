@@ -71,13 +71,13 @@ KrylovFreeBodyMobilitySolver::KrylovFreeBodyMobilitySolver(const std::string& ob
     d_options_prefix = default_options_prefix;
     d_cib_strategy = cib_strategy;
 
-    d_petsc_b = NULL;
-    d_petsc_temp_v = NULL;
-    d_petsc_temp_f = NULL;
+    d_petsc_b = nullptr;
+    d_petsc_temp_v = nullptr;
+    d_petsc_temp_f = nullptr;
     d_petsc_comm = petsc_comm;
-    d_petsc_ksp = NULL;
-    d_petsc_mat = NULL;
-    d_mobility_solver = NULL;
+    d_petsc_ksp = nullptr;
+    d_petsc_mat = nullptr;
+    d_mobility_solver = nullptr;
 
     d_rho = 1.0;
     d_mu = 1.0;
@@ -129,12 +129,12 @@ KrylovFreeBodyMobilitySolver::~KrylovFreeBodyMobilitySolver()
     if (d_petsc_mat)
     {
         MatDestroy(&d_petsc_mat);
-        d_petsc_mat = NULL;
+        d_petsc_mat = nullptr;
     }
     if (d_petsc_ksp)
     {
         KSPDestroy(&d_petsc_ksp);
-        d_petsc_ksp = NULL;
+        d_petsc_ksp = nullptr;
     }
 } // ~KrylovFreeBodyMobilitySolver
 
@@ -240,7 +240,7 @@ KrylovFreeBodyMobilitySolver::initializeSolverState(Vec /*x*/, Vec b)
     // Generate RHS and temporary vectors for storing Lagrange multiplier
     // and rigid body velocity.
     Vec* vb;
-    VecNestGetSubVecs(b, NULL, &vb);
+    VecNestGetSubVecs(b, nullptr, &vb);
     VecDuplicate(vb[2], &d_petsc_b);
     VecDuplicate(vb[1], &d_petsc_temp_f);
     VecDuplicate(vb[1], &d_petsc_temp_v);
@@ -266,9 +266,9 @@ KrylovFreeBodyMobilitySolver::deallocateSolverState()
     VecDestroy(&d_petsc_b);
     VecDestroy(&d_petsc_temp_f);
     VecDestroy(&d_petsc_temp_v);
-    d_petsc_temp_v = NULL;
-    d_petsc_temp_f = NULL;
-    d_petsc_b = NULL;
+    d_petsc_temp_v = nullptr;
+    d_petsc_temp_f = nullptr;
+    d_petsc_b = nullptr;
 
     // Destroy the KSP solver.
     destroyKSP();
@@ -359,7 +359,7 @@ KrylovFreeBodyMobilitySolver::initializeKSP()
     PetscBool initial_guess_nonzero;
     KSPGetInitialGuessNonzero(d_petsc_ksp, &initial_guess_nonzero);
     d_initial_guess_nonzero = (initial_guess_nonzero == PETSC_TRUE);
-    KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
+    KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, nullptr, &d_max_iterations);
 } // initializeKSP
 
 void
@@ -367,7 +367,7 @@ KrylovFreeBodyMobilitySolver::destroyKSP()
 {
     if (!d_petsc_ksp) return;
     KSPDestroy(&d_petsc_ksp);
-    d_petsc_ksp = NULL;
+    d_petsc_ksp = nullptr;
 } // destroyKSP
 
 void
@@ -392,8 +392,8 @@ KrylovFreeBodyMobilitySolver::resetKSPOptions()
         KSPMonitorSet(d_petsc_ksp,
                       reinterpret_cast<PetscErrorCode (*)(KSP, PetscInt, PetscReal, void*)>(
                           KrylovFreeBodyMobilitySolver::monitorKSP),
-                      NULL,
-                      NULL);
+                      nullptr,
+                      nullptr);
     }
 } // resetKSPOptions
 
@@ -404,7 +404,7 @@ KrylovFreeBodyMobilitySolver::resetKSPOperators()
     if (d_petsc_mat)
     {
         MatDestroy(&d_petsc_mat);
-        d_petsc_mat = NULL;
+        d_petsc_mat = nullptr;
     }
     if (!d_petsc_mat)
     {
@@ -432,7 +432,7 @@ KrylovFreeBodyMobilitySolver::resetKSPPC()
     static const size_t len = 255;
     char pc_type_str[len];
     PetscBool flg;
-    PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+    PetscOptionsGetString(nullptr, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
     std::string pc_type = d_pc_type;
     if (flg)
     {
@@ -505,7 +505,7 @@ KrylovFreeBodyMobilitySolver::PCApply_KFBMSolver(PC pc, Vec x, Vec y)
     TBOX_ASSERT(solver);
 #endif
     DirectMobilitySolver* direct_solver;
-    solver->d_mobility_solver->getMobilitySolvers(NULL, &direct_solver, NULL);
+    solver->d_mobility_solver->getMobilitySolvers(nullptr, &direct_solver, nullptr);
     direct_solver->solveBodySystem(y, x);
     VecScale(y, 1.0 / (solver->d_interp_scale * solver->d_spread_scale));
     PetscFunctionReturn(0);
@@ -520,7 +520,7 @@ KrylovFreeBodyMobilitySolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void*
     char print_normtype[256];
     KSPNormType ksp_normtype;
 
-    KSPBuildResidual(ksp, NULL, NULL, &resid);
+    KSPBuildResidual(ksp, nullptr, nullptr, &resid);
     VecNorm(resid, NORM_2, &truenorm);
     VecDestroy(&resid);
     KSPGetRhs(ksp, &rhs);

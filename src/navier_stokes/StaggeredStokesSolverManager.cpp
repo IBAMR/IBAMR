@@ -78,7 +78,7 @@ const std::string StaggeredStokesSolverManager::LEVEL_RELAXATION_FAC_PRECONDITIO
 const std::string StaggeredStokesSolverManager::DEFAULT_LEVEL_SOLVER = "DEFAULT_LEVEL_SOLVER";
 const std::string StaggeredStokesSolverManager::PETSC_LEVEL_SOLVER = "PETSC_LEVEL_SOLVER";
 
-StaggeredStokesSolverManager* StaggeredStokesSolverManager::s_solver_manager_instance = NULL;
+StaggeredStokesSolverManager* StaggeredStokesSolverManager::s_solver_manager_instance = nullptr;
 bool StaggeredStokesSolverManager::s_registered_callback = false;
 unsigned char StaggeredStokesSolverManager::s_shutdown_priority = 200;
 
@@ -101,7 +101,7 @@ void
 StaggeredStokesSolverManager::freeManager()
 {
     delete s_solver_manager_instance;
-    s_solver_manager_instance = NULL;
+    s_solver_manager_instance = nullptr;
     return;
 } // freeManager
 

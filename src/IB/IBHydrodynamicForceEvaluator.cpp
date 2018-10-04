@@ -316,7 +316,7 @@ IBHydrodynamicForceEvaluator::computeLaggedMomentumIntegral(
 {
     resetFaceAreaWeight(patch_hierarchy);
     resetFaceVolWeight(patch_hierarchy);
-    fillPatchData(u_old_idx, -1, patch_hierarchy, u_src_bc_coef, NULL, d_current_time);
+    fillPatchData(u_old_idx, -1, patch_hierarchy, u_src_bc_coef, nullptr, d_current_time);
 
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -1242,7 +1242,7 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
                                                                 /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                                 u_src_bc_coef,
-                                                                Pointer<VariableFillPattern<NDIM> >(NULL));
+                                                                Pointer<VariableFillPattern<NDIM> >(nullptr));
 
         Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_bdry_fill->initializeOperatorState(transaction_comp, patch_hierarchy);
@@ -1275,7 +1275,7 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
                                                                 /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                                 p_ins_bc_coef,
-                                                                Pointer<VariableFillPattern<NDIM> >(NULL));
+                                                                Pointer<VariableFillPattern<NDIM> >(nullptr));
         Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_bdry_fill->initializeOperatorState(transaction_comp, patch_hierarchy);
         hier_bdry_fill->setHomogeneousBc(false);

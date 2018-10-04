@@ -295,7 +295,7 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(const s
           CELLG,
           input_db,
           default_options_prefix),
-      d_coarse_solver(NULL),
+      d_coarse_solver(nullptr),
       d_coarse_solver_db(),
       d_patch_bc_box_overlap(),
       d_patch_neighbor_overlap()
@@ -539,7 +539,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
             // data.
             const bool D_is_constant = d_poisson_spec.dIsConstant();
             const double& alpha = D_is_constant ? d_poisson_spec.getDConstant() : 0.0;
-            Pointer<SideData<NDIM, double> > alpha_data = NULL;
+            Pointer<SideData<NDIM, double> > alpha_data = nullptr;
             if (!D_is_constant) alpha_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
 #if !defined(NDEBUG)
             if (!D_is_constant) TBOX_ASSERT(alpha_data);
@@ -748,7 +748,7 @@ CCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
             new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
     d_level_math_ops[finest_level_num]->laplace(
-        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_solution_time);
+        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, nullptr, d_solution_time);
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     hier_cc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
 

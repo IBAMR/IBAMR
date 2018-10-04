@@ -219,7 +219,7 @@ CartCellDoubleQuadraticCFInterpolation::CartCellDoubleQuadraticCFInterpolation()
     : d_patch_data_indices(),
       d_consistent_type_2_bdry(false),
       d_refine_op(new CartesianCellDoubleLinearRefine<NDIM>()),
-      d_hierarchy(NULL),
+      d_hierarchy(nullptr),
       d_cf_boundary(),
       d_periodic_shift()
 {
@@ -377,13 +377,13 @@ CartCellDoubleQuadraticCFInterpolation::clearPatchHierarchy()
     for (std::vector<CoarseFineBoundary<NDIM>*>::iterator it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
     {
         delete (*it);
-        (*it) = NULL;
+        (*it) = nullptr;
     }
     d_cf_boundary.clear();
     for (std::vector<BoxArray<NDIM>*>::iterator it = d_domain_boxes.begin(); it != d_domain_boxes.end(); ++it)
     {
         delete (*it);
-        (*it) = NULL;
+        (*it) = nullptr;
     }
     d_domain_boxes.clear();
     d_periodic_shift.clear();

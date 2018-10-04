@@ -90,7 +90,7 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBStrategy::IBStrategy() : d_ib_solver(NULL), d_use_fixed_coupling_ops(false)
+IBStrategy::IBStrategy() : d_ib_solver(nullptr), d_use_fixed_coupling_ops(false)
 {
     // intentionally blank
     return;

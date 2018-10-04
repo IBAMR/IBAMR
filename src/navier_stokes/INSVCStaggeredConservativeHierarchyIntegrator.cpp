@@ -170,8 +170,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
     Pointer<Database> input_db,
     bool register_for_restart)
     : INSVCStaggeredHierarchyIntegrator(object_name, input_db, register_for_restart),
-      d_rho_sc_bc_coefs(NDIM, NULL),
-      d_S_fcn(NULL)
+      d_rho_sc_bc_coefs(NDIM, nullptr),
+      d_S_fcn(nullptr)
 {
     if (!(d_convective_difference_form == CONSERVATIVE))
     {
@@ -451,13 +451,13 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     const Pointer<SideVariable<NDIM, double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs,
-                                                              /*P_bc_coef*/ NULL,
+                                                              /*P_bc_coef*/ nullptr,
                                                               d_U_scratch_idx,
                                                               /*P_data_idx*/ -1,
                                                               /*homogeneous_bc*/ false);
     d_U_bdry_bc_fill_op->fillData(current_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
-                                                              /*P_bc_coef*/ NULL);
+                                                              /*P_bc_coef*/ nullptr);
     d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
     // RHS^n = (C_rhs*I + L(D_rhs))*U^n
     d_hier_math_ops->vc_laplace(U_rhs_idx,
@@ -466,9 +466,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
                                 0.0,
                                 U_rhs_problem_coefs.getDPatchDataId(),
 #if (NDIM == 2)
-                                Pointer<NodeVariable<NDIM, double> >(NULL),
+                                Pointer<NodeVariable<NDIM, double> >(nullptr),
 #elif (NDIM == 3)
-                                Pointer<EdgeVariable<NDIM, double> >(NULL),
+                                Pointer<EdgeVariable<NDIM, double> >(nullptr),
 #endif
                                 d_U_scratch_idx,
                                 d_U_var,

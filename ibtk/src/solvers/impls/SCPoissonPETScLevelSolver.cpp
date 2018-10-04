@@ -82,7 +82,7 @@ static const int SIDEG = 1;
 SCPoissonPETScLevelSolver::SCPoissonPETScLevelSolver(const std::string& object_name,
                                                      Pointer<Database> input_db,
                                                      const std::string& default_options_prefix)
-    : d_context(NULL), d_dof_index_idx(-1), d_dof_index_var(NULL), d_data_synch_sched(NULL), d_ghost_fill_sched(NULL)
+    : d_context(nullptr), d_dof_index_idx(-1), d_dof_index_var(nullptr), d_data_synch_sched(nullptr), d_ghost_fill_sched(nullptr)
 {
     // Configure solver.
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);

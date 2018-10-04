@@ -69,7 +69,7 @@ const std::string SCPoissonSolverManager::DEFAULT_LEVEL_SOLVER = "DEFAULT_LEVEL_
 const std::string SCPoissonSolverManager::HYPRE_LEVEL_SOLVER = "HYPRE_LEVEL_SOLVER";
 const std::string SCPoissonSolverManager::PETSC_LEVEL_SOLVER = "PETSC_LEVEL_SOLVER";
 
-SCPoissonSolverManager* SCPoissonSolverManager::s_solver_manager_instance = NULL;
+SCPoissonSolverManager* SCPoissonSolverManager::s_solver_manager_instance = nullptr;
 bool SCPoissonSolverManager::s_registered_callback = false;
 unsigned char SCPoissonSolverManager::s_shutdown_priority = 200;
 
@@ -92,7 +92,7 @@ void
 SCPoissonSolverManager::freeManager()
 {
     delete s_solver_manager_instance;
-    s_solver_manager_instance = NULL;
+    s_solver_manager_instance = nullptr;
     return;
 } // freeManager
 

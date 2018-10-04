@@ -65,10 +65,10 @@ PETScSNESFunctionGOWrapper::PETScSNESFunctionGOWrapper(
       d_petsc_snes(petsc_snes),
       d_petsc_snes_form_func(petsc_snes_form_func),
       d_petsc_snes_func_ctx(petsc_snes_func_ctx),
-      d_x(NULL),
-      d_y(NULL),
-      d_petsc_x(NULL),
-      d_petsc_y(NULL)
+      d_x(nullptr),
+      d_y(nullptr),
+      d_petsc_x(nullptr),
+      d_petsc_y(nullptr)
 {
     // intentionally blank
     return;

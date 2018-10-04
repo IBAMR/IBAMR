@@ -226,9 +226,9 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        n_local ? &d_nnz[0] : NULL,
+                        n_local ? &d_nnz[0] : nullptr,
                         0,
-                        n_local ? &o_nnz[0] : NULL,
+                        n_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -376,9 +376,9 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        n_local ? &d_nnz[0] : NULL,
+                        n_local ? &d_nnz[0] : nullptr,
                         0,
-                        n_local ? &o_nnz[0] : NULL,
+                        n_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -597,9 +597,9 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        n_local ? &d_nnz[0] : NULL,
+                        n_local ? &d_nnz[0] : nullptr,
                         0,
-                        n_local ? &o_nnz[0] : NULL,
+                        n_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -952,9 +952,9 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        m_local ? &d_nnz[0] : NULL,
+                        m_local ? &d_nnz[0] : nullptr,
                         0,
-                        m_local ? &o_nnz[0] : NULL,
+                        m_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -1148,7 +1148,7 @@ PETScMatUtilities::constructRestrictionScalingOp(Mat& P, Vec& L)
         ierr = VecDestroy(&L);
         IBTK_CHKERRQ(ierr);
     }
-    ierr = MatCreateVecs(P, &L, NULL);
+    ierr = MatCreateVecs(P, &L, nullptr);
     IBTK_CHKERRQ(ierr);
     PetscInt ilower, iupper, num_elems;
     ierr = VecGetOwnershipRange(L, &ilower, &iupper);
@@ -1337,9 +1337,9 @@ PETScMatUtilities::constructConservativeProlongationOp_cell(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        m_local ? &d_nnz[0] : NULL,
+                        m_local ? &d_nnz[0] : nullptr,
                         0,
-                        m_local ? &o_nnz[0] : NULL,
+                        m_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -1560,9 +1560,9 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        m_local ? &d_nnz[0] : NULL,
+                        m_local ? &d_nnz[0] : nullptr,
                         0,
-                        m_local ? &o_nnz[0] : NULL,
+                        m_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -1933,9 +1933,9 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        m_local ? &d_nnz[0] : NULL,
+                        m_local ? &d_nnz[0] : nullptr,
                         0,
-                        m_local ? &o_nnz[0] : NULL,
+                        m_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 

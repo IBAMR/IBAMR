@@ -167,7 +167,7 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
                                        bool register_for_restart)
     : IBMethod(object_name, input_db, register_for_restart),
       d_no_structures(no_structures),
-      d_ib_kinematics(d_no_structures, Pointer<ConstraintIBKinematics>(NULL)),
+      d_ib_kinematics(d_no_structures, Pointer<ConstraintIBKinematics>(nullptr)),
       d_FuRMoRP_current_time(0.0),
       d_FuRMoRP_new_time(0.0),
       d_vol_element(d_no_structures, 0.0),
@@ -211,7 +211,7 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
       d_base_output_filename("ImmersedStructrue"),
       d_rho_ins_idx(-1),
       d_rho_scratch_idx(-1),
-      d_u_phys_bdry_op(NULL)
+      d_u_phys_bdry_op(nullptr)
 {
     // NOTE: Parent class constructor registers class with the restart manager, sets object name.
 
@@ -240,7 +240,7 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
 
         d_velcorrection_projection_solver =
             new PETScKrylovPoissonSolver(d_object_name + "ConstraintIBMethodProjection::PoissonKrylovSolver",
-                                         Pointer<Database>(NULL),
+                                         Pointer<Database>(nullptr),
                                          velcorrection_projection_prefix);
         d_velcorrection_projection_solver->setInitialGuessNonzero(false);
         d_velcorrection_projection_solver->setOperator(d_velcorrection_projection_op);
@@ -276,11 +276,11 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
     }
     else
     {
-        d_velcorrection_projection_spec = NULL;
-        d_velcorrection_projection_op = NULL;
-        d_velcorrection_projection_fac_op = NULL;
-        d_velcorrection_projection_fac_pc = NULL;
-        d_velcorrection_projection_solver = NULL;
+        d_velcorrection_projection_spec = nullptr;
+        d_velcorrection_projection_op = nullptr;
+        d_velcorrection_projection_fac_op = nullptr;
+        d_velcorrection_projection_fac_pc = nullptr;
+        d_velcorrection_projection_solver = nullptr;
     }
 
     // Do printing operation for processor 0 only.
@@ -934,7 +934,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         // Get LData corresponding to the present and new position of the structures.
-        Pointer<LData> ptr_x_lag_data_current(NULL), ptr_x_lag_data_new(NULL);
+        Pointer<LData> ptr_x_lag_data_current(nullptr), ptr_x_lag_data_new(nullptr);
         ptr_x_lag_data_current = d_l_data_manager->getLData("X", ln);
         if (tbox::MathUtilities<double>::equalEps(d_FuRMoRP_current_time, 0.0))
         {
@@ -2330,8 +2330,8 @@ ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
                                                 SIDE_DATA_COARSEN_TYPE,
                                                 BDRY_EXTRAP_TYPE,
                                                 CONSISTENT_TYPE_2_BDRY,
-                                                std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM, NULL),
-                                                NULL);
+                                                std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM, nullptr),
+                                                nullptr);
     transaction_comps.push_back(component);
 
     Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
@@ -2366,8 +2366,8 @@ ConstraintIBMethod::interpolateFluidSolveVelocity()
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > F_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(NULL));
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > X_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(NULL));
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > F_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > X_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -2387,8 +2387,8 @@ ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > F_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(NULL));
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > X_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(NULL));
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > F_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > X_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {

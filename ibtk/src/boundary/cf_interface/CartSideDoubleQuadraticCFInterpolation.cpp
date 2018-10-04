@@ -166,7 +166,7 @@ CartSideDoubleQuadraticCFInterpolation::CartSideDoubleQuadraticCFInterpolation()
     : d_patch_data_indices(),
       d_consistent_type_2_bdry(false),
       d_refine_op(new CartesianSideDoubleConservativeLinearRefine<NDIM>()),
-      d_hierarchy(NULL),
+      d_hierarchy(nullptr),
       d_cf_boundary(),
       d_sc_indicator_var(new SideVariable<NDIM, int>("CartSideDoubleQuadraticCFInterpolation::sc_indicator_var"))
 {
@@ -419,7 +419,7 @@ CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy
     }
 
     Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
-    Pointer<RefineOperator<NDIM> > refine_op = NULL;
+    Pointer<RefineOperator<NDIM> > refine_op = nullptr;
     refine_alg->registerRefine(d_sc_indicator_idx, // destination
                                d_sc_indicator_idx, // source
                                d_sc_indicator_idx, // temporary work space
@@ -454,7 +454,7 @@ CartSideDoubleQuadraticCFInterpolation::clearPatchHierarchy()
     for (std::vector<CoarseFineBoundary<NDIM>*>::iterator it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
     {
         delete (*it);
-        (*it) = NULL;
+        (*it) = nullptr;
     }
     d_cf_boundary.clear();
     return;

@@ -113,12 +113,12 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_nam
       d_weights(),
       d_dirichlet_bc_scaling(std::sqrt(2.0)),
       d_neumann_bc_scaling(0.0),
-      d_context(NULL),
-      d_C_cc_var(NULL),
+      d_context(nullptr),
+      d_C_cc_var(nullptr),
       d_C_current_cc_idx(-1),
       d_C_half_cc_idx(-1),
       d_C_new_cc_idx(-1),
-      d_F_sc_var(NULL),
+      d_F_sc_var(nullptr),
       d_F_sc_idx(-1),
       d_F_sc_idxs()
 {

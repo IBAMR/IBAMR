@@ -62,7 +62,7 @@ struct SystemData
     SystemData(const std::string& system_name = "",
                const std::vector<int>& vars = std::vector<int>(),
                const std::vector<int>& grad_vars = std::vector<int>(),
-               libMesh::NumericVector<double>* const system_vec = NULL)
+               libMesh::NumericVector<double>* const system_vec = nullptr)
         : system_name(system_name), vars(vars), grad_vars(grad_vars), system_vec(system_vec)
     {
     }

@@ -77,7 +77,7 @@ const std::string INSStaggeredConvectiveOperatorManager::STABILIZED_PPM = "STABI
 const std::string INSStaggeredConvectiveOperatorManager::WAVE_PROP = "WAVE_PROP";
 const std::string INSStaggeredConvectiveOperatorManager::CUI = "CUI";
 
-INSStaggeredConvectiveOperatorManager* INSStaggeredConvectiveOperatorManager::s_operator_manager_instance = NULL;
+INSStaggeredConvectiveOperatorManager* INSStaggeredConvectiveOperatorManager::s_operator_manager_instance = nullptr;
 bool INSStaggeredConvectiveOperatorManager::s_registered_callback = false;
 unsigned char INSStaggeredConvectiveOperatorManager::s_shutdown_priority = 200;
 
@@ -100,7 +100,7 @@ void
 INSStaggeredConvectiveOperatorManager::freeManager()
 {
     delete s_operator_manager_instance;
-    s_operator_manager_instance = NULL;
+    s_operator_manager_instance = nullptr;
     return;
 } // freeManager
 

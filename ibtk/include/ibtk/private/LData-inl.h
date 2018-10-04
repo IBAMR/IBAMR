@@ -141,31 +141,31 @@ LData::restoreArrays()
     {
         ierr = VecRestoreArray(d_ghosted_local_vec, &d_ghosted_local_array);
         IBTK_CHKERRQ(ierr);
-        d_ghosted_local_array = NULL;
+        d_ghosted_local_array = nullptr;
         delete d_boost_ghosted_local_array;
         delete d_boost_vec_ghosted_local_array;
-        d_boost_ghosted_local_array = NULL;
-        d_boost_vec_ghosted_local_array = NULL;
+        d_boost_ghosted_local_array = nullptr;
+        d_boost_vec_ghosted_local_array = nullptr;
     }
     if (d_ghosted_local_vec)
     {
         ierr = VecGhostRestoreLocalForm(d_global_vec, &d_ghosted_local_vec);
         IBTK_CHKERRQ(ierr);
-        d_ghosted_local_vec = NULL;
+        d_ghosted_local_vec = nullptr;
     }
     if (d_array)
     {
         ierr = VecRestoreArray(d_global_vec, &d_array);
         IBTK_CHKERRQ(ierr);
-        d_array = NULL;
+        d_array = nullptr;
         delete d_boost_array;
         delete d_boost_local_array;
         delete d_boost_vec_array;
         delete d_boost_local_vec_array;
-        d_boost_array = NULL;
-        d_boost_local_array = NULL;
-        d_boost_vec_array = NULL;
-        d_boost_local_vec_array = NULL;
+        d_boost_array = nullptr;
+        d_boost_local_array = nullptr;
+        d_boost_vec_array = nullptr;
+        d_boost_local_vec_array = nullptr;
     }
     return;
 } // restoreArray

@@ -366,7 +366,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
                                                            /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                            /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                            d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var),
-                                                           Pointer<VariableFillPattern<NDIM> >(NULL));
+                                                           Pointer<VariableFillPattern<NDIM> >(nullptr));
     Pointer<HierarchyGhostCellInterpolation> hier_ls_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_ls_bdry_fill->initializeOperatorState(ls_solid_transaction, patch_hierarchy);
     hier_ls_bdry_fill->setHomogeneousBc(false);
@@ -383,7 +383,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
                                                     /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                     /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                     d_fluid_solver->getVelocityBoundaryConditions(),
-                                                    Pointer<VariableFillPattern<NDIM> >(NULL));
+                                                    Pointer<VariableFillPattern<NDIM> >(nullptr));
 
     Pointer<HierarchyGhostCellInterpolation> hier_vel_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_vel_bdry_fill->initializeOperatorState(u_transaction, patch_hierarchy);
@@ -400,7 +400,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
 #endif
         Pointer<CellVariable<NDIM, double> > mu_adv_diff_var = p_vc_ins_hier_integrator->getTransportedViscosityVariable();
         Pointer<CellVariable<NDIM, double> > mu_ins_var = p_vc_ins_hier_integrator->getViscosityVariable();
-        RobinBcCoefStrategy<NDIM>* mu_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* mu_bc_coef = nullptr;
         int mu_current_idx = -1;
         if (mu_adv_diff_var)
         {
@@ -428,7 +428,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
                                                               /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                               /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                               mu_bc_coef,
-                                                              Pointer<VariableFillPattern<NDIM> >(NULL));
+                                                              Pointer<VariableFillPattern<NDIM> >(nullptr));
         Pointer<HierarchyGhostCellInterpolation> hier_mu_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_mu_bdry_fill->initializeOperatorState(mu_transaction_comp, patch_hierarchy);
         hier_mu_bdry_fill->setHomogeneousBc(false);
@@ -453,7 +453,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
                                                                  /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                                  /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                                  p_ins_bc_coef,
-                                                                 Pointer<VariableFillPattern<NDIM> >(NULL));
+                                                                 Pointer<VariableFillPattern<NDIM> >(nullptr));
             Pointer<HierarchyGhostCellInterpolation> hier_p_bdry_fill = new HierarchyGhostCellInterpolation();
             hier_p_bdry_fill->initializeOperatorState(p_transaction_comp, patch_hierarchy);
             hier_p_bdry_fill->setHomogeneousBc(false);
@@ -470,7 +470,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
                                                                  /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                                  /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                                  p_vc_ins_bc_coef,
-                                                                 Pointer<VariableFillPattern<NDIM> >(NULL));
+                                                                 Pointer<VariableFillPattern<NDIM> >(nullptr));
 
             Pointer<HierarchyGhostCellInterpolation> hier_p_bdry_fill = new HierarchyGhostCellInterpolation();
             hier_p_bdry_fill->initializeOperatorState(p_transaction_comp, patch_hierarchy);

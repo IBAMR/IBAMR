@@ -95,12 +95,12 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
     d_cib_strategy = cib_strategy;
     d_ins_integrator = navier_stokes_integrator;
 
-    d_A = NULL;
-    d_LInv = NULL;
-    d_velocity_solver = NULL;
-    d_pressure_solver = NULL;
+    d_A = nullptr;
+    d_LInv = nullptr;
+    d_velocity_solver = nullptr;
+    d_pressure_solver = nullptr;
 
-    d_mob_solver = NULL;
+    d_mob_solver = nullptr;
     d_scale_interp = 1.0;
     d_scale_spread = 1.0;
     d_reg_mob_factor = 0.0;
@@ -110,14 +110,14 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
     d_current_time = std::numeric_limits<double>::signaling_NaN();
     d_new_time = std::numeric_limits<double>::signaling_NaN();
 
-    d_petsc_ksp = NULL;
-    d_petsc_mat = NULL;
+    d_petsc_ksp = nullptr;
+    d_petsc_mat = nullptr;
     d_ksp_type = KSPGMRES;
     d_pc_type = "none";
     d_is_initialized = false;
     d_reinitializing_solver = false;
-    d_petsc_x = NULL;
-    d_petsc_b = NULL;
+    d_petsc_x = nullptr;
+    d_petsc_b = nullptr;
     d_options_prefix = default_options_prefix;
     d_max_iterations = 10000;
     d_abs_residual_tol = 1.0e-50;
@@ -152,7 +152,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
     if (LInv_db->keyExists("normalize_velocity")) d_normalize_velocity = LInv_db->getBool("normalize_velocity");
 
     std::string stokes_solver_type = StaggeredStokesSolverManager::PETSC_KRYLOV_SOLVER;
-    Pointer<Database> stokes_solver_db = NULL;
+    Pointer<Database> stokes_solver_db = nullptr;
     if (LInv_db->keyExists("stokes_solver_type"))
     {
         stokes_solver_type = LInv_db->getString("stokes_solver_type");
@@ -165,7 +165,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
     }
 
     std::string stokes_precond_type = StaggeredStokesSolverManager::DEFAULT_BLOCK_PRECONDITIONER;
-    Pointer<Database> stokes_precond_db = NULL;
+    Pointer<Database> stokes_precond_db = nullptr;
     if (LInv_db->keyExists("stokes_precond_type"))
     {
         stokes_precond_type = LInv_db->getString("stokes_precond_type");
@@ -178,7 +178,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
     }
 
     std::string velocity_solver_type = IBTK::SCPoissonSolverManager::PETSC_KRYLOV_SOLVER;
-    Pointer<Database> velocity_solver_db = NULL;
+    Pointer<Database> velocity_solver_db = nullptr;
     if (LInv_db->keyExists("velocity_solver_type"))
     {
         velocity_solver_type = LInv_db->getString("velocity_solver_type");
@@ -193,7 +193,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
     }
 
     std::string velocity_precond_type = IBTK::SCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
-    Pointer<Database> velocity_precond_db = NULL;
+    Pointer<Database> velocity_precond_db = nullptr;
     if (LInv_db->keyExists("velocity_precond_type"))
     {
         velocity_precond_type = LInv_db->getString("velocity_precond_type");
@@ -207,7 +207,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
     }
 
     std::string pressure_solver_type = IBTK::CCPoissonSolverManager::PETSC_KRYLOV_SOLVER;
-    Pointer<Database> pressure_solver_db = NULL;
+    Pointer<Database> pressure_solver_db = nullptr;
     if (LInv_db->keyExists("pressure_solver_type"))
     {
         pressure_solver_type = LInv_db->getString("pressure_solver_type");
@@ -222,7 +222,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
     }
 
     std::string pressure_precond_type = IBTK::CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
-    Pointer<Database> pressure_precond_db = NULL;
+    Pointer<Database> pressure_precond_db = nullptr;
     if (LInv_db->keyExists("pressure_precond_type"))
     {
         pressure_precond_type = LInv_db->getString("pressure_precond_type");
@@ -318,12 +318,12 @@ CIBSaddlePointSolver::~CIBSaddlePointSolver()
     if (d_petsc_mat)
     {
         MatDestroy(&d_petsc_mat);
-        d_petsc_mat = NULL;
+        d_petsc_mat = nullptr;
     }
     if (d_petsc_ksp)
     {
         KSPDestroy(&d_petsc_ksp);
-        d_petsc_ksp = NULL;
+        d_petsc_ksp = nullptr;
     }
     return;
 } // ~CIBSaddlePointSolver
@@ -459,7 +459,7 @@ CIBSaddlePointSolver::solveSystem(Vec x, Vec b)
     if (d_enable_logging) reportKSPConvergedReason(reason, plog);
 
     // Invalidate d_petsc_x Vec.
-    d_petsc_x = NULL;
+    d_petsc_x = nullptr;
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -485,8 +485,8 @@ CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
 
     // Get components of x and b.
     Vec *vx, *vb;
-    VecNestGetSubVecs(x, NULL, &vx);
-    VecNestGetSubVecs(b, NULL, &vb);
+    VecNestGetSubVecs(x, nullptr, &vx);
+    VecNestGetSubVecs(b, nullptr, &vb);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > vx0, vb0;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
@@ -511,7 +511,7 @@ CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
     initializeKSP();
 
     // Setup the interpolation transaction information.
-    d_fill_pattern = NULL;
+    d_fill_pattern = nullptr;
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent component(u_data_idx,
                                                 DATA_REFINE_TYPE,
@@ -554,8 +554,8 @@ CIBSaddlePointSolver::deallocateSolverState()
 
     // Delete the solution and RHS vectors.
     VecDestroy(&d_petsc_b);
-    d_petsc_x = NULL;
-    d_petsc_b = NULL;
+    d_petsc_x = nullptr;
+    d_petsc_b = nullptr;
 
     // Destroy the KSP solver.
     destroyKSP();
@@ -621,7 +621,7 @@ CIBSaddlePointSolver::initializeKSP()
     PetscBool initial_guess_nonzero;
     KSPGetInitialGuessNonzero(d_petsc_ksp, &initial_guess_nonzero);
     d_initial_guess_nonzero = (initial_guess_nonzero == PETSC_TRUE);
-    KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
+    KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, nullptr, &d_max_iterations);
 
     return;
 } // initializeKSP
@@ -781,7 +781,7 @@ CIBSaddlePointSolver::destroyKSP()
 {
     int ierr = KSPDestroy(&d_petsc_ksp);
     IBTK_CHKERRQ(ierr);
-    d_petsc_ksp = NULL;
+    d_petsc_ksp = nullptr;
     return;
 } // destroyKSP
 
@@ -864,8 +864,8 @@ CIBSaddlePointSolver::resetKSPOptions()
         KSPMonitorSet(
             d_petsc_ksp,
             reinterpret_cast<PetscErrorCode (*)(KSP, PetscInt, PetscReal, void*)>(CIBSaddlePointSolver::monitorKSP),
-            NULL,
-            NULL);
+            nullptr,
+            nullptr);
     }
     return;
 } // resetKSPOptions
@@ -877,7 +877,7 @@ CIBSaddlePointSolver::resetKSPOperators()
     if (d_petsc_mat)
     {
         MatDestroy(&d_petsc_mat);
-        d_petsc_mat = NULL;
+        d_petsc_mat = nullptr;
     }
     if (!d_petsc_mat)
     {
@@ -906,7 +906,7 @@ CIBSaddlePointSolver::resetKSPPC()
     static const size_t len = 255;
     char pc_type_str[len];
     PetscBool flg;
-    PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+    PetscOptionsGetString(nullptr, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
     std::string pc_type = d_pc_type;
     if (flg)
     {
@@ -980,7 +980,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
 
     int total_comps, free_comps = 0;
     Vec *vx, *vy;
-    VecNestGetSubVecs(x, NULL, &vx);
+    VecNestGetSubVecs(x, nullptr, &vx);
     VecNestGetSubVecs(y, &total_comps, &vy);
     VecGetSize(vx[2], &free_comps);
 
@@ -1073,7 +1073,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     // 5) (u,p)   = L^-1(S[lambda]+g, h)
     const int g_data_idx = g_h->getComponentDescriptorIndex(0);
     solver->d_cib_strategy->setConstraintForce(Lambda, half_time, gamma);
-    ib_method_ops->spreadForce(g_data_idx, NULL, std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
+    ib_method_ops->spreadForce(g_data_idx, nullptr, std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
     if (solver->d_normalize_spread_force)
     {
         solver->d_cib_strategy->subtractMeanConstraintForce(Lambda, g_data_idx, gamma);
@@ -1119,7 +1119,7 @@ CIBSaddlePointSolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void* /*mctx*
     char print_normtype[256];
     KSPNormType ksp_normtype;
 
-    KSPBuildResidual(ksp, NULL, NULL, &resid);
+    KSPBuildResidual(ksp, nullptr, nullptr, &resid);
     VecNorm(resid, NORM_2, &truenorm);
     VecDestroy(&resid);
     KSPGetRhs(ksp, &rhs);
