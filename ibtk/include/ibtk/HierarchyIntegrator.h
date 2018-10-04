@@ -360,10 +360,10 @@ public:
      * Callback function specification to enable further specialization of
      * preprocessIntegrateHierarchy().
      */
-    typedef void (*PreprocessIntegrateHierarchyCallbackFcnPtr)(double current_time,
-                                                               double new_time,
-                                                               int num_cycles,
-                                                               void* ctx);
+    using PreprocessIntegrateHierarchyCallbackFcnPtr = void (*)(double current_time,
+                                                                double new_time,
+                                                                int num_cycles,
+                                                                void* ctx);
 
     /*!
      * Register a callback function to enable further specialization of
@@ -376,7 +376,7 @@ public:
      * Callback function specification to enable further specialization of
      * integrateHierarchy().
      */
-    typedef void (*IntegrateHierarchyCallbackFcnPtr)(double current_time, double new_time, int cycle_num, void* ctx);
+    using IntegrateHierarchyCallbackFcnPtr = void (*)(double current_time, double new_time, int cycle_num, void* ctx);
 
     /*!
      * Register a callback function to enable further specialization of
@@ -388,11 +388,8 @@ public:
      * Callback function specification to enable further specialization of
      * postprocessIntegrateHierarchy().
      */
-    typedef void (*PostprocessIntegrateHierarchyCallbackFcnPtr)(double current_time,
-                                                                double new_time,
-                                                                bool skip_synchronize_new_state_data,
-                                                                int num_cycles,
-                                                                void* ctx);
+    using PostprocessIntegrateHierarchyCallbackFcnPtr =
+        void (*)(double current_time, double new_time, bool skip_synchronize_new_state_data, int num_cycles, void* ctx);
 
     /*!
      * Register a callback function to enable further specialization of
@@ -405,14 +402,14 @@ public:
      * Callback function specification to enable further specialization of
      * applyGradientDetector().
      */
-    typedef void (*ApplyGradientDetectorCallbackFcnPtr)(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double error_data_time,
-        int tag_index,
-        bool initial_time,
-        bool uses_richardson_extrapolation_too,
-        void* ctx);
+    using ApplyGradientDetectorCallbackFcnPtr =
+        void (*)(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                 int level_number,
+                 double error_data_time,
+                 int tag_index,
+                 bool initial_time,
+                 bool uses_richardson_extrapolation_too,
+                 void* ctx);
 
     /*!
      * Register a callback function to enable further specialization of
@@ -1040,10 +1037,10 @@ private:
     /*
      * Cached communications algorithms, strategies, and schedules.
      */
-    typedef std::map<std::string, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > > RefineAlgorithmMap;
-    typedef std::map<std::string, SAMRAI::xfer::RefinePatchStrategy<NDIM>*> RefinePatchStrategyMap;
-    typedef std::map<std::string, std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > >
-        RefineScheduleMap;
+    using RefineAlgorithmMap = std::map<std::string, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >;
+    using RefinePatchStrategyMap = std::map<std::string, SAMRAI::xfer::RefinePatchStrategy<NDIM>*>;
+    using RefineScheduleMap =
+        std::map<std::string, std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > >;
 
     RefineAlgorithmMap d_ghostfill_algs;
     RefinePatchStrategyMap d_ghostfill_strategies;
@@ -1053,10 +1050,10 @@ private:
     RefinePatchStrategyMap d_prolong_strategies;
     RefineScheduleMap d_prolong_scheds;
 
-    typedef std::map<std::string, SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > > CoarsenAlgorithmMap;
-    typedef std::map<std::string, SAMRAI::xfer::CoarsenPatchStrategy<NDIM>*> CoarsenPatchStrategyMap;
-    typedef std::map<std::string, std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > >
-        CoarsenScheduleMap;
+    using CoarsenAlgorithmMap = std::map<std::string, SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >;
+    using CoarsenPatchStrategyMap = std::map<std::string, SAMRAI::xfer::CoarsenPatchStrategy<NDIM>*>;
+    using CoarsenScheduleMap =
+        std::map<std::string, std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > >;
 
     CoarsenAlgorithmMap d_coarsen_algs;
     CoarsenPatchStrategyMap d_coarsen_strategies;

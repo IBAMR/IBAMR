@@ -1057,7 +1057,7 @@ FEDataManager::prolongData(const int f_data_idx,
             {
                 const SideIndex<NDIM>& i_s = intersection_indices[qp];
                 const int axis = i_s.getAxis();
-                typedef boost::multi_array_types::index_range range;
+                using range = boost::multi_array_types::index_range;
                 double F_qp = interpolate(qp, F_node[boost::indices[range(0, n_node)][axis]], phi_F);
                 if (is_density)
                 {

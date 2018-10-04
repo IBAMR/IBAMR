@@ -55,7 +55,7 @@ public:
     // q_j will experience force -out_force.
     //
     // parameters are passed in the double* params.
-    typedef void (*NonBddForceFcnPtr)(double* D, const SAMRAI::tbox::Array<double> params, double* out_force);
+    using NonBddForceFcnPtr = void (*)(double* D, const SAMRAI::tbox::Array<double> params, double* out_force);
 
     // Class constructor.
     NonbondedForceEvaluator(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,

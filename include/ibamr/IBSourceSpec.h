@@ -224,7 +224,7 @@ private:
 
         friend class IBSourceSpec;
     };
-    typedef IBSourceSpec::Factory IBSourceSpecFactory;
+    using IBSourceSpecFactory = IBSourceSpec::Factory;
 };
 } // namespace IBAMR
 

@@ -620,7 +620,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 
 #if (NDIM == 2)
         // Synchronize node-centered values.
-        typedef NodeDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+        using SynchronizationTransactionComponent = NodeDataSynchronization::SynchronizationTransactionComponent;
         SynchronizationTransactionComponent synch_component(d_W_nc_idx);
         NodeDataSynchronization synch_data_op;
         synch_data_op.initializeOperatorState(synch_component, hierarchy);
@@ -628,7 +628,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
 #if (NDIM == 3)
         // Synchronize edge-centered values.
-        typedef EdgeDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+        using SynchronizationTransactionComponent = EdgeDataSynchronization::SynchronizationTransactionComponent;
         SynchronizationTransactionComponent synch_component(d_W_ec_idx);
         EdgeDataSynchronization synch_data_op;
         synch_data_op.initializeOperatorState(synch_component, hierarchy);
@@ -643,7 +643,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             bc_coef.setBoundarySlope(2 * d + 1, 0.0);
         }
         std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, &bc_coef);
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_fill_components(1);
         ghost_fill_components[0] =
             InterpolationTransactionComponent(d_W_cc_idx, "NONE", false, "NONE", "NONE", false, bc_coefs);

@@ -215,7 +215,7 @@ private:
 
         friend class IBAnchorPointSpec;
     };
-    typedef IBAnchorPointSpec::Factory IBAnchorPointSpecFactory;
+    using IBAnchorPointSpecFactory = IBAnchorPointSpec::Factory;
 };
 } // namespace IBAMR
 

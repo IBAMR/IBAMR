@@ -512,7 +512,7 @@ CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
 
     // Setup the interpolation transaction information.
     d_fill_pattern = nullptr;
-    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent component(u_data_idx,
                                                 DATA_REFINE_TYPE,
                                                 USE_CF_INTERPOLATION,
@@ -1010,7 +1010,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
 
     // 2a) Fill ghost cells of u
     int u_data_idx = u_p->getComponentDescriptorIndex(0);
-    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
     InterpolationTransactionComponent u_component(u_data_idx,
                                                   DATA_REFINE_TYPE,

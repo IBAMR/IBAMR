@@ -271,14 +271,14 @@ public:
      * \brief Function to reset fluid density or viscosity if they are
      * maintained by this integrator.
      */
-    typedef void (*ResetFluidPropertiesFcnPtr)(int property_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > property_var,
-                                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                               int cycle_num,
-                                               double time,
-                                               double current_time,
-                                               double new_time,
-                                               void* ctx);
+    using ResetFluidPropertiesFcnPtr = void (*)(int property_idx,
+                                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > property_var,
+                                                SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                int cycle_num,
+                                                double time,
+                                                double current_time,
+                                                double new_time,
+                                                void* ctx);
 
     /*!
      * \brief Register interface neighborhood locating functions.

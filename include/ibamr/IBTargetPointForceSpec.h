@@ -256,7 +256,7 @@ private:
 
         friend class IBTargetPointForceSpec;
     };
-    typedef IBTargetPointForceSpec::Factory IBTargetPointForceSpecFactory;
+    using IBTargetPointForceSpecFactory = IBTargetPointForceSpec::Factory;
 };
 } // namespace IBAMR
 

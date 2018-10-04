@@ -91,7 +91,7 @@ public:
     /*!
      * \brief Typedef specifying interface for specifying rigid body velocities.
      */
-    typedef void (*KinematicsFcnPtr)(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* ctx);
+    using KinematicsFcnPtr = void (*)(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* ctx);
 
     /*
      * \brief Kinematics function data.

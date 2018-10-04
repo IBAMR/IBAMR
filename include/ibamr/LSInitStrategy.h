@@ -99,11 +99,11 @@ public:
     /*!
      * \brief Function specifying distance function near an interface.
      */
-    typedef void (*LocateInterfaceNeighborhoodFcnPtr)(int D_idx,
-                                                      SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                                      double time,
-                                                      bool initial_time,
-                                                      void* ctx);
+    using LocateInterfaceNeighborhoodFcnPtr = void (*)(int D_idx,
+                                                       SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                       double time,
+                                                       bool initial_time,
+                                                       void* ctx);
 
     /*!
      * \brief Register interface neighborhood locating functions.

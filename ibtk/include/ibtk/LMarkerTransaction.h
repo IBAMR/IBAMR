@@ -42,7 +42,7 @@
 
 namespace IBTK
 {
-typedef LTransaction<LMarker> LMarkerTransaction;
+using LMarkerTransaction = LTransaction<LMarker>;
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

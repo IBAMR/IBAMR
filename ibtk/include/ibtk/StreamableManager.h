@@ -181,7 +181,7 @@ protected:
     static int createUniqueID();
 
 private:
-    typedef std::map<int, SAMRAI::tbox::Pointer<StreamableFactory> > StreamableFactoryMap;
+    using StreamableFactoryMap = std::map<int, SAMRAI::tbox::Pointer<StreamableFactory> >;
 
     /*!
      * \brief Copy constructor.

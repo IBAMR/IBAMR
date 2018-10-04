@@ -157,7 +157,7 @@ CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
 #endif
 
     // Simultaneously fill ghost cell values for all components.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
@@ -249,7 +249,7 @@ CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
     {
         d_fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     }
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)
     {

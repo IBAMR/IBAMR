@@ -42,7 +42,7 @@
 
 namespace IBTK
 {
-typedef LSetDataIterator<LNodeIndex> LNodeIndexSetDataIterator;
+using LNodeIndexSetDataIterator = LSetDataIterator<LNodeIndex>;
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

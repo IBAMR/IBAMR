@@ -67,8 +67,8 @@ struct IndexOrder : std::binary_function<T, T, bool>
     }
 };
 
-typedef struct IndexOrder<SAMRAI::hier::Index<NDIM> > IndexFortranOrder;
-typedef struct IndexOrder<SAMRAI::pdat::CellIndex<NDIM> > CellIndexFortranOrder;
+using IndexFortranOrder = struct IndexOrder<SAMRAI::hier::Index<NDIM> >;
+using CellIndexFortranOrder = struct IndexOrder<SAMRAI::pdat::CellIndex<NDIM> >;
 
 /*!
  * \brief Class IndexUtilities is a utility class that defines simple functions

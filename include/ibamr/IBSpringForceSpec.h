@@ -290,7 +290,7 @@ private:
 
         friend class IBSpringForceSpec;
     };
-    typedef IBSpringForceSpec::Factory IBSpringForceSpecFactory;
+    using IBSpringForceSpecFactory = IBSpringForceSpec::Factory;
 };
 } // namespace IBAMR
 

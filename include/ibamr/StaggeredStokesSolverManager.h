@@ -137,10 +137,10 @@ public:
     /*!
      * Typedef for functions to construct staggered-grid Stokes solvers.
      */
-    typedef SAMRAI::tbox::Pointer<StaggeredStokesSolver> (*SolverMaker)(
-        const std::string& solver_object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
-        const std::string& solver_default_options_prefix);
+    using SolverMaker =
+        SAMRAI::tbox::Pointer<StaggeredStokesSolver> (*)(const std::string& solver_object_name,
+                                                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
+                                                         const std::string& solver_default_options_prefix);
 
     /*!
      * Register a solver factory function with the solver manager class.

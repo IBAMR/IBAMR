@@ -267,7 +267,7 @@ private:
         const IBTK::Vector* dA;
     };
 
-    typedef std::multimap<SAMRAI::hier::Index<NDIM>, WebPatch, IndexFortranOrder> WebPatchMap;
+    using WebPatchMap = std::multimap<SAMRAI::hier::Index<NDIM>, WebPatch, IndexFortranOrder>;
     std::vector<WebPatchMap> d_web_patch_map;
 
     struct WebCentroid
@@ -276,7 +276,7 @@ private:
         const IBTK::Vector* X;
     };
 
-    typedef std::multimap<SAMRAI::hier::Index<NDIM>, WebCentroid, IndexFortranOrder> WebCentroidMap;
+    using WebCentroidMap = std::multimap<SAMRAI::hier::Index<NDIM>, WebCentroid, IndexFortranOrder>;
     std::vector<WebCentroidMap> d_web_centroid_map;
 
     /*

@@ -964,7 +964,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetHierarchyConfigurationSpe
     INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
         base_hierarchy, coarsest_level, finest_level);
 
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     if (!d_rho_is_const)
     {
         // These options are chosen to ensure that information is propagated conservatively from the coarse cells only
@@ -1105,7 +1105,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
         }
         d_hier_sc_data_ops->reciprocal(d_pressure_D_idx, d_pressure_D_idx);
         d_hier_sc_data_ops->scale(d_pressure_D_idx, -1.0, d_pressure_D_idx);
-        typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+        using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
         SynchronizationTransactionComponent p_coef_synch_transaction =
             SynchronizationTransactionComponent(d_pressure_D_idx, "CONSERVATIVE_COARSEN");
         d_side_synch_op->resetTransactionComponent(p_coef_synch_transaction);
@@ -1163,7 +1163,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
              << regrid_projection_solver->getResidualNorm() << "\n";
 
     // Fill ghost cells for Phi, compute Grad Phi, and set U := U - 1/rho * Grad Phi
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent Phi_bc_component(d_P_scratch_idx,
                                                        DATA_REFINE_TYPE,
                                                        USE_CF_INTERPOLATION,
@@ -1350,7 +1350,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
         d_hier_sc_data_ops->scale(d_pressure_D_idx, -1.0, d_pressure_D_idx, /*interior_only*/ false);
 
         // Synchronize pressure patch data coefficient
-        typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+        using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
         SynchronizationTransactionComponent p_coef_synch_transaction =
             SynchronizationTransactionComponent(d_pressure_D_idx, "CONSERVATIVE_COARSEN");
         d_side_synch_op->resetTransactionComponent(p_coef_synch_transaction);
@@ -1675,7 +1675,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
     }
 
     // Synchronize solution and right-hand-side data before solve.
-    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent sol_synch_transaction =
         SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
     d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
@@ -1704,7 +1704,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetSolverVectors(
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Synchronize solution data after solve.
-    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent sol_synch_transaction =
         SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
     d_side_synch_op->synchronizeData(current_time);

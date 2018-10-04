@@ -447,13 +447,13 @@ public:
     /*!
      * \brief Function to reset variables registered by this integrator
      */
-    typedef void (*ResetPropertiesFcnPtr)(int property_idx,
-                                          SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                          int integrator_step,
-                                          double time,
-                                          bool initial_time,
-                                          bool regrid_time,
-                                          void* ctx);
+    using ResetPropertiesFcnPtr = void (*)(int property_idx,
+                                           SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                           int integrator_step,
+                                           double time,
+                                           bool initial_time,
+                                           bool regrid_time,
+                                           void* ctx);
 
     /*!
      * \brief Register a reset callback function for a specified variable.

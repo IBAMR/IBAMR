@@ -136,10 +136,10 @@ public:
     /*!
      * Typedef specifying the interface for initializing structures on a given level.
      */
-    typedef void (*InitStructureOnLevel)(const unsigned int& strct_num,
-                                         const int& level_num,
-                                         int& num_vertices,
-                                         std::vector<IBTK::Point>& vertex_posn);
+    using InitStructureOnLevel = void (*)(const unsigned int& strct_num,
+                                          const int& level_num,
+                                          int& num_vertices,
+                                          std::vector<IBTK::Point>& vertex_posn);
 
     /*!
      * Register the function to initialize a structure on a given level.
@@ -153,7 +153,7 @@ public:
     /*
      * Edge data structures.
      */
-    typedef std::pair<int, int> Edge;
+    using Edge = std::pair<int, int>;
     struct EdgeComp : public std::binary_function<Edge, Edge, bool>
     {
         inline bool operator()(const Edge& e1, const Edge& e2) const
@@ -184,10 +184,10 @@ public:
      * spring_map should contain the map between the master point and the Edge of the spring.
      * spring_spec should bw the map between the Edge and the SpringSpec.
      */
-    typedef void (*InitSpringDataOnLevel)(const unsigned int& strct_num,
-                                          const int& level_num,
-                                          std::multimap<int, Edge>& spring_map,
-                                          std::map<Edge, SpringSpec, EdgeComp>& spring_spec);
+    using InitSpringDataOnLevel = void (*)(const unsigned int& strct_num,
+                                           const int& level_num,
+                                           std::multimap<int, Edge>& spring_map,
+                                           std::map<Edge, SpringSpec, EdgeComp>& spring_spec);
 
     /*!
      * \brief Register a function to initialize spring data structures on a given level.
@@ -216,10 +216,10 @@ public:
      * xspring_map should contain the map between the master point and the Edge of the spring.
      * xspring_spec should be the map between the Edge and the XSpringSpec.
      */
-    typedef void (*InitXSpringDataOnLevel)(const unsigned int& strct_num,
-                                           const int& level_num,
-                                           std::multimap<int, Edge>& xspring_map,
-                                           std::map<Edge, XSpringSpec, EdgeComp> xspring_spec);
+    using InitXSpringDataOnLevel = void (*)(const unsigned int& strct_num,
+                                            const int& level_num,
+                                            std::multimap<int, Edge>& xspring_map,
+                                            std::map<Edge, XSpringSpec, EdgeComp> xspring_spec);
 
     /*!
      * \brief Register a function to initialize xspring data structures on a given level.
@@ -249,9 +249,9 @@ public:
      *
      * beam_spec should be the map between the master index and the corresponding BeamSpec.
      */
-    typedef void (*InitBeamDataOnLevel)(const unsigned int& strct_num,
-                                        const int& level_num,
-                                        std::multimap<int, BeamSpec>& beam_spec);
+    using InitBeamDataOnLevel = void (*)(const unsigned int& strct_num,
+                                         const int& level_num,
+                                         std::multimap<int, BeamSpec>& beam_spec);
 
     /*!
      * \brief Register a function to initialize beam data structures on a given level.
@@ -276,11 +276,11 @@ public:
      * rod_edge_map should contain the map between the master point and the Edge of the rod.
      * rod_spec should be the map between the Edge and the RodSpec.
      */
-    typedef void (*InitDirectorAndRodOnLevel)(const unsigned int& strct_num,
-                                              const int& level_num,
-                                              std::vector<std::vector<double> >& director_spec,
-                                              std::multimap<int, Edge>& rod_edge_map,
-                                              std::map<Edge, RodSpec, EdgeComp>& rod_spec);
+    using InitDirectorAndRodOnLevel = void (*)(const unsigned int& strct_num,
+                                               const int& level_num,
+                                               std::vector<std::vector<double> >& director_spec,
+                                               std::multimap<int, Edge>& rod_edge_map,
+                                               std::map<Edge, RodSpec, EdgeComp>& rod_spec);
 
     /*!
      * \brief Register a funcion to initialize director and rod data structures on a given level.
@@ -303,9 +303,9 @@ public:
      *
      * bdry_mass_spec should be a map between indices and the corresponding BdryMassSpec.
      */
-    typedef void (*InitBoundaryMassOnLevel)(const unsigned int& strct_num,
-                                            const int& level_num,
-                                            std::multimap<int, BdryMassSpec>& bdry_mass_spec);
+    using InitBoundaryMassOnLevel = void (*)(const unsigned int& strct_num,
+                                             const int& level_num,
+                                             std::multimap<int, BdryMassSpec>& bdry_mass_spec);
 
     /*!
      * \brief Register a function to initialize massive points on a given level.
@@ -330,9 +330,9 @@ public:
      * tg_pt_spec should be a map between indices and the corresponding TargetSpec.
      */
 
-    typedef void (*InitTargetPtOnLevel)(const unsigned int& strct_num,
-                                        const int& level_num,
-                                        std::multimap<int, TargetSpec>& tg_pt_spec);
+    using InitTargetPtOnLevel = void (*)(const unsigned int& strct_num,
+                                         const int& level_num,
+                                         std::multimap<int, TargetSpec>& tg_pt_spec);
 
     /*!
      * \brief Register a function to initialize target points on a given level.
@@ -355,9 +355,9 @@ public:
      *
      * anchor_pt_spec should be a map between indices and the corresponding AnchorSpec.
      */
-    typedef void (*InitAnchorPtOnLevel)(const unsigned int& strct_num,
-                                        const int& level_num,
-                                        std::multimap<int, AnchorSpec>& anchor_pt_spec);
+    using InitAnchorPtOnLevel = void (*)(const unsigned int& strct_num,
+                                         const int& level_num,
+                                         std::multimap<int, AnchorSpec>& anchor_pt_spec);
 
     /*!
      * \brief Register a function to initialize anchor points on a given level.
@@ -371,10 +371,10 @@ public:
      * over all levels and structures. instrument_spec should be the map between the master index of the instrument and
      * a pair of instrument number and node index. Note that this map is ordered.
      */
-    typedef void (*InitInstrumentationOnLevel)(const unsigned int& strct_num,
-                                               const int& level_num,
-                                               std::vector<std::string>& instrument_name,
-                                               std::map<int, std::pair<int, int> >& instrument_spec);
+    using InitInstrumentationOnLevel = void (*)(const unsigned int& strct_num,
+                                                const int& level_num,
+                                                std::vector<std::string>& instrument_name,
+                                                std::map<int, std::pair<int, int> >& instrument_spec);
 
     /*!
      * \brief Register a function to initialize instrumentation data on a given level.
@@ -389,11 +389,11 @@ public:
      * the instrument names and indices are global over all levels and structures. source_radii should be the
      * source/sink radii.
      */
-    typedef void (*InitSourceOnLevel)(const unsigned int& strct_num,
-                                      const int& level_num,
-                                      std::map<int, int>& source_spec,
-                                      std::vector<std::string>& source_names,
-                                      std::vector<double>& source_radii);
+    using InitSourceOnLevel = void (*)(const unsigned int& strct_num,
+                                       const int& level_num,
+                                       std::map<int, int>& source_spec,
+                                       std::vector<std::string>& source_names,
+                                       std::vector<double>& source_radii);
     /*!
      * \brief Register a funciton to initialize source/sink data on a given level.
      */

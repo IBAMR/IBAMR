@@ -158,7 +158,7 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
     d_x->allocateVectorData();
 
     // Simultaneously fill ghost cell values for all components.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
@@ -269,7 +269,7 @@ VCSCViscousOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double
 
     // Setup the interpolation transaction information.
     d_fill_pattern = nullptr;
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)
     {

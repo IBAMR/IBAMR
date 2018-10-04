@@ -256,7 +256,7 @@ private:
 
         friend class MaterialPointSpec;
     };
-    typedef MaterialPointSpec::Factory MaterialPointSpecFactory;
+    using MaterialPointSpecFactory = MaterialPointSpec::Factory;
 };
 } // namespace IBAMR
 

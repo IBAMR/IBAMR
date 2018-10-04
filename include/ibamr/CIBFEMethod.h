@@ -119,20 +119,20 @@ public:
     /*!
      * Typedef specifying interface for specifying constrained body velocities.
      */
-    typedef void (*ConstrainedNodalVelocityFcnPtr)(libMesh::NumericVector<double>& U_k,
-    const IBTK::RigidDOFVector& U,
-                                                   libMesh::NumericVector<double>& X,
-                                                   const Eigen::Vector3d& X_com,
-                                                   libMesh::EquationSystems* equation_systems,
-                                                   double data_time,
-                                                   void* ctx);
+    using ConstrainedNodalVelocityFcnPtr = void (*)(libMesh::NumericVector<double>& U_k,
+                                                    const IBTK::RigidDOFVector& U,
+                                                    libMesh::NumericVector<double>& X,
+                                                    const Eigen::Vector3d& X_com,
+                                                    libMesh::EquationSystems* equation_systems,
+                                                    double data_time,
+                                                    void* ctx);
 
-    typedef void (*ConstrainedCOMVelocityFcnPtr)(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com);
+    using ConstrainedCOMVelocityFcnPtr = void (*)(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com);
 
     /*!
      * \brief Typedef specifying interface for specifying net external force and torque on structures.
      */
-    typedef void (*ExternalForceTorqueFcnPtr)(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T);
+    using ExternalForceTorqueFcnPtr = void (*)(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T);
 
     /*!
      * Struct encapsulating constrained velocity functions data.
@@ -389,7 +389,7 @@ public:
     /*!
      * \brief Callbacks before INS is integrated.
      */
-    typedef void (*preprocessSolveFluidEqn_callbackfcn)(const double, const double, const int, void*);
+    using preprocessSolveFluidEqn_callbackfcn = void (*)(const double, const double, const int, void*);
 
     /*!
      * \brief Register any preprocess fluid solve callback functions.
