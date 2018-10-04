@@ -1903,7 +1903,7 @@ INSCollocatedHierarchyIntegrator::regridProjection()
     regrid_projection_solver->setHomogeneousBc(true);
     regrid_projection_solver->setSolutionTime(d_integrator_time);
     regrid_projection_solver->setTimeInterval(d_integrator_time, d_integrator_time);
-    LinearSolver* p_regrid_projection_solver = dynamic_cast<LinearSolver*>(regrid_projection_solver.getPointer());
+    auto p_regrid_projection_solver = dynamic_cast<LinearSolver*>(regrid_projection_solver.getPointer());
     if (p_regrid_projection_solver)
     {
         p_regrid_projection_solver->setInitialGuessNonzero(false);
@@ -2141,13 +2141,12 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
     // Setup boundary conditions objects.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        INSIntermediateVelocityBcCoef* U_star_bc_coef =
-            dynamic_cast<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);
+        auto U_star_bc_coef = dynamic_cast<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);
         U_star_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_star_bc_coef->setSolutionTime(new_time);
         U_star_bc_coef->setTimeInterval(current_time, new_time);
     }
-    INSProjectionBcCoef* Phi_bc_coef = dynamic_cast<INSProjectionBcCoef*>(d_Phi_bc_coef);
+    auto Phi_bc_coef = dynamic_cast<INSProjectionBcCoef*>(d_Phi_bc_coef);
     Phi_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     Phi_bc_coef->setSolutionTime(0.5 * (current_time + new_time));
     Phi_bc_coef->setTimeInterval(current_time, new_time);
@@ -2169,7 +2168,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
         d_velocity_solver->setPhysicalBcCoefs(d_U_star_bc_coefs);
         d_velocity_solver->setSolutionTime(new_time);
         d_velocity_solver->setTimeInterval(current_time, new_time);
-        LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+        auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
         if (d_velocity_solver_needs_init)
         {
             if (d_enable_logging)
@@ -2192,7 +2191,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
         d_pressure_solver->setPhysicalBcCoef(d_Phi_bc_coef);
         d_pressure_solver->setSolutionTime(half_time);
         d_pressure_solver->setTimeInterval(current_time, new_time);
-        LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+        auto p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
         if (d_pressure_solver_needs_init)
         {
             if (d_enable_logging)

@@ -667,14 +667,14 @@ KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
     x_p_vec.addComponent(x_p_cc_var, x_p_idx, sol_vec.getControlVolumeIndex(1));
     b_p_vec.addComponent(b_p_cc_var, b_p_idx, rhs_vec.getControlVolumeIndex(1));
 
-    IBTK::LinearSolver* p_velocity_solver = dynamic_cast<IBTK::LinearSolver*>(d_velocity_solver.getPointer());
+    auto p_velocity_solver = dynamic_cast<IBTK::LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver)
     {
         p_velocity_solver->setInitialGuessNonzero(false);
         if (has_velocity_nullspace) p_velocity_solver->setNullspace(false, d_U_nul_vecs);
     }
 
-    IBTK::LinearSolver* p_pressure_solver = dynamic_cast<IBTK::LinearSolver*>(d_pressure_solver.getPointer());
+    auto p_pressure_solver = dynamic_cast<IBTK::LinearSolver*>(d_pressure_solver.getPointer());
     if (p_pressure_solver)
     {
         p_pressure_solver->setInitialGuessNonzero(false);
@@ -685,10 +685,10 @@ KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
     d_pressure_solver->initializeSolverState(x_p_vec, b_p_vec);
 
     // Initialize LInv (Stokes solver for the mobility matrix).
-    IBTK::LinearSolver* p_stokes_linear_solver = dynamic_cast<IBTK::LinearSolver*>(d_LInv.getPointer());
+    auto p_stokes_linear_solver = dynamic_cast<IBTK::LinearSolver*>(d_LInv.getPointer());
     if (!p_stokes_linear_solver)
     {
-        IBTK::NewtonKrylovSolver* p_stokes_newton_solver = dynamic_cast<IBTK::NewtonKrylovSolver*>(d_LInv.getPointer());
+        auto p_stokes_newton_solver = dynamic_cast<IBTK::NewtonKrylovSolver*>(d_LInv.getPointer());
         if (p_stokes_newton_solver)
         {
             p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver().getPointer();
@@ -696,12 +696,10 @@ KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
     }
     if (p_stokes_linear_solver)
     {
-        StaggeredStokesBlockPreconditioner* p_stokes_block_pc =
-            dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_linear_solver);
+        auto p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_linear_solver);
         if (!p_stokes_block_pc)
         {
-            IBTK::KrylovLinearSolver* p_stokes_krylov_solver =
-                dynamic_cast<IBTK::KrylovLinearSolver*>(p_stokes_linear_solver);
+            auto p_stokes_krylov_solver = dynamic_cast<IBTK::KrylovLinearSolver*>(p_stokes_linear_solver);
             if (p_stokes_krylov_solver)
             {
                 p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(
@@ -913,7 +911,7 @@ KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
 {
     void* p_ctx;
     MatShellGetContext(A, &p_ctx);
-    KrylovMobilitySolver* solver = static_cast<KrylovMobilitySolver*>(p_ctx);
+    auto solver = static_cast<KrylovMobilitySolver*>(p_ctx);
     Pointer<IBStrategy> ib_method_ops = solver->d_cib_strategy;
 
 #if !defined(NDEBUG)

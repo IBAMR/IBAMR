@@ -847,7 +847,7 @@ PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)
     void* ctx;
     ierr = PCShellGetContext(pc, &ctx);
     CHKERRQ(ierr);
-    PETScLevelSolver* solver = static_cast<PETScLevelSolver*>(ctx);
+    auto solver = static_cast<PETScLevelSolver*>(ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
 #endif
@@ -893,7 +893,7 @@ PETScLevelSolver::PCApply_Multiplicative(PC pc, Vec x, Vec y)
     void* ctx;
     ierr = PCShellGetContext(pc, &ctx);
     CHKERRQ(ierr);
-    PETScLevelSolver* solver = static_cast<PETScLevelSolver*>(ctx);
+    auto solver = static_cast<PETScLevelSolver*>(ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
 #endif

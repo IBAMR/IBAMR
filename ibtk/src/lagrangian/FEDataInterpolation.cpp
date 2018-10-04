@@ -76,9 +76,7 @@ FEDataInterpolation::registerSystem(const System& system,
 {
     TBOX_ASSERT(!d_initialized && (!phi_vars.empty() || !dphi_vars.empty()));
     const unsigned int sys_num = system.number();
-    for (std::vector<const System *>::iterator it = d_noninterp_systems.begin(), it_end = d_noninterp_systems.end();
-         it != it_end;
-         ++it)
+    for (auto it = d_noninterp_systems.begin(), it_end = d_noninterp_systems.end(); it != it_end; ++it)
     {
         if ((*it)->number() == sys_num)
         {
@@ -128,7 +126,7 @@ FEDataInterpolation::registerInterpolatedSystem(const System& system,
 {
     TBOX_ASSERT(!d_initialized && (!vars.empty() || !grad_vars.empty()));
     const unsigned int sys_num = system.number();
-    for (std::vector<const System *>::iterator it = d_systems.begin(), it_end = d_systems.end(); it != it_end; ++it)
+    for (auto it = d_systems.begin(), it_end = d_systems.end(); it != it_end; ++it)
     {
         if ((*it)->number() == sys_num)
         {
@@ -480,7 +478,7 @@ FEDataInterpolation::interpolateCommon(
         // Interpolate regular variables.
         {
             const std::vector<size_t>& var_idxs = d_system_var_idx[system_idx];
-            const unsigned int n_vars = static_cast<unsigned int>(var_idxs.size());
+            const auto n_vars = static_cast<unsigned int>(var_idxs.size());
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 system_var_data[qp][system_idx].resize(n_vars);
@@ -505,7 +503,7 @@ FEDataInterpolation::interpolateCommon(
         // Interpolate gradient variables.
         {
             const std::vector<size_t>& grad_var_idxs = d_system_grad_var_idx[system_idx];
-            const unsigned int n_grad_vars = static_cast<unsigned int>(grad_var_idxs.size());
+            const auto n_grad_vars = static_cast<unsigned int>(grad_var_idxs.size());
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 system_grad_var_data[qp][system_idx].resize(n_grad_vars);

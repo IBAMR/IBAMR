@@ -98,7 +98,7 @@ inline IBRodForceSpec::~IBRodForceSpec()
 inline unsigned int
 IBRodForceSpec::getNumberOfRods() const
 {
-    const unsigned int num_rods = static_cast<unsigned int>(d_next_idxs.size());
+    const auto num_rods = static_cast<unsigned int>(d_next_idxs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_rods == d_material_params.size());
 #endif
@@ -161,7 +161,7 @@ IBRodForceSpec::getDataStreamSize() const
 inline void
 IBRodForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
-    const unsigned int num_rods = static_cast<unsigned int>(d_next_idxs.size());
+    const auto num_rods = static_cast<unsigned int>(d_next_idxs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_rods == d_material_params.size());
 #endif

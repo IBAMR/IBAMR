@@ -4799,7 +4799,7 @@ LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
                 }
             }
             const LSet<T>& idx_set = it.getItem();
-            for (typename LSet<T>::const_iterator n = idx_set.begin(); n != idx_set.end(); ++n)
+            for (auto n = idx_set.begin(); n != idx_set.end(); ++n)
             {
                 const typename LSet<T>::value_type& idx = *n;
                 local_indices.push_back(idx->getLocalPETScIndex());

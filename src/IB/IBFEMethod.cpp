@@ -147,7 +147,7 @@ inline short int
 get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
 {
     short int dirichlet_bdry_ids = 0;
-    for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
+    for (auto cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
     {
         const short int bdry_id = *cit;
         if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID ||
@@ -172,7 +172,7 @@ is_physical_bdry(const Elem* elem,
 {
     const std::vector<short int>& bdry_ids = boundary_info.boundary_ids(elem, side);
     bool at_physical_bdry = !elem->neighbor(side);
-    for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
+    for (auto cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
     {
         if (dof_map.is_periodic_boundary(*cit)) at_physical_bdry = false;
     }
@@ -233,7 +233,7 @@ assemble_poisson(EquationSystems& es, const std::string& /*system_name*/)
     const MeshBase& mesh = es.get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
-    LinearImplicitSystem& system = es.get_system<LinearImplicitSystem>(IBFEMethod::PHI_SYSTEM_NAME);
+    auto& system = es.get_system<LinearImplicitSystem>(IBFEMethod::PHI_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
     FEType fe_type = dof_map.variable_type(0);
 
@@ -264,7 +264,7 @@ assemble_poisson(EquationSystems& es, const std::string& /*system_name*/)
         const Elem* elem = *el;
         dof_map.dof_indices(elem, dof_indices);
         fe->reinit(elem);
-        unsigned int Ke_size = static_cast<unsigned int>(dof_indices.size());
+        auto Ke_size = static_cast<unsigned int>(dof_indices.size());
         Ke.resize(Ke_size, Ke_size);
         for (unsigned int qp = 0; qp < qrule.n_points(); qp++)
         {
@@ -543,10 +543,10 @@ IBFEMethod::registerOverlappingVelocityReset(const unsigned int part1, const uns
     for (int k = 0; k < 2; ++k)
     {
         es[k] = d_fe_data_managers[part_idx[k]]->getEquationSystems();
-        System& U_system = es[k]->get_system<System>(VELOCITY_SYSTEM_NAME);
+        auto& U_system = es[k]->get_system<System>(VELOCITY_SYSTEM_NAME);
         U_dof_map[k] = &U_system.get_dof_map();
         NumericVector<double>& U_vec = *U_system.solution;
-        System& X_system = es[k]->get_system<System>(COORDS_SYSTEM_NAME);
+        auto& X_system = es[k]->get_system<System>(COORDS_SYSTEM_NAME);
         X_dof_map[k] = &X_system.get_dof_map();
         NumericVector<double>& X_vec = *X_system.solution;
         TBOX_ASSERT(U_vec.first_local_index() == X_vec.first_local_index());
@@ -587,9 +587,7 @@ IBFEMethod::registerOverlappingVelocityReset(const unsigned int part1, const uns
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 U_dof_map[k_master]->dof_indices(other_elem, U_dof_indices[k_master][d], d);
-                for (std::vector<unsigned int>::iterator it = U_dof_indices[k_master][d].begin();
-                     it != U_dof_indices[k_master][d].end();
-                     ++it)
+                for (auto it = U_dof_indices[k_master][d].begin(); it != U_dof_indices[k_master][d].end(); ++it)
                 {
                     const unsigned int idx = *it;
                     if (idx < first_local_idx[k_master] || idx >= last_local_idx[k_master])
@@ -650,8 +648,8 @@ IBFEMethod::registerOverlappingForceConstraint(const unsigned int part1,
     for (int k = 0; k < 2; ++k)
     {
         es[k] = d_fe_data_managers[part_idx[k]]->getEquationSystems();
-        System& F_system = es[k]->get_system<System>(FORCE_SYSTEM_NAME);
-        System& X_system = es[k]->get_system<System>(COORDS_SYSTEM_NAME);
+        auto& F_system = es[k]->get_system<System>(FORCE_SYSTEM_NAME);
+        auto& X_system = es[k]->get_system<System>(COORDS_SYSTEM_NAME);
         F_dof_map[k] = &F_system.get_dof_map();
         X_dof_map[k] = &X_system.get_dof_map();
         NumericVector<double>& X_vec = *X_system.solution;
@@ -695,9 +693,7 @@ IBFEMethod::registerOverlappingForceConstraint(const unsigned int part1,
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_dof_map[k]->dof_indices(elem, X_dof_indices[k][d], d);
-                for (std::vector<unsigned int>::iterator it = X_dof_indices[k][d].begin();
-                     it != X_dof_indices[k][d].end();
-                     ++it)
+                for (auto it = X_dof_indices[k][d].begin(); it != X_dof_indices[k][d].end(); ++it)
                 {
                     const unsigned int idx = *it;
                     if (idx < first_local_idx[k] || idx >= last_local_idx[k])
@@ -716,9 +712,7 @@ IBFEMethod::registerOverlappingForceConstraint(const unsigned int part1,
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         X_dof_map[k_next]->dof_indices(other_elem, X_dof_indices[k_next][d], d);
-                        for (std::vector<unsigned int>::iterator it = X_dof_indices[k_next][d].begin();
-                             it != X_dof_indices[k_next][d].end();
-                             ++it)
+                        for (auto it = X_dof_indices[k_next][d].begin(); it != X_dof_indices[k_next][d].end(); ++it)
                         {
                             const unsigned int idx = *it;
                             if (idx < first_local_idx[k_next] || idx >= last_local_idx[k_next])
@@ -1251,7 +1245,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         const unsigned int dim = mesh.mesh_dimension();
 
         // Extract the FE systems and DOF maps, and setup the FE object.
-        ExplicitSystem& Q_system = equation_systems->get_system<ExplicitSystem>(SOURCE_SYSTEM_NAME);
+        auto& Q_system = equation_systems->get_system<ExplicitSystem>(SOURCE_SYSTEM_NAME);
         const DofMap& Q_dof_map = Q_system.get_dof_map();
         FEDataManager::SystemDofMapCache& Q_dof_map_cache =
             *d_fe_data_managers[part]->getDofMapCache(SOURCE_SYSTEM_NAME);
@@ -1423,7 +1417,7 @@ IBFEMethod::initializeFEEquationSystems()
         }
         else
         {
-            System& X_system = equation_systems->add_system<System>(COORDS_SYSTEM_NAME);
+            auto& X_system = equation_systems->add_system<System>(COORDS_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream os;
@@ -1431,7 +1425,7 @@ IBFEMethod::initializeFEEquationSystems()
                 X_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
-            System& dX_system = equation_systems->add_system<System>(COORD_MAPPING_SYSTEM_NAME);
+            auto& dX_system = equation_systems->add_system<System>(COORD_MAPPING_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream os;
@@ -1439,7 +1433,7 @@ IBFEMethod::initializeFEEquationSystems()
                 dX_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
-            System& U_system = equation_systems->add_system<System>(VELOCITY_SYSTEM_NAME);
+            auto& U_system = equation_systems->add_system<System>(VELOCITY_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream os;
@@ -1447,7 +1441,7 @@ IBFEMethod::initializeFEEquationSystems()
                 U_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
-            System& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
+            auto& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream os;
@@ -1483,10 +1477,10 @@ IBFEMethod::initializeFEData()
         updateCoordinateMapping(part);
 
         // Assemble systems.
-        System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
-        System& dX_system = equation_systems->get_system<System>(COORD_MAPPING_SYSTEM_NAME);
-        System& U_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
-        System& F_system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
+        auto& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
+        auto& dX_system = equation_systems->get_system<System>(COORD_MAPPING_SYSTEM_NAME);
+        auto& U_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
+        auto& F_system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
 
         X_system.assemble_before_solve = false;
         X_system.assemble();
@@ -1502,7 +1496,7 @@ IBFEMethod::initializeFEData()
 
         if (d_is_stress_normalization_part[part])
         {
-            LinearImplicitSystem& Phi_system = equation_systems->get_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
+            auto& Phi_system = equation_systems->get_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
             Phi_system.assemble_before_solve = false;
             Phi_system.assemble();
         }
@@ -1757,7 +1751,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     // Setup extra data needed to compute stresses/forces.
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
-    LinearImplicitSystem& Phi_system = equation_systems->get_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
+    auto& Phi_system = equation_systems->get_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
     const DofMap& Phi_dof_map = Phi_system.get_dof_map();
     FEDataManager::SystemDofMapCache& Phi_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(PHI_SYSTEM_NAME);
     std::vector<unsigned int> Phi_dof_indices;
@@ -2467,7 +2461,7 @@ IBFEMethod::resetOverlapNodalValues(const unsigned int part,
     for (int k = 0; k < 2; ++k)
     {
         es[k] = d_fe_data_managers[part_idx[k]]->getEquationSystems();
-        System& F_system = es[k]->get_system<System>(system_name);
+        auto& F_system = es[k]->get_system<System>(system_name);
         F_dof_map[k] = &F_system.get_dof_map();
         fe_type = F_dof_map[k]->variable_type(0);
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -2490,7 +2484,7 @@ IBFEMethod::resetOverlapNodalValues(const unsigned int part,
     const unsigned int k_slave = 0;
     const unsigned int k_master = 1;
     std::map<dof_id_type, dof_id_type>& node_to_elem_map = d_overlap_velocity_part_node_to_elem_map[part_idx[k_slave]];
-    for (std::map<dof_id_type, dof_id_type>::iterator n = node_to_elem_map.begin(); n != node_to_elem_map.end(); ++n)
+    for (auto n = node_to_elem_map.begin(); n != node_to_elem_map.end(); ++n)
     {
         const Node* const node = mesh[k_slave]->node_ptr(n->first);
         const libMesh::Point& X = *node;
@@ -2600,10 +2594,7 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
             const std::vector<libMesh::Point>& q_point = fe[k]->get_xyz();
             const std::vector<double>& JxW = fe[k]->get_JxW();
             const std::vector<std::vector<double> >& phi = fe[k]->get_phi();
-            for (std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >::iterator it =
-                     elem_map[k].begin();
-                 it != elem_map[k].end();
-                 ++it)
+            for (auto it = elem_map[k].begin(); it != elem_map[k].end(); ++it)
             {
                 const Elem* const elem = mesh[k]->elem_ptr(it->first);
                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -2615,9 +2606,7 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
                 fe[k]->reinit(elem);
                 get_values_for_interpolation(x_node[k], *X_vec[part_idx[k]], X_dof_indices[k]);
                 const size_t n_basis = phi.size();
-                for (std::map<unsigned int, libMesh::dof_id_type>::iterator qp_it = it->second.begin();
-                     qp_it != it->second.end();
-                     ++qp_it)
+                for (auto qp_it = it->second.begin(); qp_it != it->second.end(); ++qp_it)
                 {
                     const unsigned int qp = qp_it->first;
                     const libMesh::Point& X = q_point[qp];

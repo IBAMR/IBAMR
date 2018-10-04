@@ -116,7 +116,7 @@ public:
         void* ctx)
     {
         TBOX_ASSERT(ctx);
-        IBFEMethod::PK1StressFcnData* PK1_stress_fcn_data = static_cast<IBFEMethod::PK1StressFcnData*>(ctx);
+        auto PK1_stress_fcn_data = static_cast<IBFEMethod::PK1StressFcnData*>(ctx);
         TBOX_ASSERT(PK1_stress_fcn_data);
         IBTK::TensorMeshFcnPtr PK1_stress_fcn = PK1_stress_fcn_data->fcn;
         void* PK1_stress_fcn_ctx = PK1_stress_fcn_data->ctx;

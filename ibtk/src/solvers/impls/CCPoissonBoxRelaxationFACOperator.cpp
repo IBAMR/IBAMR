@@ -412,9 +412,7 @@ CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& e
             if (update_local_data)
             {
                 const std::map<int, Box<NDIM> > neighbor_overlap = d_patch_neighbor_overlap[level_num][patch_counter];
-                for (std::map<int, Box<NDIM> >::const_iterator cit = neighbor_overlap.begin();
-                     cit != neighbor_overlap.end();
-                     ++cit)
+                for (auto cit = neighbor_overlap.begin(); cit != neighbor_overlap.end(); ++cit)
                 {
                     const int src_patch_num = cit->first;
                     const Box<NDIM>& overlap = cit->second;
@@ -481,7 +479,7 @@ CCPoissonBoxRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, dou
         d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
         d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
         d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
-        LinearSolver* p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
+        auto p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
         if (p_coarse_solver) p_coarse_solver->setInitialGuessNonzero(true);
         d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln),
                                      *getLevelSAMRAIVectorReal(residual, d_coarsest_ln));
@@ -748,28 +746,28 @@ CCPoissonBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(const int 
     int ierr;
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
-        for (std::vector<Vec>::iterator it = d_patch_vec_e[ln].begin(); it != d_patch_vec_e[ln].end(); ++it)
+        for (auto it = d_patch_vec_e[ln].begin(); it != d_patch_vec_e[ln].end(); ++it)
         {
             Vec& e = *it;
             ierr = VecDestroy(&e);
             IBTK_CHKERRQ(ierr);
         }
         d_patch_vec_e[ln].clear();
-        for (std::vector<Vec>::iterator it = d_patch_vec_f[ln].begin(); it != d_patch_vec_f[ln].end(); ++it)
+        for (auto it = d_patch_vec_f[ln].begin(); it != d_patch_vec_f[ln].end(); ++it)
         {
             Vec& f = *it;
             ierr = VecDestroy(&f);
             IBTK_CHKERRQ(ierr);
         }
         d_patch_vec_f[ln].clear();
-        for (std::vector<Mat>::iterator it = d_patch_mat[ln].begin(); it != d_patch_mat[ln].end(); ++it)
+        for (auto it = d_patch_mat[ln].begin(); it != d_patch_mat[ln].end(); ++it)
         {
             Mat& A = *it;
             ierr = MatDestroy(&A);
             IBTK_CHKERRQ(ierr);
         }
         d_patch_mat[ln].clear();
-        for (std::vector<KSP>::iterator it = d_patch_ksp[ln].begin(); it != d_patch_ksp[ln].end(); ++it)
+        for (auto it = d_patch_ksp[ln].begin(); it != d_patch_ksp[ln].end(); ++it)
         {
             KSP& ksp = *it;
             ierr = KSPDestroy(&ksp);

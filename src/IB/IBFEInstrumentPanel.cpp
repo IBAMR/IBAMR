@@ -425,9 +425,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     // on all the processes.
     for (int jj = 0; jj < d_nodeset_IDs_for_meters.size(); ++jj)
     {
-        for (std::set<dof_id_type>::iterator it = temp_node_dof_ID_sets[jj].begin();
-             it != temp_node_dof_ID_sets[jj].end();
-             ++it)
+        for (auto it = temp_node_dof_ID_sets[jj].begin(); it != temp_node_dof_ID_sets[jj].end(); ++it)
         {
             const dof_id_type node_id = *it;
             temp_node_dof_IDs[jj].push_back(node_id);
@@ -522,12 +520,11 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
         d_meter_systems.push_back(new EquationSystems(*d_meter_meshes[jj]));
-        LinearImplicitSystem& velocity_sys =
-            d_meter_systems[jj]->add_system<LinearImplicitSystem>(IBFEMethod::VELOCITY_SYSTEM_NAME);
+        auto& velocity_sys = d_meter_systems[jj]->add_system<LinearImplicitSystem>(IBFEMethod::VELOCITY_SYSTEM_NAME);
         velocity_sys.add_variable("U_0", static_cast<Order>(1), LAGRANGE);
         velocity_sys.add_variable("U_1", static_cast<Order>(1), LAGRANGE);
         velocity_sys.add_variable("U_2", static_cast<Order>(1), LAGRANGE);
-        LinearImplicitSystem& displacement_sys =
+        auto& displacement_sys =
             d_meter_systems[jj]->add_system<LinearImplicitSystem>(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
         displacement_sys.add_variable("dX_0", static_cast<Order>(1), LAGRANGE);
         displacement_sys.add_variable("dX_1", static_cast<Order>(1), LAGRANGE);
@@ -799,7 +796,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                     );
                     if (U_cc_data)
                     {
-                        for (QuadPointMap::const_iterator it = qp_range.first; it != qp_range.second; ++it)
+                        for (auto it = qp_range.first; it != qp_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const double& JxW = it->second.JxW;
@@ -812,7 +809,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                     }
                     if (U_sc_data)
                     {
-                        for (QuadPointMap::const_iterator it = qp_range.first; it != qp_range.second; ++it)
+                        for (auto it = qp_range.first; it != qp_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const double& JxW = it->second.JxW;
@@ -825,7 +822,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                     }
                     if (P_cc_data)
                     {
-                        for (QuadPointMap::const_iterator it = qp_range.first; it != qp_range.second; ++it)
+                        for (auto it = qp_range.first; it != qp_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const double& JxW = it->second.JxW;
@@ -1024,13 +1021,13 @@ IBFEInstrumentPanel::initializeSystemDependentData(IBFEMethod* ib_method_ops, co
     U_system.update_global_solution(U_coords_parent);
 
     // get displacement and velocity systems for meter mesh
-    LinearImplicitSystem& velocity_sys =
+    auto& velocity_sys =
         d_meter_systems[meter_mesh_number]->get_system<LinearImplicitSystem>(IBFEMethod::VELOCITY_SYSTEM_NAME);
     const unsigned int velocity_sys_num = velocity_sys.number();
     NumericVector<double>& velocity_solution = *velocity_sys.solution;
     NumericVector<double>& velocity_coords = velocity_sys.get_vector("serial solution");
 
-    LinearImplicitSystem& displacement_sys =
+    auto& displacement_sys =
         d_meter_systems[meter_mesh_number]->get_system<LinearImplicitSystem>(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
     const unsigned int displacement_sys_num = displacement_sys.number();
     NumericVector<double>& displacement_solution = *displacement_sys.solution;

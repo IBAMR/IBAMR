@@ -121,9 +121,7 @@ ParallelMap::communicateData()
         // broadcast by each process.
         std::vector<int> keys_to_send;
         std::vector<tbox::Pointer<Streamable> > data_items_to_send;
-        for (std::map<int, tbox::Pointer<Streamable> >::const_iterator cit = d_pending_additions.begin();
-             cit != d_pending_additions.end();
-             ++cit)
+        for (auto cit = d_pending_additions.begin(); cit != d_pending_additions.end(); ++cit)
         {
             keys_to_send.push_back(cit->first);
             data_items_to_send.push_back(cit->second);

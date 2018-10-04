@@ -361,7 +361,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -374,9 +374,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+        for (auto it = bdry_fill_boxes.begin(); it != bdry_fill_boxes.end(); ++it)
         {
             const Box<NDIM>& bdry_fill_box = it->first;
             const unsigned int location_index = it->second.first;
@@ -466,7 +464,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -478,9 +476,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+        for (auto it = bdry_fill_boxes.begin(); it != bdry_fill_boxes.end(); ++it)
         {
             const Box<NDIM>& bdry_fill_box = it->first;
             const unsigned int location_index = it->second.first;
@@ -578,7 +574,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -590,9 +586,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+        for (auto it = bdry_fill_boxes.begin(); it != bdry_fill_boxes.end(); ++it)
         {
             const Box<NDIM>& bdry_fill_box = it->first;
             const unsigned int location_index = it->second.first;
@@ -682,7 +676,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -694,9 +688,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+        for (auto it = bdry_fill_boxes.begin(); it != bdry_fill_boxes.end(); ++it)
         {
             const Box<NDIM>& bdry_fill_box = it->first;
             const unsigned int location_index = it->second.first;

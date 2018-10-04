@@ -273,7 +273,7 @@ build_meter_web(DBfile* dbfile,
 
     // Write out the variables.
     int cycle = timestep;
-    float time = float(simulation_time);
+    auto time = float(simulation_time);
     double dtime = simulation_time;
 
     static const int MAX_OPTS = 3;
@@ -629,7 +629,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarc
         {
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
                 const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
@@ -774,7 +774,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
             // Store the local positions of the perimeter nodes.
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
                 const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
@@ -1037,7 +1037,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                            );
                     if (U_cc_data)
                     {
-                        for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
+                        for (auto it = patch_range.first; it != patch_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
@@ -1049,7 +1049,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                     }
                     if (U_sc_data)
                     {
-                        for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
+                        for (auto it = patch_range.first; it != patch_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
@@ -1061,7 +1061,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                     }
                     if (P_cc_data)
                     {
-                        for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
+                        for (auto it = patch_range.first; it != patch_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
@@ -1087,8 +1087,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                            );
                     if (P_cc_data)
                     {
-                        for (WebCentroidMap::const_iterator it = centroid_range.first; it != centroid_range.second;
-                             ++it)
+                        for (auto it = centroid_range.first; it != centroid_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
@@ -1139,7 +1138,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
             // Store the local velocities of the perimeter nodes.
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
                 const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
@@ -1320,7 +1319,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
         }
 
         int cycle = timestep_num;
-        float time = float(simulation_time);
+        auto time = float(simulation_time);
         double dtime = simulation_time;
 
         static const int MAX_OPTS = 3;
@@ -1338,7 +1337,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
             current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
             std::string meshname = current_file_name + ":" + d_instrument_names[meter] + "/mesh";
-            char* meshname_ptr = const_cast<char*>(meshname.c_str());
+            auto meshname_ptr = const_cast<char*>(meshname.c_str());
             int meshtype = DB_POINTMESH;
 
             std::string meter_name = d_instrument_names[meter];
@@ -1354,7 +1353,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
             }
 
             std::string varname = current_file_name + ":" + d_instrument_names[meter] + "/scaled_normal";
-            char* varname_ptr = const_cast<char*>(varname.c_str());
+            auto varname_ptr = const_cast<char*>(varname.c_str());
             int vartype = DB_POINTVAR;
 
             std::string var_name = d_instrument_names[meter] + "_normal";

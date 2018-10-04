@@ -202,15 +202,14 @@ NonbondedForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
                         // we have a set of nodes in the first cell and the search cell,
                         // add up forces
                         // and accumulate for the first cell.
-                        for (LNodeSet::iterator it = mstr_node_set->begin(); it != mstr_node_set->end(); ++it)
+                        for (auto it = mstr_node_set->begin(); it != mstr_node_set->end(); ++it)
                         {
                             // master nodes
                             LNodeSet::value_type& mstr_node_idx = *it;
                             const int mstr_lag_idx = mstr_node_idx->getLagrangianIndex();
                             const int mstr_petsc_idx = mstr_node_idx->getLocalPETScIndex();
 
-                            for (LNodeSet::iterator sit = search_node_set->begin(); sit != search_node_set->end();
-                                 ++sit)
+                            for (auto sit = search_node_set->begin(); sit != search_node_set->end(); ++sit)
                             {
                                 LNodeSet::value_type& search_node_idx = *sit;
                                 const int search_lag_idx = search_node_idx->getLagrangianIndex();

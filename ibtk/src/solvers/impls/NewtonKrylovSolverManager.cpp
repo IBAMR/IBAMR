@@ -92,7 +92,7 @@ NewtonKrylovSolverManager::allocateSolver(const std::string& solver_type,
                                           Pointer<Database> solver_input_db,
                                           const std::string& solver_default_options_prefix) const
 {
-    std::map<std::string, SolverMaker>::const_iterator it = d_solver_maker_map.find(solver_type);
+    auto it = d_solver_maker_map.find(solver_type);
     if (it == d_solver_maker_map.end())
     {
         TBOX_ERROR("NewtonKrylovSolverManager::allocateSolver():\n"

@@ -110,8 +110,7 @@ PoissonSolver::initSpecialized(const std::string& object_name, const bool /*homo
     d_default_bc_coef = new LocationIndexRobinBcCoefs<NDIM>(object_name + "::default_bc_coef", Pointer<Database>(nullptr));
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        LocationIndexRobinBcCoefs<NDIM>* p_default_bc_coef =
-            dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
+        auto p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
         p_default_bc_coef->setBoundaryValue(2 * d, 0.0);
         p_default_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
     }

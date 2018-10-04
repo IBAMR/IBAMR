@@ -123,11 +123,9 @@ IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
     Pointer<VariableContext> p_ctx = var_db->getContext(d_object_name + "::p_ctx");
     d_p_idx = var_db->registerVariableAndContext(p_var, p_ctx, IntVector<NDIM>(GPRESSUREG));
 
-    INSStaggeredHierarchyIntegrator* p_ins_hier_integrator =
-        dynamic_cast<INSStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
+    auto p_ins_hier_integrator = dynamic_cast<INSStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
 
-    INSVCStaggeredHierarchyIntegrator* p_vc_ins_hier_integrator =
-        dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
+    auto p_vc_ins_hier_integrator = dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
 
     if (p_ins_hier_integrator)
     {
@@ -393,8 +391,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
     // Fill in ghost cells for viscosity, when necessary
     if (!d_mu_is_const)
     {
-        INSVCStaggeredHierarchyIntegrator* p_vc_ins_hier_integrator =
-            dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
+        auto p_vc_ins_hier_integrator = dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
 #if !defined(NDEBUG)
         TBOX_ASSERT(p_vc_ins_hier_integrator);
 #endif
@@ -411,7 +408,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
         else if (mu_ins_var)
         {
             mu_current_idx = var_db->mapVariableAndContextToIndex(mu_ins_var, d_fluid_solver->getCurrentContext());
-            INSVCStaggeredHierarchyIntegrator* p_vc_ins_hier_integrator =
+            auto p_vc_ins_hier_integrator =
                 dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
             mu_bc_coef = p_vc_ins_hier_integrator->getViscosityBoundaryConditions();
         }
@@ -437,9 +434,8 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
         // Fill ghost cells for pressure
         Pointer<CellVariable<NDIM, double> > p_var = d_fluid_solver->getPressureVariable();
         const int p_current_idx = var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getCurrentContext());
-        INSStaggeredPressureBcCoef* p_ins_bc_coef =
-            dynamic_cast<INSStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
-        INSVCStaggeredPressureBcCoef* p_vc_ins_bc_coef =
+        auto p_ins_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
+        auto p_vc_ins_bc_coef =
             dynamic_cast<INSVCStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
         InterpolationTransactionComponent p_transaction_comp;
         if (p_ins_bc_coef)

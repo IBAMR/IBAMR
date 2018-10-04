@@ -324,7 +324,7 @@ IBHydrodynamicForceEvaluator::computeLaggedMomentumIntegral(
     // Whether or not the simulation has adaptive mesh refinement
     const bool amr_case = (coarsest_ln != finest_ln);
 
-    for (std::map<int, IBHydrodynamicForceObject>::iterator it = d_hydro_objs.begin(); it != d_hydro_objs.end(); ++it)
+    for (auto it = d_hydro_objs.begin(); it != d_hydro_objs.end(); ++it)
     {
         IBHydrodynamicForceObject& fobj = it->second;
 
@@ -493,7 +493,7 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
     // Whether or not the simulation has adaptive mesh refinement
     const bool amr_case = (coarsest_ln != finest_ln);
 
-    for (std::map<int, IBHydrodynamicForceObject>::iterator it = d_hydro_objs.begin(); it != d_hydro_objs.end(); ++it)
+    for (auto it = d_hydro_objs.begin(); it != d_hydro_objs.end(); ++it)
     {
         IBHydrodynamicForceObject& fobj = it->second;
 
@@ -790,7 +790,7 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
 void
 IBHydrodynamicForceEvaluator::postprocessIntegrateData(double /*current_time*/, double new_time)
 {
-    for (std::map<int, IBHydrodynamicForceObject>::iterator it = d_hydro_objs.begin(); it != d_hydro_objs.end(); ++it)
+    for (auto it = d_hydro_objs.begin(); it != d_hydro_objs.end(); ++it)
     {
         IBHydrodynamicForceObject& force_obj = it->second;
 
@@ -822,8 +822,7 @@ IBHydrodynamicForceEvaluator::postprocessIntegrateData(double /*current_time*/, 
 void
 IBHydrodynamicForceEvaluator::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
 {
-    for (std::map<int, IBHydrodynamicForceObject>::const_iterator it = d_hydro_objs.begin(); it != d_hydro_objs.end();
-         ++it)
+    for (auto it = d_hydro_objs.begin(); it != d_hydro_objs.end(); ++it)
     {
         int strct_id = it->first;
         const IBHydrodynamicForceObject& force_obj = it->second;
@@ -1259,7 +1258,7 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
             hier_data_ops_manager->getOperationsDouble(d_p_var, patch_hierarchy, true);
         hier_cc_data_ops->copyData(d_p_idx, p_src_idx, true);
 
-        INSStaggeredPressureBcCoef* p_ins_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(p_src_bc_coef);
+        auto p_ins_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(p_src_bc_coef);
 #if !defined(NDEBUG)
         TBOX_ASSERT(p_ins_bc_coef);
 #endif

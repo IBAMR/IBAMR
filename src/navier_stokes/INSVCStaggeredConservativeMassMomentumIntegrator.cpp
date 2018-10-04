@@ -1673,7 +1673,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::deallocateTimeIntegrator()
     }
 
     // Deallocate coarse-fine boundary object.
-    for (std::vector<CoarseFineBoundary<NDIM>*>::iterator it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
+    for (auto it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
     {
         delete (*it);
         (*it) = nullptr;

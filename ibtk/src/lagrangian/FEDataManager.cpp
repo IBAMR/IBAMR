@@ -185,7 +185,7 @@ inline void
 collect_unique_elems(std::vector<Elem*>& elems, const ContainerOfContainers& elem_patch_map)
 {
     std::set<Elem*, ElemComp> elem_set;
-    for (typename ContainerOfContainers::const_iterator it = elem_patch_map.begin(); it != elem_patch_map.end(); ++it)
+    for (auto it = elem_patch_map.begin(); it != elem_patch_map.end(); ++it)
     {
         elem_set.insert(it->begin(), it->end());
     }
@@ -197,7 +197,7 @@ inline short int
 get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
 {
     short int dirichlet_bdry_ids = 0;
-    for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
+    for (auto cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
     {
         const short int bdry_id = *cit;
         if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID ||
@@ -295,9 +295,7 @@ FEDataManager::getManager(const std::string& name,
 void
 FEDataManager::freeAllManagers()
 {
-    for (std::map<std::string, FEDataManager*>::iterator it = s_data_manager_instances.begin();
-         it != s_data_manager_instances.end();
-         ++it)
+    for (auto it = s_data_manager_instances.begin(); it != s_data_manager_instances.end(); ++it)
     {
         if (it->second)
         {
@@ -429,9 +427,7 @@ FEDataManager::reinitElementMappings()
     d_active_patch_elem_map.clear();
     d_active_patch_node_map.clear();
     d_active_patch_ghost_dofs.clear();
-    for (std::map<std::string, NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
-         it != d_system_ghost_vec.end();
-         ++it)
+    for (auto it = d_system_ghost_vec.begin(); it != d_system_ghost_vec.end(); ++it)
     {
         delete it->second;
     }
@@ -608,14 +604,14 @@ FEDataManager::spread(const int f_data_idx,
         F_dX_vec->close();
 
         // Extract local form vectors.
-        PetscVector<double>* F_dX_petsc_vec = static_cast<PetscVector<double>*>(F_dX_vec.get());
+        auto F_dX_petsc_vec = static_cast<PetscVector<double>*>(F_dX_vec.get());
         Vec F_dX_global_vec = F_dX_petsc_vec->vec();
         Vec F_dX_local_vec;
         VecGhostGetLocalForm(F_dX_global_vec, &F_dX_local_vec);
         double* F_dX_local_soln;
         VecGetArray(F_dX_local_vec, &F_dX_local_soln);
 
-        PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
+        auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
         VecGhostGetLocalForm(X_global_vec, &X_local_vec);
@@ -642,7 +638,7 @@ FEDataManager::spread(const int f_data_idx,
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
                     IBTK::get_nodal_dof_indices(F_dof_map, n, i, F_idxs);
-                    for (std::vector<dof_id_type>::iterator it = F_idxs.begin(); it != F_idxs.end(); ++it)
+                    for (auto it = F_idxs.begin(); it != F_idxs.end(); ++it)
                     {
                         F_dX_node.push_back(F_dX_local_soln[F_dX_petsc_vec->map_global_to_local_index(*it)]);
                     }
@@ -650,7 +646,7 @@ FEDataManager::spread(const int f_data_idx,
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     IBTK::get_nodal_dof_indices(X_dof_map, n, d, X_idxs);
-                    for (std::vector<dof_id_type>::iterator it = X_idxs.begin(); it != X_idxs.end(); ++it)
+                    for (auto it = X_idxs.begin(); it != X_idxs.end(); ++it)
                     {
                         X_node.push_back(X_local_soln[X_petsc_vec->map_global_to_local_index(*it)]);
                     }
@@ -700,14 +696,14 @@ FEDataManager::spread(const int f_data_idx,
     else
     {
         // Extract local form vectors.
-        PetscVector<double>* F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
+        auto F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
         Vec F_global_vec = F_petsc_vec->vec();
         Vec F_local_vec;
         VecGhostGetLocalForm(F_global_vec, &F_local_vec);
         double* F_local_soln;
         VecGetArray(F_local_vec, &F_local_soln);
 
-        PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
+        auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
         VecGhostGetLocalForm(X_global_vec, &X_local_vec);
@@ -915,7 +911,7 @@ FEDataManager::prolongData(const int f_data_idx,
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
     if (close_F) F_vec.close();
-    PetscVector<double>* F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
+    auto F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
     Vec F_global_vec = F_petsc_vec->vec();
     Vec F_local_vec;
     VecGhostGetLocalForm(F_global_vec, &F_local_vec);
@@ -923,7 +919,7 @@ FEDataManager::prolongData(const int f_data_idx,
     VecGetArray(F_local_vec, &F_local_soln);
 
     if (close_X) X_vec.close();
-    PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
+    auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
     Vec X_global_vec = X_petsc_vec->vec();
     Vec X_local_vec;
     VecGhostGetLocalForm(X_global_vec, &X_local_vec);
@@ -1175,7 +1171,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
     if (use_nodal_quadrature)
     {
         // Extract the local form vectors.
-        PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
+        auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
         VecGhostGetLocalForm(X_global_vec, &X_local_vec);
@@ -1274,7 +1270,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
     else
     {
         // Extract local form vectors.
-        PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
+        auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
         VecGhostGetLocalForm(X_global_vec, &X_local_vec);
@@ -1538,7 +1534,7 @@ FEDataManager::restrictData(const int f_data_idx,
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
     if (close_X) X_vec.close();
-    PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
+    auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
     Vec X_global_vec = X_petsc_vec->vec();
     Vec X_local_vec;
     VecGhostGetLocalForm(X_global_vec, &X_local_vec);
@@ -1752,7 +1748,7 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name)
             for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
             {
                 dof_map_cache.dof_indices(elem, dof_indices, var_num);
-                const unsigned int dof_indices_sz = static_cast<unsigned int>(dof_indices.size());
+                const auto dof_indices_sz = static_cast<unsigned int>(dof_indices.size());
                 M_e.resize(dof_indices_sz, dof_indices_sz);
                 const size_t n_basis = dof_indices.size();
                 const unsigned int n_qp = qrule->n_points();
@@ -1802,9 +1798,7 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name)
                                 if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[comp])) continue;
                                 const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
                                 if (!dof_map.is_constrained_dof(node_dof_index)) continue;
-                                for (std::vector<unsigned int>::const_iterator cit = dof_indices.begin();
-                                     cit != dof_indices.end();
-                                     ++cit)
+                                for (auto cit = dof_indices.begin(); cit != dof_indices.end(); ++cit)
                                 {
                                     const unsigned int k = *cit;
                                     M_mat->set(node_dof_index, k, (node_dof_index == k ? 1.0 : 0.0));
@@ -1877,7 +1871,7 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
             for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
             {
                 dof_map_cache.dof_indices(elem, dof_indices, var_num);
-                const unsigned int dof_indices_sz = static_cast<unsigned int>(dof_indices.size());
+                const auto dof_indices_sz = static_cast<unsigned int>(dof_indices.size());
                 M_e.resize(dof_indices_sz, dof_indices_sz);
                 M_e_vec.resize(dof_indices_sz);
                 const size_t n_basis = dof_indices.size();
@@ -1978,8 +1972,8 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
     {
         std::pair<libMesh::LinearSolver<double>*, SparseMatrix<double>*> proj_solver_components =
             buildL2ProjectionSolver(system_name);
-        PetscLinearSolver<double>* solver = static_cast<PetscLinearSolver<double>*>(proj_solver_components.first);
-        PetscMatrix<double>* M_mat = static_cast<PetscMatrix<double>*>(proj_solver_components.second);
+        auto solver = static_cast<PetscLinearSolver<double>*>(proj_solver_components.first);
+        auto M_mat = static_cast<PetscMatrix<double>*>(proj_solver_components.second);
         PetscBool rtol_set;
         double runtime_rtol;
         ierr = PetscOptionsGetReal(nullptr, "", "-ksp_rtol", &runtime_rtol, &rtol_set);
@@ -1999,7 +1993,7 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
     }
     else
     {
-        PetscVector<double>* M_diag_vec = static_cast<PetscVector<double>*>(buildDiagonalL2MassMatrix(system_name));
+        auto M_diag_vec = static_cast<PetscVector<double>*>(buildDiagonalL2MassMatrix(system_name));
         Vec M_diag_petsc_vec = M_diag_vec->vec();
         Vec U_petsc_vec = static_cast<PetscVector<double>*>(&U_vec)->vec();
         Vec F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec)->vec();
@@ -2200,7 +2194,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         UniquePtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
         X_ghost_vec->init(X_vec->size(), X_vec->local_size(), X_ghost_dofs, true, GHOSTED);
         X_vec->localize(*X_ghost_vec);
-        PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec.get());
+        auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec.get());
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
         VecGhostGetLocalForm(X_global_vec, &X_local_vec);
@@ -2384,27 +2378,19 @@ FEDataManager::FEDataManager(const std::string& object_name,
 
 FEDataManager::~FEDataManager()
 {
-    for (std::map<std::string, NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
-         it != d_system_ghost_vec.end();
-         ++it)
+    for (auto it = d_system_ghost_vec.begin(); it != d_system_ghost_vec.end(); ++it)
     {
         delete it->second;
     }
-    for (std::map<std::string, LinearSolver<double>*>::iterator it = d_L2_proj_solver.begin();
-         it != d_L2_proj_solver.end();
-         ++it)
+    for (auto it = d_L2_proj_solver.begin(); it != d_L2_proj_solver.end(); ++it)
     {
         delete it->second;
     }
-    for (std::map<std::string, SparseMatrix<double>*>::iterator it = d_L2_proj_matrix.begin();
-         it != d_L2_proj_matrix.end();
-         ++it)
+    for (auto it = d_L2_proj_matrix.begin(); it != d_L2_proj_matrix.end(); ++it)
     {
         delete it->second;
     }
-    for (std::map<std::string, NumericVector<double>*>::iterator it = d_L2_proj_matrix_diag.begin();
-         it != d_L2_proj_matrix_diag.end();
-         ++it)
+    for (auto it = d_L2_proj_matrix_diag.begin(); it != d_L2_proj_matrix_diag.end(); ++it)
     {
         delete it->second;
     }
@@ -2445,7 +2431,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
 
         // Extract the underlying solution data.
         NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
-        PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec);
+        auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec);
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
         VecGhostGetLocalForm(X_global_vec, &X_local_vec);
@@ -2671,7 +2657,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         collectGhostDOFIndices(X_ghost_dofs, frontier_elems, COORDINATES_SYSTEM_NAME);
         X_ghost_vec->init(X_vec->size(), X_vec->local_size(), X_ghost_dofs, true, GHOSTED);
         X_vec->localize(*X_ghost_vec);
-        PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec.get());
+        auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec.get());
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
         VecGhostGetLocalForm(X_global_vec, &X_local_vec);
@@ -2697,7 +2683,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
             const double* const patch_dx = patch_geom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-            std::set<Elem*>::const_iterator el_it = frontier_elems.begin();
+            auto el_it = frontier_elems.begin();
             const std::set<Elem*>::const_iterator el_end = frontier_elems.end();
             for (; el_it != el_end; ++el_it)
             {
@@ -2750,7 +2736,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
             frontier_elems.clear();
             if (local_elems.empty()) continue;
 
-            for (std::set<Elem*>::const_iterator cit = local_elems.begin(); cit != local_elems.end(); ++cit)
+            for (auto cit = local_elems.begin(); cit != local_elems.end(); ++cit)
             {
                 const Elem* const elem = *cit;
                 for (unsigned int n = 0; n < elem->n_neighbors(); ++n)
@@ -2783,7 +2769,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         const std::set<Elem*>& local_elems = local_patch_elems[local_patch_num];
         active_elems.resize(local_elems.size());
         int k = 0;
-        for (std::set<Elem*>::const_iterator cit = local_elems.begin(); cit != local_elems.end(); ++cit, ++k)
+        for (auto cit = local_elems.begin(); cit != local_elems.end(); ++cit, ++k)
         {
             active_elems[k] = *cit;
         }
@@ -2811,7 +2797,7 @@ FEDataManager::collectActivePatchNodes(std::vector<std::vector<Node*> >& active_
         }
         const unsigned int num_active_nodes = active_node_ids.size();
         active_patch_nodes[k].reserve(num_active_nodes);
-        for (std::set<dof_id_type>::iterator it = active_node_ids.begin(); it != active_node_ids.end(); ++it)
+        for (auto it = active_node_ids.begin(); it != active_node_ids.end(); ++it)
         {
             active_patch_nodes[k].push_back(const_cast<Node*>(mesh.node_ptr(*it)));
         }
@@ -2833,13 +2819,13 @@ FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
     // Include non-local DOF constraint dependencies for local DOFs in the list
     // of ghost DOFs.
     std::vector<unsigned int> constraint_dependency_dof_list;
-    for (DofConstraints::const_iterator i = dof_map.constraint_rows_begin(); i != dof_map.constraint_rows_end(); ++i)
+    for (auto i = dof_map.constraint_rows_begin(); i != dof_map.constraint_rows_end(); ++i)
     {
         const unsigned int constrained_dof = i->first;
         if (constrained_dof >= first_local_dof && constrained_dof < end_local_dof)
         {
             const DofConstraintRow& constraint_row = i->second;
-            for (DofConstraintRow::const_iterator j = constraint_row.begin(); j != constraint_row.end(); ++j)
+            for (auto j = constraint_row.begin(); j != constraint_row.end(); ++j)
             {
                 const unsigned int constraint_dependency = j->first;
                 if (constraint_dependency < first_local_dof || constraint_dependency >= end_local_dof)
