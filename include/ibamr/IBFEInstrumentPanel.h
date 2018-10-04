@@ -292,7 +292,7 @@ private:
     /*!
      * \brief a multimap which associates SAMRAI indices with quadrature point structures.
      */
-    typedef std::multimap<SAMRAI::hier::Index<NDIM>, QuadPointStruct, IndexFortranOrder> QuadPointMap;
+    using QuadPointMap = std::multimap<SAMRAI::hier::Index<NDIM>, QuadPointStruct, IndexFortranOrder>;
     std::vector<QuadPointMap> d_quad_point_map;
 };
 } // namespace IBAMR

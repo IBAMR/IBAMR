@@ -254,7 +254,7 @@ private:
 
         friend class IBInstrumentationSpec;
     };
-    typedef IBInstrumentationSpec::Factory IBInstrumentationSpecFactory;
+    using IBInstrumentationSpecFactory = IBInstrumentationSpec::Factory;
 };
 } // namespace IBAMR
 

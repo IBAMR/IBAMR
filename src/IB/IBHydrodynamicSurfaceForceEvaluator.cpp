@@ -354,7 +354,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
 {
     // Fill ghost cells for level set
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
 
     const int ls_solid_current_idx =
         var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getCurrentContext());

@@ -1260,7 +1260,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
 
     // Fill ghost cell values
     static const bool homogeneous_bc = false;
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
 
     // Fill ghost cells for current density
     std::vector<InterpolationTransactionComponent> rho_transaction_comps(1);
@@ -1579,7 +1579,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::initializeTimeIntegrator(
     d_finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Setup the interpolation transaction information.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_rho_transaction_comps.resize(1);
     d_rho_transaction_comps[0] = InterpolationTransactionComponent(d_rho_sc_scratch_idx,
                                                                    d_rho_sc_new_idx,

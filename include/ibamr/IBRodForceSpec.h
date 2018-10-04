@@ -255,7 +255,7 @@ private:
 
         friend class IBRodForceSpec;
     };
-    typedef IBRodForceSpec::Factory IBRodForceSpecFactory;
+    using IBRodForceSpecFactory = IBRodForceSpec::Factory;
 };
 } // namespace IBAMR
 

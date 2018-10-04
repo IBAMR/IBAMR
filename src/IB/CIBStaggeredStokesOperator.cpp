@@ -156,7 +156,7 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     Pointer<CellVariable<NDIM, double> > A_P_cc_var = g_f.getComponentVariable(1);
 
     // Simultaneously fill ghost cell values for u and p.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps(2);
     transaction_comps[0] = InterpolationTransactionComponent(U_scratch_idx,
                                                              U_idx,
@@ -273,7 +273,7 @@ CIBStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM,
     // Setup the interpolation transaction information.
     d_U_fill_pattern = nullptr;
     d_P_fill_pattern = nullptr;
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_transaction_comps.resize(2);
     d_transaction_comps[0] = InterpolationTransactionComponent(d_x->getComponentDescriptorIndex(0),
                                                                in.getComponentDescriptorIndex(0),
@@ -350,7 +350,7 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
         d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc);
         StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
 
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> U_transaction_comps(1);
         U_transaction_comps[0] = InterpolationTransactionComponent(U_idx,
                                                                    DATA_REFINE_TYPE,

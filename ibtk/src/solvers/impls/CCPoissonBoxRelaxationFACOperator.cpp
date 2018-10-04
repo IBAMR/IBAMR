@@ -515,7 +515,7 @@ CCPoissonBoxRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double
     const Pointer<CellVariable<NDIM, double> > rhs_var = rhs.getComponentVariable(0);
 
     // Fill ghost-cell values.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     Pointer<CellNoCornersFillPattern> fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     InterpolationTransactionComponent transaction_comp(sol_idx,
                                                        DATA_REFINE_TYPE,

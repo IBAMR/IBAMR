@@ -76,7 +76,7 @@ public:
      * \note This typedef appears to be needed to get g++ to parse the default
      * parameters in the class constructor.
      */
-    typedef std::pair<int, int> NeighborIdxs;
+    using NeighborIdxs = std::pair<int, int>;
 
     /*!
      * \brief Register this class and its factory class with the singleton
@@ -278,7 +278,7 @@ private:
 
         friend class IBBeamForceSpec;
     };
-    typedef IBBeamForceSpec::Factory IBBeamForceSpecFactory;
+    using IBBeamForceSpecFactory = IBBeamForceSpec::Factory;
 };
 } // namespace IBAMR
 

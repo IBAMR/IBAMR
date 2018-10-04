@@ -167,35 +167,35 @@ level_can_be_refined(int level_number, int max_levels)
     return level_number < finest_level_number;
 }
 
-typedef Eigen::Matrix<double, 2, 2> Matrix2d;
-typedef Eigen::Matrix<double, 2, 1> Vector2d;
-typedef Eigen::Matrix<double, 2, 1> ColumnVector2d;
-typedef Eigen::Matrix<double, 1, 2> RowVector2d;
+using Matrix2d = Eigen::Matrix<double, 2, 2>;
+using Vector2d = Eigen::Matrix<double, 2, 1>;
+using ColumnVector2d = Eigen::Matrix<double, 2, 1>;
+using RowVector2d = Eigen::Matrix<double, 1, 2>;
 
-typedef Eigen::Matrix<double, 3, 3> Matrix3d;
-typedef Eigen::Matrix<double, 3, 1> Vector3d;
-typedef Eigen::Matrix<double, 3, 1> ColumnVector3d;
-typedef Eigen::Matrix<double, 1, 3> RowVector3d;
+using Matrix3d = Eigen::Matrix<double, 3, 3>;
+using Vector3d = Eigen::Matrix<double, 3, 1>;
+using ColumnVector3d = Eigen::Matrix<double, 3, 1>;
+using RowVector3d = Eigen::Matrix<double, 1, 3>;
 
-typedef Eigen::Matrix<double, NDIM, NDIM> MatrixNd;
-typedef Eigen::Matrix<double, NDIM, 1> VectorNd;
-typedef Eigen::Matrix<double, NDIM, 1> ColumnVectorNd;
-typedef Eigen::Matrix<double, 1, NDIM> RowVectorNd;
+using MatrixNd = Eigen::Matrix<double, NDIM, NDIM>;
+using VectorNd = Eigen::Matrix<double, NDIM, 1>;
+using ColumnVectorNd = Eigen::Matrix<double, NDIM, 1>;
+using RowVectorNd = Eigen::Matrix<double, 1, NDIM>;
 
-typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MatrixXd;
-typedef Eigen::Matrix<double, Eigen::Dynamic, 1> VectorXd;
-typedef Eigen::Matrix<double, Eigen::Dynamic, 1> ColumnVectorXd;
-typedef Eigen::Matrix<double, 1, Eigen::Dynamic> RowVectorXd;
+using MatrixXd = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
+using VectorXd = Eigen::Matrix<double, Eigen::Dynamic, 1>;
+using ColumnVectorXd = Eigen::Matrix<double, Eigen::Dynamic, 1>;
+using RowVectorXd = Eigen::Matrix<double, 1, Eigen::Dynamic>;
 
-typedef MatrixNd Matrix;
-typedef VectorNd Point;
-typedef VectorNd Vector;
+using Matrix = MatrixNd;
+using Point = VectorNd;
+using Vector = VectorNd;
 
 static const int s_max_free_dofs = NDIM * (NDIM + 1) / 2;
-typedef Eigen::Matrix<double, s_max_free_dofs, 1> RigidDOFVector;
-typedef Eigen::Matrix<int, s_max_free_dofs, 1> FreeRigidDOFVector;
-typedef RigidDOFVector RDV;
-typedef FreeRigidDOFVector FRDV;
+using RigidDOFVector = Eigen::Matrix<double, s_max_free_dofs, 1>;
+using FreeRigidDOFVector = Eigen::Matrix<int, s_max_free_dofs, 1>;
+using RDV = RigidDOFVector;
+using FRDV = FreeRigidDOFVector;
 }
 
 //////////////////////////////////////////////////////////////////////////////

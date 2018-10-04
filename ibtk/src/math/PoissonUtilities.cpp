@@ -786,7 +786,7 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     // Compute all matrix coefficients, including those on the physical
     // boundary; however, do not yet take physical boundary conditions into
     // account.  Boundary conditions are handled subsequently.
-typedef std::map<Index<NDIM>, int, IndexFortranOrder> StencilMapType;
+    using StencilMapType = std::map<Index<NDIM>, int, IndexFortranOrder>;
 #if (NDIM == 2)
     StencilMapType stencil_map = stencil_map_vec[0];
 #endif

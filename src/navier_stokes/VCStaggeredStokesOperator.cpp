@@ -118,7 +118,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     Pointer<CellVariable<NDIM, double> > A_P_cc_var = y.getComponentVariable(1);
 
     // Simultaneously fill ghost cell values for all components.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps(2);
     transaction_comps[0] = InterpolationTransactionComponent(U_scratch_idx,
                                                              U_idx,

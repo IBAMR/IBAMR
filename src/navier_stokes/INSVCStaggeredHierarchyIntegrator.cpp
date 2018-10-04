@@ -1643,8 +1643,8 @@ INSVCStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
                 hier_ops_manager->getOperationsDouble(d_U_var, d_hierarchy, true);
             hier_sc_data_ops->resetLevels(0, level_number);
             hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
-            typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
-                InterpolationTransactionComponent;
+            using InterpolationTransactionComponent =
+                HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
             InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
                                                              DATA_REFINE_TYPE,
                                                              USE_CF_INTERPOLATION,
@@ -1721,7 +1721,7 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_hier_ec_data_ops->resetLevels(0, finest_hier_level);
 
     // Setup the patch boundary filling objects.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
                                                      DATA_REFINE_TYPE,
                                                      USE_CF_INTERPOLATION,
@@ -1769,7 +1769,7 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     }
 
     // Setup the patch boundary synchronization objects.
-    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent synch_transaction =
         SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
     d_side_synch_op = new SideDataSynchronization();

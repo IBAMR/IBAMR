@@ -156,14 +156,13 @@ ParallelEdgeMap::communicateData()
         }
     }
 
-    typedef std::multimap<int, std::pair<int, int> >::iterator multimap_iterator;
-    typedef std::multimap<int, std::pair<int, int> >::const_iterator multimap_const_iterator;
+    using multimap_iterator = std::multimap<int, std::pair<int, int> >::iterator;
+    using multimap_const_iterator = std::multimap<int, std::pair<int, int> >::const_iterator;
     for (multimap_const_iterator cit = d_pending_additions.begin(); cit != d_pending_additions.end(); ++cit)
     {
         d_edge_map.insert(std::make_pair(cit->first, cit->second));
     }
 
-    typedef std::multimap<int, std::pair<int, int> >::const_iterator multimap_const_iterator;
     for (multimap_const_iterator cit = d_pending_removals.begin(); cit != d_pending_removals.end(); ++cit)
     {
         int mastr_idx = cit->first;

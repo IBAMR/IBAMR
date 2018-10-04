@@ -54,7 +54,7 @@ class Wall
 {
 public:
     // typedef for Wall Force Function Pointer
-    typedef double (*WallForceFcnPtr)(double D, const SAMRAI::tbox::Array<double> params);
+    using WallForceFcnPtr = double (*)(double D, const SAMRAI::tbox::Array<double> params);
 
     // Constructor.
     Wall(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> wall_db,

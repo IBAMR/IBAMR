@@ -82,19 +82,19 @@ public:
     /*!
      * This iterator iterates over the elements of a cell centered box geometry.
      */
-    typedef SAMRAI::pdat::CellIterator<NDIM> CellIterator;
+    using CellIterator = SAMRAI::pdat::CellIterator<NDIM>;
 
     /*!
      * This iterator iterates over the LSet elements within the IndexData patch
      * data object.
      */
-    typedef SAMRAI::pdat::IndexIterator<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> > SetIterator;
+    using SetIterator = SAMRAI::pdat::IndexIterator<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> >;
 
     /*!
      * This iterator iterates over the Lagrangian elements located within a cell
      * centered box geometry.
      */
-    typedef IBTK::LSetDataIterator<T> DataIterator;
+    using DataIterator = IBTK::LSetDataIterator<T>;
 
     /*!
      * Return an iterator to the first Lagrangian data object in the specified

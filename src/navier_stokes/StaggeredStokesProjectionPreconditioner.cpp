@@ -361,7 +361,7 @@ StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVecto
 
     // Setup hierarchy operators.
     Pointer<VariableFillPattern<NDIM> > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent P_scratch_component(d_Phi_scratch_idx,
                                                           DATA_REFINE_TYPE,
                                                           USE_CF_INTERPOLATION,

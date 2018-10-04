@@ -839,7 +839,7 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
     const Pointer<SideVariable<NDIM, double> > rhs_var = rhs.getComponentVariable(0);
 
     // Fill ghost-cell values.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     Pointer<SideNoCornersFillPattern> fill_pattern = nullptr;
     InterpolationTransactionComponent transaction_comp(sol_idx,
                                                        DATA_REFINE_TYPE,

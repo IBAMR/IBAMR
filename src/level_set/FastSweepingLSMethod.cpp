@@ -161,7 +161,7 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     }
 
     // Set hierarchy objects.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(
         D_scratch_idx, "LINEAR_REFINE", true, "NONE", "LINEAR", false, d_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();

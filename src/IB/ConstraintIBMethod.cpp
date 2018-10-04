@@ -100,7 +100,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 class find_struct_handle
 {
 private:
-    typedef ConstraintIBKinematics::StructureParameters StructureParameters;
+    using StructureParameters = ConstraintIBKinematics::StructureParameters;
     std::pair<int, int> struct_to_find_range;
 
 public:
@@ -664,7 +664,7 @@ ConstraintIBMethod::registerConstraintIBKinematics(const std::vector<Pointer<Con
     }
 
     // Get tagged point index info from objects.
-    typedef ConstraintIBKinematics::StructureParameters StructureParameters;
+    using StructureParameters = ConstraintIBKinematics::StructureParameters;
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
         const StructureParameters& struct_param = d_ib_kinematics[struct_no]->getStructureParameters();
@@ -885,7 +885,7 @@ ConstraintIBMethod::getFromRestart()
 void
 ConstraintIBMethod::setInitialLagrangianVelocity()
 {
-    typedef ConstraintIBKinematics::StructureParameters StructureParameters;
+    using StructureParameters = ConstraintIBKinematics::StructureParameters;
 
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     if (!from_restart) calculateCOMandMOIOfStructures();
@@ -914,7 +914,7 @@ ConstraintIBMethod::setInitialLagrangianVelocity()
 void
 ConstraintIBMethod::calculateCOMandMOIOfStructures()
 {
-    typedef ConstraintIBKinematics::StructureParameters StructureParameters;
+    using StructureParameters = ConstraintIBKinematics::StructureParameters;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
@@ -1171,7 +1171,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
 void
 ConstraintIBMethod::calculateKinematicsVelocity()
 {
-    typedef ConstraintIBKinematics::StructureParameters StructureParameters;
+    using StructureParameters = ConstraintIBKinematics::StructureParameters;
     const double dt = d_FuRMoRP_new_time - d_FuRMoRP_current_time;
     // Theta_new = Theta_old + Omega_old*dt
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
@@ -1198,7 +1198,7 @@ ConstraintIBMethod::calculateKinematicsVelocity()
 void
 ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_handle)
 {
-    typedef ConstraintIBKinematics::StructureParameters StructureParameters;
+    using StructureParameters = ConstraintIBKinematics::StructureParameters;
     Pointer<ConstraintIBKinematics> ptr_ib_kinematics = d_ib_kinematics[position_handle];
     const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
     Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
@@ -1342,7 +1342,7 @@ ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_han
 void
 ConstraintIBMethod::calculateVolumeElement()
 {
-    typedef ConstraintIBKinematics::StructureParameters StructureParameters;
+    using StructureParameters = ConstraintIBKinematics::StructureParameters;
 
     // Initialize variables and variable contexts associated with Eulerian tracking of the Lagrangian points.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -1491,7 +1491,7 @@ ConstraintIBMethod::calculateRigidTranslationalMomentum()
         for (int d = 0; d < 3; ++d) d_rigid_trans_vel_new[struct_no][d] = 0.0;
     }
 
-    typedef ConstraintIBKinematics::StructureParameters StructureParameters;
+    using StructureParameters = ConstraintIBKinematics::StructureParameters;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
@@ -1583,7 +1583,7 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
         for (int d = 0; d < 3; ++d) d_rigid_rot_vel_new[struct_no][d] = 0.0;
     }
 
-    typedef ConstraintIBKinematics::StructureParameters StructureParameters;
+    using StructureParameters = ConstraintIBKinematics::StructureParameters;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
@@ -1687,7 +1687,7 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
 void
 ConstraintIBMethod::calculateCurrentLagrangianVelocity()
 {
-    typedef ConstraintIBKinematics::StructureParameters StructureParameters;
+    using StructureParameters = ConstraintIBKinematics::StructureParameters;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     std::vector<double> WxR(3, 0.0), R(3, 0.0);
@@ -1792,7 +1792,7 @@ ConstraintIBMethod::calculateCurrentLagrangianVelocity()
 void
 ConstraintIBMethod::correctVelocityOnLagrangianMesh()
 {
-    typedef ConstraintIBKinematics::StructureParameters StructureParameters;
+    using StructureParameters = ConstraintIBKinematics::StructureParameters;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     std::vector<double> WxR(3, 0.0), R(3, 0.0);
@@ -1964,9 +1964,9 @@ ConstraintIBMethod::applyProjection()
         d_hier_sc_data_ops->scale(d_rho_scratch_idx, -1.0, d_rho_scratch_idx);
 
         // Synchronize the coefficient patch data
-        typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
-          SynchronizationTransactionComponent coef_synch_transaction =
-        SynchronizationTransactionComponent(d_rho_scratch_idx, "CONSERVATIVE_COARSEN");
+        using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
+        SynchronizationTransactionComponent coef_synch_transaction =
+            SynchronizationTransactionComponent(d_rho_scratch_idx, "CONSERVATIVE_COARSEN");
         Pointer<SideDataSynchronization> side_synch_op = new SideDataSynchronization();
         side_synch_op->initializeOperatorState(coef_synch_transaction, d_hierarchy);
         side_synch_op->synchronizeData(d_FuRMoRP_new_time);
@@ -1998,7 +1998,7 @@ ConstraintIBMethod::applyProjection()
     d_velcorrection_projection_solver->deallocateSolverState();
 
     // Setup the interpolation transaction information.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent Phi_bc_component(
         d_phi_idx, "LINEAR_REFINE", true, "CUBIC_COARSEN", "LINEAR", false, &d_velcorrection_projection_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
@@ -2085,7 +2085,7 @@ ConstraintIBMethod::applyProjection()
 void
 ConstraintIBMethod::updateStructurePositionEulerStep()
 {
-    typedef ConstraintIBKinematics::StructureParameters StructureParameters;
+    using StructureParameters = ConstraintIBKinematics::StructureParameters;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = d_FuRMoRP_new_time - d_FuRMoRP_current_time;
@@ -2188,7 +2188,7 @@ ConstraintIBMethod::forwardEulerStep(double current_time, double new_time)
 void
 ConstraintIBMethod::updateStructurePositionMidPointStep()
 {
-    typedef ConstraintIBKinematics::StructureParameters StructureParameters;
+    using StructureParameters = ConstraintIBKinematics::StructureParameters;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = d_FuRMoRP_new_time - d_FuRMoRP_current_time;
@@ -2322,7 +2322,7 @@ ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
 
     u_to.copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&u_from, false));
 
-    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
     InterpolationTransactionComponent component(copy_to_idx,
                                                 DATA_REFINE_TYPE,

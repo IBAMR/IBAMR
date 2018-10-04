@@ -42,7 +42,7 @@
 
 namespace IBTK
 {
-typedef LSet<LNode> LNodeSet;
+using LNodeSet = LSet<LNode>;
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

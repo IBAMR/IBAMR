@@ -315,7 +315,7 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
 
     // Fill ghost cells
     RobinBcCoefStrategy<NDIM>* phi_bc_coef = (d_adv_diff_solver->getPhysicalBcCoefs(phi_cc_var)).front();
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent C_transaction(
         d_C_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, phi_bc_coef);
     InterpolationTransactionComponent phi_transaction(

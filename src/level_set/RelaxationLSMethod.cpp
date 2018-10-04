@@ -343,7 +343,7 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     }
 
     // Set hierarchy objects.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(
         D_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, d_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> D_fill_op = new HierarchyGhostCellInterpolation();

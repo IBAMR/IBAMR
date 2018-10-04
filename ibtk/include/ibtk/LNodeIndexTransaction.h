@@ -42,7 +42,7 @@
 
 namespace IBTK
 {
-typedef LTransaction<LNodeIndex> LNodeIndexTransaction;
+using LNodeIndexTransaction = LTransaction<LNodeIndex>;
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

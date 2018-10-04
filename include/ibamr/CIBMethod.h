@@ -72,29 +72,29 @@ public:
     /*!
      * \brief Typedef specifying interface for specifying constrained body velocities.
      */
-    typedef void (*ConstrainedNodalVelocityFcnPtr)(Vec U_k,
-                                                   const IBTK::RigidDOFVector& U,
-                                                   Vec X,
-                                                   const Eigen::Vector3d& X_com,
-                                                   const Eigen::Matrix3d& rotation_mat,
-                                                   double data_time,
-                                                   void* ctx);
+    using ConstrainedNodalVelocityFcnPtr = void (*)(Vec U_k,
+                                                    const IBTK::RigidDOFVector& U,
+                                                    Vec X,
+                                                    const Eigen::Vector3d& X_com,
+                                                    const Eigen::Matrix3d& rotation_mat,
+                                                    double data_time,
+                                                    void* ctx);
 
-    typedef void (*ConstrainedCOMVelocityFcnPtr)(double data_time,
-                                                 Eigen::Vector3d& U_com,
-                                                 Eigen::Vector3d& W_com,
-                                                 void* ctx);
+    using ConstrainedCOMVelocityFcnPtr = void (*)(double data_time,
+                                                  Eigen::Vector3d& U_com,
+                                                  Eigen::Vector3d& W_com,
+                                                  void* ctx);
 
     /*!
      * \brief Typedef specifying interface for specifying net external force
      * and torque on structures.
      */
-    typedef void (*ExternalForceTorqueFcnPtr)(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T, void* ctx);
+    using ExternalForceTorqueFcnPtr = void (*)(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T, void* ctx);
 
     /*!
      * \brief Callbacks before INS is integrated.
      */
-    typedef void (*preprocessSolveFluidEqn_callbackfcn)(const double, const double, const int, void*);
+    using preprocessSolveFluidEqn_callbackfcn = void (*)(const double, const double, const int, void*);
 
     /*!
      * \brief Struct encapsulating constrained velocity functions data.

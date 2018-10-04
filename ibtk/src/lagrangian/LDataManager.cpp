@@ -1584,7 +1584,7 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
 #if !defined(NDEBUG)
         TBOX_ASSERT(d_displaced_strct_lnode_posns[level_number].size() == num_nodes);
 #endif
-        typedef LNodeTransaction::LTransactionComponent LNodeTransactionComponent;
+        using LNodeTransactionComponent = LNodeTransaction::LTransactionComponent;
         std::vector<std::vector<LNodeTransactionComponent> > src_index_set(num_procs);
         for (size_t k = 0; k < num_nodes; ++k)
         {

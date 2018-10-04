@@ -42,7 +42,7 @@
 
 namespace IBTK
 {
-typedef LSet<LMarker> LMarkerSet;
+using LMarkerSet = LSet<LMarker>;
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

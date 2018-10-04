@@ -217,7 +217,7 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
     for (unsigned int k = 0; k < num_tensor_vars; ++k)
     {
         tensor_var_dof_maps[k] = &d_tensor_var_systems[k]->get_dof_map();
-        typedef boost::multi_array<std::vector<unsigned int>, 2> array_type;
+        using array_type = boost::multi_array<std::vector<unsigned int>, 2>;
         array_type::extent_gen extents;
         tensor_var_dof_indices[k].resize(extents[d_tensor_var_dims[k]][d_tensor_var_dims[k]]);
         fe.setupInterpolatedSystemDataIndexes(

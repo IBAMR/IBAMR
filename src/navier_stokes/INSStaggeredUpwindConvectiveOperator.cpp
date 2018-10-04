@@ -409,7 +409,7 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
 
     // Fill ghost cell values for all components.
     static const bool homogeneous_bc = false;
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps(1);
     transaction_comps[0] = InterpolationTransactionComponent(d_U_scratch_idx,
                                                              U_idx,
@@ -728,7 +728,7 @@ INSStaggeredUpwindConvectiveOperator::initializeOperatorState(const SAMRAIVector
 #endif
 
     // Setup the interpolation transaction information.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_transaction_comps.resize(1);
     d_transaction_comps[0] = InterpolationTransactionComponent(d_U_scratch_idx,
                                                                in.getComponentDescriptorIndex(0),

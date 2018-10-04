@@ -986,9 +986,9 @@ NINT(double a)
     return (a >= 0.0 ? static_cast<int>(a + 0.5) : static_cast<int>(a - 0.5));
 }
 
-typedef boost::multi_array<double, 1> Weight;
-typedef std::array<Weight, NDIM> TensorProductWeights;
-typedef boost::multi_array<double, NDIM> MLSWeight;
+using Weight = boost::multi_array<double, 1>;
+using TensorProductWeights = std::array<Weight, NDIM>;
+using MLSWeight = boost::multi_array<double, NDIM>;
 
 void
 perform_mls(const int stencil_sz,
@@ -4854,7 +4854,7 @@ LEInteractor::userDefinedInterpolate(double* Q,
 {
     const int* const ilower = q_data_box.lower();
     const int* const iupper = q_data_box.upper();
-    typedef boost::multi_array_types::extent_range range;
+    using range = boost::multi_array_types::extent_range;
     boost::const_multi_array_ref<double, NDIM + 1> q_data(
         q,
         (boost::extents[range(ilower[0] - q_gcw[0], iupper[0] + q_gcw[0] + 1)][range(ilower[1] - q_gcw[1],
@@ -4982,7 +4982,7 @@ LEInteractor::userDefinedSpread(double* q,
 {
     const int* const ilower = q_data_box.lower();
     const int* const iupper = q_data_box.upper();
-    typedef boost::multi_array_types::extent_range range;
+    using range = boost::multi_array_types::extent_range;
     boost::multi_array_ref<double, NDIM + 1> q_data(
         q,
         (boost::extents[range(ilower[0] - q_gcw[0], iupper[0] + q_gcw[0] + 1)][range(ilower[1] - q_gcw[1],

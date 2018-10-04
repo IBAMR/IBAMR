@@ -155,7 +155,7 @@ public:
     /*!
      * Typedef specifying interface for coordinate mapping function.
      */
-    typedef void (*CoordinateMappingFcnPtr)(libMesh::Point& x, const libMesh::Point& X, void* ctx);
+    using CoordinateMappingFcnPtr = void (*)(libMesh::Point& x, const libMesh::Point& X, void* ctx);
 
     /*!
      * Struct encapsulating coordinate mapping function data.
@@ -188,7 +188,7 @@ public:
     /*!
      * Typedef specifying interface for initial velocity specification function.
      */
-    typedef void (*InitialVelocityFcnPtr)(libMesh::VectorValue<double>& U0, const libMesh::Point& X0, void* ctx);
+    using InitialVelocityFcnPtr = void (*)(libMesh::VectorValue<double>& U0, const libMesh::Point& X0, void* ctx);
 
     /*!
      * Struct encapsulating initial velocity specification function data.
@@ -220,7 +220,7 @@ public:
     /*!
      * Typedef specifying interface for PK1 stress tensor function.
      */
-    typedef IBTK::TensorMeshFcnPtr PK1StressFcnPtr;
+    using PK1StressFcnPtr = IBTK::TensorMeshFcnPtr;
 
     /*!
      * Struct encapsulating PK1 stress tensor function data.
@@ -263,7 +263,7 @@ public:
      * Typedef specifying interface for Lagrangian body force distribution
      * function.
      */
-    typedef IBTK::VectorMeshFcnPtr LagBodyForceFcnPtr;
+    using LagBodyForceFcnPtr = IBTK::VectorMeshFcnPtr;
 
     /*!
      * Struct encapsulating Lagrangian body force distribution data.
@@ -300,7 +300,7 @@ public:
      * Typedef specifying interface for Lagrangian pressure force distribution
      * function.
      */
-    typedef IBTK::ScalarSurfaceFcnPtr LagSurfacePressureFcnPtr;
+    using LagSurfacePressureFcnPtr = IBTK::ScalarSurfaceFcnPtr;
 
     /*!
      * Struct encapsulating Lagrangian surface pressure distribution data.
@@ -337,7 +337,7 @@ public:
      * Typedef specifying interface for Lagrangian surface force distribution
      * function.
      */
-    typedef IBTK::VectorSurfaceFcnPtr LagSurfaceForceFcnPtr;
+    using LagSurfaceForceFcnPtr = IBTK::VectorSurfaceFcnPtr;
 
     /*!
      * Struct encapsulating Lagrangian surface force distribution data.
@@ -374,7 +374,7 @@ public:
      * Typedef specifying interface for Lagrangian mass source/sink distribution
      * function.
      */
-    typedef IBTK::ScalarMeshFcnPtr LagBodySourceFcnPtr;
+    using LagBodySourceFcnPtr = IBTK::ScalarMeshFcnPtr;
 
     /*!
      * Struct encapsulating Lagrangian mass source/sink distribution data.

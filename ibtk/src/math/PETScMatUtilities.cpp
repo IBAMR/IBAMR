@@ -603,7 +603,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                         &mat);
     IBTK_CHKERRQ(ierr);
 
-    typedef std::map<Index<NDIM>, int, IndexFortranOrder> StencilMapType;
+    using StencilMapType = std::map<Index<NDIM>, int, IndexFortranOrder>;
     static std::vector< StencilMapType > stencil_map_vec;
     static const int stencil_sz = (2 * NDIM + 1) + 4 * (NDIM - 1);
     static const Index<NDIM> ORIGIN(0);

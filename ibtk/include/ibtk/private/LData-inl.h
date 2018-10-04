@@ -198,15 +198,15 @@ LData::getArrayCommon()
         int ilower, iupper;
         ierr = VecGetOwnershipRange(d_global_vec, &ilower, &iupper);
         IBTK_CHKERRQ(ierr);
-        typedef boost::multi_array_types::extent_range range;
+        using range = boost::multi_array_types::extent_range;
         if (d_depth == 1)
         {
-            typedef boost::multi_array<double, 1> array_type;
+            using array_type = boost::multi_array<double, 1>;
             array_type::extent_gen extents;
             d_boost_array = new boost::multi_array_ref<double, 1>(d_array, extents[range(ilower, iupper)]);
             d_boost_local_array = new boost::multi_array_ref<double, 1>(d_array, extents[iupper - ilower]);
         }
-        typedef boost::multi_array<double, 2> array_type;
+        using array_type = boost::multi_array<double, 2>;
         array_type::extent_gen extents;
         d_boost_vec_array =
             new boost::multi_array_ref<double, 2>(d_array, extents[range(ilower / d_depth, iupper / d_depth)][d_depth]);

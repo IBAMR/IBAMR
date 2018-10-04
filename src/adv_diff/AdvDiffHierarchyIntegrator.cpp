@@ -169,13 +169,13 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 static const int ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION = 3;
 
 // Function to reset variables registered by this integrator
-typedef void (*ResetPropertiesFcnPtr)(int property_idx,
-                                      Pointer<HierarchyMathOps> hier_math_ops,
-                                      int integrator_step,
-                                      double time,
-                                      bool initial_time,
-                                      bool regrid_time,
-                                      void* ctx);
+using ResetPropertiesFcnPtr = void (*)(int property_idx,
+                                       Pointer<HierarchyMathOps> hier_math_ops,
+                                       int integrator_step,
+                                       double time,
+                                       bool initial_time,
+                                       bool regrid_time,
+                                       void* ctx);
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -1117,7 +1117,7 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
 
         // Setup the interpolation transaction information.
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         InterpolationTransactionComponent transaction_comp(Q_scratch_idx,
                                                            DATA_REFINE_TYPE,
                                                            USE_CF_INTERPOLATION,

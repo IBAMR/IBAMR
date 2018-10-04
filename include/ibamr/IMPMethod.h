@@ -115,14 +115,14 @@ public:
     /*!
      * Typedef specifying interface for PK1 stress tensor function.
      */
-    typedef void (*PK1StressFcnPtr)(libMesh::TensorValue<double>& PP,
-                                    const libMesh::TensorValue<double>& FF,
-                                    const libMesh::Point& x,
-                                    const libMesh::Point& X,
-                                    libMesh::subdomain_id_type subdomain_id,
-                                    std::vector<double>& internal_vars,
-                                    double time,
-                                    void* ctx);
+    using PK1StressFcnPtr = void (*)(libMesh::TensorValue<double>& PP,
+                                     const libMesh::TensorValue<double>& FF,
+                                     const libMesh::Point& x,
+                                     const libMesh::Point& X,
+                                     libMesh::subdomain_id_type subdomain_id,
+                                     std::vector<double>& internal_vars,
+                                     double time,
+                                     void* ctx);
 
     /*!
      * Register the (optional) function to compute the first Piola-Kirchhoff
