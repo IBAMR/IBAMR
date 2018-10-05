@@ -84,7 +84,6 @@
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
-#include <../contrib/eigen/Eigen/src/Core/products/GeneralBlockPanelKernel.h>
 
 namespace IBTK
 {
