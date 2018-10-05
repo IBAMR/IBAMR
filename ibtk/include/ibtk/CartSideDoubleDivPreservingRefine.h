@@ -109,14 +109,14 @@ public:
      */
     virtual void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
                                                double fill_time,
-                                               const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+                                               const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    virtual SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const;
+    virtual SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const override;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -138,7 +138,7 @@ public:
     virtual void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
                                   const SAMRAI::hier::Patch<NDIM>& coarse,
                                   const SAMRAI::hier::Box<NDIM>& fine_box,
-                                  const SAMRAI::hier::IntVector<NDIM>& ratio);
+                                  const SAMRAI::hier::IntVector<NDIM>& ratio) override;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -160,7 +160,7 @@ public:
     virtual void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
                                    const SAMRAI::hier::Patch<NDIM>& coarse,
                                    const SAMRAI::hier::Box<NDIM>& fine_box,
-                                   const SAMRAI::hier::IntVector<NDIM>& ratio);
+                                   const SAMRAI::hier::IntVector<NDIM>& ratio) override;
 
     //\}
 

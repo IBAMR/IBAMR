@@ -167,7 +167,7 @@ public:
      * If this evaluates to false, then a different communication protocol kicks
      * in and the message size is transmitted between sides.
      */
-    virtual bool canEstimateIncomingMessageSize();
+    virtual bool canEstimateIncomingMessageSize() override;
 
     /*!
      * \brief Return the integer buffer space (in bytes) needed for the incoming
@@ -178,45 +178,45 @@ public:
      *
      * \see canEstimateIncomingMessageSize()
      */
-    virtual int computeIncomingMessageSize();
+    virtual int computeIncomingMessageSize() override;
 
     /*!
      * \brief Return the integer buffer space (in bytes) needed for the outgoing
      * message.
      */
-    virtual int computeOutgoingMessageSize();
+    virtual int computeOutgoingMessageSize() override;
 
     /*!
      * \brief Return the sending processor number for the communications
      * transaction.
      */
-    virtual int getSourceProcessor();
+    virtual int getSourceProcessor() override;
 
     /*!
      * \brief Return the receiving processor number for the communications
      * transaction.
      */
-    virtual int getDestinationProcessor();
+    virtual int getDestinationProcessor() override;
 
     /*!
      * \brief Pack the transaction data into the message stream.
      */
-    virtual void packStream(SAMRAI::tbox::AbstractStream& stream);
+    virtual void packStream(SAMRAI::tbox::AbstractStream& stream) override;
 
     /*!
      * \brief Unpack the transaction data from the message stream.
      */
-    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream);
+    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream) override;
 
     /*!
      * \brief Perform the local data copy for the transaction.
      */
-    virtual void copyLocalData();
+    virtual void copyLocalData() override;
 
     /*!
      * \brief Print out transaction information.
      */
-    virtual void printClassData(std::ostream& stream) const;
+    virtual void printClassData(std::ostream& stream) const override;
 
 private:
     /*!

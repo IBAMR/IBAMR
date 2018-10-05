@@ -85,12 +85,12 @@ public:
      * string identifier request; false, otherwise.
      */
     bool findCoarsenOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
-                             const std::string& op_name) const;
+                             const std::string& op_name) const override;
 
     /*!
      * Return name string identifier of the coarsening operation.
      */
-    const std::string& getOperatorName() const;
+    const std::string& getOperatorName() const override;
 
     /*!
      * Return the priority of this operator relative to other coarsening
@@ -98,7 +98,7 @@ public:
      * operators with lower priority will be performed before those with higher
      * priority.
      */
-    int getOperatorPriority() const;
+    int getOperatorPriority() const override;
 
     /*!
      * Return the stencil width associated with the coarsening operator.  The
@@ -106,7 +106,7 @@ public:
      * sufficient ghost cell data surrounding the interior to satisfy the
      * stencil width requirements for each coarsening operator.
      */
-    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const;
+    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const override;
 
     /*!
      * Coarsen the source component on the fine patch to the destination
@@ -120,7 +120,7 @@ public:
                  int dst_component,
                  int src_component,
                  const SAMRAI::hier::Box<NDIM>& coarse_box,
-                 const SAMRAI::hier::IntVector<NDIM>& ratio) const;
+                 const SAMRAI::hier::IntVector<NDIM>& ratio) const override;
 
     //\}
 

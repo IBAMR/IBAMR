@@ -81,7 +81,7 @@ public:
      * \brief Compute hierarchy dependent data required for computing y=Ax.
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
     //\}
 
     //\{ // Additional functionality of CIBStaggeredStokesOperator.

@@ -140,18 +140,18 @@ public:
      * to calling initializePatchHierarchy().
      */
     void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
      */
-    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
 
     /*!
      * Synchronously advance each level in the hierarchy over the given time
      * increment.
      */
-    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0);
+    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0) override;
 
     /*!
      * Clean up data following call(s) to integrateHierarchy().
@@ -159,25 +159,25 @@ public:
     void postprocessIntegrateHierarchy(double current_time,
                                        double new_time,
                                        bool skip_synchronize_new_state_data,
-                                       int num_cycles = 1);
+                                       int num_cycles = 1) override;
 
 protected:
     /*!
      * Return the maximum stable time step size.
      */
-    double getMaximumTimeStepSizeSpecialized();
+    double getMaximumTimeStepSizeSpecialized() override;
 
     /*!
      * Reset the current data to equal the new data, update the time level of
      * the current data, and deallocate the scratch and new data.
      */
-    void resetTimeDependentHierarchyDataSpecialized(double new_time);
+    void resetTimeDependentHierarchyDataSpecialized(double new_time) override;
 
     /*!
      * Reset the hierarchy integrator to the state at the beginning of the
      * current time step.
      */
-    void resetIntegratorToPreadvanceStateSpecialized();
+    void resetIntegratorToPreadvanceStateSpecialized() override;
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -189,7 +189,7 @@ protected:
                                         bool can_be_refined,
                                         bool initial_time,
                                         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-                                        bool allocate_data);
+                                        bool allocate_data) override;
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -197,7 +197,7 @@ protected:
     void
     resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                            int coarsest_level,
-                                           int finest_level);
+                                           int finest_level) override;
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -209,7 +209,7 @@ protected:
                                           double error_data_time,
                                           int tag_index,
                                           bool initial_time,
-                                          bool uses_richardson_extrapolation_too);
+                                          bool uses_richardson_extrapolation_too) override;
 
 private:
     /*!

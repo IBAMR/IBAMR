@@ -117,22 +117,22 @@ public:
     /*!
      * Pack a single bool into the message stream.
      */
-    SAMRAI::tbox::AbstractStream& operator<<(const bool& data);
+    SAMRAI::tbox::AbstractStream& operator<<(const bool& data) override;
 
     /*!
      * Remove a single bool from the message stream.
      */
-    SAMRAI::tbox::AbstractStream& operator>>(bool& data);
+    SAMRAI::tbox::AbstractStream& operator>>(bool& data) override;
 
     /*!
      * Pack an array of bools into the message stream.
      */
-    void pack(const bool* data, int n = 1);
+    void pack(const bool* data, int n = 1) override;
 
     /*!
      * Remove an array of bools from the message stream.
      */
-    void unpack(bool* data, int n = 1);
+    void unpack(bool* data, int n = 1) override;
 
     //\}
 
@@ -146,22 +146,22 @@ public:
     /*!
      * Pack a single char into the message stream.
      */
-    SAMRAI::tbox::AbstractStream& operator<<(const char& data);
+    SAMRAI::tbox::AbstractStream& operator<<(const char& data) override;
 
     /*!
      * Remove a single char from the message stream.
      */
-    SAMRAI::tbox::AbstractStream& operator>>(char& data);
+    SAMRAI::tbox::AbstractStream& operator>>(char& data) override;
 
     /*!
      * Pack an array of chars into the message stream.
      */
-    void pack(const char* data, int n = 1);
+    void pack(const char* data, int n = 1) override;
 
     /*!
      * Remove an array of chars from the message stream.
      */
-    void unpack(char* data, int n = 1);
+    void unpack(char* data, int n = 1) override;
 
     //\}
 
@@ -175,22 +175,22 @@ public:
     /*!
      * Pack a single double complex into the message stream.
      */
-    SAMRAI::tbox::AbstractStream& operator<<(const dcomplex& data);
+    SAMRAI::tbox::AbstractStream& operator<<(const dcomplex& data) override;
 
     /*!
      * Remove a single double complex from the message stream.
      */
-    SAMRAI::tbox::AbstractStream& operator>>(dcomplex& data);
+    SAMRAI::tbox::AbstractStream& operator>>(dcomplex& data) override;
 
     /*!
      * Pack an array of double complex into the message stream.
      */
-    void pack(const dcomplex* data, int n = 1);
+    void pack(const dcomplex* data, int n = 1) override;
 
     /*!
      * Remove an array of double complex from the message stream.
      */
-    void unpack(dcomplex* data, int n = 1);
+    void unpack(dcomplex* data, int n = 1) override;
 
     //\}
 
@@ -204,22 +204,22 @@ public:
     /*!
      * Pack a single double into the message stream.
      */
-    SAMRAI::tbox::AbstractStream& operator<<(const double& data);
+    SAMRAI::tbox::AbstractStream& operator<<(const double& data) override;
 
     /*!
      * Remove a single double from the message stream.
      */
-    SAMRAI::tbox::AbstractStream& operator>>(double& data);
+    SAMRAI::tbox::AbstractStream& operator>>(double& data) override;
 
     /*!
      * Pack an array of doubles into the message stream.
      */
-    void pack(const double* data, int n = 1);
+    void pack(const double* data, int n = 1) override;
 
     /*!
      * Remove an array of doubles from the message stream.
      */
-    void unpack(double* data, int n = 1);
+    void unpack(double* data, int n = 1) override;
 
     //\}
 
@@ -233,22 +233,22 @@ public:
     /*!
      * Pack a single float into the message stream.
      */
-    SAMRAI::tbox::AbstractStream& operator<<(const float& data);
+    SAMRAI::tbox::AbstractStream& operator<<(const float& data) override;
 
     /*!
      * Remove a single float from the message stream.
      */
-    SAMRAI::tbox::AbstractStream& operator>>(float& data);
+    SAMRAI::tbox::AbstractStream& operator>>(float& data) override;
 
     /*!
      * Pack an array of floats into the message stream.
      */
-    void pack(const float* data, int n = 1);
+    void pack(const float* data, int n = 1) override;
 
     /*!
      * Remove an array of floats from the message stream.
      */
-    void unpack(float* data, int n = 1);
+    void unpack(float* data, int n = 1) override;
 
     //\}
 
@@ -262,22 +262,22 @@ public:
     /*!
      * Pack a single integer into the message stream.
      */
-    SAMRAI::tbox::AbstractStream& operator<<(const int& data);
+    SAMRAI::tbox::AbstractStream& operator<<(const int& data) override;
 
     /*!
      * Remove a single integer from the message stream.
      */
-    SAMRAI::tbox::AbstractStream& operator>>(int& data);
+    SAMRAI::tbox::AbstractStream& operator>>(int& data) override;
 
     /*!
      * Pack an array of integers into the message stream.
      */
-    void pack(const int* data, int n = 1);
+    void pack(const int* data, int n = 1) override;
 
     /*!
      * Remove an array of integers from the message stream.
      */
-    void unpack(int* data, int n = 1);
+    void unpack(int* data, int n = 1) override;
 
     //\}
 

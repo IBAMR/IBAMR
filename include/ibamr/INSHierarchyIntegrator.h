@@ -353,7 +353,7 @@ public:
     /*!
      * Returns the number of cycles to perform for the present time step.
      */
-    int getNumberOfCycles() const;
+    int getNumberOfCycles() const override;
 
 protected:
     /*!
@@ -373,7 +373,7 @@ protected:
     /*!
      * Return the maximum stable time step size.
      */
-    double getMaximumTimeStepSizeSpecialized();
+    double getMaximumTimeStepSizeSpecialized() override;
 
     /*!
      * Determine the largest stable timestep on an individual patch level.
@@ -388,7 +388,7 @@ protected:
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*
      * Boolean value that indicates whether the integrator has been initialized.

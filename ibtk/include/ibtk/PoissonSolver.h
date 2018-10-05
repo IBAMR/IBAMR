@@ -102,7 +102,7 @@ public:
 
 protected:
     // Specialized solver initialization.
-    void initSpecialized(const std::string& object_name, bool homogeneous_bc);
+    void initSpecialized(const std::string& object_name, bool homogeneous_bc) override;
 
     // Problem specification.
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;

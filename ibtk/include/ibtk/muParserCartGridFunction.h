@@ -95,7 +95,7 @@ public:
      * \brief Indicates whether the concrete CartGridFunction object is
      * time-dependent.
      */
-    bool isTimeDependent() const;
+    bool isTimeDependent() const override;
 
     /*!
      * \brief Virtual function to evaluate the function on the patch interior.
@@ -106,7 +106,7 @@ public:
                         double data_time,
                         bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
 
     //\}
 

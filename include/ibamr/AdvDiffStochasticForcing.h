@@ -103,7 +103,7 @@ public:
      * \brief Indicates whether the concrete AdvDiffStochasticForcing object is
      * time-dependent.
      */
-    bool isTimeDependent() const;
+    bool isTimeDependent() const override;
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
@@ -115,7 +115,7 @@ public:
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
-                                 const int finest_ln = -1);
+                                 const int finest_ln = -1) override;
 
     /*!
      * \brief Evaluate the function on the patch interior.
@@ -126,7 +126,7 @@ public:
                         const double data_time,
                         const bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
 
     //\}
 

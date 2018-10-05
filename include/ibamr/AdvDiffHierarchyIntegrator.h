@@ -437,12 +437,12 @@ public:
      * to calling initializePatchHierarchy().
      */
     void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
      */
-    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
 
     /*!
      * \brief Function to reset variables registered by this integrator
@@ -494,7 +494,7 @@ protected:
     /*!
      * Return the maximum stable time step size.
      */
-    double getMaximumTimeStepSizeSpecialized();
+    double getMaximumTimeStepSizeSpecialized() override;
 
     /*!
      * Initialize composite hierarchy data.
@@ -503,7 +503,7 @@ protected:
      */
     void initializeCompositeHierarchyDataSpecialized(
         double init_data_time,
-        bool initial_time);
+        bool initial_time) override;
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -511,12 +511,12 @@ protected:
     void
     resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                            int coarsest_level,
-                                           int finest_level);
+                                           int finest_level) override;
 
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*!
      * Standard variable registration.

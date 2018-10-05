@@ -153,7 +153,7 @@ public:
     /*!
      * \note This concrete IBTK::CartGridFunction is time-dependent.
      */
-    bool isTimeDependent() const;
+    bool isTimeDependent() const override;
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
@@ -168,7 +168,7 @@ public:
                                  double data_time,
                                  bool initial_time = false,
                                  int coarsest_ln = -1,
-                                 int finest_ln = -1);
+                                 int finest_ln = -1) override;
 
     /*!
      * Set the data on the patch interior.
@@ -179,7 +179,7 @@ public:
                         double data_time,
                         bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
 
     //\}
 

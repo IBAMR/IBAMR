@@ -114,7 +114,7 @@ public:
     /*!
      * \brief Compute the action of the preconditioner.
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -134,7 +134,7 @@ public:
      * \note A default implementation is provided which does nothing.
      */
     void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -147,7 +147,7 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void deallocateSolverState();
+    void deallocateSolverState() override;
 
     //\}
 
@@ -159,12 +159,12 @@ public:
     /*!
      * \brief Set whether the initial guess is non-zero.
      */
-    void setInitialGuessNonzero(bool initial_guess_nonzero = true);
+    void setInitialGuessNonzero(bool initial_guess_nonzero = true) override;
 
     /*!
      * \brief Set the maximum number of iterations to use per solve.
      */
-    void setMaxIterations(int max_iterations);
+    void setMaxIterations(int max_iterations) override;
 
     //\}
 

@@ -155,7 +155,7 @@ public:
     void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
                           const SAMRAI::hier::Patch<NDIM>& coarse,
                           const SAMRAI::hier::Box<NDIM>& fine_box,
-                          const SAMRAI::hier::IntVector<NDIM>& ratio);
+                          const SAMRAI::hier::IntVector<NDIM>& ratio) override;
 
     /*!
      * Function to perform user-defined postprocess data refine operations.
@@ -180,7 +180,7 @@ public:
     void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
                            const SAMRAI::hier::Patch<NDIM>& coarse,
                            const SAMRAI::hier::Box<NDIM>& fine_box,
-                           const SAMRAI::hier::IntVector<NDIM>& ratio);
+                           const SAMRAI::hier::IntVector<NDIM>& ratio) override;
 
     //\}
 

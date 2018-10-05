@@ -110,7 +110,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -151,7 +151,7 @@ public:
      * \see deallocateSolverState
      */
     void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -162,7 +162,7 @@ public:
      *
      * \see initializeSolverState
      */
-    void deallocateSolverState();
+    void deallocateSolverState() override;
 
     //\}
 
@@ -177,7 +177,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    void setInitialGuessNonzero(bool initial_guess_nonzero = true);
+    void setInitialGuessNonzero(bool initial_guess_nonzero = true) override;
 
     /*!
      * \brief Get whether the initial guess is non-zero.
@@ -185,7 +185,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    bool getInitialGuessNonzero() const;
+    bool getInitialGuessNonzero() const override;
 
     /*!
      * \brief Set the maximum number of iterations to use per solve.
@@ -193,7 +193,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    void setMaxIterations(int max_iterations);
+    void setMaxIterations(int max_iterations) override;
 
     /*!
      * \brief Get the maximum number of iterations to use per solve.
@@ -201,7 +201,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    int getMaxIterations() const;
+    int getMaxIterations() const override;
 
     /*!
      * \brief Set the absolute residual tolerance for stopping.
@@ -209,7 +209,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    void setAbsoluteTolerance(double abs_residual_tol);
+    void setAbsoluteTolerance(double abs_residual_tol) override;
 
     /*!
      * \brief Get the absolute residual tolerance for stopping.
@@ -217,7 +217,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    double getAbsoluteTolerance() const;
+    double getAbsoluteTolerance() const override;
 
     /*!
      * \brief Set the relative residual tolerance for stopping.
@@ -225,7 +225,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    void setRelativeTolerance(double rel_residual_tol);
+    void setRelativeTolerance(double rel_residual_tol) override;
 
     /*!
      * \brief Get the relative residual tolerance for stopping.
@@ -233,7 +233,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    double getRelativeTolerance() const;
+    double getRelativeTolerance() const override;
 
     //\}
 
@@ -248,7 +248,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    int getNumIterations() const;
+    int getNumIterations() const override;
 
     /*!
      * \brief Return the residual norm from the most recent iteration.
@@ -256,7 +256,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    double getResidualNorm() const;
+    double getResidualNorm() const override;
 
     //\}
 

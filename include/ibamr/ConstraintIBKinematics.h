@@ -222,7 +222,7 @@ public:
      *
      * \note An empty default implementation is provided.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     /*!

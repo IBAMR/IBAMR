@@ -150,12 +150,12 @@ public:
      * - \c "PROCESSOR_GAUSS_SEIDEL"
      * - \c "RED_BLACK_GAUSS_SEIDEL"
      */
-    void setSmootherType(const std::string& smoother_type);
+    void setSmootherType(const std::string& smoother_type) override;
 
     /*!
      * \brief Specify the coarse level solver.
      */
-    void setCoarseSolverType(const std::string& coarse_solver_type);
+    void setCoarseSolverType(const std::string& coarse_solver_type) override;
 
     //\}
 
@@ -183,7 +183,7 @@ public:
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
-                     bool performing_post_sweeps);
+                     bool performing_post_sweeps) override;
 
     /*!
      * \brief Solve the residual equation Ae=r on the coarsest level of the
@@ -195,7 +195,7 @@ public:
      */
     bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                            int coarsest_ln);
+                            int coarsest_ln) override;
 
     /*!
      * \brief Compute composite grid residual on the specified range of levels.
@@ -210,7 +210,7 @@ public:
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
                          int coarsest_level_num,
-                         int finest_level_num);
+                         int finest_level_num) override;
 
     //\}
 
@@ -221,12 +221,12 @@ protected:
     void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
                                             int coarsest_reset_ln,
-                                            int finest_reset_ln);
+                                            int finest_reset_ln) override;
 
     /*!
      * \brief Remove implementation-specific hierarchy-dependent data.
      */
-    void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln);
+    void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) override;
 
     /*
      * Coarse level solvers and solver parameters.
