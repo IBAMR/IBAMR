@@ -89,7 +89,7 @@ public:
      *
      * \note A default implementation evaluates y := y - A*0.
      */
-    void modifyRhsForBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void modifyRhsForBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
     //\}
 

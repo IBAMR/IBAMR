@@ -131,7 +131,7 @@ public:
                     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
                     const SAMRAI::hier::Patch<NDIM>& patch,
                     const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-                    double fill_time = 0.0) const;
+                    double fill_time = 0.0) const override;
 
     /*
      * \brief Return how many cells past the edge or corner of the patch the
@@ -148,7 +148,7 @@ public:
      * The boundary box that setBcCoefs() is required to fill should not extend
      * past the limits returned by this function.
      */
-    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const;
+    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const override;
 
     //\}
 

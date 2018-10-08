@@ -107,17 +107,17 @@ public:
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
      */
-    void setHomogeneousBc(bool homogeneous_bc);
+    void setHomogeneousBc(bool homogeneous_bc) override;
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
      */
-    void setSolutionTime(double solution_time);
+    void setSolutionTime(double solution_time) override;
 
     /*!
      * \brief Set the current time interval.
      */
-    void setTimeInterval(double current_time, double new_time);
+    void setTimeInterval(double current_time, double new_time) override;
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -156,7 +156,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -200,7 +200,7 @@ public:
      * \see deallocateSolverState
      */
     void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -215,7 +215,7 @@ public:
      *
      * \see initializeSolverState
      */
-    void deallocateSolverState();
+    void deallocateSolverState() override;
 
     //\}
 
@@ -227,12 +227,12 @@ public:
     /*!
      * \brief Set whether the initial guess is non-zero.
      */
-    void setInitialGuessNonzero(bool initial_guess_nonzero = true);
+    void setInitialGuessNonzero(bool initial_guess_nonzero = true) override;
 
     /*!
      * \brief Set the maximum number of iterations to use per solve.
      */
-    void setMaxIterations(int max_iterations);
+    void setMaxIterations(int max_iterations) override;
 
     /*!
      * \brief Set the multigrid algorithm cycle type.

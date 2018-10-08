@@ -209,7 +209,7 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
 private:

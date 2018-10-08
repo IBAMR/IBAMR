@@ -116,7 +116,7 @@ public:
                           SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hierarchy_math_ops,
                           int integrator_step,
                           double time,
-                          bool initial_time);
+                          bool initial_time) override;
 
     //\}
 

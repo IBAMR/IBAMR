@@ -250,7 +250,7 @@ public:
     /*!
      * \brief Zero the supplied vector.
      */
-    void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num);
+    void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num) override;
 
     /*!
      * \brief Restrict the residual quantity to the specified level from the
@@ -262,7 +262,7 @@ public:
      */
     void restrictResidual(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
                           SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
-                          int dst_ln);
+                          int dst_ln) override;
 
     /*!
      * \brief Prolong the error quantity to the specified level from the next
@@ -274,7 +274,7 @@ public:
      */
     void prolongError(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
-                      int dst_ln);
+                      int dst_ln) override;
 
     /*!
      * \brief Prolong the error quantity to the specified level from the next
@@ -286,7 +286,7 @@ public:
      */
     void prolongErrorAndCorrect(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
                                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
-                                int dst_ln);
+                                int dst_ln) override;
 
     /*!
      * \brief Solve the residual equation Ae=r on the coarsest level of the
@@ -298,7 +298,7 @@ public:
      */
     bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                            int coarsest_ln);
+                            int coarsest_ln) override;
 
     /*!
      * \brief Compute the composite-grid residual on the specified range of
@@ -308,7 +308,7 @@ public:
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
                          int coarsest_level_num,
-                         int finest_level_num);
+                         int finest_level_num) override;
 
     /*!
      * \brief Compute hierarchy-dependent data.
@@ -325,7 +325,7 @@ public:
      * \param rhs right hand side vector f
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs) override;
 
     /*!
      * \brief Remove all hierarchy-dependent data.
@@ -334,7 +334,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void deallocateOperatorState();
+    void deallocateOperatorState() override;
 
     //\}
 

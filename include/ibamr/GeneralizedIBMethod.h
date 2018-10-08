@@ -112,23 +112,23 @@ public:
     /*!
      * Register Eulerian variables with the parent IBHierarchyIntegrator.
      */
-    void registerEulerianVariables();
+    void registerEulerianVariables() override;
 
     /*!
      * Register Eulerian refinement or coarsening algorithms with the parent
      * IBHierarchyIntegrator.
      */
-    void registerEulerianCommunicationAlgorithms();
+    void registerEulerianCommunicationAlgorithms() override;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
      */
-    void preprocessIntegrateData(double current_time, double new_time, int num_cycles);
+    void preprocessIntegrateData(double current_time, double new_time, int num_cycles) override;
 
     /*!
      * Method to clean up data following call(s) to integrateHierarchy().
      */
-    void postprocessIntegrateData(double current_time, double new_time, int num_cycles);
+    void postprocessIntegrateData(double current_time, double new_time, int num_cycles) override;
 
     /*!
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
@@ -138,31 +138,31 @@ public:
         int u_data_idx,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-        double data_time);
+        double data_time) override;
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
-    void forwardEulerStep(double current_time, double new_time);
+    void forwardEulerStep(double current_time, double new_time) override;
 
     /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
      * midpoint rule.
      */
-    void midpointStep(double current_time, double new_time);
+    void midpointStep(double current_time, double new_time) override;
 
     /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
      * trapezoidal rule.
      */
-    void trapezoidalStep(double current_time, double new_time);
+    void trapezoidalStep(double current_time, double new_time) override;
 
     /*!
      * Compute the Lagrangian force at the specified time within the current
      * time interval.
      */
-    void computeLagrangianForce(double data_time);
+    void computeLagrangianForce(double data_time) override;
 
     /*!
      * Spread the Lagrangian force to the Cartesian grid at the specified time
@@ -172,7 +172,7 @@ public:
     spreadForce(int f_data_idx,
                 IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
-                double data_time);
+                double data_time) override;
 
     /*!
      * Initialize Lagrangian data corresponding to the given AMR patch hierarchy
@@ -191,7 +191,7 @@ public:
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
         int integrator_step,
         double init_data_time,
-        bool initial_time);
+        bool initial_time) override;
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -205,12 +205,12 @@ public:
                              bool can_be_refined,
                              bool initial_time,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-                             bool allocate_data);
+                             bool allocate_data) override;
 
     /*!
      * Write out object state to the given database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     /*

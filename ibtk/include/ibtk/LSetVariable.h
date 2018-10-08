@@ -66,7 +66,7 @@ public:
      * cell-centered index space for AMR patches.  Thus, LSet data does
      * not live on patch borders.
      */
-    bool dataLivesOnPatchBorder() const;
+    bool dataLivesOnPatchBorder() const override;
 
     /*!
      * Return true so that the LSet data quantities will always be treated
@@ -76,7 +76,7 @@ public:
      * data does not live on patch borders and so there is no ambiguity
      * regarding coarse-fine interface values.
      */
-    bool fineBoundaryRepresentsVariable() const;
+    bool fineBoundaryRepresentsVariable() const override;
 
 private:
     /*!

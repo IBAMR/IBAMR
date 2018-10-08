@@ -193,7 +193,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -233,7 +233,7 @@ public:
      * \see deallocateSolverState
      */
     void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -244,7 +244,7 @@ public:
      *
      * \see initializeSolverState
      */
-    void deallocateSolverState();
+    void deallocateSolverState() override;
 
     //\}
 

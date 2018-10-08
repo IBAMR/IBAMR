@@ -170,18 +170,18 @@ public:
     /*!
      * \brief Set the nonlinear operator \f$F[x]\f$ used by the solver.
      */
-    void setOperator(SAMRAI::tbox::Pointer<GeneralOperator> op);
+    void setOperator(SAMRAI::tbox::Pointer<GeneralOperator> op) override;
 
     /*!
      * \brief Return the vector in which the approximate solution is stored.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getSolutionVector() const;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getSolutionVector() const override;
 
     /*!
      * \brief Return the vector in which the nonlinear function evaluation is
      * stored.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getFunctionVector() const;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getFunctionVector() const override;
 
     /*!
      * \brief Set the Jacobian operator \f$J[x] = F'[x]\f$ used by the solver.
@@ -190,7 +190,7 @@ public:
      * Jacobian-free inexact Newton-Krylov method is employed to approximate the
      * action of the Jacobian.
      */
-    void setJacobian(SAMRAI::tbox::Pointer<JacobianOperator> J);
+    void setJacobian(SAMRAI::tbox::Pointer<JacobianOperator> J) override;
 
     /*!
      * \brief Solve the system \f$F[x]=b\f$ for \f$x\f$.
@@ -229,7 +229,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving
@@ -274,7 +274,7 @@ public:
      * \see deallocateSolverState
      */
     void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -289,7 +289,7 @@ public:
      *
      * \see initializeSolverState
      */
-    void deallocateSolverState();
+    void deallocateSolverState() override;
 
     //\}
 

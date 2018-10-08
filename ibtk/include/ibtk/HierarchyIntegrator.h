@@ -444,7 +444,7 @@ public:
                              bool initial_time,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
-                             bool allocate_data = true);
+                             bool allocate_data = true) override;
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -458,7 +458,7 @@ public:
      */
     void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                      int coarsest_level,
-                                     int finest_level);
+                                     int finest_level) override;
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -475,7 +475,7 @@ public:
                                double error_data_time,
                                int tag_index,
                                bool initial_time,
-                               bool uses_richardson_extrapolation_too);
+                               bool uses_richardson_extrapolation_too) override;
 
     ///
     ///  Routines to access to the variable contexts maintained by the
@@ -586,7 +586,7 @@ public:
      * provided by class HierarchyIntegrator.  Instead, they should override the
      * protected virtual member function putToDatabaseSpecialized().
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     /*!

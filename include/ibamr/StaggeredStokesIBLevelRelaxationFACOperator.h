@@ -224,7 +224,7 @@ public:
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
                          int coarsest_level_num,
-                         int finest_level_num);
+                         int finest_level_num) override;
 
     /*!
      * \brief Perform a given number of relaxations on the error.
@@ -245,7 +245,7 @@ public:
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
-                     bool performing_post_sweeps);
+                     bool performing_post_sweeps) override;
 
     //\}
 
@@ -256,12 +256,12 @@ protected:
     void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
                                             int coarsest_reset_ln,
-                                            int finest_reset_ln);
+                                            int finest_reset_ln) override;
 
     /*!
      * \brief Remove implementation-specific hierarchy-dependent data.
      */
-    void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln);
+    void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) override;
 
 private:
     /*!

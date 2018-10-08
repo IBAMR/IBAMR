@@ -71,7 +71,7 @@ public:
                                 libMesh::Order fe_order,
                                 IBTK::ScalarMeshFcnPtr fcn,
                                 const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                                void* fcn_ctx = nullptr);
+                                void* fcn_ctx = nullptr) override;
 
     /*!
      * Register a vector-valued variable for reconstruction.
@@ -86,7 +86,7 @@ public:
                                 IBTK::VectorMeshFcnPtr var_fcn,
                                 const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
                                 void* var_fcn_ctx = nullptr,
-                                unsigned int var_dim = NDIM);
+                                unsigned int var_dim = NDIM) override;
 
     /*!
      * Register a tensor-valued variable for reconstruction.
@@ -101,12 +101,12 @@ public:
                                 IBTK::TensorMeshFcnPtr var_fcn,
                                 const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
                                 void* var_fcn_ctx = nullptr,
-                                unsigned int var_dim = NDIM);
+                                unsigned int var_dim = NDIM) override;
 
     /*!
      * Reconstruct the data on the mesh.
      */
-    void reconstructVariables(double data_time);
+    void reconstructVariables(double data_time) override;
 
 private:
     /*!

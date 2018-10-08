@@ -130,7 +130,7 @@ public:
     void setNullspace(
         bool contains_constant_vec,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs =
-            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >());
+            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >()) override;
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -169,7 +169,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -213,7 +213,7 @@ public:
      * \see deallocateSolverState
      */
     void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -228,7 +228,7 @@ public:
      *
      * \see initializeSolverState
      */
-    void deallocateSolverState();
+    void deallocateSolverState() override;
 
     //\}
 

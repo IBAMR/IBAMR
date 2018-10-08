@@ -106,7 +106,7 @@ public:
      * to calling initializePatchHierarchy().
      */
     void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Initialize the AMR patch hierarchy and data defined on the hierarchy at
@@ -122,18 +122,18 @@ public:
      * function.
      */
     void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
      */
-    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
 
     /*!
      * Synchronously advance each level in the hierarchy over the given time
      * increment.
      */
-    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0);
+    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0) override;
 
     /*!
      * Clean up data following call(s) to integrateHierarchy().
@@ -141,12 +141,12 @@ public:
     void postprocessIntegrateHierarchy(double current_time,
                                        double new_time,
                                        bool skip_synchronize_new_state_data,
-                                       int num_cycles = 1);
+                                       int num_cycles = 1) override;
 
     /*!
      * Regrid the patch hierarchy.
      */
-    void regridHierarchy();
+    void regridHierarchy() override;
 
     /*!
      * Explicitly remove nullspace components from a solution vector.
@@ -157,7 +157,7 @@ public:
      * \brief Supply boundary conditions for the side-centered density field, which is maintained by this integrator
      *
      */
-    void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* rho_bc_coef);
+    void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* rho_bc_coef) override;
 
     /*
      * \brief Supply boundary conditions for the side-centered density field, which is maintained by this integrator
@@ -175,7 +175,7 @@ public:
     /*!
      * Returns the number of cycles to perform for the present time step.
      */
-    int getNumberOfCycles() const;
+    int getNumberOfCycles() const override;
 
     /*!
      * Get the convective operator being used by the integrator class.
@@ -184,7 +184,7 @@ public:
      * to compute the conservative convective derivative. Therefore,
      * ConvectiveOperator is a NULL object.
      */
-    SAMRAI::tbox::Pointer<ConvectiveOperator> getConvectiveOperator();
+    SAMRAI::tbox::Pointer<ConvectiveOperator> getConvectiveOperator() override;
 
 protected:
     /*!
@@ -197,7 +197,7 @@ protected:
                                         bool can_be_refined,
                                         bool initial_time,
                                         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-                                        bool allocate_data);
+                                        bool allocate_data) override;
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -205,7 +205,7 @@ protected:
     void
     resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                            int coarsest_level,
-                                           int finest_level);
+                                           int finest_level) override;
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -216,17 +216,17 @@ protected:
                                           double error_data_time,
                                           int tag_index,
                                           bool initial_time,
-                                          bool uses_richardson_extrapolation_too);
+                                          bool uses_richardson_extrapolation_too) override;
 
     /*!
      * Prepare variables for plotting.
      */
-    void setupPlotDataSpecialized();
+    void setupPlotDataSpecialized() override;
 
     /*!
      * Project the velocity field following a regridding operation.
      */
-    void regridProjection();
+    void regridProjection() override;
 
 private:
     /*!

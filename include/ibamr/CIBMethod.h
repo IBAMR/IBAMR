@@ -169,28 +169,28 @@ public:
     /*!
      * \brief Calculate any body forces for INS solver over here.
      */
-    void preprocessSolveFluidEquations(double current_time, double new_time, int cycle_num);
+    void preprocessSolveFluidEquations(double current_time, double new_time, int cycle_num) override;
 
     /*!
      * \brief Register Eulerian variables with the parent IBHierarchyIntegrator.
      */
-    void registerEulerianVariables();
+    void registerEulerianVariables() override;
 
     /*!
      * \brief Register Eulerian refinement or coarsening algorithms with the parent
      * IBHierarchyIntegrator.
      */
-    void registerEulerianCommunicationAlgorithms();
+    void registerEulerianCommunicationAlgorithms() override;
 
     /*!
      * \brief Method to prepare to advance data from current_time to new_time.
      */
-    void preprocessIntegrateData(double current_time, double new_time, int num_cycles);
+    void preprocessIntegrateData(double current_time, double new_time, int num_cycles) override;
 
     /*!
      * \brief Method to clean up data following call(s) to integrateHierarchy().
      */
-    void postprocessIntegrateData(double current_time, double new_time, int num_cycles);
+    void postprocessIntegrateData(double current_time, double new_time, int num_cycles) override;
 
     /*!
      * \brief Initialize data on a new level after it is inserted into an AMR patch
@@ -204,7 +204,7 @@ public:
                              bool can_be_refined,
                              bool initial_time,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-                             bool allocate_data);
+                             bool allocate_data) override;
 
     /*!
      * \brief Initialize Lagrangian data corresponding to the given AMR patch hierarchy
@@ -223,7 +223,7 @@ public:
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
         int integrator_step,
         double init_data_time,
-        bool initial_time);
+        bool initial_time) override;
 
     /*!
     * \brief Interpolate the Eulerian velocity to the curvilinear mesh at the
@@ -233,7 +233,7 @@ public:
         int u_data_idx,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-        double data_time);
+        double data_time) override;
 
     /*!
      * \brief Spread the Lagrangian force to the Cartesian grid at the specified time
@@ -243,31 +243,31 @@ public:
     spreadForce(int f_data_idx,
                 IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
-                double data_time);
+                double data_time) override;
 
     /*!
      * \brief Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
-    void forwardEulerStep(double current_time, double new_time);
+    void forwardEulerStep(double current_time, double new_time) override;
 
     /*!
      * \brief Advance the positions of the Lagrangian structure using the backward Euler
      * method.
      */
-    void backwardEulerStep(double current_time, double new_time);
+    void backwardEulerStep(double current_time, double new_time) override;
 
     /*!
      * \brief Advance the positions of the Lagrangian structure using the (explicit)
      * midpoint rule.
      */
-    void midpointStep(double current_time, double new_time);
+    void midpointStep(double current_time, double new_time) override;
 
     /*!
      * \brief Advance the positions of the Lagrangian structure using the
      * trapezoidal rule.
      */
-    void trapezoidalStep(double current_time, double new_time);
+    void trapezoidalStep(double current_time, double new_time) override;
 
     /*!
      * \brief Register VisIt data writer to output data files that
@@ -278,7 +278,7 @@ public:
     /*!
      * \brief Override the putToDatabase method of the base Serializable class.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     // \{
     // The following are the concrete implementation of CIBStrategy methods:
@@ -289,74 +289,74 @@ public:
      * \brief Set the constraint force in the internal data structures of the
      * class.
      */
-    void setConstraintForce(Vec L, const double data_time, const double scale = 1.0);
+    void setConstraintForce(Vec L, const double data_time, const double scale = 1.0) override;
 
     // \see CIBStrategy::getConstraintForce()
     /*!
      * \brief Get the constraint rigid body force at the specified time within
      * the current time interval.
      */
-    void getConstraintForce(Vec* L, const double data_time);
+    void getConstraintForce(Vec* L, const double data_time) override;
 
     // \see CIBStrategy::getFreeRigidVelocities()
     /*!
      * \brief Get the free rigid velocities (DOFs) at the specified time within
      * the current time interval.
      */
-    virtual void getFreeRigidVelocities(Vec* U, const double data_time);
+    virtual void getFreeRigidVelocities(Vec* U, const double data_time) override;
 
     // \see CIBStrategy::getNetExternalForceTorque()
     /*!
      * \brief Get net external force and torque at the specified time within
      * the current time interval.
      */
-    virtual void getNetExternalForceTorque(Vec* F, const double data_time);
+    virtual void getNetExternalForceTorque(Vec* F, const double data_time) override;
 
     // \see CIBStrategy::subtractMeanConstraintForce()
     /*!
      * \brief Subtract the mean of constraint force from the background Eulerian
      * grid.
      */
-    void subtractMeanConstraintForce(Vec L, int f_data_idx, const double scale = 1.0);
+    void subtractMeanConstraintForce(Vec L, int f_data_idx, const double scale = 1.0) override;
 
     // \see CIBStrategy::setInterpolatedVelocityVector() method
     /*!
      * \brief Prepare the CIBMethod class to get the interpolated fluid
      * velocity.
      */
-    void setInterpolatedVelocityVector(Vec V, const double data_time);
+    void setInterpolatedVelocityVector(Vec V, const double data_time) override;
 
     // \see CIBStrategy::setInterpolatedVelocityVector() method
     /*!
      * \brief Get interpolated velocity from the Eulerian grid.
      */
-    void getInterpolatedVelocity(Vec V, const double data_time, const double scale = 1.0);
+    void getInterpolatedVelocity(Vec V, const double data_time, const double scale = 1.0) override;
 
     // \see CIBStrategy::computeMobilityRegularization method
     /*!
      * \brief Compute regularization vector for the mobility problem.
      *
      */
-    void computeMobilityRegularization(Vec D, Vec L, const double scale = 1.0);
+    void computeMobilityRegularization(Vec D, Vec L, const double scale = 1.0) override;
 
     // \see CIBStrategy::getNumberOfNodes method
     /*!
      * \brief Get number of nodes for a particular structure registered with CIBMethod.
      */
-    unsigned int getNumberOfNodes(const unsigned int part) const;
+    unsigned int getNumberOfNodes(const unsigned int part) const override;
 
     // \see CIBStrategy::setRigidBodyVelocity method
     /*!
      * \brief Set the rigid body velocity at the nodal points
      * contained in the Vec V.
      */
-    void setRigidBodyVelocity(const unsigned int part, const IBTK::RigidDOFVector& U, Vec V);
+    void setRigidBodyVelocity(const unsigned int part, const IBTK::RigidDOFVector& U, Vec V) override;
 
     // \see CIBStrategy::computeNetRigidGeneralizedForce() method.
     /*!
      * \brief Compute total force and torque on the rigid structure(s).
      */
-    void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, IBTK::RigidDOFVector& F);
+    void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, IBTK::RigidDOFVector& F) override;
 
     // \see CIBStrategy::copyVecToArray() method.
     /*!
@@ -366,7 +366,7 @@ public:
                         double* array,
                         const std::vector<unsigned>& struct_ids,
                         const int data_depth,
-                        const int array_rank);
+                        const int array_rank) override;
 
     // \see CIBStrategy::copyVecToArray() method.
     /*!
@@ -376,7 +376,7 @@ public:
                         double* array,
                         const std::vector<unsigned>& struct_ids,
                         const int data_depth,
-                        const int array_rank);
+                        const int array_rank) override;
 
     // \see CIBStrategy::constructMobilityMatrix() method.
     /*!
@@ -394,7 +394,7 @@ public:
                                  double mu,
                                  const std::pair<double, double>& scale,
                                  double f_periodic_corr,
-                                 const int managing_rank);
+                                 const int managing_rank) override;
 
     // \see CIBStrategy::constructGeometricMatrix() method.
     /*!
@@ -405,7 +405,7 @@ public:
                                   Mat& geometric_mat,
                                   const std::vector<unsigned>& prototype_struct_ids,
                                   const bool initial_time,
-                                  const int managing_rank);
+                                  const int managing_rank) override;
 
     //\see CIBStrategy:: rotateArray() method.
     /*!
@@ -416,7 +416,7 @@ public:
                      const std::vector<unsigned>& struct_ids,
                      const bool use_transpose,
                      const int managing_rank,
-                     const int depth);
+                     const int depth) override;
     //\}
 
     /*!

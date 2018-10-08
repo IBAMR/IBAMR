@@ -439,7 +439,7 @@ public:
     /*!
      * \brief Initialize structure specific configurations.
      */
-    void init();
+    void init() override;
 
 protected:
 private:
@@ -531,7 +531,7 @@ private:
      */
     std::vector<SAMRAI::tbox::Pointer<IBTK::Streamable> > initializeNodeData(const std::pair<int, int>& point_index,
                                                                              unsigned int global_index_offset,
-                                                                             int level_number) const;
+                                                                             int level_number) const override;
 
     /*!
      * Read input values, indicated above, from given database.

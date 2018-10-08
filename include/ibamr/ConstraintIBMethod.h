@@ -87,17 +87,17 @@ public:
     /*!
      * \brief Register Eulerian variables with base IBStrategy class.
      */
-    virtual void registerEulerianVariables();
+    virtual void registerEulerianVariables() override;
 
     /*!
      *  \brief Create Lagrangian workspace.
      */
-    virtual void preprocessIntegrateData(double current_time, double new_time, int num_cycles);
+    virtual void preprocessIntegrateData(double current_time, double new_time, int num_cycles) override;
 
     /*!
      *  \brief Destroy Lagrangian workspace.
      */
-    virtual void postprocessIntegrateData(double current_time, double new_time, int num_cycles);
+    virtual void postprocessIntegrateData(double current_time, double new_time, int num_cycles) override;
 
     /*!
      * \brief Register kinematics of the immersed structure(s) with this class.
@@ -120,7 +120,7 @@ public:
     /*!
      * \brief Calculate any body forces for INS solver over here.
      */
-    virtual void preprocessSolveFluidEquations(double current_time, double new_time, int cycle_num);
+    virtual void preprocessSolveFluidEquations(double current_time, double new_time, int cycle_num) override;
 
     /*!
      * \brief Register any postprocess fluid solve callback functions.
@@ -137,22 +137,22 @@ public:
     /*!
      * \brief Apply the FuRMoRP algorithm in the postprocessSolveFluidEquations method.
      */
-    virtual void postprocessSolveFluidEquations(double current_time, double new_time, int cycle_num);
+    virtual void postprocessSolveFluidEquations(double current_time, double new_time, int cycle_num) override;
 
     /*!
      * \brief Override the forwardEulerStep method of the base IBMethod class.
      */
-    virtual void forwardEulerStep(double current_time, double new_time);
+    virtual void forwardEulerStep(double current_time, double new_time) override;
 
     /*!
      * \brief Override the midpointStep method of the base IBMethod class.
      */
-    virtual void midpointStep(double current_time, double new_time);
+    virtual void midpointStep(double current_time, double new_time) override;
 
     /*!
      * \brief Override the putToDatabase method of the base Serializable class.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*!
      * \brief Get the volume element associated with material points

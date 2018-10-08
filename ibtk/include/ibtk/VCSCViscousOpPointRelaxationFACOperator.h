@@ -128,7 +128,7 @@ public:
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
-                     bool performing_post_sweeps);
+                     bool performing_post_sweeps) override;
 
     /*!
      * \brief Compute composite grid residual on the specified range of levels.
@@ -143,7 +143,7 @@ public:
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
                          int coarsest_level_num,
-                         int finest_level_num);
+                         int finest_level_num) override;
 
     /*!
      * \brief Restrict the residual quantity to the specified level from the
@@ -155,7 +155,7 @@ public:
      */
     void restrictResidual(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
                           SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
-                          int dst_ln);
+                          int dst_ln) override;
 
     //\}
 
@@ -182,7 +182,7 @@ protected:
     void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
                                             int coarsest_reset_ln,
-                                            int finest_reset_ln);
+                                            int finest_reset_ln) override;
 
 private:
     /*!

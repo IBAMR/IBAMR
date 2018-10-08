@@ -120,7 +120,7 @@ public:
     /*!
      * \brief Print class data to stream.
      */
-    virtual void printClassData(std::ostream& stream);
+    virtual void printClassData(std::ostream& stream) override;
 
     //\}
 

@@ -84,7 +84,7 @@ public:
      * operations.  This is needed to determine the correct coarsening data
      * dependencies.
      */
-    SAMRAI::hier::IntVector<NDIM> getCoarsenOpStencilWidth() const;
+    SAMRAI::hier::IntVector<NDIM> getCoarsenOpStencilWidth() const override;
 
     /*!
      * Perform user-defined coarsening operations.  This member function is
@@ -106,7 +106,7 @@ public:
     void preprocessCoarsen(SAMRAI::hier::Patch<NDIM>& coarse,
                            const SAMRAI::hier::Patch<NDIM>& fine,
                            const SAMRAI::hier::Box<NDIM>& coarse_box,
-                           const SAMRAI::hier::IntVector<NDIM>& ratio);
+                           const SAMRAI::hier::IntVector<NDIM>& ratio) override;
 
     /*!
      * Perform user-defined coarsening operations.  This member function is
@@ -126,7 +126,7 @@ public:
     void postprocessCoarsen(SAMRAI::hier::Patch<NDIM>& coarse,
                             const SAMRAI::hier::Patch<NDIM>& fine,
                             const SAMRAI::hier::Box<NDIM>& coarse_box,
-                            const SAMRAI::hier::IntVector<NDIM>& ratio);
+                            const SAMRAI::hier::IntVector<NDIM>& ratio) override;
 
 protected:
 private:
