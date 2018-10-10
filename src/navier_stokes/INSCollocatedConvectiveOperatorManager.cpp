@@ -107,7 +107,7 @@ INSCollocatedConvectiveOperatorManager::allocateOperator(const std::string& oper
                                                          const ConvectiveDifferencingType difference_form,
                                                          const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs) const
 {
-    std::map<std::string, OperatorMaker>::const_iterator it = d_operator_maker_map.find(operator_type);
+    auto it = d_operator_maker_map.find(operator_type);
     if (it == d_operator_maker_map.end())
     {
         TBOX_ERROR("INSCollocatedConvectiveOperatorManager::allocateOperator():\n"

@@ -179,7 +179,7 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
     fe.attachQuadratureRule(qrule.get());
     fe.evalQuadraturePoints();
 
-    System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+    auto& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
     X_system.solution->localize(*X_system.current_local_solution);
     NumericVector<double>& X_data = *(X_system.current_local_solution);
     X_data.close();

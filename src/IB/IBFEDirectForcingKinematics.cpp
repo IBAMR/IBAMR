@@ -572,7 +572,7 @@ IBFEDirectForcingKinematics::computeCOMOfStructure(Eigen::Vector3d& X0)
     const std::vector<std::vector<double> >& phi = fe->get_phi();
 
     // Extract the nodal coordinates.
-    PetscVector<double>& X_petsc = dynamic_cast<PetscVector<double>&>(*X_system.current_local_solution.get());
+    auto& X_petsc = dynamic_cast<PetscVector<double>&>(*X_system.current_local_solution.get());
     X_petsc.close();
     Vec X_global_vec = X_petsc.vec();
     Vec X_local_ghost_vec;
@@ -641,7 +641,7 @@ IBFEDirectForcingKinematics::computeMOIOfStructure(Eigen::Matrix3d& I, const Eig
 
     // Extract the nodal coordinates.
     int ierr;
-    PetscVector<double>& X_petsc = dynamic_cast<PetscVector<double>&>(*X_system.current_local_solution.get());
+    auto& X_petsc = dynamic_cast<PetscVector<double>&>(*X_system.current_local_solution.get());
     X_petsc.close();
     Vec X_global_vec = X_petsc.vec();
     Vec X_local_ghost_vec;

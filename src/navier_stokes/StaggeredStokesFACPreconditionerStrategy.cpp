@@ -550,13 +550,13 @@ StaggeredStokesFACPreconditionerStrategy::solveCoarsestLevel(SAMRAIVectorReal<ND
         d_coarse_solver->setSolutionTime(d_solution_time);
         d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
         d_coarse_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
-        LinearSolver* p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
+        auto p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
 
         if (p_coarse_solver)
         {
             bool initial_guess_nonzero = true;
-            PETScKrylovLinearSolver* p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_coarse_solver);
-            PETScLevelSolver* p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_coarse_solver);
+            auto p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_coarse_solver);
+            auto p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_coarse_solver);
             if (p_petsc_solver || p_petsc_level_solver)
             {
                 const KSP& petsc_ksp =

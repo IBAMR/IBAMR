@@ -202,7 +202,7 @@ muParserCartGridFunction::muParserCartGridFunction(const std::string& object_nam
     const double pi = 3.1415926535897932384626433832795;
     const double* const x_lower = grid_geom->getXLower();
     const double* const x_upper = grid_geom->getXUpper();
-    for (std::vector<mu::Parser>::iterator it = d_parsers.begin(); it != d_parsers.end(); ++it)
+    for (auto it = d_parsers.begin(); it != d_parsers.end(); ++it)
     {
         // Various names for pi.
         it->DefineConst("pi", pi);
@@ -270,8 +270,7 @@ muParserCartGridFunction::muParserCartGridFunction(const std::string& object_nam
         }
 
         // User-provided constants.
-        for (std::map<std::string, double>::const_iterator map_cit = d_constants.begin(); map_cit != d_constants.end();
-             ++map_cit)
+        for (auto map_cit = d_constants.begin(); map_cit != d_constants.end(); ++map_cit)
         {
             it->DefineConst(map_cit->first, map_cit->second);
         }

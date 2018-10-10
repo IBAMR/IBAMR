@@ -213,7 +213,7 @@ void
 StaggeredStokesBlockPreconditioner::correctNullspace(Pointer<SAMRAIVectorReal<NDIM, double> > U_vec,
                                                      Pointer<SAMRAIVectorReal<NDIM, double> > P_vec)
 {
-    LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+    auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver)
     {
         const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& U_nul_vecs =
@@ -231,7 +231,7 @@ StaggeredStokesBlockPreconditioner::correctNullspace(Pointer<SAMRAIVectorReal<ND
 #endif
     }
 
-    LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+    auto p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
     if (p_pressure_solver)
     {
         if (p_pressure_solver->getNullspaceContainsConstantVector())

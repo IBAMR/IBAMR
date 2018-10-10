@@ -368,8 +368,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
-                ExtendedRobinBcCoefStrategy* extended_bc_coef =
-                    dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
+                auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
                 if (extended_bc_coef)
                 {
                     extended_bc_coef->clearTargetPatchDataIndex();
@@ -471,8 +470,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
-                ExtendedRobinBcCoefStrategy* extended_bc_coef =
-                    dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
+                auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
                 if (extended_bc_coef)
                 {
                     extended_bc_coef->clearTargetPatchDataIndex();

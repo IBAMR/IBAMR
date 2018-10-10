@@ -983,8 +983,8 @@ CIBFEMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector&
     {
         MeshBase& mesh = equation_systems->get_mesh();
         const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
-        System& X_system = equation_systems->get_system<System>(CIBFEMethod::COORDS_SYSTEM_NAME);
-        System& U_system = equation_systems->get_system<System>(CIBFEMethod::CONSTRAINT_VELOCITY_SYSTEM_NAME);
+        auto& X_system = equation_systems->get_system<System>(CIBFEMethod::COORDS_SYSTEM_NAME);
+        auto& U_system = equation_systems->get_system<System>(CIBFEMethod::CONSTRAINT_VELOCITY_SYSTEM_NAME);
         const unsigned int X_sys_num = X_system.number();
         const unsigned int U_sys_num = U_system.number();
 
@@ -1082,7 +1082,7 @@ CIBFEMethod::initializeFEData()
         d_num_nodes[part] = mesh.n_nodes();
 
         // Assemble additional systems.
-        System& U_constraint_system = equation_systems->get_system<System>(CONSTRAINT_VELOCITY_SYSTEM_NAME);
+        auto& U_constraint_system = equation_systems->get_system<System>(CONSTRAINT_VELOCITY_SYSTEM_NAME);
         U_constraint_system.assemble_before_solve = false;
         U_constraint_system.assemble();
     }
@@ -1267,7 +1267,7 @@ CIBFEMethod::commonConstructor(Pointer<Database> input_db)
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
         EquationSystems* equation_systems = d_equation_systems[part];
-        System& U_constraint_system = equation_systems->add_system<System>(CONSTRAINT_VELOCITY_SYSTEM_NAME);
+        auto& U_constraint_system = equation_systems->add_system<System>(CONSTRAINT_VELOCITY_SYSTEM_NAME);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             std::ostringstream os;
@@ -1358,7 +1358,7 @@ CIBFEMethod::computeCOMOfStructure(Eigen::Vector3d& center_of_mass, EquationSyst
     const std::vector<std::vector<double> >& phi = fe->get_phi();
 
     // Extract the nodal coordinates.
-    PetscVector<double>& X_petsc = dynamic_cast<PetscVector<double>&>(*X_system.current_local_solution.get());
+    auto& X_petsc = dynamic_cast<PetscVector<double>&>(*X_system.current_local_solution.get());
     /*if (!X_petsc.closed())*/ X_petsc.close();
     Vec X_global_vec = X_petsc.vec();
     Vec X_local_ghost_vec;

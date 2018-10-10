@@ -140,7 +140,7 @@ LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntVector
         }
         const LSet<T>& idx_set = *it;
         const bool patch_owns_idx_set = patch_box.contains(i);
-        for (typename LSet<T>::const_iterator n = idx_set.begin(); n != idx_set.end(); ++n)
+        for (auto n = idx_set.begin(); n != idx_set.end(); ++n)
         {
             const typename LSet<T>::value_type& idx = *n;
             const int lag_idx = idx->getLagrangianIndex();

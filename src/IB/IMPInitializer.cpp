@@ -145,7 +145,7 @@ IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     const int max_levels = d_gridding_alg->getMaxLevels();
     if (level_number < 0) level_number = max_levels - 1;
     level_number = std::min(level_number, max_levels - 1);
-    const unsigned int mesh_idx = static_cast<unsigned int>(d_meshes[level_number].size());
+    const auto mesh_idx = static_cast<unsigned int>(d_meshes[level_number].size());
     d_meshes[level_number].push_back(mesh);
 
     // Compute the Cartesian grid spacing on the specified level of the mesh.
@@ -351,8 +351,7 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
         std::vector<std::pair<int, int> > patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
         local_node_count += patch_vertices.size();
-        for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end();
-             ++it)
+        for (auto it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
         {
             const std::pair<int, int>& point_idx = (*it);
             const int lagrangian_idx = getCanonicalLagrangianIndex(point_idx, level_number) + global_index_offset;
@@ -451,9 +450,7 @@ IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> 
         {
             std::vector<std::pair<int, int> > patch_vertices;
             getPatchVertices(patch_vertices, patch, ln, can_be_refined);
-            for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin();
-                 it != patch_vertices.end();
-                 ++it)
+            for (auto it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
             {
                 const std::pair<int, int>& point_idx = (*it);
                 const libMesh::Point& X = getVertexPosn(point_idx, ln);

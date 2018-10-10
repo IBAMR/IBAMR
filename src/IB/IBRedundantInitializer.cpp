@@ -403,9 +403,7 @@ IBRedundantInitializer::initializeSprings()
 
                 int min_idx = 0;
                 int max_idx = d_num_vertex[ln][j];
-                for (std::multimap<int, Edge>::iterator it = d_spring_edge_map[ln][j].begin();
-                     it != d_spring_edge_map[ln][j].end();
-                     ++it)
+                for (auto it = d_spring_edge_map[ln][j].begin(); it != d_spring_edge_map[ln][j].end(); ++it)
                 {
                     Edge& e = it->second;
                     const SpringSpec& spec = d_spring_spec_data[ln][j][e];
@@ -460,9 +458,7 @@ IBRedundantInitializer::initializeXSprings()
                 d_init_xspring_on_level_fcn(j, ln, d_xspring_edge_map[ln][j], d_xspring_spec_data[ln][j]);
                 const int min_idx = 0;
                 const int max_idx = std::accumulate(d_num_vertex[ln].begin(), d_num_vertex[ln].end(), 0);
-                for (std::multimap<int, Edge>::iterator it = d_xspring_edge_map[ln][j].begin();
-                     it != d_xspring_edge_map[ln][j].end();
-                     ++it)
+                for (auto it = d_xspring_edge_map[ln][j].begin(); it != d_xspring_edge_map[ln][j].end(); ++it)
                 {
                     Edge& e = it->second;
                     const XSpringSpec& spec = d_xspring_spec_data[ln][j][e];
@@ -518,9 +514,7 @@ IBRedundantInitializer::initializeBeams()
 
                 const int min_idx = 0;
                 const int max_idx = d_num_vertex[ln][j];
-                for (std::multimap<int, BeamSpec>::const_iterator it = d_beam_spec_data[ln][j].begin();
-                     it != d_beam_spec_data[ln][j].end();
-                     ++it)
+                for (auto it = d_beam_spec_data[ln][j].begin(); it != d_beam_spec_data[ln][j].end(); ++it)
                 {
                     const BeamSpec& e = it->second;
                     const std::pair<int, int>& idxs = e.neighbor_idxs;
@@ -569,8 +563,7 @@ IBRedundantInitializer::initializeTargetPts()
                 int min_idx = 0;
                 int max_idx = d_num_vertex[ln][j];
                 d_target_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
-                for (std::multimap<int, TargetSpec>::const_iterator it = tg_pt_spec.begin(); it != tg_pt_spec.end();
-                     ++it)
+                for (auto it = tg_pt_spec.begin(); it != tg_pt_spec.end(); ++it)
                 {
                     if ((it->first < min_idx) || (it->first > max_idx))
                     {
@@ -656,9 +649,7 @@ IBRedundantInitializer::initializeDirectorAndRods()
                         }
                     }
                 }
-                for (std::multimap<int, Edge>::const_iterator it = d_rod_edge_map[ln][j].begin();
-                     it != d_rod_edge_map[ln][j].end();
-                     ++it)
+                for (auto it = d_rod_edge_map[ln][j].begin(); it != d_rod_edge_map[ln][j].end(); ++it)
                 {
                     const Edge& e = it->second;
                     const RodSpec& rod_spec = d_rod_spec_data[ln][j][e];
@@ -743,7 +734,7 @@ IBRedundantInitializer::initializeBoundaryMass()
                 d_bdry_mass_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
                 int min_idx = 0;
                 int max_idx = d_num_vertex[ln][j];
-                for (std::multimap<int, BdryMassSpec>::const_iterator it = bdry_map.begin(); it != bdry_map.end(); ++it)
+                for (auto it = bdry_map.begin(); it != bdry_map.end(); ++it)
                 {
                     if ((it->first < min_idx) || (it->first > max_idx))
                     {
@@ -797,8 +788,7 @@ IBRedundantInitializer::initializeAnchorPts()
                 d_anchor_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
                 int min_idx = 0;
                 int max_idx = d_num_vertex[ln][j];
-                for (std::multimap<int, AnchorSpec>::const_iterator it = anchor_map.begin(); it != anchor_map.end();
-                     ++it)
+                for (auto it = anchor_map.begin(); it != anchor_map.end(); ++it)
                 {
                     if ((it->first < min_idx) || (it->first > max_idx))
                     {
@@ -838,13 +828,10 @@ IBRedundantInitializer::initializeInstrumentationData()
                 d_init_instrumentation_on_level_fcn(j, ln, new_names, d_instrument_idx[ln][j]);
                 std::vector<bool> encountered_instrument_idx;
                 std::map<int, std::vector<bool> > encountered_node_idxs;
-                for (std::vector<std::string>::iterator i = new_names.begin(); i != new_names.end(); ++i)
-                    instrument_names.push_back(*i);
+                for (auto i = new_names.begin(); i != new_names.end(); ++i) instrument_names.push_back(*i);
                 const int min_idx = 0;
                 const int max_idx = d_num_vertex[ln][j];
-                for (std::map<int, std::pair<int, int> >::iterator it = d_instrument_idx[ln][j].begin();
-                     it != d_instrument_idx[ln][j].end();
-                     ++it)
+                for (auto it = d_instrument_idx[ln][j].begin(); it != d_instrument_idx[ln][j].end(); ++it)
                 {
                     if ((it->first < min_idx) || (it->first >= max_idx))
                     {
@@ -880,8 +867,7 @@ IBRedundantInitializer::initializeInstrumentationData()
 
                     meter_map.first += instrument_offset;
                 }
-                for (std::vector<bool>::iterator meter_it = encountered_instrument_idx.begin();
-                     meter_it != encountered_instrument_idx.end();
+                for (auto meter_it = encountered_instrument_idx.begin(); meter_it != encountered_instrument_idx.end();
                      ++meter_it)
                 {
                     const size_t meter_idx = std::distance(encountered_instrument_idx.begin(), meter_it);
@@ -892,9 +878,7 @@ IBRedundantInitializer::initializeInstrumentationData()
                     }
 
                     std::vector<bool>& meter_node_idxs = encountered_node_idxs[meter_idx];
-                    for (std::vector<bool>::iterator node_it = meter_node_idxs.begin();
-                         node_it != meter_node_idxs.end();
-                         ++node_it)
+                    for (auto node_it = meter_node_idxs.begin(); node_it != meter_node_idxs.end(); ++node_it)
                     {
                         const size_t node_idx = std::distance(meter_node_idxs.begin(), node_it);
                         if ((*node_it) == false)
@@ -944,13 +928,10 @@ IBRedundantInitializer::initializeSourceData()
                                              << source_names.size() << " is not equal to number of radii "
                                              << source_radii.size() << ".\n");
                 }
-                for (std::vector<std::string>::iterator i = new_names.begin(); i != new_names.end(); ++i)
-                    source_names.push_back(*i);
-                for (std::vector<double>::iterator i = new_radii.begin(); i != new_radii.end(); ++i)
-                    source_radii.push_back(*i);
+                for (auto i = new_names.begin(); i != new_names.end(); ++i) source_names.push_back(*i);
+                for (auto i = new_radii.begin(); i != new_radii.end(); ++i) source_radii.push_back(*i);
                 num_source = new_names.size();
-                for (std::map<int, int>::iterator it = d_source_idx[ln][j].begin(); it != d_source_idx[ln][j].end();
-                     ++it)
+                for (auto it = d_source_idx[ln][j].begin(); it != d_source_idx[ln][j].end(); ++it)
                 {
                     int& src_num = it->second;
                     if ((it->first < min_idx) || (it->first >= max_idx))
@@ -1030,8 +1011,7 @@ IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
         std::vector<std::pair<int, int> > patch_vertices;
         getPatchVertices(patch_vertices, patch, hierarchy);
         local_node_count += patch_vertices.size();
-        for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end();
-             ++it)
+        for (auto it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
         {
             const std::pair<int, int>& point_idx = (*it);
             const int lagrangian_idx = getCanonicalLagrangianIndex(point_idx, level_number) + global_index_offset;
@@ -1085,7 +1065,7 @@ IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
             // vertex.
             std::vector<Pointer<Streamable> > node_data =
                 initializeNodeData(point_idx, global_index_offset, level_number);
-            for (std::vector<Pointer<Streamable> >::iterator it = node_data.begin(); it != node_data.end(); ++it)
+            for (auto it = node_data.begin(); it != node_data.end(); ++it)
             {
                 (*it)->registerPeriodicShift(periodic_offset, periodic_displacement);
             }
@@ -1160,8 +1140,7 @@ IBRedundantInitializer::initializeMassDataOnPatchLevel(const unsigned int /*glob
         std::vector<std::pair<int, int> > patch_vertices;
         getPatchVertices(patch_vertices, patch, hierarchy);
         local_node_count += patch_vertices.size();
-        for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end();
-             ++it)
+        for (auto it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
         {
             const std::pair<int, int>& point_idx = (*it);
             const int local_petsc_idx = ++local_idx + local_index_offset;
@@ -1223,8 +1202,7 @@ IBRedundantInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*
         std::vector<std::pair<int, int> > patch_vertices;
         getPatchVertices(patch_vertices, patch, hierarchy);
         local_node_count += patch_vertices.size();
-        for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end();
-             ++it)
+        for (auto it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
         {
             const std::pair<int, int>& point_idx = (*it);
             const int local_petsc_idx = ++local_idx + local_index_offset;
@@ -1277,9 +1255,7 @@ IBRedundantInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarch
         {
             std::vector<std::pair<int, int> > patch_vertices;
             getPatchVerticesAtLevel(patch_vertices, patch, hierarchy, ln);
-            for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin();
-                 it != patch_vertices.end();
-                 ++it)
+            for (auto it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
             {
                 const std::pair<int, int>& point_idx = (*it);
 
@@ -1524,8 +1500,7 @@ std::pair<int, int>
 IBRedundantInitializer::getVertexInstrumentationIndices(const std::pair<int, int>& point_index,
                                                         const int level_number) const
 {
-    std::map<int, std::pair<int, int> >::const_iterator it =
-        d_instrument_idx[level_number][point_index.first].find(point_index.second);
+    auto it = d_instrument_idx[level_number][point_index.first].find(point_index.second);
     if (it != d_instrument_idx[level_number][point_index.first].end())
     {
         return it->second;
@@ -1539,7 +1514,7 @@ IBRedundantInitializer::getVertexInstrumentationIndices(const std::pair<int, int
 int
 IBRedundantInitializer::getVertexSourceIndices(const std::pair<int, int>& point_index, const int level_number) const
 {
-    std::map<int, int>::const_iterator it = d_source_idx[level_number][point_index.first].find(point_index.second);
+    auto it = d_source_idx[level_number][point_index.first].find(point_index.second);
     if (it != d_source_idx[level_number][point_index.first].end())
     {
         return it->second;
@@ -1564,7 +1539,7 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
     {
         std::vector<int> slave_idxs, force_fcn_idxs;
         std::vector<std::vector<double> > parameters;
-        for (std::multimap<int, Edge>::const_iterator it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
+        for (auto it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
              it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx);
              ++it)
         {
@@ -1590,8 +1565,7 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
         const size_t num_base_filename = d_base_filename[level_number].size();
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
-            for (std::multimap<int, Edge>::const_iterator it =
-                     d_xspring_edge_map[level_number][j].lower_bound(mastr_idx);
+            for (auto it = d_xspring_edge_map[level_number][j].lower_bound(mastr_idx);
                  it != d_xspring_edge_map[level_number][j].upper_bound(mastr_idx);
                  ++it)
             {
@@ -1626,7 +1600,7 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
         std::vector<std::pair<int, int> > beam_neighbor_idxs;
         std::vector<double> beam_bend_rigidity;
         std::vector<Vector> beam_mesh_dependent_curvature;
-        for (std::multimap<int, BeamSpec>::const_iterator it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx);
+        for (auto it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx);
              it != d_beam_spec_data[level_number][j].upper_bound(mastr_idx);
              ++it)
         {
@@ -1646,7 +1620,7 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
     {
         std::vector<int> rod_next_idxs;
         std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
-        for (std::multimap<int, Edge>::const_iterator it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
+        for (auto it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
              it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx);
              ++it)
         {

@@ -237,7 +237,7 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
     //
     // An approximate Helmholtz solver is used.
     d_velocity_solver->setHomogeneousBc(true);
-    LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+    auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver) p_velocity_solver->setInitialGuessNonzero(false);
     d_velocity_solver->solveSystem(*U_vec, *F_U_vec);
 
@@ -287,7 +287,7 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
                          F_P_idx,
                          F_P_cc_var);
     d_pressure_solver->setHomogeneousBc(true);
-    LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+    auto p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
     p_pressure_solver->setInitialGuessNonzero(false);
     d_pressure_solver->solveSystem(*Phi_scratch_vec, *F_Phi_vec);
 

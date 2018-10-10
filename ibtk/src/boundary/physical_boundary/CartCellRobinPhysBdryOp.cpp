@@ -281,7 +281,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
 
     // Ensure the target patch data corresponds to a cell centered variable and
     // that the proper number of boundary condition objects have been provided.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         Pointer<CellData<NDIM, double> > patch_data = patch.getPatchData(patch_data_idx);
@@ -315,7 +315,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
     static const bool adjoint_op = false;
     const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         fillGhostCellValuesCodim1(
@@ -323,7 +323,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
     }
     const Array<BoundaryBox<NDIM> > physical_codim2_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(patch);
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         fillGhostCellValuesCodim2(patch_data_idx, physical_codim2_boxes, ghost_width_to_fill, patch, adjoint_op);
@@ -355,7 +355,7 @@ CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch<NDIM>& patch,
 
     // Ensure the target patch data corresponds to a cell centered variable and
     // that the proper number of boundary condition objects have been provided.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         Pointer<CellData<NDIM, double> > patch_data = patch.getPatchData(patch_data_idx);
@@ -398,14 +398,14 @@ CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch<NDIM>& patch,
 #endif
     const Array<BoundaryBox<NDIM> > physical_codim2_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(patch);
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         fillGhostCellValuesCodim2(patch_data_idx, physical_codim2_boxes, ghost_width_to_fill, patch, adjoint_op);
     }
     const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         fillGhostCellValuesCodim1(
@@ -465,7 +465,7 @@ CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx,
         for (int d = 0; d < patch_data_depth; ++d)
         {
             RobinBcCoefStrategy<NDIM>* bc_coef = d_bc_coefs[d];
-            ExtendedRobinBcCoefStrategy* const extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
+            auto const extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
             if (extended_bc_coef)
             {
                 extended_bc_coef->setTargetPatchDataIndex(patch_data_idx);

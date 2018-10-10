@@ -83,7 +83,7 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData
     // Setup any extended Robin BC coef objects.
     for (int depth = 0; depth < Q_data->getDepth(); ++depth)
     {
-        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
+        auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
         if (extended_bc_coef)
         {
             extended_bc_coef->clearTargetPatchDataIndex();
@@ -120,7 +120,7 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData
             if (bc_coefs[depth] == nullptr) continue;
 
             bc_coefs[depth]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, nullptr, *patch, trimmed_bdry_box, fill_time);
-            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
+            auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {

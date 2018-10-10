@@ -94,7 +94,7 @@ void
 WallForceEvaluator::registerWallForceFcn(Wall::WallForceFcnPtr wall_force_fcn)
 {
     // register the given force function pointer with all walls
-    for (std::vector<Wall>::iterator wall_it = d_walls_vec.begin(); wall_it != d_walls_vec.end(); ++wall_it)
+    for (auto wall_it = d_walls_vec.begin(); wall_it != d_walls_vec.end(); ++wall_it)
     { // iterate through walls
         wall_it->registerWallForceFcn(wall_force_fcn);
     }
@@ -130,7 +130,7 @@ WallForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
 
     const int lag_node_idx_current_idx = l_data_manager->getLNodePatchDescriptorIndex();
 
-    for (std::vector<Wall>::iterator wall_it = d_walls_vec.begin(); wall_it != d_walls_vec.end(); ++wall_it)
+    for (auto wall_it = d_walls_vec.begin(); wall_it != d_walls_vec.end(); ++wall_it)
     { // iterate through walls
 
         // get axis (which direction the wall is normal to)
@@ -158,7 +158,7 @@ WallForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
                 // if particles exist in this cell, add forces to them
                 if (search_node_set)
                 {
-                    for (LNodeSet::iterator it = search_node_set->begin(); it != search_node_set->end(); ++it)
+                    for (auto it = search_node_set->begin(); it != search_node_set->end(); ++it)
                     {
                         // get node data
                         LNodeSet::value_type& particle_node_idx = *it;

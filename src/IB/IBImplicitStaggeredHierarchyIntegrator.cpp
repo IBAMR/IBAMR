@@ -892,7 +892,7 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
 PetscErrorCode
 IBImplicitStaggeredHierarchyIntegrator::IBFunction_SAMRAI(SNES snes, Vec x, Vec f, void* ctx)
 {
-    IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
+    auto ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
 
     PetscErrorCode ierr = 1;
     if (ib_integrator->d_solve_for_position)
@@ -1101,7 +1101,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES /*snes*/, Vec x
 PetscErrorCode
 IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_SAMRAI(SNES snes, Vec x, Mat A, Mat B, void* ctx)
 {
-    IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
+    auto ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
 
     PetscErrorCode ierr = 1;
     if (ib_integrator->d_solve_for_position)
@@ -1215,7 +1215,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_SAMRAI(Mat A, Vec x, Vec
     void* ctx;
     ierr = MatShellGetContext(A, &ctx);
     CHKERRQ(ierr);
-    IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
+    auto ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
     if (ib_integrator->d_solve_for_position)
     {
         ierr = ib_integrator->IBJacobianApply_position(x, f);
@@ -1391,7 +1391,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_SAMRAI(PC pc, Vec x, Vec y)
     void* ctx;
     ierr = PCShellGetContext(pc, &ctx);
     CHKERRQ(ierr);
-    IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
+    auto ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
     if (ib_integrator->d_solve_for_position)
     {
         ierr = ib_integrator->IBPCApply_position(x, y);
@@ -1538,7 +1538,7 @@ IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply_SAMRAI(Mat A, Vec x
     void* ctx;
     ierr = MatShellGetContext(A, &ctx);
     CHKERRQ(ierr);
-    IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
+    auto ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
     ierr = ib_integrator->lagrangianSchurApply(x, y);
     return ierr;
 } // lagrangianSchurApply_SAMRAI

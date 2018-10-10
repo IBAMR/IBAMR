@@ -97,7 +97,7 @@ inline IBSpringForceSpec::~IBSpringForceSpec()
 inline unsigned int
 IBSpringForceSpec::getNumberOfSprings() const
 {
-    const unsigned int num_springs = static_cast<unsigned int>(d_slave_idxs.size());
+    const auto num_springs = static_cast<unsigned int>(d_slave_idxs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
     TBOX_ASSERT(num_springs == d_parameters.size());
@@ -179,7 +179,7 @@ IBSpringForceSpec::getDataStreamSize() const
 inline void
 IBSpringForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
-    const unsigned int num_springs = static_cast<unsigned int>(d_slave_idxs.size());
+    const auto num_springs = static_cast<unsigned int>(d_slave_idxs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
     TBOX_ASSERT(num_springs == d_parameters.size());

@@ -531,9 +531,7 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
                 {
                     const std::map<int, Box<NDIM> > neighbor_overlap =
                         d_patch_neighbor_overlap[level_num][patch_counter][axis];
-                    for (std::map<int, Box<NDIM> >::const_iterator cit = neighbor_overlap.begin();
-                         cit != neighbor_overlap.end();
-                         ++cit)
+                    for (auto cit = neighbor_overlap.begin(); cit != neighbor_overlap.end(); ++cit)
                     {
                         const int src_patch_num = cit->first;
                         const Box<NDIM>& overlap = cit->second;

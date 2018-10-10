@@ -334,9 +334,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
 
         const std::vector<RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
         bool null_bc_coefs = true;
-        for (std::vector<RobinBcCoefStrategy<NDIM>*>::const_iterator cit = robin_bc_coefs.begin();
-             cit != robin_bc_coefs.end();
-             ++cit)
+        for (auto cit = robin_bc_coefs.begin(); cit != robin_bc_coefs.end(); ++cit)
         {
             if (*cit) null_bc_coefs = false;
         }
@@ -516,9 +514,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         const std::vector<RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
 #if !defined(NDEBUG)
         bool null_bc_coefs = true;
-        for (std::vector<RobinBcCoefStrategy<NDIM>*>::const_iterator cit = robin_bc_coefs.begin();
-             cit != robin_bc_coefs.end();
-             ++cit)
+        for (auto cit = robin_bc_coefs.begin(); cit != robin_bc_coefs.end(); ++cit)
         {
             if (*cit) null_bc_coefs = false;
         }
