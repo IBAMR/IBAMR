@@ -147,6 +147,17 @@ using TensorSurfaceFcnPtr =
              double data_time,
              void* ctx);
 
+inline void
+copy_and_synch(libMesh::NumericVector<double>& v_in,
+               libMesh::NumericVector<double>& v_out,
+               const bool close_v_in = true,
+               const bool close_v_out = true)
+{
+    if (close_v_in) v_in.close();
+    v_out = v_in;
+    if (close_v_out) v_out.close();
+}
+
 template <class MultiArray, class Array>
 inline void
 get_values_for_interpolation(MultiArray& U_node,
