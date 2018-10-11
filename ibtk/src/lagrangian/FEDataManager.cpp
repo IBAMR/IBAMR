@@ -472,7 +472,7 @@ FEDataManager::buildGhostedSolutionVector(const std::string& system_name, const 
         d_system_ghost_vec[system_name] = sol_ghost_vec.release();
     }
     NumericVector<double>* sol_ghost_vec = d_system_ghost_vec[system_name];
-    if (localize_data) sol_vec->localize(*sol_ghost_vec);
+    if (localize_data) copy_and_synch(*sol_vec, *sol_ghost_vec, /*close_v_in*/ false);
 
     IBTK_TIMER_STOP(t_build_ghosted_solution_vector);
     return sol_ghost_vec;
@@ -599,7 +599,7 @@ FEDataManager::spread(const int f_data_idx,
         // values).
         UniquePtr<NumericVector<double> > F_dX_vec = F_vec.clone();
         UniquePtr<NumericVector<double> > dX_vec = F_vec.clone();
-        buildDiagonalL2MassMatrix(system_name)->localize(*dX_vec);
+        copy_and_synch(*buildDiagonalL2MassMatrix(system_name), *dX_vec, /*close_v_in*/ false);
         F_dX_vec->pointwise_mult(F_vec, *dX_vec);
         F_dX_vec->close();
 
@@ -1263,7 +1263,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
         // Scale by the diagonal mass matrix.
         F_vec.close();
         UniquePtr<NumericVector<double> > dX_vec = F_vec.clone();
-        buildDiagonalL2MassMatrix(system_name)->localize(*dX_vec);
+        copy_and_synch(*buildDiagonalL2MassMatrix(system_name), *dX_vec, /*close_v_in*/ false);
         F_vec.pointwise_mult(F_vec, *dX_vec);
         if (close_F) F_vec.close();
     }
@@ -2193,7 +2193,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         NumericVector<double>* X_vec = getCoordsVector();
         UniquePtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
         X_ghost_vec->init(X_vec->size(), X_vec->local_size(), X_ghost_dofs, true, GHOSTED);
-        X_vec->localize(*X_ghost_vec);
+        copy_and_synch(*X_vec, *X_ghost_vec, /*close_v_in*/ false);
         auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec.get());
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
@@ -2502,7 +2502,7 @@ FEDataManager::computeActiveElementBoundingBoxes()
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>& X_vec = *X_system.solution;
     NumericVector<double>& X_ghost_vec = *X_system.current_local_solution;
-    X_vec.localize(X_ghost_vec);
+    copy_and_synch(X_vec, X_ghost_vec, /*close_v_in*/ false);
 
     // Compute the lower and upper bounds of all active local elements in the
     // mesh.  Assumes nodal basis functions.
@@ -2656,7 +2656,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         collect_unique_elems(frontier_elems, frontier_patch_elems);
         collectGhostDOFIndices(X_ghost_dofs, frontier_elems, COORDINATES_SYSTEM_NAME);
         X_ghost_vec->init(X_vec->size(), X_vec->local_size(), X_ghost_dofs, true, GHOSTED);
-        X_vec->localize(*X_ghost_vec);
+        copy_and_synch(*X_vec, *X_ghost_vec, /*close_v_in*/ false);
         auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec.get());
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
