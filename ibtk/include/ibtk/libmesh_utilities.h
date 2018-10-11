@@ -47,6 +47,7 @@
 #include "libmesh/type_tensor.h"
 #include "libmesh/type_vector.h"
 #include "libmesh/vector_value.h"
+#include "ibtk/IBTK_CHKERRQ.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
@@ -154,7 +155,10 @@ copy_and_synch(libMesh::NumericVector<double>& v_in,
                const bool close_v_out = true)
 {
     if (close_v_in) v_in.close();
-    v_out = v_in;
+    auto v_in_petsc = static_cast<libMesh::PetscVector<double>*>(&v_in);
+    auto v_out_petsc = static_cast<libMesh::PetscVector<double>*>(&v_out);
+    PetscErrorCode ierr = VecCopy(v_in_petsc->vec(), v_out_petsc->vec());
+    IBTK_CHKERRQ(ierr);
     if (close_v_out) v_out.close();
 }
 
