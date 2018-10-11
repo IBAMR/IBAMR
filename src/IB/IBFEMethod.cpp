@@ -873,36 +873,29 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         // Reset time-dependent Lagrangian data.
-        d_X_new_vecs[part]->close();
-        *d_X_systems[part]->solution = *d_X_new_vecs[part];
-        copy_and_synch(*d_X_systems[part]->solution, *d_X_systems[part]->current_local_solution, /*close_v_in*/ false);
+        copy_and_synch(*d_X_new_vecs[part], *d_X_systems[part]->solution);
+        *d_X_systems[part]->current_local_solution = *d_X_new_vecs[part];
         delete d_X_new_vecs[part];
         delete d_X_half_vecs[part];
 
-        d_U_new_vecs[part]->close();
-        *d_U_systems[part]->solution = *d_U_new_vecs[part];
-        copy_and_synch(*d_U_systems[part]->solution, *d_U_systems[part]->current_local_solution, /*close_v_in*/ false);
+        copy_and_synch(*d_U_new_vecs[part], *d_U_systems[part]->solution);
+        *d_U_systems[part]->current_local_solution = *d_U_new_vecs[part];
         delete d_U_new_vecs[part];
         delete d_U_half_vecs[part];
 
-        d_F_half_vecs[part]->close();
-        *d_F_systems[part]->solution = *d_F_half_vecs[part];
-        copy_and_synch(*d_F_systems[part]->solution, *d_F_systems[part]->current_local_solution, /*close_v_in*/ false);
+        copy_and_synch(*d_F_half_vecs[part], *d_F_systems[part]->solution);
+        *d_F_systems[part]->current_local_solution = *d_F_half_vecs[part];
 
         if (d_lag_body_source_part[part])
         {
-            d_Q_half_vecs[part]->close();
-            *d_Q_systems[part]->solution = *d_Q_half_vecs[part];
-            copy_and_synch(
-                *d_Q_systems[part]->solution, *d_Q_systems[part]->current_local_solution, /*close_v_in*/ false);
+            copy_and_synch(*d_Q_half_vecs[part], *d_Q_systems[part]->solution);
+            *d_Q_systems[part]->current_local_solution = *d_Q_half_vecs[part];
         }
 
         if (d_is_stress_normalization_part[part])
         {
-            d_Phi_half_vecs[part]->close();
-            *d_Phi_systems[part]->solution = *d_Phi_half_vecs[part];
-            copy_and_synch(
-                *d_Phi_systems[part]->solution, *d_Phi_systems[part]->current_local_solution, /*close_v_in*/ false);
+            copy_and_synch(*d_Phi_half_vecs[part], *d_Phi_systems[part]->solution);
+            *d_Phi_systems[part]->current_local_solution = *d_Phi_half_vecs[part];
         }
 
         if (d_direct_forcing_kinematics_data[part])
@@ -1273,7 +1266,6 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         // Setup global and elemental right-hand-side vectors.
         NumericVector<double>* Q_rhs_vec = Q_system.rhs;
         Q_rhs_vec->zero();
-        Q_rhs_vec->close();
         DenseVector<double> Q_rhs_e;
 
         TensorValue<double> FF, FF_inv_trans;
@@ -1336,8 +1328,14 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
         PetscVector<double>* Q_ghost_vec = d_Q_IB_ghost_vecs[part];
         copy_and_synch(*X_vec, *X_ghost_vec, /*close_v_in*/ false);
         copy_and_synch(*Q_vec, *Q_ghost_vec, /*close_v_in*/ false);
-        d_fe_data_managers[part]->spread(
-            q_data_idx, *Q_ghost_vec, *X_ghost_vec, SOURCE_SYSTEM_NAME, q_phys_bdry_op, data_time);
+        d_fe_data_managers[part]->spread(q_data_idx,
+                                         *Q_ghost_vec,
+                                         *X_ghost_vec,
+                                         SOURCE_SYSTEM_NAME,
+                                         q_phys_bdry_op,
+                                         data_time,
+                                         /*close_Q*/ false,
+                                         /*close_X*/ false);
     }
     return;
 }
@@ -1793,7 +1791,6 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     // Setup global and elemental right-hand-side vectors.
     NumericVector<double>* Phi_rhs_vec = Phi_system.rhs;
     Phi_rhs_vec->zero();
-    Phi_rhs_vec->close();
     DenseVector<double> Phi_rhs_e;
 
     // Set up boundary conditions for Phi.
