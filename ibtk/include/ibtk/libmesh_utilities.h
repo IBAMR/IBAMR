@@ -154,9 +154,16 @@ copy_and_synch(libMesh::NumericVector<double>& v_in,
                const bool close_v_in = true,
                const bool close_v_out = true)
 {
-    if (close_v_in) v_in.close();
+#if defined(NDEBUG)
     auto v_in_petsc = static_cast<libMesh::PetscVector<double>*>(&v_in);
     auto v_out_petsc = static_cast<libMesh::PetscVector<double>*>(&v_out);
+#else
+    auto v_in_petsc = dynamic_cast<libMesh::PetscVector<double>*>(&v_in);
+    auto v_out_petsc = dynamic_cast<libMesh::PetscVector<double>*>(&v_out);
+    TBOX_ASSERT(v_in_petsc);
+    TBOX_ASSERT(v_out_petsc);
+#endif
+    if (close_v_in) v_in.close();
     PetscErrorCode ierr = VecCopy(v_in_petsc->vec(), v_out_petsc->vec());
     IBTK_CHKERRQ(ierr);
     if (close_v_out) v_out.close();
