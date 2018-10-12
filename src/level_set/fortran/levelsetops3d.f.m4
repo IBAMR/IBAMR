@@ -2591,5 +2591,165 @@ c
       enddo
       return
       end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Carry out sign sweeping algorithm
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine signsweep3d(
+     &     U,U_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     large_dist,
+     &     n_updates)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER U_gcw
+      REAL large_dist
+c
+c     Input/Output.
+c
+      REAL U(CELL3d(ilower,iupper,U_gcw))
+      INTEGER n_updates
 
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      REAL sgn, sgn_nbr
+    
+      
+c     Do the four sweeping directions.
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+               if (dabs(U(i0,i1,i2)) .ge. large_dist) then
+                  sgn = sign(one,U(i0,i1,i2))
+                  sgn_nbr = sign(one,U(i0-1,i1,i2))
+                  if (sgn .ne. sgn_nbr) then
+                     U(i0,i1,i2) = dabs(U(i0,i1,i2))*sgn_nbr
+                     n_updates = n_updates + 1  
+                  endif               
+               endif 
+            enddo
+         enddo
+      enddo
+
+      do i2 = iupper2,ilower2,-1
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+               if (dabs(U(i0,i1,i2)) .ge. large_dist) then
+                  sgn = sign(one,U(i0,i1,i2))
+                  sgn_nbr = sign(one,U(i0,i1,i2+1))
+                  if (sgn .ne. sgn_nbr) then
+                     U(i0,i1,i2) = dabs(U(i0,i1,i2))*sgn_nbr
+                     n_updates = n_updates + 1  
+                  endif               
+               endif 
+            enddo
+         enddo
+      enddo
+
+      do i2 = ilower2,iupper2
+         do i1 = iupper1,ilower1,-1
+            do i0 = ilower0,iupper0
+               if (dabs(U(i0,i1,i2)) .ge. large_dist) then
+                  sgn = sign(one,U(i0,i1,i2))
+                  sgn_nbr = sign(one,U(i0,i1+1,i2))
+                  if (sgn .ne. sgn_nbr) then
+                     U(i0,i1,i2) = dabs(U(i0,i1,i2))*sgn_nbr
+                     n_updates = n_updates + 1  
+                  endif               
+               endif 
+            enddo
+         enddo
+      enddo
+
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1
+            do i0 = iupper0,ilower0,-1
+               if (dabs(U(i0,i1,i2)) .ge. large_dist) then
+                  sgn = sign(one,U(i0,i1,i2))
+                  sgn_nbr = sign(one,U(i0+1,i1,i2))
+                  if (sgn .ne. sgn_nbr) then
+                     U(i0,i1,i2) = dabs(U(i0,i1,i2))*sgn_nbr
+                     n_updates = n_updates + 1  
+                  endif               
+               endif 
+            enddo
+         enddo
+      enddo
+
+      do i2 = ilower2,iupper2
+         do i1 = iupper1,ilower1,-1
+            do i0 = iupper0,ilower0,-1
+               if (dabs(U(i0,i1,i2)) .ge. large_dist) then
+                  sgn = sign(one,U(i0,i1,i2))
+                  sgn_nbr = sign(one,U(i0+1,i1+1,i2))
+                  if (sgn .ne. sgn_nbr) then
+                     U(i0,i1,i2) = dabs(U(i0,i1,i2))*sgn_nbr
+                     n_updates = n_updates + 1  
+                  endif               
+               endif 
+            enddo
+         enddo
+      enddo
+
+      do i2 = iupper2,ilower2,-1
+         do i1 = ilower1,iupper1
+            do i0 = iupper0,ilower0,-1
+               if (dabs(U(i0,i1,i2)) .ge. large_dist) then
+                  sgn = sign(one,U(i0,i1,i2))
+                  sgn_nbr = sign(one,U(i0+1,i1,i2+1))
+                  if (sgn .ne. sgn_nbr) then
+                     U(i0,i1,i2) = dabs(U(i0,i1,i2))*sgn_nbr
+                     n_updates = n_updates + 1  
+                  endif               
+               endif 
+            enddo
+         enddo
+      enddo
+
+      do i2 = iupper2,ilower2,-1
+         do i1 = iupper1,ilower1,-1
+            do i0 = ilower0,iupper0
+               if (dabs(U(i0,i1,i2)) .ge. large_dist) then
+                  sgn = sign(one,U(i0,i1,i2))
+                  sgn_nbr = sign(one,U(i0,i1+1,i2+1))
+                  if (sgn .ne. sgn_nbr) then
+                     U(i0,i1,i2) = dabs(U(i0,i1,i2))*sgn_nbr
+                     n_updates = n_updates + 1  
+                  endif               
+               endif 
+            enddo
+         enddo
+      enddo
+
+      do i2 = iupper2,ilower2,-1
+         do i1 = iupper1,ilower1,-1
+            do i0 = iupper0,ilower0,-1
+               if (dabs(U(i0,i1,i2)) .ge. large_dist) then
+                  sgn = sign(one,U(i0,i1,i2))
+                  sgn_nbr = sign(one,U(i0+1,i1+1,i2+1))
+                  if (sgn .ne. sgn_nbr) then
+                     U(i0,i1,i2) = dabs(U(i0,i1,i2))*sgn_nbr
+                     n_updates = n_updates + 1  
+                  endif               
+               endif 
+            enddo
+         enddo
+      enddo
+      
+      return
+      end
  
