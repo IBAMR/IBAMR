@@ -261,8 +261,7 @@ FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
         {
             NumericVector<double>* ghost_data =
                 d_fe_data_manager->buildGhostedSolutionVector(system.name(), /*synch_data*/ false);
-            system_data->localize(*ghost_data);
-            ghost_data->close();
+            copy_and_synch(*system_data, *ghost_data, /*close_v_in*/ false);
             system_data = ghost_data;
         }
 
