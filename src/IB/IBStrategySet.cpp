@@ -89,9 +89,9 @@ IBStrategySet::~IBStrategySet()
 void
 IBStrategySet::registerIBHierarchyIntegrator(IBHierarchyIntegrator* ib_solver)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->registerIBHierarchyIntegrator(ib_solver);
+        strategy->registerIBHierarchyIntegrator(ib_solver);
     }
     return;
 } // registerIBHierarchyIntegrator
@@ -99,9 +99,9 @@ IBStrategySet::registerIBHierarchyIntegrator(IBHierarchyIntegrator* ib_solver)
 void
 IBStrategySet::registerEulerianVariables()
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->registerEulerianVariables();
+        strategy->registerEulerianVariables();
     }
     return;
 } // registerEulerianVariables
@@ -109,9 +109,9 @@ IBStrategySet::registerEulerianVariables()
 void
 IBStrategySet::registerEulerianCommunicationAlgorithms()
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->registerEulerianCommunicationAlgorithms();
+        strategy->registerEulerianCommunicationAlgorithms();
     }
     return;
 } // registerEulerianCommunicationAlgorithms
@@ -120,9 +120,9 @@ const IntVector<NDIM>&
 IBStrategySet::getMinimumGhostCellWidth() const
 {
     static IntVector<NDIM> ghost_cell_width = 0;
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        ghost_cell_width = IntVector<NDIM>::max(ghost_cell_width, (*cit)->getMinimumGhostCellWidth());
+        ghost_cell_width = IntVector<NDIM>::max(ghost_cell_width, strategy->getMinimumGhostCellWidth());
     }
     return ghost_cell_width;
 } // getMinimumGhostCellWidth
@@ -130,9 +130,9 @@ IBStrategySet::getMinimumGhostCellWidth() const
 void
 IBStrategySet::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->setupTagBuffer(tag_buffer, gridding_alg);
+        strategy->setupTagBuffer(tag_buffer, gridding_alg);
     }
     return;
 } // setupTagBuffer
@@ -140,9 +140,9 @@ IBStrategySet::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<
 void
 IBStrategySet::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->preprocessIntegrateData(current_time, new_time, num_cycles);
+        strategy->preprocessIntegrateData(current_time, new_time, num_cycles);
     }
     return;
 } // preprocessIntegrateData
@@ -150,9 +150,9 @@ IBStrategySet::preprocessIntegrateData(double current_time, double new_time, int
 void
 IBStrategySet::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->postprocessIntegrateData(current_time, new_time, num_cycles);
+        strategy->postprocessIntegrateData(current_time, new_time, num_cycles);
     }
     return;
 } // postprocessIntegrateData
@@ -160,9 +160,9 @@ IBStrategySet::postprocessIntegrateData(double current_time, double new_time, in
 void
 IBStrategySet::updateFixedLEOperators()
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->updateFixedLEOperators();
+        strategy->updateFixedLEOperators();
     }
     return;
 } // updateFixedLEOperators
@@ -173,9 +173,9 @@ IBStrategySet::interpolateVelocity(int u_data_idx,
                                    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                    double data_time)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);
+        strategy->interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);
     }
     return;
 } // interpolateVelocity
@@ -183,9 +183,9 @@ IBStrategySet::interpolateVelocity(int u_data_idx,
 void
 IBStrategySet::IBStrategySet::forwardEulerStep(double current_time, double new_time)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->forwardEulerStep(current_time, new_time);
+        strategy->forwardEulerStep(current_time, new_time);
     }
     return;
 } // eulerStep
@@ -193,9 +193,9 @@ IBStrategySet::IBStrategySet::forwardEulerStep(double current_time, double new_t
 void
 IBStrategySet::midpointStep(double current_time, double new_time)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->midpointStep(current_time, new_time);
+        strategy->midpointStep(current_time, new_time);
     }
     return;
 } // midpointStep
@@ -203,9 +203,9 @@ IBStrategySet::midpointStep(double current_time, double new_time)
 void
 IBStrategySet::trapezoidalStep(double current_time, double new_time)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->trapezoidalStep(current_time, new_time);
+        strategy->trapezoidalStep(current_time, new_time);
     }
     return;
 } // trapezoidalStep
@@ -213,9 +213,9 @@ IBStrategySet::trapezoidalStep(double current_time, double new_time)
 void
 IBStrategySet::computeLagrangianForce(double data_time)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->computeLagrangianForce(data_time);
+        strategy->computeLagrangianForce(data_time);
     }
     return;
 } // computeLagrangianForce
@@ -226,9 +226,9 @@ IBStrategySet::spreadForce(int f_data_idx,
                            const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
                            double data_time)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
+        strategy->spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
     }
     return;
 } // spreadForce
@@ -237,9 +237,9 @@ bool
 IBStrategySet::hasFluidSources() const
 {
     bool has_fluid_sources = false;
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        has_fluid_sources = has_fluid_sources || (*cit)->hasFluidSources();
+        has_fluid_sources = has_fluid_sources || strategy->hasFluidSources();
     }
     return has_fluid_sources;
 } // hasFluidSources
@@ -247,9 +247,9 @@ IBStrategySet::hasFluidSources() const
 void
 IBStrategySet::computeLagrangianFluidSource(double data_time)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->computeLagrangianFluidSource(data_time);
+        strategy->computeLagrangianFluidSource(data_time);
     }
     return;
 } // computeLagrangianFluidSource
@@ -260,9 +260,9 @@ IBStrategySet::spreadFluidSource(int q_data_idx,
                                  const std::vector<Pointer<RefineSchedule<NDIM> > >& q_prolongation_scheds,
                                  double data_time)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->spreadFluidSource(q_data_idx, q_phys_bdry_op, q_prolongation_scheds, data_time);
+        strategy->spreadFluidSource(q_data_idx, q_phys_bdry_op, q_prolongation_scheds, data_time);
     }
     return;
 } // spreadFluidSource
@@ -273,9 +273,9 @@ IBStrategySet::interpolatePressure(int p_data_idx,
                                    const std::vector<Pointer<RefineSchedule<NDIM> > >& p_ghost_fill_scheds,
                                    double data_time)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->interpolatePressure(p_data_idx, p_synch_scheds, p_ghost_fill_scheds, data_time);
+        strategy->interpolatePressure(p_data_idx, p_synch_scheds, p_ghost_fill_scheds, data_time);
     }
     return;
 } // interpolatePressure
@@ -283,9 +283,9 @@ IBStrategySet::interpolatePressure(int p_data_idx,
 void
 IBStrategySet::preprocessSolveFluidEquations(double current_time, double new_time, int cycle_num)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
+        strategy->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
     }
     return;
 } // preprocessSolveFluidEquations
@@ -293,9 +293,9 @@ IBStrategySet::preprocessSolveFluidEquations(double current_time, double new_tim
 void
 IBStrategySet::postprocessSolveFluidEquations(double current_time, double new_time, int cycle_num)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
+        strategy->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
     }
     return;
 } // postprocessSolveFluidEquations
@@ -303,9 +303,9 @@ IBStrategySet::postprocessSolveFluidEquations(double current_time, double new_ti
 void
 IBStrategySet::postprocessData()
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->postprocessData();
+        strategy->postprocessData();
     }
     return;
 } // postprocessData
@@ -320,16 +320,16 @@ IBStrategySet::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy
                                         double init_data_time,
                                         bool initial_time)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->initializePatchHierarchy(hierarchy,
-                                         gridding_alg,
-                                         u_data_idx,
-                                         u_synch_scheds,
-                                         u_ghost_fill_scheds,
-                                         integrator_step,
-                                         init_data_time,
-                                         initial_time);
+        strategy->initializePatchHierarchy(hierarchy,
+                                           gridding_alg,
+                                           u_data_idx,
+                                           u_synch_scheds,
+                                           u_ghost_fill_scheds,
+                                           integrator_step,
+                                           init_data_time,
+                                           initial_time);
     }
     return;
 } // initializePatchHierarchy
@@ -337,9 +337,9 @@ IBStrategySet::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy
 void
 IBStrategySet::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->registerLoadBalancer(load_balancer, workload_data_idx);
+        strategy->registerLoadBalancer(load_balancer, workload_data_idx);
     }
     return;
 } // registerLoadBalancer
@@ -347,9 +347,9 @@ IBStrategySet::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, 
 void
 IBStrategySet::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > hierarchy, int workload_data_idx)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->updateWorkloadEstimates(hierarchy, workload_data_idx);
+        strategy->updateWorkloadEstimates(hierarchy, workload_data_idx);
     }
     return;
 } // updateWorkloadEstimates
@@ -358,9 +358,9 @@ void
 IBStrategySet::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
                                        Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->beginDataRedistribution(hierarchy, gridding_alg);
+        strategy->beginDataRedistribution(hierarchy, gridding_alg);
     }
     return;
 } // beginDataRedistribution
@@ -369,9 +369,9 @@ void
 IBStrategySet::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
                                      Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->endDataRedistribution(hierarchy, gridding_alg);
+        strategy->endDataRedistribution(hierarchy, gridding_alg);
     }
     return;
 } // endDataRedistribution
@@ -385,9 +385,9 @@ IBStrategySet::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
                                    Pointer<BasePatchLevel<NDIM> > old_level,
                                    bool allocate_data)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->initializeLevelData(
+        strategy->initializeLevelData(
             hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     }
     return;
@@ -398,9 +398,9 @@ IBStrategySet::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hi
                                            int coarsest_level,
                                            int finest_level)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
+        strategy->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     }
     return;
 } // resetHierarchyConfiguration
@@ -413,9 +413,9 @@ IBStrategySet::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > hierarch
                                      bool initial_time,
                                      bool uses_richardson_extrapolation_too)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->applyGradientDetector(
+        strategy->applyGradientDetector(
             hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     }
     return;
@@ -424,9 +424,9 @@ IBStrategySet::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > hierarch
 void
 IBStrategySet::putToDatabase(Pointer<Database> db)
 {
-    for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*cit)->putToDatabase(db);
+        strategy->putToDatabase(db);
     }
     return;
 } // putToDatabase

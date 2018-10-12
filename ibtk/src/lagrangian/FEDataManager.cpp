@@ -197,9 +197,8 @@ inline short int
 get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
 {
     short int dirichlet_bdry_ids = 0;
-    for (auto cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
+    for (const auto& bdry_id : bdry_ids)
     {
-        const short int bdry_id = *cit;
         if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID ||
             bdry_id == FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID ||
             bdry_id == FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID ||
@@ -295,13 +294,13 @@ FEDataManager::getManager(const std::string& name,
 void
 FEDataManager::freeAllManagers()
 {
-    for (auto it = s_data_manager_instances.begin(); it != s_data_manager_instances.end(); ++it)
+    for (auto& data_manager_instance : s_data_manager_instances)
     {
-        if (it->second)
+        if (data_manager_instance.second)
         {
-            delete it->second;
+            delete data_manager_instance.second;
         }
-        it->second = nullptr;
+        data_manager_instance.second = nullptr;
     }
     return;
 } // freeAllManagers
@@ -427,9 +426,9 @@ FEDataManager::reinitElementMappings()
     d_active_patch_elem_map.clear();
     d_active_patch_node_map.clear();
     d_active_patch_ghost_dofs.clear();
-    for (auto it = d_system_ghost_vec.begin(); it != d_system_ghost_vec.end(); ++it)
+    for (const auto& ghost_vec : d_system_ghost_vec)
     {
-        delete it->second;
+        delete ghost_vec.second;
     }
     d_system_ghost_vec.clear();
 
@@ -638,17 +637,17 @@ FEDataManager::spread(const int f_data_idx,
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
                     IBTK::get_nodal_dof_indices(F_dof_map, n, i, F_idxs);
-                    for (auto it = F_idxs.begin(); it != F_idxs.end(); ++it)
+                    for (const auto& F_idx : F_idxs)
                     {
-                        F_dX_node.push_back(F_dX_local_soln[F_dX_petsc_vec->map_global_to_local_index(*it)]);
+                        F_dX_node.push_back(F_dX_local_soln[F_dX_petsc_vec->map_global_to_local_index(F_idx)]);
                     }
                 }
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     IBTK::get_nodal_dof_indices(X_dof_map, n, d, X_idxs);
-                    for (auto it = X_idxs.begin(); it != X_idxs.end(); ++it)
+                    for (const auto& X_idx : X_idxs)
                     {
-                        X_node.push_back(X_local_soln[X_petsc_vec->map_global_to_local_index(*it)]);
+                        X_node.push_back(X_local_soln[X_petsc_vec->map_global_to_local_index(X_idx)]);
                     }
                 }
             }
@@ -1157,9 +1156,9 @@ FEDataManager::interpWeighted(const int f_data_idx,
     const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
 
     // Communicate any unsynchronized ghost data.
-    for (unsigned int k = 0; k < f_refine_scheds.size(); ++k)
+    for (const auto& f_refine_sched : f_refine_scheds)
     {
-        if (f_refine_scheds[k]) f_refine_scheds[k]->fillData(fill_data_time);
+        if (f_refine_sched) f_refine_sched->fillData(fill_data_time);
     }
 
     if (close_X) X_vec.close();
@@ -1798,11 +1797,10 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name)
                                 if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[comp])) continue;
                                 const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
                                 if (!dof_map.is_constrained_dof(node_dof_index)) continue;
-                                for (auto cit = dof_indices.begin(); cit != dof_indices.end(); ++cit)
+                                for (const auto& idx : dof_indices)
                                 {
-                                    const unsigned int k = *cit;
-                                    M_mat->set(node_dof_index, k, (node_dof_index == k ? 1.0 : 0.0));
-                                    M_mat->set(k, node_dof_index, (node_dof_index == k ? 1.0 : 0.0));
+                                    M_mat->set(node_dof_index, idx, (node_dof_index == idx ? 1.0 : 0.0));
+                                    M_mat->set(idx, node_dof_index, (node_dof_index == idx ? 1.0 : 0.0));
                                 }
                             }
                         }
@@ -2378,21 +2376,21 @@ FEDataManager::FEDataManager(const std::string& object_name,
 
 FEDataManager::~FEDataManager()
 {
-    for (auto it = d_system_ghost_vec.begin(); it != d_system_ghost_vec.end(); ++it)
+    for (const auto& ghost_vec : d_system_ghost_vec)
     {
-        delete it->second;
+        delete ghost_vec.second;
     }
-    for (auto it = d_L2_proj_solver.begin(); it != d_L2_proj_solver.end(); ++it)
+    for (const auto& solver : d_L2_proj_solver)
     {
-        delete it->second;
+        delete solver.second;
     }
-    for (auto it = d_L2_proj_matrix.begin(); it != d_L2_proj_matrix.end(); ++it)
+    for (const auto& matrix : d_L2_proj_matrix)
     {
-        delete it->second;
+        delete matrix.second;
     }
-    for (auto it = d_L2_proj_matrix_diag.begin(); it != d_L2_proj_matrix_diag.end(); ++it)
+    for (const auto& matrix : d_L2_proj_matrix_diag)
     {
-        delete it->second;
+        delete matrix.second;
     }
     return;
 } // ~FEDataManager
@@ -2736,9 +2734,8 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
             frontier_elems.clear();
             if (local_elems.empty()) continue;
 
-            for (auto cit = local_elems.begin(); cit != local_elems.end(); ++cit)
+            for (const auto& elem : local_elems)
             {
-                const Elem* const elem = *cit;
                 for (unsigned int n = 0; n < elem->n_neighbors(); ++n)
                 {
                     Elem* const nghbr_elem = elem->neighbor(n);
@@ -2787,9 +2784,8 @@ FEDataManager::collectActivePatchNodes(std::vector<std::vector<Node*> >& active_
     for (unsigned int k = 0; k < num_local_patches; ++k)
     {
         std::set<dof_id_type> active_node_ids;
-        for (unsigned int e = 0; e < active_patch_elems[k].size(); ++e)
+        for (const auto& elem : active_patch_elems[k])
         {
-            const Elem* const elem = active_patch_elems[k][e];
             for (unsigned int n = 0; n < elem->n_nodes(); ++n)
             {
                 active_node_ids.insert(elem->node_id(n));
@@ -2797,9 +2793,9 @@ FEDataManager::collectActivePatchNodes(std::vector<std::vector<Node*> >& active_
         }
         const unsigned int num_active_nodes = active_node_ids.size();
         active_patch_nodes[k].reserve(num_active_nodes);
-        for (auto it = active_node_ids.begin(); it != active_node_ids.end(); ++it)
+        for (const auto& active_node_id : active_node_ids)
         {
-            active_patch_nodes[k].push_back(const_cast<Node*>(mesh.node_ptr(*it)));
+            active_patch_nodes[k].push_back(const_cast<Node*>(mesh.node_ptr(active_node_id)));
         }
     }
     return;
@@ -2825,9 +2821,9 @@ FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
         if (constrained_dof >= first_local_dof && constrained_dof < end_local_dof)
         {
             const DofConstraintRow& constraint_row = i->second;
-            for (auto j = constraint_row.begin(); j != constraint_row.end(); ++j)
+            for (const auto& elem : constraint_row)
             {
-                const unsigned int constraint_dependency = j->first;
+                const unsigned int constraint_dependency = elem.first;
                 if (constraint_dependency < first_local_dof || constraint_dependency >= end_local_dof)
                 {
                     constraint_dependency_dof_list.push_back(constraint_dependency);
@@ -2838,10 +2834,8 @@ FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
 
     // Record the local DOFs associated with the active local elements.
     std::set<unsigned int> ghost_dof_set(constraint_dependency_dof_list.begin(), constraint_dependency_dof_list.end());
-    for (unsigned int e = 0; e < active_elems.size(); ++e)
+    for (const auto& elem : active_elems)
     {
-        const Elem* const elem = active_elems[e];
-
         // DOFs associated with the element.
         for (unsigned int var_num = 0; var_num < elem->n_vars(sys_num); ++var_num)
         {

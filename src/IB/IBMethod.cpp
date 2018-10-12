@@ -1172,9 +1172,9 @@ IBMethod::spreadFluidSource(const int q_data_idx,
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Q_sum = std::accumulate(d_Q_src[ln].begin(), d_Q_src[ln].end(), Q_sum);
-        for (unsigned int k = 0; k < d_Q_src[ln].size(); ++k)
+        for (const auto& Q_src : d_Q_src[ln])
         {
-            Q_max = std::max(Q_max, std::abs(d_Q_src[ln][k]));
+            Q_max = std::max(Q_max, std::abs(Q_src));
         }
     }
     const double q_total = getPressureHierarchyDataOps()->integral(q_data_idx, wgt_idx);
@@ -1556,9 +1556,8 @@ IBMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
 
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (const auto& node_idx : local_nodes)
         {
-            const LNode* const node_idx = *cit;
             const IBAnchorPointSpec* const anchor_point_spec = node_idx->getNodeDataItem<IBAnchorPointSpec>();
             if (anchor_point_spec)
             {
@@ -1929,12 +1928,11 @@ IBMethod::resetAnchorPointValues(std::vector<Pointer<LData> > U_data, const int 
         double* U_arr;
         ierr = VecGetArray(U_vec, &U_arr);
         IBTK_CHKERRQ(ierr);
-        for (auto cit = d_anchor_point_local_idxs[ln].begin(); cit != d_anchor_point_local_idxs[ln].end(); ++cit)
+        for (const auto& idx : d_anchor_point_local_idxs[ln])
         {
-            const int& i = *cit;
             for (int d = 0; d < depth; ++d)
             {
-                U_arr[depth * i + d] = 0.0;
+                U_arr[depth * idx + d] = 0.0;
             }
         }
         ierr = VecRestoreArray(U_vec, &U_arr);

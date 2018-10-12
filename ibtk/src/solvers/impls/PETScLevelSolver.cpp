@@ -80,15 +80,15 @@ generate_petsc_is_from_std_is(std::vector<std::set<int> >& overlap_std,
 {
     // Destroy old IS'es and generate new ones.
     int ierr;
-    for (unsigned int k = 0; k < overlap_petsc.size(); ++k)
+    for (auto& is : overlap_petsc)
     {
-        ierr = ISDestroy(&overlap_petsc[k]);
+        ierr = ISDestroy(&is);
         IBTK_CHKERRQ(ierr);
     }
     overlap_petsc.clear();
-    for (unsigned int k = 0; k < nonoverlap_petsc.size(); ++k)
+    for (auto& is : nonoverlap_petsc)
     {
-        ierr = ISDestroy(&nonoverlap_petsc[k]);
+        ierr = ISDestroy(&is);
         IBTK_CHKERRQ(ierr);
     }
     nonoverlap_petsc.clear();
@@ -168,14 +168,14 @@ PETScLevelSolver::~PETScLevelSolver()
     }
 
     int ierr;
-    for (size_t i = 0; i < d_nonoverlap_is.size(); ++i)
+    for (auto& is : d_nonoverlap_is)
     {
-        ierr = ISDestroy(&d_nonoverlap_is[i]);
+        ierr = ISDestroy(&is);
         IBTK_CHKERRQ(ierr);
     }
-    for (size_t i = 0; i < d_overlap_is.size(); ++i)
+    for (auto& is : d_overlap_is)
     {
-        ierr = ISDestroy(&d_overlap_is[i]);
+        ierr = ISDestroy(&is);
         IBTK_CHKERRQ(ierr);
     }
     return;
@@ -433,9 +433,9 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         const int n_fields = static_cast<int>(field_is.size());
 
         // Destroy old IS'es and generate new ones.
-        for (unsigned int k = 0; k < d_field_is.size(); ++k)
+        for (auto& is : d_field_is)
         {
-            ierr = ISDestroy(&d_field_is[k]);
+            ierr = ISDestroy(&is);
             IBTK_CHKERRQ(ierr);
         }
         d_field_is.clear();

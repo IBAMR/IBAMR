@@ -425,9 +425,8 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     // on all the processes.
     for (int jj = 0; jj < d_nodeset_IDs_for_meters.size(); ++jj)
     {
-        for (auto it = temp_node_dof_ID_sets[jj].begin(); it != temp_node_dof_ID_sets[jj].end(); ++it)
+        for (const auto& node_id : temp_node_dof_ID_sets[jj])
         {
-            const dof_id_type node_id = *it;
             temp_node_dof_IDs[jj].push_back(node_id);
             const Node* node = &mesh->node_ref(node_id);
             temp_nodes[jj].push_back(*node);

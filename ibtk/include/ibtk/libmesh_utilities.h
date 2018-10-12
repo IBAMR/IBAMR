@@ -617,9 +617,8 @@ intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals
         }
 
         // Look for intersections within the element interior.
-        for (unsigned int k = 0; k < u_vals.size(); ++k)
+        for (const auto& u : u_vals)
         {
-            double u = u_vals[k];
             if (u >= -1.0 - tol && u <= 1.0 + tol)
             {
                 is_interior_intersection = (u >= -1.0 && u <= 1.0);
@@ -767,9 +766,8 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
             }
         }
 
-        for (unsigned int k = 0; k < v_vals.size(); ++k)
+        for (const auto& v : v_vals)
         {
-            double v = v_vals[k];
             if (v >= 0.0 - tol && v <= 1.0 + tol)
             {
                 double u;

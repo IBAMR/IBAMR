@@ -953,18 +953,18 @@ void
 SCPoissonHypreLevelSolver::deallocateHypreData()
 {
     if (d_graph) HYPRE_SStructGraphDestroy(d_graph);
-    for (int var = 0; var < NVARS; ++var)
+    for (const auto& var : d_stencil)
     {
-        if (d_stencil[var]) HYPRE_SStructStencilDestroy(d_stencil[var]);
+        if (var) HYPRE_SStructStencilDestroy(var);
     }
     if (d_grid) HYPRE_SStructGridDestroy(d_grid);
     if (d_matrix) HYPRE_SStructMatrixDestroy(d_matrix);
     if (d_sol_vec) HYPRE_SStructVectorDestroy(d_sol_vec);
     if (d_rhs_vec) HYPRE_SStructVectorDestroy(d_rhs_vec);
     d_grid = nullptr;
-    for (int var = 0; var < NVARS; ++var)
+    for (auto& var : d_stencil)
     {
-        d_stencil[var] = nullptr;
+        var = nullptr;
     }
     d_matrix = nullptr;
     d_sol_vec = nullptr;

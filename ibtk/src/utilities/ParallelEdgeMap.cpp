@@ -153,16 +153,15 @@ ParallelEdgeMap::communicateData()
     }
 
     using multimap_iterator = std::multimap<int, std::pair<int, int> >::iterator;
-    using multimap_const_iterator = std::multimap<int, std::pair<int, int> >::const_iterator;
-    for (auto cit = d_pending_additions.begin(); cit != d_pending_additions.end(); ++cit)
+    for (const auto& pending_addition : d_pending_additions)
     {
-        d_edge_map.insert(std::make_pair(cit->first, cit->second));
+        d_edge_map.insert(std::make_pair(pending_addition.first, pending_addition.second));
     }
 
-    for (auto cit = d_pending_removals.begin(); cit != d_pending_removals.end(); ++cit)
+    for (const auto& pending_removal : d_pending_removals)
     {
-        int mastr_idx = cit->first;
-        const std::pair<int, int>& link = cit->second;
+        int mastr_idx = pending_removal.first;
+        const std::pair<int, int>& link = pending_removal.second;
 
         bool found_link = false;
 

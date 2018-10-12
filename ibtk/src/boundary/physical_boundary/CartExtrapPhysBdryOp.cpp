@@ -361,9 +361,8 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (const auto& patch_data_idx : d_patch_data_indices)
     {
-        const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(patch_data_idx, var);
@@ -374,11 +373,11 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (auto it = bdry_fill_boxes.begin(); it != bdry_fill_boxes.end(); ++it)
+        for (const auto& bdry_fill_box_pair : bdry_fill_boxes)
         {
-            const Box<NDIM>& bdry_fill_box = it->first;
-            const unsigned int location_index = it->second.first;
-            const int codim = it->second.second;
+            const Box<NDIM>& bdry_fill_box = bdry_fill_box_pair.first;
+            const unsigned int location_index = bdry_fill_box_pair.second.first;
+            const int codim = bdry_fill_box_pair.second.second;
 #if (NDIM == 2)
             const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(
@@ -464,9 +463,8 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (const auto& patch_data_idx : d_patch_data_indices)
     {
-        const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(patch_data_idx, var);
@@ -476,11 +474,11 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (auto it = bdry_fill_boxes.begin(); it != bdry_fill_boxes.end(); ++it)
+        for (const auto& bdry_fill_box_pair : bdry_fill_boxes)
         {
-            const Box<NDIM>& bdry_fill_box = it->first;
-            const unsigned int location_index = it->second.first;
-            const int codim = it->second.second;
+            const Box<NDIM>& bdry_fill_box = bdry_fill_box_pair.first;
+            const unsigned int location_index = bdry_fill_box_pair.second.first;
+            const int codim = bdry_fill_box_pair.second.second;
 #if (NDIM == 2)
             const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(
@@ -574,9 +572,8 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (int patch_data_idx : d_patch_data_indices)
     {
-        const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(patch_data_idx, var);
@@ -586,11 +583,11 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (auto it = bdry_fill_boxes.begin(); it != bdry_fill_boxes.end(); ++it)
+        for (const auto& bdry_fill_box_pair : bdry_fill_boxes)
         {
-            const Box<NDIM>& bdry_fill_box = it->first;
-            const unsigned int location_index = it->second.first;
-            const int codim = it->second.second;
+            const Box<NDIM>& bdry_fill_box = bdry_fill_box_pair.first;
+            const unsigned int location_index = bdry_fill_box_pair.second.first;
+            const int codim = bdry_fill_box_pair.second.second;
 #if (NDIM == 2)
             const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(
@@ -676,9 +673,8 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (const auto& patch_data_idx : d_patch_data_indices)
     {
-        const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(patch_data_idx, var);
@@ -688,11 +684,11 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (auto it = bdry_fill_boxes.begin(); it != bdry_fill_boxes.end(); ++it)
+        for (const auto& bdry_fill_box_map : bdry_fill_boxes)
         {
-            const Box<NDIM>& bdry_fill_box = it->first;
-            const unsigned int location_index = it->second.first;
-            const int codim = it->second.second;
+            const Box<NDIM>& bdry_fill_box = bdry_fill_box_map.first;
+            const unsigned int location_index = bdry_fill_box_map.second.first;
+            const int codim = bdry_fill_box_map.second.second;
 #if (NDIM == 2)
             const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(

@@ -1673,10 +1673,10 @@ INSVCStaggeredConservativeMassMomentumIntegrator::deallocateTimeIntegrator()
     }
 
     // Deallocate coarse-fine boundary object.
-    for (auto it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
+    for (auto& cf_boundary : d_cf_boundary)
     {
-        delete (*it);
-        (*it) = nullptr;
+        delete cf_boundary;
+        cf_boundary = nullptr;
     }
     d_cf_boundary.clear();
 

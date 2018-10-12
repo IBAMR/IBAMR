@@ -202,12 +202,12 @@ muParserCartGridFunction::muParserCartGridFunction(const std::string& object_nam
     const double pi = 3.1415926535897932384626433832795;
     const double* const x_lower = grid_geom->getXLower();
     const double* const x_upper = grid_geom->getXUpper();
-    for (auto it = d_parsers.begin(); it != d_parsers.end(); ++it)
+    for (auto& parser : d_parsers)
     {
         // Various names for pi.
-        it->DefineConst("pi", pi);
-        it->DefineConst("Pi", pi);
-        it->DefineConst("PI", pi);
+        parser.DefineConst("pi", pi);
+        parser.DefineConst("Pi", pi);
+        parser.DefineConst("PI", pi);
 
         // The extents of the domain.
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -216,77 +216,77 @@ muParserCartGridFunction::muParserCartGridFunction(const std::string& object_nam
             stream << d;
             const std::string postfix = stream.str();
 
-            it->DefineConst("X_LOWER" + postfix, x_lower[d]);
-            it->DefineConst("X_lower" + postfix, x_lower[d]);
-            it->DefineConst("x_lower" + postfix, x_lower[d]);
-            it->DefineConst("x_LOWER" + postfix, x_lower[d]);
-            it->DefineConst("X_Lower" + postfix, x_lower[d]);
-            it->DefineConst("X_lower" + postfix, x_lower[d]);
-            it->DefineConst("XLower" + postfix, x_lower[d]);
-            it->DefineConst("Xlower" + postfix, x_lower[d]);
-            it->DefineConst("x_Lower" + postfix, x_lower[d]);
-            it->DefineConst("x_lower" + postfix, x_lower[d]);
-            it->DefineConst("xLower" + postfix, x_lower[d]);
-            it->DefineConst("xlower" + postfix, x_lower[d]);
+            parser.DefineConst("X_LOWER" + postfix, x_lower[d]);
+            parser.DefineConst("X_lower" + postfix, x_lower[d]);
+            parser.DefineConst("x_lower" + postfix, x_lower[d]);
+            parser.DefineConst("x_LOWER" + postfix, x_lower[d]);
+            parser.DefineConst("X_Lower" + postfix, x_lower[d]);
+            parser.DefineConst("X_lower" + postfix, x_lower[d]);
+            parser.DefineConst("XLower" + postfix, x_lower[d]);
+            parser.DefineConst("Xlower" + postfix, x_lower[d]);
+            parser.DefineConst("x_Lower" + postfix, x_lower[d]);
+            parser.DefineConst("x_lower" + postfix, x_lower[d]);
+            parser.DefineConst("xLower" + postfix, x_lower[d]);
+            parser.DefineConst("xlower" + postfix, x_lower[d]);
 
-            it->DefineConst("X_LOWER_" + postfix, x_lower[d]);
-            it->DefineConst("X_lower_" + postfix, x_lower[d]);
-            it->DefineConst("x_lower_" + postfix, x_lower[d]);
-            it->DefineConst("x_LOWER_" + postfix, x_lower[d]);
-            it->DefineConst("X_Lower_" + postfix, x_lower[d]);
-            it->DefineConst("X_lower_" + postfix, x_lower[d]);
-            it->DefineConst("XLower_" + postfix, x_lower[d]);
-            it->DefineConst("Xlower_" + postfix, x_lower[d]);
-            it->DefineConst("x_Lower_" + postfix, x_lower[d]);
-            it->DefineConst("x_lower_" + postfix, x_lower[d]);
-            it->DefineConst("xLower_" + postfix, x_lower[d]);
-            it->DefineConst("xlower_" + postfix, x_lower[d]);
+            parser.DefineConst("X_LOWER_" + postfix, x_lower[d]);
+            parser.DefineConst("X_lower_" + postfix, x_lower[d]);
+            parser.DefineConst("x_lower_" + postfix, x_lower[d]);
+            parser.DefineConst("x_LOWER_" + postfix, x_lower[d]);
+            parser.DefineConst("X_Lower_" + postfix, x_lower[d]);
+            parser.DefineConst("X_lower_" + postfix, x_lower[d]);
+            parser.DefineConst("XLower_" + postfix, x_lower[d]);
+            parser.DefineConst("Xlower_" + postfix, x_lower[d]);
+            parser.DefineConst("x_Lower_" + postfix, x_lower[d]);
+            parser.DefineConst("x_lower_" + postfix, x_lower[d]);
+            parser.DefineConst("xLower_" + postfix, x_lower[d]);
+            parser.DefineConst("xlower_" + postfix, x_lower[d]);
 
-            it->DefineConst("X_UPPER" + postfix, x_upper[d]);
-            it->DefineConst("X_upper" + postfix, x_upper[d]);
-            it->DefineConst("x_upper" + postfix, x_upper[d]);
-            it->DefineConst("x_UPPER" + postfix, x_upper[d]);
-            it->DefineConst("X_Upper" + postfix, x_upper[d]);
-            it->DefineConst("X_upper" + postfix, x_upper[d]);
-            it->DefineConst("XUpper" + postfix, x_upper[d]);
-            it->DefineConst("Xupper" + postfix, x_upper[d]);
-            it->DefineConst("x_Upper" + postfix, x_upper[d]);
-            it->DefineConst("x_upper" + postfix, x_upper[d]);
-            it->DefineConst("xUpper" + postfix, x_upper[d]);
-            it->DefineConst("xupper" + postfix, x_upper[d]);
+            parser.DefineConst("X_UPPER" + postfix, x_upper[d]);
+            parser.DefineConst("X_upper" + postfix, x_upper[d]);
+            parser.DefineConst("x_upper" + postfix, x_upper[d]);
+            parser.DefineConst("x_UPPER" + postfix, x_upper[d]);
+            parser.DefineConst("X_Upper" + postfix, x_upper[d]);
+            parser.DefineConst("X_upper" + postfix, x_upper[d]);
+            parser.DefineConst("XUpper" + postfix, x_upper[d]);
+            parser.DefineConst("Xupper" + postfix, x_upper[d]);
+            parser.DefineConst("x_Upper" + postfix, x_upper[d]);
+            parser.DefineConst("x_upper" + postfix, x_upper[d]);
+            parser.DefineConst("xUpper" + postfix, x_upper[d]);
+            parser.DefineConst("xupper" + postfix, x_upper[d]);
 
-            it->DefineConst("X_UPPER_" + postfix, x_upper[d]);
-            it->DefineConst("X_upper_" + postfix, x_upper[d]);
-            it->DefineConst("x_upper_" + postfix, x_upper[d]);
-            it->DefineConst("x_UPPER_" + postfix, x_upper[d]);
-            it->DefineConst("X_Upper_" + postfix, x_upper[d]);
-            it->DefineConst("X_upper_" + postfix, x_upper[d]);
-            it->DefineConst("XUpper_" + postfix, x_upper[d]);
-            it->DefineConst("Xupper_" + postfix, x_upper[d]);
-            it->DefineConst("x_Upper_" + postfix, x_upper[d]);
-            it->DefineConst("x_upper_" + postfix, x_upper[d]);
-            it->DefineConst("xUpper_" + postfix, x_upper[d]);
-            it->DefineConst("xupper_" + postfix, x_upper[d]);
+            parser.DefineConst("X_UPPER_" + postfix, x_upper[d]);
+            parser.DefineConst("X_upper_" + postfix, x_upper[d]);
+            parser.DefineConst("x_upper_" + postfix, x_upper[d]);
+            parser.DefineConst("x_UPPER_" + postfix, x_upper[d]);
+            parser.DefineConst("X_Upper_" + postfix, x_upper[d]);
+            parser.DefineConst("X_upper_" + postfix, x_upper[d]);
+            parser.DefineConst("XUpper_" + postfix, x_upper[d]);
+            parser.DefineConst("Xupper_" + postfix, x_upper[d]);
+            parser.DefineConst("x_Upper_" + postfix, x_upper[d]);
+            parser.DefineConst("x_upper_" + postfix, x_upper[d]);
+            parser.DefineConst("xUpper_" + postfix, x_upper[d]);
+            parser.DefineConst("xupper_" + postfix, x_upper[d]);
         }
 
         // User-provided constants.
-        for (auto map_cit = d_constants.begin(); map_cit != d_constants.end(); ++map_cit)
+        for (const auto& constant : d_constants)
         {
-            it->DefineConst(map_cit->first, map_cit->second);
+            parser.DefineConst(constant.first, constant.second);
         }
 
         // Variables.
-        it->DefineVar("T", &d_parser_time);
-        it->DefineVar("t", &d_parser_time);
+        parser.DefineVar("T", &d_parser_time);
+        parser.DefineVar("t", &d_parser_time);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             std::ostringstream stream;
             stream << d;
             const std::string postfix = stream.str();
-            it->DefineVar("X" + postfix, &(d_parser_posn[d]));
-            it->DefineVar("x" + postfix, &(d_parser_posn[d]));
-            it->DefineVar("X_" + postfix, &(d_parser_posn[d]));
-            it->DefineVar("x_" + postfix, &(d_parser_posn[d]));
+            parser.DefineVar("X" + postfix, &(d_parser_posn[d]));
+            parser.DefineVar("x" + postfix, &(d_parser_posn[d]));
+            parser.DefineVar("X_" + postfix, &(d_parser_posn[d]));
+            parser.DefineVar("x_" + postfix, &(d_parser_posn[d]));
         }
     }
     return;

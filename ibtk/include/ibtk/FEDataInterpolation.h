@@ -58,9 +58,8 @@ public:
     inline void attachQuadratureRule(libMesh::QBase* qrule)
     {
         d_qrule = qrule;
-        for (size_t k = 0; k < d_fe.size(); ++k)
+        for (auto fe : d_fe)
         {
-            SAMRAI::tbox::Pointer<libMesh::FEBase> fe = d_fe[k];
             if (fe)
             {
                 fe->attach_quadrature_rule(d_qrule);
@@ -72,9 +71,8 @@ public:
     inline void attachQuadratureRuleFace(libMesh::QBase* qrule_face)
     {
         d_qrule_face = qrule_face;
-        for (size_t k = 0; k < d_fe_face.size(); ++k)
+        for (auto fe_face : d_fe_face)
         {
-            SAMRAI::tbox::Pointer<libMesh::FEBase> fe_face = d_fe_face[k];
             if (fe_face)
             {
                 fe_face->attach_quadrature_rule(d_qrule_face);

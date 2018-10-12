@@ -377,9 +377,9 @@ AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperator(Pointer<CellVariab
 void
 AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorsNeedInit()
 {
-    for (auto it = d_Q_var.begin(); it != d_Q_var.end(); ++it)
+    for (const auto& Q_var : d_Q_var)
     {
-        setConvectiveOperatorNeedsInit(*it);
+        setConvectiveOperatorNeedsInit(Q_var);
     }
     return;
 }
@@ -413,17 +413,15 @@ AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pa
     AdvDiffHierarchyIntegrator::registerVariables();
 
     // Setup the convective operators.
-    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    for (const auto& Q_var : d_Q_var)
     {
-        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         getConvectiveOperator(Q_var);
     }
 
     // Register additional variables required for present time stepping algorithm.
     const IntVector<NDIM> cell_ghosts = CELLG;
-    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    for (const auto& Q_var : d_Q_var)
     {
-        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         Pointer<CellDataFactory<NDIM, double> > Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
 
@@ -462,9 +460,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::getNumberOfCycles() const
     int num_cycles = d_num_cycles;
     if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
     {
-        for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+        for (const auto& Q_var : d_Q_var)
         {
-            Pointer<CellVariable<NDIM, double> > Q_var = *cit;
             if (!d_Q_u_map.find(Q_var)->second) continue;
             if (is_multistep_time_stepping_type(d_Q_convective_time_stepping_type.find(Q_var)->second) &&
                 d_Q_init_convective_time_stepping_type.find(Q_var)->second != FORWARD_EULER)
@@ -509,9 +506,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
     }
 
     // Update the advection velocity.
-    for (auto cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
+    for (const auto& u_var : d_u_var)
     {
-        Pointer<FaceVariable<NDIM, double> > u_var = *cit;
         const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
         const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, getScratchContext());
         const int u_new_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
@@ -528,9 +524,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
     }
 
     // Update the diffusion coefficient
-    for (auto cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit)
+    for (const auto& D_var : d_diffusion_coef_var)
     {
-        Pointer<SideVariable<NDIM, double> > D_var = *cit;
         Pointer<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
         if (D_fcn)
         {
@@ -734,9 +729,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_
         // Update the advection velocity.
         if (cycle_num > 0)
         {
-            for (auto cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
+            for (const auto& u_var : d_u_var)
             {
-                Pointer<FaceVariable<NDIM, double> > u_var = *cit;
                 const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
                 const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, getScratchContext());
                 const int u_new_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
@@ -894,9 +888,9 @@ AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
     // Determine the CFL number.
     double cfl_max = 0.0;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    for (unsigned int k = 0; k < d_u_var.size(); ++k)
+    for (const auto& u_var : d_u_var)
     {
-        const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_var[k], getNewContext());
+        const int u_new_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
         PatchFaceDataOpsReal<NDIM, double> patch_fc_ops;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -937,9 +931,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_hier_fc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_fc_data_ops->resetLevels(0, finest_hier_level);
-    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    for (const auto& Q_var : d_Q_var)
     {
-        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         d_Q_convective_op_needs_init[Q_var] = true;
     }
     AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(base_hierarchy, coarsest_level, finest_level);

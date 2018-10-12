@@ -122,12 +122,12 @@ FaceDataSynchronization::initializeOperatorState(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (const auto& transaction_comp : d_transaction_comps)
     {
-        const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
+        const std::string& coarsen_op_name = transaction_comp.d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
         {
-            const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
+            const int data_idx = transaction_comp.d_data_idx;
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
 #if !defined(NDEBUG)
@@ -158,9 +158,9 @@ FaceDataSynchronization::initializeOperatorState(
 
     // Setup cached refine algorithms and schedules.
     d_refine_alg = new RefineAlgorithm<NDIM>();
-    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (const auto& transaction_comp : d_transaction_comps)
     {
-        const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
+        const int data_idx = transaction_comp.d_data_idx;
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(data_idx, var);
         Pointer<FaceVariable<NDIM, double> > fc_var = var;
@@ -228,12 +228,12 @@ FaceDataSynchronization::resetTransactionComponents(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (const auto& transaction_comp : d_transaction_comps)
     {
-        const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
+        const std::string& coarsen_op_name = transaction_comp.d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
         {
-            const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
+            const int data_idx = transaction_comp.d_data_idx;
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
 #if !defined(NDEBUG)
@@ -260,9 +260,9 @@ FaceDataSynchronization::resetTransactionComponents(
 
     // Reset cached refine algorithms and schedules.
     d_refine_alg = new RefineAlgorithm<NDIM>();
-    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (const auto& transaction_comp : d_transaction_comps)
     {
-        const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
+        const int data_idx = transaction_comp.d_data_idx;
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(data_idx, var);
         Pointer<FaceVariable<NDIM, double> > fc_var = var;

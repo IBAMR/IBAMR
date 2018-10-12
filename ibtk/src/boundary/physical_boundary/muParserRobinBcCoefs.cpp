@@ -244,12 +244,12 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
     const double pi = 3.1415926535897932384626433832795;
     const double* const xLower = grid_geom->getXLower();
     const double* const xUpper = grid_geom->getXUpper();
-    for (auto cit = all_parsers.begin(); cit != all_parsers.end(); ++cit)
+    for (const auto& parser : all_parsers)
     {
         // Various names for pi.
-        (*cit)->DefineConst("pi", pi);
-        (*cit)->DefineConst("Pi", pi);
-        (*cit)->DefineConst("PI", pi);
+        parser->DefineConst("pi", pi);
+        parser->DefineConst("Pi", pi);
+        parser->DefineConst("PI", pi);
 
         // The extents of the domain.
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -258,77 +258,77 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
             stream << d;
             const std::string postfix = stream.str();
 
-            (*cit)->DefineConst("X_LOWER" + postfix, xLower[d]);
-            (*cit)->DefineConst("X_lower" + postfix, xLower[d]);
-            (*cit)->DefineConst("x_lower" + postfix, xLower[d]);
-            (*cit)->DefineConst("x_LOWER" + postfix, xLower[d]);
-            (*cit)->DefineConst("X_Lower" + postfix, xLower[d]);
-            (*cit)->DefineConst("X_lower" + postfix, xLower[d]);
-            (*cit)->DefineConst("XLower" + postfix, xLower[d]);
-            (*cit)->DefineConst("Xlower" + postfix, xLower[d]);
-            (*cit)->DefineConst("x_Lower" + postfix, xLower[d]);
-            (*cit)->DefineConst("x_lower" + postfix, xLower[d]);
-            (*cit)->DefineConst("xLower" + postfix, xLower[d]);
-            (*cit)->DefineConst("xlower" + postfix, xLower[d]);
+            parser->DefineConst("X_LOWER" + postfix, xLower[d]);
+            parser->DefineConst("X_lower" + postfix, xLower[d]);
+            parser->DefineConst("x_lower" + postfix, xLower[d]);
+            parser->DefineConst("x_LOWER" + postfix, xLower[d]);
+            parser->DefineConst("X_Lower" + postfix, xLower[d]);
+            parser->DefineConst("X_lower" + postfix, xLower[d]);
+            parser->DefineConst("XLower" + postfix, xLower[d]);
+            parser->DefineConst("Xlower" + postfix, xLower[d]);
+            parser->DefineConst("x_Lower" + postfix, xLower[d]);
+            parser->DefineConst("x_lower" + postfix, xLower[d]);
+            parser->DefineConst("xLower" + postfix, xLower[d]);
+            parser->DefineConst("xlower" + postfix, xLower[d]);
 
-            (*cit)->DefineConst("X_LOWER_" + postfix, xLower[d]);
-            (*cit)->DefineConst("X_lower_" + postfix, xLower[d]);
-            (*cit)->DefineConst("x_lower_" + postfix, xLower[d]);
-            (*cit)->DefineConst("x_LOWER_" + postfix, xLower[d]);
-            (*cit)->DefineConst("X_Lower_" + postfix, xLower[d]);
-            (*cit)->DefineConst("X_lower_" + postfix, xLower[d]);
-            (*cit)->DefineConst("XLower_" + postfix, xLower[d]);
-            (*cit)->DefineConst("Xlower_" + postfix, xLower[d]);
-            (*cit)->DefineConst("x_Lower_" + postfix, xLower[d]);
-            (*cit)->DefineConst("x_lower_" + postfix, xLower[d]);
-            (*cit)->DefineConst("xLower_" + postfix, xLower[d]);
-            (*cit)->DefineConst("xlower_" + postfix, xLower[d]);
+            parser->DefineConst("X_LOWER_" + postfix, xLower[d]);
+            parser->DefineConst("X_lower_" + postfix, xLower[d]);
+            parser->DefineConst("x_lower_" + postfix, xLower[d]);
+            parser->DefineConst("x_LOWER_" + postfix, xLower[d]);
+            parser->DefineConst("X_Lower_" + postfix, xLower[d]);
+            parser->DefineConst("X_lower_" + postfix, xLower[d]);
+            parser->DefineConst("XLower_" + postfix, xLower[d]);
+            parser->DefineConst("Xlower_" + postfix, xLower[d]);
+            parser->DefineConst("x_Lower_" + postfix, xLower[d]);
+            parser->DefineConst("x_lower_" + postfix, xLower[d]);
+            parser->DefineConst("xLower_" + postfix, xLower[d]);
+            parser->DefineConst("xlower_" + postfix, xLower[d]);
 
-            (*cit)->DefineConst("X_UPPER" + postfix, xUpper[d]);
-            (*cit)->DefineConst("X_upper" + postfix, xUpper[d]);
-            (*cit)->DefineConst("x_upper" + postfix, xUpper[d]);
-            (*cit)->DefineConst("x_UPPER" + postfix, xUpper[d]);
-            (*cit)->DefineConst("X_Upper" + postfix, xUpper[d]);
-            (*cit)->DefineConst("X_upper" + postfix, xUpper[d]);
-            (*cit)->DefineConst("XUpper" + postfix, xUpper[d]);
-            (*cit)->DefineConst("Xupper" + postfix, xUpper[d]);
-            (*cit)->DefineConst("x_Upper" + postfix, xUpper[d]);
-            (*cit)->DefineConst("x_upper" + postfix, xUpper[d]);
-            (*cit)->DefineConst("xUpper" + postfix, xUpper[d]);
-            (*cit)->DefineConst("xupper" + postfix, xUpper[d]);
+            parser->DefineConst("X_UPPER" + postfix, xUpper[d]);
+            parser->DefineConst("X_upper" + postfix, xUpper[d]);
+            parser->DefineConst("x_upper" + postfix, xUpper[d]);
+            parser->DefineConst("x_UPPER" + postfix, xUpper[d]);
+            parser->DefineConst("X_Upper" + postfix, xUpper[d]);
+            parser->DefineConst("X_upper" + postfix, xUpper[d]);
+            parser->DefineConst("XUpper" + postfix, xUpper[d]);
+            parser->DefineConst("Xupper" + postfix, xUpper[d]);
+            parser->DefineConst("x_Upper" + postfix, xUpper[d]);
+            parser->DefineConst("x_upper" + postfix, xUpper[d]);
+            parser->DefineConst("xUpper" + postfix, xUpper[d]);
+            parser->DefineConst("xupper" + postfix, xUpper[d]);
 
-            (*cit)->DefineConst("X_UPPER_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("X_upper_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("x_upper_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("x_UPPER_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("X_Upper_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("X_upper_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("XUpper_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("Xupper_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("x_Upper_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("x_upper_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("xUpper_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("xupper_" + postfix, xUpper[d]);
+            parser->DefineConst("X_UPPER_" + postfix, xUpper[d]);
+            parser->DefineConst("X_upper_" + postfix, xUpper[d]);
+            parser->DefineConst("x_upper_" + postfix, xUpper[d]);
+            parser->DefineConst("x_UPPER_" + postfix, xUpper[d]);
+            parser->DefineConst("X_Upper_" + postfix, xUpper[d]);
+            parser->DefineConst("X_upper_" + postfix, xUpper[d]);
+            parser->DefineConst("XUpper_" + postfix, xUpper[d]);
+            parser->DefineConst("Xupper_" + postfix, xUpper[d]);
+            parser->DefineConst("x_Upper_" + postfix, xUpper[d]);
+            parser->DefineConst("x_upper_" + postfix, xUpper[d]);
+            parser->DefineConst("xUpper_" + postfix, xUpper[d]);
+            parser->DefineConst("xupper_" + postfix, xUpper[d]);
         }
 
         // User-provided constants.
-        for (auto map_cit = d_constants.begin(); map_cit != d_constants.end(); ++map_cit)
+        for (const auto& constant : d_constants)
         {
-            (*cit)->DefineConst(map_cit->first, map_cit->second);
+            parser->DefineConst(constant.first, constant.second);
         }
 
         // Variables.
-        (*cit)->DefineVar("T", &d_parser_time);
-        (*cit)->DefineVar("t", &d_parser_time);
+        parser->DefineVar("T", &d_parser_time);
+        parser->DefineVar("t", &d_parser_time);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             std::ostringstream stream;
             stream << d;
             const std::string postfix = stream.str();
-            (*cit)->DefineVar("X" + postfix, d_parser_posn.data() + d);
-            (*cit)->DefineVar("x" + postfix, d_parser_posn.data() + d);
-            (*cit)->DefineVar("X_" + postfix, d_parser_posn.data() + d);
-            (*cit)->DefineVar("x_" + postfix, d_parser_posn.data() + d);
+            parser->DefineVar("X" + postfix, d_parser_posn.data() + d);
+            parser->DefineVar("x" + postfix, d_parser_posn.data() + d);
+            parser->DefineVar("X_" + postfix, d_parser_posn.data() + d);
+            parser->DefineVar("x_" + postfix, d_parser_posn.data() + d);
         }
     }
     return;

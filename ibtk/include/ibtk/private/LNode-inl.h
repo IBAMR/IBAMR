@@ -102,10 +102,9 @@ inline void
 LNode::registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement)
 {
     LNodeIndex::registerPeriodicShift(offset, displacement);
-    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::iterator it = d_node_data.begin(); it != d_node_data.end();
-         ++it)
+    for (const auto& node : d_node_data)
     {
-        (*it)->registerPeriodicShift(offset, displacement);
+        node->registerPeriodicShift(offset, displacement);
     }
     return;
 } // registerPeriodicShift
