@@ -1891,7 +1891,7 @@ c     Do the four sweeping directions.
          do i0 = iupper0,ilower0,-1
             if (dabs(U(i0,i1)) .ge. large_dist) then
                sgn = sign(one,U(i0,i1))
-               sgn_nbr = sign(one,U(i0+1,i1))
+               sgn_nbr = sign(one,U(i0+1,i1-1))
                if (sgn .ne. sgn_nbr) then
                   U(i0,i1) = dabs(U(i0,i1))*sgn_nbr
                   n_updates = n_updates + 1  
@@ -1904,7 +1904,7 @@ c     Do the four sweeping directions.
          do i0 = iupper0,ilower0,-1
             if (dabs(U(i0,i1)) .ge. large_dist) then
                sgn = sign(one,U(i0,i1))
-               sgn_nbr = sign(one,U(i0,i1+1))
+               sgn_nbr = sign(one,U(i0+1,i1+1))
                if (sgn .ne. sgn_nbr) then
                   U(i0,i1) = dabs(U(i0,i1))*sgn_nbr
                   n_updates = n_updates + 1  
