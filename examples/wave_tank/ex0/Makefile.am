@@ -2,10 +2,11 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-EXAMPLE_DRIVER = ex_main.cpp SetDampingZone.cpp SetFluidProperties.cpp SetLSProperties.cpp LSLocateColumnInterface.cpp GravityForcing.cpp TagLSRefinementCells.cpp
-GTEST_DRIVER   = test_main.cpp SetDampingZone.cpp SetFluidProperties.cpp SetLSProperties.cpp LSLocateColumnInterface.cpp GravityForcing.cpp TagLSRefinementCells.cpp
+EXAMPLE_DRIVER = ex_main.cpp WaveDamper.cpp SetFluidProperties.cpp SetLSProperties.cpp LSLocateColumnInterface.cpp GravityForcing.cpp TagLSRefinementCells.cpp
+GTEST_DRIVER   = test_main.cpp WaveDamper.cpp SetFluidProperties.cpp SetLSProperties.cpp LSLocateColumnInterface.cpp GravityForcing.cpp TagLSRefinementCells.cpp
 EXTRA_DIST     = input2d input2d.test
 EXTRA_DIST    += input3d input3d.test
+EXTRA_DIST    += compareStokesFirstOrder.m compareStokesSecondOrder.m
 
 GTESTS   =
 EXAMPLES =
@@ -44,6 +45,7 @@ test3d_SOURCES = $(GTEST_DRIVER)
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d* $(PWD) ; \
+	  cp -f $(srcdir)/*.m $(PWD) ; \
 	fi ;
 
 if GTEST_ENABLED
