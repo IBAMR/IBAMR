@@ -42,12 +42,14 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include "ibtk/IndexUtilities.h"
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/StokesFirstOrderWaveBcCoef.h>
+#include <ibamr/StokesSecondOrderWaveBcCoef.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
@@ -58,10 +60,10 @@
 // Application
 #include "GravityForcing.h"
 #include "LSLocateColumnInterface.h"
-#include "SetDampingZone.h"
 #include "SetFluidProperties.h"
 #include "SetLSProperties.h"
 #include "TagLSRefinementCells.h"
+#include "WaveDamper.h"
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
@@ -69,35 +71,6 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const int iteration_num,
                  const double loop_time,
                  const string& data_dump_dirname);
-
-void damp_outlet_waves(double current_time,
-                       double new_time,
-                       bool skip_synchronize_new_state_data,
-                       int num_cycles,
-                       void* ctx);
-
-void generate_inlet_waves(double current_time,
-                          double new_time,
-                          bool skip_synchronize_new_state_data,
-                          int num_cycles,
-                          void* ctx);
-
-struct WaveDamper
-{
-    Pointer<INSVCStaggeredHierarchyIntegrator> d_ins_integrator;
-    Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_integrator;
-    Pointer<Variable<NDIM> > d_phi_var;
-    double d_x_zone_start, d_x_zone_end, d_depth;
-};
-
-struct WaveGenerator
-{
-    Pointer<INSVCStaggeredHierarchyIntegrator> d_ins_integrator;
-    Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_integrator;
-    Pointer<Variable<NDIM> > d_phi_var;
-    double d_x_zone_start, d_x_zone_end;
-    double d_depth, d_omega, d_amplitude, d_gravity, d_wave_number;
-};
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -129,6 +102,9 @@ run_example(int argc, char* argv[])
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
+
+        // Whether or not it is from a restarted run
+        const bool is_from_restart = app_initializer->isFromRestart();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -213,10 +189,6 @@ run_example(int argc, char* argv[])
         // Setup level set information
         ColumnInterface column;
         column.DEPTH = input_db->getDouble("DEPTH");
-        column.AMPLITUDE = input_db->getDouble("COLUMN_AMPLITUDE");
-        column.WAVENUMBER = input_db->getDouble("WAVENUMBER");
-        column.X_ZONE_START = input_db->getDouble("X_ZONE_START_DAMPER");
-        column.X_ZONE_END = input_db->getDouble("X_ZONE_END_DAMPER");
 
         const string& ls_name = "level_set";
         Pointer<CellVariable<NDIM, double> > phi_var = new CellVariable<NDIM, double>(ls_name);
@@ -301,6 +273,7 @@ run_example(int argc, char* argv[])
         // Create Eulerian boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const string& wave_type = input_db->getString("WAVE_TYPE");
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -320,54 +293,44 @@ run_example(int argc, char* argv[])
                 bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
                 const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
 
-                u_bc_coefs[d] = new StokesFirstOrderWaveBcCoef(bc_coefs_name,
-                                                               d,
-                                                               app_initializer->getComponentDatabase(bc_coefs_db_name),
-                                                               grid_geometry,
-                                                               adv_diff_integrator,
-                                                               phi_var);
+                if (wave_type == "FIRST_ORDER_STOKES")
+                {
+                    u_bc_coefs[d] =
+                        new StokesFirstOrderWaveBcCoef(bc_coefs_name,
+                                                       d,
+                                                       app_initializer->getComponentDatabase(bc_coefs_db_name),
+                                                       grid_geometry,
+                                                       adv_diff_integrator,
+                                                       phi_var);
+                }
+                else if (wave_type == "SECOND_ORDER_STOKES")
+                {
+                    u_bc_coefs[d] =
+                        new StokesSecondOrderWaveBcCoef(bc_coefs_name,
+                                                        d,
+                                                        app_initializer->getComponentDatabase(bc_coefs_db_name),
+                                                        grid_geometry,
+                                                        adv_diff_integrator,
+                                                        phi_var);
+                }
+                else
+                {
+                    TBOX_ERROR("Unknown WAVE_TYPE = " << wave_type << " specified in the input file" << std::endl);
+                }
             }
             time_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
-        // Create a damping zone near the channel outlet to absorb water waves through momentum equation.
-        // This method adds an implicit damping term in the momentum equation.
-        DampingZone* ptr_DampingZone = new DampingZone(
-            "OutletDampingZone", time_integrator, app_initializer->getComponentDatabase("OutletDampingZone"));
-        time_integrator->registerAddDampingZoneFcn(&callDampingZoneCallbackFunction,
-                                                   static_cast<void*>(ptr_DampingZone));
-
-        // Create a generating zone near the channel inlet to generate water waves via time-splitting approach.
-        // This method uses a time splitting approach and modifies the fluid momentum in the
-        // post processing step.
-        WaveGenerator smooth_generator;
-        smooth_generator.d_ins_integrator = time_integrator;
-        smooth_generator.d_adv_diff_integrator = adv_diff_integrator;
-        smooth_generator.d_x_zone_start = input_db->getDouble("X_ZONE_START_GENERATOR");
-        smooth_generator.d_x_zone_end = input_db->getDouble("X_ZONE_END_GENERATOR");
-        smooth_generator.d_phi_var = phi_var;
-
-        smooth_generator.d_depth = input_db->getDouble("DEPTH");
-        smooth_generator.d_omega = input_db->getDouble("OMEGA");
-        smooth_generator.d_gravity = input_db->getDouble("G");
-        smooth_generator.d_wave_number = input_db->getDouble("WAVENUMBER");
-        smooth_generator.d_amplitude = input_db->getDouble("AMPLITUDE");
-
-        // time_integrator->registerPostprocessIntegrateHierarchyCallback(&generate_inlet_waves,
-        //                                                               static_cast<void*>(&smooth_generator));
-
         // Create a damping zone near the channel outlet to absorb water waves via time-splitting approach.
         // This method uses a time splitting approach and modifies the fluid momentum in the
         // post processing step.
-        WaveDamper smooth_damper;
-        smooth_damper.d_ins_integrator = time_integrator;
-        smooth_damper.d_adv_diff_integrator = adv_diff_integrator;
-        smooth_damper.d_phi_var = phi_var;
-        smooth_damper.d_x_zone_start = input_db->getDouble("X_ZONE_START_DAMPER");
-        smooth_damper.d_x_zone_end = input_db->getDouble("X_ZONE_END_DAMPER");
-        smooth_damper.d_depth = input_db->getDouble("DEPTH");
-        time_integrator->registerPostprocessIntegrateHierarchyCallback(&damp_outlet_waves,
-                                                                       static_cast<void*>(&smooth_damper));
+        WaveDamper* ptr_WaveDamper = new WaveDamper("WaveDamper",
+                                                    time_integrator,
+                                                    adv_diff_integrator,
+                                                    phi_var,
+                                                    app_initializer->getComponentDatabase("WaveDamper"));
+        time_integrator->registerPostprocessIntegrateHierarchyCallback(&callWaveDamperCallbackFunction,
+                                                                       static_cast<void*>(ptr_WaveDamper));
 
         RobinBcCoefStrategy<NDIM>* phi_bc_coef = NULL;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
@@ -437,6 +400,41 @@ run_example(int argc, char* argv[])
             visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
         }
 
+        // Get the probe points from the input file
+        Pointer<Database> probe_db = input_db->getDatabase("ProbePoints");
+        const int num_probes = (probe_db->getAllKeys()).getSize();
+        std::vector<std::vector<double> > probe_points;
+        std::vector<std::ofstream*> probe_streams;
+        probe_points.resize(num_probes);
+        probe_streams.resize(num_probes);
+        for (int i = 0; i < num_probes; ++i)
+        {
+            std::string probe_name = "probe_" + Utilities::intToString(i);
+            probe_points[i].resize(NDIM);
+            probe_db->getDoubleArray(probe_name, &probe_points[i][0], NDIM);
+
+            if (!SAMRAI_MPI::getRank())
+            {
+                if (is_from_restart)
+                {
+                    probe_streams[i] = new std::ofstream(probe_name.c_str(), std::fstream::app);
+                    probe_streams[i]->precision(10);
+                }
+                else
+                {
+                    probe_streams[i] = new std::ofstream(probe_name.c_str(), std::fstream::out);
+
+                    *probe_streams[i] << "Printing level set at cell center closest to point (" << probe_points[i][0]
+                                      << ", " << probe_points[i][1]
+#if (NDIM == 3)
+                                      << ", " << probe_points[i][2]
+#endif
+                                      << ") " << std::endl;
+                    probe_streams[i]->precision(10);
+                }
+            }
+        }
+
         // File to write to for fluid mass data
         ofstream mass_file;
 
@@ -487,6 +485,47 @@ run_example(int argc, char* argv[])
                 mass_file << std::setprecision(13) << loop_time << "\t" << mass_fluid << std::endl;
             }
 
+            // Print out the level set values at probe locations
+            // Note that it will print the nearest cell center
+            // Max reduction over ls_val array to ensure that only processor 0 prints
+            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            int phi_idx = var_db->mapVariableAndContextToIndex(phi_var, adv_diff_integrator->getCurrentContext());
+            double ls_val[num_probes];
+            for (int i = 0; i < num_probes; ++i)
+            {
+                ls_val[i] = -std::numeric_limits<double>::max();
+                bool found_point_in_patch = false;
+                for (int ln = finest_ln; ln >= coarsest_ln; --ln)
+                {
+                    // Get the cell index for this point
+                    Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                    const CellIndex<NDIM> cell_idx =
+                        IndexUtilities::getCellIndex(&probe_points[i][0], level->getGridGeometry(), level->getRatio());
+                    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                    {
+                        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                        const Box<NDIM>& patch_box = patch->getBox();
+                        const bool contains_probe = patch_box.contains(cell_idx);
+                        if (!contains_probe) continue;
+
+                        // Get the level set value at this particular cell and print to stream
+                        Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);
+                        ls_val[i] = (*phi_data)(cell_idx);
+                        found_point_in_patch = true;
+                        if (found_point_in_patch) break;
+                    }
+                    if (found_point_in_patch) break;
+                }
+            }
+            SAMRAI_MPI::maxReduction(&ls_val[0], num_probes);
+            if (!SAMRAI_MPI::getRank())
+            {
+                for (int i = 0; i < num_probes; ++i)
+                {
+                    *probe_streams[i] << loop_time << '\t' << ls_val[i] << std::endl;
+                }
+            }
+
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
             // processing.
@@ -528,7 +567,8 @@ run_example(int argc, char* argv[])
         delete ptr_SetLSProperties;
         delete ptr_SetFluidProperties;
         delete ptr_LSLocateColumnInterface;
-        delete ptr_DampingZone;
+        delete ptr_WaveDamper;
+        for (int i = 0; i < num_probes; ++i) delete probe_streams[i];
 
     } // cleanup dynamically allocated objects prior to shutdown
 
@@ -566,237 +606,3 @@ output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     hier_db->close();
     return;
 } // output_data
-
-void
-generate_inlet_waves(double current_time,
-                     double new_time,
-                     bool skip_synchronize_new_state_data,
-                     int num_cycles,
-                     void* ctx)
-{
-    pout << "Generating waves at inlet ...\n";
-    WaveGenerator* ptr_wave_generator = static_cast<WaveGenerator*>(ctx);
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = ptr_wave_generator->d_ins_integrator->getPatchHierarchy();
-    const double& x_zone_start = ptr_wave_generator->d_x_zone_start;
-    const double& x_zone_end = ptr_wave_generator->d_x_zone_end;
-    const double& g = ptr_wave_generator->d_gravity;
-    const double& k = ptr_wave_generator->d_wave_number;
-    const double& A = ptr_wave_generator->d_amplitude;
-    const double& omega = ptr_wave_generator->d_omega;
-    const double& d = ptr_wave_generator->d_depth;
-
-    const double fac = (g * k * A) / omega;
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int u_new_idx = var_db->mapVariableAndContextToIndex(ptr_wave_generator->d_ins_integrator->getVelocityVariable(),
-                                                         ptr_wave_generator->d_ins_integrator->getNewContext());
-    int phi_new_idx = var_db->mapVariableAndContextToIndex(ptr_wave_generator->d_phi_var,
-                                                           ptr_wave_generator->d_adv_diff_integrator->getNewContext());
-
-    static const int dir = NDIM == 2 ? 1 : 2;
-
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
-    // Modify velocity in the generation zone.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_dx = patch_geom->getDx();
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const Box<NDIM>& patch_box = patch->getBox();
-            const IntVector<NDIM>& patch_lower = patch_box.lower();
-            const double dz = patch_dx[dir];
-
-            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_new_idx);
-            for (int axis = 0; axis < NDIM; ++axis)
-            {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-                {
-                    Index<NDIM> i = it();
-                    SideIndex<NDIM> i_side(i, axis, SideIndex<NDIM>::Lower);
-
-                    const double x_posn =
-                        patch_x_lower[0] +
-                        patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)) + axis == 0 ? 0.0 : 0.5);
-
-                    const double z_posn =
-                        patch_x_lower[dir] +
-                        dz * (static_cast<double>(i(dir) - patch_lower(dir)) + axis == dir ? 0.0 : 0.5);
-
-                    const double z_cell_posn =
-                        patch_x_lower[dir] + dz * (static_cast<double>(i(dir) - patch_lower(dir)) + 0.5);
-
-                    if (x_posn >= x_zone_start && x_posn <= x_zone_end)
-                    {
-                        double xtilde = (x_zone_end - x_posn) / (x_zone_end - x_zone_start);
-                        double gamma = 1.0 - (exp(std::pow(xtilde, 2.0)) - 1.0) / (exp(1.0) - 1.0);
-
-                        const double z_surface = z_posn - d;
-                        const double z_cell_surface = z_cell_posn - d;
-
-                        const double eta = A * cos(k * x_posn - omega * new_time);
-                        const double vol_frac =
-                            (std::max(std::min(eta - z_cell_surface, dz / 2.0), -dz / 2.0) + dz / 2.0) / dz;
-
-                        if (vol_frac > 0.0)
-                        {
-                            if (axis == 0)
-                            {
-                                double analytical =
-                                    fac * cosh(k * (z_surface + d)) * cos(k * x_posn - omega * new_time) / cosh(k * d);
-                                (*u_data)(i_side, 0) =
-                                    (1.0 - gamma) * analytical * tanh(omega * new_time) + gamma * (*u_data)(i_side, 0);
-                            }
-                            else if (axis == dir)
-                            {
-                                double analytical =
-                                    fac * sinh(k * (z_surface + d)) * sin(k * x_posn - omega * new_time) / cosh(k * d);
-                                (*u_data)(i_side, 0) =
-                                    (1.0 - gamma) * analytical * tanh(omega * new_time) + gamma * (*u_data)(i_side, 0);
-                            }
-                            else
-                            {
-                                (*u_data)(i_side, 0) *= 1.0 - gamma;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Modify the level set in the generation zone.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_dx = patch_geom->getDx();
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const Box<NDIM>& patch_box = patch->getBox();
-            const IntVector<NDIM>& patch_lower = patch_box.lower();
-
-            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_new_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
-            {
-                Index<NDIM> i = it();
-
-                const double x_posn =
-                    patch_x_lower[0] + patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)) + 0.5);
-
-                const double z_posn =
-                    patch_x_lower[dir] + patch_dx[dir] * (static_cast<double>(i(dir) - patch_lower(dir)) + 0.5);
-
-                if (x_posn >= x_zone_start && x_posn <= x_zone_end)
-                {
-                    double xtilde = (x_zone_end - x_posn) / (x_zone_end - x_zone_start);
-                    double gamma = 1.0 - (exp(std::pow(xtilde, 2.0)) - 1.0) / (exp(1.0) - 1.0);
-                    double analytical = z_posn - A * cos(k * x_posn - omega * new_time) - d;
-
-                    (*phi_data)(i, 0) = (1.0 - gamma) * analytical * tanh(omega * new_time) + gamma * (*phi_data)(i, 0);
-                }
-            }
-        }
-    }
-
-    return;
-} // generate_inlet_waves
-
-void
-damp_outlet_waves(double current_time, double new_time, bool skip_synchronize_new_state_data, int num_cycles, void* ctx)
-{
-    pout << "Damping waves at outlet ...\n";
-    WaveDamper* ptr_wave_damper = static_cast<WaveDamper*>(ctx);
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = ptr_wave_damper->d_ins_integrator->getPatchHierarchy();
-    const double& x_zone_start = ptr_wave_damper->d_x_zone_start;
-    const double& x_zone_end = ptr_wave_damper->d_x_zone_end;
-    const double& d = ptr_wave_damper->d_depth;
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int u_new_idx = var_db->mapVariableAndContextToIndex(ptr_wave_damper->d_ins_integrator->getVelocityVariable(),
-                                                         ptr_wave_damper->d_ins_integrator->getNewContext());
-    int phi_new_idx = var_db->mapVariableAndContextToIndex(ptr_wave_damper->d_phi_var,
-                                                           ptr_wave_damper->d_adv_diff_integrator->getNewContext());
-    static const int dir = NDIM == 2 ? 1 : 2;
-
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_dx = patch_geom->getDx();
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const Box<NDIM>& patch_box = patch->getBox();
-            const IntVector<NDIM>& patch_lower = patch_box.lower();
-
-            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_new_idx);
-
-            for (int axis = 0; axis < NDIM; ++axis)
-            {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-                {
-                    Index<NDIM> i = it();
-                    SideIndex<NDIM> i_side(i, axis, SideIndex<NDIM>::Lower);
-                    const double x_posn =
-                        patch_x_lower[0] +
-                        patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)) + axis == 0 ? 0.0 : 0.5);
-                    if (x_posn >= x_zone_start)
-                    {
-                        double xtilde = (x_posn - x_zone_start) / (x_zone_end - x_zone_start);
-                        double gamma = 1.0 - (exp(std::pow(xtilde, 2.0)) - 1.0) / (exp(1.0) - 1.0);
-                        (*u_data)(i_side, 0) *= gamma;
-                    }
-                }
-            }
-        }
-    }
-
-    // Modify the level set in the generation zone.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_dx = patch_geom->getDx();
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const Box<NDIM>& patch_box = patch->getBox();
-            const IntVector<NDIM>& patch_lower = patch_box.lower();
-
-            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_new_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
-            {
-                Index<NDIM> i = it();
-
-                const double x_posn =
-                    patch_x_lower[0] + patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)) + 0.5);
-
-                const double z_posn =
-                    patch_x_lower[dir] + patch_dx[dir] * (static_cast<double>(i(dir) - patch_lower(dir)) + 0.5);
-
-                if (x_posn >= x_zone_start && x_posn <= x_zone_end)
-                {
-                    double xtilde = (x_posn - x_zone_start) / (x_zone_end - x_zone_start);
-                    double gamma = 1.0 - (exp(std::pow(xtilde, 2.0)) - 1.0) / (exp(1.0) - 1.0);
-                    double analytical = z_posn - d;
-
-                    (*phi_data)(i, 0) = (1.0 - gamma) * analytical + gamma * (*phi_data)(i, 0);
-                }
-            }
-        }
-    }
-
-    return;
-} // damp_outlet_waves

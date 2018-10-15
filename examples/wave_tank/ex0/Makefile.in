@@ -134,8 +134,7 @@ am__EXEEXT_3 = $(am__EXEEXT_1) $(am__EXEEXT_2)
 am__EXEEXT_6 = $(am__EXEEXT_4) $(am__EXEEXT_5)
 @SAMRAI2D_ENABLED_TRUE@am__EXEEXT_7 = $(am__EXEEXT_3) $(am__EXEEXT_6)
 @SAMRAI3D_ENABLED_TRUE@am__EXEEXT_8 = $(am__EXEEXT_3) $(am__EXEEXT_6)
-am__objects_1 = main2d-ex_main.$(OBJEXT) \
-	main2d-SetDampingZone.$(OBJEXT) \
+am__objects_1 = main2d-ex_main.$(OBJEXT) main2d-WaveDamper.$(OBJEXT) \
 	main2d-SetFluidProperties.$(OBJEXT) \
 	main2d-SetLSProperties.$(OBJEXT) \
 	main2d-LSLocateColumnInterface.$(OBJEXT) \
@@ -151,8 +150,7 @@ am__v_lt_1 =
 main2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_2 = main3d-ex_main.$(OBJEXT) \
-	main3d-SetDampingZone.$(OBJEXT) \
+am__objects_2 = main3d-ex_main.$(OBJEXT) main3d-WaveDamper.$(OBJEXT) \
 	main3d-SetFluidProperties.$(OBJEXT) \
 	main3d-SetLSProperties.$(OBJEXT) \
 	main3d-LSLocateColumnInterface.$(OBJEXT) \
@@ -164,8 +162,7 @@ main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 main3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main3d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_3 = test2d-test_main.$(OBJEXT) \
-	test2d-SetDampingZone.$(OBJEXT) \
+am__objects_3 = test2d-test_main.$(OBJEXT) test2d-WaveDamper.$(OBJEXT) \
 	test2d-SetFluidProperties.$(OBJEXT) \
 	test2d-SetLSProperties.$(OBJEXT) \
 	test2d-LSLocateColumnInterface.$(OBJEXT) \
@@ -177,8 +174,7 @@ test2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 test2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(test2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_4 = test3d-test_main.$(OBJEXT) \
-	test3d-SetDampingZone.$(OBJEXT) \
+am__objects_4 = test3d-test_main.$(OBJEXT) test3d-WaveDamper.$(OBJEXT) \
 	test3d-SetFluidProperties.$(OBJEXT) \
 	test3d-SetLSProperties.$(OBJEXT) \
 	test3d-LSLocateColumnInterface.$(OBJEXT) \
@@ -207,31 +203,29 @@ depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/main2d-GravityForcing.Po \
 	./$(DEPDIR)/main2d-LSLocateColumnInterface.Po \
-	./$(DEPDIR)/main2d-SetDampingZone.Po \
 	./$(DEPDIR)/main2d-SetFluidProperties.Po \
 	./$(DEPDIR)/main2d-SetLSProperties.Po \
 	./$(DEPDIR)/main2d-TagLSRefinementCells.Po \
-	./$(DEPDIR)/main2d-ex_main.Po \
+	./$(DEPDIR)/main2d-WaveDamper.Po ./$(DEPDIR)/main2d-ex_main.Po \
 	./$(DEPDIR)/main3d-GravityForcing.Po \
 	./$(DEPDIR)/main3d-LSLocateColumnInterface.Po \
-	./$(DEPDIR)/main3d-SetDampingZone.Po \
 	./$(DEPDIR)/main3d-SetFluidProperties.Po \
 	./$(DEPDIR)/main3d-SetLSProperties.Po \
 	./$(DEPDIR)/main3d-TagLSRefinementCells.Po \
-	./$(DEPDIR)/main3d-ex_main.Po \
+	./$(DEPDIR)/main3d-WaveDamper.Po ./$(DEPDIR)/main3d-ex_main.Po \
 	./$(DEPDIR)/test2d-GravityForcing.Po \
 	./$(DEPDIR)/test2d-LSLocateColumnInterface.Po \
-	./$(DEPDIR)/test2d-SetDampingZone.Po \
 	./$(DEPDIR)/test2d-SetFluidProperties.Po \
 	./$(DEPDIR)/test2d-SetLSProperties.Po \
 	./$(DEPDIR)/test2d-TagLSRefinementCells.Po \
+	./$(DEPDIR)/test2d-WaveDamper.Po \
 	./$(DEPDIR)/test2d-test_main.Po \
 	./$(DEPDIR)/test3d-GravityForcing.Po \
 	./$(DEPDIR)/test3d-LSLocateColumnInterface.Po \
-	./$(DEPDIR)/test3d-SetDampingZone.Po \
 	./$(DEPDIR)/test3d-SetFluidProperties.Po \
 	./$(DEPDIR)/test3d-SetLSProperties.Po \
 	./$(DEPDIR)/test3d-TagLSRefinementCells.Po \
+	./$(DEPDIR)/test3d-WaveDamper.Po \
 	./$(DEPDIR)/test3d-test_main.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -580,9 +574,10 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXAMPLE_DRIVER = ex_main.cpp SetDampingZone.cpp SetFluidProperties.cpp SetLSProperties.cpp LSLocateColumnInterface.cpp GravityForcing.cpp TagLSRefinementCells.cpp
-GTEST_DRIVER = test_main.cpp SetDampingZone.cpp SetFluidProperties.cpp SetLSProperties.cpp LSLocateColumnInterface.cpp GravityForcing.cpp TagLSRefinementCells.cpp
-EXTRA_DIST = input2d input2d.test input3d input3d.test
+EXAMPLE_DRIVER = ex_main.cpp WaveDamper.cpp SetFluidProperties.cpp SetLSProperties.cpp LSLocateColumnInterface.cpp GravityForcing.cpp TagLSRefinementCells.cpp
+GTEST_DRIVER = test_main.cpp WaveDamper.cpp SetFluidProperties.cpp SetLSProperties.cpp LSLocateColumnInterface.cpp GravityForcing.cpp TagLSRefinementCells.cpp
+EXTRA_DIST = input2d input2d.test input3d input3d.test \
+	compareStokesFirstOrder.m compareStokesSecondOrder.m
 GTESTS = $(am__append_1) $(am__append_4)
 EXAMPLES = $(am__append_2) $(am__append_5)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -656,31 +651,31 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-GravityForcing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LSLocateColumnInterface.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetDampingZone.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetLSProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-TagLSRefinementCells.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-WaveDamper.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-ex_main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-GravityForcing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-LSLocateColumnInterface.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-SetDampingZone.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-SetFluidProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-SetLSProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-TagLSRefinementCells.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-WaveDamper.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-ex_main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-GravityForcing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-LSLocateColumnInterface.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-SetDampingZone.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-SetFluidProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-SetLSProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-TagLSRefinementCells.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-WaveDamper.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-test_main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-GravityForcing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-LSLocateColumnInterface.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-SetDampingZone.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-SetFluidProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-SetLSProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-TagLSRefinementCells.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-WaveDamper.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-test_main.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -727,19 +722,19 @@ main2d-ex_main.obj: ex_main.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
 
-main2d-SetDampingZone.o: SetDampingZone.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetDampingZone.o -MD -MP -MF $(DEPDIR)/main2d-SetDampingZone.Tpo -c -o main2d-SetDampingZone.o `test -f 'SetDampingZone.cpp' || echo '$(srcdir)/'`SetDampingZone.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-SetDampingZone.Tpo $(DEPDIR)/main2d-SetDampingZone.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetDampingZone.cpp' object='main2d-SetDampingZone.o' libtool=no @AMDEPBACKSLASH@
+main2d-WaveDamper.o: WaveDamper.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-WaveDamper.o -MD -MP -MF $(DEPDIR)/main2d-WaveDamper.Tpo -c -o main2d-WaveDamper.o `test -f 'WaveDamper.cpp' || echo '$(srcdir)/'`WaveDamper.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-WaveDamper.Tpo $(DEPDIR)/main2d-WaveDamper.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='WaveDamper.cpp' object='main2d-WaveDamper.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetDampingZone.o `test -f 'SetDampingZone.cpp' || echo '$(srcdir)/'`SetDampingZone.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-WaveDamper.o `test -f 'WaveDamper.cpp' || echo '$(srcdir)/'`WaveDamper.cpp
 
-main2d-SetDampingZone.obj: SetDampingZone.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetDampingZone.obj -MD -MP -MF $(DEPDIR)/main2d-SetDampingZone.Tpo -c -o main2d-SetDampingZone.obj `if test -f 'SetDampingZone.cpp'; then $(CYGPATH_W) 'SetDampingZone.cpp'; else $(CYGPATH_W) '$(srcdir)/SetDampingZone.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-SetDampingZone.Tpo $(DEPDIR)/main2d-SetDampingZone.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetDampingZone.cpp' object='main2d-SetDampingZone.obj' libtool=no @AMDEPBACKSLASH@
+main2d-WaveDamper.obj: WaveDamper.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-WaveDamper.obj -MD -MP -MF $(DEPDIR)/main2d-WaveDamper.Tpo -c -o main2d-WaveDamper.obj `if test -f 'WaveDamper.cpp'; then $(CYGPATH_W) 'WaveDamper.cpp'; else $(CYGPATH_W) '$(srcdir)/WaveDamper.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-WaveDamper.Tpo $(DEPDIR)/main2d-WaveDamper.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='WaveDamper.cpp' object='main2d-WaveDamper.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetDampingZone.obj `if test -f 'SetDampingZone.cpp'; then $(CYGPATH_W) 'SetDampingZone.cpp'; else $(CYGPATH_W) '$(srcdir)/SetDampingZone.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-WaveDamper.obj `if test -f 'WaveDamper.cpp'; then $(CYGPATH_W) 'WaveDamper.cpp'; else $(CYGPATH_W) '$(srcdir)/WaveDamper.cpp'; fi`
 
 main2d-SetFluidProperties.o: SetFluidProperties.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetFluidProperties.o -MD -MP -MF $(DEPDIR)/main2d-SetFluidProperties.Tpo -c -o main2d-SetFluidProperties.o `test -f 'SetFluidProperties.cpp' || echo '$(srcdir)/'`SetFluidProperties.cpp
@@ -825,19 +820,19 @@ main3d-ex_main.obj: ex_main.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
 
-main3d-SetDampingZone.o: SetDampingZone.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-SetDampingZone.o -MD -MP -MF $(DEPDIR)/main3d-SetDampingZone.Tpo -c -o main3d-SetDampingZone.o `test -f 'SetDampingZone.cpp' || echo '$(srcdir)/'`SetDampingZone.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-SetDampingZone.Tpo $(DEPDIR)/main3d-SetDampingZone.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetDampingZone.cpp' object='main3d-SetDampingZone.o' libtool=no @AMDEPBACKSLASH@
+main3d-WaveDamper.o: WaveDamper.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-WaveDamper.o -MD -MP -MF $(DEPDIR)/main3d-WaveDamper.Tpo -c -o main3d-WaveDamper.o `test -f 'WaveDamper.cpp' || echo '$(srcdir)/'`WaveDamper.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-WaveDamper.Tpo $(DEPDIR)/main3d-WaveDamper.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='WaveDamper.cpp' object='main3d-WaveDamper.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-SetDampingZone.o `test -f 'SetDampingZone.cpp' || echo '$(srcdir)/'`SetDampingZone.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-WaveDamper.o `test -f 'WaveDamper.cpp' || echo '$(srcdir)/'`WaveDamper.cpp
 
-main3d-SetDampingZone.obj: SetDampingZone.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-SetDampingZone.obj -MD -MP -MF $(DEPDIR)/main3d-SetDampingZone.Tpo -c -o main3d-SetDampingZone.obj `if test -f 'SetDampingZone.cpp'; then $(CYGPATH_W) 'SetDampingZone.cpp'; else $(CYGPATH_W) '$(srcdir)/SetDampingZone.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-SetDampingZone.Tpo $(DEPDIR)/main3d-SetDampingZone.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetDampingZone.cpp' object='main3d-SetDampingZone.obj' libtool=no @AMDEPBACKSLASH@
+main3d-WaveDamper.obj: WaveDamper.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-WaveDamper.obj -MD -MP -MF $(DEPDIR)/main3d-WaveDamper.Tpo -c -o main3d-WaveDamper.obj `if test -f 'WaveDamper.cpp'; then $(CYGPATH_W) 'WaveDamper.cpp'; else $(CYGPATH_W) '$(srcdir)/WaveDamper.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-WaveDamper.Tpo $(DEPDIR)/main3d-WaveDamper.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='WaveDamper.cpp' object='main3d-WaveDamper.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-SetDampingZone.obj `if test -f 'SetDampingZone.cpp'; then $(CYGPATH_W) 'SetDampingZone.cpp'; else $(CYGPATH_W) '$(srcdir)/SetDampingZone.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-WaveDamper.obj `if test -f 'WaveDamper.cpp'; then $(CYGPATH_W) 'WaveDamper.cpp'; else $(CYGPATH_W) '$(srcdir)/WaveDamper.cpp'; fi`
 
 main3d-SetFluidProperties.o: SetFluidProperties.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-SetFluidProperties.o -MD -MP -MF $(DEPDIR)/main3d-SetFluidProperties.Tpo -c -o main3d-SetFluidProperties.o `test -f 'SetFluidProperties.cpp' || echo '$(srcdir)/'`SetFluidProperties.cpp
@@ -923,19 +918,19 @@ test2d-test_main.obj: test_main.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-test_main.obj `if test -f 'test_main.cpp'; then $(CYGPATH_W) 'test_main.cpp'; else $(CYGPATH_W) '$(srcdir)/test_main.cpp'; fi`
 
-test2d-SetDampingZone.o: SetDampingZone.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-SetDampingZone.o -MD -MP -MF $(DEPDIR)/test2d-SetDampingZone.Tpo -c -o test2d-SetDampingZone.o `test -f 'SetDampingZone.cpp' || echo '$(srcdir)/'`SetDampingZone.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-SetDampingZone.Tpo $(DEPDIR)/test2d-SetDampingZone.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetDampingZone.cpp' object='test2d-SetDampingZone.o' libtool=no @AMDEPBACKSLASH@
+test2d-WaveDamper.o: WaveDamper.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-WaveDamper.o -MD -MP -MF $(DEPDIR)/test2d-WaveDamper.Tpo -c -o test2d-WaveDamper.o `test -f 'WaveDamper.cpp' || echo '$(srcdir)/'`WaveDamper.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-WaveDamper.Tpo $(DEPDIR)/test2d-WaveDamper.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='WaveDamper.cpp' object='test2d-WaveDamper.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-SetDampingZone.o `test -f 'SetDampingZone.cpp' || echo '$(srcdir)/'`SetDampingZone.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-WaveDamper.o `test -f 'WaveDamper.cpp' || echo '$(srcdir)/'`WaveDamper.cpp
 
-test2d-SetDampingZone.obj: SetDampingZone.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-SetDampingZone.obj -MD -MP -MF $(DEPDIR)/test2d-SetDampingZone.Tpo -c -o test2d-SetDampingZone.obj `if test -f 'SetDampingZone.cpp'; then $(CYGPATH_W) 'SetDampingZone.cpp'; else $(CYGPATH_W) '$(srcdir)/SetDampingZone.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-SetDampingZone.Tpo $(DEPDIR)/test2d-SetDampingZone.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetDampingZone.cpp' object='test2d-SetDampingZone.obj' libtool=no @AMDEPBACKSLASH@
+test2d-WaveDamper.obj: WaveDamper.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-WaveDamper.obj -MD -MP -MF $(DEPDIR)/test2d-WaveDamper.Tpo -c -o test2d-WaveDamper.obj `if test -f 'WaveDamper.cpp'; then $(CYGPATH_W) 'WaveDamper.cpp'; else $(CYGPATH_W) '$(srcdir)/WaveDamper.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-WaveDamper.Tpo $(DEPDIR)/test2d-WaveDamper.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='WaveDamper.cpp' object='test2d-WaveDamper.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-SetDampingZone.obj `if test -f 'SetDampingZone.cpp'; then $(CYGPATH_W) 'SetDampingZone.cpp'; else $(CYGPATH_W) '$(srcdir)/SetDampingZone.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-WaveDamper.obj `if test -f 'WaveDamper.cpp'; then $(CYGPATH_W) 'WaveDamper.cpp'; else $(CYGPATH_W) '$(srcdir)/WaveDamper.cpp'; fi`
 
 test2d-SetFluidProperties.o: SetFluidProperties.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-SetFluidProperties.o -MD -MP -MF $(DEPDIR)/test2d-SetFluidProperties.Tpo -c -o test2d-SetFluidProperties.o `test -f 'SetFluidProperties.cpp' || echo '$(srcdir)/'`SetFluidProperties.cpp
@@ -1021,19 +1016,19 @@ test3d-test_main.obj: test_main.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-test_main.obj `if test -f 'test_main.cpp'; then $(CYGPATH_W) 'test_main.cpp'; else $(CYGPATH_W) '$(srcdir)/test_main.cpp'; fi`
 
-test3d-SetDampingZone.o: SetDampingZone.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-SetDampingZone.o -MD -MP -MF $(DEPDIR)/test3d-SetDampingZone.Tpo -c -o test3d-SetDampingZone.o `test -f 'SetDampingZone.cpp' || echo '$(srcdir)/'`SetDampingZone.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-SetDampingZone.Tpo $(DEPDIR)/test3d-SetDampingZone.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetDampingZone.cpp' object='test3d-SetDampingZone.o' libtool=no @AMDEPBACKSLASH@
+test3d-WaveDamper.o: WaveDamper.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-WaveDamper.o -MD -MP -MF $(DEPDIR)/test3d-WaveDamper.Tpo -c -o test3d-WaveDamper.o `test -f 'WaveDamper.cpp' || echo '$(srcdir)/'`WaveDamper.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-WaveDamper.Tpo $(DEPDIR)/test3d-WaveDamper.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='WaveDamper.cpp' object='test3d-WaveDamper.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-SetDampingZone.o `test -f 'SetDampingZone.cpp' || echo '$(srcdir)/'`SetDampingZone.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-WaveDamper.o `test -f 'WaveDamper.cpp' || echo '$(srcdir)/'`WaveDamper.cpp
 
-test3d-SetDampingZone.obj: SetDampingZone.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-SetDampingZone.obj -MD -MP -MF $(DEPDIR)/test3d-SetDampingZone.Tpo -c -o test3d-SetDampingZone.obj `if test -f 'SetDampingZone.cpp'; then $(CYGPATH_W) 'SetDampingZone.cpp'; else $(CYGPATH_W) '$(srcdir)/SetDampingZone.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-SetDampingZone.Tpo $(DEPDIR)/test3d-SetDampingZone.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetDampingZone.cpp' object='test3d-SetDampingZone.obj' libtool=no @AMDEPBACKSLASH@
+test3d-WaveDamper.obj: WaveDamper.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-WaveDamper.obj -MD -MP -MF $(DEPDIR)/test3d-WaveDamper.Tpo -c -o test3d-WaveDamper.obj `if test -f 'WaveDamper.cpp'; then $(CYGPATH_W) 'WaveDamper.cpp'; else $(CYGPATH_W) '$(srcdir)/WaveDamper.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-WaveDamper.Tpo $(DEPDIR)/test3d-WaveDamper.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='WaveDamper.cpp' object='test3d-WaveDamper.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-SetDampingZone.obj `if test -f 'SetDampingZone.cpp'; then $(CYGPATH_W) 'SetDampingZone.cpp'; else $(CYGPATH_W) '$(srcdir)/SetDampingZone.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-WaveDamper.obj `if test -f 'WaveDamper.cpp'; then $(CYGPATH_W) 'WaveDamper.cpp'; else $(CYGPATH_W) '$(srcdir)/WaveDamper.cpp'; fi`
 
 test3d-SetFluidProperties.o: SetFluidProperties.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-SetFluidProperties.o -MD -MP -MF $(DEPDIR)/test3d-SetFluidProperties.Tpo -c -o test3d-SetFluidProperties.o `test -f 'SetFluidProperties.cpp' || echo '$(srcdir)/'`SetFluidProperties.cpp
@@ -1238,31 +1233,31 @@ clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/main2d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/main2d-LSLocateColumnInterface.Po
-	-rm -f ./$(DEPDIR)/main2d-SetDampingZone.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/main2d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/main2d-TagLSRefinementCells.Po
+	-rm -f ./$(DEPDIR)/main2d-WaveDamper.Po
 	-rm -f ./$(DEPDIR)/main2d-ex_main.Po
 	-rm -f ./$(DEPDIR)/main3d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/main3d-LSLocateColumnInterface.Po
-	-rm -f ./$(DEPDIR)/main3d-SetDampingZone.Po
 	-rm -f ./$(DEPDIR)/main3d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/main3d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/main3d-TagLSRefinementCells.Po
+	-rm -f ./$(DEPDIR)/main3d-WaveDamper.Po
 	-rm -f ./$(DEPDIR)/main3d-ex_main.Po
 	-rm -f ./$(DEPDIR)/test2d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/test2d-LSLocateColumnInterface.Po
-	-rm -f ./$(DEPDIR)/test2d-SetDampingZone.Po
 	-rm -f ./$(DEPDIR)/test2d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/test2d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/test2d-TagLSRefinementCells.Po
+	-rm -f ./$(DEPDIR)/test2d-WaveDamper.Po
 	-rm -f ./$(DEPDIR)/test2d-test_main.Po
 	-rm -f ./$(DEPDIR)/test3d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/test3d-LSLocateColumnInterface.Po
-	-rm -f ./$(DEPDIR)/test3d-SetDampingZone.Po
 	-rm -f ./$(DEPDIR)/test3d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/test3d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/test3d-TagLSRefinementCells.Po
+	-rm -f ./$(DEPDIR)/test3d-WaveDamper.Po
 	-rm -f ./$(DEPDIR)/test3d-test_main.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -1311,31 +1306,31 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/main2d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/main2d-LSLocateColumnInterface.Po
-	-rm -f ./$(DEPDIR)/main2d-SetDampingZone.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/main2d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/main2d-TagLSRefinementCells.Po
+	-rm -f ./$(DEPDIR)/main2d-WaveDamper.Po
 	-rm -f ./$(DEPDIR)/main2d-ex_main.Po
 	-rm -f ./$(DEPDIR)/main3d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/main3d-LSLocateColumnInterface.Po
-	-rm -f ./$(DEPDIR)/main3d-SetDampingZone.Po
 	-rm -f ./$(DEPDIR)/main3d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/main3d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/main3d-TagLSRefinementCells.Po
+	-rm -f ./$(DEPDIR)/main3d-WaveDamper.Po
 	-rm -f ./$(DEPDIR)/main3d-ex_main.Po
 	-rm -f ./$(DEPDIR)/test2d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/test2d-LSLocateColumnInterface.Po
-	-rm -f ./$(DEPDIR)/test2d-SetDampingZone.Po
 	-rm -f ./$(DEPDIR)/test2d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/test2d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/test2d-TagLSRefinementCells.Po
+	-rm -f ./$(DEPDIR)/test2d-WaveDamper.Po
 	-rm -f ./$(DEPDIR)/test2d-test_main.Po
 	-rm -f ./$(DEPDIR)/test3d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/test3d-LSLocateColumnInterface.Po
-	-rm -f ./$(DEPDIR)/test3d-SetDampingZone.Po
 	-rm -f ./$(DEPDIR)/test3d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/test3d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/test3d-TagLSRefinementCells.Po
+	-rm -f ./$(DEPDIR)/test3d-WaveDamper.Po
 	-rm -f ./$(DEPDIR)/test3d-test_main.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
@@ -1379,6 +1374,7 @@ uninstall-am:
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d* $(PWD) ; \
+	  cp -f $(srcdir)/*.m $(PWD) ; \
 	fi ;
 
 @GTEST_ENABLED_TRUE@gtest: $(GTESTS)
