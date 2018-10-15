@@ -836,29 +836,24 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
 
         // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
         // U^{n+1/2} and U^{n+1} to equal U^{n}.
-        d_X_systems[part]->solution->close();
-        d_X_systems[part]->solution->localize(*d_X_current_vecs[part]);
-        d_X_systems[part]->solution->localize(*d_X_new_vecs[part]);
-        d_X_systems[part]->solution->localize(*d_X_half_vecs[part]);
+        copy_and_synch(*d_X_systems[part]->solution, *d_X_current_vecs[part]);
+        *d_X_new_vecs[part] = *d_X_current_vecs[part];
+        *d_X_half_vecs[part] = *d_X_current_vecs[part];
 
-        d_U_systems[part]->solution->close();
-        d_U_systems[part]->solution->localize(*d_U_current_vecs[part]);
-        d_U_systems[part]->solution->localize(*d_U_new_vecs[part]);
-        d_U_systems[part]->solution->localize(*d_U_half_vecs[part]);
+        copy_and_synch(*d_U_systems[part]->solution, *d_U_current_vecs[part]);
+        *d_U_new_vecs[part] = *d_U_current_vecs[part];
+        *d_U_half_vecs[part] = *d_U_current_vecs[part];
 
-        d_F_systems[part]->solution->close();
-        d_F_systems[part]->solution->localize(*d_F_half_vecs[part]);
+        copy_and_synch(*d_F_systems[part]->solution, *d_F_half_vecs[part]);
 
         if (d_lag_body_source_part[part])
         {
-            d_Q_systems[part]->solution->close();
-            d_Q_systems[part]->solution->localize(*d_Q_half_vecs[part]);
+            copy_and_synch(*d_Q_systems[part]->solution, *d_Q_half_vecs[part]);
         }
 
         if (d_is_stress_normalization_part[part])
         {
-            d_Phi_systems[part]->solution->close();
-            d_Phi_systems[part]->solution->localize(*d_Phi_half_vecs[part]);
+            copy_and_synch(*d_Phi_systems[part]->solution, *d_Phi_half_vecs[part]);
         }
 
         if (d_direct_forcing_kinematics_data[part])
@@ -878,39 +873,29 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         // Reset time-dependent Lagrangian data.
-        d_X_new_vecs[part]->close();
-        *d_X_systems[part]->solution = *d_X_new_vecs[part];
-        d_X_systems[part]->solution->close();
-        d_X_systems[part]->solution->localize(*d_X_systems[part]->current_local_solution);
+        copy_and_synch(*d_X_new_vecs[part], *d_X_systems[part]->solution);
+        *d_X_systems[part]->current_local_solution = *d_X_new_vecs[part];
         delete d_X_new_vecs[part];
         delete d_X_half_vecs[part];
 
-        d_U_new_vecs[part]->close();
-        *d_U_systems[part]->solution = *d_U_new_vecs[part];
-        d_U_systems[part]->solution->close();
-        d_U_systems[part]->solution->localize(*d_U_systems[part]->current_local_solution);
+        copy_and_synch(*d_U_new_vecs[part], *d_U_systems[part]->solution);
+        *d_U_systems[part]->current_local_solution = *d_U_new_vecs[part];
         delete d_U_new_vecs[part];
         delete d_U_half_vecs[part];
 
-        d_F_half_vecs[part]->close();
-        *d_F_systems[part]->solution = *d_F_half_vecs[part];
-        d_F_systems[part]->solution->close();
-        d_F_systems[part]->solution->localize(*d_F_systems[part]->current_local_solution);
+        copy_and_synch(*d_F_half_vecs[part], *d_F_systems[part]->solution);
+        *d_F_systems[part]->current_local_solution = *d_F_half_vecs[part];
 
         if (d_lag_body_source_part[part])
         {
-            d_Q_half_vecs[part]->close();
-            *d_Q_systems[part]->solution = *d_Q_half_vecs[part];
-            d_Q_systems[part]->solution->close();
-            d_Q_systems[part]->solution->localize(*d_Q_systems[part]->current_local_solution);
+            copy_and_synch(*d_Q_half_vecs[part], *d_Q_systems[part]->solution);
+            *d_Q_systems[part]->current_local_solution = *d_Q_half_vecs[part];
         }
 
         if (d_is_stress_normalization_part[part])
         {
-            d_Phi_half_vecs[part]->close();
-            *d_Phi_systems[part]->solution = *d_Phi_half_vecs[part];
-            d_Phi_systems[part]->solution->close();
-            d_Phi_systems[part]->solution->localize(*d_Phi_systems[part]->current_local_solution);
+            copy_and_synch(*d_Phi_half_vecs[part], *d_Phi_systems[part]->solution);
+            *d_Phi_systems[part]->current_local_solution = *d_Phi_half_vecs[part];
         }
 
         if (d_direct_forcing_kinematics_data[part])
@@ -986,8 +971,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        X_vecs[part]->localize(*X_ghost_vec);
+        copy_and_synch(*X_vecs[part], *d_X_IB_ghost_vecs[part], /*close_v_in*/ false);
     }
 
     // Build the right-hand-sides to compute the interpolated data.
@@ -1160,7 +1144,7 @@ IBFEMethod::computeLagrangianForce(const double data_time)
                                                            d_overlap_force_part_ghost_idxs[k].end());
                 X_half_ghost_vecs[k] = new PetscVector<double>(
                     X_half_vec->comm(), X_half_vec->size(), X_half_vec->local_size(), ghost_idxs);
-                X_half_vec->localize(*X_half_ghost_vecs[k]);
+                copy_and_synch(*X_half_vec, *X_half_ghost_vecs[k], /*close_v_in*/ false);
             }
         }
         computeOverlapConstraintForceDensity(d_F_half_vecs, X_half_ghost_vecs);
@@ -1187,8 +1171,8 @@ IBFEMethod::spreadForce(const int f_data_idx,
         PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* F_vec = d_F_half_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
-        X_vec->localize(*X_ghost_vec);
-        F_vec->localize(*F_ghost_vec);
+        copy_and_synch(*X_vec, *X_ghost_vec, /*close_v_in*/ false);
+        copy_and_synch(*F_vec, *F_ghost_vec, /*close_v_in*/ false);
     }
 
     // Spread interior force density values.
@@ -1282,7 +1266,6 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         // Setup global and elemental right-hand-side vectors.
         NumericVector<double>* Q_rhs_vec = Q_system.rhs;
         Q_rhs_vec->zero();
-        Q_rhs_vec->close();
         DenseVector<double> Q_rhs_e;
 
         TensorValue<double> FF, FF_inv_trans;
@@ -1343,10 +1326,16 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
         PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* Q_vec = d_Q_half_vecs[part];
         PetscVector<double>* Q_ghost_vec = d_Q_IB_ghost_vecs[part];
-        X_vec->localize(*X_ghost_vec);
-        Q_vec->localize(*Q_ghost_vec);
-        d_fe_data_managers[part]->spread(
-            q_data_idx, *Q_ghost_vec, *X_ghost_vec, SOURCE_SYSTEM_NAME, q_phys_bdry_op, data_time);
+        copy_and_synch(*X_vec, *X_ghost_vec, /*close_v_in*/ false);
+        copy_and_synch(*Q_vec, *Q_ghost_vec, /*close_v_in*/ false);
+        d_fe_data_managers[part]->spread(q_data_idx,
+                                         *Q_ghost_vec,
+                                         *X_ghost_vec,
+                                         SOURCE_SYSTEM_NAME,
+                                         q_phys_bdry_op,
+                                         data_time,
+                                         /*close_Q*/ false,
+                                         /*close_X*/ false);
     }
     return;
 }
@@ -1802,7 +1791,6 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     // Setup global and elemental right-hand-side vectors.
     NumericVector<double>* Phi_rhs_vec = Phi_system.rhs;
     Phi_rhs_vec->zero();
-    Phi_rhs_vec->close();
     DenseVector<double> Phi_rhs_e;
 
     // Set up boundary conditions for Phi.
@@ -1944,9 +1932,8 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     // Solve for Phi.
     Phi_rhs_vec->close();
     Phi_system.solve();
-    Phi_system.solution->close();
-    Phi_system.solution->localize(Phi_vec);
     Phi_dof_map.enforce_constraints_exactly(Phi_system, &Phi_vec);
+    copy_and_synch(*Phi_system.solution, Phi_vec, /*close_v_in*/ false);
     return;
 }
 
@@ -2410,7 +2397,7 @@ IBFEMethod::resetOverlapNodalValues(const std::string& system_name, const std::v
                                                        d_overlap_velocity_part_ghost_idxs[part].end());
             F_ghost_vecs[part] = new PetscVector<double>(
                 F_vecs[part]->comm(), F_vecs[part]->size(), F_vecs[part]->local_size(), ghost_idxs);
-            F_vecs[part]->localize(*F_ghost_vecs[part]);
+            copy_and_synch(*F_vecs[part], *F_ghost_vecs[part], /*close_v_in*/ false);
         }
     }
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -3353,7 +3340,7 @@ IBFEMethod::initializeCoordinates(const unsigned int part)
     }
     X_coords.close();
     X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
-    X_coords.localize(*X_system.current_local_solution);
+    copy_and_synch(X_coords, *X_system.current_local_solution, /*close_v_in*/ false);
     return;
 } // initializeCoordinates
 
@@ -3384,8 +3371,7 @@ IBFEMethod::updateCoordinateMapping(const unsigned int part)
             }
         }
     }
-    dX_coords.close();
-    dX_coords.localize(*dX_system.current_local_solution);
+    copy_and_synch(dX_coords, *dX_system.current_local_solution);
     return;
 } // updateCoordinateMapping
 
@@ -3422,7 +3408,7 @@ IBFEMethod::initializeVelocity(const unsigned int part)
     }
     U_vec.close();
     U_system.get_dof_map().enforce_constraints_exactly(U_system, &U_vec);
-    U_vec.localize(*U_system.current_local_solution);
+    copy_and_synch(U_vec, *U_system.current_local_solution, /*close_v_in*/ false);
     return;
 } // initializeVelocity
 

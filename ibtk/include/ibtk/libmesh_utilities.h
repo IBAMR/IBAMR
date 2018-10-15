@@ -47,6 +47,7 @@
 #include "libmesh/type_tensor.h"
 #include "libmesh/type_vector.h"
 #include "libmesh/vector_value.h"
+#include "ibtk/IBTK_CHKERRQ.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
@@ -146,6 +147,27 @@ using TensorSurfaceFcnPtr =
              const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
              double data_time,
              void* ctx);
+
+inline void
+copy_and_synch(libMesh::NumericVector<double>& v_in,
+               libMesh::NumericVector<double>& v_out,
+               const bool close_v_in = true,
+               const bool close_v_out = true)
+{
+#if defined(NDEBUG)
+    auto v_in_petsc = static_cast<libMesh::PetscVector<double>*>(&v_in);
+    auto v_out_petsc = static_cast<libMesh::PetscVector<double>*>(&v_out);
+#else
+    auto v_in_petsc = dynamic_cast<libMesh::PetscVector<double>*>(&v_in);
+    auto v_out_petsc = dynamic_cast<libMesh::PetscVector<double>*>(&v_out);
+    TBOX_ASSERT(v_in_petsc);
+    TBOX_ASSERT(v_out_petsc);
+#endif
+    if (close_v_in) v_in.close();
+    PetscErrorCode ierr = VecCopy(v_in_petsc->vec(), v_out_petsc->vec());
+    IBTK_CHKERRQ(ierr);
+    if (close_v_out) v_out.close();
+}
 
 template <class MultiArray, class Array>
 inline void
