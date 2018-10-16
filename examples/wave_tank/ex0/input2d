@@ -15,6 +15,7 @@ OMEGA       =  2*PI/TIME_PERIOD
 WAVELENGTH  =  2.8264
 WAVENUMBER  =  2.223
 X_UR        = L, DEPTH
+WAVE_TYPE   = "SECOND_ORDER_STOKES"
 
 // material properties
 MU_I       = 1.137e-3
@@ -25,11 +26,11 @@ RHO_O      = 1.226
 NUM_INTERFACE_CELLS = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 1        // maximum number of levels in locally refined grid
+MAX_LEVELS = 3        // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 
-Ny = 100
-Nx = 600                                   // coarsest grid spacing
+Ny = 25
+Nx = 150                                   // coarsest grid spacing
 NXFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
 NYFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Ny  // finest   grid spacing
 
@@ -47,7 +48,6 @@ APPLY_MASS_CONSTRAINT = FALSE
 LS_TAG_VALUE = 0.0
 LS_TAG_ABS_THRESH = 2.0*L/Nx
 VORTICITY_REL_THRESH = 0.5
-COLUMN_AMPLITUDE = 0.0
 
 
 // surface tension parameters
@@ -57,17 +57,19 @@ SIGMA = 0.0 //0.0728
 U = "0.0"
 V = "0.0"
 
-X_ZONE_START_DAMPER = L - 1.0 * WAVELENGTH
-X_ZONE_END_DAMPER = L
-X_ZONE_START_GENERATOR = 0.0
-X_ZONE_END_GENERATOR = 3*WAVELENGTH
 
-OutletDampingZone {
-    x_zone_start = X_ZONE_START_DAMPER
-    x_zone_end   = X_ZONE_END_DAMPER
-    theta        = 0.0
+WaveDamper {
+  x_zone_start = L - 1 * WAVELENGTH
+  x_zone_end = L
+  depth = DEPTH
+  alpha = 2.0
 }
 
+ProbePoints {
+  probe_0 = 0.065,0.505
+  probe_1 = 3.165,0.505
+
+}
 
 VelocityInitialConditions {
    function_0 = U
@@ -195,7 +197,7 @@ GROW_DT                             =  2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS                =  500000  // max number of simulation timesteps
 REGRID_INTERVAL                     =  1
 CFL_MAX                             =  0.5   
-NUM_INS_CYCLES                      =  1
+NUM_INS_CYCLES                      =  2
 NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "CUI"
 CONVECTIVE_FORM                     = "CONSERVATIVE"                // how to compute the convective terms
 INIT_CONVECTIVE_TS_TYPE             = "MIDPOINT_RULE"

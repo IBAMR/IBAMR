@@ -1,9 +1,21 @@
-// application parameters
-L     = 0.4
-H     = 0.1
-X_UR  = 0.05715,0.05715
-GRAV_CONST = 0.0,-9.81
+// constants
+PI = 3.14159265358979e+0
 
+// application parameters
+L     = 6.0
+H     = 1.0
+G     = 9.81
+GRAV_CONST = 0.0,-G
+
+// WAVE PARAMETRS
+DEPTH       =  0.5
+AMPLITUDE   =  0.025/2.0
+TIME_PERIOD =  1.5
+OMEGA       =  2*PI/TIME_PERIOD
+WAVELENGTH  =  2.8264
+WAVENUMBER  =  2.223
+X_UR        = L, DEPTH
+WAVE_TYPE   = "SECOND_ORDER_STOKES"
 
 // material properties
 MU_I       = 1.137e-3
@@ -14,11 +26,11 @@ RHO_O      = 1.226
 NUM_INTERFACE_CELLS = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 1        // maximum number of levels in locally refined grid
+MAX_LEVELS = 3        // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 
-Ny = 32
-Nx = 4*Ny                                   // coarsest grid spacing
+Ny = 25
+Nx = 150                                   // coarsest grid spacing
 NXFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
 NYFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Ny  // finest   grid spacing
 
@@ -37,13 +49,27 @@ LS_TAG_VALUE = 0.0
 LS_TAG_ABS_THRESH = 2.0*L/Nx
 VORTICITY_REL_THRESH = 0.5
 
+
 // surface tension parameters
 DELTA_FUNCTION = "IB_4"
-SIGMA = 0.0728
+SIGMA = 0.0 //0.0728
 
 U = "0.0"
 V = "0.0"
 
+
+WaveDamper {
+  x_zone_start = L - 1 * WAVELENGTH
+  x_zone_end = L
+  depth = DEPTH
+  alpha = 2.0
+}
+
+ProbePoints {
+  probe_0 = 0.065,0.505
+  probe_1 = 3.165,0.505
+
+}
 
 VelocityInitialConditions {
    function_0 = U
@@ -65,26 +91,48 @@ VelocityBcCoefs_0 {
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
+
+   wave_parameters_db {
+        depth                  =  DEPTH
+        omega                  =  OMEGA
+        gravitational_constant =  G
+        wave_number            =  WAVENUMBER
+        amplitude              =  AMPLITUDE
+   }
 }
 
 VelocityBcCoefs_1 {
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
+   acoef_function_3 = "0.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
+   bcoef_function_3 = "1.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
+
+   wave_parameters_db {
+        depth                  =  DEPTH
+        omega                  =  OMEGA
+        gravitational_constant =  G
+        wave_number            =  WAVENUMBER
+        amplitude              =  AMPLITUDE
+    }
 }
 
 PhiBcCoefs {
+
+    D  =  DEPTH
+    W  =  OMEGA
+    K  =  WAVENUMBER
+    A  =  AMPLITUDE
+
    acoef_function_0 = "0.0"
    acoef_function_1 = "0.0"
    acoef_function_2 = "0.0"
@@ -144,7 +192,7 @@ MuBcCoefs {
 SOLVER_TYPE                         = "STAGGERED"
 DISCRETIZATION_FORM                 = "CONSERVATIVE"
 START_TIME                          =  0.0e0     // initial simulation time
-END_TIME                            =  0.4e0    // final simulation time
+END_TIME                            =  400.0e0    // final simulation time
 GROW_DT                             =  2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS                =  5  // max number of simulation timesteps
 REGRID_INTERVAL                     =  1
@@ -154,11 +202,11 @@ NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "CUI"
 CONVECTIVE_FORM                     = "CONSERVATIVE"                // how to compute the convective terms
 INIT_CONVECTIVE_TS_TYPE             = "MIDPOINT_RULE"
 CONVECTIVE_TS_TYPE                  = "MIDPOINT_RULE"    // convective time stepping type
-NORMALIZE_PRESSURE                  = TRUE     
+NORMALIZE_PRESSURE                  = FALSE
 VORTICITY_TAGGING                   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                          = 2                          // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL                 = 0.3                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
-DT_MAX                              = 0.001/(REF_RATIO^(MAX_LEVELS - 1))/2.0
+DT_MAX                              = 0.01
 OUTPUT_U                            = TRUE
 OUTPUT_P                            = TRUE
 OUTPUT_F                            = TRUE
@@ -416,7 +464,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 50*(REF_RATIO^(MAX_LEVELS - 1))
+   viz_dump_interval           = 5
    viz_dump_dirname            = "viz_INS2d"
    visit_number_procs_per_file = 1
 
