@@ -136,7 +136,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    LTransaction(int src_proc, int dst_proc, const std::vector<LTransactionComponent>& src_item_set);
+    LTransaction(int src_proc, int dst_proc, std::vector<LTransactionComponent> src_item_set);
 
     /*!
      * \brief The virtual destructor for the copy transaction releases all

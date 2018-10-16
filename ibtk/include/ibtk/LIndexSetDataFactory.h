@@ -73,7 +73,7 @@ public:
      * cell width argument gives the default width for all data objects created
      * with this factory.
      */
-    LIndexSetDataFactory(const SAMRAI::hier::IntVector<NDIM>& ghosts);
+    LIndexSetDataFactory(SAMRAI::hier::IntVector<NDIM> ghosts);
 
     /*!
      * Virtual destructor for the data factory class.

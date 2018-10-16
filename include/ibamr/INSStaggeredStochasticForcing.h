@@ -86,7 +86,7 @@ public:
      * storing the stochastic stresses at the centers and nodes of the Cartesian
      * grid.
      */
-    INSStaggeredStochasticForcing(const std::string& object_name,
+    INSStaggeredStochasticForcing(std::string object_name,
                                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                   const INSStaggeredHierarchyIntegrator* fluid_solver);
 

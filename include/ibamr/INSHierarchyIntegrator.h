@@ -362,7 +362,7 @@ protected:
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    INSHierarchyIntegrator(const std::string& object_name,
+    INSHierarchyIntegrator(std::string object_name,
                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                            SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > U_var,
                            SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > P_var,

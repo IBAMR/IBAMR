@@ -57,7 +57,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FACPreconditioner::FACPreconditioner(const std::string& object_name,
+FACPreconditioner::FACPreconditioner(std::string object_name,
                                      Pointer<FACPreconditionerStrategy> fac_strategy,
                                      tbox::Pointer<tbox::Database> input_db,
                                      const std::string& /*default_options_prefix*/)
@@ -72,7 +72,7 @@ FACPreconditioner::FACPreconditioner(const std::string& object_name,
       d_r()
 {
     // Setup default options.
-    GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
+    GeneralSolver::init(std::move(object_name), /*homogeneous_bc*/ true);
     d_initial_guess_nonzero = false;
     d_rel_residual_tol = 1.0e-5;
     d_abs_residual_tol = 1.0e-50;

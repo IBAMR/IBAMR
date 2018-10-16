@@ -88,8 +88,8 @@ static Timer* t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CCLaplaceOperator::CCLaplaceOperator(const std::string& object_name, const bool homogeneous_bc)
-    : LaplaceOperator(object_name, homogeneous_bc),
+CCLaplaceOperator::CCLaplaceOperator(std::string object_name, const bool homogeneous_bc)
+    : LaplaceOperator(std::move(object_name), homogeneous_bc),
       d_ncomp(0),
       d_fill_pattern(nullptr),
       d_transaction_comps(),

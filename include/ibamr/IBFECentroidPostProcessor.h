@@ -52,7 +52,7 @@ public:
     /*!
      * Constructor.
      */
-    IBFECentroidPostProcessor(const std::string& name, IBTK::FEDataManager* fe_data_manager);
+    IBFECentroidPostProcessor(std::string name, IBTK::FEDataManager* fe_data_manager);
 
     /*!
      * Destructor.

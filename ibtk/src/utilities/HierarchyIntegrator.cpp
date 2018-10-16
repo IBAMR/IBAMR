@@ -104,14 +104,12 @@ const std::string HierarchyIntegrator::SYNCH_NEW_DATA_ALG = "SYNCH_NEW_DATA";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-HierarchyIntegrator::HierarchyIntegrator(const std::string& object_name,
-                                         Pointer<Database> input_db,
-                                         bool register_for_restart)
+HierarchyIntegrator::HierarchyIntegrator(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
+    : d_object_name(std::move(object_name))
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!d_object_name.empty());
 #endif
-    d_object_name = object_name;
     d_registered_for_restart = false;
     if (register_for_restart)
     {

@@ -63,7 +63,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    LinearOperator(const std::string& object_name, bool homogeneous_bc = false);
+    LinearOperator(std::string object_name, bool homogeneous_bc = false);
 
     /*!
      * \brief Empty destructor.

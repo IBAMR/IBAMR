@@ -84,10 +84,8 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FastSweepingLSMethod::FastSweepingLSMethod(const std::string& object_name,
-                                           Pointer<Database> db,
-                                           bool register_for_restart)
-    : LSInitStrategy(object_name, register_for_restart)
+FastSweepingLSMethod::FastSweepingLSMethod(std::string object_name, Pointer<Database> db, bool register_for_restart)
+    : LSInitStrategy(std::move(object_name), register_for_restart)
 {
     // Some default values.
     d_ls_order = FIRST_ORDER_LS;

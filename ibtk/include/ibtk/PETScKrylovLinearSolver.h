@@ -125,9 +125,9 @@ public:
      * \brief Constructor for a concrete KrylovLinearSolver that employs the
      * PETSc KSP solver framework.
      */
-    PETScKrylovLinearSolver(const std::string& object_name,
+    PETScKrylovLinearSolver(std::string object_name,
                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                            const std::string& default_options_prefix,
+                            std::string default_options_prefix,
                             MPI_Comm petsc_comm = PETSC_COMM_WORLD);
 
     /*!
@@ -141,7 +141,7 @@ public:
      * acts as a "wrapper" for the provided KSP object.  Note that memory
      * management of the provided KSP object is \em NOT handled by this class.
      */
-    PETScKrylovLinearSolver(const std::string& object_name, const KSP& petsc_ksp);
+    PETScKrylovLinearSolver(std::string object_name, const KSP& petsc_ksp);
 
     /*!
      * \brief Destructor.

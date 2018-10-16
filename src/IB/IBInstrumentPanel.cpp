@@ -510,8 +510,8 @@ linear_interp(const Point& X,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBInstrumentPanel::IBInstrumentPanel(const std::string& object_name, Pointer<Database> input_db)
-    : d_object_name(object_name),
+IBInstrumentPanel::IBInstrumentPanel(std::string object_name, Pointer<Database> input_db)
+    : d_object_name(std::move(object_name)),
       d_initialized(false),
       d_num_meters(0),
       d_num_perimeter_nodes(),

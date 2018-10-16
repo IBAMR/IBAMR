@@ -115,7 +115,7 @@ static const int COARSEN_OP_PRIORITY = 0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartSideDoubleRT0Coarsen::CartSideDoubleRT0Coarsen(const IntVector<NDIM>& gcw) : d_gcw(gcw)
+CartSideDoubleRT0Coarsen::CartSideDoubleRT0Coarsen(IntVector<NDIM> gcw) : d_gcw(std::move(gcw))
 {
     // intentionally blank
     return;

@@ -31,6 +31,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include <utility>
+
 #include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
 #include "ArrayDataBasicOps.h"
 #include "CartesianPatchGeometry.h"
@@ -73,12 +75,12 @@ sign(const double X)
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
-    const std::string& object_name,
+    std::string object_name,
     Pointer<CellVariable<NDIM, double> > ls_solid_var,
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
     Pointer<INSHierarchyIntegrator> fluid_solver,
     Pointer<Database> db)
-    : d_object_name(object_name),
+    : d_object_name(std::move(object_name)),
       d_ls_solid_var(ls_solid_var),
       d_adv_diff_solver(adv_diff_solver),
       d_fluid_solver(fluid_solver),

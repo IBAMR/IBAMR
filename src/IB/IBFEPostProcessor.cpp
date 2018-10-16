@@ -77,8 +77,8 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBFEPostProcessor::IBFEPostProcessor(const std::string& name, FEDataManager* fe_data_manager)
-    : d_name(name),
+IBFEPostProcessor::IBFEPostProcessor(std::string name, FEDataManager* fe_data_manager)
+    : d_name(std::move(name)),
       d_mesh(&fe_data_manager->getEquationSystems()->get_mesh()),
       d_fe_data_manager(fe_data_manager),
       d_fe_data_initialized(false)

@@ -69,7 +69,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    CartSideDoubleRT0Coarsen(const SAMRAI::hier::IntVector<NDIM>& gcw = SAMRAI::hier::IntVector<NDIM>(1));
+    CartSideDoubleRT0Coarsen(SAMRAI::hier::IntVector<NDIM> gcw = SAMRAI::hier::IntVector<NDIM>(1));
 
     /*!
      * \brief Destructor.

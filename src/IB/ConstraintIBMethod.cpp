@@ -104,7 +104,7 @@ private:
     std::pair<int, int> struct_to_find_range;
 
 public:
-    find_struct_handle(const std::pair<int, int>& struct_range) : struct_to_find_range(struct_range)
+    find_struct_handle(std::pair<int, int> struct_range) : struct_to_find_range(std::move(struct_range))
     {
     }
 
@@ -161,11 +161,11 @@ solveSystemOfEqns(std::vector<double>& ang_mom, const Eigen::Matrix3d& inertiaTe
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
+ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
                                        Pointer<Database> input_db,
                                        const int no_structures,
                                        bool register_for_restart)
-    : IBMethod(object_name, input_db, register_for_restart),
+    : IBMethod(std::move(object_name), input_db, register_for_restart),
       d_no_structures(no_structures),
       d_ib_kinematics(d_no_structures, Pointer<ConstraintIBKinematics>(nullptr)),
       d_FuRMoRP_current_time(0.0),

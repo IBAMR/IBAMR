@@ -54,7 +54,7 @@ public:
     /*!
      * Create an LIndexSetVariable object with the specified name.
      */
-    LIndexSetVariable(const std::string& name);
+    LIndexSetVariable(std::string name);
 
     /*!
      * Virtual destructor for LIndexSetVariable objects.

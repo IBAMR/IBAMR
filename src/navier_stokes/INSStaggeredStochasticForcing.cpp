@@ -36,6 +36,7 @@
 #include <limits>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "ArrayData.h"
@@ -179,10 +180,10 @@ genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& object_name,
+INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(std::string object_name,
                                                              Pointer<Database> input_db,
                                                              const INSStaggeredHierarchyIntegrator* const fluid_solver)
-    : d_object_name(object_name),
+    : d_object_name(std::move(object_name)),
       d_fluid_solver(fluid_solver),
       d_stress_tensor_type(UNCORRELATED),
       d_std(std::numeric_limits<double>::quiet_NaN()),

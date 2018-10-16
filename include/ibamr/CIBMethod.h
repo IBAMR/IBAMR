@@ -59,7 +59,7 @@ public:
     /*!
      * \brief Constructor of the class.
      */
-    CIBMethod(const std::string& object_name,
+    CIBMethod(std::string object_name,
               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
               const int no_structures = 1,
               bool register_for_restart = true);

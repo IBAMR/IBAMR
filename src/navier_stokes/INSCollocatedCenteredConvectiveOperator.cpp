@@ -297,11 +297,11 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator(
-    const std::string& object_name,
+    std::string object_name,
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& /*bc_coefs*/)
-    : ConvectiveOperator(object_name, difference_form),
+    : ConvectiveOperator(std::move(object_name), difference_form),
       d_ghostfill_alg(nullptr),
       d_ghostfill_scheds(),
       d_bdry_extrap_type("CONSTANT"),

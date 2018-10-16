@@ -84,7 +84,7 @@ public:
      * \brief This constructor creates Variable and VariableContext objects for
      * storing the stochastic fluxes at the faces of the Cartesian grid.
      */
-    AdvDiffStochasticForcing(const std::string& object_name,
+    AdvDiffStochasticForcing(std::string object_name,
                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > C_var,
                              const AdvDiffSemiImplicitHierarchyIntegrator* adv_diff_solver);

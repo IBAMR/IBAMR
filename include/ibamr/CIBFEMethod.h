@@ -96,7 +96,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    CIBFEMethod(const std::string& object_name,
+    CIBFEMethod(std::string object_name,
                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                 libMesh::MeshBase* mesh,
                 int max_level_number,
@@ -105,7 +105,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    CIBFEMethod(const std::string& object_name,
+    CIBFEMethod(std::string object_name,
                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                 const std::vector<libMesh::MeshBase*>& meshes,
                 int max_level_number,

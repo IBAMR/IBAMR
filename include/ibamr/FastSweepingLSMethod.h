@@ -83,7 +83,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    FastSweepingLSMethod(const std::string& object_name,
+    FastSweepingLSMethod(std::string object_name,
                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = NULL,
                          bool register_for_restart = true);
 

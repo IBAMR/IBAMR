@@ -54,7 +54,7 @@ public:
     /*!
      * Create an LSetVariable object with the specified name.
      */
-    LSetVariable(const std::string& name);
+    LSetVariable(std::string name);
 
     /*!
      * Virtual destructor for LSetVariable objects.

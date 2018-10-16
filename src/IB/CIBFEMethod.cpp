@@ -57,22 +57,22 @@ const std::string CIBFEMethod::CONSTRAINT_VELOCITY_SYSTEM_NAME = "IB constrained
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CIBFEMethod::CIBFEMethod(const std::string& object_name,
+CIBFEMethod::CIBFEMethod(std::string object_name,
                          Pointer<Database> input_db,
                          MeshBase* mesh,
                          int max_level_number,
                          bool register_for_restart)
-    : IBFEMethod(object_name, input_db, mesh, max_level_number, register_for_restart), CIBStrategy(1)
+    : IBFEMethod(std::move(object_name), input_db, mesh, max_level_number, register_for_restart), CIBStrategy(1)
 {
     commonConstructor(input_db);
 } // CIBFEMethod
 
-CIBFEMethod::CIBFEMethod(const std::string& object_name,
+CIBFEMethod::CIBFEMethod(std::string object_name,
                          Pointer<Database> input_db,
                          const std::vector<MeshBase*>& meshes,
                          int max_level_number,
                          bool register_for_restart)
-    : IBFEMethod(object_name, input_db, meshes, max_level_number, register_for_restart),
+    : IBFEMethod(std::move(object_name), input_db, meshes, max_level_number, register_for_restart),
       CIBStrategy(static_cast<unsigned>(meshes.size()))
 {
     commonConstructor(input_db);

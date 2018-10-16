@@ -57,8 +57,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-LIndexSetVariable<T>::LIndexSetVariable(const std::string& name)
-    : Variable<NDIM>(name, new LIndexSetDataFactory<T>(IntVector<NDIM>(0)))
+LIndexSetVariable<T>::LIndexSetVariable(std::string name)
+    : Variable<NDIM>(std::move(name), new LIndexSetDataFactory<T>(IntVector<NDIM>(0)))
 {
     // intentionally blank
     return;

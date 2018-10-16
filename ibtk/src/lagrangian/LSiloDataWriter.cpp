@@ -635,12 +635,10 @@ build_local_ucd_mesh(DBfile* dbfile,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LSiloDataWriter::LSiloDataWriter(const std::string& object_name,
-                                 const std::string& dump_directory_name,
-                                 bool register_for_restart)
-    : d_object_name(object_name),
+LSiloDataWriter::LSiloDataWriter(std::string object_name, std::string dump_directory_name, bool register_for_restart)
+    : d_object_name(std::move(object_name)),
       d_registered_for_restart(register_for_restart),
-      d_dump_directory_name(dump_directory_name),
+      d_dump_directory_name(std::move(dump_directory_name)),
       d_time_step_number(-1),
       d_hierarchy(),
       d_coarsest_ln(0),

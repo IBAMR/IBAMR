@@ -78,7 +78,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    FACPreconditionerStrategy(const std::string& object_name, bool homogeneous_bc = false);
+    FACPreconditionerStrategy(std::string object_name, bool homogeneous_bc = false);
 
     /*!
      * \brief Empty virtual desctructor.

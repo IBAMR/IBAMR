@@ -132,7 +132,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    StaggeredStokesIBLevelRelaxationFACOperator(const std::string& object_name,
+    StaggeredStokesIBLevelRelaxationFACOperator(std::string object_name,
                                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                                 const std::string& default_options_prefix);
 

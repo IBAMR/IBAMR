@@ -68,7 +68,7 @@ public:
      * \brief Constructor for class SCLaplaceOperator initializes the operator
      * coefficients and boundary conditions to default values.
      */
-    SCLaplaceOperator(const std::string& object_name, bool homogeneous_bc = true);
+    SCLaplaceOperator(std::string object_name, bool homogeneous_bc = true);
 
     /*!
      * \brief Destructor.

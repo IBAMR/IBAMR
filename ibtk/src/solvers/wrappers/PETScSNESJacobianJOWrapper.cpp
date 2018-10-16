@@ -58,12 +58,12 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScSNESJacobianJOWrapper::PETScSNESJacobianJOWrapper(
-    const std::string& object_name,
-    const SNES& petsc_snes,
+    std::string object_name,
+    SNES petsc_snes,
     PetscErrorCode (*const petsc_snes_form_jac)(SNES, Vec, Mat, Mat, void*),
     void* const petsc_snes_jac_ctx)
-    : JacobianOperator(object_name),
-      d_petsc_snes(petsc_snes),
+    : JacobianOperator(std::move(object_name)),
+      d_petsc_snes(std::move(petsc_snes)),
       d_petsc_snes_jac(nullptr),
       d_petsc_snes_form_jac(petsc_snes_form_jac),
       d_petsc_snes_jac_ctx(petsc_snes_jac_ctx),

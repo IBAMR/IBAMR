@@ -34,6 +34,7 @@
 
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "ArrayDataBasicOps.h"
@@ -143,12 +144,12 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-HierarchyMathOps::HierarchyMathOps(const std::string& name,
+HierarchyMathOps::HierarchyMathOps(std::string name,
                                    Pointer<PatchHierarchy<NDIM> > hierarchy,
                                    const int coarsest_ln,
                                    const int finest_ln,
-                                   const std::string& coarsen_op_name)
-    : d_object_name(name),
+                                   std::string coarsen_op_name)
+    : d_object_name(std::move(name)),
       d_hierarchy(),
       d_grid_geom(),
       d_coarsest_ln(coarsest_ln),
@@ -163,7 +164,7 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
       d_ec_idx(-1),
       d_of_idx(-1),
       d_os_idx(-1),
-      d_coarsen_op_name(coarsen_op_name),
+      d_coarsen_op_name(std::move(coarsen_op_name)),
       d_of_coarsen_op(),
       d_os_coarsen_op(),
       d_of_coarsen_alg(),

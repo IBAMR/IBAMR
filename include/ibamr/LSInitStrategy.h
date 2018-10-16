@@ -84,7 +84,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    LSInitStrategy(const std::string& object_name, bool register_for_restart = true);
+    LSInitStrategy(std::string object_name, bool register_for_restart = true);
 
     /*!
      * \brief Virtual destructor.

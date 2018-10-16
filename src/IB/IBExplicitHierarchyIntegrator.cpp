@@ -92,12 +92,12 @@ static const int IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION = 2;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(const std::string& object_name,
+IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(std::string object_name,
                                                              Pointer<Database> input_db,
                                                              Pointer<IBStrategy> ib_method_ops,
                                                              Pointer<INSHierarchyIntegrator> ins_hier_integrator,
                                                              bool register_for_restart)
-    : IBHierarchyIntegrator(object_name, input_db, ib_method_ops, ins_hier_integrator, register_for_restart)
+    : IBHierarchyIntegrator(std::move(object_name), input_db, ib_method_ops, ins_hier_integrator, register_for_restart)
 {
     // Set default configuration options.
     d_use_structure_predictor = true;

@@ -72,7 +72,7 @@ public:
      * interior of the index space and the ghosts vector describes the ghost
      * nodes in each coordinate direction.
      */
-    LIndexSetData(const SAMRAI::hier::Box<NDIM>& box, const SAMRAI::hier::IntVector<NDIM>& ghosts);
+    LIndexSetData(SAMRAI::hier::Box<NDIM> box, SAMRAI::hier::IntVector<NDIM> ghosts);
 
     /*!
      * The virtual destructor for an LIndexSetData object.

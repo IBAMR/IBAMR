@@ -91,7 +91,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBHydrodynamicSurfaceForceEvaluator(const std::string& object_name,
+    IBHydrodynamicSurfaceForceEvaluator(std::string object_name,
                                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_solid_var,
                                         SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
                                         SAMRAI::tbox::Pointer<IBAMR::INSHierarchyIntegrator> fluid_solver,

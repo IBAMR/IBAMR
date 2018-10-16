@@ -81,8 +81,8 @@ static const int PENALTY_IB_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PenaltyIBMethod::PenaltyIBMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart)
-    : IBMethod(object_name, input_db, register_for_restart)
+PenaltyIBMethod::PenaltyIBMethod(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
+    : IBMethod(std::move(object_name), input_db, register_for_restart)
 {
     // NOTE: Parent class constructor registers class with the restart manager, sets object
     // name.

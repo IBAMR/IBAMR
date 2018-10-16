@@ -43,11 +43,11 @@ namespace IBAMR
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CIBMethod::CIBMethod(const std::string& object_name,
+CIBMethod::CIBMethod(std::string object_name,
                      Pointer<Database> input_db,
                      const int no_structures,
                      bool register_for_restart)
-    : IBMethod(object_name, input_db, register_for_restart), CIBStrategy(no_structures)
+    : IBMethod(std::move(object_name), input_db, register_for_restart), CIBStrategy(no_structures)
 {
     // Set some default values
     d_eul_lambda_idx = -1;

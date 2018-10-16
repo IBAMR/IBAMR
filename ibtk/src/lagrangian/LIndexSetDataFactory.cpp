@@ -55,8 +55,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-LIndexSetDataFactory<T>::LIndexSetDataFactory(const IntVector<NDIM>& ghosts)
-    : LSetDataFactory<T>(ghosts)
+LIndexSetDataFactory<T>::LIndexSetDataFactory(IntVector<NDIM> ghosts) : LSetDataFactory<T>(std::move(ghosts))
 {
     // intentionally blank
     return;
