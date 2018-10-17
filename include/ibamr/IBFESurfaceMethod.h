@@ -484,12 +484,18 @@ public:
 
 protected:
     /*!
-     * Impose (pressure) jump conditions.
+     * Impose weak jump conditions.
      */
-    void imposeJumpConditions(const int f_data_idx,
+    void imposeWeakJumpConditions(const int f_data_idx,
                               libMesh::PetscVector<double>& P_j_ghost_vec,
                               boost::array<libMesh::PetscVector<double>*, NDIM>& DU_j_ghost_vec,
                               libMesh::PetscVector<double>& X_ghost_vec,
+                              const double data_time,
+                              const unsigned int part);
+                                  /*!
+     * Impose pointwise jump conditions.
+     */
+    void imposePointWiseJumpConditions(const int f_data_idx,
                               const double data_time,
                               const unsigned int part);
 
@@ -569,6 +575,7 @@ protected:
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
     bool d_use_pressure_jump_conditions, d_use_velocity_jump_conditions;
     bool d_compute_fluid_traction;
+    bool d_use_pointwise_jump_imposition;
     bool d_perturb_fe_mesh_nodes;
     bool d_normalize_pressure_jump;
     std::vector<libMesh::FEFamily> d_fe_family;
