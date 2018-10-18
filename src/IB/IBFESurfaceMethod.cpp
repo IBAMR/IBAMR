@@ -3303,8 +3303,8 @@ IBFESurfaceMethod::imposeWeakJumpConditions(const int f_data_idx,
         {
             Elem* const elem = patch_elems[e_idx];
             
-            fe->reinit(elem);
-            fe2->reinit(elem);
+           // fe->reinit(elem);
+           // fe2->reinit(elem);
 
             for (int d = 0; d < NDIM; ++d)
             {
@@ -3846,7 +3846,7 @@ IBFESurfaceMethod::imposeWeakJumpConditions(const int f_data_idx,
        
     }
 
- exit(0);
+
     return;
 } // imposeWeakJumpConditions
 
