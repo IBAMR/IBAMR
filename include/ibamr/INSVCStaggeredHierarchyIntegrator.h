@@ -140,7 +140,7 @@ public:
      * integrator object with the restart manager when the object is so
      * registered.
      */
-    ~INSVCStaggeredHierarchyIntegrator();
+    virtual ~INSVCStaggeredHierarchyIntegrator();
 
     /*!
      * Get the convective operator being used by this solver class.
