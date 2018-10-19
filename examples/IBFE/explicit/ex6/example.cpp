@@ -299,7 +299,7 @@ run_example(int argc, char* argv[])
                                             Utility::string_to_enum<ElemType>(beam_elem_type));
         beam_mesh.prepare_for_use();
 
-        vector<Mesh*> meshes(2);
+        vector<MeshBase*> meshes(2);
         meshes[0] = &block_mesh;
         meshes[1] = &beam_mesh;
 

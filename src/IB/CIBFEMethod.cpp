@@ -59,7 +59,7 @@ const std::string CIBFEMethod::CONSTRAINT_VELOCITY_SYSTEM_NAME = "IB constrained
 
 CIBFEMethod::CIBFEMethod(const std::string& object_name,
                          Pointer<Database> input_db,
-                         Mesh* mesh,
+                         MeshBase* mesh,
                          int max_level_number,
                          bool register_for_restart)
     : IBFEMethod(object_name, input_db, mesh, max_level_number, register_for_restart), CIBStrategy(1)
@@ -69,7 +69,7 @@ CIBFEMethod::CIBFEMethod(const std::string& object_name,
 
 CIBFEMethod::CIBFEMethod(const std::string& object_name,
                          Pointer<Database> input_db,
-                         const std::vector<Mesh*>& meshes,
+                         const std::vector<MeshBase*>& meshes,
                          int max_level_number,
                          bool register_for_restart)
     : IBFEMethod(object_name, input_db, meshes, max_level_number, register_for_restart),

@@ -235,7 +235,7 @@ bool run_example(int argc, char* argv[])
                                             Utility::string_to_enum<ElemType>(elem_type));
         upper_mesh.prepare_for_use();
 
-        vector<Mesh*> meshes(2);
+        vector<MeshBase*> meshes(2);
         meshes[0] = &lower_mesh;
         meshes[1] = &upper_mesh;
 

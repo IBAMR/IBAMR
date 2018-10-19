@@ -118,7 +118,7 @@ using namespace ModelData;
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-                 Mesh& mesh,
+                 MeshBase& mesh,
                  EquationSystems* equation_systems,
                  const int iteration_num,
                  const double loop_time,
@@ -184,7 +184,7 @@ bool run_example(int argc, char** argv)
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
         // Create a simple FE mesh.
-        Mesh mesh(init.comm(), NDIM);
+        ReplicatedMesh mesh(init.comm(), NDIM);
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
@@ -568,7 +568,7 @@ bool run_example(int argc, char** argv)
 void
 output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
             Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-            Mesh& mesh,
+            MeshBase& mesh,
             EquationSystems* equation_systems,
             const int iteration_num,
             const double loop_time,

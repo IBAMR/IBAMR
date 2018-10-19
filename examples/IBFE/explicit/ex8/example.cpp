@@ -458,7 +458,7 @@ bool run_example(int argc, char** argv)
             }
         }
 
-        vector<Mesh*> meshes(3);
+        vector<MeshBase*> meshes(3);
         meshes[0] = &block1_mesh;
         meshes[1] = &block2_mesh;
         meshes[2] = &beam_mesh;
