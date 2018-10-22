@@ -86,14 +86,6 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Databas
         if (d_calculate_trans_mom[i]) d_struct_is_self_translating = true;
         if (d_calculate_rot_mom[i]) d_struct_is_self_rotating = true;
     }
-    // Only self translating bodies can be self rotating.
-    if (d_struct_is_self_rotating && !d_struct_is_self_translating)
-    {
-        TBOX_ERROR("ERROR:: StructureParameters::StructureParameters( ) "
-                   << "\n"
-                   << "Only self translating/propelling bodies can be self rotating."
-                   << std::endl);
-    }
 
     d_lag_position_update_method = input_db->getString("lag_position_update_method");
     if (d_lag_position_update_method != "CONSTRAINT_VELOCITY" &&
