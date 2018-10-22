@@ -103,7 +103,7 @@ public:
     /*!
      * \brief Destructor for this class.
      */
-    ~CIBMobilitySolver();
+    virtual ~CIBMobilitySolver();
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.

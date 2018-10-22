@@ -65,7 +65,7 @@ public:
      * Destructor for class AppInitializer frees the SAMRAI manager objects
      * used to set up input and restart databases.
      */
-    ~AppInitializer();
+    virtual ~AppInitializer();
 
     /*!
      * Return a pointer to the input database.

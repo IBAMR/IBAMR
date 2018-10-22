@@ -84,7 +84,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~PatchMathOps();
+    virtual ~PatchMathOps();
 
     /*!
      * \name Mathematical operations.

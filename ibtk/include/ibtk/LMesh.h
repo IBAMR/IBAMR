@@ -65,7 +65,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~LMesh();
+    virtual ~LMesh();
 
     /*!
      * \brief Return a const reference to the set of local LNode objects.

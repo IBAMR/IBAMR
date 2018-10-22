@@ -130,7 +130,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~LSet();
+    virtual ~LSet();
 
     /*!
      * \brief Assignment operator.

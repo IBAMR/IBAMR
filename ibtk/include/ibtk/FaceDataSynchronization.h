@@ -140,7 +140,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~FaceDataSynchronization();
+    virtual ~FaceDataSynchronization();
 
     /*!
      * \brief Setup the hierarchy synchronization operator to perform the

@@ -83,7 +83,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~KrylovFreeBodyMobilitySolver();
+    virtual ~KrylovFreeBodyMobilitySolver();
 
     /*!
      * \brief Set the mobility solver for this class.

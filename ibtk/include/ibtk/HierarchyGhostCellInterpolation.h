@@ -283,7 +283,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~HierarchyGhostCellInterpolation();
+    virtual ~HierarchyGhostCellInterpolation();
 
     /*!
      * \brief Specify whether the boundary conditions are homogeneous.

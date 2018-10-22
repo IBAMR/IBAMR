@@ -140,7 +140,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~SideDataSynchronization();
+    virtual ~SideDataSynchronization();
 
     /*!
      * \brief Setup the hierarchy synchronization operator to perform the

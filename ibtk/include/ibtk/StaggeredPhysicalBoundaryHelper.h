@@ -92,7 +92,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~StaggeredPhysicalBoundaryHelper();
+    virtual ~StaggeredPhysicalBoundaryHelper();
 
     /*!
      * \brief Copy data to u_data_out_idx from u_data_in_idx at Dirichlet
