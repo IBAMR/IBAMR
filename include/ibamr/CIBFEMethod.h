@@ -98,7 +98,7 @@ public:
      */
     CIBFEMethod(const std::string& object_name,
                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                libMesh::Mesh* mesh,
+                libMesh::MeshBase* mesh,
                 int max_level_number,
                 bool register_for_restart = true);
 
@@ -107,7 +107,7 @@ public:
      */
     CIBFEMethod(const std::string& object_name,
                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                const std::vector<libMesh::Mesh*>& meshes,
+                const std::vector<libMesh::MeshBase*>& meshes,
                 int max_level_number,
                 bool register_for_restart = true);
 
