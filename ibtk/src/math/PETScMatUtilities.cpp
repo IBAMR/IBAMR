@@ -972,7 +972,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
 
         // Construct the interpolation weights for this IB point.
         std::vector<double> w[NDIM];
-        for (int d = 0; d < NDIM; ++d) w[d].resize(interp_stencil);
+        for (auto& vec : w) vec.resize(interp_stencil);
         int stencil_box_nvals = 1;
         for (unsigned int d = 0; d < NDIM; ++d) stencil_box_nvals *= interp_stencil;
         std::vector<double> stencil_box_vals(stencil_box_nvals);
@@ -1186,15 +1186,15 @@ PETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<IS>& is_overlap,
                                                     Pointer<CoarseFineBoundary<NDIM> > cf_boundary)
 {
     int ierr;
-    for (unsigned int k = 0; k < is_overlap.size(); ++k)
+    for (auto& is : is_overlap)
     {
-        ierr = ISDestroy(&is_overlap[k]);
+        ierr = ISDestroy(&is);
         IBTK_CHKERRQ(ierr);
     }
     is_overlap.clear();
-    for (unsigned int k = 0; k < is_nonoverlap.size(); ++k)
+    for (auto& is : is_nonoverlap)
     {
-        ierr = ISDestroy(&is_nonoverlap[k]);
+        ierr = ISDestroy(&is);
         IBTK_CHKERRQ(ierr);
     }
     is_nonoverlap.clear();

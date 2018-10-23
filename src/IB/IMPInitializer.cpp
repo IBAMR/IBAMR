@@ -351,9 +351,8 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
         std::vector<std::pair<int, int> > patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
         local_node_count += patch_vertices.size();
-        for (auto it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
+        for (const auto& point_idx : patch_vertices)
         {
-            const std::pair<int, int>& point_idx = (*it);
             const int lagrangian_idx = getCanonicalLagrangianIndex(point_idx, level_number) + global_index_offset;
             const int local_petsc_idx = ++local_idx + local_index_offset;
             const int global_petsc_idx = local_petsc_idx + global_index_offset;
@@ -450,9 +449,8 @@ IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> 
         {
             std::vector<std::pair<int, int> > patch_vertices;
             getPatchVertices(patch_vertices, patch, ln, can_be_refined);
-            for (auto it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
+            for (const auto& point_idx : patch_vertices)
             {
-                const std::pair<int, int>& point_idx = (*it);
                 const libMesh::Point& X = getVertexPosn(point_idx, ln);
                 const CellIndex<NDIM> i = IndexUtilities::getCellIndex(&X(0), grid_geom, ratio);
                 if (patch_box.contains(i)) (*tag_data)(i) = 1;

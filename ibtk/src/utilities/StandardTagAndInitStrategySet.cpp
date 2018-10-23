@@ -58,9 +58,9 @@ StandardTagAndInitStrategySet::~StandardTagAndInitStrategySet()
 {
     if (d_managed)
     {
-        for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+        for (const auto& strategy : d_strategy_set)
         {
-            delete (*it);
+            delete strategy;
         }
     }
     return;
@@ -72,9 +72,9 @@ StandardTagAndInitStrategySet::getLevelDt(const Pointer<BasePatchLevel<NDIM> > l
                                           const bool initial_time)
 {
     double dt = std::numeric_limits<double>::max();
-    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (const auto& strategy : d_strategy_set)
     {
-        dt = std::min(dt, (*it)->getLevelDt(level, dt_time, initial_time));
+        dt = std::min(dt, strategy->getLevelDt(level, dt_time, initial_time));
     }
     return dt;
 } // getLevelDt
@@ -89,10 +89,11 @@ StandardTagAndInitStrategySet::advanceLevel(const Pointer<BasePatchLevel<NDIM> >
                                             const bool regrid_advance)
 {
     double dt = std::numeric_limits<double>::max();
-    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (const auto& strategy : d_strategy_set)
     {
         dt = std::min(
-            dt, (*it)->advanceLevel(level, hierarchy, current_time, new_time, first_step, last_step, regrid_advance));
+            dt,
+            strategy->advanceLevel(level, hierarchy, current_time, new_time, first_step, last_step, regrid_advance));
     }
     return dt;
 } // advanceLevel
@@ -102,9 +103,9 @@ StandardTagAndInitStrategySet::resetTimeDependentData(const Pointer<BasePatchLev
                                                       const double new_time,
                                                       const bool can_be_refined)
 {
-    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*it)->resetTimeDependentData(level, new_time, can_be_refined);
+        strategy->resetTimeDependentData(level, new_time, can_be_refined);
     }
     return;
 } // resetTimeDependentData
@@ -112,9 +113,9 @@ StandardTagAndInitStrategySet::resetTimeDependentData(const Pointer<BasePatchLev
 void
 StandardTagAndInitStrategySet::resetDataToPreadvanceState(const Pointer<BasePatchLevel<NDIM> > level)
 {
-    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*it)->resetDataToPreadvanceState(level);
+        strategy->resetDataToPreadvanceState(level);
     }
     return;
 } // resetDataToPreadvanceState
@@ -128,9 +129,9 @@ StandardTagAndInitStrategySet::initializeLevelData(const Pointer<BasePatchHierar
                                                    const Pointer<BasePatchLevel<NDIM> > old_level,
                                                    const bool allocate_data)
 {
-    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*it)->initializeLevelData(
+        strategy->initializeLevelData(
             hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     }
     return;
@@ -141,9 +142,9 @@ StandardTagAndInitStrategySet::resetHierarchyConfiguration(const Pointer<BasePat
                                                            const int coarsest_level,
                                                            const int finest_level)
 {
-    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*it)->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
+        strategy->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     }
     return;
 } // resetHierarchyConfiguration
@@ -156,9 +157,9 @@ StandardTagAndInitStrategySet::applyGradientDetector(const Pointer<BasePatchHier
                                                      const bool initial_time,
                                                      const bool uses_richardson_extrapolation_too)
 {
-    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*it)->applyGradientDetector(
+        strategy->applyGradientDetector(
             hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     }
     return;
@@ -173,9 +174,9 @@ StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const Pointer<PatchL
                                                             const bool initial_time,
                                                             const bool uses_gradient_detector_too)
 {
-    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*it)->applyRichardsonExtrapolation(
+        strategy->applyRichardsonExtrapolation(
             level, error_data_time, tag_index, deltat, error_coarsen_ratio, initial_time, uses_gradient_detector_too);
     }
     return;
@@ -188,9 +189,9 @@ StandardTagAndInitStrategySet::coarsenDataForRichardsonExtrapolation(const Point
                                                                      const double coarsen_data_time,
                                                                      const bool before_advance)
 {
-    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (const auto& strategy : d_strategy_set)
     {
-        (*it)->coarsenDataForRichardsonExtrapolation(
+        strategy->coarsenDataForRichardsonExtrapolation(
             hierarchy, level_number, coarser_level, coarsen_data_time, before_advance);
     }
     return;

@@ -95,7 +95,7 @@ FastSweepingLSMethod::FastSweepingLSMethod(const std::string& object_name,
     d_abs_tol = 1e-5;
     d_enable_logging = false;
     d_consider_phys_bdry_wall = false;
-    for (int k = 0; k < 2 * NDIM; ++k) d_wall_location_idx[k] = 0;
+    for (int& wall_idx : d_wall_location_idx) wall_idx = 0;
 
     if (d_registered_for_restart) getFromRestart();
     if (!db.isNull()) getFromInput(db);

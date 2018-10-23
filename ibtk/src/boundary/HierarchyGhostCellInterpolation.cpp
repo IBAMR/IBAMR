@@ -208,12 +208,12 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (const auto& transaction_comp : d_transaction_comps)
     {
-        const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
+        const std::string& coarsen_op_name = transaction_comp.d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
         {
-            const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
+            const int src_data_idx = transaction_comp.d_src_data_idx;
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(src_data_idx, var);
 #if !defined(NDEBUG)
@@ -334,9 +334,9 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
 
         const std::vector<RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
         bool null_bc_coefs = true;
-        for (auto cit = robin_bc_coefs.begin(); cit != robin_bc_coefs.end(); ++cit)
+        for (const auto& robin_bc_coef : robin_bc_coefs)
         {
-            if (*cit) null_bc_coefs = false;
+            if (robin_bc_coef) null_bc_coefs = false;
         }
         if (!null_bc_coefs && cc_var)
         {
@@ -414,12 +414,12 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (const auto& transaction_comp : d_transaction_comps)
     {
-        const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
+        const std::string& coarsen_op_name = transaction_comp.d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
         {
-            const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
+            const int src_data_idx = transaction_comp.d_src_data_idx;
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(src_data_idx, var);
 #if !defined(NDEBUG)
@@ -514,9 +514,9 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         const std::vector<RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
 #if !defined(NDEBUG)
         bool null_bc_coefs = true;
-        for (auto cit = robin_bc_coefs.begin(); cit != robin_bc_coefs.end(); ++cit)
+        for (const auto& robin_bc_coef : robin_bc_coefs)
         {
-            if (*cit) null_bc_coefs = false;
+            if (robin_bc_coef) null_bc_coefs = false;
         }
 #endif
         if (d_cc_robin_bc_ops[comp_idx])

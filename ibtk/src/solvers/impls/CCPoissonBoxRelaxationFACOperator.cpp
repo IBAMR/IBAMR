@@ -412,10 +412,10 @@ CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& e
             if (update_local_data)
             {
                 const std::map<int, Box<NDIM> > neighbor_overlap = d_patch_neighbor_overlap[level_num][patch_counter];
-                for (auto cit = neighbor_overlap.begin(); cit != neighbor_overlap.end(); ++cit)
+                for (const auto& pair : neighbor_overlap)
                 {
-                    const int src_patch_num = cit->first;
-                    const Box<NDIM>& overlap = cit->second;
+                    const int src_patch_num = pair.first;
+                    const Box<NDIM>& overlap = pair.second;
                     Pointer<Patch<NDIM> > src_patch = level->getPatch(src_patch_num);
                     Pointer<CellData<NDIM, double> > src_error_data = error.getComponentPatchData(0, *src_patch);
                     error_data->getArrayData().copy(src_error_data->getArrayData(), overlap, IntVector<NDIM>(0));
@@ -746,30 +746,26 @@ CCPoissonBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(const int 
     int ierr;
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
-        for (auto it = d_patch_vec_e[ln].begin(); it != d_patch_vec_e[ln].end(); ++it)
+        for (auto& e : d_patch_vec_e[ln])
         {
-            Vec& e = *it;
             ierr = VecDestroy(&e);
             IBTK_CHKERRQ(ierr);
         }
         d_patch_vec_e[ln].clear();
-        for (auto it = d_patch_vec_f[ln].begin(); it != d_patch_vec_f[ln].end(); ++it)
+        for (auto& f : d_patch_vec_f[ln])
         {
-            Vec& f = *it;
             ierr = VecDestroy(&f);
             IBTK_CHKERRQ(ierr);
         }
         d_patch_vec_f[ln].clear();
-        for (auto it = d_patch_mat[ln].begin(); it != d_patch_mat[ln].end(); ++it)
+        for (auto& A : d_patch_mat[ln])
         {
-            Mat& A = *it;
             ierr = MatDestroy(&A);
             IBTK_CHKERRQ(ierr);
         }
         d_patch_mat[ln].clear();
-        for (auto it = d_patch_ksp[ln].begin(); it != d_patch_ksp[ln].end(); ++it)
+        for (auto& ksp : d_patch_ksp[ln])
         {
-            KSP& ksp = *it;
             ierr = KSPDestroy(&ksp);
             IBTK_CHKERRQ(ierr);
         }

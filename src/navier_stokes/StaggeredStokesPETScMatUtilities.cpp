@@ -614,14 +614,14 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
                                                                    Pointer<CoarseFineBoundary<NDIM> > /*cf_boundary*/)
 {
     // Clear previously stored index sets.
-    for (unsigned int k = 0; k < is_overlap.size(); ++k)
+    for (auto& k : is_overlap)
     {
-        is_overlap[k].clear();
+        k.clear();
     }
     is_overlap.clear();
-    for (unsigned int k = 0; k < is_nonoverlap.size(); ++k)
+    for (auto& k : is_nonoverlap)
     {
-        is_nonoverlap[k].clear();
+        k.clear();
     }
     is_nonoverlap.clear();
 
@@ -814,9 +814,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level)
 {
     // Destroy the previously stored IS'es
-    for (unsigned int k = 0; k < is_field.size(); ++k)
+    for (auto& k : is_field)
     {
-        is_field[k].clear();
+        k.clear();
     }
     is_field.clear();
     is_field_name.clear();

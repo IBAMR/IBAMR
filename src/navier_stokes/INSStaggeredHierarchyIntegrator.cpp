@@ -605,13 +605,13 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
     if (d_U_adv_vec) d_U_adv_vec->freeVectorComponents();
     if (d_N_vec) d_N_vec->freeVectorComponents();
     if (d_P_rhs_vec) d_P_rhs_vec->freeVectorComponents();
-    for (unsigned int k = 0; k < d_nul_vecs.size(); ++k)
+    for (const auto& nul_vec : d_nul_vecs)
     {
-        if (d_nul_vecs[k]) d_nul_vecs[k]->freeVectorComponents();
+        if (nul_vec) nul_vec->freeVectorComponents();
     }
-    for (unsigned int k = 0; k < d_U_nul_vecs.size(); ++k)
+    for (const auto& U_nul_vec : d_U_nul_vecs)
     {
-        if (d_U_nul_vecs[k]) d_U_nul_vecs[k]->freeVectorComponents();
+        if (U_nul_vec) U_nul_vec->freeVectorComponents();
     }
     return;
 } // ~INSStaggeredHierarchyIntegrator
@@ -1700,11 +1700,11 @@ void
 INSStaggeredHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec)
 {
     if (d_nul_vecs.empty()) return;
-    for (size_t k = 0; k < d_nul_vecs.size(); ++k)
+    for (const auto& nul_vec : d_nul_vecs)
     {
-        const double sol_dot_nul = sol_vec->dot(d_nul_vecs[k]);
-        const double nul_L2_norm = std::sqrt(d_nul_vecs[k]->dot(d_nul_vecs[k]));
-        sol_vec->axpy(-sol_dot_nul / nul_L2_norm, d_nul_vecs[k], sol_vec);
+        const double sol_dot_nul = sol_vec->dot(nul_vec);
+        const double nul_L2_norm = std::sqrt(nul_vec->dot(nul_vec));
+        sol_vec->axpy(-sol_dot_nul / nul_L2_norm, nul_vec, sol_vec);
     }
     return;
 }
@@ -2352,16 +2352,16 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
         const int P_rhs_idx = d_P_rhs_vec->getComponentDescriptorIndex(0);
         d_rhs_vec->addComponent(d_P_var, P_rhs_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
-        for (unsigned int k = 0; k < d_nul_vecs.size(); ++k)
+        for (const auto& nul_vec : d_nul_vecs)
         {
-            if (d_nul_vecs[k]) d_nul_vecs[k]->freeVectorComponents();
+            if (nul_vec) nul_vec->freeVectorComponents();
         }
         const int n_nul_vecs = (has_pressure_nullspace ? 1 : 0) + (has_velocity_nullspace ? NDIM : 0);
         d_nul_vecs.resize(n_nul_vecs);
 
-        for (unsigned int k = 0; k < d_U_nul_vecs.size(); ++k)
+        for (const auto& U_nul_vec : d_U_nul_vecs)
         {
-            if (d_U_nul_vecs[k]) d_U_nul_vecs[k]->freeVectorComponents();
+            if (U_nul_vec) U_nul_vec->freeVectorComponents();
         }
         const int n_U_nul_vecs = (has_velocity_nullspace ? NDIM : 0);
         d_U_nul_vecs.resize(n_U_nul_vecs);

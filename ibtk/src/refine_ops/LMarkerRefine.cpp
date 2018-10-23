@@ -143,9 +143,8 @@ LMarkerRefine::refine(Patch<NDIM>& fine,
         if (coarse_box.contains(coarse_i))
         {
             const LMarkerSet& coarse_mark_set = it();
-            for (auto cit = coarse_mark_set.begin(); cit != coarse_mark_set.end(); ++cit)
+            for (const auto& coarse_mark : coarse_mark_set)
             {
-                const LMarkerSet::value_type& coarse_mark = *cit;
                 const Point& X = coarse_mark->getPosition();
                 const IntVector<NDIM>& offset = coarse_mark->getPeriodicOffset();
                 std::array<double, NDIM> X_shifted;

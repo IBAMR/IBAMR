@@ -145,36 +145,36 @@ DirectMobilitySolver::DirectMobilitySolver(const std::string& object_name,
 
 DirectMobilitySolver::~DirectMobilitySolver()
 {
-    for (auto it = d_petsc_mat_map.begin(); it != d_petsc_mat_map.end(); ++it)
+    for (const auto& petsc_mat_pair : d_petsc_mat_map)
     {
-        const std::string& mat_name = it->first;
+        const std::string& mat_name = petsc_mat_pair.first;
         Mat& mobility_mat = d_petsc_mat_map[mat_name].first;
         Mat& body_mobility_mat = d_petsc_mat_map[mat_name].second;
         MatDestroy(&mobility_mat);
         MatDestroy(&body_mobility_mat);
     }
 
-    for (auto it = d_mat_map.begin(); it != d_mat_map.end(); ++it)
+    for (const auto& mat_pair : d_mat_map)
     {
-        delete[](it->second).first;
-        delete[](it->second).second;
+        delete[](mat_pair.second).first;
+        delete[](mat_pair.second).second;
     }
 
-    for (auto it = d_petsc_geometric_mat_map.begin(); it != d_petsc_geometric_mat_map.end(); ++it)
+    for (const auto& mat_pair : d_petsc_geometric_mat_map)
     {
-        Mat& geometric_mat = d_petsc_geometric_mat_map[it->first];
+        Mat& geometric_mat = d_petsc_geometric_mat_map[mat_pair.first];
         MatDestroy(&geometric_mat);
     }
 
-    for (auto it = d_geometric_mat_map.begin(); it != d_geometric_mat_map.end(); ++it)
+    for (const auto& mat_pair : d_geometric_mat_map)
     {
-        delete[] it->second;
+        delete[] mat_pair.second;
     }
 
-    for (auto it = d_ipiv_map.begin(); it != d_ipiv_map.end(); ++it)
+    for (const auto& mat_pair : d_ipiv_map)
     {
-        delete[](it->second).first;
-        delete[](it->second).second;
+        delete[](mat_pair.second).first;
+        delete[](mat_pair.second).second;
     }
 
     d_is_initialized = false;
@@ -213,9 +213,9 @@ DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!mat_name.empty());
-    for (unsigned k = 0; k < prototype_struct_ids.size(); ++k)
+    for (const auto& prototype_struct_id : prototype_struct_ids)
     {
-        TBOX_ASSERT(prototype_struct_ids[k] < d_cib_strategy->getNumberOfRigidStructures());
+        TBOX_ASSERT(prototype_struct_id < d_cib_strategy->getNumberOfRigidStructures());
     }
     TBOX_ASSERT(d_mat_map.find(mat_name) == d_mat_map.end());
     TBOX_ASSERT(mat_type != UNKNOWN_MOBILITY_MATRIX_TYPE);
@@ -224,9 +224,9 @@ DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
 #endif
 
     unsigned int num_nodes = 0;
-    for (unsigned k = 0; k < prototype_struct_ids.size(); ++k)
+    for (const auto& prototype_struct_id : prototype_struct_ids)
     {
-        num_nodes += d_cib_strategy->getNumberOfNodes(prototype_struct_ids[k]);
+        num_nodes += d_cib_strategy->getNumberOfNodes(prototype_struct_id);
     }
 
     // Fill-in various maps.
@@ -291,15 +291,15 @@ DirectMobilitySolver::registerStructIDsWithMobilityMat(const std::string& mat_na
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_mat_map.find(mat_name) != d_mat_map.end());
-    for (unsigned i = 0; i < struct_ids.size(); ++i)
+    for (const auto& struct_id : struct_ids)
     {
-        TBOX_ASSERT(struct_ids[i].size() == d_mat_prototype_id_map[mat_name].size());
+        TBOX_ASSERT(struct_id.size() == d_mat_prototype_id_map[mat_name].size());
         unsigned num_nodes = 0;
-        for (unsigned j = 0; j < struct_ids[i].size(); ++j)
+        for (const auto& id : struct_id)
         {
-            TBOX_ASSERT(struct_ids[i][j] < d_cib_strategy->getNumberOfRigidStructures());
+            TBOX_ASSERT(id < d_cib_strategy->getNumberOfRigidStructures());
 
-            num_nodes += d_cib_strategy->getNumberOfNodes(struct_ids[i][j]);
+            num_nodes += d_cib_strategy->getNumberOfNodes(id);
         }
         TBOX_ASSERT(num_nodes == d_mat_nodes_map[mat_name]);
     }
@@ -348,9 +348,9 @@ DirectMobilitySolver::solveSystem(Vec x, Vec b)
     const int rank = SAMRAI_MPI::getRank();
     static const int data_depth = NDIM;
 
-    for (auto it = d_petsc_mat_map.begin(); it != d_petsc_mat_map.end(); ++it)
+    for (const auto& petsc_mat_pair : d_petsc_mat_map)
     {
-        const std::string& mat_name = it->first;
+        const std::string& mat_name = petsc_mat_pair.first;
         Mat& mat = d_petsc_mat_map[mat_name].first;
         const MobilityMatrixInverseType& inv_type = d_mat_inv_type_map[mat_name].first;
         const std::vector<std::vector<unsigned> >& struct_ids = d_mat_actual_id_map[mat_name];
@@ -402,9 +402,9 @@ DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
     const int rank = SAMRAI_MPI::getRank();
     static const int data_depth = s_max_free_dofs;
 
-    for (auto it = d_petsc_mat_map.begin(); it != d_petsc_mat_map.end(); ++it)
+    for (const auto& petsc_mat_pair : d_petsc_mat_map)
     {
-        const std::string& mat_name = it->first;
+        const std::string& mat_name = petsc_mat_pair.first;
         Mat& mat = d_petsc_mat_map[mat_name].second;
         const MobilityMatrixInverseType& inv_type = d_mat_inv_type_map[mat_name].second;
         const std::vector<std::vector<unsigned> >& struct_ids = d_mat_actual_id_map[mat_name];
@@ -591,9 +591,9 @@ void
 DirectMobilitySolver::factorizeMobilityMatrix()
 {
     int rank = SAMRAI_MPI::getRank();
-    for (auto it = d_petsc_mat_map.begin(); it != d_petsc_mat_map.end(); ++it)
+    for (const auto& petsc_mat_pair : d_petsc_mat_map)
     {
-        const std::string& mat_name = it->first;
+        const std::string& mat_name = petsc_mat_pair.first;
         if (rank != d_mat_proc_map[mat_name]) continue;
 
         Mat& mat = d_petsc_mat_map[mat_name].first;
@@ -612,9 +612,9 @@ void
 DirectMobilitySolver::constructBodyMobilityMatrix()
 {
     int rank = SAMRAI_MPI::getRank();
-    for (auto it = d_petsc_mat_map.begin(); it != d_petsc_mat_map.end(); ++it)
+    for (const auto& petsc_mat_pair : d_petsc_mat_map)
     {
-        const std::string& mat_name = it->first;
+        const std::string& mat_name = petsc_mat_pair.first;
         if (rank != d_mat_proc_map[mat_name]) continue;
 
         const int row_size = d_mat_nodes_map[mat_name] * NDIM;
@@ -652,9 +652,9 @@ void
 DirectMobilitySolver::factorizeBodyMobilityMatrix()
 {
     int rank = SAMRAI_MPI::getRank();
-    for (auto it = d_petsc_mat_map.begin(); it != d_petsc_mat_map.end(); ++it)
+    for (const auto& petsc_mat_pair : d_petsc_mat_map)
     {
-        const std::string& mat_name = it->first;
+        const std::string& mat_name = petsc_mat_pair.first;
         if (rank != d_mat_proc_map[mat_name]) continue;
 
         Mat& mat = d_petsc_mat_map[mat_name].second;

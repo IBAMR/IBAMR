@@ -440,9 +440,8 @@ build_local_ucd_mesh(DBfile* dbfile,
 
     int offset = 0;
     std::map<int, int> local_vertex_map;
-    for (auto it = vertices.begin(); it != vertices.end(); ++it)
+    for (int idx : vertices)
     {
-        const int idx = (*it);
         local_vertex_map[idx] = offset;
 
         // Get the coordinate data.
@@ -469,9 +468,9 @@ build_local_ucd_mesh(DBfile* dbfile,
 
     // Prune duplicate edges.
     std::set<std::pair<int, int> > local_edge_set;
-    for (auto it = edge_map.begin(); it != edge_map.end(); ++it)
+    for (const auto& edge_pair : edge_map)
     {
-        std::pair<int, int> e = it->second;
+        std::pair<int, int> e = edge_pair.second;
 #if !defined(NDEBUG)
         TBOX_ASSERT(vertices.count(e.first) == 1);
         TBOX_ASSERT(vertices.count(e.second) == 1);
@@ -485,10 +484,10 @@ build_local_ucd_mesh(DBfile* dbfile,
 
     // Create an edge map corresponding to the pruned edge list.
     std::multimap<int, int> local_edge_map;
-    for (auto it = local_edge_set.begin(); it != local_edge_set.end(); ++it)
+    for (const auto& edge_pair : local_edge_set)
     {
-        const int e1 = it->first;
-        const int e2 = it->second;
+        const int e1 = edge_pair.first;
+        const int e2 = edge_pair.second;
         local_edge_map.insert(std::make_pair(local_vertex_map[e1], local_vertex_map[e2]));
     }
 
@@ -527,10 +526,10 @@ build_local_ucd_mesh(DBfile* dbfile,
     std::vector<int> nodelist;
     nodelist.reserve(2 * local_edge_map.size());
 
-    for (auto it = local_edge_map.begin(); it != local_edge_map.end(); ++it)
+    for (const auto& edge_pair : local_edge_map)
     {
-        nodelist.push_back(it->first);
-        nodelist.push_back(it->second);
+        nodelist.push_back(edge_pair.first);
+        nodelist.push_back(edge_pair.second);
     }
     int lnodelist = static_cast<int>(nodelist.size());
     int nshapetypes = 1;
@@ -708,18 +707,18 @@ LSiloDataWriter::~LSiloDataWriter()
     int ierr;
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        for (auto it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
+        for (auto& vec : d_dst_vec[ln])
         {
-            Vec& v = it->second;
+            Vec& v = vec.second;
             if (v)
             {
                 ierr = VecDestroy(&v);
                 IBTK_CHKERRQ(ierr);
             }
         }
-        for (auto it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
+        for (auto& vec : d_vec_scatter[ln])
         {
-            VecScatter& vs = it->second;
+            VecScatter& vs = vec.second;
             if (vs)
             {
                 ierr = VecScatterDestroy(&vs);
@@ -756,18 +755,18 @@ LSiloDataWriter::resetLevels(const int coarsest_ln, const int finest_ln)
     int ierr;
     for (int ln = std::max(d_coarsest_ln, 0); (ln <= d_finest_ln) && (ln < coarsest_ln); ++ln)
     {
-        for (auto it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
+        for (auto& vec : d_dst_vec[ln])
         {
-            Vec& v = it->second;
+            Vec& v = vec.second;
             if (v)
             {
                 ierr = VecDestroy(&v);
                 IBTK_CHKERRQ(ierr);
             }
         }
-        for (auto it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
+        for (auto& vec : d_vec_scatter[ln])
         {
-            VecScatter& vs = it->second;
+            VecScatter& vs = vec.second;
             if (vs)
             {
                 ierr = VecScatterDestroy(&vs);
@@ -778,18 +777,18 @@ LSiloDataWriter::resetLevels(const int coarsest_ln, const int finest_ln)
 
     for (int ln = finest_ln + 1; ln <= d_finest_ln; ++ln)
     {
-        for (auto it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
+        for (auto& vec : d_dst_vec[ln])
         {
-            Vec& v = it->second;
+            Vec& v = vec.second;
             if (v)
             {
                 ierr = VecDestroy(&v);
                 IBTK_CHKERRQ(ierr);
             }
         }
-        for (auto it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
+        for (auto& vec : d_vec_scatter[ln])
         {
-            VecScatter& vs = it->second;
+            VecScatter& vs = vec.second;
             if (vs)
             {
                 ierr = VecScatterDestroy(&vs);
@@ -1106,9 +1105,9 @@ LSiloDataWriter::registerUnstructuredMesh(const std::string& name,
 
     // Extract the list of vertices from the list of edges.
     std::set<int> vertices;
-    for (auto it = edge_map.begin(); it != edge_map.end(); ++it)
+    for (const auto& edge_pair : edge_map)
     {
-        const std::pair<int, int>& e = it->second;
+        const std::pair<int, int>& e = edge_pair.second;
         vertices.insert(e.first);
         vertices.insert(e.second);
     }
@@ -2138,9 +2137,9 @@ LSiloDataWriter::putToDatabase(Pointer<Database> db)
 
             std::vector<int> flattened_block_nelems;
             flattened_block_nelems.reserve(NDIM * d_block_nelems.size());
-            for (auto cit = d_block_nelems[ln].begin(); cit != d_block_nelems[ln].end(); ++cit)
+            for (const auto& block : d_block_nelems[ln])
             {
-                flattened_block_nelems.insert(flattened_block_nelems.end(), &(*cit)[0], &(*cit)[0] + NDIM);
+                flattened_block_nelems.insert(flattened_block_nelems.end(), &block[0], &block[0] + NDIM);
             }
             db->putIntegerArray("flattened_block_nelems" + ln_string,
                                 &flattened_block_nelems[0],
@@ -2148,9 +2147,9 @@ LSiloDataWriter::putToDatabase(Pointer<Database> db)
 
             std::vector<int> flattened_block_periodic;
             flattened_block_periodic.reserve(NDIM * d_block_periodic.size());
-            for (auto cit = d_block_periodic[ln].begin(); cit != d_block_periodic[ln].end(); ++cit)
+            for (const auto& block : d_block_periodic[ln])
             {
-                flattened_block_periodic.insert(flattened_block_periodic.end(), &(*cit)[0], &(*cit)[0] + NDIM);
+                flattened_block_periodic.insert(flattened_block_periodic.end(), &block[0], &block[0] + NDIM);
             }
             db->putIntegerArray("flattened_block_periodic" + ln_string,
                                 &flattened_block_periodic[0],
@@ -2177,9 +2176,9 @@ LSiloDataWriter::putToDatabase(Pointer<Database> db)
                 {
                     std::vector<int> flattened_mb_nelems;
                     flattened_mb_nelems.reserve(NDIM * d_mb_nelems.size());
-                    for (auto cit = d_mb_nelems[ln][mb].begin(); cit != d_mb_nelems[ln][mb].end(); ++cit)
+                    for (const auto& block : d_mb_nelems[ln][mb])
                     {
-                        flattened_mb_nelems.insert(flattened_mb_nelems.end(), &(*cit)[0], &(*cit)[0] + NDIM);
+                        flattened_mb_nelems.insert(flattened_mb_nelems.end(), &block[0], &block[0] + NDIM);
                     }
                     db->putIntegerArray("flattened_mb_nelems" + ln_string + mb_string,
                                         &flattened_mb_nelems[0],
@@ -2187,9 +2186,9 @@ LSiloDataWriter::putToDatabase(Pointer<Database> db)
 
                     std::vector<int> flattened_mb_periodic;
                     flattened_mb_periodic.reserve(NDIM * d_mb_periodic.size());
-                    for (auto cit = d_mb_periodic[ln][mb].begin(); cit != d_mb_periodic[ln][mb].end(); ++cit)
+                    for (const auto& vec : d_mb_periodic[ln][mb])
                     {
-                        flattened_mb_periodic.insert(flattened_mb_periodic.end(), &(*cit)[0], &(*cit)[0] + NDIM);
+                        flattened_mb_periodic.insert(flattened_mb_periodic.end(), &vec[0], &vec[0] + NDIM);
                     }
                     db->putIntegerArray("flattened_mb_periodic" + ln_string + mb_string,
                                         &flattened_mb_periodic[0],
@@ -2217,10 +2216,9 @@ LSiloDataWriter::putToDatabase(Pointer<Database> db)
 
                 std::vector<int> ucd_mesh_vertices_vector;
                 ucd_mesh_vertices_vector.reserve(d_ucd_mesh_vertices[ln][mesh].size());
-                for (auto cit = d_ucd_mesh_vertices[ln][mesh].begin(); cit != d_ucd_mesh_vertices[ln][mesh].end();
-                     ++cit)
+                for (const auto& vertex : d_ucd_mesh_vertices[ln][mesh])
                 {
-                    ucd_mesh_vertices_vector.push_back(*cit);
+                    ucd_mesh_vertices_vector.push_back(vertex);
                 }
                 db->putInteger("ucd_mesh_vertices_vector.size()" + ln_string + mesh_string,
                                static_cast<int>(ucd_mesh_vertices_vector.size()));
@@ -2230,11 +2228,10 @@ LSiloDataWriter::putToDatabase(Pointer<Database> db)
 
                 std::vector<int> ucd_mesh_edge_maps_vector;
                 ucd_mesh_edge_maps_vector.reserve(3 * d_ucd_mesh_edge_maps[ln][mesh].size());
-                for (auto cit = d_ucd_mesh_edge_maps[ln][mesh].begin(); cit != d_ucd_mesh_edge_maps[ln][mesh].end();
-                     ++cit)
+                for (const auto& edge_pair : d_ucd_mesh_edge_maps[ln][mesh])
                 {
-                    const int i = cit->first;
-                    std::pair<int, int> e = cit->second;
+                    const int i = edge_pair.first;
+                    std::pair<int, int> e = edge_pair.second;
                     ucd_mesh_edge_maps_vector.push_back(i);
                     ucd_mesh_edge_maps_vector.push_back(e.first);
                     ucd_mesh_edge_maps_vector.push_back(e.second);
@@ -2340,10 +2337,10 @@ LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
     // Create the VecScatters to scatter data from the global PETSc Vec to
     // contiguous local subgrids.  VecScatter objects are individually created
     // for data depths as necessary.
-    for (auto it = src_is_idxs.begin(); it != src_is_idxs.end(); ++it)
+    for (const auto& src_is_idx : src_is_idxs)
     {
-        const int depth = it->first;
-        const std::vector<int>& idxs = it->second;
+        const int depth = src_is_idx.first;
+        const std::vector<int>& idxs = src_is_idx.second;
         const int idxs_sz = static_cast<int>(idxs.size());
 
         IS src_is;

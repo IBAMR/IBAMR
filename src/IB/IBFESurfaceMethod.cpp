@@ -567,9 +567,9 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 
         // Communicate any unsynchronized ghost data and extract the underlying
         // solution data.
-        for (unsigned int k = 0; k < u_ghost_fill_scheds.size(); ++k)
+        for (const auto& u_ghost_fill_sched : u_ghost_fill_scheds)
         {
-            if (u_ghost_fill_scheds[k]) u_ghost_fill_scheds[k]->fillData(data_time);
+            if (u_ghost_fill_sched) u_ghost_fill_sched->fillData(data_time);
         }
 
         X_ghost_vec->close();
@@ -1664,10 +1664,10 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 #if (NDIM == 3)
                     intersect_line_with_face(intersections, static_cast<Face*>(elem), r, q, tolerance);
 #endif
-                    for (unsigned int k = 0; k < intersections.size(); ++k)
+                    for (const auto& intersection : intersections)
                     {
-                        const libMesh::Point x = r + intersections[k].first * q;
-                        const libMesh::Point& xi = intersections[k].second;
+                        const libMesh::Point x = r + intersection.first * q;
+                        const libMesh::Point& xi = intersection.second;
                         SideIndex<NDIM> i_s(i_c, axis, 0);
                         i_s(axis) = boost::math::iround((x(axis) - x_lower[axis]) / dx[axis]) + patch_lower[axis];
                         if (extended_box.contains(i_s))

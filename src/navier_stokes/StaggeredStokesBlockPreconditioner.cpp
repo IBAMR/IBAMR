@@ -220,10 +220,10 @@ StaggeredStokesBlockPreconditioner::correctNullspace(Pointer<SAMRAIVectorReal<ND
             p_velocity_solver->getNullspaceBasisVectors();
         if (!U_nul_vecs.empty())
         {
-            for (unsigned int k = 0; k < U_nul_vecs.size(); ++k)
+            for (const auto& U_nul_vec : U_nul_vecs)
             {
-                const double alpha = U_vec->dot(U_nul_vecs[k]) / U_nul_vecs[k]->dot(U_nul_vecs[k]);
-                U_vec->axpy(-alpha, U_nul_vecs[k], U_vec);
+                const double alpha = U_vec->dot(U_nul_vec) / U_nul_vec->dot(U_nul_vec);
+                U_vec->axpy(-alpha, U_nul_vec, U_vec);
             }
         }
 #if !defined(NDEBUG)

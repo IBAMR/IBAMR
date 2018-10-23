@@ -324,9 +324,9 @@ IBHydrodynamicForceEvaluator::computeLaggedMomentumIntegral(
     // Whether or not the simulation has adaptive mesh refinement
     const bool amr_case = (coarsest_ln != finest_ln);
 
-    for (auto it = d_hydro_objs.begin(); it != d_hydro_objs.end(); ++it)
+    for (auto& hydro_obj : d_hydro_objs)
     {
-        IBHydrodynamicForceObject& fobj = it->second;
+        IBHydrodynamicForceObject& fobj = hydro_obj.second;
 
         // Compute the momentum integral:= (rho * u * dv) for the previous time step (integral is over new control
         // volume)
@@ -493,9 +493,9 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
     // Whether or not the simulation has adaptive mesh refinement
     const bool amr_case = (coarsest_ln != finest_ln);
 
-    for (auto it = d_hydro_objs.begin(); it != d_hydro_objs.end(); ++it)
+    for (auto& hydro_obj : d_hydro_objs)
     {
-        IBHydrodynamicForceObject& fobj = it->second;
+        IBHydrodynamicForceObject& fobj = hydro_obj.second;
 
         // Compute the momentum integral:= (rho * u * dv)
         fobj.P_box_new.setZero();
@@ -790,9 +790,9 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
 void
 IBHydrodynamicForceEvaluator::postprocessIntegrateData(double /*current_time*/, double new_time)
 {
-    for (auto it = d_hydro_objs.begin(); it != d_hydro_objs.end(); ++it)
+    for (auto& hydro_obj : d_hydro_objs)
     {
-        IBHydrodynamicForceObject& force_obj = it->second;
+        IBHydrodynamicForceObject& force_obj = hydro_obj.second;
 
         // Output drag and torque to stream
         if (SAMRAI_MPI::getRank() == 0)
@@ -822,10 +822,10 @@ IBHydrodynamicForceEvaluator::postprocessIntegrateData(double /*current_time*/, 
 void
 IBHydrodynamicForceEvaluator::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
 {
-    for (auto it = d_hydro_objs.begin(); it != d_hydro_objs.end(); ++it)
+    for (const auto& hydro_obj : d_hydro_objs)
     {
-        int strct_id = it->first;
-        const IBHydrodynamicForceObject& force_obj = it->second;
+        int strct_id = hydro_obj.first;
+        const IBHydrodynamicForceObject& force_obj = hydro_obj.second;
 
         std::ostringstream F, T, P, L, P_box, L_box, X_lo, X_hi, r_or, vol_curr;
         F << "F_" << strct_id;

@@ -232,9 +232,9 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         }
     }
 
-    for (unsigned int i = 0; i < d_viz_writers.size(); i++)
+    for (const auto& viz_writer : d_viz_writers)
     {
-        if (d_viz_writers[i] == "VisIt")
+        if (viz_writer == "VisIt")
         {
             int visit_number_procs_per_file = 1;
             if (main_db->keyExists("visit_number_procs_per_file"))
@@ -243,17 +243,17 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
                 new VisItDataWriter<NDIM>("VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
         }
 
-        if (d_viz_writers[i] == "Silo")
+        if (viz_writer == "Silo")
         {
             d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
         }
 
-        if (d_viz_writers[i] == "ExodusII")
+        if (viz_writer == "ExodusII")
         {
             if (main_db->keyExists("exodus_filename")) d_exodus_filename = main_db->getString("exodus_filename");
         }
 
-        if (d_viz_writers[i] == "GMV")
+        if (viz_writer == "GMV")
         {
             if (main_db->keyExists("gmv_filename")) d_gmv_filename = main_db->getString("gmv_filename");
         }

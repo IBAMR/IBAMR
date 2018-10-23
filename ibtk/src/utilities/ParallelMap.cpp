@@ -121,10 +121,10 @@ ParallelMap::communicateData()
         // broadcast by each process.
         std::vector<int> keys_to_send;
         std::vector<tbox::Pointer<Streamable> > data_items_to_send;
-        for (auto cit = d_pending_additions.begin(); cit != d_pending_additions.end(); ++cit)
+        for (const auto& pending_addition : d_pending_additions)
         {
-            keys_to_send.push_back(cit->first);
-            data_items_to_send.push_back(cit->second);
+            keys_to_send.push_back(pending_addition.first);
+            data_items_to_send.push_back(pending_addition.second);
         }
         std::vector<int> data_sz(size, 0);
         data_sz[rank] = static_cast<int>(tbox::AbstractStream::sizeofInt() * keys_to_send.size() +

@@ -239,18 +239,16 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(
     }
 
     // Register variables with the hyperbolic level integrator.
-    for (auto cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
+    for (const auto& u_var : d_u_var)
     {
-        Pointer<FaceVariable<NDIM, double> > u_var = *cit;
         d_hyp_patch_ops->registerAdvectionVelocity(u_var);
         d_hyp_patch_ops->setAdvectionVelocityIsDivergenceFree(u_var, d_u_is_div_free[u_var]);
         if (d_u_fcn[u_var]) d_hyp_patch_ops->setAdvectionVelocityFunction(u_var, d_u_fcn[u_var]);
     }
 
     const IntVector<NDIM> cell_ghosts = CELLG;
-    for (auto cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
+    for (const auto& F_var : d_F_var)
     {
-        Pointer<CellVariable<NDIM, double> > F_var = *cit;
         d_hyp_level_integrator->registerVariable(F_var,
                                                  cell_ghosts,
                                                  HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
@@ -259,9 +257,8 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(
                                                  "CONSERVATIVE_LINEAR_REFINE");
     }
 
-    for (auto cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit)
+    for (const auto& D_var : d_diffusion_coef_var)
     {
-        Pointer<SideVariable<NDIM, double> > D_var = *cit;
         d_hyp_level_integrator->registerVariable(D_var,
                                                  cell_ghosts,
                                                  HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
@@ -272,24 +269,21 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(
         registerVariable(D_scratch_idx, D_var, cell_ghosts, getScratchContext());
     }
 
-    for (auto cit = d_diffusion_coef_rhs_var.begin(); cit != d_diffusion_coef_rhs_var.end(); ++cit)
+    for (const auto& D_rhs_var : d_diffusion_coef_rhs_var)
     {
-        Pointer<SideVariable<NDIM, double> > D_rhs_var = *cit;
         int D_rhs_scratch_idx;
         registerVariable(D_rhs_scratch_idx, D_rhs_var, cell_ghosts, getScratchContext());
     }
 
-    for (auto cit = d_Q_rhs_var.begin(); cit != d_Q_rhs_var.end(); ++cit)
+    for (const auto& Q_rhs_var : d_Q_rhs_var)
     {
-        Pointer<CellVariable<NDIM, double> > Q_rhs_var = *cit;
         int Q_rhs_scratch_idx;
         registerVariable(Q_rhs_scratch_idx, Q_rhs_var, cell_ghosts, getScratchContext());
         d_hyp_patch_ops->registerSourceTerm(Q_rhs_var);
     }
 
-    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    for (const auto& Q_var : d_Q_var)
     {
-        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         int Q_scratch_idx;
         registerVariable(Q_scratch_idx, Q_var, cell_ghosts, getScratchContext());
         d_hyp_patch_ops->registerTransportedQuantity(Q_var);
@@ -350,9 +344,8 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
     }
 
     // Compute any time-dependent source terms at time-level n.
-    for (auto cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
+    for (const auto& F_var : d_F_var)
     {
-        Pointer<CellVariable<NDIM, double> > F_var = *cit;
         Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
         if (F_fcn && F_fcn->isTimeDependent())
         {
@@ -362,9 +355,8 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
     }
 
     // Compute any time-dependent variable diffusion coefficients at time-level n.
-    for (auto cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit)
+    for (const auto& D_var : d_diffusion_coef_var)
     {
-        Pointer<SideVariable<NDIM, double> > D_var = *cit;
         Pointer<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
         if (D_fcn)
         {
@@ -659,9 +651,9 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(cons
     // Determine the CFL number.
     double cfl_max = 0.0;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    for (unsigned int k = 0; k < d_u_var.size(); ++k)
+    for (const auto& u_var : d_u_var)
     {
-        const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_var[k], getNewContext());
+        const int u_new_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
         PatchFaceDataOpsReal<NDIM, double> patch_fc_ops;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -773,9 +765,8 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-        for (auto cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
+        for (const auto& F_var : d_F_var)
         {
-            Pointer<CellVariable<NDIM, double> > F_var = *cit;
             const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());
             Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
             if (F_fcn)
@@ -797,9 +788,8 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
         }
 
         // Set the initial value of any variable diffusion coefficient
-        for (auto cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit)
+        for (const auto& D_var : d_diffusion_coef_var)
         {
-            Pointer<SideVariable<NDIM, double> > D_var = *cit;
             const int D_idx = var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
             Pointer<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
             if (D_fcn)
