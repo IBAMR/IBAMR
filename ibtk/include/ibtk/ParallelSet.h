@@ -66,7 +66,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~ParallelSet();
+    virtual ~ParallelSet();
 
     /*!
      * \brief Assignment operator.

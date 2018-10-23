@@ -72,7 +72,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~ParallelMap();
+    virtual ~ParallelMap();
 
     /*!
      * \brief Assignment operator.

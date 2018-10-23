@@ -86,7 +86,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~IBFEDirectForcingKinematics();
+    virtual ~IBFEDirectForcingKinematics();
 
     /*!
      * \brief Typedef specifying interface for specifying rigid body velocities.

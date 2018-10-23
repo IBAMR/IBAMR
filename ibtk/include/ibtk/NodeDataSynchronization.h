@@ -141,7 +141,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~NodeDataSynchronization();
+    virtual ~NodeDataSynchronization();
 
     /*!
      * \brief Setup the hierarchy synchronization operator to perform the

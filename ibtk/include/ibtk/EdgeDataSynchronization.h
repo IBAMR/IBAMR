@@ -141,7 +141,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~EdgeDataSynchronization();
+    virtual ~EdgeDataSynchronization();
 
     /*!
      * \brief Setup the hierarchy synchronization operator to perform the

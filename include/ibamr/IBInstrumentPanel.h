@@ -86,7 +86,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~IBInstrumentPanel();
+    virtual ~IBInstrumentPanel();
 
     /*!
      * \return A const reference to the vector of instrument names.
