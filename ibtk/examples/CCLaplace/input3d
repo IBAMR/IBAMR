@@ -1,3 +1,5 @@
+// See the documentation in input2d for explanation on these sections and
+// parameters.
 u {
    function = "sin(2*PI*(X_0-0.1234))*sin(2*PI*(X_1-0.1234))*sin(2*PI*(X_2-0.1234))"
 }
@@ -30,7 +32,7 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   max_levels = 2                 // Maximum number of levels in hierarchy.
+   max_levels = 3                 // Maximum number of levels in hierarchy.
 
    ratio_to_coarser {
       level_1 = 2, 2, 2           // vector ratio to next coarser level
