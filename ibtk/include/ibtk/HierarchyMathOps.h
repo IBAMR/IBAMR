@@ -104,11 +104,11 @@ public:
      *
      * Does nothing interesting.
      */
-    HierarchyMathOps(const std::string& name,
+    HierarchyMathOps(std::string name,
                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                      int coarsest_ln = -1,
                      int finest_ln = -1,
-                     const std::string& coarsen_op_name = "CONSERVATIVE_COARSEN");
+                     std::string coarsen_op_name = "CONSERVATIVE_COARSEN");
 
     /*!
      * \brief Destructor.

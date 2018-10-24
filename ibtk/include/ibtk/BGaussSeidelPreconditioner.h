@@ -105,7 +105,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    BGaussSeidelPreconditioner(const std::string& object_name,
+    BGaussSeidelPreconditioner(std::string object_name,
                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                const std::string& default_options_prefix);
 

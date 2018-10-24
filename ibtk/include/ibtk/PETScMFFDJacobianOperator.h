@@ -62,7 +62,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    PETScMFFDJacobianOperator(const std::string& object_name, const std::string& options_prefix = "");
+    PETScMFFDJacobianOperator(std::string object_name, std::string options_prefix = "");
 
     /*!
      * \brief Empty destructor.

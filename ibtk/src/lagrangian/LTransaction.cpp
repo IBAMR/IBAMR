@@ -66,10 +66,12 @@ LTransaction<T>::LTransaction(const int src_proc, const int dst_proc)
 } // LTransaction
 
 template <class T>
-LTransaction<T>::LTransaction(const int src_proc,
-                              const int dst_proc,
-                              const std::vector<LTransactionComponent>& src_item_set)
-    : d_src_item_set(src_item_set), d_src_proc(src_proc), d_outgoing_bytes(0), d_dst_item_set(), d_dst_proc(dst_proc)
+LTransaction<T>::LTransaction(const int src_proc, const int dst_proc, std::vector<LTransactionComponent> src_item_set)
+    : d_src_item_set(std::move(src_item_set)),
+      d_src_proc(src_proc),
+      d_outgoing_bytes(0),
+      d_dst_item_set(),
+      d_dst_proc(dst_proc)
 {
     d_outgoing_bytes = AbstractStream::sizeofInt();
     for (auto cit = d_src_item_set.begin(); cit != d_src_item_set.end(); ++cit)

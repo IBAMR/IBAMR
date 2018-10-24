@@ -62,8 +62,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-LIndexSetData<T>::LIndexSetData(const Box<NDIM>& box, const IntVector<NDIM>& ghosts)
-    : LSetData<T>(box, ghosts),
+LIndexSetData<T>::LIndexSetData(Box<NDIM> box, IntVector<NDIM> ghosts)
+    : LSetData<T>(std::move(box), std::move(ghosts)),
       d_lag_indices(),
       d_interior_lag_indices(),
       d_ghost_lag_indices(),

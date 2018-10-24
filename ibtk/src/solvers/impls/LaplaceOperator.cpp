@@ -53,8 +53,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LaplaceOperator::LaplaceOperator(const std::string& object_name, bool homogeneous_bc)
-    : LinearOperator(object_name, homogeneous_bc),
+LaplaceOperator::LaplaceOperator(std::string object_name, bool homogeneous_bc)
+    : LinearOperator(std::move(object_name), homogeneous_bc),
       d_poisson_spec(d_object_name + "::poisson_spec"),
       d_default_bc_coef(
           new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_bc_coef", Pointer<Database>(nullptr))),

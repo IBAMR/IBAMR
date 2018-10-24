@@ -36,6 +36,7 @@
 #include <limits>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "ArrayData.h"
@@ -100,11 +101,11 @@ genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_name,
+AdvDiffStochasticForcing::AdvDiffStochasticForcing(std::string object_name,
                                                    Pointer<Database> input_db,
                                                    Pointer<CellVariable<NDIM, double> > C_var,
                                                    const AdvDiffSemiImplicitHierarchyIntegrator* const adv_diff_solver)
-    : d_object_name(object_name),
+    : d_object_name(std::move(object_name)),
       d_C_var(C_var),
       d_f_parser(),
       d_adv_diff_solver(adv_diff_solver),

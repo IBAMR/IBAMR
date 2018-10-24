@@ -114,10 +114,13 @@ static const int NOGHOST = 0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFACOperator(
-    const std::string& object_name,
+    std::string object_name,
     const Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : StaggeredStokesFACPreconditionerStrategy(object_name, std::max(SIDEG, CELLG), input_db, default_options_prefix),
+    : StaggeredStokesFACPreconditionerStrategy(std::move(object_name),
+                                               std::max(SIDEG, CELLG),
+                                               input_db,
+                                               default_options_prefix),
       d_rediscretize_stokes(true),
       d_res_rediscretized_stokes(d_rediscretize_stokes),
       d_level_solver_type("PETSC_LEVEL_SOLVER"),
@@ -168,7 +171,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
 
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    d_u_dof_index_var = new SideVariable<NDIM, int>(object_name + "::u_dof_index");
+    d_u_dof_index_var = new SideVariable<NDIM, int>(d_object_name + "::u_dof_index");
     if (var_db->checkVariableExists(d_u_dof_index_var->getName()))
     {
         d_u_dof_index_var = var_db->getVariable(d_u_dof_index_var->getName());
@@ -176,7 +179,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
         var_db->removePatchDataIndex(d_u_dof_index_idx);
     }
     d_u_dof_index_idx = var_db->registerVariableAndContext(d_u_dof_index_var, d_context, NOGHOST);
-    d_p_dof_index_var = new CellVariable<NDIM, int>(object_name + "::p_dof_index");
+    d_p_dof_index_var = new CellVariable<NDIM, int>(d_object_name + "::p_dof_index");
     if (var_db->checkVariableExists(d_p_dof_index_var->getName()))
     {
         d_p_dof_index_var = var_db->getVariable(d_p_dof_index_var->getName());

@@ -661,10 +661,10 @@ protected:
     /*!
      * \brief Constructor.
      */
-    FEDataManager(const std::string& object_name,
-                  const InterpSpec& default_interp_spec,
-                  const SpreadSpec& default_spread_spec,
-                  const SAMRAI::hier::IntVector<NDIM>& ghost_width,
+    FEDataManager(std::string object_name,
+                  InterpSpec default_interp_spec,
+                  SpreadSpec default_spread_spec,
+                  SAMRAI::hier::IntVector<NDIM> ghost_width,
                   bool register_for_restart = true);
 
     /*!

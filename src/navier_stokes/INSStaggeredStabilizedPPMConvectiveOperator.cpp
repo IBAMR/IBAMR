@@ -36,6 +36,7 @@
 #include <cmath>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "ArrayData.h"
@@ -480,15 +481,15 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvectiveOperator(
-    const std::string& object_name,
+    std::string object_name,
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
-    : ConvectiveOperator(object_name, difference_form),
+    std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
+    : ConvectiveOperator(std::move(object_name), difference_form),
       d_stabilization_type("UPWIND"),
       d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
       d_width(array_constant<double, 2 * NDIM>(0.0)),
-      d_bc_coefs(bc_coefs),
+      d_bc_coefs(std::move(bc_coefs)),
       d_bdry_extrap_type("CONSTANT"),
       d_hierarchy(nullptr),
       d_coarsest_ln(-1),

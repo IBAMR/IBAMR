@@ -64,7 +64,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    JacobianOperator(const std::string& object_name);
+    JacobianOperator(std::string object_name);
 
     /*!
      * \brief Empty destructor.

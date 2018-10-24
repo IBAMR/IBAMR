@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <ostream>
 #include <string>
+#include <utility>
 
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -65,8 +66,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PETScMFFDJacobianOperator::PETScMFFDJacobianOperator(const std::string& object_name, const std::string& options_prefix)
-    : JacobianOperator(object_name),
+PETScMFFDJacobianOperator::PETScMFFDJacobianOperator(std::string object_name, std::string options_prefix)
+    : JacobianOperator(std::move(object_name)),
       d_F(nullptr),
       d_nonlinear_solver(nullptr),
       d_petsc_jac(nullptr),
@@ -76,7 +77,7 @@ PETScMFFDJacobianOperator::PETScMFFDJacobianOperator(const std::string& object_n
       d_petsc_u(nullptr),
       d_petsc_x(nullptr),
       d_petsc_y(nullptr),
-      d_options_prefix(options_prefix)
+      d_options_prefix(std::move(options_prefix))
 {
     // intentionally blank
 }

@@ -107,8 +107,8 @@ get_x_and_FF(libMesh::VectorValue<double>& x,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBFECentroidPostProcessor::IBFECentroidPostProcessor(const std::string& name, FEDataManager* fe_data_manager)
-    : IBFEPostProcessor(name, fe_data_manager)
+IBFECentroidPostProcessor::IBFECentroidPostProcessor(std::string name, FEDataManager* fe_data_manager)
+    : IBFEPostProcessor(std::move(name), fe_data_manager)
 {
     // intentionally blank
     return;

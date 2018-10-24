@@ -94,10 +94,10 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-muParserCartGridFunction::muParserCartGridFunction(const std::string& object_name,
+muParserCartGridFunction::muParserCartGridFunction(std::string object_name,
                                                    Pointer<Database> input_db,
                                                    Pointer<CartesianGridGeometry<NDIM> > grid_geom)
-    : CartGridFunction(object_name),
+    : CartGridFunction(std::move(object_name)),
       d_grid_geom(grid_geom),
       d_constants(),
       d_function_strings(),
@@ -106,7 +106,7 @@ muParserCartGridFunction::muParserCartGridFunction(const std::string& object_nam
       d_parser_posn()
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!d_object_name.empty());
     TBOX_ASSERT(input_db);
 #endif
     // Read in user-provided constants.

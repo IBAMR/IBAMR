@@ -76,7 +76,7 @@ public:
      */
     CopyToRootSchedule(int root_proc,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-                       const std::vector<int>& src_patch_data_idxs);
+                       std::vector<int> src_patch_data_idxs);
 
     /*!
      * \brief Destructor

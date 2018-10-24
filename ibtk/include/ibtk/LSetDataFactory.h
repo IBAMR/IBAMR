@@ -81,7 +81,7 @@ public:
      * width argument gives the default width for all data objects created with
      * this factory.
      */
-    LSetDataFactory(const SAMRAI::hier::IntVector<NDIM>& ghosts);
+    LSetDataFactory(SAMRAI::hier::IntVector<NDIM> ghosts);
 
     /*!
      * Virtual destructor for the data factory class.

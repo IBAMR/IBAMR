@@ -64,7 +64,7 @@ public:
      * \param object_name name of the linear operator
      * \param petsc_mat PETSc Mat object
      */
-    PETScMatLOWrapper(const std::string& object_name, const Mat& petsc_mat);
+    PETScMatLOWrapper(std::string object_name, Mat petsc_mat);
 
     /*!
      * \brief Destructor.

@@ -69,10 +69,10 @@ static Timer* t_initialize_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CIBStaggeredStokesOperator::CIBStaggeredStokesOperator(const std::string& object_name,
+CIBStaggeredStokesOperator::CIBStaggeredStokesOperator(std::string object_name,
                                                        Pointer<CIBStrategy> cib_strategy,
                                                        bool homogeneous_bc)
-    : StaggeredStokesOperator(object_name, homogeneous_bc),
+    : StaggeredStokesOperator(std::move(object_name), homogeneous_bc),
       d_cib_strategy(cib_strategy),
       d_scale_interp(1.0),
       d_scale_spread(1.0),

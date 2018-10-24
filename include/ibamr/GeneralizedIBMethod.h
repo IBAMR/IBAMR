@@ -95,7 +95,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    GeneralizedIBMethod(const std::string& object_name,
+    GeneralizedIBMethod(std::string object_name,
                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                         bool register_for_restart = true);
 

@@ -32,6 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <utility>
+
 #include "ibamr/AdvDiffWavePropConvectiveOperator.h"
 
 extern "C"
@@ -77,12 +79,12 @@ namespace IBAMR
 {
 // Constructor
 AdvDiffWavePropConvectiveOperator::AdvDiffWavePropConvectiveOperator(
-    const std::string& object_name,
+    std::string object_name,
     Pointer<CellVariable<NDIM, double> > Q_var,
     Pointer<Database> /*input_db*/,
     const ConvectiveDifferencingType differencing_form,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& conc_bc_coefs)
-    : ConvectiveOperator(object_name, differencing_form),
+    std::vector<RobinBcCoefStrategy<NDIM>*> conc_bc_coefs)
+    : ConvectiveOperator(std::move(object_name), differencing_form),
       d_ghostfill_alg_Q(nullptr),
       d_ghostfill_scheds_Q(),
       d_outflow_bdry_extrap_type("CONSTANT"),
@@ -91,7 +93,7 @@ AdvDiffWavePropConvectiveOperator::AdvDiffWavePropConvectiveOperator(
       d_finest_ln(-1),
       d_Q_var(Q_var),
       d_Q_data_depth(0),
-      d_conc_bc_coefs(conc_bc_coefs),
+      d_conc_bc_coefs(std::move(conc_bc_coefs)),
       d_k(3),
       d_difference_form(differencing_form)
 {

@@ -58,10 +58,10 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PETScPCLSWrapper::PETScPCLSWrapper(const std::string& object_name, const PC& petsc_pc)
-    : d_petsc_pc(petsc_pc), d_x(nullptr), d_b(nullptr), d_petsc_x(nullptr), d_petsc_b(nullptr)
+PETScPCLSWrapper::PETScPCLSWrapper(std::string object_name, PC petsc_pc)
+    : d_petsc_pc(std::move(petsc_pc)), d_x(nullptr), d_b(nullptr), d_petsc_x(nullptr), d_petsc_b(nullptr)
 {
-    GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
+    GeneralSolver::init(std::move(object_name), /*homogeneous_bc*/ true);
     return;
 } // PETScPCLSWrapper()
 

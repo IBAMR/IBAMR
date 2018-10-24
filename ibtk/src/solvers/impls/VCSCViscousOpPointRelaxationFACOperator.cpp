@@ -361,11 +361,10 @@ do_local_data_update(SmootherType smoother_type)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-VCSCViscousOpPointRelaxationFACOperator::VCSCViscousOpPointRelaxationFACOperator(
-    const std::string& object_name,
-    const Pointer<Database> input_db,
-    const std::string& default_options_prefix)
-    : SCPoissonPointRelaxationFACOperator(object_name, input_db, default_options_prefix)
+VCSCViscousOpPointRelaxationFACOperator::VCSCViscousOpPointRelaxationFACOperator(std::string object_name,
+                                                                                 const Pointer<Database> input_db,
+                                                                                 std::string default_options_prefix)
+    : SCPoissonPointRelaxationFACOperator(std::move(object_name), input_db, std::move(default_options_prefix))
 {
     // Setup Timers.
     IBTK_DO_ONCE(

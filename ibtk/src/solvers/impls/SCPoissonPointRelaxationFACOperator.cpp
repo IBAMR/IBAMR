@@ -260,13 +260,13 @@ do_local_data_update(SmootherType smoother_type)
 
 SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const std::string& object_name,
                                                                          const Pointer<Database> input_db,
-                                                                         const std::string& default_options_prefix)
+                                                                         std::string default_options_prefix)
     : PoissonFACPreconditionerStrategy(
           object_name,
           new SideVariable<NDIM, double>(object_name + "::side_scratch", DEFAULT_DATA_DEPTH),
           SIDEG,
           input_db,
-          default_options_prefix),
+          std::move(default_options_prefix)),
       d_coarse_solver(nullptr),
       d_coarse_solver_db(),
       d_patch_bc_box_overlap(),

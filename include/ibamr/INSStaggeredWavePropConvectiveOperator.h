@@ -86,10 +86,10 @@ public:
     /*!
      * \brief Class constructor.
      */
-    INSStaggeredWavePropConvectiveOperator(const std::string& object_name,
+    INSStaggeredWavePropConvectiveOperator(std::string object_name,
                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                            ConvectiveDifferencingType difference_form,
-                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+                                           std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> bc_coefs);
 
     /*!
      * \brief Destructor.

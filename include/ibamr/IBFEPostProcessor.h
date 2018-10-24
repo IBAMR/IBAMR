@@ -196,7 +196,7 @@ public:
     /*!
      * Constructor.
      */
-    IBFEPostProcessor(const std::string& name, IBTK::FEDataManager* fe_data_manager);
+    IBFEPostProcessor(std::string name, IBTK::FEDataManager* fe_data_manager);
 
     /*!
      * Virtual destructor.

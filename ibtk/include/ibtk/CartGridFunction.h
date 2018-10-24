@@ -68,7 +68,7 @@ public:
     /*!
      * \brief The default constructor sets the name of the strategy object.
      */
-    CartGridFunction(const std::string& object_name = "");
+    CartGridFunction(std::string object_name = "");
 
     /*!
      * \brief Empty virtual destructor.

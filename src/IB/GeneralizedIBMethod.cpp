@@ -95,10 +95,8 @@ static const int GENERALIZED_IB_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-GeneralizedIBMethod::GeneralizedIBMethod(const std::string& object_name,
-                                         Pointer<Database> input_db,
-                                         bool register_for_restart)
-    : IBMethod(object_name, input_db, register_for_restart)
+GeneralizedIBMethod::GeneralizedIBMethod(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
+    : IBMethod(std::move(object_name), input_db, register_for_restart)
 {
     // NOTE: Parent class constructor registers class with the restart manager, sets object
     // name.

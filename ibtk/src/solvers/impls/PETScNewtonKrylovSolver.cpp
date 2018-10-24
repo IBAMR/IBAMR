@@ -83,15 +83,15 @@ static Timer* t_deallocate_solver_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(const std::string& object_name,
+PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(std::string object_name,
                                                  Pointer<Database> input_db,
-                                                 const std::string& default_options_prefix,
+                                                 std::string default_options_prefix,
                                                  MPI_Comm petsc_comm)
     : d_reinitializing_solver(false),
       d_petsc_x(nullptr),
       d_petsc_b(nullptr),
       d_petsc_r(nullptr),
-      d_options_prefix(default_options_prefix),
+      d_options_prefix(std::move(default_options_prefix)),
       d_petsc_comm(petsc_comm),
       d_petsc_snes(nullptr),
       d_petsc_jac(nullptr),
@@ -100,8 +100,7 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(const std::string& object_name,
       d_user_provided_jacobian(false)
 {
     // Setup default values.
-    GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
-    d_options_prefix = default_options_prefix;
+    GeneralSolver::init(std::move(object_name), /*homogeneous_bc*/ false);
     d_max_iterations = 50;
     d_abs_residual_tol = 1.0e-50;
     d_rel_residual_tol = 1.0e-8;
@@ -123,20 +122,20 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(const std::string& object_name,
     common_ctor();
 }
 
-PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(const std::string& object_name, const SNES& petsc_snes)
+PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(std::string object_name, SNES petsc_snes)
     : d_reinitializing_solver(false),
       d_petsc_x(nullptr),
       d_petsc_b(nullptr),
       d_petsc_r(nullptr),
       d_options_prefix(""),
       d_petsc_comm(PETSC_COMM_WORLD),
-      d_petsc_snes(petsc_snes),
+      d_petsc_snes(std::move(petsc_snes)),
       d_petsc_jac(nullptr),
       d_managing_petsc_snes(false),
       d_user_provided_function(false),
       d_user_provided_jacobian(false)
 {
-    GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
+    GeneralSolver::init(std::move(object_name), /*homogeneous_bc*/ false);
     if (d_petsc_snes) resetWrappedSNES(d_petsc_snes);
     common_ctor();
 }

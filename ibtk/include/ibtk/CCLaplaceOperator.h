@@ -63,7 +63,7 @@ public:
      * \brief Constructor for class CCLaplaceOperator initializes the operator
      * coefficients and boundary conditions to default values.
      */
-    CCLaplaceOperator(const std::string& object_name, bool homogeneous_bc = true);
+    CCLaplaceOperator(std::string object_name, bool homogeneous_bc = true);
 
     /*!
      * \brief Destructor.
