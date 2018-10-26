@@ -100,11 +100,6 @@ public:
                        bool register_for_restart = true);
 
     /*!
-     * \brief Destructor.
-     */
-    virtual ~RelaxationLSMethod();
-
-    /*!
      * \name Implementation of IBAMR::LSInitStrategy interface.
      */
     //\{

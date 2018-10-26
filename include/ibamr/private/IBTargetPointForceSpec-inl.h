@@ -71,12 +71,6 @@ inline IBTargetPointForceSpec::IBTargetPointForceSpec(const int master_idx,
     return;
 } // IBTargetPointForceSpec
 
-inline IBTargetPointForceSpec::~IBTargetPointForceSpec()
-{
-    // intentionally blank
-    return;
-} // ~IBTargetPointForceSpec
-
 inline const int&
 IBTargetPointForceSpec::getMasterNodeIndex() const
 {

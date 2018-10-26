@@ -88,12 +88,6 @@ inline IBSpringForceSpec::IBSpringForceSpec(const int master_idx,
     return;
 } // IBSpringForceSpec
 
-inline IBSpringForceSpec::~IBSpringForceSpec()
-{
-    // intentionally blank
-    return;
-} // ~IBSpringForceSpec
-
 inline unsigned int
 IBSpringForceSpec::getNumberOfSprings() const
 {

@@ -99,11 +99,6 @@ public:
                            const IBTK::Point& X_target = IBTK::Point::Zero());
 
     /*!
-     * \brief Destructor.
-     */
-    ~IBTargetPointForceSpec();
-
-    /*!
      * \return A const reference to the master node index.
      */
     const int& getMasterNodeIndex() const;

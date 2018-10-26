@@ -244,11 +244,6 @@ RelaxationLSMethod::RelaxationLSMethod(std::string object_name, Pointer<Database
     return;
 } // RelaxationLSMethod
 
-RelaxationLSMethod::~RelaxationLSMethod()
-{
-    return;
-} // ~RelaxationLSMethod
-
 void
 RelaxationLSMethod::initializeLSData(int D_idx,
                                      Pointer<HierarchyMathOps> hier_math_ops,
@@ -314,7 +309,7 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::COPY"), cell_ghosts);
     const int H_init_idx =
         var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::H_INIT"), cell_ghosts);
-    const int H_scratch_idx = 
+    const int H_scratch_idx =
         var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::H_SCRATCH"), no_ghosts);
 
     // Heaviside variables
