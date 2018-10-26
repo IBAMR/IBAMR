@@ -96,12 +96,6 @@ IBStrategy::IBStrategy() : d_ib_solver(nullptr), d_use_fixed_coupling_ops(false)
     return;
 } // IBStrategy
 
-IBStrategy::~IBStrategy()
-{
-    // intentionally blank
-    return;
-} // ~IBStrategy
-
 void
 IBStrategy::registerIBHierarchyIntegrator(IBHierarchyIntegrator* ib_solver)
 {

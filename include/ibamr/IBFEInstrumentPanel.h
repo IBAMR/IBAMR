@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <fstream>
+#include <memory>
 
 #include "boost/multi_array.hpp"
 #include "ibamr/IBFEMethod.h"
@@ -65,11 +66,6 @@ public:
      * \brief Constructor.
      */
     IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, int part);
-
-    /*!
-     * \brief Destructor.
-     */
-    ~IBFEInstrumentPanel();
 
     /*!
      * \brief Get data from input file.
@@ -102,7 +98,7 @@ public:
      * \return The instrument dump interval
      */
     int getInstrumentDumpInterval() const;
-    
+
     /*!
      * \return The name of the directory for output
      */
@@ -231,14 +227,14 @@ private:
     std::vector<std::vector<libMesh::dof_id_type> > d_node_dof_IDs;
 
     /*!
-     * \brief contains pointers to the equation systems for the meter mesh.
+     * \brief Equation systems for the meter meshes.
      */
-    std::vector<libMesh::EquationSystems*> d_meter_systems;
+    std::vector<std::unique_ptr<libMesh::EquationSystems>> d_meter_systems;
 
     /*!
-     * \brief vector of meter mesh pointers.
+     * \brief vector of meter meshes.
      */
-    std::vector<libMesh::SerialMesh*> d_meter_meshes;
+    std::vector<std::unique_ptr<libMesh::SerialMesh>> d_meter_meshes;
 
     /*!
      * \brief names for each meter mesh.

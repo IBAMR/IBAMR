@@ -126,11 +126,6 @@ public:
     IBStrategy();
 
     /*!
-     * \brief Virtual destructor.
-     */
-    virtual ~IBStrategy();
-
-    /*!
      * Register the IBHierarchyIntegrator object that is using this strategy
      * class.
      *

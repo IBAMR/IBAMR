@@ -309,8 +309,6 @@ IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Dat
       d_dX_dof_idx(),
       d_nodes(),
       d_node_dof_IDs(),
-      d_meter_systems(),
-      d_meter_meshes(),
       d_meter_mesh_names(),
       d_nodeset_IDs_for_meters(),
       d_instrument_dump_interval(),
@@ -345,21 +343,6 @@ IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Dat
     }
 }
 
-IBFEInstrumentPanel::~IBFEInstrumentPanel()
-{
-    // Close the log file stream.
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-        d_mean_pressure_stream.close();
-        d_flux_stream.close();
-    }
-    // delete vectors of pointers
-    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
-    {
-        delete d_meter_systems[ii];
-        delete d_meter_meshes[ii];
-    }
-}
 
 void
 IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_ops)
@@ -479,7 +462,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     // initialize meshes and number of nodes
     for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
-        d_meter_meshes.push_back(new SerialMesh(comm_in, NDIM));
+        d_meter_meshes.emplace_back(new SerialMesh(comm_in, NDIM));
         std::ostringstream id;
         id << d_nodeset_IDs_for_meters[jj];
         d_meter_mesh_names.push_back("meter_mesh_" + id.str());
@@ -506,6 +489,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
         {
             Elem* elem = new Tri3;
             elem->set_id(jj);
+            // libMesh will delete elem
             elem = d_meter_meshes[ii]->add_elem(elem);
             elem->set_node(0) = d_meter_meshes[ii]->node_ptr(d_num_nodes[ii]);
             elem->set_node(1) = d_meter_meshes[ii]->node_ptr(jj);
@@ -518,7 +502,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     // initialize meter mesh equation systems, for both velocity and displacement
     for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
-        d_meter_systems.push_back(new EquationSystems(*d_meter_meshes[jj]));
+        d_meter_systems.emplace_back(new EquationSystems(*d_meter_meshes[jj]));
         auto& velocity_sys = d_meter_systems[jj]->add_system<LinearImplicitSystem>(IBFEMethod::VELOCITY_SYSTEM_NAME);
         velocity_sys.add_variable("U_0", static_cast<Order>(1), LAGRANGE);
         velocity_sys.add_variable("U_1", static_cast<Order>(1), LAGRANGE);

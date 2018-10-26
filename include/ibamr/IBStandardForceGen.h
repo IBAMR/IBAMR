@@ -89,11 +89,6 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>());
 
     /*!
-     * \brief Destructor.
-     */
-    ~IBStandardForceGen();
-
-    /*!
      * \brief Register a spring force specification function with the force
      * generator.
      *

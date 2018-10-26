@@ -55,11 +55,6 @@ public:
     IBFECentroidPostProcessor(std::string name, IBTK::FEDataManager* fe_data_manager);
 
     /*!
-     * Destructor.
-     */
-    ~IBFECentroidPostProcessor();
-
-    /*!
      * Register a scalar-valued variable for reconstruction.
      *
      * \note This method checks that the requested FE family and order are valid

@@ -122,11 +122,6 @@ public:
                       const std::vector<std::vector<double> >& parameters);
 
     /*!
-     * \brief Destructor.
-     */
-    ~IBSpringForceSpec();
-
-    /*!
      * \return The number of springs attached to the master node.
      */
     unsigned int getNumberOfSprings() const;

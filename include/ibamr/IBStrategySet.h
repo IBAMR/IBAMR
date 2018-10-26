@@ -106,11 +106,6 @@ public:
     } // IBStrategySet
 
     /*!
-     * \brief Destructor.
-     */
-    ~IBStrategySet();
-
-    /*!
      * Register the IBHierarchyIntegrator object that is using this strategy
      * class.
      */
