@@ -4391,7 +4391,7 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     d_ipdg_beta1 = db->getDoubleWithDefault("ipdg_beta1", 2.0);
     d_cg_penalty = db->getDoubleWithDefault("cg_penalty", 1.0e10);
     d_phi_fe_order = static_cast<Order>(db->getIntegerWithDefault("Phi_fe_order", 2));
-    d_dt_previous =  db->getDouble("DT");
+    d_dt_previous =  0.0;
 
     return;
 } // getFromInput
