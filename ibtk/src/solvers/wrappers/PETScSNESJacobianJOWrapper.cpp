@@ -64,15 +64,8 @@ PETScSNESJacobianJOWrapper::PETScSNESJacobianJOWrapper(
     void* const petsc_snes_jac_ctx)
     : JacobianOperator(std::move(object_name)),
       d_petsc_snes(std::move(petsc_snes)),
-      d_petsc_snes_jac(nullptr),
       d_petsc_snes_form_jac(petsc_snes_form_jac),
-      d_petsc_snes_jac_ctx(petsc_snes_jac_ctx),
-      d_x(nullptr),
-      d_y(nullptr),
-      d_z(nullptr),
-      d_petsc_x(nullptr),
-      d_petsc_y(nullptr),
-      d_petsc_z(nullptr)
+      d_petsc_snes_jac_ctx(petsc_snes_jac_ctx)
 {
     // intentionally blank
 }

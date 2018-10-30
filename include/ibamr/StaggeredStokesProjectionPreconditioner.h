@@ -186,7 +186,7 @@ private:
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Phi_var, d_F_Phi_var;
-    int d_Phi_scratch_idx, d_F_Phi_idx;
+    int d_Phi_scratch_idx = -1, d_F_Phi_idx = -1;
 };
 } // namespace IBAMR
 

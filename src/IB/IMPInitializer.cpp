@@ -104,11 +104,11 @@ static const double POINT_FACTOR = 2.0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IMPInitializer::IMPInitializer(const std::string& object_name,
+IMPInitializer::IMPInitializer(std::string object_name,
                                Pointer<Database> input_db,
                                Pointer<PatchHierarchy<NDIM> > hierarchy,
                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
-    : d_object_name(object_name),
+    : d_object_name(std::move(object_name)),
       d_hierarchy(hierarchy),
       d_gridding_alg(gridding_alg),
       d_level_is_initialized(d_gridding_alg->getMaxLevels(), false),
@@ -117,11 +117,10 @@ IMPInitializer::IMPInitializer(const std::string& object_name,
       d_vertex_offset(d_gridding_alg->getMaxLevels()),
       d_vertex_posn(d_gridding_alg->getMaxLevels()),
       d_vertex_wgt(d_gridding_alg->getMaxLevels()),
-      d_vertex_subdomain_id(d_gridding_alg->getMaxLevels()),
-      d_silo_writer(nullptr)
+      d_vertex_subdomain_id(d_gridding_alg->getMaxLevels())
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!d_object_name.empty());
     TBOX_ASSERT(input_db);
 #endif
 

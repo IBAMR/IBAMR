@@ -248,7 +248,7 @@ private:
      * The time at which we are evaluting the pressure-like variable boundary
      * condition coefficients.
      */
-    double d_solution_time;
+    double d_solution_time = std::numeric_limits<double>::quiet_NaN();
 };
 } // namespace IBAMR
 

@@ -200,7 +200,7 @@ private:
     SideDataSynchronization& operator=(const SideDataSynchronization& that) = delete;
 
     // Boolean indicating whether the operator is initialized.
-    bool d_is_initialized;
+    bool d_is_initialized = false;
 
     // The component synchronization operations to perform.
     std::vector<SynchronizationTransactionComponent> d_transaction_comps;
@@ -208,7 +208,7 @@ private:
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = -1, d_finest_ln = -1;
 
     // Cached communications algorithms and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;

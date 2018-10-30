@@ -64,11 +64,7 @@ PETScSNESFunctionGOWrapper::PETScSNESFunctionGOWrapper(
     : GeneralOperator(std::move(object_name)),
       d_petsc_snes(std::move(petsc_snes)),
       d_petsc_snes_form_func(petsc_snes_form_func),
-      d_petsc_snes_func_ctx(petsc_snes_func_ctx),
-      d_x(nullptr),
-      d_y(nullptr),
-      d_petsc_x(nullptr),
-      d_petsc_y(nullptr)
+      d_petsc_snes_func_ctx(petsc_snes_func_ctx)
 {
     // intentionally blank
     return;

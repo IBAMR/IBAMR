@@ -159,7 +159,7 @@ private:
     CCLaplaceOperator& operator=(const CCLaplaceOperator& that) = delete;
 
     // Operator parameters.
-    int d_ncomp;
+    int d_ncomp = 0;
 
     // Cached communications operators.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
@@ -171,7 +171,7 @@ private:
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = -1, d_finest_ln = -1;
 };
 } // namespace IBTK
 

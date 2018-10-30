@@ -126,54 +126,11 @@ discard_comments(const std::string& input_string)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Pointer<Database> input_db)
-    : IBRedundantInitializer(object_name, input_db),
-      d_object_name(object_name),
-      d_use_file_batons(true),
-      d_max_levels(-1),
-      d_level_is_initialized(),
-      d_silo_writer(nullptr),
-      d_base_filename(),
-      d_length_scale_factor(1.0),
-      d_posn_shift(Vector::Zero()),
-      d_enable_springs(),
-      d_using_uniform_spring_stiffness(),
-      d_uniform_spring_stiffness(),
-      d_using_uniform_spring_rest_length(),
-      d_uniform_spring_rest_length(),
-      d_using_uniform_spring_force_fcn_idx(),
-      d_uniform_spring_force_fcn_idx(),
-      d_enable_xsprings(),
-      d_using_uniform_xspring_stiffness(),
-      d_uniform_xspring_stiffness(),
-      d_using_uniform_xspring_rest_length(),
-      d_uniform_xspring_rest_length(),
-      d_using_uniform_xspring_force_fcn_idx(),
-      d_uniform_xspring_force_fcn_idx(),
-      d_enable_beams(),
-      d_using_uniform_beam_bend_rigidity(),
-      d_uniform_beam_bend_rigidity(),
-      d_using_uniform_beam_curvature(),
-      d_uniform_beam_curvature(),
-      d_enable_rods(),
-      d_using_uniform_rod_properties(),
-      d_uniform_rod_properties(),
-      d_enable_target_points(),
-      d_using_uniform_target_stiffness(),
-      d_uniform_target_stiffness(),
-      d_using_uniform_target_damping(),
-      d_uniform_target_damping(),
-      d_enable_anchor_points(),
-      d_enable_bdry_mass(),
-      d_using_uniform_bdry_mass(),
-      d_uniform_bdry_mass(),
-      d_using_uniform_bdry_mass_stiffness(),
-      d_uniform_bdry_mass_stiffness(),
-      d_enable_instrumentation(),
-      d_enable_sources()
+IBStandardInitializer::IBStandardInitializer(std::string object_name, Pointer<Database> input_db)
+    : IBRedundantInitializer(std::move(object_name), input_db), d_posn_shift(Vector::Zero())
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!d_object_name.empty());
     TBOX_ASSERT(input_db);
 #endif
 
@@ -193,7 +150,6 @@ IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Poi
     // user data.
     RestartManager* restart_manager = RestartManager::getManager();
     const bool is_from_restart = restart_manager->isFromRestart();
-    d_data_processed = false;
     if (is_from_restart)
     {
         d_data_processed = true;

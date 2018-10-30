@@ -88,12 +88,12 @@ protected:
     /*
      * The patch data index corresponding to the data to be filled.
      */
-    int d_target_data_idx;
+    int d_target_data_idx = -1;
 
     /*
      * Whether to use homogeneous boundary conditions.
      */
-    bool d_homogeneous_bc;
+    bool d_homogeneous_bc = false;
 
 private:
     /*!

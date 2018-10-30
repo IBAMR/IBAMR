@@ -1448,7 +1448,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_sc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OuterfaceVariable<NDIM, double> > d_of_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideVariable<NDIM, double> > d_os_var;
-    int d_fc_idx, d_sc_idx, d_nc_idx, d_ec_idx, d_of_idx, d_os_idx;
+    int d_fc_idx = -1, d_sc_idx = -1, d_nc_idx = -1, d_ec_idx = -1, d_of_idx = -1, d_os_idx = -1;
 
     // Communications operators, algorithms, and schedules.
     std::string d_coarsen_op_name;
@@ -1473,9 +1473,9 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_wgt_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_wgt_fc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_wgt_sc_var;
-    int d_wgt_cc_idx, d_wgt_fc_idx, d_wgt_sc_idx;
-    bool d_using_wgt_cc, d_using_wgt_fc, d_using_wgt_sc;
-    double d_volume;
+    int d_wgt_cc_idx = -1, d_wgt_fc_idx = -1, d_wgt_sc_idx = -1;
+    bool d_using_wgt_cc = false, d_using_wgt_fc = false, d_using_wgt_sc = false;
+    double d_volume = 0.0;
 };
 } // namespace IBTK
 

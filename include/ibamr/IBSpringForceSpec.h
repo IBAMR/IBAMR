@@ -220,7 +220,7 @@ private:
     /*!
      * Data required to define the spring forces.
      */
-    int d_master_idx;
+    int d_master_idx = -1;
     std::vector<int> d_slave_idxs, d_force_fcn_idxs;
     std::vector<std::vector<double> > d_parameters;
 

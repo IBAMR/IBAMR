@@ -56,7 +56,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ParallelMap::ParallelMap() : d_map(), d_pending_additions(), d_pending_removals()
+ParallelMap::ParallelMap()
 {
     // intentionally blank
     return;

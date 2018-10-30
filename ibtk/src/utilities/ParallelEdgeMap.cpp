@@ -51,7 +51,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ParallelEdgeMap::ParallelEdgeMap() : d_edge_map(), d_pending_additions(), d_pending_removals()
+ParallelEdgeMap::ParallelEdgeMap()
 {
     // intentionally blank
     return;

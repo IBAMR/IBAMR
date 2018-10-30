@@ -96,16 +96,10 @@ StaggeredStokesLevelRelaxationFACOperator::StaggeredStokesLevelRelaxationFACOper
     const std::string& object_name,
     const Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : StaggeredStokesFACPreconditionerStrategy(object_name, GHOST_CELL_WIDTH, input_db, default_options_prefix)
+    : StaggeredStokesFACPreconditionerStrategy(object_name, GHOST_CELL_WIDTH, input_db, default_options_prefix),
+      d_level_solver_default_options_prefix(default_options_prefix + "level_"),
+      d_level_solver_db(new MemoryDatabase(object_name + "::level_solver_db"))
 {
-    // Set some default values for the level solvers.
-    d_level_solver_type = StaggeredStokesSolverManager::PETSC_LEVEL_SOLVER;
-    d_level_solver_default_options_prefix = default_options_prefix + "level_";
-    d_level_solver_rel_residual_tol = 1.0e-5;
-    d_level_solver_abs_residual_tol = 1.0e-50;
-    d_level_solver_max_iterations = 1;
-    d_level_solver_db = new MemoryDatabase(object_name + "::level_solver_db");
-
     // Get values from the input database.
     if (input_db)
     {

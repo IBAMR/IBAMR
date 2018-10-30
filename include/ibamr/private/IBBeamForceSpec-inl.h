@@ -55,7 +55,7 @@ IBBeamForceSpec::getIsRegisteredWithStreamableManager()
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline IBBeamForceSpec::IBBeamForceSpec(const unsigned int num_beams)
-    : d_master_idx(-1), d_neighbor_idxs(num_beams), d_bend_rigidities(num_beams), d_mesh_dependent_curvatures(num_beams)
+    : d_neighbor_idxs(num_beams), d_bend_rigidities(num_beams), d_mesh_dependent_curvatures(num_beams)
 {
 #if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())

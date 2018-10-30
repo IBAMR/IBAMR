@@ -96,44 +96,11 @@ namespace IBAMR
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBRedundantInitializer::IBRedundantInitializer(const std::string& object_name, Pointer<Database> input_db)
-    : d_object_name(object_name),
-      d_max_levels(-1),
-      d_level_is_initialized(),
-      d_silo_writer(nullptr),
-      d_base_filename(),
-      d_length_scale_factor(1.0),
-      d_posn_shift(Vector::Zero()),
-      d_num_vertex(),
-      d_vertex_offset(),
-      d_vertex_posn(),
-      d_spring_edge_map(),
-      d_spring_spec_data(),
-      d_xspring_edge_map(),
-      d_xspring_spec_data(),
-      d_beam_spec_data(),
-      d_rod_edge_map(),
-      d_rod_spec_data(),
-      d_target_spec_data(),
-      d_anchor_spec_data(),
-      d_bdry_mass_spec_data(),
-      d_directors(),
-      d_instrument_idx(),
-      d_source_idx(),
-      d_global_index_offset(),
-      d_data_processed(false),
-      d_init_structure_on_level_fcn(nullptr),
-      d_init_spring_on_level_fcn(nullptr),
-      d_init_beam_on_level_fcn(nullptr),
-      d_init_director_and_rod_on_level_fcn(nullptr),
-      d_init_boundary_mass_on_level_fcn(nullptr),
-      d_init_target_pt_on_level_fcn(nullptr),
-      d_init_anchor_pt_on_level_fcn(nullptr),
-      d_init_instrumentation_on_level_fcn(nullptr),
-      d_init_source_on_level_fcn(nullptr)
+IBRedundantInitializer::IBRedundantInitializer(std::string object_name, Pointer<Database> input_db)
+    : d_object_name(std::move(object_name)), d_posn_shift(Vector::Zero())
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!d_object_name.empty());
     TBOX_ASSERT(input_db);
 #endif
 

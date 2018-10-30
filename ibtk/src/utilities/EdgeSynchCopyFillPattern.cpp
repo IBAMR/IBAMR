@@ -61,7 +61,7 @@ static const std::string PATTERN_NAME = "EDGE_SYNCH_COPY_FILL_PATTERN";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-EdgeSynchCopyFillPattern::EdgeSynchCopyFillPattern(const unsigned int axis) : d_stencil_width(1), d_axis(axis)
+EdgeSynchCopyFillPattern::EdgeSynchCopyFillPattern(const unsigned int axis) : d_axis(axis)
 {
     // intentionally blank
     return;

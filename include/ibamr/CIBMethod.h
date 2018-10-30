@@ -460,13 +460,13 @@ protected:
     /*!
      * Boolean to flag if time integrator needs regriding
      */
-    bool d_time_integrator_needs_regrid;
+    bool d_time_integrator_needs_regrid = false;
 
     /*!
      * Eulerian variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_eul_lambda_var;
-    int d_eul_lambda_idx;
+    int d_eul_lambda_idx = -1;
 
     /*!
      * Vector of Lagrnagian indices of all structures.
@@ -482,18 +482,18 @@ protected:
     /*!
      * Control printing of S[lambda]
      */
-    bool d_output_eul_lambda;
+    bool d_output_eul_lambda = false;
 
     /*!
      *  Input/output.
      */
-    int d_lambda_dump_interval;
+    int d_lambda_dump_interval = 0;
     std::ofstream d_lambda_stream;
     std::vector<std::string> d_reg_filename;
     std::vector<std::string> d_lambda_filename;
 
     // Velocity boundary operator.
-    IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op;
+    IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op = nullptr;
 
     // Fluid density
     double d_rho;

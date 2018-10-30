@@ -38,8 +38,8 @@
 #include <string>
 #include <vector>
 
-#include "CoarseFineBoundary.h"
 #include "Box.h"
+#include "CoarseFineBoundary.h"
 #include "HYPRE_sstruct_ls.h"
 #include "HYPRE_sstruct_mv.h"
 #include "Index.h"
@@ -301,7 +301,7 @@ private:
     /*!
      * \brief Associated patch level and C-F boundary (for level numbers > 0).
      */
-    int d_level_num;
+    int d_level_num = -1;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_level;
     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 
@@ -316,20 +316,20 @@ private:
     static const int Y_VAR = 1;
     static const int Z_VAR = 2;
 
-    HYPRE_SStructGrid d_grid;
+    HYPRE_SStructGrid d_grid = nullptr;
     HYPRE_SStructStencil d_stencil[NVARS];
-    HYPRE_SStructGraph d_graph;
-    HYPRE_SStructMatrix d_matrix;
-    HYPRE_SStructVector d_rhs_vec, d_sol_vec;
-    HYPRE_SStructSolver d_solver, d_precond;
+    HYPRE_SStructGraph d_graph = nullptr;
+    HYPRE_SStructMatrix d_matrix = nullptr;
+    HYPRE_SStructVector d_rhs_vec = nullptr, d_sol_vec = nullptr;
+    HYPRE_SStructSolver d_solver = nullptr, d_precond = nullptr;
     std::vector<SAMRAI::hier::Index<NDIM> > d_stencil_offsets;
 
-    std::string d_solver_type, d_precond_type, d_split_solver_type;
-    int d_rel_change;
-    int d_num_pre_relax_steps, d_num_post_relax_steps;
+    std::string d_solver_type = "Split", d_precond_type = "none", d_split_solver_type = "PFMG";
+    int d_rel_change = 0;
+    int d_num_pre_relax_steps = 1, d_num_post_relax_steps = 1;
     int d_relax_type;
-    int d_skip_relax;
-    int d_two_norm;
+    int d_skip_relax = 1;
+    int d_two_norm = 1;
     //\}
 };
 } // namespace IBTK

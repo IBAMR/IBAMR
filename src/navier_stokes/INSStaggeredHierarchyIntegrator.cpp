@@ -426,9 +426,6 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
                              register_for_restart)
 {
     // Check to see whether the solver types have been set.
-    d_stokes_solver_type = StaggeredStokesSolverManager::UNDEFINED;
-    d_stokes_precond_type = StaggeredStokesSolverManager::UNDEFINED;
-    d_stokes_sub_precond_type = StaggeredStokesSolverManager::UNDEFINED;
     if (input_db->keyExists("stokes_solver_type")) d_stokes_solver_type = input_db->getString("stokes_solver_type");
     if (input_db->keyExists("stokes_precond_type")) d_stokes_precond_type = input_db->getString("stokes_precond_type");
     if (input_db->keyExists("stokes_sub_precond_type"))

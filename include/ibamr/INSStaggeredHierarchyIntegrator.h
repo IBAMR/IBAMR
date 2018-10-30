@@ -49,6 +49,7 @@
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/SideDataSynchronization.h"
 #include "tbox/Database.h"
@@ -352,7 +353,9 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_U_nul_vecs;
     bool d_vectors_need_init, d_explicitly_remove_nullspace;
 
-    std::string d_stokes_solver_type, d_stokes_precond_type, d_stokes_sub_precond_type;
+    std::string d_stokes_solver_type = StaggeredStokesSolverManager::UNDEFINED,
+                d_stokes_precond_type = StaggeredStokesSolverManager::UNDEFINED,
+                d_stokes_sub_precond_type = StaggeredStokesSolverManager::UNDEFINED;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_stokes_solver_db, d_stokes_precond_db, d_stokes_sub_precond_db;
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     bool d_stokes_solver_needs_init;

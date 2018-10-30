@@ -45,7 +45,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 ConvectiveOperator::ConvectiveOperator(std::string object_name, const ConvectiveDifferencingType difference_form)
-    : GeneralOperator(std::move(object_name)), d_difference_form(difference_form), d_u_idx(-1)
+    : GeneralOperator(std::move(object_name)), d_difference_form(difference_form)
 {
     // intentionally blank
     return;

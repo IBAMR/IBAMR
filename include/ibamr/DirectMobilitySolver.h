@@ -73,7 +73,7 @@ public:
     /*!
      * \brief The only constructor of this class.
      */
-    DirectMobilitySolver(const std::string& object_name,
+    DirectMobilitySolver(std::string object_name,
                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                          SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy);
 
@@ -260,7 +260,7 @@ private:
 
     // Solver stuff
     std::string d_object_name;
-    bool d_is_initialized;
+    bool d_is_initialized = false;
     double d_solution_time, d_current_time, d_new_time;
     SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
 
@@ -289,8 +289,8 @@ private:
     double d_rho;
 
     // Parameters used in this class.
-    double d_f_periodic_corr;
-    bool d_recompute_mob_mat;
+    double d_f_periodic_corr = 0.0;
+    bool d_recompute_mob_mat = false;
     double d_svd_replace_value, d_svd_eps;
 
 }; // DirectMobilitySolver

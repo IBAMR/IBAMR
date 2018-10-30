@@ -187,7 +187,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::AdvDiffPredictorCorrectorHyperbolic
                                                    grid_geom,
                                                    register_for_restart)
 {
-    d_overwrite_tags = false;
+    // intentionally blank
     return;
 } // AdvDiffPredictorCorrectorHyperbolicPatchOps
 

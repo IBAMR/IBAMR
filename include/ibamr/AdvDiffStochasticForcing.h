@@ -184,14 +184,14 @@ private:
     /*!
      * Weighting data.
      */
-    double d_std;
-    int d_num_rand_vals;
+    double d_std = std::numeric_limits<double>::quiet_NaN();
+    int d_num_rand_vals = 0;
     std::vector<SAMRAI::tbox::Array<double> > d_weights;
 
     /*!
      * Boundary condition scalings.
      */
-    double d_dirichlet_bc_scaling, d_neumann_bc_scaling;
+    double d_dirichlet_bc_scaling = std::sqrt(2.0), d_neumann_bc_scaling = 0.0;
 
     /*!
      * VariableContext and Variable objects for storing the components of the
@@ -199,9 +199,9 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_cc_var;
-    int d_C_current_cc_idx, d_C_half_cc_idx, d_C_new_cc_idx;
+    int d_C_current_cc_idx = -1, d_C_half_cc_idx = -1, d_C_new_cc_idx = -1;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_F_sc_var;
-    int d_F_sc_idx;
+    int d_F_sc_idx = -1;
     std::vector<int> d_F_sc_idxs;
 };
 } // namespace IBAMR

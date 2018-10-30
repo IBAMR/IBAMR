@@ -53,15 +53,6 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 NewtonKrylovSolver::NewtonKrylovSolver()
-    : d_F(nullptr),
-      d_J(nullptr),
-      d_krylov_solver(nullptr),
-      d_x(nullptr),
-      d_b(nullptr),
-      d_r(nullptr),
-      d_max_evaluations(10000),
-      d_solution_tol(1.0e-8),
-      d_current_linear_iterations(0)
 {
     d_max_iterations = 50;
     d_rel_residual_tol = 1.0e-8;

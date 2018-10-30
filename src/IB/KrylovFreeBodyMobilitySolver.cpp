@@ -61,43 +61,16 @@ static Timer* t_deallocate_solver_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovFreeBodyMobilitySolver::KrylovFreeBodyMobilitySolver(const std::string& object_name,
+KrylovFreeBodyMobilitySolver::KrylovFreeBodyMobilitySolver(std::string object_name,
                                                            Pointer<Database> input_db,
-                                                           const std::string& default_options_prefix,
+                                                           std::string default_options_prefix,
                                                            Pointer<CIBStrategy> cib_strategy,
                                                            MPI_Comm petsc_comm)
+    : d_object_name(std::move(object_name)),
+      d_options_prefix(std::move(default_options_prefix)),
+      d_petsc_comm(petsc_comm),
+      d_cib_strategy(cib_strategy)
 {
-    d_object_name = object_name;
-    d_options_prefix = default_options_prefix;
-    d_cib_strategy = cib_strategy;
-
-    d_petsc_b = nullptr;
-    d_petsc_temp_v = nullptr;
-    d_petsc_temp_f = nullptr;
-    d_petsc_comm = petsc_comm;
-    d_petsc_ksp = nullptr;
-    d_petsc_mat = nullptr;
-    d_mobility_solver = nullptr;
-
-    d_rho = 1.0;
-    d_mu = 1.0;
-
-    d_current_time = std::numeric_limits<double>::signaling_NaN();
-    d_new_time = std::numeric_limits<double>::signaling_NaN();
-    d_solution_time = std::numeric_limits<double>::signaling_NaN();
-    d_dt = std::numeric_limits<double>::signaling_NaN();
-
-    // Some default values for the Krylov solver.
-    d_ksp_type = KSPGMRES;
-    d_pc_type = "shell";
-    d_max_iterations = 10000;
-    d_abs_residual_tol = 1.0e-50;
-    d_rel_residual_tol = 1.0e-5;
-    d_initial_guess_nonzero = true;
-    d_enable_logging = false;
-    d_is_initialized = false;
-    d_reinitializing_solver = false;
-
     // Get values from the input database.
     if (input_db)
     {

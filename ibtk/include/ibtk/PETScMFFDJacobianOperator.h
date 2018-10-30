@@ -215,9 +215,9 @@ private:
 
     SAMRAI::tbox::Pointer<GeneralOperator> d_F;
     SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> d_nonlinear_solver;
-    Mat d_petsc_jac;
+    Mat d_petsc_jac = nullptr;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_op_u, d_op_x, d_op_y;
-    Vec d_petsc_u, d_petsc_x, d_petsc_y;
+    Vec d_petsc_u = nullptr, d_petsc_x = nullptr, d_petsc_y = nullptr;
     std::string d_options_prefix;
 };
 } // namespace IBTK

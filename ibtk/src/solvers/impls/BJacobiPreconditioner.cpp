@@ -61,7 +61,6 @@ namespace IBTK
 BJacobiPreconditioner::BJacobiPreconditioner(std::string object_name,
                                              Pointer<Database> input_db,
                                              const std::string& /*default_options_prefix*/)
-    : d_pc_map()
 {
     // Setup default options.
     GeneralSolver::init(std::move(object_name), /*homogeneous_bc*/ true);

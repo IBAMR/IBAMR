@@ -164,7 +164,7 @@ private:
     /*!
      * Time and position variables.
      */
-    double d_parser_time;
+    double d_parser_time = 0.0;
     Point d_parser_posn;
 };
 } // namespace IBTK

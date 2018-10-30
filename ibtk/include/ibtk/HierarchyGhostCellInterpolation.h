@@ -359,11 +359,11 @@ private:
     HierarchyGhostCellInterpolation& operator=(const HierarchyGhostCellInterpolation& that) = delete;
 
     // Boolean indicating whether the operator is initialized.
-    bool d_is_initialized;
+    bool d_is_initialized = false;
 
     // Boolean indicating whether the operator should use homogeneous Robin
     // boundary conditions (when applicable).
-    bool d_homogeneous_bc;
+    bool d_homogeneous_bc = false;
 
     // The component interpolation operations to perform.
     std::vector<InterpolationTransactionComponent> d_transaction_comps;
@@ -371,15 +371,15 @@ private:
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = -1, d_finest_ln = -1;
 
     // Cached communications algorithms and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;
-    SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* d_coarsen_strategy;
+    SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* d_coarsen_strategy = nullptr;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds;
 
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_refine_alg;
-    SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_refine_strategy;
+    SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_refine_strategy = nullptr;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_refine_scheds;
 
     // Cached coarse-fine boundary and physical boundary condition handlers.

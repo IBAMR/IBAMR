@@ -189,13 +189,13 @@ private:
     // Patch data to support delta function.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_wide_u_var, d_wide_f_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_wide_ctx;
-    int d_wide_u_idx, d_wide_f_idx;
+    int d_wide_u_idx = -1, d_wide_f_idx = -1;
 
     // SVR for holding widened u/f.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x_wide, d_b_wide;
 
     // Bools to control initialization and deallocation
-    bool d_is_initialized, d_reinitializing_solver;
+    bool d_is_initialized = false, d_reinitializing_solver = false;
 };
 } // namespace IBAMR
 

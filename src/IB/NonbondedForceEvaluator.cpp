@@ -46,6 +46,7 @@ namespace IBAMR
 
 NonbondedForceEvaluator::NonbondedForceEvaluator(Pointer<Database> input_db,
                                                  Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
+    : d_grid_geometry(grid_geometry)
 {
     // get interaction radius
     if (input_db->keyExists("interaction_radius"))
@@ -66,9 +67,6 @@ NonbondedForceEvaluator::NonbondedForceEvaluator(Pointer<Database> input_db,
     {
         TBOX_ERROR("Must specify regrid_alpha for NonbondedForceEvaluator.");
     }
-
-    // get grid geometry and grid bounds
-    d_grid_geometry = grid_geometry;
 
     // this will only work if the domain is a single box.
     assert(d_grid_geometry->getDomainIsSingleBox());

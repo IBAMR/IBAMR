@@ -77,42 +77,19 @@ static Timer* t_deallocate_solver_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovMobilitySolver::KrylovMobilitySolver(const std::string& object_name,
+KrylovMobilitySolver::KrylovMobilitySolver(std::string object_name,
                                            Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
                                            Pointer<CIBStrategy> cib_strategy,
                                            Pointer<Database> input_db,
-                                           const std::string& default_options_prefix,
+                                           std::string default_options_prefix,
                                            MPI_Comm petsc_comm)
+    : d_object_name(std::move(object_name)),
+      d_options_prefix(std::move(default_options_prefix)),
+      d_petsc_comm(petsc_comm),
+      d_samrai_temp(2, Pointer<SAMRAIVectorReal<NDIM, PetscScalar> >(nullptr)),
+      d_ins_integrator(navier_stokes_integrator),
+      d_cib_strategy(cib_strategy)
 {
-    // Set some default values.
-    d_object_name = object_name;
-    d_ksp_type = KSPGMRES;
-    d_pc_type = "none";
-    d_is_initialized = false;
-    d_reinitializing_solver = false;
-    d_petsc_x = nullptr;
-    d_petsc_b = nullptr;
-    d_options_prefix = default_options_prefix;
-    d_petsc_comm = petsc_comm;
-    d_petsc_ksp = nullptr;
-    d_petsc_mat = nullptr;
-    d_samrai_temp.resize(2, Pointer<SAMRAIVectorReal<NDIM, PetscScalar> >(nullptr));
-    d_ins_integrator = navier_stokes_integrator;
-    d_cib_strategy = cib_strategy;
-    d_LInv = nullptr;
-    d_normalize_pressure = false;
-    d_normalize_velocity = false;
-    d_current_time = std::numeric_limits<double>::signaling_NaN();
-    d_new_time = std::numeric_limits<double>::signaling_NaN();
-    d_scale_interp = 1.0;
-    d_scale_spread = 1.0;
-    d_reg_mob_factor = 0.0;
-    d_max_iterations = 10000;
-    d_abs_residual_tol = 1.0e-50;
-    d_rel_residual_tol = 1.0e-5;
-    d_initial_guess_nonzero = false;
-    d_enable_logging = false;
-
     // Get values from the input database.
     if (input_db) getFromInput(input_db);
 

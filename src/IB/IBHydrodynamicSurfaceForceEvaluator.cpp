@@ -83,17 +83,9 @@ IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
     : d_object_name(std::move(object_name)),
       d_ls_solid_var(ls_solid_var),
       d_adv_diff_solver(adv_diff_solver),
-      d_fluid_solver(fluid_solver),
-      d_ls_solid_idx(-1),
-      d_u_idx(-1),
-      d_p_idx(-1),
-      d_mu_idx(-1),
-      d_mu(std::numeric_limits<double>::quiet_NaN())
+      d_fluid_solver(fluid_solver)
 
 {
-    // Set some default values
-    d_surface_contour_value = 0.0;
-
     // Get from database
     if (!db.isNull()) getFromInput(db);
 

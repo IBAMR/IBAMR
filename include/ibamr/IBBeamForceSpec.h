@@ -212,7 +212,7 @@ private:
     /*!
      * Data required to compute the beam forces.
      */
-    int d_master_idx;
+    int d_master_idx = -1;
     std::vector<NeighborIdxs> d_neighbor_idxs;
     std::vector<double> d_bend_rigidities;
     std::vector<IBTK::Vector> d_mesh_dependent_curvatures;

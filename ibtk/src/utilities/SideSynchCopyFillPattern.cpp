@@ -61,7 +61,7 @@ static const std::string PATTERN_NAME = "SIDE_SYNCH_COPY_FILL_PATTERN";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-SideSynchCopyFillPattern::SideSynchCopyFillPattern() : d_stencil_width(1)
+SideSynchCopyFillPattern::SideSynchCopyFillPattern()
 {
     // intentionally blank
     return;

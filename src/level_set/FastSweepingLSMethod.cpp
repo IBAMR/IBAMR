@@ -87,12 +87,6 @@ namespace IBAMR
 FastSweepingLSMethod::FastSweepingLSMethod(std::string object_name, Pointer<Database> db, bool register_for_restart)
     : LSInitStrategy(std::move(object_name), register_for_restart)
 {
-    // Some default values.
-    d_ls_order = FIRST_ORDER_LS;
-    d_max_its = 100;
-    d_abs_tol = 1e-5;
-    d_enable_logging = false;
-    d_consider_phys_bdry_wall = false;
     for (int& wall_idx : d_wall_location_idx) wall_idx = 0;
 
     if (d_registered_for_restart) getFromRestart();

@@ -120,7 +120,7 @@ protected:
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     // Nullspace info
-    bool d_has_velocity_nullspace, d_has_pressure_nullspace;
+    bool d_has_velocity_nullspace = false, d_has_pressure_nullspace = false;
 
 private:
     /*!

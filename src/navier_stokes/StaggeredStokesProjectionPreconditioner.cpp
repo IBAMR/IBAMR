@@ -102,13 +102,7 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
     Pointer<Database> /*input_db*/,
     const std::string& /*default_options_prefix*/)
     : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true,
-                                         /*needs_pressure_solver*/ true),
-      d_Phi_bdry_fill_op(nullptr),
-      d_no_fill_op(nullptr),
-      d_Phi_var(nullptr),
-      d_F_Phi_var(nullptr),
-      d_Phi_scratch_idx(-1),
-      d_F_Phi_idx(-1)
+                                         /*needs_pressure_solver*/ true)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
 

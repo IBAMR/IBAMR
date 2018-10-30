@@ -101,7 +101,7 @@ public:
      * \param mu Fluid Viscosity.
      * \param current_time Current integration time.
      */
-    IBHydrodynamicForceEvaluator(const std::string& object_name,
+    IBHydrodynamicForceEvaluator(std::string object_name,
                                  double rho,
                                  double mu,
                                  double current_time,

@@ -968,47 +968,10 @@ static Timer* t_deallocate_integrator;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMassMomentumIntegrator(
-    const std::string& object_name,
+    std::string object_name,
     Pointer<Database> input_db)
+    : d_object_name(std::move(object_name)), d_u_sc_bc_coefs(NDIM), d_rho_sc_bc_coefs(NDIM)
 {
-    // Set some default values
-    d_object_name = object_name;
-    d_velocity_bdry_extrap_type = "CONSTANT";
-    d_density_bdry_extrap_type = "CONSTANT";
-    d_hierarchy = nullptr;
-    d_coarsest_ln = -1;
-    d_finest_ln = -1;
-    d_num_steps = 1;
-    d_u_sc_bc_coefs.resize(NDIM);
-    d_rho_sc_bc_coefs.resize(NDIM);
-    d_V_var = nullptr;
-    d_V_scratch_idx = -1;
-    d_V_old_idx = -1;
-    d_V_current_idx = -1;
-    d_V_new_idx = -1;
-    d_N_idx = -1;
-    d_rho_sc_var = nullptr;
-    d_rho_sc_current_idx = -1;
-    d_rho_sc_scratch_idx = -1;
-    d_rho_sc_new_idx = -1;
-    d_velocity_convective_limiter = UPWIND;
-    d_density_convective_limiter = UPWIND;
-    d_velocity_limiter_gcw = 1;
-    d_density_limiter_gcw = 1;
-    d_density_time_stepping_type = FORWARD_EULER;
-    d_S_var = nullptr;
-    d_S_scratch_idx = -1;
-    d_S_fcn = nullptr;
-    d_is_initialized = false;
-    d_enable_logging = false;
-    d_cycle_num = -1;
-    d_dt_prev = -1.0;
-    d_solution_time = std::numeric_limits<double>::quiet_NaN();
-    d_current_time = std::numeric_limits<double>::quiet_NaN();
-    d_new_time = std::numeric_limits<double>::quiet_NaN();
-    d_hier_math_ops = nullptr;
-    d_hier_math_ops_external = false;
-
     if (input_db)
     {
         if (input_db->keyExists("bdry_extrap_type"))

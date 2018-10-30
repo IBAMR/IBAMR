@@ -55,7 +55,7 @@ IBSpringForceSpec::getIsRegisteredWithStreamableManager()
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline IBSpringForceSpec::IBSpringForceSpec(const unsigned int num_springs)
-    : d_master_idx(-1), d_slave_idxs(num_springs), d_force_fcn_idxs(num_springs), d_parameters(num_springs)
+    : d_slave_idxs(num_springs), d_force_fcn_idxs(num_springs), d_parameters(num_springs)
 {
 #if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())

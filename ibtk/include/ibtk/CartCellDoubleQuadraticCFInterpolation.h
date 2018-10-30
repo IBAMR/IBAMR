@@ -39,6 +39,7 @@
 #include <vector>
 
 #include "Box.h"
+#include "CartesianCellDoubleLinearRefine.h"
 #include "ComponentSelector.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
@@ -262,12 +263,13 @@ private:
      * Boolean value indicating whether we are enforcing a consistent
      * interpolation scheme at "Type 2" coarse-fine interface ghost cells.
      */
-    bool d_consistent_type_2_bdry;
+    bool d_consistent_type_2_bdry = false;
 
     /*!
      * Refine operator employed to fill coarse grid ghost cell values.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op =
+        new SAMRAI::geom::CartesianCellDoubleLinearRefine<NDIM>();
 
     /*!
      * Cached hierarchy-related information.

@@ -49,7 +49,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ParallelSet::ParallelSet() : d_set(), d_pending_additions(), d_pending_removals()
+ParallelSet::ParallelSet()
 {
     // intentionally blank
     return;

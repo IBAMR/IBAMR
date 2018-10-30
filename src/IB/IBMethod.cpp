@@ -141,35 +141,18 @@ static const int IB_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBMethod::IBMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart)
+IBMethod::IBMethod(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
+    : d_ghosts(std::max(LEInteractor::getMinimumGhostWidth(d_interp_kernel_fcn),
+                        LEInteractor::getMinimumGhostWidth(d_spread_kernel_fcn))),
+      d_object_name(std::move(object_name))
 {
     // Set the object name and register it with the restart manager.
-    d_object_name = object_name;
     d_registered_for_restart = false;
     if (register_for_restart)
     {
         RestartManager::getManager()->registerRestartItem(d_object_name, this);
         d_registered_for_restart = true;
     }
-
-    // Ensure all pointers to helper objects are NULL.
-    d_l_initializer = nullptr;
-    d_ib_force_fcn = nullptr;
-    d_ib_force_fcn_needs_init = true;
-    d_ib_source_fcn = nullptr;
-    d_ib_source_fcn_needs_init = true;
-    d_normalize_source_strength = false;
-    d_post_processor = nullptr;
-    d_silo_writer = nullptr;
-
-    // Set some default values.
-    d_interp_kernel_fcn = "IB_4";
-    d_spread_kernel_fcn = "IB_4";
-    d_error_if_points_leave_domain = false;
-    d_ghosts = std::max(LEInteractor::getMinimumGhostWidth(d_interp_kernel_fcn),
-                        LEInteractor::getMinimumGhostWidth(d_spread_kernel_fcn));
-    d_force_jac_mffd = false;
-    d_do_log = false;
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -200,25 +183,6 @@ IBMethod::IBMethod(const std::string& object_name, Pointer<Database> input_db, b
         new IBInstrumentPanel(d_object_name + "::IBInstrumentPanel",
                               (input_db->isDatabase("IBInstrumentPanel") ? input_db->getDatabase("IBInstrumentPanel") :
                                                                            Pointer<Database>(nullptr)));
-
-    // Reset the current time step interval.
-    d_current_time = std::numeric_limits<double>::quiet_NaN();
-    d_new_time = std::numeric_limits<double>::quiet_NaN();
-    d_half_time = std::numeric_limits<double>::quiet_NaN();
-
-    // Indicate all Lagrangian data needs ghost values to be refilled, and that
-    // all intermediate data needs to be initialized.
-    d_X_current_needs_ghost_fill = true;
-    d_X_new_needs_ghost_fill = true;
-    d_X_half_needs_ghost_fill = true;
-    d_X_LE_new_needs_ghost_fill = true;
-    d_X_LE_half_needs_ghost_fill = true;
-    d_F_current_needs_ghost_fill = true;
-    d_F_new_needs_ghost_fill = true;
-    d_F_half_needs_ghost_fill = true;
-
-    // Indicate that the Jacobian matrix has not been allocated.
-    d_force_jac = nullptr;
     return;
 } // IBMethod
 

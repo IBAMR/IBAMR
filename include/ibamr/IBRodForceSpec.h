@@ -190,7 +190,7 @@ private:
     /*!
      * Data required to define the spring forces.
      */
-    int d_master_idx;
+    int d_master_idx = -1;
     std::vector<int> d_next_idxs;
     std::vector<std::array<double, NUM_MATERIAL_PARAMS> > d_material_params;
 

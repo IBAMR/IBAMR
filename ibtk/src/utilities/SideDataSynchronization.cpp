@@ -76,14 +76,6 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SideDataSynchronization::SideDataSynchronization()
-    : d_is_initialized(false),
-      d_transaction_comps(),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_coarsen_alg(nullptr),
-      d_coarsen_scheds(),
-      d_refine_alg(nullptr),
-      d_refine_scheds()
 {
     // intentionally blank
     return;

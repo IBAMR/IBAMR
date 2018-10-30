@@ -290,22 +290,22 @@ private:
      * Whether we re-discretize the Stokes operator on coarser level or are
      * using Galerkin projection.
      */
-    bool d_rediscretize_stokes;
+    bool d_rediscretize_stokes = true;
     bool d_res_rediscretized_stokes;
 
     /*
      * Level solvers and solver parameters.
      */
-    std::string d_level_solver_type, d_level_solver_default_options_prefix;
-    double d_level_solver_abs_residual_tol, d_level_solver_rel_residual_tol;
-    int d_level_solver_max_iterations;
+    std::string d_level_solver_type = "PETSC_LEVEL_SOLVER", d_level_solver_default_options_prefix;
+    double d_level_solver_abs_residual_tol = 1.0e-50, d_level_solver_rel_residual_tol = 1.0e-5;
+    int d_level_solver_max_iterations = 10;
     std::vector<SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPETScLevelSolver> > d_level_solvers;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
 
     /*
      * Velocity and pressure prolongation type.
      */
-    std::string d_u_petsc_prolongation_method, d_p_petsc_prolongation_method;
+    std::string d_u_petsc_prolongation_method = "RT0", d_p_petsc_prolongation_method = "CONSERVATIVE";
 
     /*
      * Application ordering of u and p from MAC DOFs on various patch levels.
@@ -339,7 +339,7 @@ private:
      * Data structures for elasticity and prolongation operator representation
      * on various patch levels.
      */
-    double d_SAJ_fill, d_RStokesIBP_fill;
+    double d_SAJ_fill = 1.0, d_RStokesIBP_fill = 1.0;
     std::vector<Mat> d_SAJ_mat, d_SAJ_prolongation_mat, d_stokesib_prolongation_mat, d_galerkin_stokesib_mat;
     std::vector<Vec> d_scale_SAJ_restriction_mat, d_scale_stokesib_restriction_mat;
 

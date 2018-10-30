@@ -129,9 +129,6 @@ IBStandardForceGen::IBStandardForceGen(Pointer<Database> input_db)
     // Setup the default force generation functions.
     registerSpringForceFunction(0, &default_spring_force, &default_spring_force_deriv);
 
-    // Set some default values.
-    d_log_target_point_displacements = false;
-
     // Set up force generator from input.
     if (input_db)
     {

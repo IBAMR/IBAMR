@@ -269,7 +269,7 @@ private:
      * PETSc vector object corresponding to this PETScAbstractVectorReal object.
      */
     Vec d_petsc_vector;
-    bool d_vector_created_via_duplicate, d_vector_checked_out_read_write, d_vector_checked_out_read;
+    bool d_vector_created_via_duplicate, d_vector_checked_out_read_write = false, d_vector_checked_out_read = false;
 };
 } // namespace IBTK
 

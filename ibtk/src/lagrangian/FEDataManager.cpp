@@ -2310,21 +2310,11 @@ FEDataManager::FEDataManager(std::string object_name,
                              FEDataManager::SpreadSpec default_spread_spec,
                              IntVector<NDIM> ghost_width,
                              bool register_for_restart)
-    : COORDINATES_SYSTEM_NAME("coordinates system"),
-      d_object_name(std::move(object_name)),
+    : d_object_name(std::move(object_name)),
       d_registered_for_restart(register_for_restart),
-      d_load_balancer(nullptr),
-      d_hierarchy(nullptr),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_default_interp_spec(std::move(default_interp_spec)),
-      d_default_spread_spec(std::move(default_spread_spec)),
-      d_ghost_width(std::move(ghost_width)),
-      d_es(nullptr),
-      d_level_number(-1),
-      d_L2_proj_solver(),
-      d_L2_proj_matrix(),
-      d_L2_proj_matrix_diag()
+      d_default_interp_spec(default_interp_spec),
+      d_default_spread_spec(default_spread_spec),
+      d_ghost_width(std::move(ghost_width))
 {
     TBOX_ASSERT(!d_object_name.empty());
 

@@ -60,17 +60,6 @@ CIBStaggeredStokesSolver::CIBStaggeredStokesSolver(const std::string& object_nam
 {
     GeneralSolver::init(object_name, /*homogeneous bcs*/ false);
 
-    d_sp_solver = nullptr;
-    d_wide_u_var = nullptr;
-    d_wide_f_var = nullptr;
-    d_wide_ctx = nullptr;
-    d_wide_u_idx = -1;
-    d_wide_f_idx = -1;
-    d_x_wide = nullptr;
-    d_b_wide = nullptr;
-    d_is_initialized = false;
-    d_reinitializing_solver = false;
-
     // Create the saddle-point solver for solving constraint problem.
     d_sp_solver = new CIBSaddlePointSolver(
         object_name, input_db, navier_stokes_integrator, d_cib_strategy, default_options_prefix);

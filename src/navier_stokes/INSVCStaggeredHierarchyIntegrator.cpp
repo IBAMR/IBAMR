@@ -317,27 +317,19 @@ allocate_vc_velocity_krylov_solver(const std::string& solver_object_name,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(const std::string& object_name,
+INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string object_name,
                                                                      Pointer<Database> input_db,
                                                                      bool register_for_restart)
-    : INSHierarchyIntegrator(object_name,
+    : INSHierarchyIntegrator(std::move(object_name),
                              input_db,
                              new SideVariable<NDIM, double>(object_name + "::U"),
                              new CellVariable<NDIM, double>(object_name + "::P"),
                              new SideVariable<NDIM, double>(object_name + "::F"),
                              new CellVariable<NDIM, double>(object_name + "::Q"),
                              register_for_restart),
-      d_rho_init_fcn(nullptr),
-      d_mu_init_fcn(nullptr),
-      d_mu_bc_coef(nullptr),
-      d_mu_adv_diff_var(nullptr)
+      d_rho_vc_interp_type(VC_HARMONIC_INTERP),
+      d_mu_vc_interp_type(VC_HARMONIC_INTERP)
 {
-    // Set some default values
-    d_rho_scale = 1.0;
-    d_mu_scale = 1.0;
-    d_output_rho = false;
-    d_output_mu = false;
-
     // Get plotting options from database
     if (input_db->keyExists("rho_scale")) d_rho_scale = input_db->getDouble("rho_scale");
     if (input_db->keyExists("mu_scale")) d_mu_scale = input_db->getDouble("mu_scale");
@@ -357,8 +349,6 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(const std::
                                                                         VCSCViscousPETScLevelSolver::allocate_solver);
 
     // Check to see whether the solver types have been set.
-    d_stokes_solver_type = StaggeredStokesSolverManager::UNDEFINED;
-    d_stokes_precond_type = StaggeredStokesSolverManager::UNDEFINED;
     if (input_db->keyExists("stokes_solver_type")) d_stokes_solver_type = input_db->getString("stokes_solver_type");
     if (input_db->keyExists("stokes_precond_type")) d_stokes_precond_type = input_db->getString("stokes_precond_type");
 
@@ -384,9 +374,7 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(const std::
         d_regrid_projection_precond_type = input_db->getString("regrid_projection_precond_type");
 
     // Check if density and/or viscosity is constant
-    d_rho_is_const = false;
     if (input_db->keyExists("rho_is_const")) d_rho_is_const = input_db->getBool("rho_is_const");
-    d_mu_is_const = false;
     if (input_db->keyExists("mu_is_const")) d_mu_is_const = input_db->getBool("mu_is_const");
     if (d_rho_is_const && d_mu_is_const)
     {
@@ -398,8 +386,6 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(const std::
     }
 
     // Get the interpolation type for the material properties
-    d_rho_vc_interp_type = VC_HARMONIC_INTERP;
-    d_mu_vc_interp_type = VC_HARMONIC_INTERP;
     if (input_db->keyExists("vc_interpolation_type"))
     {
         d_rho_vc_interp_type = IBTK::string_to_enum<VCInterpType>(input_db->getString("vc_interpolation_type"));
@@ -463,7 +449,6 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(const std::
     }
 
     // By default, reinitialize the preconditioner every time step
-    d_precond_reinit_interval = 1;
     if (input_db->keyExists("precond_reinit_interval"))
         d_precond_reinit_interval = input_db->getInteger("precond_reinit_interval");
     if (d_precond_reinit_interval <= 0)
@@ -503,7 +488,6 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(const std::
     if (!d_stokes_precond_db) d_stokes_precond_db = new MemoryDatabase("stokes_precond_db");
 
     // Flag to determine whether we explicitly remove any null space components.
-    d_explicitly_remove_nullspace = false;
     if (input_db->keyExists("explicitly_remove_nullspace"))
         d_explicitly_remove_nullspace = input_db->getBool("explicitly_remove_nullspace");
 

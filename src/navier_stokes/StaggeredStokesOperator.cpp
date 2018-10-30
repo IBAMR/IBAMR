@@ -103,15 +103,7 @@ StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name,
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef)),
       d_default_P_bc_coef(
           new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_P_bc_coef", Pointer<Database>(nullptr))),
-      d_P_bc_coef(d_default_P_bc_coef),
-      d_bc_helper(Pointer<StaggeredStokesPhysicalBoundaryHelper>(nullptr)),
-      d_U_fill_pattern(nullptr),
-      d_P_fill_pattern(nullptr),
-      d_transaction_comps(),
-      d_hier_bdry_fill(Pointer<HierarchyGhostCellInterpolation>(nullptr)),
-      d_no_fill(Pointer<HierarchyGhostCellInterpolation>(nullptr)),
-      d_x(nullptr),
-      d_b(nullptr)
+      d_P_bc_coef(d_default_P_bc_coef)
 {
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions for the velocity and homogeneous Neumann

@@ -149,7 +149,7 @@ private:
      */
     NodeSynchCopyFillPattern& operator=(const NodeSynchCopyFillPattern& that) = delete;
 
-    SAMRAI::hier::IntVector<NDIM> d_stencil_width;
+    SAMRAI::hier::IntVector<NDIM> d_stencil_width = 1;
     const unsigned int d_axis;
 };
 } // namespace IBTK

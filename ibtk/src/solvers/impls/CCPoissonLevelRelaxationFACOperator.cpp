@@ -142,25 +142,14 @@ CCPoissonLevelRelaxationFACOperator::CCPoissonLevelRelaxationFACOperator(const s
           CELLG,
           input_db,
           default_options_prefix),
-      d_level_solver_type(),
-      d_level_solvers(),
-      d_level_solver_db(),
-      d_coarse_solver(nullptr),
-      d_coarse_solver_db()
+      d_level_solver_default_options_prefix(default_options_prefix + "level_")
 {
     // Set some default values.
     d_prolongation_method = "LINEAR_REFINE";
     d_restriction_method = "CONSERVATIVE_COARSEN";
-    d_level_solver_type = CCPoissonSolverManager::PETSC_LEVEL_SOLVER;
-    d_level_solver_default_options_prefix = default_options_prefix + "level_";
-    d_level_solver_rel_residual_tol = 1.0e-5;
-    d_level_solver_abs_residual_tol = 1.0e-50;
-    d_level_solver_max_iterations = 1;
     d_level_solver_db = new MemoryDatabase(object_name + "::level_solver_db");
     d_coarse_solver_type = CCPoissonSolverManager::PETSC_LEVEL_SOLVER;
     d_coarse_solver_default_options_prefix = default_options_prefix + "level_0_";
-    d_coarse_solver_rel_residual_tol = 1.0e-5;
-    d_coarse_solver_abs_residual_tol = 1.0e-50;
     d_coarse_solver_max_iterations = 1;
     d_coarse_solver_db = new MemoryDatabase(object_name + "::coarse_solver_db");
 

@@ -120,13 +120,13 @@ protected:
     /*!
      * Patch data indices.
      */
-    int d_u_target_data_idx, d_p_target_data_idx;
+    int d_u_target_data_idx = -1, d_p_target_data_idx = -1;
 
     /*
      * The type of traction boundary conditions.  Supported options are:
      * TRACTION_BOUNDARY_CONDITIONS and PSEUDO_TRACTION_BOUNDARY_CONDITIONS.
      */
-    TractionBcType d_traction_bc_type;
+    TractionBcType d_traction_bc_type = TRACTION;
 
 private:
     /*!

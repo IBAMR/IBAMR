@@ -181,9 +181,9 @@ protected:
 
     // Hierarchy data.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = -1, d_finest_ln = -1;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > d_velocity_data_ops, d_pressure_data_ops;
-    int d_velocity_wgt_idx, d_pressure_wgt_idx;
+    int d_velocity_wgt_idx = -1, d_pressure_wgt_idx = -1;
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 
 private:

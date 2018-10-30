@@ -51,7 +51,6 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LinearSolver::LinearSolver()
-    : d_initial_guess_nonzero(true), d_nullspace_contains_constant_vec(false), d_nullspace_basis_vecs()
 {
     d_max_iterations = 10000;
     d_rel_residual_tol = 1.0e-5;

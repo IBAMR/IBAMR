@@ -137,14 +137,14 @@ protected:
     bool d_registered_for_restart;
 
     // Level set order.
-    LevelSetOrder d_ls_order;
+    LevelSetOrder d_ls_order = FIRST_ORDER_LS;
 
     // Algorithm parameters.
-    double d_abs_tol;
-    int d_max_its;
-    bool d_enable_logging;
-    bool d_reinitialize_ls;
-    int d_reinit_interval;
+    double d_abs_tol = 1.0e-5;
+    int d_max_its = 100;
+    bool d_enable_logging = false;
+    bool d_reinitialize_ls = false;
+    int d_reinit_interval = 0;
 
     // Boundary condition object for level set.
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_bc_coef;

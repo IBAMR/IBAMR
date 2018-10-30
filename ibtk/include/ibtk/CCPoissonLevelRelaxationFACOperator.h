@@ -41,6 +41,7 @@
 
 #include "IntVector.h"
 #include "PoissonSpecifications.h"
+#include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/PoissonFACPreconditioner.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "petscksp.h"
@@ -259,9 +260,9 @@ private:
     /*
      * Level solvers and solver parameters.
      */
-    std::string d_level_solver_type, d_level_solver_default_options_prefix;
-    double d_level_solver_abs_residual_tol, d_level_solver_rel_residual_tol;
-    int d_level_solver_max_iterations;
+    std::string d_level_solver_type = CCPoissonSolverManager::PETSC_LEVEL_SOLVER, d_level_solver_default_options_prefix;
+    double d_level_solver_abs_residual_tol = 1.0e-50, d_level_solver_rel_residual_tol = 1.0e-5;
+    int d_level_solver_max_iterations = 1;
     std::vector<SAMRAI::tbox::Pointer<PoissonSolver> > d_level_solvers;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
 

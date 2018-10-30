@@ -368,8 +368,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_p_dof_index_var;
 
     // Solvers and associated vectors.
-    bool d_solve_for_position;
-    std::string d_jac_delta_fcn;
+    bool d_solve_for_position = false;
+    std::string d_jac_delta_fcn = "IB_4";
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
     KSP d_schur_solver;

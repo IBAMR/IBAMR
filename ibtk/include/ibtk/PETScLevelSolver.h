@@ -295,7 +295,7 @@ protected:
     /*!
      * \brief Associated patch level and C-F boundary (for level numbers > 0).
      */
-    int d_level_num;
+    int d_level_num = -1;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_level;
     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 
@@ -303,12 +303,12 @@ protected:
      * \name PETSc objects.
      */
     //\{
-    std::string d_ksp_type, d_pc_type, d_shell_pc_type;
+    std::string d_ksp_type = KSPGMRES, d_pc_type = PCILU, d_shell_pc_type;
     std::string d_options_prefix;
-    KSP d_petsc_ksp;
-    Mat d_petsc_mat, d_petsc_pc;
+    KSP d_petsc_ksp = nullptr;
+    Mat d_petsc_mat = nullptr, d_petsc_pc = nullptr;
     MatNullSpace d_petsc_nullsp;
-    Vec d_petsc_x, d_petsc_b;
+    Vec d_petsc_x = nullptr, d_petsc_b = nullptr;
     //\}
 
     /*!

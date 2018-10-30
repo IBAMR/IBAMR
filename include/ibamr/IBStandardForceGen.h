@@ -284,7 +284,7 @@ private:
     /*!
      * \brief Logging settings.
      */
-    bool d_log_target_point_displacements;
+    bool d_log_target_point_displacements = false;
 };
 } // namespace IBAMR
 

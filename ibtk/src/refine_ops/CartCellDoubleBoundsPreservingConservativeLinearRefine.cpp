@@ -74,7 +74,6 @@ const std::string CartCellDoubleBoundsPreservingConservativeLinearRefine::s_op_n
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartCellDoubleBoundsPreservingConservativeLinearRefine::CartCellDoubleBoundsPreservingConservativeLinearRefine()
-    : d_conservative_linear_refine_op(), d_constant_refine_op()
 {
     // intentionally blank
     return;

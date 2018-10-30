@@ -178,7 +178,7 @@ private:
     RelaxationLSBcCoefs& operator=(const RelaxationLSBcCoefs& that) = delete;
 
     const std::string d_object_name;
-    int d_phi_idx;
+    int d_phi_idx = -1;
 };
 } // namespace IBAMR
 

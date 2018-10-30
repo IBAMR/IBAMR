@@ -494,7 +494,7 @@ protected:
     /*
      * Indicates whether the integrator should output logging messages.
      */
-    bool d_do_log;
+    bool d_do_log = false;
 
     /*
      * Pointers to the patch hierarchy and gridding algorithm objects associated
@@ -502,12 +502,14 @@ protected:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
-    bool d_is_initialized;
+    bool d_is_initialized = false;
 
     /*
      * The current time step interval.
      */
-    double d_current_time, d_new_time, d_half_time;
+    double d_current_time = std::numeric_limits<double>::quiet_NaN(),
+           d_new_time = std::numeric_limits<double>::quiet_NaN(),
+           d_half_time = std::numeric_limits<double>::quiet_NaN();
 
     /*
      * FE data associated with this object.
@@ -516,9 +518,9 @@ protected:
     int d_max_level_number;
     std::vector<libMesh::EquationSystems*> d_equation_systems;
 
-    const unsigned int d_num_parts;
+    const unsigned int d_num_parts = 1;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
-    SAMRAI::hier::IntVector<NDIM> d_ghosts;
+    SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
     std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_DP_systems;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs, d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
@@ -527,7 +529,7 @@ protected:
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_DP_half_vecs, d_DP_IB_ghost_vecs;
 
-    bool d_fe_equation_systems_initialized, d_fe_data_initialized;
+    bool d_fe_equation_systems_initialized = false, d_fe_data_initialized = false;
 
     /*
      * Method paramters.
@@ -536,15 +538,15 @@ protected:
     IBTK::FEDataManager::SpreadSpec d_default_spread_spec;
     std::vector<IBTK::FEDataManager::InterpSpec> d_interp_spec;
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
-    bool d_use_jump_conditions;
-    bool d_perturb_fe_mesh_nodes;
-    bool d_normalize_pressure_jump;
+    bool d_use_jump_conditions = false;
+    bool d_perturb_fe_mesh_nodes = true;
+    bool d_normalize_pressure_jump = false;
     std::vector<libMesh::FEFamily> d_fe_family;
     std::vector<libMesh::Order> d_fe_order;
     std::vector<libMesh::QuadratureType> d_default_quad_type;
     std::vector<libMesh::Order> d_default_quad_order;
-    bool d_use_consistent_mass_matrix;
-    bool d_use_direct_forcing;
+    bool d_use_consistent_mass_matrix = true;
+    bool d_use_direct_forcing = false;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.

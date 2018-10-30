@@ -61,7 +61,7 @@ static const std::string PATTERN_NAME = "FACE_SYNCH_COPY_FILL_PATTERN";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FaceSynchCopyFillPattern::FaceSynchCopyFillPattern() : d_stencil_width(1)
+FaceSynchCopyFillPattern::FaceSynchCopyFillPattern()
 {
     // intentionally blank
     return;

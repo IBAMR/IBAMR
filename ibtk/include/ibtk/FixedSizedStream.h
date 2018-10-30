@@ -338,12 +338,12 @@ private:
      * The current size of the buffer, i.e., the number of bytes in the buffer
      * which are currently in use.
      */
-    int d_current_size;
+    int d_current_size = 0;
 
     /*
      * The index of the first free element in the buffer.
      */
-    int d_buffer_index;
+    int d_buffer_index = 0;
 
     /*
      * The buffer.

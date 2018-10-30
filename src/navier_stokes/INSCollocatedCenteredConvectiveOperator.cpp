@@ -301,19 +301,7 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& /*bc_coefs*/)
-    : ConvectiveOperator(std::move(object_name), difference_form),
-      d_ghostfill_alg(nullptr),
-      d_ghostfill_scheds(),
-      d_bdry_extrap_type("CONSTANT"),
-      d_hierarchy(nullptr),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_U_var(nullptr),
-      d_U_scratch_idx(-1),
-      d_u_extrap_var(nullptr),
-      d_u_flux_var(nullptr),
-      d_u_extrap_idx(-1),
-      d_u_flux_idx(-1)
+    : ConvectiveOperator(std::move(object_name), difference_form)
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {

@@ -193,7 +193,7 @@ private:
     const bool d_include_dst_patch_box;
     const bool d_include_edges_on_dst_level;
     const bool d_include_edges_on_src_level;
-    int d_target_level_num;
+    int d_target_level_num = -1;
 };
 } // namespace IBTK
 

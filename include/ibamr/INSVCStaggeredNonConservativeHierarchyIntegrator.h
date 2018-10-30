@@ -83,7 +83,7 @@ public:
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    INSVCStaggeredNonConservativeHierarchyIntegrator(const std::string& object_name,
+    INSVCStaggeredNonConservativeHierarchyIntegrator(std::string object_name,
                                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                                      bool register_for_restart = true);
 
@@ -293,7 +293,7 @@ private:
      * Boundary condition objects for density, which is provided by an appropriate advection-diffusion
      * integrator, or set by the fluid integrator.
      */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_bc_coef = nullptr;
 
     /*
      * Variable to keep track of a transported density variable maintained by an advection-diffusion integrator
