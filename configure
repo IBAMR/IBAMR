@@ -23434,6 +23434,32 @@ _ACEOF
 
 
 ###########################################################################
+# Version information (requires sed).
+###########################################################################
+ibamr_version_major=$($SED "s/^\([0-9]\+\)\..*/\1/" "$srcdir/VERSION")
+ibamr_version_minor=$($SED "s/^[^.]\+\.\([0-9]\+\)\.[0-9]\+.*/\1/" "$srcdir/VERSION")
+ibamr_version_subminor=$($SED "s/^[^.]\+\.[^.]\+\.\([0-9]\+\).*/\1/" "$srcdir/VERSION")
+
+cat >>confdefs.h <<_ACEOF
+#define VERSION_MAJOR $ibamr_version_major
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define VERSION_MINOR $ibamr_version_minor
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define VERSION_SUBMINOR $ibamr_version_subminor
+_ACEOF
+
+
+
+
+
+
+###########################################################################
 # Checks for optional and required third-party libraries.
 ###########################################################################
 
