@@ -325,21 +325,30 @@ IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Dat
     // make plot directory
     Utilities::recursiveMkdir(d_plot_directory_name);
 
-    // set up file streams
+    // set up file names and streams
+    std::ostringstream press_output;
+    std::ostringstream flux_output;
+    press_output << d_plot_directory_name << "/"
+            << ""
+            << "mean_pressure.dat";
+    flux_output << d_plot_directory_name << "/"
+            << ""
+            << "flux.dat";
     if (SAMRAI_MPI::getRank() == 0)
     {
-        std::ostringstream press_output;
-        std::ostringstream flux_output;
-        press_output << d_plot_directory_name << "/"
-                     << ""
-                     << "mean_pressure.dat";
-        d_mean_pressure_stream.open(press_output.str().c_str());
-        flux_output << d_plot_directory_name << "/"
-                    << ""
-                    << "flux.dat";
-        d_flux_stream.open(flux_output.str().c_str());
-        d_mean_pressure_stream.precision(15);
-        d_flux_stream.precision(15);
+        const bool from_restart = RestartManager::getManager()->isFromRestart();
+        if (from_restart)
+        {
+            d_mean_pressure_stream.open(press_output.str().c_str(), std::ios::app);
+            d_flux_stream.open(flux_output.str().c_str(), std::ios::app);
+        }
+        else
+        {
+            d_mean_pressure_stream.open(press_output.str().c_str(), std::ios::out);
+            d_flux_stream.open(flux_output.str().c_str(), std::ios::out);
+            d_mean_pressure_stream.precision(15);
+            d_flux_stream.precision(15);
+        }
     }
 }
 
