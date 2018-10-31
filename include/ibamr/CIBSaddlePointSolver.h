@@ -281,7 +281,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CIBSaddlePointSolver(const CIBSaddlePointSolver& from);
+    CIBSaddlePointSolver(const CIBSaddlePointSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -292,7 +292,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CIBSaddlePointSolver& operator=(const CIBSaddlePointSolver& that);
+    CIBSaddlePointSolver& operator=(const CIBSaddlePointSolver& that) = delete;
 
     /*!
      * \brief Report the KSPConvergedReason.

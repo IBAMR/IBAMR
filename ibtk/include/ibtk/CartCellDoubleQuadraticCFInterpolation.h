@@ -219,7 +219,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartCellDoubleQuadraticCFInterpolation(const CartCellDoubleQuadraticCFInterpolation& from);
+    CartCellDoubleQuadraticCFInterpolation(const CartCellDoubleQuadraticCFInterpolation& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -230,7 +230,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartCellDoubleQuadraticCFInterpolation& operator=(const CartCellDoubleQuadraticCFInterpolation& that);
+    CartCellDoubleQuadraticCFInterpolation& operator=(const CartCellDoubleQuadraticCFInterpolation& that) = delete;
 
     /*!
      * \brief Implementations of postprocessRefine().

@@ -187,7 +187,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    EdgeDataSynchronization(const EdgeDataSynchronization& from);
+    EdgeDataSynchronization(const EdgeDataSynchronization& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -198,7 +198,7 @@ private:
      *
      * \return A reference to this object.
      */
-    EdgeDataSynchronization& operator=(const EdgeDataSynchronization& that);
+    EdgeDataSynchronization& operator=(const EdgeDataSynchronization& that) = delete;
 
     // Boolean indicating whether the operator is initialized.
     bool d_is_initialized;

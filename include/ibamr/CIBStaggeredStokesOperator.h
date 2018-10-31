@@ -151,7 +151,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CIBStaggeredStokesOperator(const CIBStaggeredStokesOperator& from);
+    CIBStaggeredStokesOperator(const CIBStaggeredStokesOperator& from)= delete;
 
     /*!
      * \brief Assignment operator.
@@ -162,7 +162,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CIBStaggeredStokesOperator& operator=(const CIBStaggeredStokesOperator& that);
+    CIBStaggeredStokesOperator& operator=(const CIBStaggeredStokesOperator& that) = delete;
 };
 
 } // namespace IBAMR

@@ -239,7 +239,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    BJacobiPreconditioner();
+    BJacobiPreconditioner() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -248,7 +248,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    BJacobiPreconditioner(const BJacobiPreconditioner& from);
+    BJacobiPreconditioner(const BJacobiPreconditioner& from) = delete;
 
     /*!
      * ]brief Assignment operator.
@@ -259,7 +259,7 @@ private:
      *
      * \return A reference to this object.
      */
-    BJacobiPreconditioner& operator=(const BJacobiPreconditioner& that);
+    BJacobiPreconditioner& operator=(const BJacobiPreconditioner& that) = delete;
 
     /*!
      * The component preconditioners.

@@ -361,7 +361,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvDiffSemiImplicitHierarchyIntegrator();
+    AdvDiffSemiImplicitHierarchyIntegrator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -370,7 +370,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffSemiImplicitHierarchyIntegrator(const AdvDiffSemiImplicitHierarchyIntegrator& from);
+    AdvDiffSemiImplicitHierarchyIntegrator(const AdvDiffSemiImplicitHierarchyIntegrator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -381,7 +381,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffSemiImplicitHierarchyIntegrator& operator=(const AdvDiffSemiImplicitHierarchyIntegrator& that);
+    AdvDiffSemiImplicitHierarchyIntegrator& operator=(const AdvDiffSemiImplicitHierarchyIntegrator& that) = delete;
 
     /*!
      * Read input values from a given database.

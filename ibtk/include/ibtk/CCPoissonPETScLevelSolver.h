@@ -175,7 +175,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CCPoissonPETScLevelSolver();
+    CCPoissonPETScLevelSolver() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -184,7 +184,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CCPoissonPETScLevelSolver(const CCPoissonPETScLevelSolver& from);
+    CCPoissonPETScLevelSolver(const CCPoissonPETScLevelSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -195,7 +195,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CCPoissonPETScLevelSolver& operator=(const CCPoissonPETScLevelSolver& that);
+    CCPoissonPETScLevelSolver& operator=(const CCPoissonPETScLevelSolver& that) = delete;
 
     /*!
      * \name PETSc objects.

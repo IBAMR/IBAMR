@@ -224,7 +224,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LTransaction();
+    LTransaction() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -233,7 +233,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LTransaction(const LTransaction& from);
+    LTransaction(const LTransaction& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -244,7 +244,7 @@ private:
      *
      * \return A reference to this object.
      */
-    void operator=(const LTransaction& that);
+    void operator=(const LTransaction& that) = delete;
 
     std::vector<LTransactionComponent> d_src_item_set;
     int d_src_proc;

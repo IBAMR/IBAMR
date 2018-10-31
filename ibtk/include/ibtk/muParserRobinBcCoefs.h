@@ -158,7 +158,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    muParserRobinBcCoefs();
+    muParserRobinBcCoefs() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -167,7 +167,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    muParserRobinBcCoefs(const muParserRobinBcCoefs& from);
+    muParserRobinBcCoefs(const muParserRobinBcCoefs& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -178,7 +178,7 @@ private:
      *
      * \return A reference to this object.
      */
-    muParserRobinBcCoefs& operator=(const muParserRobinBcCoefs& that);
+    muParserRobinBcCoefs& operator=(const muParserRobinBcCoefs& that) = delete;
 
     /*!
      * Current time value used by the mu::Parser instances.

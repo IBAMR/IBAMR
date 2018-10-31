@@ -123,7 +123,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SideSynchCopyFillPattern(const SideSynchCopyFillPattern& from);
+    SideSynchCopyFillPattern(const SideSynchCopyFillPattern& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -134,7 +134,7 @@ private:
      *
      * \return A reference to this object.
      */
-    SideSynchCopyFillPattern& operator=(const SideSynchCopyFillPattern& that);
+    SideSynchCopyFillPattern& operator=(const SideSynchCopyFillPattern& that) = delete;
 
     SAMRAI::hier::IntVector<NDIM> d_stencil_width;
 };

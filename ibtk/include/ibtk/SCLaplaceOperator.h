@@ -160,7 +160,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    SCLaplaceOperator();
+    SCLaplaceOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -169,7 +169,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SCLaplaceOperator(const SCLaplaceOperator& from);
+    SCLaplaceOperator(const SCLaplaceOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -180,7 +180,7 @@ private:
      *
      * \return A reference to this object.
      */
-    SCLaplaceOperator& operator=(const SCLaplaceOperator& that);
+    SCLaplaceOperator& operator=(const SCLaplaceOperator& that) = delete;
 
 };
 } // namespace IBTK

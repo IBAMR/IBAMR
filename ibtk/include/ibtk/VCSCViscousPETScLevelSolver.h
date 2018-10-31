@@ -154,7 +154,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCSCViscousPETScLevelSolver();
+    VCSCViscousPETScLevelSolver() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -163,7 +163,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCSCViscousPETScLevelSolver(const VCSCViscousPETScLevelSolver& from);
+    VCSCViscousPETScLevelSolver(const VCSCViscousPETScLevelSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -174,7 +174,7 @@ private:
      *
      * \return A reference to this object.
      */
-    VCSCViscousPETScLevelSolver& operator=(const VCSCViscousPETScLevelSolver& that);
+    VCSCViscousPETScLevelSolver& operator=(const VCSCViscousPETScLevelSolver& that) = delete;
 
     /*
      * The interpolation type to be used for viscosity

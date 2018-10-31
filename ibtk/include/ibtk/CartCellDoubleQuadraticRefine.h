@@ -133,7 +133,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartCellDoubleQuadraticRefine(const CartCellDoubleQuadraticRefine& from);
+    CartCellDoubleQuadraticRefine(const CartCellDoubleQuadraticRefine& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -144,7 +144,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartCellDoubleQuadraticRefine& operator=(const CartCellDoubleQuadraticRefine& that);
+    CartCellDoubleQuadraticRefine& operator=(const CartCellDoubleQuadraticRefine& that) = delete;
 
     /*!
      * The operator name.

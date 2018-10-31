@@ -178,7 +178,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PETScSNESFunctionGOWrapper();
+    PETScSNESFunctionGOWrapper() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -187,7 +187,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScSNESFunctionGOWrapper(const PETScSNESFunctionGOWrapper& from);
+    PETScSNESFunctionGOWrapper(const PETScSNESFunctionGOWrapper& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -198,7 +198,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScSNESFunctionGOWrapper& operator=(const PETScSNESFunctionGOWrapper& that);
+    PETScSNESFunctionGOWrapper& operator=(const PETScSNESFunctionGOWrapper& that) = delete;
 
     const SNES d_petsc_snes;
     PetscErrorCode (*const d_petsc_snes_form_func)(SNES, Vec, Vec, void*);

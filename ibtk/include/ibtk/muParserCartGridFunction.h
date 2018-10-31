@@ -117,7 +117,7 @@ private:
      * \note This constructor is not implemented and should not be
      * used.
      */
-    muParserCartGridFunction();
+    muParserCartGridFunction() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -126,7 +126,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    muParserCartGridFunction(const muParserCartGridFunction& from);
+    muParserCartGridFunction(const muParserCartGridFunction& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -137,7 +137,7 @@ private:
      *
      * \return A reference to this object.
      */
-    muParserCartGridFunction& operator=(const muParserCartGridFunction& that);
+    muParserCartGridFunction& operator=(const muParserCartGridFunction& that) = delete;
 
     /*!
      * The Cartesian grid geometry object provides the extents of the

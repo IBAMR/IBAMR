@@ -255,7 +255,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSVCStaggeredVelocityBcCoef();
+    INSVCStaggeredVelocityBcCoef() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -264,7 +264,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSVCStaggeredVelocityBcCoef(const INSVCStaggeredVelocityBcCoef& from);
+    INSVCStaggeredVelocityBcCoef(const INSVCStaggeredVelocityBcCoef& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -275,7 +275,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSVCStaggeredVelocityBcCoef& operator=(const INSVCStaggeredVelocityBcCoef& that);
+    INSVCStaggeredVelocityBcCoef& operator=(const INSVCStaggeredVelocityBcCoef& that) = delete;
 
     /*
      * Component of the velocity which this boundary condition specification is

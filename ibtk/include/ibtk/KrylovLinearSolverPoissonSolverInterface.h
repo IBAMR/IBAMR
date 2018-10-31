@@ -115,7 +115,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovLinearSolverPoissonSolverInterface(const KrylovLinearSolverPoissonSolverInterface& from);
+    KrylovLinearSolverPoissonSolverInterface(const KrylovLinearSolverPoissonSolverInterface& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -126,7 +126,7 @@ private:
      *
      * \return A reference to this object.
      */
-    KrylovLinearSolverPoissonSolverInterface& operator=(const KrylovLinearSolverPoissonSolverInterface& that);
+    KrylovLinearSolverPoissonSolverInterface& operator=(const KrylovLinearSolverPoissonSolverInterface& that) = delete;
 };
 } // namespace IBTK
 

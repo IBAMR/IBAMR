@@ -278,7 +278,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredHierarchyIntegrator();
+    INSStaggeredHierarchyIntegrator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -287,7 +287,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredHierarchyIntegrator(const INSStaggeredHierarchyIntegrator& from);
+    INSStaggeredHierarchyIntegrator(const INSStaggeredHierarchyIntegrator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -298,7 +298,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredHierarchyIntegrator& operator=(const INSStaggeredHierarchyIntegrator& that);
+    INSStaggeredHierarchyIntegrator& operator=(const INSStaggeredHierarchyIntegrator& that) = delete;
 
     /*!
      * Compute the appropriate source term that must be added to the momentum

@@ -133,7 +133,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LMarkerRefine(const LMarkerRefine& from);
+    LMarkerRefine(const LMarkerRefine& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -144,7 +144,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LMarkerRefine& operator=(const LMarkerRefine& that);
+    LMarkerRefine& operator=(const LMarkerRefine& that) = delete;
 
     /*!
      * The operator name.

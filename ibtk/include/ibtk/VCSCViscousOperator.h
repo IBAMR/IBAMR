@@ -139,7 +139,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCSCViscousOperator();
+    VCSCViscousOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -148,7 +148,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCSCViscousOperator(const VCSCViscousOperator& from);
+    VCSCViscousOperator(const VCSCViscousOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -159,7 +159,7 @@ private:
      *
      * \return A reference to this object.
      */
-    VCSCViscousOperator& operator=(const VCSCViscousOperator& that);
+    VCSCViscousOperator& operator=(const VCSCViscousOperator& that) = delete;
 
     /*
      * The interpolation type to be used in computing the variable coefficient viscous Laplacian.

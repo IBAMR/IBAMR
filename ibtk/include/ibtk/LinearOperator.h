@@ -99,7 +99,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LinearOperator();
+    LinearOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -108,7 +108,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LinearOperator(const LinearOperator& from);
+    LinearOperator(const LinearOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -119,7 +119,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LinearOperator& operator=(const LinearOperator& that);
+    LinearOperator& operator=(const LinearOperator& that) = delete;
 };
 } // namespace IBTK
 

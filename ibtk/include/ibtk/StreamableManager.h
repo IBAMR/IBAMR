@@ -190,7 +190,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StreamableManager(const StreamableManager& from);
+    StreamableManager(const StreamableManager& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -201,7 +201,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StreamableManager& operator=(const StreamableManager& that);
+    StreamableManager& operator=(const StreamableManager& that) = delete;
 
     /*!
      * Static data members used to control access to and destruction of

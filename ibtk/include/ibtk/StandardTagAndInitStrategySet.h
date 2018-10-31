@@ -315,7 +315,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    StandardTagAndInitStrategySet();
+    StandardTagAndInitStrategySet() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -324,7 +324,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StandardTagAndInitStrategySet(const StandardTagAndInitStrategySet& from);
+    StandardTagAndInitStrategySet(const StandardTagAndInitStrategySet& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -335,7 +335,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StandardTagAndInitStrategySet& operator=(const StandardTagAndInitStrategySet& that);
+    StandardTagAndInitStrategySet& operator=(const StandardTagAndInitStrategySet& that) = delete;
 
     /*!
      * \brief The set of SAMRAI::xfer:StandardTagAndInitStrategy objects.

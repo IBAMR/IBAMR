@@ -217,7 +217,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSProjectionBcCoef();
+    INSProjectionBcCoef() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -226,7 +226,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSProjectionBcCoef(const INSProjectionBcCoef& from);
+    INSProjectionBcCoef(const INSProjectionBcCoef& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -237,7 +237,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSProjectionBcCoef& operator=(const INSProjectionBcCoef& that);
+    INSProjectionBcCoef& operator=(const INSProjectionBcCoef& that) = delete;
 
     /*
      * The boundary condition specification objects for the updated velocity.

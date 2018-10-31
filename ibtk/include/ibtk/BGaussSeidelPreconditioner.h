@@ -275,7 +275,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    BGaussSeidelPreconditioner();
+    BGaussSeidelPreconditioner() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -284,7 +284,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    BGaussSeidelPreconditioner(const BGaussSeidelPreconditioner& from);
+    BGaussSeidelPreconditioner(const BGaussSeidelPreconditioner& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -295,7 +295,7 @@ private:
      *
      * \return A reference to this object.
      */
-    BGaussSeidelPreconditioner& operator=(const BGaussSeidelPreconditioner& that);
+    BGaussSeidelPreconditioner& operator=(const BGaussSeidelPreconditioner& that) = delete;
 
     /*!
      * \brief Extract the individual components of a

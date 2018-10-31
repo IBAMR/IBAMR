@@ -84,7 +84,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LSetVariable();
+    LSetVariable() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -93,7 +93,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LSetVariable(const LSetVariable<T>& from);
+    LSetVariable(const LSetVariable<T>& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -104,7 +104,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LSetVariable<T>& operator=(const LSetVariable<T>& that);
+    LSetVariable<T>& operator=(const LSetVariable<T>& that) = delete;
 };
 } // namespace IBTK
 

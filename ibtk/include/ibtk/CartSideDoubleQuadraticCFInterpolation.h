@@ -218,7 +218,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartSideDoubleQuadraticCFInterpolation(const CartSideDoubleQuadraticCFInterpolation& from);
+    CartSideDoubleQuadraticCFInterpolation(const CartSideDoubleQuadraticCFInterpolation& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -229,7 +229,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartSideDoubleQuadraticCFInterpolation& operator=(const CartSideDoubleQuadraticCFInterpolation& that);
+    CartSideDoubleQuadraticCFInterpolation& operator=(const CartSideDoubleQuadraticCFInterpolation& that) = delete;
 
     /*!
      * The patch data indices corresponding to the "scratch" patch data that is

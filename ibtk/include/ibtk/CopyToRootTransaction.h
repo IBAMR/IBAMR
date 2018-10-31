@@ -138,7 +138,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CopyToRootTransaction();
+    CopyToRootTransaction() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -147,7 +147,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CopyToRootTransaction(const CopyToRootTransaction& from);
+    CopyToRootTransaction(const CopyToRootTransaction& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -158,7 +158,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CopyToRootTransaction& operator=(const CopyToRootTransaction& that);
+    CopyToRootTransaction& operator=(const CopyToRootTransaction& that) = delete;
 
     const int d_src_proc, d_dst_proc;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_patch_level;

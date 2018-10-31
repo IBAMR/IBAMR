@@ -251,7 +251,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    RelaxationLSMethod(const RelaxationLSMethod& from);
+    RelaxationLSMethod(const RelaxationLSMethod& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -262,7 +262,7 @@ private:
      *
      * \return A reference to this object.
      */
-    RelaxationLSMethod& operator=(const RelaxationLSMethod& that);
+    RelaxationLSMethod& operator=(const RelaxationLSMethod& that) = delete;
 };
 } // namespace IBAMR
 

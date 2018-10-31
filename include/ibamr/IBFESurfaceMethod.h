@@ -598,7 +598,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBFESurfaceMethod();
+    IBFESurfaceMethod() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -607,7 +607,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBFESurfaceMethod(const IBFESurfaceMethod& from);
+    IBFESurfaceMethod(const IBFESurfaceMethod& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -618,7 +618,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBFESurfaceMethod& operator=(const IBFESurfaceMethod& that);
+    IBFESurfaceMethod& operator=(const IBFESurfaceMethod& that) = delete;
 
     /*!
      * Implementation of class constructor.

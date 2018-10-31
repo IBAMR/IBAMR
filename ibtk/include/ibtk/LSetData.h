@@ -126,7 +126,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LSetData();
+    LSetData() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -135,7 +135,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LSetData(const LSetData<T>& from);
+    LSetData(const LSetData<T>& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -146,7 +146,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LSetData& operator=(const LSetData<T>& that);
+    LSetData& operator=(const LSetData<T>& that) = delete;
 };
 } // namespace IBTK
 

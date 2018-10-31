@@ -164,7 +164,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CIBStaggeredStokesSolver(const CIBStaggeredStokesSolver& from);
+    CIBStaggeredStokesSolver(const CIBStaggeredStokesSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -175,7 +175,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CIBStaggeredStokesSolver& operator=(const CIBStaggeredStokesSolver& that);
+    CIBStaggeredStokesSolver& operator=(const CIBStaggeredStokesSolver& that) = delete;
 
     // Pointer to the constraint IB strategy.
     SAMRAI::tbox::Pointer<CIBStrategy> d_cib_strategy;

@@ -174,7 +174,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    MaterialPointSpec(const MaterialPointSpec& from);
+    MaterialPointSpec(const MaterialPointSpec& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -185,7 +185,7 @@ private:
      *
      * \return A reference to this object.
      */
-    MaterialPointSpec& operator=(const MaterialPointSpec& that);
+    MaterialPointSpec& operator=(const MaterialPointSpec& that) = delete;
 
     /*!
      * Material point data.
@@ -241,7 +241,7 @@ private:
          *
          * \param from The value to copy to this object.
          */
-        Factory(const Factory& from);
+        Factory(const Factory& from) = delete;
 
         /*!
          * \brief Assignment operator.
@@ -252,7 +252,7 @@ private:
          *
          * \return A reference to this object.
          */
-        Factory& operator=(const Factory& that);
+        Factory& operator=(const Factory& that) = delete;
 
         friend class MaterialPointSpec;
     };

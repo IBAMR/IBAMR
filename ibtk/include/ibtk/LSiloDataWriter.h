@@ -216,7 +216,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LSiloDataWriter();
+    LSiloDataWriter() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -225,7 +225,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LSiloDataWriter(const LSiloDataWriter& from);
+    LSiloDataWriter(const LSiloDataWriter& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -236,7 +236,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LSiloDataWriter& operator=(const LSiloDataWriter& that);
+    LSiloDataWriter& operator=(const LSiloDataWriter& that) = delete;
 
     /*!
      * \brief Build the VecScatter objects required to communicate data for

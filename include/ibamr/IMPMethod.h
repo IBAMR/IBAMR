@@ -415,7 +415,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IMPMethod();
+    IMPMethod() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -424,7 +424,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IMPMethod(const IMPMethod& from);
+    IMPMethod(const IMPMethod& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -435,7 +435,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IMPMethod& operator=(const IMPMethod& that);
+    IMPMethod& operator=(const IMPMethod& that) = delete;
 
     /*!
      * Read input values from a given database.

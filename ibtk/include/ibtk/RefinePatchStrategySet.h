@@ -198,7 +198,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    RefinePatchStrategySet();
+    RefinePatchStrategySet() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -207,7 +207,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    RefinePatchStrategySet(const RefinePatchStrategySet& from);
+    RefinePatchStrategySet(const RefinePatchStrategySet& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -218,7 +218,7 @@ private:
      *
      * \return A reference to this object.
      */
-    RefinePatchStrategySet& operator=(const RefinePatchStrategySet& that);
+    RefinePatchStrategySet& operator=(const RefinePatchStrategySet& that) = delete;
 
     /*!
      * \brief The set of SAMRAI::xfer:RefinePatchStrategy objects.

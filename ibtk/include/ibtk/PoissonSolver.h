@@ -117,7 +117,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PoissonSolver(const PoissonSolver& from);
+    PoissonSolver(const PoissonSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -128,7 +128,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PoissonSolver& operator=(const PoissonSolver& that);
+    PoissonSolver& operator=(const PoissonSolver& that) = delete;
 };
 } // namespace IBTK
 

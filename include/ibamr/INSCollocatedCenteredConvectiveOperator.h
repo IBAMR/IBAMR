@@ -170,7 +170,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSCollocatedCenteredConvectiveOperator();
+    INSCollocatedCenteredConvectiveOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -179,7 +179,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSCollocatedCenteredConvectiveOperator(const INSCollocatedCenteredConvectiveOperator& from);
+    INSCollocatedCenteredConvectiveOperator(const INSCollocatedCenteredConvectiveOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -190,7 +190,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSCollocatedCenteredConvectiveOperator& operator=(const INSCollocatedCenteredConvectiveOperator& that);
+    INSCollocatedCenteredConvectiveOperator& operator=(const INSCollocatedCenteredConvectiveOperator& that) = delete;
 
     // Data communication algorithms, operators, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;

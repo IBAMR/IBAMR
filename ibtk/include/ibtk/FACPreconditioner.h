@@ -307,7 +307,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    FACPreconditioner();
+    FACPreconditioner() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -316,7 +316,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FACPreconditioner(const FACPreconditioner& from);
+    FACPreconditioner(const FACPreconditioner& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -327,7 +327,7 @@ private:
      *
      * \return A reference to this object.
      */
-    FACPreconditioner& operator=(const FACPreconditioner& that);
+    FACPreconditioner& operator=(const FACPreconditioner& that) = delete;
 
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 };

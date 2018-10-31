@@ -135,7 +135,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CoarsenPatchStrategySet();
+    CoarsenPatchStrategySet() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -144,7 +144,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CoarsenPatchStrategySet(const CoarsenPatchStrategySet& from);
+    CoarsenPatchStrategySet(const CoarsenPatchStrategySet& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -155,7 +155,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CoarsenPatchStrategySet& operator=(const CoarsenPatchStrategySet& that);
+    CoarsenPatchStrategySet& operator=(const CoarsenPatchStrategySet& that) = delete;
 
     /*!
      * \brief The set of SAMRAI::xfer:CoarsenPatchStrategy objects.

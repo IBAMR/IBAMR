@@ -330,7 +330,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvectorExplicitPredictorPatchOps();
+    AdvectorExplicitPredictorPatchOps() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -339,7 +339,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvectorExplicitPredictorPatchOps(const AdvectorExplicitPredictorPatchOps& from);
+    AdvectorExplicitPredictorPatchOps(const AdvectorExplicitPredictorPatchOps& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -350,7 +350,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvectorExplicitPredictorPatchOps& operator=(const AdvectorExplicitPredictorPatchOps& that);
+    AdvectorExplicitPredictorPatchOps& operator=(const AdvectorExplicitPredictorPatchOps& that) = delete;
 
     /*
      * Private functions used to compute the predicted values/fluxes.

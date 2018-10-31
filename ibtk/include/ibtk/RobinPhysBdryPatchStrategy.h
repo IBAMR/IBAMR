@@ -227,7 +227,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    RobinPhysBdryPatchStrategy(const RobinPhysBdryPatchStrategy& from);
+    RobinPhysBdryPatchStrategy(const RobinPhysBdryPatchStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -238,7 +238,7 @@ private:
      *
      * \return A reference to this object.
      */
-    RobinPhysBdryPatchStrategy& operator=(const RobinPhysBdryPatchStrategy& that);
+    RobinPhysBdryPatchStrategy& operator=(const RobinPhysBdryPatchStrategy& that) = delete;
 };
 } // namespace IBTK
 

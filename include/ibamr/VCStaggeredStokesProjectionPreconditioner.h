@@ -172,7 +172,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCStaggeredStokesProjectionPreconditioner();
+    VCStaggeredStokesProjectionPreconditioner() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -181,7 +181,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCStaggeredStokesProjectionPreconditioner(const VCStaggeredStokesProjectionPreconditioner& from);
+    VCStaggeredStokesProjectionPreconditioner(const VCStaggeredStokesProjectionPreconditioner& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -192,7 +192,7 @@ private:
      *
      * \return A reference to this object.
      */
-    VCStaggeredStokesProjectionPreconditioner& operator=(const VCStaggeredStokesProjectionPreconditioner& that);
+    VCStaggeredStokesProjectionPreconditioner& operator=(const VCStaggeredStokesProjectionPreconditioner& that) = delete;
 
     // Boundary condition objects.
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;

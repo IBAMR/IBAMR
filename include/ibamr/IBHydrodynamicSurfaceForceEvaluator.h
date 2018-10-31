@@ -115,7 +115,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBHydrodynamicSurfaceForceEvaluator(const IBHydrodynamicSurfaceForceEvaluator& from);
+    IBHydrodynamicSurfaceForceEvaluator(const IBHydrodynamicSurfaceForceEvaluator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -126,7 +126,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBHydrodynamicSurfaceForceEvaluator& operator=(const IBHydrodynamicSurfaceForceEvaluator& that);
+    IBHydrodynamicSurfaceForceEvaluator& operator=(const IBHydrodynamicSurfaceForceEvaluator& that) = delete;
 
     /*!
      * Read input values from a given database.

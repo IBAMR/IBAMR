@@ -236,7 +236,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartExtrapPhysBdryOp(const CartExtrapPhysBdryOp& from);
+    CartExtrapPhysBdryOp(const CartExtrapPhysBdryOp& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -247,7 +247,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartExtrapPhysBdryOp& operator=(const CartExtrapPhysBdryOp& that);
+    CartExtrapPhysBdryOp& operator=(const CartExtrapPhysBdryOp& that) = delete;
 
     /*!
      * \brief The implementation of setPhysicalBoundaryConditions() for

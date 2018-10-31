@@ -243,7 +243,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartCellRobinPhysBdryOp(const CartCellRobinPhysBdryOp& from);
+    CartCellRobinPhysBdryOp(const CartCellRobinPhysBdryOp& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -254,7 +254,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartCellRobinPhysBdryOp& operator=(const CartCellRobinPhysBdryOp& that);
+    CartCellRobinPhysBdryOp& operator=(const CartCellRobinPhysBdryOp& that) = delete;
 
     /*!
      * \brief Set the boundary conditions along the co-dimension one boundary.

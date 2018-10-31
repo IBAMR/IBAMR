@@ -167,7 +167,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSCollocatedWavePropConvectiveOperator();
+    INSCollocatedWavePropConvectiveOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -176,7 +176,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSCollocatedWavePropConvectiveOperator(const INSCollocatedWavePropConvectiveOperator& from);
+    INSCollocatedWavePropConvectiveOperator(const INSCollocatedWavePropConvectiveOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -187,7 +187,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSCollocatedWavePropConvectiveOperator& operator=(const INSCollocatedWavePropConvectiveOperator& that);
+    INSCollocatedWavePropConvectiveOperator& operator=(const INSCollocatedWavePropConvectiveOperator& that) = delete;
 
     // Cached communications operators.
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;

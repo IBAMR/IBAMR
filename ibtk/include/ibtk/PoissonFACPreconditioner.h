@@ -124,7 +124,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PoissonFACPreconditioner();
+    PoissonFACPreconditioner() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -133,7 +133,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PoissonFACPreconditioner(const PoissonFACPreconditioner& from);
+    PoissonFACPreconditioner(const PoissonFACPreconditioner& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -144,7 +144,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PoissonFACPreconditioner& operator=(const PoissonFACPreconditioner& that);
+    PoissonFACPreconditioner& operator=(const PoissonFACPreconditioner& that) = delete;
 };
 } // namespace IBTK
 

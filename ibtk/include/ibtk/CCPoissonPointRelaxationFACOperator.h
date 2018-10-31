@@ -242,7 +242,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CCPoissonPointRelaxationFACOperator();
+    CCPoissonPointRelaxationFACOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -251,7 +251,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CCPoissonPointRelaxationFACOperator(const CCPoissonPointRelaxationFACOperator& from);
+    CCPoissonPointRelaxationFACOperator(const CCPoissonPointRelaxationFACOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -262,7 +262,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CCPoissonPointRelaxationFACOperator& operator=(const CCPoissonPointRelaxationFACOperator& that);
+    CCPoissonPointRelaxationFACOperator& operator=(const CCPoissonPointRelaxationFACOperator& that) = delete;
 
     /*
      * Coarse level solvers and solver parameters.

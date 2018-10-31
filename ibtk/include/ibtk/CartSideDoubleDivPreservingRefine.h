@@ -171,7 +171,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CartSideDoubleDivPreservingRefine();
+    CartSideDoubleDivPreservingRefine() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -180,7 +180,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartSideDoubleDivPreservingRefine(const CartSideDoubleDivPreservingRefine& from);
+    CartSideDoubleDivPreservingRefine(const CartSideDoubleDivPreservingRefine& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -191,7 +191,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartSideDoubleDivPreservingRefine& operator=(const CartSideDoubleDivPreservingRefine& that);
+    CartSideDoubleDivPreservingRefine& operator=(const CartSideDoubleDivPreservingRefine& that) = delete;
 
     /*!
      * Patch data indices.

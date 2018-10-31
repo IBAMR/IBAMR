@@ -609,7 +609,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBMethod();
+    IBMethod() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -618,7 +618,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBMethod(const IBMethod& from);
+    IBMethod(const IBMethod& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -629,7 +629,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBMethod& operator=(const IBMethod& that);
+    IBMethod& operator=(const IBMethod& that) = delete;
 
     /*!
      * Reset the Lagrangian force function object.

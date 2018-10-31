@@ -137,7 +137,7 @@ private:
      * \param from The value to copy to this object.
      */
     CartCellDoubleBoundsPreservingConservativeLinearRefine(
-        const CartCellDoubleBoundsPreservingConservativeLinearRefine& from);
+        const CartCellDoubleBoundsPreservingConservativeLinearRefine& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -149,7 +149,7 @@ private:
      * \return A reference to this object.
      */
     CartCellDoubleBoundsPreservingConservativeLinearRefine&
-    operator=(const CartCellDoubleBoundsPreservingConservativeLinearRefine& that);
+    operator=(const CartCellDoubleBoundsPreservingConservativeLinearRefine& that) = delete;
 
     /*!
      * The operator name.

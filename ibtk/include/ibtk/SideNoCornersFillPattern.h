@@ -167,7 +167,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    SideNoCornersFillPattern();
+    SideNoCornersFillPattern() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -176,7 +176,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SideNoCornersFillPattern(const SideNoCornersFillPattern& from);
+    SideNoCornersFillPattern(const SideNoCornersFillPattern& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -187,7 +187,7 @@ private:
      *
      * \return A reference to this object.
      */
-    SideNoCornersFillPattern& operator=(const SideNoCornersFillPattern& that);
+    SideNoCornersFillPattern& operator=(const SideNoCornersFillPattern& that) = delete;
 
     SAMRAI::hier::IntVector<NDIM> d_stencil_width;
     const bool d_include_dst_patch_box;

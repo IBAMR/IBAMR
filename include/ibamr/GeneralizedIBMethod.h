@@ -244,7 +244,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    GeneralizedIBMethod();
+    GeneralizedIBMethod() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -253,7 +253,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    GeneralizedIBMethod(const GeneralizedIBMethod& from);
+    GeneralizedIBMethod(const GeneralizedIBMethod& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -264,7 +264,7 @@ private:
      *
      * \return A reference to this object.
      */
-    GeneralizedIBMethod& operator=(const GeneralizedIBMethod& that);
+    GeneralizedIBMethod& operator=(const GeneralizedIBMethod& that) = delete;
 
     /*!
      * Reset the Lagrangian force function object.

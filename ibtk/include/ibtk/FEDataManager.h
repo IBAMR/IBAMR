@@ -678,7 +678,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    FEDataManager();
+    FEDataManager() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -687,7 +687,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FEDataManager(const FEDataManager& from);
+    FEDataManager(const FEDataManager& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -698,7 +698,7 @@ private:
      *
      * \return A reference to this object.
      */
-    FEDataManager& operator=(const FEDataManager& that);
+    FEDataManager& operator=(const FEDataManager& that) = delete;
 
     /*!
      * Compute the quadrature point counts in each cell of the level in which

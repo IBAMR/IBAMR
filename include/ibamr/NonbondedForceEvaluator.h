@@ -82,13 +82,13 @@ public:
 
 private:
     // Default constructor, not implemented.
-    NonbondedForceEvaluator();
+    NonbondedForceEvaluator() = delete;
 
     // Copy constructor, not implemented.
-    NonbondedForceEvaluator(const NonbondedForceEvaluator& from);
+    NonbondedForceEvaluator(const NonbondedForceEvaluator& from) = delete;
 
     // Assignment operator, not implemented.
-    NonbondedForceEvaluator& operator=(const NonbondedForceEvaluator& that);
+    NonbondedForceEvaluator& operator=(const NonbondedForceEvaluator& that) = delete;
 
     // type of force to use:
     int d_force_type;

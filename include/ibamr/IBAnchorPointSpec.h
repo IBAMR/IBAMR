@@ -136,7 +136,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBAnchorPointSpec(const IBAnchorPointSpec& from);
+    IBAnchorPointSpec(const IBAnchorPointSpec& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -147,7 +147,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBAnchorPointSpec& operator=(const IBAnchorPointSpec& that);
+    IBAnchorPointSpec& operator=(const IBAnchorPointSpec& that) = delete;
 
     /*!
      * The Lagrangian index of the anchored curvilinear mesh node.
@@ -200,7 +200,7 @@ private:
          *
          * \param from The value to copy to this object.
          */
-        Factory(const Factory& from);
+        Factory(const Factory& from) = delete;
 
         /*!
          * \brief Assignment operator.
@@ -211,7 +211,7 @@ private:
          *
          * \return A reference to this object.
          */
-        Factory& operator=(const Factory& that);
+        Factory& operator=(const Factory& that) = delete;
 
         friend class IBAnchorPointSpec;
     };

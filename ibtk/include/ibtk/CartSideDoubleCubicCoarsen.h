@@ -142,7 +142,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartSideDoubleCubicCoarsen(const CartSideDoubleCubicCoarsen& from);
+    CartSideDoubleCubicCoarsen(const CartSideDoubleCubicCoarsen& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -153,7 +153,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartSideDoubleCubicCoarsen& operator=(const CartSideDoubleCubicCoarsen& that);
+    CartSideDoubleCubicCoarsen& operator=(const CartSideDoubleCubicCoarsen& that) = delete;
 
     /*!
      * The operator name.

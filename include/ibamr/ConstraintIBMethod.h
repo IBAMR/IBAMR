@@ -258,21 +258,21 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    ConstraintIBMethod();
+    ConstraintIBMethod() = delete;
 
     /*!
      * \brief Default copy constructor.
      *
      * \note This copy constructor is not implemented and should not be used.
      */
-    ConstraintIBMethod(const ConstraintIBMethod& from);
+    ConstraintIBMethod(const ConstraintIBMethod& from) = delete;
 
     /*!
      * \brief Default assignment operator.
      *
      * \note This assignment operator is not implemented and should not be used.
      */
-    ConstraintIBMethod& operator=(const ConstraintIBMethod& that);
+    ConstraintIBMethod& operator=(const ConstraintIBMethod& that) = delete;
 
     /*!
      * \brief Get values from input file.

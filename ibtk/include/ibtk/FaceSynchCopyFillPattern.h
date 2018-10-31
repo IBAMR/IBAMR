@@ -123,7 +123,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FaceSynchCopyFillPattern(const FaceSynchCopyFillPattern& from);
+    FaceSynchCopyFillPattern(const FaceSynchCopyFillPattern& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -134,7 +134,7 @@ private:
      *
      * \return A reference to this object.
      */
-    FaceSynchCopyFillPattern& operator=(const FaceSynchCopyFillPattern& that);
+    FaceSynchCopyFillPattern& operator=(const FaceSynchCopyFillPattern& that) = delete;
 
     SAMRAI::hier::IntVector<NDIM> d_stencil_width;
 };

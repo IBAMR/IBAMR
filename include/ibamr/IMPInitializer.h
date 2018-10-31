@@ -202,7 +202,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IMPInitializer();
+    IMPInitializer() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -211,7 +211,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IMPInitializer(const IMPInitializer& from);
+    IMPInitializer(const IMPInitializer& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -222,7 +222,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IMPInitializer& operator=(const IMPInitializer& that);
+    IMPInitializer& operator=(const IMPInitializer& that) = delete;
 
     /*!
      * \brief Configure the Lagrangian Silo data writer to plot the data

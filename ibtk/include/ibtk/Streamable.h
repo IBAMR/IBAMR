@@ -119,7 +119,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    Streamable(const Streamable& from);
+    Streamable(const Streamable& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -130,7 +130,7 @@ private:
      *
      * \return A reference to this object.
      */
-    Streamable& operator=(const Streamable& that);
+    Streamable& operator=(const Streamable& that) = delete;
 };
 } // namespace IBTK
 

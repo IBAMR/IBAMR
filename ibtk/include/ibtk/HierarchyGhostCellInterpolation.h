@@ -345,7 +345,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    HierarchyGhostCellInterpolation(const HierarchyGhostCellInterpolation& from);
+    HierarchyGhostCellInterpolation(const HierarchyGhostCellInterpolation& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -356,7 +356,7 @@ private:
      *
      * \return A reference to this object.
      */
-    HierarchyGhostCellInterpolation& operator=(const HierarchyGhostCellInterpolation& that);
+    HierarchyGhostCellInterpolation& operator=(const HierarchyGhostCellInterpolation& that) = delete;
 
     // Boolean indicating whether the operator is initialized.
     bool d_is_initialized;

@@ -161,7 +161,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    StaggeredStokesLevelRelaxationFACOperator();
+    StaggeredStokesLevelRelaxationFACOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -170,7 +170,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesLevelRelaxationFACOperator(const StaggeredStokesLevelRelaxationFACOperator& from);
+    StaggeredStokesLevelRelaxationFACOperator(const StaggeredStokesLevelRelaxationFACOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -181,7 +181,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesLevelRelaxationFACOperator& operator=(const StaggeredStokesLevelRelaxationFACOperator& that);
+    StaggeredStokesLevelRelaxationFACOperator& operator=(const StaggeredStokesLevelRelaxationFACOperator& that) = delete;
 
     /*
      * Level solvers and solver parameters.

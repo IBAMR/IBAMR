@@ -187,7 +187,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    NodeDataSynchronization(const NodeDataSynchronization& from);
+    NodeDataSynchronization(const NodeDataSynchronization& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -198,7 +198,7 @@ private:
      *
      * \return A reference to this object.
      */
-    NodeDataSynchronization& operator=(const NodeDataSynchronization& that);
+    NodeDataSynchronization& operator=(const NodeDataSynchronization& that) = delete;
 
     // Boolean indicating whether the operator is initialized.
     bool d_is_initialized;

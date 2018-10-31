@@ -182,7 +182,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBLagrangianForceStrategy(const IBLagrangianForceStrategy& from);
+    IBLagrangianForceStrategy(const IBLagrangianForceStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -193,7 +193,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBLagrangianForceStrategy& operator=(const IBLagrangianForceStrategy& that);
+    IBLagrangianForceStrategy& operator=(const IBLagrangianForceStrategy& that) = delete;
 };
 } // namespace IBAMR
 

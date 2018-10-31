@@ -122,7 +122,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PhysicalBoundaryUtilities();
+    PhysicalBoundaryUtilities() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -131,12 +131,12 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PhysicalBoundaryUtilities(const PhysicalBoundaryUtilities& from);
+    PhysicalBoundaryUtilities(const PhysicalBoundaryUtilities& from) = delete;
 
     /*!
      * \brief Destructor.
      */
-    ~PhysicalBoundaryUtilities();
+    ~PhysicalBoundaryUtilities() = delete;
 
     /*!
      * \brief Assignment operator.
@@ -147,7 +147,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PhysicalBoundaryUtilities& operator=(const PhysicalBoundaryUtilities& that);
+    PhysicalBoundaryUtilities& operator=(const PhysicalBoundaryUtilities& that) = delete;
 };
 } // namespace IBTK
 

@@ -225,7 +225,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PETScSNESJacobianJOWrapper();
+    PETScSNESJacobianJOWrapper() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -234,7 +234,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScSNESJacobianJOWrapper(const PETScSNESJacobianJOWrapper& from);
+    PETScSNESJacobianJOWrapper(const PETScSNESJacobianJOWrapper& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -245,7 +245,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScSNESJacobianJOWrapper& operator=(const PETScSNESJacobianJOWrapper& that);
+    PETScSNESJacobianJOWrapper& operator=(const PETScSNESJacobianJOWrapper& that) = delete;
 
     const SNES d_petsc_snes;
     Mat d_petsc_snes_jac;

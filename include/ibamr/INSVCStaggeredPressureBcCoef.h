@@ -258,7 +258,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSVCStaggeredPressureBcCoef();
+    INSVCStaggeredPressureBcCoef() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -267,7 +267,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSVCStaggeredPressureBcCoef(const INSVCStaggeredPressureBcCoef& from);
+    INSVCStaggeredPressureBcCoef(const INSVCStaggeredPressureBcCoef& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -278,7 +278,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSVCStaggeredPressureBcCoef& operator=(const INSVCStaggeredPressureBcCoef& that);
+    INSVCStaggeredPressureBcCoef& operator=(const INSVCStaggeredPressureBcCoef& that) = delete;
 
     /*
      * The fluid solver.
