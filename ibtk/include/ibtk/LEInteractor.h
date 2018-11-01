@@ -45,8 +45,6 @@
 
 namespace boost
 {
-template <class T, std::size_t N>
-class array;
 template <class T, std::size_t N, class Allocator>
 class multi_array;
 } // namespace boost

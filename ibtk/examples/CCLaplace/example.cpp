@@ -108,6 +108,14 @@ run_example(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double> > e_cc_var = new CellVariable<NDIM, double>("e_cc");
         Pointer<CellVariable<NDIM, double> > f_approx_cc_var = new CellVariable<NDIM, double>("f_approx_cc");
 
+        // In addition to the cell-centered data relevant to the
+        // discretization of the Laplace operator, we also allocate a
+        // 'variable' corresponding to the MPI rank of the present process. We
+        // will not solve any equations with this information but we will
+        // still output it at the end so that we can visualize the data
+        // distribution.
+        Pointer<CellVariable<NDIM, double> > rank_cc_var = new CellVariable<NDIM, double>("rank_cc");
+
         // Internally, SAMRAI keeps track of variables (and their
         // corresponding vectors, data, etc.) by converting them to
         // indices. Here we get the indices after notifying the variable
@@ -116,6 +124,7 @@ run_example(int argc, char* argv[])
         const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector<NDIM>(1));
         const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector<NDIM>(1));
         const int f_approx_cc_idx = var_db->registerVariableAndContext(f_approx_cc_var, ctx, IntVector<NDIM>(1));
+        const int rank_cc_idx = var_db->registerVariableAndContext(rank_cc_var, ctx, IntVector<NDIM>(1));
 
         // Register variables for plotting.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
@@ -125,6 +134,7 @@ run_example(int argc, char* argv[])
         visit_data_writer->registerPlotQuantity(f_cc_var->getName(), "SCALAR", f_cc_idx);
         visit_data_writer->registerPlotQuantity(f_approx_cc_var->getName(), "SCALAR", f_approx_cc_idx);
         visit_data_writer->registerPlotQuantity(e_cc_var->getName(), "SCALAR", e_cc_idx);
+        visit_data_writer->registerPlotQuantity(rank_cc_var->getName(), "SCALAR", rank_cc_idx);
 
         // Initialize the AMR patch hierarchy. This sets up the coarsest level
         // (level 0) as well as any other levels specified in the input
@@ -244,6 +254,7 @@ run_example(int argc, char* argv[])
         pout << "|e|_2  = " << e_vec.L2Norm() << "\n";
         pout << "|e|_1  = " << e_vec.L1Norm() << "\n";
 
+        const int rank = SAMRAI_MPI::getRank();
         // Finally, we clean up the output by setting error values on patches
         // on coarser levels which are covered by finer levels to zero.
         for (int ln = 0; ln < finest_level; ++ln)
@@ -255,6 +266,10 @@ run_example(int argc, char* argv[])
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 const Patch<NDIM>& patch = *level->getPatch(p());
+
+                Pointer<CellData<NDIM, double> > rank_data = patch->getPatchData(rank_cc_idx);
+                rank_data->fillAll(rank);
+
                 const Box<NDIM>& patch_box = patch.getBox();
                 Pointer<CellData<NDIM, double> > e_cc_data = patch.getPatchData(e_cc_idx);
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)

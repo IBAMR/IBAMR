@@ -49,14 +49,22 @@
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_triangle_interface.h>
 
+#include <libmesh/explicit_system.h>
+#include <libmesh/linear_implicit_system.h>
+#include <libmesh/parmetis_partitioner.h>
+#include <libmesh/hilbert_sfc_partitioner.h>
+#include <libmesh/metis_partitioner.h>
+
 // Headers for application-specific algorithm/data structure objects
 #include <boost/multi_array.hpp>
+
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFECentroidPostProcessor.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/BoundingBox.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -187,7 +195,8 @@ bool run_example(int argc, char** argv)
         ReplicatedMesh mesh(init.comm(), NDIM);
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
-        string elem_type = input_db->getString("ELEM_TYPE");
+        // string elem_type = input_db->getString("ELEM_TYPE");
+        const std::string elem_type = "TRI3";
         const double R = 0.2;
         if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
         {
@@ -236,6 +245,17 @@ bool run_example(int argc, char** argv)
             }
         }
         mesh.prepare_for_use();
+
+        // The mesh itself has now been assembled in such a way that we cannot
+        // exploit any parallelization: i.e., every processor presently owns
+        // every cell.
+        //
+        // TODO ParMetis insists on putting all boundary cells on processor
+        // 0. I don't know why.
+        //
+        // TODO does it matter if we use Metis instead of ParMetis?
+        libMesh::MetisPartitioner partitioner;
+        partitioner.partition(mesh, SAMRAI_MPI::getNodes());
 
         c1_s = input_db->getDouble("C1_S");
         p0_s = input_db->getDouble("P0_S");
@@ -289,6 +309,64 @@ bool run_example(int argc, char** argv)
                                         error_detector,
                                         box_generator,
                                         load_balancer);
+
+        // VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        // Pointer<CellVariable<NDIM, double> > rank_cc_var = new CellVariable<NDIM, double>("rank_cc");
+        // const int rank_cc_idx = var_db->registerVariableAndContext(rank_cc_var, ctx, IntVector<NDIM>(1));
+        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        visit_data_writer->registerPlotQuantity(rank_cc_var->getName(), "SCALAR", rank_cc_idx);
+
+        {
+            const int n_nodes = SAMRAI_MPI::getNodes();
+            const int current_rank = SAMRAI_MPI::getRank();
+
+            unsigned int n_elements = 0;
+            for (auto el = mesh.active_local_elements_begin(); el != mesh.active_local_elements_end(); ++el)
+                ++n_elements;
+
+            std::ostringstream mesh_out;
+            mesh.print_info(mesh_out);
+
+            for (int rank = 0; rank < n_nodes; ++rank)
+            {
+                if (rank == current_rank)
+                {
+                    // TODO: for reasons beyond my comprehension (possibly due
+                    // to static linking) we cannot reliably use std::cout to
+                    // write messages, so fall back to std::printf.
+                    std::printf("mesh info:\n %s\n", mesh_out.str().c_str());
+                }
+                SAMRAI_MPI::barrier();
+            }
+
+            // The Exodus output from a previous version of this program that
+            // used an EquationSystem to store element data was
+            // corrupted. Rather than deal with Exodus, I will just write my
+            // own output as points:
+            {
+                std::remove("elem-centers.txt");
+                for (int rank = 0; rank < n_nodes; ++rank)
+                {
+                    if (rank == current_rank)
+                    {
+                        std::ofstream centers("elem-centers.txt", std::ios_base::app);
+                        if (current_rank == 0)
+                            centers << "x,y,z,rank\n";
+                        for (auto el = mesh.active_local_elements_begin();
+                             el != mesh.active_local_elements_end(); ++el)
+                        {
+                            const libMesh::Point centroid = (*el)->centroid();
+                            centers << centroid(0) << ','
+                                    << centroid(1) << ','
+                                    << centroid(2) << ','
+                                    << current_rank << '\n';
+                        }
+                    }
+
+                    SAMRAI_MPI::barrier();
+                }
+            }
+        }
 
         // Configure the IBFE solver.
         ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
@@ -398,7 +476,6 @@ bool run_example(int argc, char** argv)
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
