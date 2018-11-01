@@ -2057,9 +2057,15 @@ FEDataManager::restrictData_cell(const int f_data_idx,
         const double* const patch_dx = patch_geom->getDx();
         double dV = 1.0;
         for (unsigned int d = 0; d < NDIM; ++d) dV *= patch_dx[d];
-
-        Box<NDIM> cell_boxes = CellGeometry<NDIM>::toCellBox(patch_box);
-        CellData<NDIM, bool> interpolated_value_at_loc(patch_box, 1, IntVector<NDIM>(0));
+   
+        boost::array<Box<NDIM>, NDIM> side_boxes;
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+            if (!patch_geom->getTouchesRegularBoundary(axis, 1)) side_boxes[axis].growUpper(axis, -1);
+        }
+      
+        SideData<NDIM, bool> interpolated_value_at_loc(patch_box, 1, IntVector<NDIM>(0));
         interpolated_value_at_loc.fillAll(false);
 
         // Loop over the elements.
