@@ -352,7 +352,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScLevelSolver& operator=(const PETScLevelSolver& that);
+    PETScLevelSolver& operator=(const PETScLevelSolver& that) = delete;
 
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.

@@ -1002,7 +1002,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    HierarchyIntegrator(const HierarchyIntegrator& from);
+    HierarchyIntegrator(const HierarchyIntegrator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -1013,7 +1013,7 @@ private:
      *
      * \return A reference to this object.
      */
-    HierarchyIntegrator& operator=(const HierarchyIntegrator& that);
+    HierarchyIntegrator& operator=(const HierarchyIntegrator& that) = delete;
 
     /*!
      * Read input values from a given database.

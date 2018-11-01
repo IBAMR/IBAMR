@@ -897,7 +897,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBFEMethod(const IBFEMethod& from);
+    IBFEMethod(const IBFEMethod& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -908,7 +908,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBFEMethod& operator=(const IBFEMethod& that);
+    IBFEMethod& operator=(const IBFEMethod& that) = delete;
 
     /*!
      * Implementation of class constructor.

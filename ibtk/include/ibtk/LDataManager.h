@@ -937,7 +937,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LDataManager(const LDataManager& from);
+    LDataManager(const LDataManager& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -948,7 +948,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LDataManager& operator=(const LDataManager& that);
+    LDataManager& operator=(const LDataManager& that) = delete;
 
     /*!
      * \brief Common implementation of scatterPETScToLagrangian() and
