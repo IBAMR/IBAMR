@@ -1719,8 +1719,8 @@ FEDataManager::interp(const int f_data_idx,
 } // interp
 
 void FEDataManager::restrictData(const int f_data_idx,
-                                 NumericVector<double>& F_vec,
-                                 NumericVector<double>& X_vec,
+                                 NumericVector<double>& F,
+                                 NumericVector<double>& X,
                                  const std::string& system_name,
                                  const bool use_consistent_mass_matrix,
                                  const bool close_X)
@@ -2036,7 +2036,7 @@ FEDataManager::restrictData_cell(const int f_data_idx,
     std::vector<libMesh::Point> s_node_cache, X_node_cache;
     Point X_min, X_max;
     std::vector<libMesh::Point> intersection_ref_coords;
-    std::vector<SideIndex<NDIM> > intersection_indices;
+    std::vector<CellIndex<NDIM> > intersection_indices;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     const IntVector<NDIM>& ratio = level->getRatio();
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
@@ -2049,7 +2049,7 @@ FEDataManager::restrictData_cell(const int f_data_idx,
         if (!num_active_patch_elems) continue;
 
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
+        Pointer<CellData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
@@ -2058,14 +2058,8 @@ FEDataManager::restrictData_cell(const int f_data_idx,
         double dV = 1.0;
         for (unsigned int d = 0; d < NDIM; ++d) dV *= patch_dx[d];
    
-        boost::array<Box<NDIM>, NDIM> side_boxes;
-        for (unsigned int axis = 0; axis < NDIM; ++axis)
-        {
-            side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-            if (!patch_geom->getTouchesRegularBoundary(axis, 1)) side_boxes[axis].growUpper(axis, -1);
-        }
-      
-        SideData<NDIM, bool> interpolated_value_at_loc(patch_box, 1, IntVector<NDIM>(0));
+        Box<NDIM> cell_boxes = CellGeometry<NDIM>::toCellBox(patch_box);
+        CellData<NDIM, bool> interpolated_value_at_loc(patch_box, 1, IntVector<NDIM>(0));
         interpolated_value_at_loc.fillAll(false);
 
         // Loop over the elements.
@@ -2107,29 +2101,25 @@ FEDataManager::restrictData_cell(const int f_data_idx,
             // that are covered by the element.
             intersection_ref_coords.clear();
             intersection_indices.clear();
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            
+            // Loop over the relevant range of indices.
+            for (CellIterator<NDIM> b(box); b; b++)
             {
-                // Loop over the relevant range of indices.
-                for (SideIterator<NDIM> b(box, axis); b; b++)
+                const CellIndex<NDIM>& i_c = b();
+                if (cell_boxes.contains(i_c) && !interpolated_value_at_loc(i_c))
                 {
-                    const SideIndex<NDIM>& i_s = b();
-                    if (side_boxes[axis].contains(i_s) && !interpolated_value_at_loc(i_s))
+                    libMesh::Point p;
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        libMesh::Point p;
-                        for (unsigned int d = 0; d < NDIM; ++d)
-                        {
-                            p(d) =
-                                patch_x_lower[d] +
-                                patch_dx[d] * (static_cast<double>(i_s(d) - patch_lower[d]) + (d == axis ? 0.0 : 0.5));
-                        }
-                        static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
-                        const libMesh::Point ref_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOL, false);
-                        if (FEInterface::on_reference_element(ref_coords, elem->type(), TOL))
-                        {
-                            intersection_ref_coords.push_back(ref_coords);
-                            intersection_indices.push_back(i_s);
-                            interpolated_value_at_loc(i_s) = true;
-                        }
+                        p(d) = patch_x_lower[d] + patch_dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]) + 0.5);
+                    }
+                    static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
+                    const libMesh::Point ref_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOL, false);
+                    if (FEInterface::on_reference_element(ref_coords, elem->type(), TOL))
+                    {
+                        intersection_ref_coords.push_back(ref_coords);
+                        intersection_indices.push_back(i_c);
+                        interpolated_value_at_loc(i_c) = true;
                     }
                 }
             }
@@ -2156,14 +2146,13 @@ FEDataManager::restrictData_cell(const int f_data_idx,
             const size_t n_basis = F_dof_indices[0].size();
             for (unsigned int qp = 0; qp < intersection_ref_coords.size(); ++qp)
             {
-                const SideIndex<NDIM>& i_s = intersection_indices[qp];
-                const int axis = i_s.getAxis();
+                const CellIndex<NDIM>& i_c = intersection_indices[qp];
                 jacobian(dX_ds, qp, X_node, dphi_X);
                 const double J = std::abs(dX_ds.det());
-                const double F_qp = (*f_data)(i_s)*dV / J;
+                const double F_qp = (*f_data)(i_c)*dV / J;
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
-                    F_rhs_e[axis](k) += F_qp * phi_F[k][qp];
+                    F_rhs_e[0](k) += F_qp * phi_F[k][qp];
                 }
             }
             for (unsigned int i = 0; i < n_vars; ++i)
