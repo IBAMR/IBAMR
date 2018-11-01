@@ -1718,13 +1718,42 @@ FEDataManager::interp(const int f_data_idx,
     return;
 } // interp
 
+void FEDataManager::restrictData(const int f_data_idx,
+                                 NumericVector<double>& F_vec,
+                                 NumericVector<double>& X_vec,
+                                 const std::string& system_name,
+                                 const bool use_consistent_mass_matrix,
+                                 const bool close_X)
+{
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    
+    // Determine the type of data centering. Either side or cell centered.
+    Pointer<hier::Variable<NDIM> > f_var;
+    var_db->mapIndexToVariable(f_data_idx, f_var);
+    Pointer<CellVariable<NDIM, double> > f_cc_var = f_var;
+    Pointer<SideVariable<NDIM, double> > f_sc_var = f_var;
+    const bool cc_data = f_cc_var;
+    const bool sc_data = f_sc_var;
+    TBOX_ASSERT(cc_data || sc_data);
+    
+    // call the correct helper function
+    if (cc_data)
+    {
+        FEDataManager::restrictData_cell(f_data_idx, F, X, system_name, use_consistent_mass_matrix, close_X);
+    }
+    if (sc_data)
+    {
+        FEDataManager::restrictData_side(f_data_idx, F, X, system_name, use_consistent_mass_matrix, close_X);
+    }
+}
+
 void
-FEDataManager::restrictData(const int f_data_idx,
-                            NumericVector<double>& F_vec,
-                            NumericVector<double>& X_vec,
-                            const std::string& system_name,
-                            const bool use_consistent_mass_matrix,
-                            const bool close_X)
+FEDataManager::restrictData_side(const int f_data_idx,
+                                 NumericVector<double>& F_vec,
+                                 NumericVector<double>& X_vec,
+                                 const std::string& system_name,
+                                 const bool use_consistent_mass_matrix,
+                                 const bool close_X)
 {
     IBTK_TIMER_START(t_restrict_data);
 
@@ -1936,7 +1965,219 @@ FEDataManager::restrictData(const int f_data_idx,
 
     IBTK_TIMER_STOP(t_restrict_data);
     return;
-} // restrictData
+} // restrictData_side
+
+void
+FEDataManager::restrictData_cell(const int f_data_idx,
+                                 NumericVector<double>& F_vec,
+                                 NumericVector<double>& X_vec,
+                                 const std::string& system_name,
+                                 const bool use_consistent_mass_matrix,
+                                 const bool close_X)
+{
+    IBTK_TIMER_START(t_restrict_data);
+
+    // NOTE #1: This routine is specialized for cell-centered data
+    //
+    // NOTE #2: This code is specialized for isoparametric elements.  It is less
+    // clear how to relax this assumption.
+    //
+    // NOTE #3: This implementation uses the pointwise value of J = det(dX/ds)
+    // to convert a Lagrangian density into an Eulerian density.  We should
+    // investigate whether there is any advantage to using a projection of J
+    // onto a (discontinuous) FE basis instead of evaluating J directly from the
+    // discrete deformation.
+
+    // Extract the mesh.
+    const MeshBase& mesh = d_es->get_mesh();
+    const unsigned int dim = mesh.mesh_dimension();
+    TBOX_ASSERT(dim == NDIM);
+
+    // Extract the FE systems and DOF maps, and setup the FE object.
+    System& F_system = d_es->get_system(system_name);
+    const unsigned int n_vars = F_system.n_vars();
+    const DofMap& F_dof_map = F_system.get_dof_map();
+    SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
+    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
+    const DofMap& X_dof_map = X_system.get_dof_map();
+    SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+    std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
+    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    FEType F_fe_type = F_dof_map.variable_type(0);
+    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
+    FEType X_fe_type = X_dof_map.variable_type(0);
+    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
+    UniquePtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr;
+    if (F_fe_type != X_fe_type)
+    {
+        X_fe_autoptr = UniquePtr<FEBase>(FEBase::build(dim, X_fe_type));
+    }
+    FEBase* F_fe = F_fe_autoptr.get();
+    FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : F_fe_autoptr.get();
+    const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
+    const std::vector<std::vector<VectorValue<double> > >& dphi_X = X_fe->get_dphi();
+
+    // Communicate any unsynchronized ghost data and extract the underlying
+    // solution data.
+    if (close_X) X_vec.close();
+    PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
+    Vec X_global_vec = X_petsc_vec->vec();
+    Vec X_local_vec;
+    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+    double* X_local_soln;
+    VecGetArray(X_local_vec, &X_local_soln);
+
+    // Loop over the patches to assemble the right-hand-side vector used to
+    // solve for F.
+    UniquePtr<NumericVector<double> > F_rhs_vec = F_vec.zero_clone();
+    std::vector<DenseVector<double> > F_rhs_e(n_vars);
+    TensorValue<double> dX_ds;
+    boost::multi_array<double, 2> X_node;
+    std::vector<libMesh::Point> s_node_cache, X_node_cache;
+    Point X_min, X_max;
+    std::vector<libMesh::Point> intersection_ref_coords;
+    std::vector<SideIndex<NDIM> > intersection_indices;
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
+    const IntVector<NDIM>& ratio = level->getRatio();
+    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    int local_patch_num = 0;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    {
+        // The relevant collection of elements.
+        const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
+        const size_t num_active_patch_elems = patch_elems.size();
+        if (!num_active_patch_elems) continue;
+
+        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
+        const Box<NDIM>& patch_box = patch->getBox();
+        const CellIndex<NDIM>& patch_lower = patch_box.lower();
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const patch_x_lower = patch_geom->getXLower();
+        const double* const patch_dx = patch_geom->getDx();
+        double dV = 1.0;
+        for (unsigned int d = 0; d < NDIM; ++d) dV *= patch_dx[d];
+
+        Box<NDIM> cell_boxes = CellGeometry<NDIM>::toCellBox(patch_box);
+        CellData<NDIM, bool> interpolated_value_at_loc(patch_box, 1, IntVector<NDIM>(0));
+        interpolated_value_at_loc.fillAll(false);
+
+        // Loop over the elements.
+        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+        {
+            Elem* const elem = patch_elems[e_idx];
+            const unsigned int n_node = elem->n_nodes();
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+            }
+
+            // Cache the nodal and physical coordinates of the element,
+            // determine the bounding box of the current configuration of the
+            // element, and set the nodal coordinates of the element to
+            // correspond to the physical coordinates.
+            s_node_cache.resize(n_node);
+            X_node_cache.resize(n_node);
+            X_min = Point::Constant(std::numeric_limits<double>::max());
+            X_max = Point::Constant(-std::numeric_limits<double>::max());
+            for (unsigned int k = 0; k < n_node; ++k)
+            {
+                s_node_cache[k] = elem->point(k);
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    X_node_cache[k](d) = X_vec(X_dof_indices[d][k]);
+                    X_min[d] = std::min(X_min[d], X_node_cache[k](d));
+                    X_max[d] = std::max(X_max[d], X_node_cache[k](d));
+                }
+                elem->point(k) = X_node_cache[k];
+            }
+
+            Box<NDIM> box(IndexUtilities::getCellIndex(&X_min[0], grid_geom, ratio),
+                          IndexUtilities::getCellIndex(&X_max[0], grid_geom, ratio));
+            box.grow(IntVector<NDIM>(1));
+            box = box * patch_box;
+
+            // Loop over coordinate directions and look for Eulerian grid points
+            // that are covered by the element.
+            intersection_ref_coords.clear();
+            intersection_indices.clear();
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                // Loop over the relevant range of indices.
+                for (SideIterator<NDIM> b(box, axis); b; b++)
+                {
+                    const SideIndex<NDIM>& i_s = b();
+                    if (side_boxes[axis].contains(i_s) && !interpolated_value_at_loc(i_s))
+                    {
+                        libMesh::Point p;
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            p(d) =
+                                patch_x_lower[d] +
+                                patch_dx[d] * (static_cast<double>(i_s(d) - patch_lower[d]) + (d == axis ? 0.0 : 0.5));
+                        }
+                        static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
+                        const libMesh::Point ref_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOL, false);
+                        if (FEInterface::on_reference_element(ref_coords, elem->type(), TOL))
+                        {
+                            intersection_ref_coords.push_back(ref_coords);
+                            intersection_indices.push_back(i_s);
+                            interpolated_value_at_loc(i_s) = true;
+                        }
+                    }
+                }
+            }
+
+            // Restore the nodal coordinates.
+            for (unsigned int k = 0; k < n_node; ++k)
+            {
+                elem->point(k) = s_node_cache[k];
+            }
+
+            // If there are no intersection points, then continue on to the next
+            // element.
+            if (intersection_ref_coords.empty()) continue;
+
+            // Evaluate the Eulerian value and rescale it by 1.0/det(dX/ds).
+            F_fe->reinit(elem, &intersection_ref_coords);
+            if (X_fe != F_fe) X_fe->reinit(elem, &intersection_ref_coords);
+            for (unsigned int i = 0; i < n_vars; ++i)
+            {
+                F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
+                F_rhs_e[i].resize(static_cast<int>(F_dof_indices[i].size()));
+            }
+            get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+            const size_t n_basis = F_dof_indices[0].size();
+            for (unsigned int qp = 0; qp < intersection_ref_coords.size(); ++qp)
+            {
+                const SideIndex<NDIM>& i_s = intersection_indices[qp];
+                const int axis = i_s.getAxis();
+                jacobian(dX_ds, qp, X_node, dphi_X);
+                const double J = std::abs(dX_ds.det());
+                const double F_qp = (*f_data)(i_s)*dV / J;
+                for (unsigned int k = 0; k < n_basis; ++k)
+                {
+                    F_rhs_e[axis](k) += F_qp * phi_F[k][qp];
+                }
+            }
+            for (unsigned int i = 0; i < n_vars; ++i)
+            {
+                F_dof_map.constrain_element_vector(F_rhs_e[i], F_dof_indices[i]);
+                F_rhs_vec->add_vector(F_rhs_e[i], F_dof_indices[i]);
+            }
+        }
+    }
+
+    VecRestoreArray(X_local_vec, &X_local_soln);
+    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+
+    // Solve for the nodal values.
+    F_rhs_vec->close();
+    computeL2Projection(F_vec, *F_rhs_vec, system_name, use_consistent_mass_matrix, true /*close_U*/, true /*close_F*/);
+
+    IBTK_TIMER_STOP(t_restrict_data);
+    return;
+} // restrictData_cell
 
 std::pair<LinearSolver<double>*, SparseMatrix<double>*>
 FEDataManager::buildL2ProjectionSolver(const std::string& system_name)

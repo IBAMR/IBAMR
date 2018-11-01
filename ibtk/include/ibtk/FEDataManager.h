@@ -768,6 +768,26 @@ private:
                           bool accumulate_on_grid = true,
                           bool close_F = true,
                           bool close_X = true);
+    
+     /*!
+     * \brief Restrict side centered data from the Cartesian grid to the FE mesh.
+     */
+    void restrictData_side(int f_data_idx,
+                      libMesh::NumericVector<double>& F,
+                      libMesh::NumericVector<double>& X,
+                      const std::string& system_name,
+                      bool use_consistent_mass_matrix = true,
+                      bool close_X = true);
+    
+     /*!
+     * \brief Restrict cell centered data from the Cartesian grid to the FE mesh.
+     */
+    void restrictData_cell(int f_data_idx,
+                      libMesh::NumericVector<double>& F,
+                      libMesh::NumericVector<double>& X,
+                      const std::string& system_name,
+                      bool use_consistent_mass_matrix = true,
+                      bool close_X = true);
 
     /*!
      * Read object state from the restart file and initialize class data
