@@ -58,14 +58,14 @@ class BoundingBox
 {
 public:
     // Constructor.
-    BoundingBox(const Point &bottom,
-                const Point &top)
-        : d_bounding_points(bottom, top)
+    BoundingBox(const Point &bottom_point,
+                const Point &top_point)
+        : d_bounding_points(bottom_point, top_point)
     {
         for (unsigned int dim_n = 0; dim_n < NDIM; ++dim_n)
         {
             // Do not permit negative or zero volume boxes
-            TBOX_ASSERT(bottom[{dim_n}] < top[{dim_n}]);
+            TBOX_ASSERT(bottom()[dim_n] < top()[dim_n]);
         }
     }
 
@@ -80,7 +80,7 @@ public:
         for (unsigned int dim_n = 0; dim_n < NDIM; ++dim_n)
         {
             // Do not permit negative or zero volume boxes
-            TBOX_ASSERT(bottom[{dim_n}] < top[{dim_n}]);
+            TBOX_ASSERT(bottom()[dim_n] < top()[dim_n]);
         }
     }
 
@@ -97,7 +97,7 @@ public:
     bool point_inside(const Point &point) const
     {
         for (unsigned int dim_n = 0; dim_n < NDIM; ++dim_n)
-            if (!(bottom()[{dim_n}] <= point[{dim_n}] && point[{dim_n}] < top()[{dim_n}]))
+            if (!(bottom()[dim_n] <= point[dim_n] && point[dim_n] < top()[dim_n]))
                 return false;
         return true;
     }
@@ -121,25 +121,23 @@ public:
         : d_boxes(boxes)
     {
         TBOX_ASSERT(0 < d_boxes.size());
-        Point bottom;
-        Point top;
         for (unsigned int dim_n = 0; dim_n < NDIM; ++dim_n)
         {
-            bottom[dim_n] = std::min_element(
+            d_bounding_points.first[dim_n] = std::min_element(
                 d_boxes.begin(), d_boxes.end(),
                 [=](const BoundingBox &a,
                     const BoundingBox &b) -> bool
                 {
-                    return a.bottom()[{dim_n}] < b.bottom()[{dim_n}];
-                });
+                    return a.bottom()[dim_n] < b.bottom()[dim_n];
+                })->bottom()[dim_n];
 
-            top[dim_n] = std::max_element(
+            d_bounding_points.second[dim_n] = std::max_element(
                 d_boxes.begin(), d_boxes.end(),
                 [=](const BoundingBox &a,
                     const BoundingBox &b) -> bool
                 {
-                    return a.top()[{dim_n}] < b.top()[{dim_n}];
-                });
+                    return a.top()[dim_n] < b.top()[dim_n];
+                })->top()[dim_n];
         }
     }
 
@@ -157,7 +155,7 @@ public:
     {
         // start with the cheaper check:
         for (unsigned int dim_n = 0; dim_n < NDIM; ++dim_n)
-            if (!(bottom()[{dim_n}] <= point[{dim_n}] && point[{dim_n}] < top()[{dim_n}]))
+            if (!(bottom()[dim_n] <= point[dim_n] && point[dim_n] < top()[dim_n]))
                 return false;
 
         // TODO it would be vastly more efficient to store the collection of

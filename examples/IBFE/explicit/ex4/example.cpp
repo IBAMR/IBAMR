@@ -310,9 +310,11 @@ bool run_example(int argc, char** argv)
                                         box_generator,
                                         load_balancer);
 
-        // VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        // Pointer<CellVariable<NDIM, double> > rank_cc_var = new CellVariable<NDIM, double>("rank_cc");
-        // const int rank_cc_idx = var_db->registerVariableAndContext(rank_cc_var, ctx, IntVector<NDIM>(1));
+        // TODO the IBAMR classes set up their own variables.
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        Pointer<CellVariable<NDIM, double> > rank_cc_var = new CellVariable<NDIM, double>("rank_cc");
+        // TODO get rid of nullptr
+        const int rank_cc_idx = var_db->registerVariableAndContext(rank_cc_var, nullptr, IntVector<NDIM>(1));
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
         visit_data_writer->registerPlotQuantity(rank_cc_var->getName(), "SCALAR", rank_cc_idx);
 
