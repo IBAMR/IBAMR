@@ -139,6 +139,8 @@ find_struct_handle_position(itr begin, itr end, const T& value)
         else
             ++position;
     }
+
+    TBOX_ASSERT(false);
     return -1;
 }
 

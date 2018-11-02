@@ -690,6 +690,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
 
             int struct_handle = 0;
             if (structs_on_this_ln > 1) struct_handle = getStructureHandle(lag_idx);
+            TBOX_ASSERT(struct_handle != -1);
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -810,6 +811,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
 
             int struct_handle = 0;
             if (structs_on_this_ln > 1) struct_handle = getStructureHandle(lag_idx);
+            TBOX_ASSERT(struct_handle != -1);
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -1776,6 +1778,7 @@ CIBMethod::computeCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass, 
 
             int struct_handle = 0;
             if (structs_on_this_ln > 1) struct_handle = getStructureHandle(lag_idx);
+            TBOX_ASSERT(struct_handle != -1);
 
             for (unsigned int d = 0; d < NDIM; ++d) center_of_mass[struct_handle][d] += X[d];
         }

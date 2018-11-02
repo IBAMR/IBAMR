@@ -40,6 +40,8 @@
 
 #include "ibamr/MobilityFunctions.h"
 
+#include "tbox/Utilities.h"
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -113,6 +115,7 @@ get_sqnorm(const double* a_vec)
     return a_vec[0] * a_vec[0] + a_vec[1] * a_vec[1];
 #endif
 
+    TBOX_ASSERT(false);
     return -1.0;
 } // get_sqnorm
 
