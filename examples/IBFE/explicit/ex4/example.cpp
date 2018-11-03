@@ -68,6 +68,7 @@
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+#include <ibtk/BoundingBox.h>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -311,64 +312,7 @@ bool run_example(int argc, char** argv)
                                         load_balancer);
 
         // TODO the IBAMR classes set up their own variables.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<CellVariable<NDIM, double> > rank_cc_var = new CellVariable<NDIM, double>("rank_cc");
-        // TODO get rid of nullptr
-        const int rank_cc_idx = var_db->registerVariableAndContext(rank_cc_var, nullptr, IntVector<NDIM>(1));
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
-        visit_data_writer->registerPlotQuantity(rank_cc_var->getName(), "SCALAR", rank_cc_idx);
-
-        {
-            const int n_nodes = SAMRAI_MPI::getNodes();
-            const int current_rank = SAMRAI_MPI::getRank();
-
-            unsigned int n_elements = 0;
-            for (auto el = mesh.active_local_elements_begin(); el != mesh.active_local_elements_end(); ++el)
-                ++n_elements;
-
-            std::ostringstream mesh_out;
-            mesh.print_info(mesh_out);
-
-            for (int rank = 0; rank < n_nodes; ++rank)
-            {
-                if (rank == current_rank)
-                {
-                    // TODO: for reasons beyond my comprehension (possibly due
-                    // to static linking) we cannot reliably use std::cout to
-                    // write messages, so fall back to std::printf.
-                    std::printf("mesh info:\n %s\n", mesh_out.str().c_str());
-                }
-                SAMRAI_MPI::barrier();
-            }
-
-            // The Exodus output from a previous version of this program that
-            // used an EquationSystem to store element data was
-            // corrupted. Rather than deal with Exodus, I will just write my
-            // own output as points:
-            {
-                std::remove("elem-centers.txt");
-                for (int rank = 0; rank < n_nodes; ++rank)
-                {
-                    if (rank == current_rank)
-                    {
-                        std::ofstream centers("elem-centers.txt", std::ios_base::app);
-                        if (current_rank == 0)
-                            centers << "x,y,z,rank\n";
-                        for (auto el = mesh.active_local_elements_begin();
-                             el != mesh.active_local_elements_end(); ++el)
-                        {
-                            const libMesh::Point centroid = (*el)->centroid();
-                            centers << centroid(0) << ','
-                                    << centroid(1) << ','
-                                    << centroid(2) << ','
-                                    << current_rank << '\n';
-                        }
-                    }
-
-                    SAMRAI_MPI::barrier();
-                }
-            }
-        }
 
         // Configure the IBFE solver.
         ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
@@ -512,6 +456,108 @@ bool run_example(int argc, char** argv)
                 if (ib_post_processor) ib_post_processor->postProcessData(loop_time);
                 exodus_io->write_timestep(
                     exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+            }
+        }
+
+        {
+            const int n_nodes = SAMRAI_MPI::getNodes();
+            const int current_rank = SAMRAI_MPI::getRank();
+
+            unsigned int n_elements = 0;
+            for (auto el = mesh.active_local_elements_begin(); el != mesh.active_local_elements_end(); ++el)
+                ++n_elements;
+
+            std::ostringstream mesh_out;
+            mesh.print_info(mesh_out);
+
+            for (int rank = 0; rank < n_nodes; ++rank)
+            {
+                if (rank == current_rank)
+                {
+                    // TODO: for reasons beyond my comprehension (possibly due
+                    // to static linking) we cannot reliably use std::cout to
+                    // write messages, so fall back to std::printf.
+                    std::printf("mesh info:\n %s\n", mesh_out.str().c_str());
+                }
+                SAMRAI_MPI::barrier();
+            }
+
+            // The Exodus output from a previous version of this program that
+            // used an EquationSystem to store element data was
+            // corrupted. Rather than deal with Exodus, I will just write my
+            // own output as points:
+            {
+                if (current_rank == 0)
+                    std::remove("elem-centers.txt");
+
+                for (int rank = 0; rank < n_nodes; ++rank)
+                {
+                    if (rank == current_rank)
+                    {
+                        std::ofstream centers("elem-centers.txt", std::ios_base::app);
+                        if (current_rank == 0)
+                            centers << "x,y,z,rank\n";
+                        for (auto el = mesh.active_local_elements_begin();
+                             el != mesh.active_local_elements_end(); ++el)
+                        {
+                            const libMesh::Point centroid = (*el)->centroid();
+                            centers << centroid(0) << ','
+                                    << centroid(1) << ','
+                                    << centroid(2) << ','
+                                    << current_rank << '\n';
+                        }
+                    }
+
+                    SAMRAI_MPI::barrier();
+                }
+            }
+
+            const int finest_level = patch_hierarchy->getFinestLevelNumber();
+            if (current_rank == 0)
+                std::remove("elem-centers-eulerian-partition.txt");
+
+            std::vector<IBTK::BoundingBox> boxes;
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(finest_level);
+
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                const Patch<NDIM> &patch = *level->getPatch(p());
+                Pointer<CartesianPatchGeometry<NDIM> > patch_geometry = patch.getPatchGeometry();
+                boxes.emplace_back(*patch_geometry);
+            }
+
+            IBTK::BoundingBoxes bounding_boxes(boxes);
+            std::vector<libMesh::Point> centroids;
+            for (auto el = mesh.active_elements_begin();
+                 el != mesh.active_elements_end(); ++el)
+            {
+                const libMesh::Point libmesh_centroid = (*el)->centroid();
+                IBTK::Point centroid;
+                for (unsigned int d = 0; d < NDIM; ++d)
+                    centroid[d] = libmesh_centroid(d);
+
+                if (bounding_boxes.point_inside(centroid))
+                    centroids.push_back(libmesh_centroid);
+            }
+
+            for (int rank = 0; rank < n_nodes; ++rank)
+            {
+                if (rank == current_rank)
+                {
+                    std::ofstream centers("elem-centers-eulerian-partition.txt",
+                                          std::ios_base::app);
+                    if (current_rank == 0)
+                        centers << "x,y,z,rank\n";
+                    for (const libMesh::Point &centroid : centroids)
+                    {
+                        centers << centroid(0) << ','
+                                << centroid(1) << ','
+                                << centroid(2) << ','
+                                << current_rank << '\n';
+                    }
+                }
+
+                SAMRAI_MPI::barrier();
             }
         }
 
