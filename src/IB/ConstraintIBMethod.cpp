@@ -460,6 +460,10 @@ ConstraintIBMethod::postprocessSolveFluidEquations(double current_time, double n
         applyProjection();
         IBTK_TIMER_STOP(t_applyProjection);
     }
+    if (!d_rho_is_const)
+    {
+        computePostProcessLagrangianQuantities();
+    }
 
     if (d_output_drag) calculateDrag();
     if (d_output_torque) calculateTorque();
@@ -734,6 +738,12 @@ ConstraintIBMethod::preprocessIntegrateData(double current_time, double new_time
     d_l_data_X_new_MidPoint.resize(finest_ln + 1);
     d_l_data_U_current.resize(finest_ln + 1);
 
+    // Clear these here because we want them to be available even after postprocessIntegrateData gets called
+    d_l_data_rho_interp.clear();
+    d_l_data_lambda.clear();
+    d_l_data_rho_interp.resize(finest_ln + 1);
+    d_l_data_lambda.resize(finest_ln + 1);
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -744,6 +754,8 @@ ConstraintIBMethod::preprocessIntegrateData(double current_time, double new_time
         d_l_data_X_half_Euler[ln] = d_l_data_manager->createLData(d_object_name + "X_Euler", ln, NDIM, false);
         d_l_data_X_new_MidPoint[ln] = d_l_data_manager->createLData(d_object_name + "X_MidPoint", ln, NDIM, false);
         d_l_data_U_current[ln] = d_l_data_manager->createLData(d_object_name + "current_lag_vel", ln, NDIM, false);
+        d_l_data_rho_interp[ln] = d_l_data_manager->createLData(d_object_name + "interp_lag_rho", ln, NDIM, false);
+        d_l_data_lambda[ln] = d_l_data_manager->createLData(d_object_name + "interp_lag_lambda", ln, NDIM, false);
     }
 
     // Compue the current Lagrangian velocity according to constraint for the predictor Euler step.
@@ -2845,5 +2857,103 @@ ConstraintIBMethod::calculateStructureRotationalMomentum()
 
     return;
 } // calculateStructureRotationalMomentum
+
+void
+ConstraintIBMethod::computePostProcessLagrangianQuantities()
+{
+    const double dt = d_FuRMoRP_new_time - d_FuRMoRP_current_time;
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    // First interpolate the density
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > R_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(NULL));
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > X_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(NULL));
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+        R_data[ln] = d_l_data_rho_interp[ln];
+        X_data[ln] = d_l_data_X_half_Euler[ln];
+    }
+    copyDensityVariable(d_rho_ins_idx, d_rho_scratch_idx);
+    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> transaction_comps;
+    InterpolationTransactionComponent component(d_rho_scratch_idx,
+                                                DATA_REFINE_TYPE,
+                                                USE_CF_INTERPOLATION,
+                                                SIDE_DATA_COARSEN_TYPE,
+                                                BDRY_EXTRAP_TYPE,
+                                                CONSISTENT_TYPE_2_BDRY,
+                                                std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM, NULL),
+                                                NULL);
+    transaction_comps.push_back(component);
+    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    hier_bdry_fill->initializeOperatorState(transaction_comps, d_hierarchy, coarsest_ln, finest_ln);
+    const bool homogeneous_bc = true;
+    hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
+    hier_bdry_fill->fillData(d_FuRMoRP_new_time);
+
+    // Synchronize the density patch data
+    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    SynchronizationTransactionComponent rho_synch_transaction =
+        SynchronizationTransactionComponent(d_rho_scratch_idx, "CONSERVATIVE_COARSEN");
+    Pointer<SideDataSynchronization> side_synch_op = new SideDataSynchronization();
+    side_synch_op->initializeOperatorState(rho_synch_transaction, d_hierarchy);
+    side_synch_op->synchronizeData(d_FuRMoRP_new_time);
+
+    // Interpolate
+    d_l_data_manager->interp(d_rho_scratch_idx, R_data, X_data);
+
+    // Next, compute the full Lagrange multiplier
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+
+        // Get pointer to LData.
+        boost::multi_array_ref<double, 2>& lambda_data = *d_l_data_lambda[ln]->getLocalFormVecArray();
+        const boost::multi_array_ref<double, 2>& U_corr_data = *d_l_data_U_correction[ln]->getLocalFormVecArray();
+        const boost::multi_array_ref<double, 2>& rho_fluid_lag = *d_l_data_rho_interp[ln]->getLocalFormVecArray();
+
+        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+
+        // Get structures on this level.
+        const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
+        const size_t structs_on_this_ln = structIDs.size();
+
+        for (size_t struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+        {
+            std::pair<int, int> lag_idx_range =
+                d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
+            Pointer<ConstraintIBKinematics> ptr_ib_kinematics =
+                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
+            const int location_struct_handle =
+                find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
+
+            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            {
+                const LNode* const node_idx = *cit;
+                const int lag_idx = node_idx->getLagrangianIndex();
+                if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
+                {
+                    const int local_idx = node_idx->getLocalPETScIndex();
+                    double* const lambda = &lambda_data[local_idx][0];
+                    const double* const rho = &rho_fluid_lag[local_idx][0];
+                    const double* const U_corr = &U_corr_data[local_idx][0];
+
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        // U_corr = (U_new - U) * vol_element
+                        lambda[d] = (rho[d] / dt) * (U_corr[d] / d_vol_element[location_struct_handle]);
+                    }
+                } // choose a struct
+            }     // all nodes on a level
+        }         // all structs
+        d_l_data_rho_interp[ln]->restoreArrays();
+        d_l_data_lambda[ln]->restoreArrays();
+        d_l_data_U_correction[ln]->restoreArrays();
+    } // all levels
+    return;
+} // computePostProcessLagrangianQuantities
 
 } // namespace IBAMR
