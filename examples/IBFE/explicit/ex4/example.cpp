@@ -73,6 +73,64 @@
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
 
+
+
+class SAMRAIPartitioner : public libMesh::Partitioner
+{
+    SAMRAIPartitioner(const Pointer<PatchHierarchy<NDIM> > &patch_hierarchy);
+
+    virtual
+    std::unique_ptr<libMesh::Partitioner>
+    clone() const override;
+
+    virtual
+    void
+    partition(MeshBase           &mesh,
+              const unsigned int  n) override;
+
+protected:
+    Pointer<PatchHierarchy<NDIM> > patch_hierarchy;
+    BoundingBoxes bounding_boxes;
+};
+
+
+
+SAMRAIPartitioner::SAMRAIPartitioner(const Pointer<PatchHierarchy<NDIM> > &patch_hierarchy)
+{
+    std::vector<IBTK::BoundingBox> boxes;
+    const int finest_level = patch_hierarchy->getFinestLevelNumber();
+    Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(finest_level);
+
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        const Patch<NDIM> &patch = *level->getPatch(p());
+        Pointer<CartesianPatchGeometry<NDIM> > patch_geometry = patch.getPatchGeometry();
+        boxes.emplace_back(*patch_geometry);
+    }
+}
+
+
+
+
+std::unique_ptr<libMesh::Partitioner>
+SAMRAIPartitioner::clone() const
+{
+    TBOX_ASSERT(false); // not implemented yet
+    return {};
+}
+
+
+
+
+void
+SAMRAIPartitioner::partition(MeshBase           &mesh,
+                             const unsigned int  n)
+{
+    TBOX_ASSERT(false); // not implemented yet
+}
+
+
+
 // Elasticity model data.
 namespace ModelData
 {
@@ -526,7 +584,7 @@ bool run_example(int argc, char** argv)
                 boxes.emplace_back(*patch_geometry);
             }
 
-            IBTK::BoundingBoxes bounding_boxes(boxes);
+            IBTK::BoundingBoxes bounding_boxes(boxes.begin(), boxes.end());
             std::vector<libMesh::Point> centroids;
             for (auto el = mesh.active_elements_begin();
                  el != mesh.active_elements_end(); ++el)

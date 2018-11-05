@@ -39,6 +39,7 @@
 #include <CartesianPatchGeometry.h>
 
 #include <algorithm>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -52,11 +53,22 @@ namespace IBTK
  * \brief Class BoundingBox implements an NDIM-dimensional bounding box
  * defined by two points.
  *
- *
-*/
+ * It is possible for the bounding box to be 'empty': in that case the bounds
+ * are [oo, oo).
+ */
 class BoundingBox
 {
 public:
+    // Default Constructor: an 'empty' bounding box.
+    BoundingBox()
+    {
+        for (unsigned int dim_n = 0; dim_n < NDIM; ++dim_n)
+        {
+            d_bounding_points.first[dim_n] = std::numeric_limits<double>::infinity();
+            d_bounding_points.second[dim_n] = std::numeric_limits<double>::infinity();
+        }
+    }
+
     // Constructor.
     BoundingBox(const Point &bottom_point,
                 const Point &top_point)
@@ -64,8 +76,8 @@ public:
     {
         for (unsigned int dim_n = 0; dim_n < NDIM; ++dim_n)
         {
-            // Do not permit negative or zero volume boxes
-            TBOX_ASSERT(bottom()[dim_n] < top()[dim_n]);
+            // Do not permit negative volume boxes, but zero volume is okay
+            TBOX_ASSERT(bottom()[dim_n] <= top()[dim_n]);
         }
     }
 
@@ -80,7 +92,7 @@ public:
         for (unsigned int dim_n = 0; dim_n < NDIM; ++dim_n)
         {
             // Do not permit negative or zero volume boxes
-            TBOX_ASSERT(bottom()[dim_n] < top()[dim_n]);
+            TBOX_ASSERT(bottom()[dim_n] <= top()[dim_n]);
         }
     }
 
@@ -102,6 +114,24 @@ public:
         return true;
     }
 
+    double volume() const
+    {
+        // The bounds may be infinite: check for point equality first to avoid
+        // evaluating oo - oo
+        for (unsigned int dim_n = 0; dim_n < NDIM; ++dim_n)
+        {
+            if (d_bounding_points.first[dim_n] == d_bounding_points.second[dim_n])
+                return 0.0;
+        }
+
+        double vol = 1.0;
+        for (unsigned int dim_n = 0; dim_n < NDIM; ++dim_n)
+        {
+            vol *= d_bounding_points.second[dim_n] - d_bounding_points.first[dim_n];
+        }
+        return vol;
+    }
+
 protected:
     std::pair<Point, Point> d_bounding_points;
 };
@@ -109,35 +139,61 @@ protected:
 
 
 /*!
- * \brief Class BoundingBoxes implements an NDIM-dimensional bounding box
- * defined by two points.
+ * \brief Class BoundingBoxes stores a set of bounding boxes and can check if
+ * a point is in the set of bounding boxes or not in a more optimized way than
+ * just looping over a std::vector<BoundingBox>.
  *
- *
-*/
+ * It is possible for the bounding box to be 'empty': in that case the bounds
+ * are [oo, oo).
+ */
 class BoundingBoxes
 {
 public:
-    BoundingBoxes(const std::vector<BoundingBox> &boxes)
-        : d_boxes(boxes)
+    // Default Constructor: an 'empty' bounding box.
+    BoundingBoxes()
     {
-        TBOX_ASSERT(0 < d_boxes.size());
         for (unsigned int dim_n = 0; dim_n < NDIM; ++dim_n)
         {
-            d_bounding_points.first[dim_n] = std::min_element(
-                d_boxes.begin(), d_boxes.end(),
-                [=](const BoundingBox &a,
-                    const BoundingBox &b) -> bool
-                {
-                    return a.bottom()[dim_n] < b.bottom()[dim_n];
-                })->bottom()[dim_n];
+            d_bounding_points.first[dim_n] = std::numeric_limits<double>::infinity();
+            d_bounding_points.second[dim_n] = std::numeric_limits<double>::infinity();
+        }
+    }
 
-            d_bounding_points.second[dim_n] = std::max_element(
-                d_boxes.begin(), d_boxes.end(),
-                [=](const BoundingBox &a,
-                    const BoundingBox &b) -> bool
-                {
-                    return a.top()[dim_n] < b.top()[dim_n];
-                })->top()[dim_n];
+    template <typename ForwardIterator>
+    BoundingBoxes(const ForwardIterator begin, const ForwardIterator end)
+        : d_boxes(begin, end)
+    {
+        static_assert(std::is_same<decltype(*begin), BoundingBox &>::value ||
+                      std::is_same<decltype(*begin), const BoundingBox &>::value,
+                      "The iterators should point to BoundingBoxes");
+        if (begin != end)
+        {
+            for (unsigned int dim_n = 0; dim_n < NDIM; ++dim_n)
+            {
+                d_bounding_points.first[dim_n] = std::min_element(
+                    begin, end,
+                    [=](const BoundingBox &a,
+                        const BoundingBox &b) -> bool
+                    {
+                        return a.bottom()[dim_n] < b.bottom()[dim_n];
+                    })->bottom()[dim_n];
+
+                d_bounding_points.second[dim_n] = std::max_element(
+                    begin, end,
+                    [=](const BoundingBox &a,
+                        const BoundingBox &b) -> bool
+                    {
+                        return a.top()[dim_n] < b.top()[dim_n];
+                    })->top()[dim_n];
+            }
+        }
+        else
+        {
+            for (unsigned int dim_n = 0; dim_n < NDIM; ++dim_n)
+            {
+                d_bounding_points.first[dim_n] = std::numeric_limits<double>::infinity();
+                d_bounding_points.second[dim_n] = std::numeric_limits<double>::infinity();
+            }
         }
     }
 

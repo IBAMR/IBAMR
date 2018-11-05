@@ -181,8 +181,8 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0),(N - 1,N - 1) ]
-   x_lo = -2*L,-2*L
-   x_up = 2*L,2*L
+   x_lo = -0.5*L,-0.5*L
+   x_up = 0.5*L,0.5*L
    periodic_dimension = 0,0
 }
 
