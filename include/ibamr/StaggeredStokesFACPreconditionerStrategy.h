@@ -55,6 +55,7 @@
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/FACPreconditionerStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -419,7 +420,7 @@ protected:
      * lists.  We use it to enforce working on one hierarchy at a time.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln = -1, d_finest_ln = -1;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     /*
      * Level operators, used to compute composite-grid residuals.
@@ -431,7 +432,7 @@ protected:
      * Range of levels to be reset the next time the operator is initialized.
      */
     bool d_in_initialize_operator_state = false;
-    int d_coarsest_reset_ln = -1, d_finest_reset_ln = -1;
+    int d_coarsest_reset_ln = IBTK::invalid_level_number, d_finest_reset_ln = IBTK::invalid_level_number;
 
     //\}
 
@@ -488,7 +489,7 @@ protected:
     /*
      * Patch descriptor indices for scratch data.
      */
-    int d_side_scratch_idx = -1, d_cell_scratch_idx = -1;
+    int d_side_scratch_idx = IBTK::invalid_index, d_cell_scratch_idx = IBTK::invalid_index;
 
     //\}
 

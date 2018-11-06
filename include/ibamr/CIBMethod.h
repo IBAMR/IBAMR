@@ -38,9 +38,9 @@
 #include "RobinBcCoefStrategy.h"
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/IBMethod.h"
-#include "ibamr/IBMethod.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
+#include "ibtk/ibtk_utilities.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -466,7 +466,7 @@ protected:
      * Eulerian variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_eul_lambda_var;
-    int d_eul_lambda_idx = -1;
+    int d_eul_lambda_idx = IBTK::invalid_index;
 
     /*!
      * Vector of Lagrnagian indices of all structures.

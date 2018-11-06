@@ -332,7 +332,7 @@ protected:
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
-    int d_workload_idx = -1;
+    int d_workload_idx = IBTK::invalid_index;
 
     /*
      * Lagrangian marker data structures.

@@ -40,6 +40,7 @@
 #include "Box.h"
 #include "IntVector.h"
 #include "VariableFillPattern.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -193,7 +194,7 @@ private:
     const bool d_include_dst_patch_box;
     const bool d_include_edges_on_dst_level;
     const bool d_include_edges_on_src_level;
-    int d_target_level_num = -1;
+    int d_target_level_num = IBTK::invalid_level_number;
 };
 } // namespace IBTK
 

@@ -47,6 +47,7 @@
 #include "PatchHierarchy.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -305,7 +306,7 @@ private:
     /*!
      * \brief Associated patch level and C-F boundary (for level numbers > 0).
      */
-    int d_level_num = -1;
+    int d_level_num = IBTK::invalid_level_number;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_level;
     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 

@@ -43,6 +43,7 @@
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/LinearSolver.h"
+#include "ibtk/ibtk_utilities.h"
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscvec.h"
@@ -295,7 +296,7 @@ protected:
     /*!
      * \brief Associated patch level and C-F boundary (for level numbers > 0).
      */
-    int d_level_num = -1;
+    int d_level_num = IBTK::invalid_level_number;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_level;
     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 

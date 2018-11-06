@@ -44,6 +44,7 @@
 #include "VariableContext.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 
@@ -194,16 +195,16 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_W_cc_var;
-    int d_W_cc_idx = -1;
+    int d_W_cc_idx = IBTK::invalid_index;
     std::vector<int> d_W_cc_idxs;
 #if (NDIM == 2)
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_W_nc_var;
-    int d_W_nc_idx = -1;
+    int d_W_nc_idx = IBTK::invalid_index;
     std::vector<int> d_W_nc_idxs;
 #endif
 #if (NDIM == 3)
     SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_W_ec_var;
-    int d_W_ec_idx = -1;
+    int d_W_ec_idx = IBTK::invalid_index;
     std::vector<int> d_W_ec_idxs;
 #endif
 };

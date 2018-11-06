@@ -44,6 +44,7 @@
 #include "SideVariable.h"
 #include "VariableContext.h"
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_utilities.h"
 #include "muParser.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
@@ -199,9 +200,10 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_cc_var;
-    int d_C_current_cc_idx = -1, d_C_half_cc_idx = -1, d_C_new_cc_idx = -1;
+    int d_C_current_cc_idx = IBTK::invalid_index, d_C_half_cc_idx = IBTK::invalid_index,
+        d_C_new_cc_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_F_sc_var;
-    int d_F_sc_idx = -1;
+    int d_F_sc_idx = IBTK::invalid_index;
     std::vector<int> d_F_sc_idxs;
 };
 } // namespace IBAMR

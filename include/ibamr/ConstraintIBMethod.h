@@ -51,6 +51,7 @@
 #include "ibtk/FACPreconditioner.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/PETScKrylovPoissonSolver.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 namespace IBAMR
@@ -579,7 +580,7 @@ private:
      * Variables associated with the spatially varying density field, which is maintained by an integrator.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_var;
-    int d_rho_ins_idx = -1, d_rho_scratch_idx = -1;
+    int d_rho_ins_idx = IBTK::invalid_index, d_rho_scratch_idx = IBTK::invalid_index;
 
     /*!
      * The following variables are needed to solve cell centered poison equation for \f$ \phi \f$ ,which is

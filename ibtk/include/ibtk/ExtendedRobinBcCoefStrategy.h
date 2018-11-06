@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "RobinBcCoefStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -88,7 +89,7 @@ protected:
     /*
      * The patch data index corresponding to the data to be filled.
      */
-    int d_target_data_idx = -1;
+    int d_target_data_idx = IBTK::invalid_index;
 
     /*
      * Whether to use homogeneous boundary conditions.

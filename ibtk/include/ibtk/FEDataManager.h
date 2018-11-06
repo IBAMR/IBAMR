@@ -780,7 +780,7 @@ private:
      * Grid hierarchy information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln = -1, d_finest_ln = -1;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     /*
      * SAMRAI::hier::VariableContext object used for data management.
@@ -826,7 +826,7 @@ private:
      * FE equation system associated with this data manager object.
      */
     libMesh::EquationSystems* d_es = nullptr;
-    int d_level_number = -1;
+    int d_level_number = IBTK::invalid_level_number;
     std::map<unsigned int, SAMRAI::tbox::Pointer<SystemDofMapCache> > d_system_dof_map_cache;
 
     /*

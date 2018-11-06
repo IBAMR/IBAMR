@@ -1047,7 +1047,7 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
-    int d_coarsest_ln = -1, d_finest_ln = -1;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     /*
      * We cache a pointer to the visualization data writers to register plot
@@ -1073,7 +1073,7 @@ private:
      * LNodeData used to define the data distribution.
      */
     SAMRAI::tbox::Pointer<LNodeSetVariable> d_lag_node_index_var;
-    int d_lag_node_index_current_idx = -1, d_lag_node_index_scratch_idx = -1;
+    int d_lag_node_index_current_idx = IBTK::invalid_index, d_lag_node_index_scratch_idx = IBTK::invalid_index;
     std::vector<SAMRAI::tbox::Pointer<std::vector<LNode> > > d_local_and_ghost_nodes;
 
     /*
@@ -1083,7 +1083,7 @@ private:
      */
     double d_beta_work = 1.0;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
-    int d_workload_idx = -1;
+    int d_workload_idx = IBTK::invalid_index;
     bool d_output_workload = false;
 
     /*
@@ -1092,7 +1092,7 @@ private:
      * for visualization and tagging purposes.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_node_count_var;
-    int d_node_count_idx = -1;
+    int d_node_count_idx = IBTK::invalid_index;
     bool d_output_node_count = false;
 
     /*

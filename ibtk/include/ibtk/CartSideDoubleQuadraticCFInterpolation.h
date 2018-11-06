@@ -45,6 +45,7 @@
 #include "RefineOperator.h"
 #include "SideVariable.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -256,7 +257,7 @@ private:
     std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM>*> d_cf_boundary;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_sc_indicator_var =
         new SAMRAI::pdat::SideVariable<NDIM, int>("CartSideDoubleQuadraticCFInterpolation::sc_indicator_var");
-    int d_sc_indicator_idx = -1;
+    int d_sc_indicator_idx = IBTK::invalid_index;
 };
 } // namespace IBTK
 

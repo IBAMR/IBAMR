@@ -42,6 +42,7 @@
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -219,9 +220,9 @@ private:
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
-    int d_F_U_mod_idx = -1;
+    int d_F_U_mod_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_P_var;
-    int d_P_scratch_idx = -1, d_F_P_mod_idx = -1;
+    int d_P_scratch_idx = IBTK::invalid_index, d_F_P_mod_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR
 

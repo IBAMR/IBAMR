@@ -52,6 +52,7 @@
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK
@@ -386,7 +387,7 @@ protected:
      * lists.  We use it to enforce working on one hierarchy at a time.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln = -1, d_finest_ln = -1;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     /*
      * HierarchyDataOpsReal objects restricted to a single level of the patch
@@ -404,7 +405,7 @@ protected:
      * Range of levels to be reset the next time the operator is initialized.
      */
     bool d_in_initialize_operator_state = false;
-    int d_coarsest_reset_ln = -1, d_finest_reset_ln = -1;
+    int d_coarsest_reset_ln = IBTK::invalid_level_number, d_finest_reset_ln = IBTK::invalid_level_number;
 
     //\}
 
@@ -453,7 +454,7 @@ protected:
     /*
      * Patch descriptor index for scratch data.
      */
-    int d_scratch_idx = -1;
+    int d_scratch_idx = IBTK::invalid_index;
 
     //\}
 

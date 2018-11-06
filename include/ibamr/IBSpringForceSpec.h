@@ -39,6 +39,7 @@
 
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -220,7 +221,7 @@ private:
     /*!
      * Data required to define the spring forces.
      */
-    int d_master_idx = -1;
+    int d_master_idx = IBTK::invalid_index;
     std::vector<int> d_slave_idxs, d_force_fcn_idxs;
     std::vector<std::vector<double> > d_parameters;
 

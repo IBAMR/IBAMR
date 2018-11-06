@@ -162,17 +162,17 @@ private:
     /*!
      * \brief Level set patch data index.
      */
-    int d_ls_solid_idx = -1;
+    int d_ls_solid_idx = IBTK::invalid_index;
 
     /*!
      * \brief Fluid velocity and pressure patch data indices.
      */
-    int d_u_idx = -1, d_p_idx = -1;
+    int d_u_idx = IBTK::invalid_index, d_p_idx = IBTK::invalid_index;
 
     /*!
      * \brief Viscosity patch data index.
      */
-    int d_mu_idx = -1;
+    int d_mu_idx = IBTK::invalid_index;
 
     /*!
      * \brief Viscosity for the constant mu case.

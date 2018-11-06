@@ -58,6 +58,7 @@
 #include "VariableContext.h"
 #include "ibtk/PatchMathOps.h"
 #include "ibtk/ibtk_enums.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
@@ -1448,7 +1449,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_sc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OuterfaceVariable<NDIM, double> > d_of_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideVariable<NDIM, double> > d_os_var;
-    int d_fc_idx = -1, d_sc_idx = -1, d_nc_idx = -1, d_ec_idx = -1, d_of_idx = -1, d_os_idx = -1;
+    int d_fc_idx = IBTK::invalid_index, d_sc_idx = IBTK::invalid_index, d_nc_idx = IBTK::invalid_index,
+        d_ec_idx = IBTK::invalid_index, d_of_idx = IBTK::invalid_index, d_os_idx = IBTK::invalid_index;
 
     // Communications operators, algorithms, and schedules.
     std::string d_coarsen_op_name;
@@ -1473,7 +1475,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_wgt_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_wgt_fc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_wgt_sc_var;
-    int d_wgt_cc_idx = -1, d_wgt_fc_idx = -1, d_wgt_sc_idx = -1;
+    int d_wgt_cc_idx = IBTK::invalid_index, d_wgt_fc_idx = IBTK::invalid_index, d_wgt_sc_idx = IBTK::invalid_index;
     bool d_using_wgt_cc = false, d_using_wgt_fc = false, d_using_wgt_sc = false;
     double d_volume = 0.0;
 };

@@ -47,6 +47,7 @@
 #include "RefinePatchStrategy.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -202,13 +203,13 @@ private:
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln = -1, d_finest_ln = -1;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_U_var;
-    int d_U_scratch_idx = -1;
+    int d_U_scratch_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_u_extrap_var, d_u_flux_var;
-    int d_u_extrap_idx = -1, d_u_flux_idx = -1;
+    int d_u_extrap_idx = IBTK::invalid_index, d_u_flux_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR
 

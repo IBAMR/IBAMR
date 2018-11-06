@@ -49,6 +49,7 @@
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
@@ -333,7 +334,7 @@ private:
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln = -1, d_finest_ln = -1;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Number of RK steps to take.
     int d_num_steps = 1;
@@ -346,9 +347,11 @@ private:
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_V_var;
-    int d_V_scratch_idx = -1, d_V_old_idx = -1, d_V_current_idx = -1, d_V_new_idx = -1, d_V_composite_idx, d_N_idx = -1;
+    int d_V_scratch_idx = IBTK::invalid_index, d_V_old_idx = IBTK::invalid_index, d_V_current_idx = IBTK::invalid_index,
+        d_V_new_idx = IBTK::invalid_index, d_V_composite_idx, d_N_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var;
-    int d_rho_sc_current_idx = -1, d_rho_sc_scratch_idx = -1, d_rho_sc_new_idx = -1;
+    int d_rho_sc_current_idx = IBTK::invalid_index, d_rho_sc_scratch_idx = IBTK::invalid_index,
+        d_rho_sc_new_idx = IBTK::invalid_index;
 
     // Hierarchy operation objects.
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
@@ -376,7 +379,7 @@ private:
 
     // Source term variable and function for the mass density update.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_S_var;
-    int d_S_scratch_idx = -1;
+    int d_S_scratch_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
 
     // Variable to indicate the cycle number.

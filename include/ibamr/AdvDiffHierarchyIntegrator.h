@@ -47,6 +47,7 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -626,7 +627,7 @@ protected:
     std::vector<SAMRAI::tbox::Pointer<IBTK::PoissonSolver> > d_helmholtz_solvers;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> > d_helmholtz_rhs_ops;
     std::vector<bool> d_helmholtz_solvers_need_init, d_helmholtz_rhs_ops_need_init;
-    int d_coarsest_reset_ln = -1, d_finest_reset_ln = -1;
+    int d_coarsest_reset_ln = IBTK::invalid_level_number, d_finest_reset_ln = IBTK::invalid_level_number;
 
 private:
     /*!
