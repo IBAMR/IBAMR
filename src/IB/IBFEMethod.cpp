@@ -75,6 +75,7 @@
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
+#include "ibtk/SAMRAIPartitioner.h"
 #include "libmesh/auto_ptr.h"
 #include "libmesh/boundary_info.h"
 #include "libmesh/compare_types.h"
@@ -1576,6 +1577,18 @@ IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     // Cache pointers to the patch hierarchy and gridding algorithm.
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
+
+    // Prepare the mesh (if needed).
+    //
+    // TODO : un-hardcode the use of SAMRAIPartitioner.
+    for (MeshBase *mesh : d_meshes)
+    {
+        if (!mesh->is_prepared())
+        {
+            mesh->partitioner() = UniquePtr<libMesh::Partitioner>(new SAMRAIPartitioner(*hierarchy));
+            mesh->prepare_for_use();
+        }
+    }
 
     // Initialize the FE data manager.
     for (unsigned int part = 0; part < d_num_parts; ++part)
