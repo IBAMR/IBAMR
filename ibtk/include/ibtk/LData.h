@@ -302,7 +302,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LData();
+    LData() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -311,7 +311,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LData(const LData& from);
+    LData(const LData& from) = delete;
 
     /*
      * Extract the array data.

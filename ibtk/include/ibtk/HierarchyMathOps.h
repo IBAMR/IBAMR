@@ -1376,7 +1376,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    HierarchyMathOps();
+    HierarchyMathOps() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -1385,7 +1385,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    HierarchyMathOps(const HierarchyMathOps& from);
+    HierarchyMathOps(const HierarchyMathOps& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -1396,7 +1396,7 @@ private:
      *
      * \return A reference to this object.
      */
-    HierarchyMathOps& operator=(const HierarchyMathOps& that);
+    HierarchyMathOps& operator=(const HierarchyMathOps& that) = delete;
 
     /*!
      * \brief Reset the coarsen operators.

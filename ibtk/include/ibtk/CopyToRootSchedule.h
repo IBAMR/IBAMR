@@ -101,7 +101,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CopyToRootSchedule();
+    CopyToRootSchedule() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -110,7 +110,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CopyToRootSchedule(const CopyToRootSchedule& from);
+    CopyToRootSchedule(const CopyToRootSchedule& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -121,7 +121,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CopyToRootSchedule& operator=(const CopyToRootSchedule& that);
+    CopyToRootSchedule& operator=(const CopyToRootSchedule& that) = delete;
 
     void commonClassCtor();
 

@@ -750,7 +750,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PatchMathOps(const PatchMathOps& from);
+    PatchMathOps(const PatchMathOps& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -761,7 +761,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PatchMathOps& operator=(const PatchMathOps& that);
+    PatchMathOps& operator=(const PatchMathOps& that) = delete;
 };
 } // namespace IBTK
 

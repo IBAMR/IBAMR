@@ -289,7 +289,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FixedSizedStream();
+    FixedSizedStream() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -298,7 +298,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FixedSizedStream(const FixedSizedStream& from);
+    FixedSizedStream(const FixedSizedStream& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -309,7 +309,7 @@ private:
      *
      * \return A reference to this object.
      */
-    FixedSizedStream& operator=(const FixedSizedStream& that);
+    FixedSizedStream& operator=(const FixedSizedStream& that) = delete;
 
     /*!
      * \brief Return a pointer to buffer space and advance internal pointers to

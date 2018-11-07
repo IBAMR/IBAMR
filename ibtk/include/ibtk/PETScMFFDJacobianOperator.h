@@ -189,7 +189,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PETScMFFDJacobianOperator();
+    PETScMFFDJacobianOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -198,7 +198,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScMFFDJacobianOperator(const PETScMFFDJacobianOperator& from);
+    PETScMFFDJacobianOperator(const PETScMFFDJacobianOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -209,7 +209,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScMFFDJacobianOperator& operator=(const PETScMFFDJacobianOperator& that);
+    PETScMFFDJacobianOperator& operator=(const PETScMFFDJacobianOperator& that) = delete;
 
     static PetscErrorCode FormFunction_SAMRAI(void* p_ctx, Vec x, Vec f);
 

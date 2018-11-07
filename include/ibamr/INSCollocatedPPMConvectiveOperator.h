@@ -174,7 +174,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSCollocatedPPMConvectiveOperator();
+    INSCollocatedPPMConvectiveOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -183,7 +183,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSCollocatedPPMConvectiveOperator(const INSCollocatedPPMConvectiveOperator& from);
+    INSCollocatedPPMConvectiveOperator(const INSCollocatedPPMConvectiveOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -194,7 +194,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSCollocatedPPMConvectiveOperator& operator=(const INSCollocatedPPMConvectiveOperator& that);
+    INSCollocatedPPMConvectiveOperator& operator=(const INSCollocatedPPMConvectiveOperator& that) = delete;
 
     // Data communication algorithms, operators, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;

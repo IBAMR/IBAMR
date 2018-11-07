@@ -141,7 +141,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovLinearSolver(const KrylovLinearSolver& from);
+    KrylovLinearSolver(const KrylovLinearSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -152,7 +152,7 @@ private:
      *
      * \return A reference to this object.
      */
-    KrylovLinearSolver& operator=(const KrylovLinearSolver& that);
+    KrylovLinearSolver& operator=(const KrylovLinearSolver& that) = delete;
 };
 } // namespace IBTK
 

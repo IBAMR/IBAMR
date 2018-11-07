@@ -149,7 +149,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    StaggeredStokesPETScLevelSolver();
+    StaggeredStokesPETScLevelSolver() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -158,7 +158,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesPETScLevelSolver(const StaggeredStokesPETScLevelSolver& from);
+    StaggeredStokesPETScLevelSolver(const StaggeredStokesPETScLevelSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -169,7 +169,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesPETScLevelSolver& operator=(const StaggeredStokesPETScLevelSolver& that);
+    StaggeredStokesPETScLevelSolver& operator=(const StaggeredStokesPETScLevelSolver& that) = delete;
 
     /*!
      * \name PETSc objects.

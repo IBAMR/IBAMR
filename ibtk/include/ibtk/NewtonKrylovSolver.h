@@ -215,7 +215,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    NewtonKrylovSolver(const NewtonKrylovSolver& from);
+    NewtonKrylovSolver(const NewtonKrylovSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -226,7 +226,7 @@ private:
      *
      * \return A reference to this object.
      */
-    NewtonKrylovSolver& operator=(const NewtonKrylovSolver& that);
+    NewtonKrylovSolver& operator=(const NewtonKrylovSolver& that) = delete;
 };
 } // namespace IBTK
 

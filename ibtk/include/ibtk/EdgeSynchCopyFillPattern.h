@@ -127,7 +127,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    EdgeSynchCopyFillPattern();
+    EdgeSynchCopyFillPattern() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -136,7 +136,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    EdgeSynchCopyFillPattern(const EdgeSynchCopyFillPattern& from);
+    EdgeSynchCopyFillPattern(const EdgeSynchCopyFillPattern& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -147,7 +147,7 @@ private:
      *
      * \return A reference to this object.
      */
-    EdgeSynchCopyFillPattern& operator=(const EdgeSynchCopyFillPattern& that);
+    EdgeSynchCopyFillPattern& operator=(const EdgeSynchCopyFillPattern& that) = delete;
 
     SAMRAI::hier::IntVector<NDIM> d_stencil_width;
     const unsigned int d_axis;

@@ -103,7 +103,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    ExtendedRobinBcCoefStrategy(const ExtendedRobinBcCoefStrategy& from);
+    ExtendedRobinBcCoefStrategy(const ExtendedRobinBcCoefStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -114,7 +114,7 @@ private:
      *
      * \return A reference to this object.
      */
-    ExtendedRobinBcCoefStrategy& operator=(const ExtendedRobinBcCoefStrategy& that);
+    ExtendedRobinBcCoefStrategy& operator=(const ExtendedRobinBcCoefStrategy& that) = delete;
 };
 } // namespace IBTK
 

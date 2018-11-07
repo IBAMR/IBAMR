@@ -538,7 +538,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSHierarchyIntegrator(const INSHierarchyIntegrator& from);
+    INSHierarchyIntegrator(const INSHierarchyIntegrator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -549,7 +549,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSHierarchyIntegrator& operator=(const INSHierarchyIntegrator& that);
+    INSHierarchyIntegrator& operator=(const INSHierarchyIntegrator& that) = delete;
 
     /*!
      * Read input values from a given database.

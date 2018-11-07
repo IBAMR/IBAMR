@@ -166,7 +166,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesSolverManager(const StaggeredStokesSolverManager& from);
+    StaggeredStokesSolverManager(const StaggeredStokesSolverManager& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -177,7 +177,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesSolverManager& operator=(const StaggeredStokesSolverManager& that);
+    StaggeredStokesSolverManager& operator=(const StaggeredStokesSolverManager& that) = delete;
 
     /*!
      * Static data members used to control access to and destruction of

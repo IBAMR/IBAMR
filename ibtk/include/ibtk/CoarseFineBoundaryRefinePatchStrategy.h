@@ -216,7 +216,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CoarseFineBoundaryRefinePatchStrategy(const CoarseFineBoundaryRefinePatchStrategy& from);
+    CoarseFineBoundaryRefinePatchStrategy(const CoarseFineBoundaryRefinePatchStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -227,7 +227,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CoarseFineBoundaryRefinePatchStrategy& operator=(const CoarseFineBoundaryRefinePatchStrategy& that);
+    CoarseFineBoundaryRefinePatchStrategy& operator=(const CoarseFineBoundaryRefinePatchStrategy& that) = delete;
 };
 } // namespace IBTK
 

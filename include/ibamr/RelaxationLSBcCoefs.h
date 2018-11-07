@@ -164,7 +164,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    RelaxationLSBcCoefs(const RelaxationLSBcCoefs& from);
+    RelaxationLSBcCoefs(const RelaxationLSBcCoefs& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -175,7 +175,7 @@ private:
      *
      * \return A reference to this object.
      */
-    RelaxationLSBcCoefs& operator=(const RelaxationLSBcCoefs& that);
+    RelaxationLSBcCoefs& operator=(const RelaxationLSBcCoefs& that) = delete;
 
     const std::string d_object_name;
     int d_phi_idx;

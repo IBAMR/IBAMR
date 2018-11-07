@@ -76,7 +76,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    NormOps();
+    NormOps() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -85,7 +85,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    NormOps(const NormOps& from);
+    NormOps(const NormOps& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -96,7 +96,7 @@ private:
      *
      * \return A reference to this object.
      */
-    NormOps& operator=(const NormOps& that);
+    NormOps& operator=(const NormOps& that) = delete;
 
     /*!
      * \brief Compute the local L1 norm.

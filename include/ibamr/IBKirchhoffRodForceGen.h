@@ -117,7 +117,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBKirchhoffRodForceGen(const IBKirchhoffRodForceGen& from);
+    IBKirchhoffRodForceGen(const IBKirchhoffRodForceGen& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -128,7 +128,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBKirchhoffRodForceGen& operator=(const IBKirchhoffRodForceGen& that);
+    IBKirchhoffRodForceGen& operator=(const IBKirchhoffRodForceGen& that) = delete;
 
     /*!
      * \brief Read input values, indicated above, from given database.

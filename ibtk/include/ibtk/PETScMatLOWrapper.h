@@ -192,7 +192,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PETScMatLOWrapper();
+    PETScMatLOWrapper() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -201,7 +201,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScMatLOWrapper(const PETScMatLOWrapper& from);
+    PETScMatLOWrapper(const PETScMatLOWrapper& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -212,7 +212,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScMatLOWrapper& operator=(const PETScMatLOWrapper& that);
+    PETScMatLOWrapper& operator=(const PETScMatLOWrapper& that) = delete;
 
     const Mat d_petsc_mat;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_y, d_z;

@@ -218,7 +218,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartCellDoubleLinearCFInterpolation(const CartCellDoubleLinearCFInterpolation& from);
+    CartCellDoubleLinearCFInterpolation(const CartCellDoubleLinearCFInterpolation& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -229,7 +229,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartCellDoubleLinearCFInterpolation& operator=(const CartCellDoubleLinearCFInterpolation& that);
+    CartCellDoubleLinearCFInterpolation& operator=(const CartCellDoubleLinearCFInterpolation& that) = delete;
 
     /*!
      * The patch data indices corresponding to the "scratch" patch data that is

@@ -168,7 +168,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredStabilizedPPMConvectiveOperator();
+    INSStaggeredStabilizedPPMConvectiveOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -177,7 +177,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredStabilizedPPMConvectiveOperator(const INSStaggeredStabilizedPPMConvectiveOperator& from);
+    INSStaggeredStabilizedPPMConvectiveOperator(const INSStaggeredStabilizedPPMConvectiveOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -188,7 +188,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredStabilizedPPMConvectiveOperator& operator=(const INSStaggeredStabilizedPPMConvectiveOperator& that);
+    INSStaggeredStabilizedPPMConvectiveOperator& operator=(const INSStaggeredStabilizedPPMConvectiveOperator& that) = delete;
 
     // Operator configuration.
     std::string d_stabilization_type;

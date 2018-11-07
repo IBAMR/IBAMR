@@ -217,7 +217,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvDiffPredictorCorrectorHierarchyIntegrator();
+    AdvDiffPredictorCorrectorHierarchyIntegrator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -226,7 +226,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffPredictorCorrectorHierarchyIntegrator(const AdvDiffPredictorCorrectorHierarchyIntegrator& from);
+    AdvDiffPredictorCorrectorHierarchyIntegrator(const AdvDiffPredictorCorrectorHierarchyIntegrator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -237,7 +237,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffPredictorCorrectorHierarchyIntegrator& operator=(const AdvDiffPredictorCorrectorHierarchyIntegrator& that);
+    AdvDiffPredictorCorrectorHierarchyIntegrator& operator=(const AdvDiffPredictorCorrectorHierarchyIntegrator& that) = delete;
 
     /*
      * The SAMRAI::algs::HyperbolicLevelIntegrator supplies generic operations

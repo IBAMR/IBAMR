@@ -137,7 +137,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FastSweepingLSMethod(const FastSweepingLSMethod& from);
+    FastSweepingLSMethod(const FastSweepingLSMethod& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -148,7 +148,7 @@ private:
      *
      * \return A reference to this object.
      */
-    FastSweepingLSMethod& operator=(const FastSweepingLSMethod& that);
+    FastSweepingLSMethod& operator=(const FastSweepingLSMethod& that) = delete;
 };
 } // namespace IBAMR
 

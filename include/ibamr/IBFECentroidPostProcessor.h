@@ -109,7 +109,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBFECentroidPostProcessor();
+    IBFECentroidPostProcessor() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -118,7 +118,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBFECentroidPostProcessor(const IBFECentroidPostProcessor& from);
+    IBFECentroidPostProcessor(const IBFECentroidPostProcessor& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -129,7 +129,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBFECentroidPostProcessor& operator=(const IBFECentroidPostProcessor& that);
+    IBFECentroidPostProcessor& operator=(const IBFECentroidPostProcessor& that) = delete;
 };
 } // namespace IBAMR
 

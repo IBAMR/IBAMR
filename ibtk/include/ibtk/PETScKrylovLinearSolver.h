@@ -316,7 +316,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PETScKrylovLinearSolver();
+    PETScKrylovLinearSolver() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -325,7 +325,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScKrylovLinearSolver(const PETScKrylovLinearSolver& from);
+    PETScKrylovLinearSolver(const PETScKrylovLinearSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -336,7 +336,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScKrylovLinearSolver& operator=(const PETScKrylovLinearSolver& that);
+    PETScKrylovLinearSolver& operator=(const PETScKrylovLinearSolver& that) = delete;
 
     /*!
      * \brief Common routine used by all class constructors.

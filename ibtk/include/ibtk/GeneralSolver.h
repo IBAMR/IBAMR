@@ -355,7 +355,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    GeneralSolver(const GeneralSolver& from);
+    GeneralSolver(const GeneralSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -366,7 +366,7 @@ private:
      *
      * \return A reference to this object.
      */
-    GeneralSolver& operator=(const GeneralSolver& that);
+    GeneralSolver& operator=(const GeneralSolver& that) = delete;
 };
 } // namespace IBTK
 

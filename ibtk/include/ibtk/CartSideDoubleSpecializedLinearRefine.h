@@ -134,7 +134,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartSideDoubleSpecializedLinearRefine(const CartSideDoubleSpecializedLinearRefine& from);
+    CartSideDoubleSpecializedLinearRefine(const CartSideDoubleSpecializedLinearRefine& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -145,7 +145,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartSideDoubleSpecializedLinearRefine& operator=(const CartSideDoubleSpecializedLinearRefine& that);
+    CartSideDoubleSpecializedLinearRefine& operator=(const CartSideDoubleSpecializedLinearRefine& that) = delete;
 
     /*!
      * The operator name.

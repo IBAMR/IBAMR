@@ -175,7 +175,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvDiffPPMConvectiveOperator();
+    AdvDiffPPMConvectiveOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -184,7 +184,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffPPMConvectiveOperator(const AdvDiffPPMConvectiveOperator& from);
+    AdvDiffPPMConvectiveOperator(const AdvDiffPPMConvectiveOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -195,7 +195,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffPPMConvectiveOperator& operator=(const AdvDiffPPMConvectiveOperator& that);
+    AdvDiffPPMConvectiveOperator& operator=(const AdvDiffPPMConvectiveOperator& that) = delete;
 
     // Data communication algorithms, operators, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;

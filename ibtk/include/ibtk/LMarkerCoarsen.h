@@ -133,7 +133,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LMarkerCoarsen(const LMarkerCoarsen& from);
+    LMarkerCoarsen(const LMarkerCoarsen& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -144,7 +144,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LMarkerCoarsen& operator=(const LMarkerCoarsen& that);
+    LMarkerCoarsen& operator=(const LMarkerCoarsen& that) = delete;
 
     /*!
      * The operator name.

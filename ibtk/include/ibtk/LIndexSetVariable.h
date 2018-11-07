@@ -84,7 +84,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LIndexSetVariable();
+    LIndexSetVariable() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -93,7 +93,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LIndexSetVariable(const LIndexSetVariable<T>& from);
+    LIndexSetVariable(const LIndexSetVariable<T>& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -104,7 +104,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LIndexSetVariable<T>& operator=(const LIndexSetVariable<T>& that);
+    LIndexSetVariable<T>& operator=(const LIndexSetVariable<T>& that) = delete;
 };
 } // namespace IBTK
 

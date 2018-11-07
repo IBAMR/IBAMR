@@ -199,7 +199,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartSideRobinPhysBdryOp(const CartSideRobinPhysBdryOp& from);
+    CartSideRobinPhysBdryOp(const CartSideRobinPhysBdryOp& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -210,7 +210,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartSideRobinPhysBdryOp& operator=(const CartSideRobinPhysBdryOp& that);
+    CartSideRobinPhysBdryOp& operator=(const CartSideRobinPhysBdryOp& that) = delete;
 
     /*!
      * \brief Set the boundary conditions for normal components along the

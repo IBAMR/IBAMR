@@ -219,7 +219,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBStandardSourceGen(const IBStandardSourceGen& from);
+    IBStandardSourceGen(const IBStandardSourceGen& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -230,7 +230,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBStandardSourceGen& operator=(const IBStandardSourceGen& that);
+    IBStandardSourceGen& operator=(const IBStandardSourceGen& that) = delete;
 
     /*!
      * Read object state from the restart file and initialize class data

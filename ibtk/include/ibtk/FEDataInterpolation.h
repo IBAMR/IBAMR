@@ -310,9 +310,9 @@ public:
     void interpolate(const libMesh::Elem* elem, unsigned int side);
 
 private:
-    FEDataInterpolation();
-    FEDataInterpolation(const FEDataInterpolation&);
-    FEDataInterpolation& operator=(const FEDataInterpolation&);
+    FEDataInterpolation() = delete;
+    FEDataInterpolation(const FEDataInterpolation&) = delete;
+    FEDataInterpolation& operator=(const FEDataInterpolation&) = delete;
 
     size_t getFETypeIndex(const libMesh::FEType& fe_type) const;
 

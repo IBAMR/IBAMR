@@ -186,7 +186,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FaceDataSynchronization(const FaceDataSynchronization& from);
+    FaceDataSynchronization(const FaceDataSynchronization& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -197,7 +197,7 @@ private:
      *
      * \return A reference to this object.
      */
-    FaceDataSynchronization& operator=(const FaceDataSynchronization& that);
+    FaceDataSynchronization& operator=(const FaceDataSynchronization& that) = delete;
 
     // Boolean indicating whether the operator is initialized.
     bool d_is_initialized;

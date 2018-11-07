@@ -136,7 +136,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CCLaplaceOperator();
+    CCLaplaceOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -145,7 +145,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CCLaplaceOperator(const CCLaplaceOperator& from);
+    CCLaplaceOperator(const CCLaplaceOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -156,7 +156,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CCLaplaceOperator& operator=(const CCLaplaceOperator& that);
+    CCLaplaceOperator& operator=(const CCLaplaceOperator& that) = delete;
 
     // Operator parameters.
     int d_ncomp;

@@ -400,7 +400,7 @@ protected:
          *
          * \note This constructor is not implemented and should not be used.
          */
-        IBEulerianForceFunction();
+        IBEulerianForceFunction() = delete;
 
         /*!
          * \brief Copy constructor.
@@ -409,7 +409,7 @@ protected:
          *
          * \param from The value to copy to this object.
          */
-        IBEulerianForceFunction(const IBEulerianForceFunction& from);
+        IBEulerianForceFunction(const IBEulerianForceFunction& from) = delete;
 
         /*!
          * \brief Assignment operator.
@@ -420,7 +420,7 @@ protected:
          *
          * \return A reference to this object.
          */
-        IBEulerianForceFunction& operator=(const IBEulerianForceFunction& that);
+        IBEulerianForceFunction& operator=(const IBEulerianForceFunction& that) = delete;
 
         const IBHierarchyIntegrator* const d_ib_solver;
     };
@@ -474,7 +474,7 @@ protected:
          *
          * \note This constructor is not implemented and should not be used.
          */
-        IBEulerianSourceFunction();
+        IBEulerianSourceFunction() = delete;
 
         /*!
          * \brief Copy constructor.
@@ -483,7 +483,7 @@ protected:
          *
          * \param from The value to copy to this object.
          */
-        IBEulerianSourceFunction(const IBEulerianSourceFunction& from);
+        IBEulerianSourceFunction(const IBEulerianSourceFunction& from) = delete;
 
         /*!
          * \brief Assignment operator.
@@ -494,7 +494,7 @@ protected:
          *
          * \return A reference to this object.
          */
-        IBEulerianSourceFunction& operator=(const IBEulerianSourceFunction& that);
+        IBEulerianSourceFunction& operator=(const IBEulerianSourceFunction& that) = delete;
 
         const IBHierarchyIntegrator* const d_ib_solver;
     };
@@ -507,7 +507,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBHierarchyIntegrator();
+    IBHierarchyIntegrator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -516,7 +516,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBHierarchyIntegrator(const IBHierarchyIntegrator& from);
+    IBHierarchyIntegrator(const IBHierarchyIntegrator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -527,7 +527,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBHierarchyIntegrator& operator=(const IBHierarchyIntegrator& that);
+    IBHierarchyIntegrator& operator=(const IBHierarchyIntegrator& that) = delete;
 
     /*!
      * Read input values from a given database.

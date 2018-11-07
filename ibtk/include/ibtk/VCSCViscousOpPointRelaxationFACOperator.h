@@ -190,7 +190,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCSCViscousOpPointRelaxationFACOperator();
+    VCSCViscousOpPointRelaxationFACOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -199,7 +199,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCSCViscousOpPointRelaxationFACOperator(const VCSCViscousOpPointRelaxationFACOperator& from);
+    VCSCViscousOpPointRelaxationFACOperator(const VCSCViscousOpPointRelaxationFACOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -210,7 +210,7 @@ private:
      *
      * \return A reference to this object.
      */
-    VCSCViscousOpPointRelaxationFACOperator& operator=(const VCSCViscousOpPointRelaxationFACOperator& that);
+    VCSCViscousOpPointRelaxationFACOperator& operator=(const VCSCViscousOpPointRelaxationFACOperator& that) = delete;
 
     /*
      * The interpolation type to be used in computing the variable coefficient viscous Laplacian.

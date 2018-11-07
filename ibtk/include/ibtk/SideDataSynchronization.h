@@ -186,7 +186,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SideDataSynchronization(const SideDataSynchronization& from);
+    SideDataSynchronization(const SideDataSynchronization& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -197,7 +197,7 @@ private:
      *
      * \return A reference to this object.
      */
-    SideDataSynchronization& operator=(const SideDataSynchronization& that);
+    SideDataSynchronization& operator=(const SideDataSynchronization& that) = delete;
 
     // Boolean indicating whether the operator is initialized.
     bool d_is_initialized;

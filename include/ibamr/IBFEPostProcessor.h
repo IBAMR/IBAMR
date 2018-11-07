@@ -345,7 +345,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBFEPostProcessor();
+    IBFEPostProcessor() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -354,7 +354,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBFEPostProcessor(const IBFEPostProcessor& from);
+    IBFEPostProcessor(const IBFEPostProcessor& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -365,7 +365,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBFEPostProcessor& operator=(const IBFEPostProcessor& that);
+    IBFEPostProcessor& operator=(const IBFEPostProcessor& that) = delete;
 };
 } // namespace IBAMR
 

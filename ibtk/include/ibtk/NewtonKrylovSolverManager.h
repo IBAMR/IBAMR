@@ -123,7 +123,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    NewtonKrylovSolverManager(const NewtonKrylovSolverManager& from);
+    NewtonKrylovSolverManager(const NewtonKrylovSolverManager& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -134,7 +134,7 @@ private:
      *
      * \return A reference to this object.
      */
-    NewtonKrylovSolverManager& operator=(const NewtonKrylovSolverManager& that);
+    NewtonKrylovSolverManager& operator=(const NewtonKrylovSolverManager& that) = delete;
 
     /*!
      * Static data members used to control access to and destruction of

@@ -105,7 +105,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBMethodPostProcessStrategy(const IBMethodPostProcessStrategy& from);
+    IBMethodPostProcessStrategy(const IBMethodPostProcessStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -116,7 +116,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBMethodPostProcessStrategy& operator=(const IBMethodPostProcessStrategy& that);
+    IBMethodPostProcessStrategy& operator=(const IBMethodPostProcessStrategy& that) = delete;
 };
 } // namespace IBAMR
 

@@ -136,7 +136,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StokesBcCoefStrategy(const StokesBcCoefStrategy& from);
+    StokesBcCoefStrategy(const StokesBcCoefStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -147,7 +147,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StokesBcCoefStrategy& operator=(const StokesBcCoefStrategy& that);
+    StokesBcCoefStrategy& operator=(const StokesBcCoefStrategy& that) = delete;
 };
 } // namespace IBAMR
 

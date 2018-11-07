@@ -241,7 +241,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PoissonUtilities();
+    PoissonUtilities() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -250,7 +250,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PoissonUtilities(const PoissonUtilities& from);
+    PoissonUtilities(const PoissonUtilities& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -261,7 +261,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PoissonUtilities& operator=(const PoissonUtilities& that);
+    PoissonUtilities& operator=(const PoissonUtilities& that) = delete;
 };
 } // namespace IBTK
 

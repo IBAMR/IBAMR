@@ -174,7 +174,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBRodForceSpec(const IBRodForceSpec& from);
+    IBRodForceSpec(const IBRodForceSpec& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -185,7 +185,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBRodForceSpec& operator=(const IBRodForceSpec& that);
+    IBRodForceSpec& operator=(const IBRodForceSpec& that) = delete;
 
     /*!
      * Data required to define the spring forces.
@@ -240,7 +240,7 @@ private:
          *
          * \param from The value to copy to this object.
          */
-        Factory(const Factory& from);
+        Factory(const Factory& from) = delete;
 
         /*!
          * \brief Assignment operator.
@@ -251,7 +251,7 @@ private:
          *
          * \return A reference to this object.
          */
-        Factory& operator=(const Factory& that);
+        Factory& operator=(const Factory& that) = delete;
 
         friend class IBRodForceSpec;
     };

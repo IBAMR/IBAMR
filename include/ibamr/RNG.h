@@ -19,10 +19,10 @@ public:
     static void parallel_seed(int global_seed);
 
 private:
-    RNG();
-    RNG(RNG&);
-    ~RNG();
-    RNG& operator=(RNG&);
+    RNG() = delete;
+    RNG(RNG&) = delete;
+    ~RNG() = delete;
+    RNG& operator=(RNG&) = delete;
 };
 } // namespace IBAMR
 

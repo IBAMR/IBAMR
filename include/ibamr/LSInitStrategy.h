@@ -161,7 +161,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LSInitStrategy(const LSInitStrategy& from);
+    LSInitStrategy(const LSInitStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -172,7 +172,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LSInitStrategy& operator=(const LSInitStrategy& that);
+    LSInitStrategy& operator=(const LSInitStrategy& that) = delete;
 };
 } // namespace IBAMR
 

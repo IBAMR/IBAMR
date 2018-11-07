@@ -126,7 +126,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LIndexSetDataFactory();
+    LIndexSetDataFactory() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -135,7 +135,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LIndexSetDataFactory(const LIndexSetDataFactory<T>& from);
+    LIndexSetDataFactory(const LIndexSetDataFactory<T>& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -146,7 +146,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LIndexSetDataFactory& operator=(const LIndexSetDataFactory<T>& that);
+    LIndexSetDataFactory& operator=(const LIndexSetDataFactory<T>& that) = delete;
 };
 } // namespace IBTK
 

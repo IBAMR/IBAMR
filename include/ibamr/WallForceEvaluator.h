@@ -69,13 +69,13 @@ public:
 
 private:
     // Default constructor, not implemented.
-    WallForceEvaluator();
+    WallForceEvaluator() = delete;
 
     // Copy constructor, not implemented.
-    WallForceEvaluator(const WallForceEvaluator& from);
+    WallForceEvaluator(const WallForceEvaluator& from) = delete;
 
     // Assignment operator, not implemented.
-    WallForceEvaluator& operator=(const WallForceEvaluator& that);
+    WallForceEvaluator& operator=(const WallForceEvaluator& that) = delete;
 
     // collection of walls:
     std::vector<Wall> d_walls_vec;

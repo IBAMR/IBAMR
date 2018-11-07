@@ -505,7 +505,7 @@ protected:
      *
      * \param from The value to copy to this object.
      */
-    IBRedundantInitializer(const IBRedundantInitializer& from);
+    IBRedundantInitializer(const IBRedundantInitializer& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -516,7 +516,7 @@ protected:
      *
      * \return A reference to this object.
      */
-    IBRedundantInitializer& operator=(const IBRedundantInitializer& that);
+    IBRedundantInitializer& operator=(const IBRedundantInitializer& that) = delete;
 
     /*!
      * \brief Configure the Lagrangian Silo data writer to plot the data

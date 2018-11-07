@@ -127,7 +127,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    NodeSynchCopyFillPattern();
+    NodeSynchCopyFillPattern() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -136,7 +136,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    NodeSynchCopyFillPattern(const NodeSynchCopyFillPattern& from);
+    NodeSynchCopyFillPattern(const NodeSynchCopyFillPattern& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -147,7 +147,7 @@ private:
      *
      * \return A reference to this object.
      */
-    NodeSynchCopyFillPattern& operator=(const NodeSynchCopyFillPattern& that);
+    NodeSynchCopyFillPattern& operator=(const NodeSynchCopyFillPattern& that) = delete;
 
     SAMRAI::hier::IntVector<NDIM> d_stencil_width;
     const unsigned int d_axis;

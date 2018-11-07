@@ -161,7 +161,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredCenteredConvectiveOperator();
+    INSStaggeredCenteredConvectiveOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -170,7 +170,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredCenteredConvectiveOperator(const INSStaggeredCenteredConvectiveOperator& from);
+    INSStaggeredCenteredConvectiveOperator(const INSStaggeredCenteredConvectiveOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -181,7 +181,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredCenteredConvectiveOperator& operator=(const INSStaggeredCenteredConvectiveOperator& that);
+    INSStaggeredCenteredConvectiveOperator& operator=(const INSStaggeredCenteredConvectiveOperator& that) = delete;
 
     // Boundary condition helper object.
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;

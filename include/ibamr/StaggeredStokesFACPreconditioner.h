@@ -130,7 +130,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    StaggeredStokesFACPreconditioner();
+    StaggeredStokesFACPreconditioner() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -139,7 +139,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesFACPreconditioner(const StaggeredStokesFACPreconditioner& from);
+    StaggeredStokesFACPreconditioner(const StaggeredStokesFACPreconditioner& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -150,7 +150,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesFACPreconditioner& operator=(const StaggeredStokesFACPreconditioner& that);
+    StaggeredStokesFACPreconditioner& operator=(const StaggeredStokesFACPreconditioner& that) = delete;
 };
 } // namespace IBAMR
 

@@ -239,17 +239,17 @@ private:
     /*!
      * \brief Deleted default ctor.
      */
-    ConstraintIBKinematics();
+    ConstraintIBKinematics() = delete;
 
     /*!
      * \brief Deleted default copy ctor.
      */
-    ConstraintIBKinematics(const ConstraintIBKinematics& from);
+    ConstraintIBKinematics(const ConstraintIBKinematics& from) = delete;
 
     /*!
      * \brief Deleted default assignment.
      */
-    ConstraintIBKinematics& operator=(const ConstraintIBKinematics& that);
+    ConstraintIBKinematics& operator=(const ConstraintIBKinematics& that) = delete;
 
     /*!
      * \brief Object enclosing all the parameters of the structure.

@@ -117,7 +117,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    StaggeredStokesOpenBoundaryStabilizer();
+    StaggeredStokesOpenBoundaryStabilizer() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -126,7 +126,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesOpenBoundaryStabilizer(const StaggeredStokesOpenBoundaryStabilizer& from);
+    StaggeredStokesOpenBoundaryStabilizer(const StaggeredStokesOpenBoundaryStabilizer& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -137,7 +137,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesOpenBoundaryStabilizer& operator=(const StaggeredStokesOpenBoundaryStabilizer& that);
+    StaggeredStokesOpenBoundaryStabilizer& operator=(const StaggeredStokesOpenBoundaryStabilizer& that) = delete;
 
     std::array<bool, 2 * NDIM> d_open_bdry, d_inflow_bdry, d_outflow_bdry;
     std::array<double, 2 * NDIM> d_width;

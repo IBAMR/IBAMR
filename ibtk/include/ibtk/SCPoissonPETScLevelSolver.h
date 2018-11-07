@@ -186,7 +186,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    SCPoissonPETScLevelSolver();
+    SCPoissonPETScLevelSolver() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -195,7 +195,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SCPoissonPETScLevelSolver(const SCPoissonPETScLevelSolver& from);
+    SCPoissonPETScLevelSolver(const SCPoissonPETScLevelSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -206,7 +206,7 @@ private:
      *
      * \return A reference to this object.
      */
-    SCPoissonPETScLevelSolver& operator=(const SCPoissonPETScLevelSolver& that);
+    SCPoissonPETScLevelSolver& operator=(const SCPoissonPETScLevelSolver& that) = delete;
 };
 } // namespace IBTK
 

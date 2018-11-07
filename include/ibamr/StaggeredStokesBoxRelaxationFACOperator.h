@@ -144,7 +144,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesBoxRelaxationFACOperator(const StaggeredStokesBoxRelaxationFACOperator& from);
+    StaggeredStokesBoxRelaxationFACOperator(const StaggeredStokesBoxRelaxationFACOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -155,7 +155,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesBoxRelaxationFACOperator& operator=(const StaggeredStokesBoxRelaxationFACOperator& that);
+    StaggeredStokesBoxRelaxationFACOperator& operator=(const StaggeredStokesBoxRelaxationFACOperator& that) = delete;
 
     /*
      * Box operator data.

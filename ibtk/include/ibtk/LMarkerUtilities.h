@@ -166,7 +166,7 @@ private:
      * \note This constructor is not implemented and should not be
      * used.
      */
-    LMarkerUtilities();
+    LMarkerUtilities() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -176,12 +176,12 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LMarkerUtilities(const LMarkerUtilities& from);
+    LMarkerUtilities(const LMarkerUtilities& from) = delete;
 
     /*!
      * \brief Unimplemented destructor.
      */
-    ~LMarkerUtilities();
+    ~LMarkerUtilities() = delete;
 
     /*!
      * \brief Assignment operator.
@@ -192,7 +192,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LMarkerUtilities& operator=(const LMarkerUtilities& that);
+    LMarkerUtilities& operator=(const LMarkerUtilities& that) = delete;
 
     /*!
      * Determine the number of markers in a patch.

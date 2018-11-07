@@ -177,7 +177,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBStandardForceGen(const IBStandardForceGen& from);
+    IBStandardForceGen(const IBStandardForceGen& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -188,7 +188,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBStandardForceGen& operator=(const IBStandardForceGen& that);
+    IBStandardForceGen& operator=(const IBStandardForceGen& that) = delete;
 
     /*!
      * \name Data maintained separately for each level of the patch hierarchy.

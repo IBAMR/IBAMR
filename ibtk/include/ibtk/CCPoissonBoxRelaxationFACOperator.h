@@ -244,7 +244,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CCPoissonBoxRelaxationFACOperator();
+    CCPoissonBoxRelaxationFACOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -253,7 +253,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CCPoissonBoxRelaxationFACOperator(const CCPoissonBoxRelaxationFACOperator& from);
+    CCPoissonBoxRelaxationFACOperator(const CCPoissonBoxRelaxationFACOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -264,7 +264,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CCPoissonBoxRelaxationFACOperator& operator=(const CCPoissonBoxRelaxationFACOperator& that);
+    CCPoissonBoxRelaxationFACOperator& operator=(const CCPoissonBoxRelaxationFACOperator& that) = delete;
 
     /*!
      * \brief Construct a matrix corresponding to a Laplace operator restricted

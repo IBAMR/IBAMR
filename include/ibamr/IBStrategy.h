@@ -550,7 +550,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBStrategy(const IBStrategy& from);
+    IBStrategy(const IBStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -561,7 +561,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBStrategy& operator=(const IBStrategy& that);
+    IBStrategy& operator=(const IBStrategy& that) = delete;
 };
 } // namespace IBAMR
 

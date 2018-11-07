@@ -170,7 +170,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBInstrumentationSpec(const IBInstrumentationSpec& from);
+    IBInstrumentationSpec(const IBInstrumentationSpec& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -181,7 +181,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBInstrumentationSpec& operator=(const IBInstrumentationSpec& that);
+    IBInstrumentationSpec& operator=(const IBInstrumentationSpec& that) = delete;
 
     /*!
      * The names of the instrument names.
@@ -239,7 +239,7 @@ private:
          *
          * \param from The value to copy to this object.
          */
-        Factory(const Factory& from);
+        Factory(const Factory& from) = delete;
 
         /*!
          * \brief Assignment operator.
@@ -250,7 +250,7 @@ private:
          *
          * \return A reference to this object.
          */
-        Factory& operator=(const Factory& that);
+        Factory& operator=(const Factory& that) = delete;
 
         friend class IBInstrumentationSpec;
     };

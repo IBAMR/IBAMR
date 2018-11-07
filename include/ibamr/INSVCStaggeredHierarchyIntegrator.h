@@ -642,7 +642,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSVCStaggeredHierarchyIntegrator();
+    INSVCStaggeredHierarchyIntegrator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -651,7 +651,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSVCStaggeredHierarchyIntegrator(const INSVCStaggeredHierarchyIntegrator& from);
+    INSVCStaggeredHierarchyIntegrator(const INSVCStaggeredHierarchyIntegrator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -662,7 +662,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSVCStaggeredHierarchyIntegrator& operator=(const INSVCStaggeredHierarchyIntegrator& that);
+    INSVCStaggeredHierarchyIntegrator& operator=(const INSVCStaggeredHierarchyIntegrator& that) = delete;
 
     /*!
      * Preprocess the operators and solvers used by the hierarchy integrator.

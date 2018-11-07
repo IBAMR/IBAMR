@@ -625,7 +625,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CIBStrategy(const CIBStrategy& from);
+    CIBStrategy(const CIBStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -636,7 +636,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CIBStrategy& operator=(const CIBStrategy& that);
+    CIBStrategy& operator=(const CIBStrategy& that) = delete;
 
 }; // CIBStrategy
 

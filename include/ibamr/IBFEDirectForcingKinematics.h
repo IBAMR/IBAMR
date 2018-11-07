@@ -270,7 +270,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBFEDirectForcingKinematics();
+    IBFEDirectForcingKinematics() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -279,7 +279,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBFEDirectForcingKinematics(const IBFEDirectForcingKinematics& from);
+    IBFEDirectForcingKinematics(const IBFEDirectForcingKinematics& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -290,7 +290,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBFEDirectForcingKinematics& operator=(const IBFEDirectForcingKinematics& that);
+    IBFEDirectForcingKinematics& operator=(const IBFEDirectForcingKinematics& that) = delete;
 
     /*!
      * Read input values from a given database.

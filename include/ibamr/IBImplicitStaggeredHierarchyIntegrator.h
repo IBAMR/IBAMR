@@ -246,9 +246,9 @@ private:
         }
 
     private:
-        IBImplicitStaggeredStokesSolver();
-        IBImplicitStaggeredStokesSolver(const IBImplicitStaggeredStokesSolver& from);
-        IBImplicitStaggeredStokesSolver& operator=(const IBImplicitStaggeredStokesSolver& that);
+        IBImplicitStaggeredStokesSolver() = delete;
+        IBImplicitStaggeredStokesSolver(const IBImplicitStaggeredStokesSolver& from) = delete;
+        IBImplicitStaggeredStokesSolver& operator=(const IBImplicitStaggeredStokesSolver& that) = delete;
 
         // Operators and solvers maintained by this class.
         SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
@@ -262,7 +262,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBImplicitStaggeredHierarchyIntegrator(const IBImplicitStaggeredHierarchyIntegrator& from);
+    IBImplicitStaggeredHierarchyIntegrator(const IBImplicitStaggeredHierarchyIntegrator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -273,7 +273,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBImplicitStaggeredHierarchyIntegrator& operator=(const IBImplicitStaggeredHierarchyIntegrator& that);
+    IBImplicitStaggeredHierarchyIntegrator& operator=(const IBImplicitStaggeredHierarchyIntegrator& that) = delete;
 
     /*!
      * Read object state from the restart file and initialize class data

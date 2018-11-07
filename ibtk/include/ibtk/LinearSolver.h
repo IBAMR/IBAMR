@@ -140,7 +140,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LinearSolver(const LinearSolver& from);
+    LinearSolver(const LinearSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -151,7 +151,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LinearSolver& operator=(const LinearSolver& that);
+    LinearSolver& operator=(const LinearSolver& that) = delete;
 };
 } // namespace IBTK
 

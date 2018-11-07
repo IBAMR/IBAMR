@@ -148,7 +148,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartGridFunctionSet(const CartGridFunctionSet& from);
+    CartGridFunctionSet(const CartGridFunctionSet& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -159,7 +159,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartGridFunctionSet& operator=(const CartGridFunctionSet& that);
+    CartGridFunctionSet& operator=(const CartGridFunctionSet& that) = delete;
 };
 } // namespace IBTK
 

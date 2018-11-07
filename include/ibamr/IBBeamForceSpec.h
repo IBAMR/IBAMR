@@ -196,7 +196,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBBeamForceSpec(const IBBeamForceSpec& from);
+    IBBeamForceSpec(const IBBeamForceSpec& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -207,7 +207,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBBeamForceSpec& operator=(const IBBeamForceSpec& that);
+    IBBeamForceSpec& operator=(const IBBeamForceSpec& that) = delete;
 
     /*!
      * Data required to compute the beam forces.
@@ -263,7 +263,7 @@ private:
          *
          * \param from The value to copy to this object.
          */
-        Factory(const Factory& from);
+        Factory(const Factory& from) = delete;
 
         /*!
          * \brief Assignment operator.
@@ -274,7 +274,7 @@ private:
          *
          * \return A reference to this object.
          */
-        Factory& operator=(const Factory& that);
+        Factory& operator=(const Factory& that) = delete;
 
         friend class IBBeamForceSpec;
     };

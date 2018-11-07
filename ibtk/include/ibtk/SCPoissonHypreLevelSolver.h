@@ -254,7 +254,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    SCPoissonHypreLevelSolver();
+    SCPoissonHypreLevelSolver() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -263,7 +263,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SCPoissonHypreLevelSolver(const SCPoissonHypreLevelSolver& from);
+    SCPoissonHypreLevelSolver(const SCPoissonHypreLevelSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -274,7 +274,7 @@ private:
      *
      * \return A reference to this object.
      */
-    SCPoissonHypreLevelSolver& operator=(const SCPoissonHypreLevelSolver& that);
+    SCPoissonHypreLevelSolver& operator=(const SCPoissonHypreLevelSolver& that) = delete;
 
     /*!
      * \brief Functions to allocate, initialize, access, and deallocate hypre

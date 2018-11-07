@@ -160,7 +160,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBLagrangianForceStrategySet();
+    IBLagrangianForceStrategySet() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -169,7 +169,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBLagrangianForceStrategySet(const IBLagrangianForceStrategySet& from);
+    IBLagrangianForceStrategySet(const IBLagrangianForceStrategySet& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -180,7 +180,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBLagrangianForceStrategySet& operator=(const IBLagrangianForceStrategySet& that);
+    IBLagrangianForceStrategySet& operator=(const IBLagrangianForceStrategySet& that) = delete;
 
     /*!
      * \brief The set of IBLagrangianForceStrategy objects.

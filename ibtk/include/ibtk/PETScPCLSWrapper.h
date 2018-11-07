@@ -266,7 +266,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PETScPCLSWrapper();
+    PETScPCLSWrapper() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -275,7 +275,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScPCLSWrapper(const PETScPCLSWrapper& from);
+    PETScPCLSWrapper(const PETScPCLSWrapper& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -286,7 +286,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScPCLSWrapper& operator=(const PETScPCLSWrapper& that);
+    PETScPCLSWrapper& operator=(const PETScPCLSWrapper& that) = delete;
 
     const PC d_petsc_pc;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b;

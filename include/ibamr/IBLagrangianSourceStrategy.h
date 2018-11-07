@@ -155,7 +155,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBLagrangianSourceStrategy(const IBLagrangianSourceStrategy& from);
+    IBLagrangianSourceStrategy(const IBLagrangianSourceStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -166,7 +166,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBLagrangianSourceStrategy& operator=(const IBLagrangianSourceStrategy& that);
+    IBLagrangianSourceStrategy& operator=(const IBLagrangianSourceStrategy& that) = delete;
 };
 } // namespace IBAMR
 

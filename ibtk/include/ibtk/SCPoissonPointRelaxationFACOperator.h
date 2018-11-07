@@ -246,7 +246,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    SCPoissonPointRelaxationFACOperator();
+    SCPoissonPointRelaxationFACOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -255,7 +255,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SCPoissonPointRelaxationFACOperator(const SCPoissonPointRelaxationFACOperator& from);
+    SCPoissonPointRelaxationFACOperator(const SCPoissonPointRelaxationFACOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -266,7 +266,7 @@ private:
      *
      * \return A reference to this object.
      */
-    SCPoissonPointRelaxationFACOperator& operator=(const SCPoissonPointRelaxationFACOperator& that);
+    SCPoissonPointRelaxationFACOperator& operator=(const SCPoissonPointRelaxationFACOperator& that) = delete;
 
 };
 } // namespace IBTK

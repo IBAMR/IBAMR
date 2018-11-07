@@ -485,7 +485,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PoissonFACPreconditionerStrategy();
+    PoissonFACPreconditionerStrategy() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -494,7 +494,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PoissonFACPreconditionerStrategy(const PoissonFACPreconditionerStrategy& from);
+    PoissonFACPreconditionerStrategy(const PoissonFACPreconditionerStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -505,7 +505,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PoissonFACPreconditionerStrategy& operator=(const PoissonFACPreconditionerStrategy& that);
+    PoissonFACPreconditionerStrategy& operator=(const PoissonFACPreconditionerStrategy& that) = delete;
 
     /*!
      * \name Various refine and coarsen objects.
