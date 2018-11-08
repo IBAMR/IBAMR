@@ -156,6 +156,7 @@ IndexUtilities::mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
             offset);
 
 #else
+    TBOX_ASSERT(false);
     return -1;
 #endif
 
