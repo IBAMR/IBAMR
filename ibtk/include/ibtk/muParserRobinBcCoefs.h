@@ -191,7 +191,7 @@ private:
      * this variable is only written to and subsequently read from in that
      * function this is reasonable.
      */
-    mutable double d_parser_time;
+    mutable double d_parser_time = 0.0;
 
     /*!
      * Current space point used by the mu::Parser instances.
@@ -223,9 +223,9 @@ private:
     /*!
      * The mu::Parser objects which evaluate the data-setting functions.
      */
-    std::vector<mu::Parser> d_acoef_parsers;
-    std::vector<mu::Parser> d_bcoef_parsers;
-    std::vector<mu::Parser> d_gcoef_parsers;
+    std::array<mu::Parser, 2 * NDIM> d_acoef_parsers;
+    std::array<mu::Parser, 2 * NDIM> d_bcoef_parsers;
+    std::array<mu::Parser, 2 * NDIM> d_gcoef_parsers;
 };
 } // namespace IBTK
 

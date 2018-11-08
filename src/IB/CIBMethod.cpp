@@ -49,13 +49,6 @@ CIBMethod::CIBMethod(std::string object_name,
                      bool register_for_restart)
     : IBMethod(std::move(object_name), input_db, register_for_restart), CIBStrategy(no_structures)
 {
-    // Set some default values
-    d_eul_lambda_idx = -1;
-    d_output_eul_lambda = false;
-    d_lambda_dump_interval = 0;
-    d_time_integrator_needs_regrid = false;
-    d_u_phys_bdry_op = nullptr;
-
     // Resize some arrays.
     d_constrained_velocity_fcns_data.resize(d_num_rigid_parts);
     d_ext_force_torque_fcn_data.resize(d_num_rigid_parts);

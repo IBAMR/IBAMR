@@ -1047,7 +1047,7 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     /*
      * We cache a pointer to the visualization data writers to register plot
@@ -1073,7 +1073,7 @@ private:
      * LNodeData used to define the data distribution.
      */
     SAMRAI::tbox::Pointer<LNodeSetVariable> d_lag_node_index_var;
-    int d_lag_node_index_current_idx, d_lag_node_index_scratch_idx;
+    int d_lag_node_index_current_idx = IBTK::invalid_index, d_lag_node_index_scratch_idx = IBTK::invalid_index;
     std::vector<SAMRAI::tbox::Pointer<std::vector<LNode> > > d_local_and_ghost_nodes;
 
     /*
@@ -1081,10 +1081,10 @@ private:
      * cell variable used to determine the workload for nonuniform load
      * balancing.
      */
-    double d_beta_work;
+    double d_beta_work = 1.0;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
-    int d_workload_idx;
-    bool d_output_workload;
+    int d_workload_idx = IBTK::invalid_index;
+    bool d_output_workload = false;
 
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
@@ -1092,8 +1092,8 @@ private:
      * for visualization and tagging purposes.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_node_count_var;
-    int d_node_count_idx;
-    bool d_output_node_count;
+    int d_node_count_idx = IBTK::invalid_index;
+    bool d_output_node_count = false;
 
     /*
      * The kernel functions used to mediate Lagrangian-Eulerian interaction.
@@ -1165,7 +1165,7 @@ private:
     /*!
      * Indicates whether the LData is in synch with the LNodeData.
      */
-    std::vector<bool> d_needs_synch;
+    std::vector<bool> d_needs_synch = { true };
 
     /*!
      * PETSc AO objects provide mappings between the fixed global Lagrangian

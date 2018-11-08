@@ -53,7 +53,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StokesBcCoefStrategy::StokesBcCoefStrategy()
-    : d_problem_coefs(nullptr), d_u_target_data_idx(-1), d_p_target_data_idx(-1), d_traction_bc_type(TRACTION)
+
 {
     // intentionally blank
     return;

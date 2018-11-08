@@ -258,11 +258,13 @@ protected:
 
     // Boolean value to indicate whether the preconditioner is presently
     // initialized.
-    bool d_is_initialized;
+    bool d_is_initialized = false;
 
     // Solver configuration.
     bool d_homogeneous_bc;
-    double d_solution_time, d_current_time, d_new_time;
+    double d_solution_time = std::numeric_limits<double>::quiet_NaN(),
+           d_current_time = std::numeric_limits<double>::quiet_NaN(),
+           d_new_time = std::numeric_limits<double>::quiet_NaN();
 
 private:
     /*!

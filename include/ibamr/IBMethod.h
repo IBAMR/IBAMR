@@ -105,7 +105,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBMethod(const std::string& object_name,
+    IBMethod(std::string object_name,
              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
              bool register_for_restart = true);
 
@@ -499,7 +499,7 @@ protected:
     /*
      * Indicates whether the integrator should output logging messages.
      */
-    bool d_do_log;
+    bool d_do_log = false;
 
     /*
      * Pointers to the patch hierarchy and gridding algorithm objects associated
@@ -511,23 +511,26 @@ protected:
     /*
      * The current time step interval.
      */
-    double d_current_time, d_new_time, d_half_time;
+    double d_current_time = std::numeric_limits<double>::quiet_NaN(),
+           d_new_time = std::numeric_limits<double>::quiet_NaN(),
+           d_half_time = std::numeric_limits<double>::quiet_NaN();
 
     /*
      * Boolean values tracking whether certain quantities need to be
      * reinitialized.
      */
-    bool d_X_current_needs_ghost_fill, d_X_new_needs_ghost_fill, d_X_half_needs_ghost_fill, d_X_jac_needs_ghost_fill,
-        d_X_LE_new_needs_ghost_fill, d_X_LE_half_needs_ghost_fill;
-    bool d_F_current_needs_ghost_fill, d_F_new_needs_ghost_fill, d_F_half_needs_ghost_fill, d_F_jac_needs_ghost_fill;
+    bool d_X_current_needs_ghost_fill = true, d_X_new_needs_ghost_fill = true, d_X_half_needs_ghost_fill = true,
+         d_X_jac_needs_ghost_fill = true, d_X_LE_new_needs_ghost_fill = true, d_X_LE_half_needs_ghost_fill = true;
+    bool d_F_current_needs_ghost_fill = true, d_F_new_needs_ghost_fill = true, d_F_half_needs_ghost_fill = true,
+         d_F_jac_needs_ghost_fill = true;
 
     /*
      * The LDataManager is used to coordinate the distribution of Lagrangian
      * data on the patch hierarchy.
      */
     IBTK::LDataManager* d_l_data_manager;
-    std::string d_interp_kernel_fcn, d_spread_kernel_fcn;
-    bool d_error_if_points_leave_domain;
+    std::string d_interp_kernel_fcn = "IB_4", d_spread_kernel_fcn = "IB_4";
+    bool d_error_if_points_leave_domain = false;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
 
     /*
@@ -563,17 +566,17 @@ protected:
      * The force generators.
      */
     SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> d_ib_force_fcn;
-    bool d_ib_force_fcn_needs_init;
+    bool d_ib_force_fcn_needs_init = true;
 
     /*
      * The source/sink generators.
      */
     SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> d_ib_source_fcn;
-    bool d_ib_source_fcn_needs_init;
+    bool d_ib_source_fcn_needs_init = true;
     std::vector<std::vector<IBTK::Point> > d_X_src;
     std::vector<std::vector<double> > d_r_src, d_P_src, d_Q_src;
     std::vector<int> d_n_src;
-    bool d_normalize_source_strength;
+    bool d_normalize_source_strength = false;
 
     /*
      * Post-processor object.
@@ -661,8 +664,8 @@ private:
     /*!
      * Jacobian data.
      */
-    bool d_force_jac_mffd;
-    Mat d_force_jac;
+    bool d_force_jac_mffd = false;
+    Mat d_force_jac = nullptr;
     double d_force_jac_data_time;
 };
 } // namespace IBAMR

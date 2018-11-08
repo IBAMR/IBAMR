@@ -89,7 +89,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBRedundantInitializer(const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    IBRedundantInitializer(std::string object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -171,11 +171,8 @@ public:
      */
     struct SpringSpec
     {
-        SpringSpec() : parameters(), force_fcn_idx(0)
-        {
-        }
         std::vector<double> parameters;
-        int force_fcn_idx;
+        int force_fcn_idx = 0;
     };
 
     /*!
@@ -203,11 +200,8 @@ public:
      */
     struct XSpringSpec
     {
-        XSpringSpec() : parameters(), force_fcn_idx(0)
-        {
-        }
         std::vector<double> parameters;
-        int force_fcn_idx;
+        int force_fcn_idx = 0;
     };
 
     /*!
@@ -236,12 +230,9 @@ public:
      */
     struct BeamSpec
     {
-        BeamSpec() : neighbor_idxs(), bend_rigidity(-1.0), curvature(IBTK::Vector::Zero())
-        {
-        }
-        std::pair<int, int> neighbor_idxs;
-        double bend_rigidity;
-        IBTK::Vector curvature;
+        std::pair<int, int> neighbor_idxs = { 0, 0 };
+        double bend_rigidity = -1.0;
+        IBTK::Vector curvature = IBTK::Vector::Zero();
     };
 
     /*!
@@ -673,7 +664,7 @@ protected:
      * vector of boolean values indicating whether a particular level has been
      * initialized yet.
      */
-    int d_max_levels;
+    int d_max_levels = -1;
     std::vector<bool> d_level_is_initialized;
 
     /*
@@ -699,7 +690,7 @@ protected:
      * \note The shift factor should have the same units as the positions in the
      * input files, i.e., X_final = scale*(X_initial + shift).
      */
-    double d_length_scale_factor;
+    double d_length_scale_factor = 1.0;
     IBTK::Vector d_posn_shift;
 
     /*
@@ -773,22 +764,22 @@ protected:
     /*!
      * Check if user defined data has been processed.
      */
-    bool d_data_processed;
+    bool d_data_processed = false;
 
 private:
     /*
      * Functions used to initialize structures programmatically.
      */
-    InitStructureOnLevel d_init_structure_on_level_fcn;
-    InitSpringDataOnLevel d_init_spring_on_level_fcn;
-    InitXSpringDataOnLevel d_init_xspring_on_level_fcn;
-    InitBeamDataOnLevel d_init_beam_on_level_fcn;
-    InitDirectorAndRodOnLevel d_init_director_and_rod_on_level_fcn;
-    InitBoundaryMassOnLevel d_init_boundary_mass_on_level_fcn;
-    InitTargetPtOnLevel d_init_target_pt_on_level_fcn;
-    InitAnchorPtOnLevel d_init_anchor_pt_on_level_fcn;
-    InitInstrumentationOnLevel d_init_instrumentation_on_level_fcn;
-    InitSourceOnLevel d_init_source_on_level_fcn;
+    InitStructureOnLevel d_init_structure_on_level_fcn = nullptr;
+    InitSpringDataOnLevel d_init_spring_on_level_fcn = nullptr;
+    InitXSpringDataOnLevel d_init_xspring_on_level_fcn = nullptr;
+    InitBeamDataOnLevel d_init_beam_on_level_fcn = nullptr;
+    InitDirectorAndRodOnLevel d_init_director_and_rod_on_level_fcn = nullptr;
+    InitBoundaryMassOnLevel d_init_boundary_mass_on_level_fcn = nullptr;
+    InitTargetPtOnLevel d_init_target_pt_on_level_fcn = nullptr;
+    InitAnchorPtOnLevel d_init_anchor_pt_on_level_fcn = nullptr;
+    InitInstrumentationOnLevel d_init_instrumentation_on_level_fcn = nullptr;
+    InitSourceOnLevel d_init_source_on_level_fcn = nullptr;
 };
 } // namespace IBAMR
 

@@ -121,17 +121,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
                                                std::max(SIDEG, CELLG),
                                                input_db,
                                                default_options_prefix),
-      d_rediscretize_stokes(true),
       d_res_rediscretized_stokes(d_rediscretize_stokes),
-      d_level_solver_type("PETSC_LEVEL_SOLVER"),
-      d_level_solver_default_options_prefix(default_options_prefix + "level_"),
-      d_level_solver_abs_residual_tol(1.0e-50),
-      d_level_solver_rel_residual_tol(1.0e-5),
-      d_level_solver_max_iterations(10),
-      d_u_petsc_prolongation_method("RT0"),
-      d_p_petsc_prolongation_method("CONSERVATIVE"),
-      d_SAJ_fill(1.0),
-      d_RStokesIBP_fill(1.0)
+      d_level_solver_default_options_prefix(default_options_prefix + "level_")
 {
     // Set the time stepping type to UNKNOWN to ensure that the IB solver sets it correctly.
     d_time_stepping_type = UNKNOWN_TIME_STEPPING_TYPE;

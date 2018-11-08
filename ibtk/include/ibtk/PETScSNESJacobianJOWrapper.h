@@ -248,11 +248,11 @@ private:
     PETScSNESJacobianJOWrapper& operator=(const PETScSNESJacobianJOWrapper& that) = delete;
 
     const SNES d_petsc_snes;
-    Mat d_petsc_snes_jac;
+    Mat d_petsc_snes_jac = nullptr;
     PetscErrorCode (*const d_petsc_snes_form_jac)(SNES, Vec, Mat, Mat, void*);
     void* const d_petsc_snes_jac_ctx;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_y, d_z;
-    Vec d_petsc_x, d_petsc_y, d_petsc_z;
+    Vec d_petsc_x = nullptr, d_petsc_y = nullptr, d_petsc_z = nullptr;
 };
 } // namespace IBTK
 

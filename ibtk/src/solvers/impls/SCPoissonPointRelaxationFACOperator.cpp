@@ -266,11 +266,7 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
           new SideVariable<NDIM, double>(object_name + "::side_scratch", DEFAULT_DATA_DEPTH),
           SIDEG,
           input_db,
-          std::move(default_options_prefix)),
-      d_coarse_solver(nullptr),
-      d_coarse_solver_db(),
-      d_patch_bc_box_overlap(),
-      d_patch_neighbor_overlap()
+          std::move(default_options_prefix))
 {
     // Set some default values.
     d_smoother_type = "PATCH_GAUSS_SEIDEL";

@@ -291,7 +291,7 @@ private:
      * The type of extrapolation to perform.  Choices are presently "CONSTANT",
      * "LINEAR", or "QUADRATIC".
      */
-    std::string d_extrap_type;
+    std::string d_extrap_type = "NULL";
 };
 } // namespace IBTK
 

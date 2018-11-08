@@ -103,7 +103,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IMPMethod(const std::string& object_name,
+    IMPMethod(std::string object_name,
               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
               bool register_for_restart = true);
 
@@ -336,7 +336,7 @@ protected:
     /*
      * Indicates whether the integrator should output logging messages.
      */
-    bool d_do_log;
+    bool d_do_log = false;
 
     /*
      * Pointers to the patch hierarchy and gridding algorithm objects associated
@@ -348,21 +348,23 @@ protected:
     /*
      * The current time step interval.
      */
-    double d_current_time, d_new_time, d_half_time;
+    double d_current_time = std::numeric_limits<double>::quiet_NaN(),
+           d_new_time = std::numeric_limits<double>::quiet_NaN(),
+           d_half_time = std::numeric_limits<double>::quiet_NaN();
 
     /*
      * Boolean values tracking whether certain quantities need to be
      * reinitialized.
      */
-    bool d_X_current_needs_ghost_fill, d_X_new_needs_ghost_fill, d_X_half_needs_ghost_fill;
-    bool d_X_half_needs_reinit, d_U_half_needs_reinit;
+    bool d_X_current_needs_ghost_fill = true, d_X_new_needs_ghost_fill = true, d_X_half_needs_ghost_fill = true;
+    bool d_X_half_needs_reinit = true, d_U_half_needs_reinit = true;
 
     /*
      * The LDataManager is used to coordinate the distribution of Lagrangian
      * data on the patch hierarchy.
      */
-    IBTK::LDataManager* d_l_data_manager;
-    bool d_error_if_points_leave_domain;
+    IBTK::LDataManager* d_l_data_manager = nullptr;
+    bool d_error_if_points_leave_domain = false;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
 
     /*

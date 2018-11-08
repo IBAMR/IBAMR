@@ -87,17 +87,7 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(std::string object_name,
                                                  Pointer<Database> input_db,
                                                  std::string default_options_prefix,
                                                  MPI_Comm petsc_comm)
-    : d_reinitializing_solver(false),
-      d_petsc_x(nullptr),
-      d_petsc_b(nullptr),
-      d_petsc_r(nullptr),
-      d_options_prefix(std::move(default_options_prefix)),
-      d_petsc_comm(petsc_comm),
-      d_petsc_snes(nullptr),
-      d_petsc_jac(nullptr),
-      d_managing_petsc_snes(true),
-      d_user_provided_function(false),
-      d_user_provided_jacobian(false)
+    : d_options_prefix(std::move(default_options_prefix)), d_petsc_comm(petsc_comm)
 {
     // Setup default values.
     GeneralSolver::init(std::move(object_name), /*homogeneous_bc*/ false);
@@ -123,17 +113,7 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(std::string object_name,
 }
 
 PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(std::string object_name, SNES petsc_snes)
-    : d_reinitializing_solver(false),
-      d_petsc_x(nullptr),
-      d_petsc_b(nullptr),
-      d_petsc_r(nullptr),
-      d_options_prefix(""),
-      d_petsc_comm(PETSC_COMM_WORLD),
-      d_petsc_snes(std::move(petsc_snes)),
-      d_petsc_jac(nullptr),
-      d_managing_petsc_snes(false),
-      d_user_provided_function(false),
-      d_user_provided_jacobian(false)
+    : d_petsc_snes(std::move(petsc_snes))
 {
     GeneralSolver::init(std::move(object_name), /*homogeneous_bc*/ false);
     if (d_petsc_snes) resetWrappedSNES(d_petsc_snes);

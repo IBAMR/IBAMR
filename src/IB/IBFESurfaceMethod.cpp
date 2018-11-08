@@ -170,7 +170,6 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
                                      bool register_for_restart,
                                      const std::string& restart_read_dirname,
                                      unsigned int restart_restore_number)
-    : d_num_parts(1)
 {
     commonConstructor(object_name,
                       input_db,
@@ -1912,13 +1911,6 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
                                                       use_nodal_quadrature);
     d_default_spread_spec = FEDataManager::SpreadSpec(
         "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, use_nodal_quadrature);
-    d_ghosts = 0;
-    d_use_jump_conditions = false;
-    d_perturb_fe_mesh_nodes = true;
-    d_normalize_pressure_jump = false;
-    d_use_consistent_mass_matrix = true;
-    d_use_direct_forcing = false;
-    d_do_log = false;
 
     d_fe_family.resize(d_num_parts, INVALID_FE);
     d_fe_order.resize(d_num_parts, INVALID_ORDER);
@@ -1987,15 +1979,6 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     d_interp_spec.resize(d_num_parts, d_default_interp_spec);
     d_spread_spec.resize(d_num_parts, d_default_spread_spec);
 
-    // Reset the current time step interval.
-    d_current_time = std::numeric_limits<double>::quiet_NaN();
-    d_new_time = std::numeric_limits<double>::quiet_NaN();
-    d_half_time = std::numeric_limits<double>::quiet_NaN();
-
-    // Keep track of the initialization state.
-    d_fe_equation_systems_initialized = false;
-    d_fe_data_initialized = false;
-    d_is_initialized = false;
     return;
 } // commonConstructor
 

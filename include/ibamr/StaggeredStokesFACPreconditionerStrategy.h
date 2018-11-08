@@ -55,6 +55,7 @@
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/FACPreconditionerStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -419,7 +420,7 @@ protected:
      * lists.  We use it to enforce working on one hierarchy at a time.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     /*
      * Level operators, used to compute composite-grid residuals.
@@ -430,8 +431,8 @@ protected:
     /*
      * Range of levels to be reset the next time the operator is initialized.
      */
-    bool d_in_initialize_operator_state;
-    int d_coarsest_reset_ln, d_finest_reset_ln;
+    bool d_in_initialize_operator_state = false;
+    int d_coarsest_reset_ln = IBTK::invalid_level_number, d_finest_reset_ln = IBTK::invalid_level_number;
 
     //\}
 
@@ -443,35 +444,35 @@ protected:
     /*
      * The kind of smoothing to perform.
      */
-    std::string d_smoother_type;
+    std::string d_smoother_type = "ADDITIVE";
 
     /*
      * The names of the refinement operators used to prolong the coarse grid
      * correction.
      */
-    std::string d_U_prolongation_method, d_P_prolongation_method;
+    std::string d_U_prolongation_method = "CONSTANT_REFINE", d_P_prolongation_method = "LIENAR_REFINE";
 
     /*
      * The names of the coarsening operators used to restrict the fine grid
      * error or residual.
      */
-    std::string d_U_restriction_method, d_P_restriction_method;
+    std::string d_U_restriction_method = "CONSERVATIVE_COARSEN", d_P_restriction_method = "CONSERVATIVE_COARSEN";
 
     /*
      * Coarse level solver parameters.
      */
-    bool d_coarse_solver_init_subclass;
-    std::string d_coarse_solver_type, d_coarse_solver_default_options_prefix;
-    double d_coarse_solver_rel_residual_tol;
-    double d_coarse_solver_abs_residual_tol;
-    int d_coarse_solver_max_iterations;
+    bool d_coarse_solver_init_subclass = false;
+    std::string d_coarse_solver_type = "LEVEL_SMOOTHER", d_coarse_solver_default_options_prefix;
+    double d_coarse_solver_rel_residual_tol = 1.0e-5;
+    double d_coarse_solver_abs_residual_tol = 1.0e-50;
+    int d_coarse_solver_max_iterations = 10;
     SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> d_coarse_solver;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     /*
      * Nullspace info.
      */
-    bool d_has_velocity_nullspace, d_has_pressure_nullspace;
+    bool d_has_velocity_nullspace = false, d_has_pressure_nullspace = false;
 
     //\}
 
@@ -488,7 +489,7 @@ protected:
     /*
      * Patch descriptor indices for scratch data.
      */
-    int d_side_scratch_idx, d_cell_scratch_idx;
+    int d_side_scratch_idx = IBTK::invalid_index, d_cell_scratch_idx = IBTK::invalid_index;
 
     //\}
 

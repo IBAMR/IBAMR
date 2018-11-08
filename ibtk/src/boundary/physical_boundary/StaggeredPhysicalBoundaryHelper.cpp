@@ -68,7 +68,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-StaggeredPhysicalBoundaryHelper::StaggeredPhysicalBoundaryHelper() : d_hierarchy(nullptr), d_dirichlet_bdry_locs()
+StaggeredPhysicalBoundaryHelper::StaggeredPhysicalBoundaryHelper()
 {
     // intentionally blank
     return;

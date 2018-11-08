@@ -45,6 +45,7 @@
 #include "VariableContext.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibtk/PETScLevelSolver.h"
+#include "ibtk/ibtk_utilities.h"
 #include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
@@ -178,8 +179,8 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
     std::vector<int> d_num_dofs_per_proc;
-    int d_u_dof_index_idx, d_p_dof_index_idx;
-    int d_u_nullspace_idx, d_p_nullspace_idx;
+    int d_u_dof_index_idx = IBTK::invalid_index, d_p_dof_index_idx = IBTK::invalid_index;
+    int d_u_nullspace_idx = IBTK::invalid_index, d_p_nullspace_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_u_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_u_nullspace_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_p_dof_index_var;

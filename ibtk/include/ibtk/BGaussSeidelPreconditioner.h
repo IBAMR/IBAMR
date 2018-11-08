@@ -320,7 +320,7 @@ private:
      * Parameters to specify the ordering of the application of the component
      * preconditioners.
      */
-    bool d_symmetric_preconditioner, d_reverse_order;
+    bool d_symmetric_preconditioner = false, d_reverse_order = false;
 };
 } // namespace IBTK
 

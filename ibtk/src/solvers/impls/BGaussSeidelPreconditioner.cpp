@@ -63,7 +63,6 @@ namespace IBTK
 BGaussSeidelPreconditioner::BGaussSeidelPreconditioner(std::string object_name,
                                                        Pointer<Database> input_db,
                                                        const std::string& /*default_options_prefix*/)
-    : d_pc_map(), d_linear_ops_map(), d_symmetric_preconditioner(false), d_reverse_order(false)
 {
     // Setup default options.
     GeneralSolver::init(std::move(object_name), /*homogeneous_bc*/ true);

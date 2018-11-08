@@ -56,8 +56,7 @@ IBRodForceSpec::getIsRegisteredWithStreamableManager()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline IBRodForceSpec::IBRodForceSpec(const unsigned int num_rods)
-    : d_master_idx(-1), d_next_idxs(num_rods), d_material_params(num_rods)
+inline IBRodForceSpec::IBRodForceSpec(const unsigned int num_rods) : d_next_idxs(num_rods), d_material_params(num_rods)
 {
 #if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())

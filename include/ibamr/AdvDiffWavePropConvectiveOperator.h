@@ -74,6 +74,7 @@
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
@@ -226,21 +227,21 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_alg_Q;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_ghostfill_strategy_Q;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_scheds_Q;
-    std::string d_outflow_bdry_extrap_type;
+    std::string d_outflow_bdry_extrap_type = "CONSTANT";
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_var;
-    unsigned int d_Q_data_depth;
-    int d_Q_scratch_idx;
+    unsigned int d_Q_data_depth = 0;
+    int d_Q_scratch_idx = 0;
 
     const std::vector<RobinBcCoefStrategy<NDIM>*> d_conc_bc_coefs;
     // Reconstruction Order (2*k-1)
     // Currently only available for k=3
-    int d_k;
+    int d_k = 3;
 
     ConvectiveDifferencingType d_difference_form;
 };

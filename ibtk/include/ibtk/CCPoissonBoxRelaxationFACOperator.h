@@ -305,7 +305,7 @@ private:
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::string d_petsc_options_prefix;
+    std::string d_petsc_options_prefix = "cc_poisson_fac_";
     std::vector<std::vector<Vec> > d_patch_vec_e, d_patch_vec_f;
     std::vector<std::vector<Mat> > d_patch_mat;
     std::vector<std::vector<KSP> > d_patch_ksp;

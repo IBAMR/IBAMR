@@ -46,7 +46,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ExtendedRobinBcCoefStrategy::ExtendedRobinBcCoefStrategy() : d_target_data_idx(-1), d_homogeneous_bc(false)
+ExtendedRobinBcCoefStrategy::ExtendedRobinBcCoefStrategy()
 {
     // intentionally blank
     return;

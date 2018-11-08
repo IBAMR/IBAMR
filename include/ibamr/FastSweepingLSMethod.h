@@ -103,7 +103,7 @@ public:
 
 protected:
     // Algorithm parameters.
-    bool d_consider_phys_bdry_wall;
+    bool d_consider_phys_bdry_wall = false;
     int d_wall_location_idx[2 * NDIM];
 
 private:

@@ -45,6 +45,7 @@
 #include "RefineOperator.h"
 #include "SideVariable.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -241,20 +242,22 @@ private:
      * Boolean value indicating whether we are enforcing a consistent
      * interpolation scheme at "Type 2" coarse-fine interface ghost cells.
      */
-    bool d_consistent_type_2_bdry;
+    bool d_consistent_type_2_bdry = false;
 
     /*!
      * Refine operator employed to fill coarse grid ghost cell values.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op =
+        new SAMRAI::geom::CartesianSideDoubleConservativeLinearRefine<NDIM>();
 
     /*!
      * Cached hierarchy-related information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM>*> d_cf_boundary;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_sc_indicator_var;
-    int d_sc_indicator_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_sc_indicator_var =
+        new SAMRAI::pdat::SideVariable<NDIM, int>("CartSideDoubleQuadraticCFInterpolation::sc_indicator_var");
+    int d_sc_indicator_idx = IBTK::invalid_index;
 };
 } // namespace IBTK
 

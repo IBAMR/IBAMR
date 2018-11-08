@@ -139,8 +139,8 @@ protected:
     SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
 
     // Scaling factors for various operators.
-    double d_scale_interp, d_scale_spread, d_reg_mob_factor;
-    bool d_normalize_spread_force;
+    double d_scale_interp = 1.0, d_scale_spread = 1.0, d_reg_mob_factor = 1.0;
+    bool d_normalize_spread_force = false;
     //////////////////////////////////////////////////////////////////////////////
 
 private:

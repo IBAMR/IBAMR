@@ -256,12 +256,12 @@ protected:
     /*
      * Boolean value that indicates whether the integrator has been initialized.
      */
-    bool d_integrator_is_initialized;
+    bool d_integrator_is_initialized = false;
 
     /*!
      * Enum indicating the time integration employed for the IB equations.
      */
-    TimeSteppingType d_time_stepping_type;
+    TimeSteppingType d_time_stepping_type = MIDPOINT_RULE;
 
     /*!
      * Flag indicating whether to use an explicit predictor for the structure
@@ -273,7 +273,7 @@ protected:
      * Flags to determine whether warnings or error messages should be emitted
      * when time step size changes are encountered.
      */
-    bool d_error_on_dt_change, d_warn_on_dt_change;
+    bool d_error_on_dt_change = true, d_warn_on_dt_change = false;
 
     /*
      * The (optional) INSHierarchyIntegrator is used to provide time integration
@@ -289,7 +289,7 @@ protected:
      * NOTE: Currently, when the CFL-based regrid interval is specified, it is
      * always used instead of the fixed-step regrid interval.
      */
-    double d_regrid_cfl_interval, d_regrid_cfl_estimate;
+    double d_regrid_cfl_interval = 0.0, d_regrid_cfl_estimate = 0.0;
 
     /*
      * IB method implementation object.
@@ -332,7 +332,7 @@ protected:
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
-    int d_workload_idx;
+    int d_workload_idx = IBTK::invalid_index;
 
     /*
      * Lagrangian marker data structures.

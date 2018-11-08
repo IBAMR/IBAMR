@@ -53,6 +53,7 @@
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/SideDataSynchronization.h"
 #include "ibtk/ibtk_enums.h"
@@ -131,7 +132,7 @@ public:
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    INSVCStaggeredHierarchyIntegrator(const std::string& object_name,
+    INSVCStaggeredHierarchyIntegrator(std::string object_name,
                                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                       bool register_for_restart = true);
 
@@ -474,8 +475,8 @@ protected:
      * Boolean values indicates whether to output various quantities for
      * visualization.
      */
-    double d_rho_scale, d_mu_scale;
-    bool d_output_rho, d_output_mu;
+    double d_rho_scale = 1.0, d_mu_scale = 1.0;
+    bool d_output_rho = false, d_output_mu = false;
 
     /*
      * Hierarchy operators and solvers.
@@ -492,9 +493,10 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_rhs_vec;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_nul_vecs;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_U_nul_vecs;
-    bool d_vectors_need_init, d_explicitly_remove_nullspace;
+    bool d_vectors_need_init, d_explicitly_remove_nullspace = false;
 
-    std::string d_stokes_solver_type, d_stokes_precond_type;
+    std::string d_stokes_solver_type = StaggeredStokesSolverManager::UNDEFINED,
+                d_stokes_precond_type = StaggeredStokesSolverManager::UNDEFINED;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_stokes_solver_db, d_stokes_precond_db;
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     bool d_stokes_solver_needs_init;
@@ -602,7 +604,7 @@ protected:
     /*
      * Variables to indicate if either rho or mu is constant.
      */
-    bool d_rho_is_const, d_mu_is_const;
+    bool d_rho_is_const = false, d_mu_is_const = false;
 
     /*
      * Variable to indicate the type of interpolation to be done for rho and mu.
@@ -617,7 +619,7 @@ protected:
     /*
      * Variable to set how often the preconditioner is reinitialized.
      */
-    int d_precond_reinit_interval;
+    int d_precond_reinit_interval = 1;
 
     /*
      * Objects to set initial condition for density and viscosity when they are maintained by the fluid integrator.
@@ -629,7 +631,7 @@ protected:
      * integrator
      * or set by the fluid integrator.
      */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_mu_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_mu_bc_coef = nullptr;
 
     /*
      * Variable to keep track of a transported viscosity variable maintained by an advection-diffusion integrator

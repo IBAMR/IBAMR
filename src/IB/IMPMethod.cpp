@@ -175,25 +175,16 @@ static const int IMP_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IMPMethod::IMPMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart)
+IMPMethod::IMPMethod(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
+    : d_ghosts(LEInteractor::getMinimumGhostWidth(KERNEL_FCN)), d_object_name(std::move(object_name))
 {
     // Set the object name and register it with the restart manager.
-    d_object_name = object_name;
     d_registered_for_restart = false;
     if (register_for_restart)
     {
         RestartManager::getManager()->registerRestartItem(d_object_name, this);
         d_registered_for_restart = true;
     }
-
-    // Ensure all pointers to helper objects are NULL.
-    d_l_initializer = nullptr;
-    d_silo_writer = nullptr;
-
-    // Set some default values.
-    d_error_if_points_leave_domain = false;
-    d_ghosts = LEInteractor::getMinimumGhostWidth(KERNEL_FCN);
-    d_do_log = false;
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -208,19 +199,6 @@ IMPMethod::IMPMethod(const std::string& object_name, Pointer<Database> input_db,
                                                 d_ghosts,
                                                 d_registered_for_restart);
     d_ghosts = d_l_data_manager->getGhostCellWidth();
-
-    // Reset the current time step interval.
-    d_current_time = std::numeric_limits<double>::quiet_NaN();
-    d_new_time = std::numeric_limits<double>::quiet_NaN();
-    d_half_time = std::numeric_limits<double>::quiet_NaN();
-
-    // Indicate all Lagrangian data needs ghost values to be refilled, and that
-    // all intermediate data needs to be initialized.
-    d_X_current_needs_ghost_fill = true;
-    d_X_new_needs_ghost_fill = true;
-    d_X_half_needs_ghost_fill = true;
-    d_X_half_needs_reinit = true;
-    d_U_half_needs_reinit = true;
     return;
 } // IMPMethod
 

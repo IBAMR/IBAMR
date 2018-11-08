@@ -126,10 +126,10 @@ public:
 
 protected:
     // Solver parameters.
-    bool d_initial_guess_nonzero;
+    bool d_initial_guess_nonzero = true;
 
     // Nullspace data.
-    bool d_nullspace_contains_constant_vec;
+    bool d_nullspace_contains_constant_vec = false;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_nullspace_basis_vecs;
 
 private:

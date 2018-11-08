@@ -39,6 +39,7 @@
 
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/GeneralOperator.h"
+#include "ibtk/ibtk_utilities.h"
 
 namespace SAMRAI
 {
@@ -136,7 +137,7 @@ protected:
     /*!
      * The advection velocity patch data descriptor index.
      */
-    int d_u_idx;
+    int d_u_idx = IBTK::invalid_index;
 
 private:
     /*!

@@ -519,13 +519,7 @@ static const int GODUNOV_ADVECTOR_VERSION = 1;
 AdvectorExplicitPredictorPatchOps::AdvectorExplicitPredictorPatchOps(const std::string& object_name,
                                                                      Pointer<Database> input_db,
                                                                      const bool register_for_restart)
-    : d_object_name(object_name),
-      d_registered_for_restart(register_for_restart),
-      d_limiter_type(MC_LIMITED)
-#if (NDIM == 3)
-      ,
-      d_using_full_ctu(true)
-#endif
+    : d_object_name(object_name), d_registered_for_restart(register_for_restart)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());

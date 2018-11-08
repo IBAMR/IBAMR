@@ -326,7 +326,6 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        bool register_for_restart,
                        const std::string& restart_read_dirname,
                        unsigned int restart_restore_number)
-    : d_num_parts(1)
 {
     commonConstructor(object_name,
                       input_db,
@@ -3448,12 +3447,6 @@ IBFEMethod::commonConstructor(const std::string& object_name,
                                                       use_nodal_quadrature);
     d_default_spread_spec = FEDataManager::SpreadSpec(
         "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, use_nodal_quadrature);
-    d_ghosts = 0;
-    d_split_normal_force = false;
-    d_split_tangential_force = false;
-    d_use_jump_conditions = false;
-    d_use_consistent_mass_matrix = true;
-    d_do_log = false;
 
     d_fe_family.resize(d_num_parts, INVALID_FE);
     d_fe_order.resize(d_num_parts, INVALID_ORDER);
@@ -3462,21 +3455,15 @@ IBFEMethod::commonConstructor(const std::string& object_name,
 
     // Indicate that all of the parts do NOT use stress normalization by default
     // and set some default values.
-    d_epsilon = 0.0;
-    d_has_stress_normalization_parts = false;
     d_is_stress_normalization_part.resize(d_num_parts, false);
 
     // Indicate that there are no overlapping parts by default.
-    d_overlap_tolerance = 0.0;
-
-    d_has_overlap_velocity_parts = false;
     d_is_overlap_velocity_part.resize(d_num_parts, false);
     d_is_overlap_velocity_master_part.resize(d_num_parts, false);
     d_overlap_velocity_master_part.resize(d_num_parts, -1);
     d_overlap_velocity_part_node_to_elem_map.resize(d_num_parts);
     d_overlap_velocity_part_ghost_idxs.resize(d_num_parts);
 
-    d_has_overlap_force_parts = false;
     d_is_overlap_force_part.resize(d_num_parts, false);
     d_overlap_force_part_ghost_idxs.resize(d_num_parts);
 
@@ -3487,7 +3474,6 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     d_lag_body_force_fcn_data.resize(d_num_parts);
     d_lag_surface_pressure_fcn_data.resize(d_num_parts);
     d_lag_surface_force_fcn_data.resize(d_num_parts);
-    d_has_lag_body_source_parts = false;
     d_lag_body_source_part.resize(d_num_parts, false);
     d_lag_body_source_fcn_data.resize(d_num_parts);
     d_direct_forcing_kinematics_data.resize(d_num_parts, Pointer<IBFEDirectForcingKinematics>(nullptr));
@@ -3547,15 +3533,6 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     d_interp_spec.resize(d_num_parts, d_default_interp_spec);
     d_spread_spec.resize(d_num_parts, d_default_spread_spec);
 
-    // Reset the current time step interval.
-    d_current_time = std::numeric_limits<double>::quiet_NaN();
-    d_new_time = std::numeric_limits<double>::quiet_NaN();
-    d_half_time = std::numeric_limits<double>::quiet_NaN();
-
-    // Keep track of the initialization state.
-    d_fe_equation_systems_initialized = false;
-    d_fe_data_initialized = false;
-    d_is_initialized = false;
     return;
 } // commonConstructor
 

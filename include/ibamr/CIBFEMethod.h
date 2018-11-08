@@ -467,17 +467,17 @@ private:
      * Booleans to control spreading constraint force and interpolating
      * to Lagrangian velocities.
      */
-    bool d_constraint_force_is_initialized, d_lag_velvec_is_initialized;
+    bool d_constraint_force_is_initialized = false, d_lag_velvec_is_initialized = false;
 
     /*!
      * Whether or not L2-projection is to be performed after velocity interpolation.
      */
-    bool d_compute_L2_projection;
+    bool d_compute_L2_projection = false;
 
     /*!
      * Check if the initial center of mass has been initialized.
      */
-    bool d_initial_com_initialized;
+    bool d_initial_com_initialized = false;
 
     /*!
      * PETSc wrappers for rigid body force.
@@ -516,7 +516,7 @@ private:
     /*!
      * Control printing of S[lambda].
      */
-    bool d_output_eul_lambda;
+    bool d_output_eul_lambda = false;
 
     /*!
      * Fluid density.

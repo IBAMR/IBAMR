@@ -188,24 +188,13 @@ CCPoissonBoxRelaxationFACOperator::CCPoissonBoxRelaxationFACOperator(const std::
           new CellVariable<NDIM, double>(object_name + "::cell_scratch", DEFAULT_DATA_DEPTH),
           CELLG,
           input_db,
-          std::move(default_options_prefix)),
-      d_coarse_solver(nullptr),
-      d_coarse_solver_db(),
-      d_petsc_options_prefix("cc_poisson_fac_"),
-      d_patch_vec_e(),
-      d_patch_vec_f(),
-      d_patch_mat(),
-      d_patch_ksp(),
-      d_patch_bc_box_overlap(),
-      d_patch_neighbor_overlap()
+          std::move(default_options_prefix))
 {
     // Set some default values.
     d_smoother_type = "PATCH_GAUSS_SEIDEL";
     d_prolongation_method = "LINEAR_REFINE";
     d_restriction_method = "CONSERVATIVE_COARSEN";
     d_coarse_solver_type = CCPoissonSolverManager::HYPRE_LEVEL_SOLVER;
-    d_coarse_solver_rel_residual_tol = 1.0e-5;
-    d_coarse_solver_abs_residual_tol = 1.0e-50;
     d_coarse_solver_max_iterations = 1;
     d_coarse_solver_db = new MemoryDatabase(object_name + "::coarse_solver_db");
     d_coarse_solver_db->putString("solver_type", "PFMG");

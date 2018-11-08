@@ -120,14 +120,7 @@ INSCollocatedWavePropConvectiveOperator::INSCollocatedWavePropConvectiveOperator
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
-    : ConvectiveOperator(std::move(object_name), difference_form),
-      d_bc_coefs(std::move(bc_coefs)),
-      d_bdry_extrap_type("CONSTANT"),
-      d_hierarchy(nullptr),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_U_var(nullptr),
-      d_U_scratch_idx(-1)
+    : ConvectiveOperator(std::move(object_name), difference_form), d_bc_coefs(std::move(bc_coefs))
 {
     if (d_difference_form != ADVECTIVE /* && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC*/)
     {
@@ -144,8 +137,6 @@ INSCollocatedWavePropConvectiveOperator::INSCollocatedWavePropConvectiveOperator
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> context = var_db->getContext("INSCollocatedWavePropConvectiveOperator::CONTEXT");
-
-    d_k = 3;
 
     const std::string U_var_name = "INSCollocatedWavePropConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);

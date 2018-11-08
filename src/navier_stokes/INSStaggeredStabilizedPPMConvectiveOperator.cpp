@@ -486,16 +486,9 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
     const ConvectiveDifferencingType difference_form,
     std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
     : ConvectiveOperator(std::move(object_name), difference_form),
-      d_stabilization_type("UPWIND"),
       d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
       d_width(array_constant<double, 2 * NDIM>(0.0)),
-      d_bc_coefs(std::move(bc_coefs)),
-      d_bdry_extrap_type("CONSTANT"),
-      d_hierarchy(nullptr),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_U_var(nullptr),
-      d_U_scratch_idx(-1)
+      d_bc_coefs(std::move(bc_coefs))
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {

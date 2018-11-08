@@ -47,6 +47,7 @@
 #include "RefinePatchStrategy.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -202,17 +203,17 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_ghostfill_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_scheds;
-    std::string d_bdry_extrap_type;
+    std::string d_bdry_extrap_type = "CONSTANT";
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_U_var;
-    int d_U_scratch_idx;
+    int d_U_scratch_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_u_extrap_var, d_u_flux_var;
-    int d_u_extrap_idx, d_u_flux_idx;
+    int d_u_extrap_idx = IBTK::invalid_index, d_u_flux_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR
 

@@ -149,9 +149,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
     d_ib_implicit_ops->setUseFixedLEOperators(true);
 
     // Set default configuration options.
-    d_solve_for_position = false;
     d_use_structure_predictor = false;
-    d_jac_delta_fcn = "IB_4";
 
     // Set options from input.
     if (input_db)

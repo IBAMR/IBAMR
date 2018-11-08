@@ -127,23 +127,11 @@ generate_petsc_is_from_std_is(std::vector<std::set<int> >& overlap_std,
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScLevelSolver::PETScLevelSolver()
-    : d_hierarchy(),
-      d_level_num(-1),
-      d_ksp_type(KSPGMRES),
-      d_shell_pc_type(""),
-      d_options_prefix(""),
-      d_petsc_ksp(nullptr),
-      d_petsc_mat(nullptr),
-      d_petsc_pc(nullptr),
-      d_petsc_x(nullptr),
-      d_petsc_b(nullptr)
 {
     // Setup default options.
     d_max_iterations = 10000;
     d_abs_residual_tol = 1.0e-50;
     d_rel_residual_tol = 1.0e-5;
-    d_ksp_type = KSPGMRES;
-    d_pc_type = PCILU;
     d_initial_guess_nonzero = true;
     d_enable_logging = false;
     d_box_size = 2;

@@ -116,7 +116,7 @@ static const int COARSEN_OP_PRIORITY = 0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartSideDoubleCubicCoarsen::CartSideDoubleCubicCoarsen() : d_weighted_average_coarsen_op()
+CartSideDoubleCubicCoarsen::CartSideDoubleCubicCoarsen()
 {
     // intentionally blank
     return;

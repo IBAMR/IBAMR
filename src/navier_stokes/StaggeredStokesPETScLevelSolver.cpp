@@ -83,17 +83,6 @@ static const int NOGHOST = 0;
 StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::string& object_name,
                                                                  Pointer<Database> input_db,
                                                                  const std::string& default_options_prefix)
-    : d_context(nullptr),
-      d_u_dof_index_idx(-1),
-      d_p_dof_index_idx(-1),
-      d_u_nullspace_idx(-1),
-      d_p_nullspace_idx(-1),
-      d_u_dof_index_var(nullptr),
-      d_u_nullspace_var(nullptr),
-      d_p_dof_index_var(nullptr),
-      d_p_nullspace_var(nullptr),
-      d_data_synch_sched(nullptr),
-      d_ghost_fill_sched(nullptr)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     PETScLevelSolver::init(input_db, default_options_prefix);

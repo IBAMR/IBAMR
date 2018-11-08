@@ -128,27 +128,7 @@ struct IndexComp : std::binary_function<Index<NDIM>, Index<NDIM>, bool>
 CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(const std::string& object_name,
                                                      Pointer<Database> input_db,
                                                      const std::string& /*default_options_prefix*/)
-    : d_hierarchy(),
-      d_level_num(-1),
-      d_grid_aligned_anisotropy(true),
-      d_depth(0),
-      d_grid(nullptr),
-      d_stencil(nullptr),
-      d_matrices(),
-      d_rhs_vecs(),
-      d_sol_vecs(),
-      d_solvers(),
-      d_preconds(),
-      d_solver_type("PFMG"),
-      d_precond_type("none"),
-      d_rel_change(0),
-      d_num_pre_relax_steps(1),
-      d_num_post_relax_steps(1),
-      d_memory_use(0),
-      d_rap_type(RAP_TYPE_GALERKIN),
-      d_relax_type(RELAX_TYPE_WEIGHTED_JACOBI),
-      d_skip_relax(1),
-      d_two_norm(1)
+    : d_rap_type(RAP_TYPE_GALERKIN), d_relax_type(RELAX_TYPE_WEIGHTED_JACOBI)
 {
     if (NDIM == 1 || NDIM > 3)
     {

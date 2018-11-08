@@ -225,16 +225,16 @@ private:
     /*!
      * \brief Instrumentation data.
      */
-    bool d_initialized;
-    unsigned int d_num_meters;
+    bool d_initialized = false;
+    unsigned int d_num_meters = 0;
     std::vector<int> d_num_perimeter_nodes;
     std::vector<IBTK::Vector> d_X_centroid;
     std::vector<boost::multi_array<IBTK::Vector, 1> > d_X_perimeter;
     std::vector<boost::multi_array<IBTK::Vector, 2> > d_X_web, d_dA_web;
 
-    int d_instrument_read_timestep_num;
-    double d_instrument_read_time;
-    int d_max_instrument_name_len;
+    int d_instrument_read_timestep_num = -1;
+    double d_instrument_read_time = std::numeric_limits<double>::quiet_NaN();
+    int d_max_instrument_name_len = -1;
     std::vector<std::string> d_instrument_names;
     std::vector<double> d_flow_values, d_mean_pres_values, d_point_pres_values;
 
@@ -288,10 +288,10 @@ private:
     /*!
      * The log file name and optional flow rate and pressure conversion factors.
      */
-    bool d_output_log_file;
+    bool d_output_log_file = false;
     std::string d_log_file_name;
     std::ofstream d_log_file_stream;
-    double d_flow_conv, d_pres_conv;
+    double d_flow_conv = 1.0, d_pres_conv = 1.0;
     std::string d_flow_units, d_pres_units;
 };
 } // namespace IBAMR

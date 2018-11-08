@@ -44,7 +44,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovLinearSolver::KrylovLinearSolver() : d_A(nullptr), d_pc_solver(nullptr), d_x(nullptr), d_b(nullptr)
+KrylovLinearSolver::KrylovLinearSolver()
 {
     // intentionally blank
     return;

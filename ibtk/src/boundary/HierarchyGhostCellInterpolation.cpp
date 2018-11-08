@@ -111,23 +111,6 @@ static Timer* t_fill_data_set_physical_bcs;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 HierarchyGhostCellInterpolation::HierarchyGhostCellInterpolation()
-    : d_is_initialized(false),
-      d_homogeneous_bc(false),
-      d_transaction_comps(),
-      d_hierarchy(nullptr),
-      d_grid_geom(nullptr),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_coarsen_alg(nullptr),
-      d_coarsen_strategy(nullptr),
-      d_coarsen_scheds(),
-      d_refine_alg(nullptr),
-      d_refine_strategy(nullptr),
-      d_refine_scheds(),
-      d_cf_bdry_ops(),
-      d_extrap_bc_ops(),
-      d_cc_robin_bc_ops(),
-      d_sc_robin_bc_ops()
 {
     // Setup Timers.
     IBTK_DO_ONCE(

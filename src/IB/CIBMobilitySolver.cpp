@@ -62,18 +62,14 @@ static Timer* t_deallocate_solver_state;
 
 ////////////////////////////// PUBLIC ////////////////////////////////////////
 
-CIBMobilitySolver::CIBMobilitySolver(const std::string& object_name,
+CIBMobilitySolver::CIBMobilitySolver(std::string object_name,
                                      Pointer<Database> input_db,
                                      Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
                                      Pointer<CIBStrategy> cib_strategy)
+    : d_object_name(std::move(object_name)),
+      d_num_rigid_parts(cib_strategy->getNumberOfRigidStructures()),
+      d_cib_strategy(cib_strategy)
 {
-    d_object_name = object_name;
-    d_num_rigid_parts = cib_strategy->getNumberOfRigidStructures();
-    d_cib_strategy = cib_strategy;
-    d_is_initialized = false;
-    d_interp_scale = 1.0;
-    d_spread_scale = 1.0;
-
     // Get from input.
     if (input_db) getFromInput(input_db);
 

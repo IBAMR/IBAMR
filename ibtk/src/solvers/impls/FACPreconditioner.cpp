@@ -61,15 +61,7 @@ FACPreconditioner::FACPreconditioner(std::string object_name,
                                      Pointer<FACPreconditionerStrategy> fac_strategy,
                                      tbox::Pointer<tbox::Database> input_db,
                                      const std::string& /*default_options_prefix*/)
-    : d_fac_strategy(fac_strategy),
-      d_hierarchy(nullptr),
-      d_coarsest_ln(0),
-      d_finest_ln(0),
-      d_cycle_type(V_CYCLE),
-      d_num_pre_sweeps(0),
-      d_num_post_sweeps(2),
-      d_f(),
-      d_r()
+    : d_fac_strategy(fac_strategy)
 {
     // Setup default options.
     GeneralSolver::init(std::move(object_name), /*homogeneous_bc*/ true);

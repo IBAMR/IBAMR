@@ -196,6 +196,9 @@ using RigidDOFVector = Eigen::Matrix<double, s_max_free_dofs, 1>;
 using FreeRigidDOFVector = Eigen::Matrix<int, s_max_free_dofs, 1>;
 using RDV = RigidDOFVector;
 using FRDV = FreeRigidDOFVector;
+
+static const int invalid_level_number = -1;
+static const int invalid_index = -1;
 }
 
 //////////////////////////////////////////////////////////////////////////////

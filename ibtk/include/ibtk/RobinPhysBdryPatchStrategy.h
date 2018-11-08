@@ -217,7 +217,7 @@ protected:
      * should be used.
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
-    bool d_homogeneous_bc;
+    bool d_homogeneous_bc = false;
 
 private:
     /*!

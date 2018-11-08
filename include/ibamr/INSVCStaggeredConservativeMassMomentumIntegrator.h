@@ -49,6 +49,7 @@
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
@@ -108,7 +109,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    INSVCStaggeredConservativeMassMomentumIntegrator(const std::string& object_name,
+    INSVCStaggeredConservativeMassMomentumIntegrator(std::string object_name,
                                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
@@ -325,7 +326,7 @@ private:
 
     // Cached communications operators.
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
-    std::string d_velocity_bdry_extrap_type, d_density_bdry_extrap_type;
+    std::string d_velocity_bdry_extrap_type = "CONSTANT", d_density_bdry_extrap_type = "CONSTANT";
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_rho_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_rho_bdry_fill;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_v_transaction_comps;
@@ -333,10 +334,10 @@ private:
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Number of RK steps to take.
-    int d_num_steps;
+    int d_num_steps = 1;
 
     // Boundary condition object for side-centered velocity field.
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_sc_bc_coefs;
@@ -346,44 +347,49 @@ private:
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_V_var;
-    int d_V_scratch_idx, d_V_old_idx, d_V_current_idx, d_V_new_idx, d_V_composite_idx, d_N_idx;
+    int d_V_scratch_idx = IBTK::invalid_index, d_V_old_idx = IBTK::invalid_index, d_V_current_idx = IBTK::invalid_index,
+        d_V_new_idx = IBTK::invalid_index, d_V_composite_idx, d_N_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var;
-    int d_rho_sc_current_idx, d_rho_sc_scratch_idx, d_rho_sc_new_idx;
+    int d_rho_sc_current_idx = IBTK::invalid_index, d_rho_sc_scratch_idx = IBTK::invalid_index,
+        d_rho_sc_new_idx = IBTK::invalid_index;
 
     // Hierarchy operation objects.
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
 
     // Mathematical operators.
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
-    bool d_hier_math_ops_external;
+    bool d_hier_math_ops_external = false;
 
     // Boolean value to indicate whether the integrator is presently
     // initialized.
-    bool d_is_initialized;
+    bool d_is_initialized = false;
 
     // Logging configuration.
-    bool d_enable_logging;
+    bool d_enable_logging = false;
 
     // The limiter type for interpolation onto faces.
-    LimiterType d_velocity_convective_limiter;
-    LimiterType d_density_convective_limiter;
+    LimiterType d_velocity_convective_limiter = UPWIND;
+    LimiterType d_density_convective_limiter = UPWIND;
 
     // The required number of ghost cells for the chosen interpolation.
-    int d_velocity_limiter_gcw, d_density_limiter_gcw;
+    int d_velocity_limiter_gcw = 1, d_density_limiter_gcw = 1;
 
     // Variable to indicate the density update time-stepping type.
-    TimeSteppingType d_density_time_stepping_type;
+    TimeSteppingType d_density_time_stepping_type = FORWARD_EULER;
 
     // Source term variable and function for the mass density update.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_S_var;
-    int d_S_scratch_idx;
+    int d_S_scratch_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
 
     // Variable to indicate the cycle number.
-    int d_cycle_num;
+    int d_cycle_num = -1;
 
     // Variable to indicate time and time step size.
-    double d_current_time, d_new_time, d_solution_time, d_dt, d_dt_prev;
+    double d_current_time = std::numeric_limits<double>::quiet_NaN(),
+           d_new_time = std::numeric_limits<double>::quiet_NaN(),
+           d_solution_time = std::numeric_limits<double>::quiet_NaN(), d_dt = std::numeric_limits<double>::quiet_NaN(),
+           d_dt_prev = -1.0;
 
     // Coarse-fine boundary object
     std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM>*> d_cf_boundary;

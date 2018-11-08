@@ -52,6 +52,7 @@
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK
@@ -386,7 +387,7 @@ protected:
      * lists.  We use it to enforce working on one hierarchy at a time.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     /*
      * HierarchyDataOpsReal objects restricted to a single level of the patch
@@ -403,8 +404,8 @@ protected:
     /*
      * Range of levels to be reset the next time the operator is initialized.
      */
-    bool d_in_initialize_operator_state;
-    int d_coarsest_reset_ln, d_finest_reset_ln;
+    bool d_in_initialize_operator_state = false;
+    int d_coarsest_reset_ln = IBTK::invalid_level_number, d_finest_reset_ln = IBTK::invalid_level_number;
 
     //\}
 
@@ -416,27 +417,27 @@ protected:
     /*
      * The kind of smoothing to perform.
      */
-    std::string d_smoother_type;
+    std::string d_smoother_type = "DEFAULT";
 
     /*
      * The names of the refinement operators used to prolong the coarse grid
      * correction.
      */
-    std::string d_prolongation_method;
+    std::string d_prolongation_method = "DEFAULT";
 
     /*
      * The names of the coarsening operators used to restrict the fine grid
      * error or residual.
      */
-    std::string d_restriction_method;
+    std::string d_restriction_method = "DEFAULT";
 
     /*
      * Coarse level solver parameters.
      */
-    std::string d_coarse_solver_type, d_coarse_solver_default_options_prefix;
-    double d_coarse_solver_rel_residual_tol;
-    double d_coarse_solver_abs_residual_tol;
-    int d_coarse_solver_max_iterations;
+    std::string d_coarse_solver_type = "DEFAULT", d_coarse_solver_default_options_prefix;
+    double d_coarse_solver_rel_residual_tol = 1.0e-5;
+    double d_coarse_solver_abs_residual_tol = 1.0e-50;
+    int d_coarse_solver_max_iterations = 10;
 
     //\}
 
@@ -453,7 +454,7 @@ protected:
     /*
      * Patch descriptor index for scratch data.
      */
-    int d_scratch_idx;
+    int d_scratch_idx = IBTK::invalid_index;
 
     //\}
 

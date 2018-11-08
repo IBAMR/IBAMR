@@ -324,12 +324,13 @@ private:
 
     const unsigned int d_dim;
     FEDataManager* const d_fe_data_manager;
-    bool d_initialized;
-    bool d_eval_q_point, d_eval_JxW, d_eval_q_point_face, d_eval_JxW_face, d_eval_normal_face;
-    libMesh::QBase *d_qrule, *d_qrule_face;
-    const std::vector<libMesh::Point> *d_q_point, *d_q_point_face;
-    const std::vector<double> *d_JxW, *d_JxW_face;
-    const std::vector<libMesh::Point>* d_normal_face;
+    bool d_initialized = false;
+    bool d_eval_q_point = false, d_eval_JxW = false, d_eval_q_point_face = false, d_eval_JxW_face = false,
+         d_eval_normal_face = false;
+    libMesh::QBase *d_qrule = nullptr, *d_qrule_face = nullptr;
+    const std::vector<libMesh::Point>*d_q_point = nullptr, *d_q_point_face = nullptr;
+    const std::vector<double>*d_JxW = nullptr, *d_JxW_face = nullptr;
+    const std::vector<libMesh::Point>* d_normal_face = nullptr;
 
     // Data associated with systems.
     std::vector<const libMesh::System*> d_systems;
@@ -352,7 +353,7 @@ private:
     std::vector<const std::vector<std::vector<libMesh::VectorValue<double> > > *> d_dphi, d_dphi_face;
 
     // Data associated with the current element.
-    const libMesh::Elem* d_current_elem;
+    const libMesh::Elem* d_current_elem = nullptr;
     unsigned int d_current_side;
     std::vector<boost::multi_array<double, 2> > d_system_elem_data;
     unsigned int d_n_qp;

@@ -44,6 +44,7 @@
 #include "VariableContext.h"
 #include "ibtk/PETScLevelSolver.h"
 #include "ibtk/PoissonSolver.h"
+#include "ibtk/ibtk_utilities.h"
 #include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
@@ -203,7 +204,7 @@ private:
     //\{
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
     std::vector<int> d_num_dofs_per_proc;
-    int d_dof_index_idx;
+    int d_dof_index_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_data_synch_sched, d_ghost_fill_sched;
     //\}

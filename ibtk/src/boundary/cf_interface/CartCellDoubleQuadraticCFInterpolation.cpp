@@ -214,12 +214,6 @@ is_corner_point(const Index<NDIM>& i,
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartCellDoubleQuadraticCFInterpolation::CartCellDoubleQuadraticCFInterpolation()
-    : d_patch_data_indices(),
-      d_consistent_type_2_bdry(false),
-      d_refine_op(new CartesianCellDoubleLinearRefine<NDIM>()),
-      d_hierarchy(nullptr),
-      d_cf_boundary(),
-      d_periodic_shift()
 {
     // intentionally blank
     return;

@@ -44,22 +44,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 FEDataInterpolation::FEDataInterpolation(const unsigned int dim, FEDataManager* const fe_data_manager)
-    : d_dim(dim),
-      d_fe_data_manager(fe_data_manager),
-      d_initialized(false),
-      d_eval_q_point(false),
-      d_eval_JxW(false),
-      d_eval_q_point_face(false),
-      d_eval_JxW_face(false),
-      d_eval_normal_face(false),
-      d_qrule(nullptr),
-      d_qrule_face(nullptr),
-      d_q_point(nullptr),
-      d_q_point_face(nullptr),
-      d_JxW(nullptr),
-      d_JxW_face(nullptr),
-      d_normal_face(nullptr),
-      d_current_elem(nullptr)
+    : d_dim(dim), d_fe_data_manager(fe_data_manager)
 {
     return;
 }

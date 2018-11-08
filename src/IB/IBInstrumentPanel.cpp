@@ -512,30 +512,8 @@ linear_interp(const Point& X,
 
 IBInstrumentPanel::IBInstrumentPanel(std::string object_name, Pointer<Database> input_db)
     : d_object_name(std::move(object_name)),
-      d_initialized(false),
-      d_num_meters(0),
-      d_num_perimeter_nodes(),
-      d_X_centroid(),
-      d_X_perimeter(),
-      d_X_web(),
-      d_dA_web(),
-      d_instrument_read_timestep_num(-1),
-      d_instrument_read_time(std::numeric_limits<double>::quiet_NaN()),
-      d_max_instrument_name_len(-1),
-      d_instrument_names(),
-      d_flow_values(),
-      d_mean_pres_values(),
-      d_point_pres_values(),
-      d_web_patch_map(),
-      d_web_centroid_map(),
       d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d"),
-      d_output_log_file(false),
-      d_log_file_name(NDIM == 2 ? "inst2d.log" : "inst3d.log"),
-      d_log_file_stream(),
-      d_flow_conv(1.0),
-      d_pres_conv(1.0),
-      d_flow_units(""),
-      d_pres_units("")
+      d_log_file_name(NDIM == 2 ? "inst2d.log" : "inst3d.log")
 {
 #if defined(IBAMR_HAVE_SILO)
 // intentionally blank

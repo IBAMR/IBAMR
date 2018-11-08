@@ -165,7 +165,7 @@ private:
     /*!
      * \brief number of mesh meters.
      */
-    unsigned int d_num_meters;
+    unsigned int d_num_meters = 0;
 
     /*!
      * \brief quadrature order used for the meter meshes.
@@ -197,7 +197,7 @@ private:
     /*!
      * \brief true if meter meshes and other data are built and initialized.
      */
-    bool d_initialized;
+    bool d_initialized = false;
 
     /*!
      * \brief number of nodes in the perimeter of the meter mesh.
@@ -229,12 +229,12 @@ private:
     /*!
      * \brief Equation systems for the meter meshes.
      */
-    std::vector<std::unique_ptr<libMesh::EquationSystems>> d_meter_systems;
+    std::vector<std::unique_ptr<libMesh::EquationSystems> > d_meter_systems;
 
     /*!
      * \brief vector of meter meshes.
      */
-    std::vector<std::unique_ptr<libMesh::SerialMesh>> d_meter_meshes;
+    std::vector<std::unique_ptr<libMesh::SerialMesh> > d_meter_meshes;
 
     /*!
      * \brief names for each meter mesh.

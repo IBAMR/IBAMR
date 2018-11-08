@@ -130,19 +130,18 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Databas
 
 } // StructureParameters
 
-ConstraintIBKinematics::ConstraintIBKinematics(const std::string& object_name,
+ConstraintIBKinematics::ConstraintIBKinematics(std::string object_name,
                                                Pointer<Database> input_db,
                                                LDataManager* l_data_manager,
                                                bool register_for_restart)
-    : d_struct_param(input_db, l_data_manager)
+    : d_object_name(std::move(object_name)),
+      d_registered_for_restart(register_for_restart),
+      d_struct_param(input_db, l_data_manager)
 {
     // Set the object name and register it with the restart manager.
-    d_object_name = object_name;
-    d_registered_for_restart = false;
-    if (register_for_restart)
+    if (d_registered_for_restart)
     {
         RestartManager::getManager()->registerRestartItem(d_object_name, this);
-        d_registered_for_restart = true;
     }
 
     return;

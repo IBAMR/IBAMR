@@ -37,6 +37,7 @@
 
 
 #include <deque>
+#include <limits>
 #include <list>
 #include <map>
 #include <ostream>
@@ -856,7 +857,7 @@ protected:
      * A boolean value indicating whether the class is registered with the
      * restart database.
      */
-    bool d_registered_for_restart;
+    bool d_registered_for_restart = false;
 
     /*
      * Pointers to the patch hierarchy and gridding algorithm objects associated
@@ -868,12 +869,12 @@ protected:
     /*
      * Indicates whether the hierarchy has been initialized.
      */
-    bool d_hierarchy_is_initialized;
+    bool d_hierarchy_is_initialized = false;
 
     /*
      * Collection of child integrator objects.
      */
-    HierarchyIntegrator* d_parent_integrator;
+    HierarchyIntegrator* d_parent_integrator = nullptr;
     std::set<HierarchyIntegrator*> d_child_integrators;
 
     /*
@@ -885,28 +886,30 @@ protected:
     /*
      * Time and time step size data read from input or set at initialization.
      */
-    double d_integrator_time, d_start_time, d_end_time;
-    double d_dt_init, d_dt_min, d_dt_max, d_dt_growth_factor;
-    int d_integrator_step, d_max_integrator_steps;
+    double d_integrator_time = std::numeric_limits<double>::quiet_NaN(), d_start_time = 0.0,
+           d_end_time = std::numeric_limits<double>::max();
+    double d_dt_init = std::numeric_limits<double>::max(), d_dt_min = 0.0,
+           d_dt_max = std::numeric_limits<double>::max(), d_dt_growth_factor = 2.0;
+    int d_integrator_step = 0, d_max_integrator_steps = std::numeric_limits<int>::max();
     std::deque<double> d_dt_previous;
 
     /*
      * The number of cycles of fixed-point iteration to use per timestep.
      */
-    int d_num_cycles;
+    int d_num_cycles = 1;
 
     /*
      * The number of cycles for the current time step, the current cycle number,
      * and the current time step size.
      */
-    int d_current_num_cycles, d_current_cycle_num;
-    double d_current_dt;
+    int d_current_num_cycles = -1, d_current_cycle_num = -1;
+    double d_current_dt = std::numeric_limits<double>::quiet_NaN();
 
     /*
      * The number of integration steps taken between invocations of the
      * regridding process.
      */
-    int d_regrid_interval;
+    int d_regrid_interval = 1;
 
     /*
      * The regrid mode.  "Standard" regridding involves only one call to
@@ -917,18 +920,18 @@ protected:
      * allowing arbitrary changes to the grid hierarchy configuration within a
      * single call to regridHierarchy().
      */
-    RegridMode d_regrid_mode;
+    RegridMode d_regrid_mode = STANDARD;
 
     /*
      * Indicates whether the integrator should output logging messages.
      */
-    bool d_enable_logging;
+    bool d_enable_logging = false;
 
     /*
      * The type of extrapolation to use at physical boundaries when prolonging
      * data during regridding.
      */
-    std::string d_bdry_extrap_type;
+    std::string d_bdry_extrap_type = "LINEAR";
 
     /*
      * The number of cells on each level by which tagged cells will be buffered
@@ -936,13 +939,13 @@ protected:
      * guarantee that refined cells near important features in the solution will
      * remain refined until the level is regridded next.
      */
-    SAMRAI::tbox::Array<int> d_tag_buffer;
+    SAMRAI::tbox::Array<int> d_tag_buffer = { 0 };
 
     /*
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
-    bool d_manage_hier_math_ops;
+    bool d_manage_hier_math_ops = true;
 
     /*
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects
@@ -1030,9 +1033,9 @@ private:
      * Indicates whether we are currently regridding the hierarchy, or whether
      * the time step began by regridding the hierarchy.
      */
-    bool d_regridding_hierarchy; // true only when we are regridding
-    bool d_at_regrid_time_step;  // true for the duration of a time step that included a regrid
-                                 // operation
+    bool d_regridding_hierarchy = false; // true only when we are regridding
+    bool d_at_regrid_time_step = false;  // true for the duration of a time step that included a regrid
+                                         // operation
 
     /*
      * Cached communications algorithms, strategies, and schedules.

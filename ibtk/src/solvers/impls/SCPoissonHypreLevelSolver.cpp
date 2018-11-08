@@ -94,25 +94,7 @@ enum HypreSStructRelaxType
 SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(const std::string& object_name,
                                                      Pointer<Database> input_db,
                                                      const std::string& /*default_options_prefix*/)
-    : d_hierarchy(),
-      d_level_num(-1),
-      d_grid(nullptr),
-      d_stencil(),
-      d_graph(nullptr),
-      d_matrix(nullptr),
-      d_rhs_vec(nullptr),
-      d_sol_vec(nullptr),
-      d_solver(nullptr),
-      d_precond(nullptr),
-      d_solver_type("Split"),
-      d_precond_type("none"),
-      d_split_solver_type("PFMG"),
-      d_rel_change(0),
-      d_num_pre_relax_steps(1),
-      d_num_post_relax_steps(1),
-      d_relax_type(RELAX_TYPE_WEIGHTED_JACOBI),
-      d_skip_relax(1),
-      d_two_norm(1)
+    : d_relax_type(RELAX_TYPE_WEIGHTED_JACOBI)
 {
     if (NDIM == 1 || NDIM > 3)
     {

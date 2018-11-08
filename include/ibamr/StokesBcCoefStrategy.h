@@ -37,6 +37,7 @@
 
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 
 namespace IBAMR
 {
@@ -120,13 +121,13 @@ protected:
     /*!
      * Patch data indices.
      */
-    int d_u_target_data_idx, d_p_target_data_idx;
+    int d_u_target_data_idx = IBTK::invalid_index, d_p_target_data_idx = IBTK::invalid_index;
 
     /*
      * The type of traction boundary conditions.  Supported options are:
      * TRACTION_BOUNDARY_CONDITIONS and PSEUDO_TRACTION_BOUNDARY_CONDITIONS.
      */
-    TractionBcType d_traction_bc_type;
+    TractionBcType d_traction_bc_type = TRACTION;
 
 private:
     /*!

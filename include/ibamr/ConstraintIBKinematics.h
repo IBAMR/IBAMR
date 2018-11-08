@@ -35,6 +35,7 @@
 
 ///////////////////////////////////////// INCLUDES //////////////////////////////////////////
 
+#include <utility>
 #include <vector>
 
 #include "ibtk/LData.h"
@@ -154,7 +155,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    ConstraintIBKinematics(const std::string& object_name,
+    ConstraintIBKinematics(std::string object_name,
                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                            IBTK::LDataManager* l_data_manager,
                            bool register_for_restart = true);
@@ -233,7 +234,7 @@ protected:
     /*!
      * If the object is registred for restart.
      */
-    bool d_registered_for_restart;
+    bool d_registered_for_restart = false;
 
 private:
     /*!

@@ -501,7 +501,9 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(const std::string& object_name,
                                              Pointer<IBStrategy> ib_method_ops,
                                              Pointer<INSHierarchyIntegrator> ins_hier_integrator,
                                              bool register_for_restart)
-    : HierarchyIntegrator(object_name, input_db, register_for_restart)
+    : HierarchyIntegrator(object_name, input_db, register_for_restart),
+      d_ins_hier_integrator(ins_hier_integrator),
+      d_ib_method_ops(ib_method_ops)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(ib_method_ops);
@@ -509,12 +511,10 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(const std::string& object_name,
 #endif
 
     // Set the IB method operations objects.
-    d_ib_method_ops = ib_method_ops;
     d_ib_method_ops->registerIBHierarchyIntegrator(this);
 
     // Register the fluid solver as a child integrator of this integrator object
     // and reuse the variables and variable contexts of the INS solver.
-    d_ins_hier_integrator = ins_hier_integrator;
     registerChildHierarchyIntegrator(d_ins_hier_integrator);
     d_u_var = d_ins_hier_integrator->getVelocityVariable();
     d_p_var = d_ins_hier_integrator->getPressureVariable();
@@ -525,18 +525,6 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(const std::string& object_name,
     d_new_context = d_ins_hier_integrator->getNewContext();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_ib_context = var_db->getContext(d_object_name + "::IB");
-
-    // Set some default values.
-    d_integrator_is_initialized = false;
-    d_time_stepping_type = MIDPOINT_RULE;
-    d_regrid_cfl_interval = 0.0;
-    d_regrid_cfl_estimate = 0.0;
-    d_error_on_dt_change = true;
-    d_warn_on_dt_change = false;
-
-    // Do not allocate a workload variable by default.
-    d_workload_var.setNull();
-    d_workload_idx = -1;
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();

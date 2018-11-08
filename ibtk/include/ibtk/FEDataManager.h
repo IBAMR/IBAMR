@@ -214,7 +214,7 @@ public:
      *
      * \note The default value for this string is "coordinates system".
      */
-    std::string COORDINATES_SYSTEM_NAME;
+    std::string COORDINATES_SYSTEM_NAME = "coordinates system";
 
     /*!
      * \brief The libMesh boundary IDs to use for specifying essential boundary
@@ -780,7 +780,7 @@ private:
      * Grid hierarchy information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     /*
      * SAMRAI::hier::VariableContext object used for data management.
@@ -825,8 +825,8 @@ private:
     /*
      * FE equation system associated with this data manager object.
      */
-    libMesh::EquationSystems* d_es;
-    int d_level_number;
+    libMesh::EquationSystems* d_es = nullptr;
+    int d_level_number = IBTK::invalid_level_number;
     std::map<unsigned int, SAMRAI::tbox::Pointer<SystemDofMapCache> > d_system_dof_map_cache;
 
     /*

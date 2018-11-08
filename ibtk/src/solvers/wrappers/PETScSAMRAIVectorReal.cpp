@@ -132,10 +132,7 @@ static Timer* t_vec_dot_norm2;
 PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(Pointer<SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vector,
                                              bool vector_created_via_duplicate,
                                              MPI_Comm comm)
-    : d_samrai_vector(samrai_vector),
-      d_vector_created_via_duplicate(vector_created_via_duplicate),
-      d_vector_checked_out_read_write(false),
-      d_vector_checked_out_read(false)
+    : d_samrai_vector(samrai_vector), d_vector_created_via_duplicate(vector_created_via_duplicate)
 {
     // Setup Timers.
     IBTK_DO_ONCE(

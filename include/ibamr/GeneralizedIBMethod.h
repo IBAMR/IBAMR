@@ -223,7 +223,7 @@ protected:
      * Boolean values tracking whether certain quantities need to be
      * reinitialized.
      */
-    bool d_N_current_needs_ghost_fill, d_N_new_needs_ghost_fill;
+    bool d_N_current_needs_ghost_fill = true, d_N_new_needs_ghost_fill = true;
 
     /*
      * Lagrangian variables.

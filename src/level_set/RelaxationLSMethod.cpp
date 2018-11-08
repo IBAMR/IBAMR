@@ -227,15 +227,6 @@ RelaxationLSMethod::RelaxationLSMethod(std::string object_name, Pointer<Database
 {
     // Some default values.
     d_ls_order = THIRD_ORDER_ENO_LS;
-    d_max_its = 100;
-    d_abs_tol = 1e-5;
-    d_enable_logging = false;
-    d_apply_mass_constraint = false;
-    d_apply_subcell_fix = false;
-    d_apply_sign_fix = false;
-    d_D_gcw = -1;
-    d_apply_volume_shift = false;
-    d_alpha = 1.0;
 
     // Get any additional or overwrite base class options.
     if (d_registered_for_restart) getFromRestart();

@@ -62,20 +62,6 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AppInitializer::AppInitializer(int argc, char* argv[], const std::string& default_log_file_name)
-    : d_input_db(nullptr),
-      d_is_from_restart(false),
-      d_viz_dump_interval(0),
-      d_viz_dump_dirname(""),
-      d_viz_writers(),
-      d_visit_data_writer(nullptr),
-      d_silo_data_writer(nullptr),
-      d_exodus_filename("output.ex2"),
-      d_gmv_filename("output.gmv"),
-      d_restart_dump_interval(0),
-      d_restart_dump_dirname(""),
-      d_data_dump_interval(0),
-      d_data_dump_dirname(""),
-      d_timer_dump_interval(0)
 {
     if (argc == 1)
     {
@@ -94,12 +80,6 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
             d_restart_read_dirname = argv[2];
             d_restart_restore_num = atoi(argv[3]);
             d_is_from_restart = true;
-        }
-        else
-        {
-            d_restart_read_dirname = "";
-            d_restart_restore_num = 0;
-            d_is_from_restart = false;
         }
         if (fstream)
         {

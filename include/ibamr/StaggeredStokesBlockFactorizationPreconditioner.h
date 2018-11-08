@@ -42,6 +42,7 @@
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -212,16 +213,16 @@ private:
                                 bool initial_guess_nonzero);
 
     // Solver configuration
-    FactorizationType d_factorization_type;
+    FactorizationType d_factorization_type = LOWER_TRIANGULAR;
 
     // Boundary condition objects.
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_P_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
-    int d_F_U_mod_idx;
+    int d_F_U_mod_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_P_var;
-    int d_P_scratch_idx, d_F_P_mod_idx;
+    int d_P_scratch_idx = IBTK::invalid_index, d_F_P_mod_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR
 

@@ -162,22 +162,22 @@ private:
     /*!
      * \brief Level set patch data index.
      */
-    int d_ls_solid_idx;
+    int d_ls_solid_idx = IBTK::invalid_index;
 
     /*!
      * \brief Fluid velocity and pressure patch data indices.
      */
-    int d_u_idx, d_p_idx;
+    int d_u_idx = IBTK::invalid_index, d_p_idx = IBTK::invalid_index;
 
     /*!
      * \brief Viscosity patch data index.
      */
-    int d_mu_idx;
+    int d_mu_idx = IBTK::invalid_index;
 
     /*!
      * \brief Viscosity for the constant mu case.
      */
-    double d_mu;
+    double d_mu = std::numeric_limits<double>::quiet_NaN();
 
     /*!
      * \brief Whether or not viscosity is constant.
@@ -187,7 +187,7 @@ private:
     /*!
      * \brief The contour level that describes the surface of the solid object.
      */
-    double d_surface_contour_value;
+    double d_surface_contour_value = 0.0;
 
     /*!
      * \brief File streams associated for the output.

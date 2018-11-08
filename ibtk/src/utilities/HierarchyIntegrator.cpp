@@ -110,43 +110,11 @@ HierarchyIntegrator::HierarchyIntegrator(std::string object_name, Pointer<Databa
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_object_name.empty());
 #endif
-    d_registered_for_restart = false;
     if (register_for_restart)
     {
         RestartManager::getManager()->registerRestartItem(d_object_name, this);
         d_registered_for_restart = true;
     }
-
-    // Initialize state variables.
-    d_hierarchy = nullptr;
-    d_gridding_alg = nullptr;
-    d_hierarchy_is_initialized = false;
-    d_regridding_hierarchy = false;
-    d_at_regrid_time_step = false;
-    d_visit_writer = nullptr;
-    d_parent_integrator = nullptr;
-    d_current_num_cycles = -1;
-    d_current_cycle_num = -1;
-    d_current_dt = std::numeric_limits<double>::quiet_NaN();
-
-    // Set default values.
-    d_integrator_time = std::numeric_limits<double>::quiet_NaN();
-    d_start_time = 0.0;
-    d_end_time = std::numeric_limits<double>::max();
-    d_dt_init = std::numeric_limits<double>::max();
-    d_dt_min = 0.0;
-    d_dt_max = std::numeric_limits<double>::max();
-    d_dt_growth_factor = 2.0;
-    d_integrator_step = 0;
-    d_num_cycles = 1;
-    d_max_integrator_steps = std::numeric_limits<int>::max();
-    d_regrid_interval = 1;
-    d_regrid_mode = STANDARD;
-    d_enable_logging = false;
-    d_bdry_extrap_type = "LINEAR";
-    d_manage_hier_math_ops = true;
-    d_tag_buffer.resizeArray(1);
-    d_tag_buffer[0] = 0;
 
     // Initialize object with data read from the input and restart databases.
     const bool from_restart = RestartManager::getManager()->isFromRestart();

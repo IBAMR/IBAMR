@@ -203,9 +203,9 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b, d_r;
 
     // Solver parameters.
-    int d_max_evaluations;
-    double d_solution_tol;
-    int d_current_linear_iterations;
+    int d_max_evaluations = 10000;
+    double d_solution_tol = 1.0e-8;
+    int d_current_linear_iterations = 0;
 
 private:
     /*!

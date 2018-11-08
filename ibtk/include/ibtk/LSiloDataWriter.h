@@ -275,13 +275,13 @@ private:
     /*
      * Time step number (passed in by user).
      */
-    int d_time_step_number;
+    int d_time_step_number = -1;
 
     /*
      * Grid hierarchy information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = 0, d_finest_ln = 0;
 
     /*
      * Information about the indices in the local marker clouds.

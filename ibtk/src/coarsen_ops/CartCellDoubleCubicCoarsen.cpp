@@ -108,7 +108,7 @@ static const int COARSEN_OP_PRIORITY = 0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartCellDoubleCubicCoarsen::CartCellDoubleCubicCoarsen() : d_weighted_average_coarsen_op()
+CartCellDoubleCubicCoarsen::CartCellDoubleCubicCoarsen()
 {
     // intentionally blank
     return;
