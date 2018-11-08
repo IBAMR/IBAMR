@@ -75,12 +75,12 @@ public:
     /*!
      * Default constructor.
      */
-    KrylovLinearSolverStaggeredStokesSolverInterface();
+    KrylovLinearSolverStaggeredStokesSolverInterface() = default;
 
     /*!
      * Destructor.
      */
-    ~KrylovLinearSolverStaggeredStokesSolverInterface();
+    ~KrylovLinearSolverStaggeredStokesSolverInterface() = default;
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the

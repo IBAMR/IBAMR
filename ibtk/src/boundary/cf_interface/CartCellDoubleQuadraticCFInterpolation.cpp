@@ -213,12 +213,6 @@ is_corner_point(const Index<NDIM>& i,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartCellDoubleQuadraticCFInterpolation::CartCellDoubleQuadraticCFInterpolation()
-{
-    // intentionally blank
-    return;
-} // CartCellDoubleQuadraticCFInterpolation
-
 CartCellDoubleQuadraticCFInterpolation::~CartCellDoubleQuadraticCFInterpolation()
 {
     clearPatchHierarchy();

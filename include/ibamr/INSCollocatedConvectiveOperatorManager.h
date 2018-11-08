@@ -124,7 +124,7 @@ protected:
     /*!
      * \brief Destructor.
      */
-    ~INSCollocatedConvectiveOperatorManager();
+    ~INSCollocatedConvectiveOperatorManager() = default;
 
 private:
     /*!

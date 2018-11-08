@@ -74,7 +74,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~CartSideDoubleRT0Coarsen();
+    ~CartSideDoubleRT0Coarsen() = default;
 
     /*!
      * \name Implementation of SAMRAI::xfer::CoarsenOperator interface.

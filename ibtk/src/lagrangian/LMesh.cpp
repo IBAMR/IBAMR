@@ -59,12 +59,6 @@ LMesh::LMesh(std::string object_name, std::vector<LNode*> local_nodes, std::vect
     return;
 } // LMesh
 
-LMesh::~LMesh()
-{
-    // intentionally blank
-    return;
-} // ~LMesh
-
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////

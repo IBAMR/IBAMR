@@ -68,12 +68,12 @@ public:
     /*!
      * \brief Constructor.
      */
-    GeneralSolver();
+    GeneralSolver() = default;
 
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual ~GeneralSolver();
+    virtual ~GeneralSolver() = default;
 
     /*!
      * \name General-purpose solver functionality.

@@ -62,7 +62,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    PoissonSolver();
+    PoissonSolver() = default;
 
     /*!
      * \brief Destructor.

@@ -67,12 +67,6 @@ EdgeSynchCopyFillPattern::EdgeSynchCopyFillPattern(const unsigned int axis) : d_
     return;
 } // EdgeSynchCopyFillPattern
 
-EdgeSynchCopyFillPattern::~EdgeSynchCopyFillPattern()
-{
-    // intentionally blank
-    return;
-} // EdgeSynchCopyFillPattern
-
 Pointer<BoxOverlap<NDIM> >
 EdgeSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
                                            const BoxGeometry<NDIM>& src_geometry,

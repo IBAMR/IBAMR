@@ -53,12 +53,6 @@ PETScKrylovStaggeredStokesSolver::PETScKrylovStaggeredStokesSolver(const std::st
     return;
 } // PETScKrylovStaggeredStokesSolver()
 
-PETScKrylovStaggeredStokesSolver::~PETScKrylovStaggeredStokesSolver()
-{
-    // intentionally blank
-    return;
-} // ~PETScKrylovStaggeredStokesSolver()
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

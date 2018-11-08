@@ -65,18 +65,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-RobinPhysBdryPatchStrategy::RobinPhysBdryPatchStrategy()
-{
-    // intentionally blank
-    return;
-} // RobinPhysBdryPatchStrategy
-
-RobinPhysBdryPatchStrategy::~RobinPhysBdryPatchStrategy()
-{
-    // intentionally blank
-    return;
-} // ~RobinPhysBdryPatchStrategy
-
 void
 RobinPhysBdryPatchStrategy::setPatchDataIndex(const int patch_data_index)
 {

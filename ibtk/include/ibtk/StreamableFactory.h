@@ -82,12 +82,12 @@ public:
     /*!
      * \brief Default empty constructor.
      */
-    StreamableFactory();
+    StreamableFactory() = default;
 
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~StreamableFactory();
+    virtual ~StreamableFactory() = default;
 
     /*!
      * \brief Return the unique class identifier used to specify the

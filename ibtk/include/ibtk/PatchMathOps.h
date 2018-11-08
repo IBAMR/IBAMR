@@ -79,12 +79,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    PatchMathOps();
+    PatchMathOps() = default;
 
     /*!
      * \brief Destructor.
      */
-    virtual ~PatchMathOps();
+    virtual ~PatchMathOps() = default;
 
     /*!
      * \name Mathematical operations.

@@ -92,12 +92,6 @@ INSStaggeredVelocityBcCoef::INSStaggeredVelocityBcCoef(const unsigned int comp_i
     return;
 } // INSStaggeredVelocityBcCoef
 
-INSStaggeredVelocityBcCoef::~INSStaggeredVelocityBcCoef()
-{
-    // intentionally blank
-    return;
-} // ~INSStaggeredVelocityBcCoef
-
 void
 INSStaggeredVelocityBcCoef::setStokesSpecifications(const StokesSpecifications* problem_coefs)
 {

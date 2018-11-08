@@ -149,7 +149,7 @@ protected:
     /*!
      * \brief Destructor.
      */
-    ~CCPoissonSolverManager();
+    ~CCPoissonSolverManager() = default;
 
 private:
     /*!

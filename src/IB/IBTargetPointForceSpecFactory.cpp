@@ -61,12 +61,6 @@ IBTargetPointForceSpec::Factory::Factory()
     return;
 } // Factory
 
-IBTargetPointForceSpec::Factory::~Factory()
-{
-    // intentionally blank
-    return;
-} // ~Factory
-
 int
 IBTargetPointForceSpec::Factory::getStreamableClassID() const
 {

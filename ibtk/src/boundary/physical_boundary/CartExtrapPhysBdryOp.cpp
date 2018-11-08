@@ -151,12 +151,6 @@ compute_quadratic_extrap(D& patch_data,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartExtrapPhysBdryOp::CartExtrapPhysBdryOp()
-{
-    // intentionally blank
-    return;
-} // CartExtrapPhysBdryOp
-
 CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const int patch_data_index, const std::string& extrap_type)
 {
     setPatchDataIndex(patch_data_index);
@@ -177,12 +171,6 @@ CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const ComponentSelector& patch_data_i
     setExtrapolationType(extrap_type);
     return;
 } // CartExtrapPhysBdryOp
-
-CartExtrapPhysBdryOp::~CartExtrapPhysBdryOp()
-{
-    // intentionally blank
-    return;
-} // ~CartExtrapPhysBdryOp
 
 void
 CartExtrapPhysBdryOp::setPatchDataIndex(const int patch_data_index)

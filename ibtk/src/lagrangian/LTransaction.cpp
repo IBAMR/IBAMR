@@ -77,13 +77,6 @@ LTransaction<T>::LTransaction(const int src_proc, const int dst_proc, std::vecto
 } // LTransaction
 
 template <class T>
-LTransaction<T>::~LTransaction()
-{
-    // intentionally blank
-    return;
-} // ~LTransaction
-
-template <class T>
 bool
 LTransaction<T>::canEstimateIncomingMessageSize()
 {

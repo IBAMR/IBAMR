@@ -68,12 +68,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    LMarkerCoarsen();
+    LMarkerCoarsen() = default;
 
     /*!
      * \brief Destructor.
      */
-    ~LMarkerCoarsen();
+    ~LMarkerCoarsen() = default;
 
     /*!
      * \name Implementation of SAMRAI::xfer::CoarsenOperator interface.

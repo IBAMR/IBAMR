@@ -87,12 +87,6 @@ CopyToRootSchedule::CopyToRootSchedule(const int root_proc,
     return;
 } // CopyToRootSchedule
 
-CopyToRootSchedule::~CopyToRootSchedule()
-{
-    // intentionally blank
-    return;
-} // CopyToRootSchedule
-
 void
 CopyToRootSchedule::communicate()
 {

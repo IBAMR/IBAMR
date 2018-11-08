@@ -75,12 +75,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-SideDataSynchronization::SideDataSynchronization()
-{
-    // intentionally blank
-    return;
-} // SideDataSynchronization
-
 SideDataSynchronization::~SideDataSynchronization()
 {
     if (d_is_initialized) deallocateOperatorState();

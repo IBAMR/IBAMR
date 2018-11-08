@@ -128,7 +128,7 @@ protected:
     /*!
      * \brief Destructor.
      */
-    ~AdvDiffConvectiveOperatorManager();
+    ~AdvDiffConvectiveOperatorManager() = default;
 
 private:
     /*!

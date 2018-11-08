@@ -52,12 +52,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PoissonSolver::PoissonSolver()
-{
-    // intentionally blank
-    return;
-} // PoissonSolver()
-
 PoissonSolver::~PoissonSolver()
 {
     delete d_default_bc_coef;

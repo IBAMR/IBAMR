@@ -83,7 +83,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~CellNoCornersFillPattern();
+    ~CellNoCornersFillPattern() = default;
 
     /*!
      * Calculate overlaps between the destination and source geometries according

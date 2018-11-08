@@ -77,7 +77,7 @@ public:
     /*!
      * \brief Destructor
      */
-    ~CopyToRootTransaction();
+    ~CopyToRootTransaction() = default;
 
     /*!
      * Return a pointer to the data on the root process.

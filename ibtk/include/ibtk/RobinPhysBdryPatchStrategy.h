@@ -75,12 +75,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    RobinPhysBdryPatchStrategy();
+    RobinPhysBdryPatchStrategy() = default;
 
     /*!
      * \brief Destructor.
      */
-    ~RobinPhysBdryPatchStrategy();
+    ~RobinPhysBdryPatchStrategy() = default;
 
     /*!
      * \brief Reset the patch data index operated upon by this class.

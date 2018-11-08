@@ -68,7 +68,7 @@ public:
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual ~NewtonKrylovSolver();
+    virtual ~NewtonKrylovSolver() = default;
 
     /*!
      * \brief Set the HierarchyMathOps object used by the solver.

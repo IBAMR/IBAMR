@@ -62,13 +62,6 @@ LIndexSetDataFactory<T>::LIndexSetDataFactory(IntVector<NDIM> ghosts) : LSetData
 } // LIndexSetDataFactory
 
 template <class T>
-LIndexSetDataFactory<T>::~LIndexSetDataFactory()
-{
-    // intentionally blank
-    return;
-} // ~LIndexSetDataFactory
-
-template <class T>
 Pointer<PatchDataFactory<NDIM> >
 LIndexSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
 {

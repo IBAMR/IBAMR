@@ -286,12 +286,6 @@ muParserCartGridFunction::muParserCartGridFunction(std::string object_name,
     return;
 } // muParserCartGridFunction
 
-muParserCartGridFunction::~muParserCartGridFunction()
-{
-    // intentionally blank
-    return;
-} // ~muParserCartGridFunction
-
 bool
 muParserCartGridFunction::isTimeDependent() const
 {

@@ -137,7 +137,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    EdgeDataSynchronization();
+    EdgeDataSynchronization() = default;
 
     /*!
      * \brief Destructor.

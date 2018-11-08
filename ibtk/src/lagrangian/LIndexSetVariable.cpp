@@ -65,13 +65,6 @@ LIndexSetVariable<T>::LIndexSetVariable(std::string name)
 } // LIndexSetVariable
 
 template <class T>
-LIndexSetVariable<T>::~LIndexSetVariable()
-{
-    // intentionally blank
-    return;
-} // ~LIndexSetVariable
-
-template <class T>
 bool
 LIndexSetVariable<T>::dataLivesOnPatchBorder() const
 {

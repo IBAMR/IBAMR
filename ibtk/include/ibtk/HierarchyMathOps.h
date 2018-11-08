@@ -114,7 +114,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~HierarchyMathOps();
+    virtual ~HierarchyMathOps() = default;
 
     /*!
      * \name Methods to set the hierarchy and range of levels.

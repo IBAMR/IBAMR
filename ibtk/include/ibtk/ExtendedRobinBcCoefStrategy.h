@@ -55,12 +55,12 @@ public:
     /*!
      * \brief Empty default constructor.
      */
-    ExtendedRobinBcCoefStrategy();
+    ExtendedRobinBcCoefStrategy() = default;
 
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual ~ExtendedRobinBcCoefStrategy();
+    virtual ~ExtendedRobinBcCoefStrategy() = default;
 
     /*!
      * \name Extended SAMRAI::solv::RobinBcCoefStrategy interface.

@@ -74,12 +74,12 @@ public:
     /*!
      * \brief Constructor.
      */
-    CoarseFineBoundaryRefinePatchStrategy();
+    CoarseFineBoundaryRefinePatchStrategy() = default;
 
     /*!
      * \brief Destructor.
      */
-    virtual ~CoarseFineBoundaryRefinePatchStrategy();
+    virtual ~CoarseFineBoundaryRefinePatchStrategy() = default;
 
     /*!
      * \name SAMRAI::xfer::RefinePatchStrategy interface.

@@ -54,12 +54,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    ParallelEdgeMap();
+    ParallelEdgeMap() = default;
 
     /*!
      * \brief Destructor.
      */
-    virtual ~ParallelEdgeMap();
+    virtual ~ParallelEdgeMap() = default;
 
     /*!
      * \brief Add an edge to the edge map.

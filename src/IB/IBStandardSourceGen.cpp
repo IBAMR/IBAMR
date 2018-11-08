@@ -82,12 +82,6 @@ IBStandardSourceGen::IBStandardSourceGen()
     return;
 } // IBStandardSourceGen
 
-IBStandardSourceGen::~IBStandardSourceGen()
-{
-    // intentionally blank
-    return;
-} // ~IBStandardSourceGen
-
 void
 IBStandardSourceGen::setNumSources(const int ln, const unsigned int num_sources)
 {

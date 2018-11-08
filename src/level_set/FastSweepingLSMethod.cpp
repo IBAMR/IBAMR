@@ -95,12 +95,6 @@ FastSweepingLSMethod::FastSweepingLSMethod(std::string object_name, Pointer<Data
     return;
 } // FastSweepingLSMethod
 
-FastSweepingLSMethod::~FastSweepingLSMethod()
-{
-    // intentionally-left blank.
-    return;
-} // ~FastSweepingLSMethod
-
 void
 FastSweepingLSMethod::initializeLSData(int D_idx,
                                        Pointer<HierarchyMathOps> hier_math_ops,

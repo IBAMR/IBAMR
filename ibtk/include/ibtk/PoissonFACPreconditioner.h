@@ -85,7 +85,7 @@ public:
     /*!
      * Destructor.
      */
-    ~PoissonFACPreconditioner();
+    ~PoissonFACPreconditioner() = default;
 
     /*!
      * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify

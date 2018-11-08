@@ -66,13 +66,6 @@ LSetVariable<T>::LSetVariable(std::string name)
 } // LSetVariable
 
 template <class T>
-LSetVariable<T>::~LSetVariable()
-{
-    // intentionally blank
-    return;
-} // ~LSetVariable
-
-template <class T>
 bool
 LSetVariable<T>::dataLivesOnPatchBorder() const
 {

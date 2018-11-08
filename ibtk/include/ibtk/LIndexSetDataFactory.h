@@ -78,7 +78,7 @@ public:
     /*!
      * Virtual destructor for the data factory class.
      */
-    virtual ~LIndexSetDataFactory();
+    virtual ~LIndexSetDataFactory() = default;
 
     /*!
      * Virtual factory function to allocate a concrete data object.  The default

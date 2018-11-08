@@ -59,7 +59,7 @@ public:
     /*!
      * Virtual destructor for LSetVariable objects.
      */
-    virtual ~LSetVariable();
+    virtual ~LSetVariable() = default;
 
     /*!
      * Return false since the LSet data index space matches the

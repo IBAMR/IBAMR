@@ -80,12 +80,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBLagrangianForceStrategy();
+    IBLagrangianForceStrategy() = default;
 
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBLagrangianForceStrategy();
+    virtual ~IBLagrangianForceStrategy() = default;
 
     /*!
      * \brief Set the current and new times for the present timestep.

@@ -62,12 +62,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    KrylovLinearSolver();
+    KrylovLinearSolver() = default;
 
     /*!
      * \brief Empty destructor.
      */
-    ~KrylovLinearSolver();
+    ~KrylovLinearSolver() = default;
 
     /*!
      * \brief Set the HierarchyMathOps object used by the solver.

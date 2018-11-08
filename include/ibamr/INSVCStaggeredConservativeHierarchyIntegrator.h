@@ -39,11 +39,8 @@
 #include <vector>
 
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
 
-namespace IBAMR
-{
-class INSVCStaggeredConservativeMassMomentumIntegrator;
-} // namespace IBAMR
 namespace IBTK
 {
 } // namespace IBTK
@@ -94,7 +91,7 @@ public:
      * integrator object with the restart manager when the object is so
      * registered.
      */
-    ~INSVCStaggeredConservativeHierarchyIntegrator();
+    ~INSVCStaggeredConservativeHierarchyIntegrator() = default;
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and

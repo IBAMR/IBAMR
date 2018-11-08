@@ -61,18 +61,6 @@ static const std::string PATTERN_NAME = "SIDE_SYNCH_COPY_FILL_PATTERN";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-SideSynchCopyFillPattern::SideSynchCopyFillPattern()
-{
-    // intentionally blank
-    return;
-} // SideSynchCopyFillPattern
-
-SideSynchCopyFillPattern::~SideSynchCopyFillPattern()
-{
-    // intentionally blank
-    return;
-} // SideSynchCopyFillPattern
-
 Pointer<BoxOverlap<NDIM> >
 SideSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
                                            const BoxGeometry<NDIM>& src_geometry,

@@ -90,7 +90,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~FastSweepingLSMethod();
+    virtual ~FastSweepingLSMethod() = default;
 
     /*!
      * \brief Initialize level set data using the fast-sweeping method.

@@ -164,7 +164,7 @@ private:
         /*!
          * \brief Destructor.
          */
-        ~Factory();
+        ~Factory() = default;
 
         /*!
          * \brief Return the unique identifier used to specify the

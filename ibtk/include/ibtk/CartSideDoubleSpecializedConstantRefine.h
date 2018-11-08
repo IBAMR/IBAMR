@@ -68,12 +68,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    CartSideDoubleSpecializedConstantRefine();
+    CartSideDoubleSpecializedConstantRefine() = default;
 
     /*!
      * \brief Destructor.
      */
-    ~CartSideDoubleSpecializedConstantRefine();
+    ~CartSideDoubleSpecializedConstantRefine() = default;
 
     /*!
      * \name Implementation of SAMRAI::xfer::RefineOperator interface.

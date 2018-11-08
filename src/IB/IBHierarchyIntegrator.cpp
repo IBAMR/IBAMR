@@ -105,12 +105,6 @@ static const int IB_HIERARCHY_INTEGRATOR_VERSION = 2;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBHierarchyIntegrator::~IBHierarchyIntegrator()
-{
-    // intentionally blank
-    return;
-} // ~IBHierarchyIntegrator
-
 Pointer<IBStrategy>
 IBHierarchyIntegrator::getIBStrategy() const
 {

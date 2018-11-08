@@ -67,12 +67,6 @@ IBHierarchyIntegrator::IBEulerianForceFunction::IBEulerianForceFunction(const IB
     return;
 } // IBEulerianForceFunction
 
-IBHierarchyIntegrator::IBEulerianForceFunction::~IBEulerianForceFunction()
-{
-    // intentionally blank
-    return;
-} // ~IBEulerianForceFunction
-
 bool
 IBHierarchyIntegrator::IBEulerianForceFunction::isTimeDependent() const
 {

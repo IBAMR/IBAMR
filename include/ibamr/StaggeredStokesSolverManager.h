@@ -156,7 +156,7 @@ protected:
     /*!
      * \brief Destructor.
      */
-    ~StaggeredStokesSolverManager();
+    ~StaggeredStokesSolverManager() = default;
 
 private:
     /*!

@@ -37,7 +37,6 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/boundary/cf_interface/CartCellDoubleLinearCFInterpolation.cpp \
 ../src/boundary/cf_interface/CartCellDoubleQuadraticCFInterpolation.cpp \
 ../src/boundary/cf_interface/CartSideDoubleQuadraticCFInterpolation.cpp \
-../src/boundary/cf_interface/CoarseFineBoundaryRefinePatchStrategy.cpp \
 ../src/boundary/physical_boundary/CartCellRobinPhysBdryOp.cpp \
 ../src/boundary/physical_boundary/CartExtrapPhysBdryOp.cpp \
 ../src/boundary/physical_boundary/CartSideRobinPhysBdryOp.cpp \
@@ -150,7 +149,6 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/utilities/SideSynchCopyFillPattern.cpp \
 ../src/utilities/StandardTagAndInitStrategySet.cpp \
 ../src/utilities/Streamable.cpp \
-../src/utilities/StreamableFactory.cpp \
 ../src/utilities/StreamableManager.cpp \
 ../src/utilities/muParserCartGridFunction.cpp
 

@@ -84,7 +84,7 @@ public:
     /*!
      * \brief Empty destructor.
      */
-    ~muParserCartGridFunction();
+    ~muParserCartGridFunction() = default;
 
     /*!
      * \name Methods to set patch interior data.

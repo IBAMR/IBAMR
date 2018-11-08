@@ -136,7 +136,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    FaceDataSynchronization();
+    FaceDataSynchronization() = default;
 
     /*!
      * \brief Destructor.

@@ -124,12 +124,6 @@ NewtonKrylovSolverManager::NewtonKrylovSolverManager() : d_solver_maker_map()
     return;
 } // NewtonKrylovSolverManager
 
-NewtonKrylovSolverManager::~NewtonKrylovSolverManager()
-{
-    // intentionally blank
-    return;
-} // ~NewtonKrylovSolverManager
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
