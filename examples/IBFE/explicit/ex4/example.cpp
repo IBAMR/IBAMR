@@ -284,14 +284,9 @@ protected:
   const bool uses_visit;
   const bool uses_exodus;
   const std::string exodus_filename;
-  const bool dump_restart_data;
-  const int restart_dump_interval;
-  const std::string restart_dump_dirname;
   const bool dump_postproc_data;
   const int postproc_data_dump_interval;
   const std::string postproc_data_dump_dirname;
-  const bool dump_timer_data;
-  const int timer_dump_interval;
 
   // Structural (finite element) data.
   ReplicatedMesh mesh;
@@ -323,12 +318,9 @@ protected:
   void setup_coupled_data();
 
   void setup_output_writers();
-
 };
 
 Solver::Solver(int argc, char **argv, const LibMeshInit &init)
-  // TODO: prune this list and remove any class-level variables that are only
-  // read once or twice (we can just read app_initializer directly)
   : app_initializer(argc, argv, "IB.log")
   , input_db(*app_initializer.getInputDatabase())
   , dump_viz_data(app_initializer.dumpVizData())
@@ -340,14 +332,9 @@ Solver::Solver(int argc, char **argv, const LibMeshInit &init)
   , uses_exodus(false)
 #endif
   , exodus_filename(app_initializer.getExodusIIFilename())
-  , dump_restart_data(app_initializer.dumpRestartData())
-  , restart_dump_interval(app_initializer.getRestartDumpInterval())
-  , restart_dump_dirname(app_initializer.getRestartDumpDirectory())
   , dump_postproc_data(app_initializer.dumpPostProcessingData())
   , postproc_data_dump_interval(app_initializer.getPostProcessingDataDumpInterval())
   , postproc_data_dump_dirname(app_initializer.getPostProcessingDataDumpDirectory())
-  , dump_timer_data(app_initializer.dumpTimerData())
-  , timer_dump_interval(app_initializer.getTimerDumpInterval())
   , mesh(init.comm(), NDIM)
 
 {
@@ -605,7 +592,6 @@ Solver::setup_output_writers()
                                         std::vector<SystemData>(),
                                         &PK1_dil_stress_fcn_data);
 
-
   // and an interpolated pressure.
   Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
   Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
@@ -633,6 +619,7 @@ void
 Solver::run()
 {
   setup_eulerian_data();
+
   setup_lagrangian_data();
 
   // TODO: we have to satisfy the following constraints:
@@ -729,12 +716,12 @@ Solver::run()
                  loop_time);
             }
         }
-      if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
+      if (app_initializer.dumpRestartData() && (iteration_num % app_initializer.getRestartDumpInterval() == 0 || last_step))
         {
           pout << "\nWriting restart files...\n\n";
-          RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
+          RestartManager::getManager()->writeRestartFile(app_initializer.getRestartDumpDirectory(), iteration_num);
         }
-      if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
+      if (app_initializer.dumpTimerData() && (iteration_num % app_initializer.getTimerDumpInterval() == 0 || last_step))
         {
           pout << "\nWriting timer data...\n\n";
           TimerManager::getManager()->print(plog);
