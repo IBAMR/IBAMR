@@ -64,17 +64,12 @@
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibtk/AppInitializer.h>
-#include <ibtk/BoundingBox.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
-#include <ibtk/BoundingBox.h>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
-
-
-#include <mpi.h>
 
 
 void create_mesh(const double ds,
@@ -439,8 +434,7 @@ Solver::setup_lagrangian_data()
   {
     const double dx = input_db.getDouble("DX");
     const double ds = input_db.getDouble("MFAC") * dx;
-    // const std::string elem_type = input_db.getString("ELEM_TYPE");
-    const std::string elem_type = "TRI3";
+    const std::string elem_type = input_db.getString("ELEM_TYPE");
     create_mesh(ds, elem_type, mesh);
 
     // TODO: we should remove this once we get the partitioning code working.
@@ -476,7 +470,14 @@ Solver::setup_lagrangian_data()
     // data is not available until we call
     // time_integrator->initializePatchHierarchy()) once we get the SAMRAI
     // partitioner working.
-    ib_method_ops->initializeFEData();
+    //
+    // Note that initializeFEData immediately calls
+    // initializeFEEquationSystems.
+    //
+    // TODO: we cannot call initializeFEData at this point: we *have* to call
+    // that after the postprocessor is set up, since the postprocessor adds
+    // more variables to the systems
+    ib_method_ops->initializeFEEquationSystems();
   }
 }
 
@@ -516,6 +517,14 @@ Solver::setup_coupled_data()
 
   // Now that we have the gridding algorithm we can initialize patches and
   // (TODO) partition the Lagrangian mesh:
+
+  // The hierarchy initialization also registers quantities with the VisIt
+  // writer, so we have to register that here before initialization:
+  if (uses_visit)
+  {
+      time_integrator->registerVisItDataWriter(app_initializer.getVisItDataWriter());
+  }
+
   time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 }
 
@@ -525,17 +534,12 @@ void
 Solver::setup_output_writers()
 {
   // Set up visualization plot file writers.
-  if (uses_visit)
-  {
-      time_integrator->registerVisItDataWriter(app_initializer.getVisItDataWriter());
-  }
   if (uses_exodus)
   {
       exodus_io = std::unique_ptr<ExodusII_IO>(new ExodusII_IO(mesh));
   }
 
   // Configure the postprocessor.
-  // TODO: everything should be set up before we get here...
   postprocessor = std::unique_ptr<IBFEPostProcessor>
     (new IBFECentroidPostProcessor("IBFEPostProcessor", ib_method_ops->getFEDataManager()));
 
@@ -576,6 +580,9 @@ Solver::setup_output_writers()
                                           /*use_nodal_quadrature*/ false);
   postprocessor->registerInterpolatedScalarEulerianVariable
     ("p_f", LAGRANGE, FIRST, p_var, p_current_ctx, p_ghostfill, p_interp_spec);
+  // TODO: Clean up the initialization so that this call is not necessary.
+  ib_method_ops->initializeFEData();
+  // this is needed
   postprocessor->initializeFEData();
 }
 
@@ -586,9 +593,23 @@ Solver::run()
 {
   setup_eulerian_data();
   setup_lagrangian_data();
-  setup_coupled_data();
 
+  // TODO: we have to satisfy the following constraints:
+  //
+  // - The postprocessor requires that any Eulerian variables (that are to be
+  //   postprocessed) exist, but we do not need patches to be allocated.
+  //
+  // - The postprocessor needs ib_method_ops to have called initializeFEData
+  //   (and initializeFEEquationSystems). However, since it adds more system
+  //   variables, we have to call ib_method_ops->initializeFEData again before
+  //   calling postprocessor->initializeFEData().
+  //
+  // - time_integrator->initializePatchHierarchy requires ib_method_ops to
+  //   have called initializeFEData (which completely sets it up)
+  //
   setup_output_writers();
+
+  setup_coupled_data();
 
   plog << "Input database:\n";
   input_db.printClassData(plog);
