@@ -81,7 +81,7 @@ public:
     /*!
      * \brief Destructor
      */
-    ~NodeSynchCopyFillPattern();
+    ~NodeSynchCopyFillPattern() = default;
 
     /*!
      * Calculate overlaps between the destination and source geometries according

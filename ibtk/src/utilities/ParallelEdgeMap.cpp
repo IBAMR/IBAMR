@@ -51,18 +51,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ParallelEdgeMap::ParallelEdgeMap()
-{
-    // intentionally blank
-    return;
-} // ParallelEdgeMap
-
-ParallelEdgeMap::~ParallelEdgeMap()
-{
-    // intentionally blank
-    return;
-} // ~ParallelEdgeMap
-
 int
 ParallelEdgeMap::addEdge(const std::pair<int, int>& link, int mastr_idx)
 {

@@ -59,12 +59,6 @@ FixedSizedStream::FixedSizedStream(const void* const buffer, const int bytes)
     return;
 } // FixedSizedStream
 
-FixedSizedStream::~FixedSizedStream()
-{
-    // intentionally blank
-    return;
-} // ~FixedSizedStream
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

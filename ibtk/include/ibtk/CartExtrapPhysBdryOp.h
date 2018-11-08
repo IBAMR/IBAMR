@@ -79,7 +79,7 @@ public:
      * \see setPatchDataIndices
      * \see setExtrapolationType
      */
-    CartExtrapPhysBdryOp();
+    CartExtrapPhysBdryOp() = default;
 
     /*!
      * \brief Constructor.
@@ -120,7 +120,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~CartExtrapPhysBdryOp();
+    ~CartExtrapPhysBdryOp() = default;
 
     /*!
      * \brief Reset the patch data index operated upon by this class.

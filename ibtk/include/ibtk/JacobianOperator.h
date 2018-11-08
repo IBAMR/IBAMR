@@ -69,7 +69,7 @@ public:
     /*!
      * \brief Empty destructor.
      */
-    ~JacobianOperator();
+    ~JacobianOperator() = default;
 
     /*!
      * \name General Jacobian functionality.

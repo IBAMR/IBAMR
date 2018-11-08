@@ -81,7 +81,7 @@ public:
     /*!
      * \brief Destructor
      */
-    ~CopyToRootSchedule();
+    ~CopyToRootSchedule() = default;
 
     /*!
      * \brief Communicate data.

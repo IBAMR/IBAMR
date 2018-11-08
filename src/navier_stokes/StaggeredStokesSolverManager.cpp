@@ -202,12 +202,6 @@ StaggeredStokesSolverManager::StaggeredStokesSolverManager()
     return;
 } // StaggeredStokesSolverManager
 
-StaggeredStokesSolverManager::~StaggeredStokesSolverManager()
-{
-    // intentionally blank
-    return;
-} // ~StaggeredStokesSolverManager
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

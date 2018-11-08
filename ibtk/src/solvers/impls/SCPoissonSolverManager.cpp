@@ -188,12 +188,6 @@ SCPoissonSolverManager::SCPoissonSolverManager() : d_solver_maker_map()
     return;
 } // SCPoissonSolverManager
 
-SCPoissonSolverManager::~SCPoissonSolverManager()
-{
-    // intentionally blank
-    return;
-} // ~SCPoissonSolverManager
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

@@ -182,12 +182,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(c
     return;
 } // AdvDiffSemiImplicitHierarchyIntegrator
 
-AdvDiffSemiImplicitHierarchyIntegrator::~AdvDiffSemiImplicitHierarchyIntegrator()
-{
-    // intentionally blank
-    return;
-} // ~AdvDiffSemiImplicitHierarchyIntegrator
-
 void
 AdvDiffSemiImplicitHierarchyIntegrator::setDefaultConvectiveTimeSteppingType(
     TimeSteppingType default_convective_time_stepping_type)

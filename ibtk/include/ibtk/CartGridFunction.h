@@ -73,7 +73,7 @@ public:
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual ~CartGridFunction();
+    virtual ~CartGridFunction() = default;
 
     /*!
      * \name Methods to set patch interior data.

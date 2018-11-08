@@ -70,12 +70,12 @@ public:
     /*!
      * \brief Default constructor
      */
-    SideSynchCopyFillPattern();
+    SideSynchCopyFillPattern() = default;
 
     /*!
      * \brief Destructor
      */
-    ~SideSynchCopyFillPattern();
+    ~SideSynchCopyFillPattern() = default;
 
     /*!
      * Calculate overlaps between the destination and source geometries according

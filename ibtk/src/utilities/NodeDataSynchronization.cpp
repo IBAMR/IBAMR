@@ -73,12 +73,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-NodeDataSynchronization::NodeDataSynchronization()
-{
-    // intentionally blank
-    return;
-} // NodeDataSynchronization
-
 NodeDataSynchronization::~NodeDataSynchronization()
 {
     if (d_is_initialized) deallocateOperatorState();

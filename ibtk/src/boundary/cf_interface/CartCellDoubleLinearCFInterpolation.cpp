@@ -98,12 +98,6 @@ static const int GHOST_WIDTH_TO_FILL = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartCellDoubleLinearCFInterpolation::CartCellDoubleLinearCFInterpolation()
-{
-    // intentionally blank
-    return;
-} // CartCellDoubleLinearCFInterpolation
-
 CartCellDoubleLinearCFInterpolation::~CartCellDoubleLinearCFInterpolation()
 {
     clearPatchHierarchy();

@@ -93,7 +93,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~SpongeLayerForceFunction();
+    ~SpongeLayerForceFunction() = default;
 
     /*!
      * \name Methods to set the data.

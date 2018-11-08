@@ -70,12 +70,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBLagrangianSourceStrategy();
+    IBLagrangianSourceStrategy() = default;
 
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBLagrangianSourceStrategy();
+    virtual ~IBLagrangianSourceStrategy() = default;
 
     /*!
      * \brief Set the current and new times for the present timestep.

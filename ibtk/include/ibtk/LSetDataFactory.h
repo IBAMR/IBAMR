@@ -86,7 +86,7 @@ public:
     /*!
      * Virtual destructor for the data factory class.
      */
-    virtual ~LSetDataFactory();
+    virtual ~LSetDataFactory() = default;
 
     /*!
      * Virtual factory function to allocate a concrete data object.  The default

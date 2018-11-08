@@ -71,12 +71,6 @@ IBHierarchyIntegrator::IBEulerianSourceFunction::IBEulerianSourceFunction(const 
     return;
 } // IBEulerianSourceFunction
 
-IBHierarchyIntegrator::IBEulerianSourceFunction::~IBEulerianSourceFunction()
-{
-    // intentionally blank
-    return;
-} // ~IBEulerianSourceFunction
-
 bool
 IBHierarchyIntegrator::IBEulerianSourceFunction::isTimeDependent() const
 {

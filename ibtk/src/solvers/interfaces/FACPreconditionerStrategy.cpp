@@ -61,12 +61,6 @@ FACPreconditionerStrategy::FACPreconditionerStrategy(std::string object_name, bo
     return;
 } // FACPreconditionerStrategy
 
-FACPreconditionerStrategy::~FACPreconditionerStrategy()
-{
-    // intentionally blank
-    return;
-} // ~FACPreconditionerStrategy
-
 const std::string&
 FACPreconditionerStrategy::getName() const
 {

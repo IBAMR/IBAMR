@@ -167,12 +167,6 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchy
     return;
 } // AdvDiffPredictorCorrectorHierarchyIntegrator
 
-AdvDiffPredictorCorrectorHierarchyIntegrator::~AdvDiffPredictorCorrectorHierarchyIntegrator()
-{
-    // intentionally blank
-    return;
-} // ~AdvDiffPredictorCorrectorHierarchyIntegrator
-
 Pointer<HyperbolicLevelIntegrator<NDIM> >
 AdvDiffPredictorCorrectorHierarchyIntegrator::getHyperbolicLevelIntegrator() const
 {

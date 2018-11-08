@@ -77,7 +77,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    CartCellDoubleQuadraticCFInterpolation();
+    CartCellDoubleQuadraticCFInterpolation() = default;
 
     /*!
      * \brief Destructor.

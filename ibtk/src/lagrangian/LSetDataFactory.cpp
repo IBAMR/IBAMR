@@ -63,13 +63,6 @@ LSetDataFactory<T>::LSetDataFactory(IntVector<NDIM> ghosts)
 } // LSetDataFactory
 
 template <class T>
-LSetDataFactory<T>::~LSetDataFactory()
-{
-    // intentionally blank
-    return;
-} // ~LSetDataFactory
-
-template <class T>
 Pointer<PatchDataFactory<NDIM> >
 LSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
 {

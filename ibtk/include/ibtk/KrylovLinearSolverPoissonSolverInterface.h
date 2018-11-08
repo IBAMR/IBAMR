@@ -69,12 +69,12 @@ public:
     /*!
      * Default constructor.
      */
-    KrylovLinearSolverPoissonSolverInterface();
+    KrylovLinearSolverPoissonSolverInterface() = default;
 
     /*!
      * Destructor.
      */
-    ~KrylovLinearSolverPoissonSolverInterface();
+    ~KrylovLinearSolverPoissonSolverInterface() = default;
 
     /*!
      * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify

@@ -56,18 +56,6 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBLagrangianSourceStrategy::IBLagrangianSourceStrategy()
-{
-    // intentionally blank
-    return;
-} // IBLagrangianSourceStrategy
-
-IBLagrangianSourceStrategy::~IBLagrangianSourceStrategy()
-{
-    // intentionally blank
-    return;
-} // ~IBLagrangianSourceStrategy
-
 void
 IBLagrangianSourceStrategy::setTimeInterval(const double /*current_time*/, const double /*new_time*/)
 {

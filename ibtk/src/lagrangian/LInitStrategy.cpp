@@ -68,18 +68,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LInitStrategy::LInitStrategy()
-{
-    // intentionally blank
-    return;
-} // LInitStrategy
-
-LInitStrategy::~LInitStrategy()
-{
-    // intentionally blank
-    return;
-} // ~LInitStrategy
-
 void
 LInitStrategy::initializeStructureIndexingOnPatchLevel(
     std::map<int, std::string>& /*strct_id_to_strct_name_map*/,

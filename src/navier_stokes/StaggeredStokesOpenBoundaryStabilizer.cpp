@@ -143,12 +143,6 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
     return;
 } // StaggeredStokesOpenBoundaryStabilizer
 
-StaggeredStokesOpenBoundaryStabilizer::~StaggeredStokesOpenBoundaryStabilizer()
-{
-    // intentionally blank
-    return;
-} // ~StaggeredStokesOpenBoundaryStabilizer
-
 bool
 StaggeredStokesOpenBoundaryStabilizer::isTimeDependent() const
 {

@@ -92,7 +92,7 @@ public:
      * integrator object with the restart manager when the object is so
      * registered.
      */
-    ~INSVCStaggeredNonConservativeHierarchyIntegrator();
+    ~INSVCStaggeredNonConservativeHierarchyIntegrator() = default;
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and

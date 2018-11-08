@@ -69,13 +69,6 @@ LIndexSetData<T>::LIndexSetData(Box<NDIM> box, IntVector<NDIM> ghosts) : LSetDat
 } // LIndexSetData
 
 template <class T>
-LIndexSetData<T>::~LIndexSetData()
-{
-    // intentionally blank
-    return;
-} // ~LIndexSetData
-
-template <class T>
 void
 LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntVector<NDIM>& periodic_shift)
 {

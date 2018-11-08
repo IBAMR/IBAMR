@@ -137,7 +137,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    NodeDataSynchronization();
+    NodeDataSynchronization() = default;
 
     /*!
      * \brief Destructor.

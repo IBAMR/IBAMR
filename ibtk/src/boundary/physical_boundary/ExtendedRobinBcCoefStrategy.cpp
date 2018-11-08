@@ -46,18 +46,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ExtendedRobinBcCoefStrategy::ExtendedRobinBcCoefStrategy()
-{
-    // intentionally blank
-    return;
-} // ExtendedRobinBcCoefStrategy
-
-ExtendedRobinBcCoefStrategy::~ExtendedRobinBcCoefStrategy()
-{
-    // intentionally blank
-    return;
-} // ~ExtendedRobinBcCoefStrategy
-
 void
 ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(int target_data_idx)
 {

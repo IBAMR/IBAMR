@@ -75,12 +75,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBMethodPostProcessStrategy();
+    IBMethodPostProcessStrategy() = default;
 
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBMethodPostProcessStrategy();
+    virtual ~IBMethodPostProcessStrategy() = default;
 
     /*!
      * \brief Post-process data on the patch hierarchy.

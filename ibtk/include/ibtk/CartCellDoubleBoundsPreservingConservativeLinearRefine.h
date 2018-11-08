@@ -71,12 +71,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    CartCellDoubleBoundsPreservingConservativeLinearRefine();
+    CartCellDoubleBoundsPreservingConservativeLinearRefine() = default;
 
     /*!
      * \brief Destructor.
      */
-    ~CartCellDoubleBoundsPreservingConservativeLinearRefine();
+    ~CartCellDoubleBoundsPreservingConservativeLinearRefine() = default;
 
     /*!
      * \name Implementation of SAMRAI::xfer::RefineOperator interface.

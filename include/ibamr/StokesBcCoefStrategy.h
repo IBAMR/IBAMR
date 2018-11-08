@@ -59,12 +59,12 @@ public:
     /*!
      * \brief Empty default constructor.
      */
-    StokesBcCoefStrategy();
+    StokesBcCoefStrategy() = default;
 
     /*!
      * \brief Empty destructor.
      */
-    ~StokesBcCoefStrategy();
+    ~StokesBcCoefStrategy() = default;
 
     /*!
      * \brief Set the StokesSpecifications object used by this boundary condition

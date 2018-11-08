@@ -73,7 +73,7 @@ public:
     /*!
      * Destructor for a message stream.
      */
-    ~FixedSizedStream();
+    ~FixedSizedStream() = default;
 
     /*!
      * Return a pointer to the start of the message buffer.

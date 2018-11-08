@@ -57,13 +57,6 @@ LSetData<T>::LSetData(Box<NDIM> box, IntVector<NDIM> ghosts)
     return;
 } // LSetData
 
-template <class T>
-LSetData<T>::~LSetData()
-{
-    // intentionally blank
-    return;
-} // ~LSetData
-
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////

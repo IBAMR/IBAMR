@@ -60,12 +60,6 @@ IBAnchorPointSpec::Factory::Factory()
     return;
 } // Factory
 
-IBAnchorPointSpec::Factory::~Factory()
-{
-    // intentionally blank
-    return;
-} // ~Factory
-
 int
 IBAnchorPointSpec::Factory::getStreamableClassID() const
 {

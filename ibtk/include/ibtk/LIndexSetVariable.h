@@ -59,7 +59,7 @@ public:
     /*!
      * Virtual destructor for LIndexSetVariable objects.
      */
-    virtual ~LIndexSetVariable();
+    virtual ~LIndexSetVariable() = default;
 
     /*!
      * Return false since the LIndexSet data index space matches the

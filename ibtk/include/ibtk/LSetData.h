@@ -118,7 +118,7 @@ public:
     /*!
      * The virtual destructor for an LSetData object.
      */
-    virtual ~LSetData();
+    virtual ~LSetData() = default;
 
 private:
     /*!

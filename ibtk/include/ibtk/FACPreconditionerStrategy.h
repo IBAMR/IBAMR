@@ -83,7 +83,7 @@ public:
     /*!
      * \brief Empty virtual desctructor.
      */
-    virtual ~FACPreconditionerStrategy();
+    virtual ~FACPreconditionerStrategy() = default;
 
     /*!
      * \brief Return the object name.

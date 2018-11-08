@@ -53,12 +53,6 @@ PETScKrylovPoissonSolver::PETScKrylovPoissonSolver(std::string object_name,
     return;
 } // PETScKrylovPoissonSolver()
 
-PETScKrylovPoissonSolver::~PETScKrylovPoissonSolver()
-{
-    // intentionally blank
-    return;
-} // ~PETScKrylovPoissonSolver()
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

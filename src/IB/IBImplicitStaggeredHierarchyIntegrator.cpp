@@ -181,12 +181,6 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
     return;
 } // IBImplicitStaggeredHierarchyIntegrator
 
-IBImplicitStaggeredHierarchyIntegrator::~IBImplicitStaggeredHierarchyIntegrator()
-{
-    // intentionally blank
-    return;
-} // ~IBImplicitStaggeredHierarchyIntegrator
-
 void
 IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                                      const double new_time,

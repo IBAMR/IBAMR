@@ -93,18 +93,6 @@ coarsen(const Index<NDIM>& index, const IntVector<NDIM>& ratio)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartCellDoubleQuadraticRefine::CartCellDoubleQuadraticRefine()
-{
-    // intentionally blank
-    return;
-} // CartCellDoubleQuadraticRefine
-
-CartCellDoubleQuadraticRefine::~CartCellDoubleQuadraticRefine()
-{
-    // intentionally blank
-    return;
-} // ~CartCellDoubleQuadraticRefine
-
 bool
 CartCellDoubleQuadraticRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
 {

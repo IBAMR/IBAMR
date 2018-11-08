@@ -77,12 +77,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    CartCellDoubleCubicCoarsen();
+    CartCellDoubleCubicCoarsen() = default;
 
     /*!
      * \brief Destructor.
      */
-    ~CartCellDoubleCubicCoarsen();
+    ~CartCellDoubleCubicCoarsen() = default;
 
     /*!
      * \name Implementation of SAMRAI::xfer::CoarsenOperator interface.

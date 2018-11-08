@@ -61,18 +61,6 @@ static const std::string PATTERN_NAME = "FACE_SYNCH_COPY_FILL_PATTERN";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FaceSynchCopyFillPattern::FaceSynchCopyFillPattern()
-{
-    // intentionally blank
-    return;
-} // FaceSynchCopyFillPattern
-
-FaceSynchCopyFillPattern::~FaceSynchCopyFillPattern()
-{
-    // intentionally blank
-    return;
-} // FaceSynchCopyFillPattern
-
 Pointer<BoxOverlap<NDIM> >
 FaceSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
                                            const BoxGeometry<NDIM>& src_geometry,

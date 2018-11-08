@@ -71,7 +71,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~PETScKrylovPoissonSolver();
+    ~PETScKrylovPoissonSolver() = default;
 
 protected:
 private:

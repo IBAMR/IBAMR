@@ -73,12 +73,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-EdgeDataSynchronization::EdgeDataSynchronization()
-{
-    // intentionally blank
-    return;
-} // EdgeDataSynchronization
-
 EdgeDataSynchronization::~EdgeDataSynchronization()
 {
     if (d_is_initialized) deallocateOperatorState();

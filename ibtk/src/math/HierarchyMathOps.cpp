@@ -266,12 +266,6 @@ HierarchyMathOps::HierarchyMathOps(std::string name,
     return;
 } // HierarchyMathOps
 
-HierarchyMathOps::~HierarchyMathOps()
-{
-    // intentionally blank
-    return;
-} // ~HierarchyMathOps
-
 void
 HierarchyMathOps::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
 {

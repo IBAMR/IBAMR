@@ -60,12 +60,6 @@ IBSourceSpec::Factory::Factory()
     return;
 } // Factory
 
-IBSourceSpec::Factory::~Factory()
-{
-    // intentionally blank
-    return;
-} // ~Factory
-
 int
 IBSourceSpec::Factory::getStreamableClassID() const
 {

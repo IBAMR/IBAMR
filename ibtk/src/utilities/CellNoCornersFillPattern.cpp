@@ -74,12 +74,6 @@ CellNoCornersFillPattern::CellNoCornersFillPattern(const int stencil_width,
     return;
 } // CellNoCornersFillPattern
 
-CellNoCornersFillPattern::~CellNoCornersFillPattern()
-{
-    // intentionally blank
-    return;
-} // CellNoCornersFillPattern
-
 Pointer<BoxOverlap<NDIM> >
 CellNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
                                            const BoxGeometry<NDIM>& src_geometry,

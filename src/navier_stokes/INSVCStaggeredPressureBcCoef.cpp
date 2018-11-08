@@ -84,12 +84,6 @@ INSVCStaggeredPressureBcCoef::INSVCStaggeredPressureBcCoef(const INSVCStaggeredH
     return;
 } // INSVCStaggeredPressureBcCoef
 
-INSVCStaggeredPressureBcCoef::~INSVCStaggeredPressureBcCoef()
-{
-    // intentionally blank
-    return;
-} // ~INSVCStaggeredPressureBcCoef
-
 void
 INSVCStaggeredPressureBcCoef::setStokesSpecifications(const StokesSpecifications* problem_coefs)
 {

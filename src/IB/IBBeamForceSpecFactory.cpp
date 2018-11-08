@@ -64,12 +64,6 @@ IBBeamForceSpec::Factory::Factory()
     return;
 } // Factory
 
-IBBeamForceSpec::Factory::~Factory()
-{
-    // intentionally blank
-    return;
-} // ~Factory
-
 int
 IBBeamForceSpec::Factory::getStreamableClassID() const
 {

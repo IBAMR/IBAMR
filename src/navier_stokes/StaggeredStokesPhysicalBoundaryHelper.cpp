@@ -73,18 +73,6 @@ const short int StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY = 0x100 | 0x200;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-StaggeredStokesPhysicalBoundaryHelper::StaggeredStokesPhysicalBoundaryHelper()
-{
-    // intentionally blank
-    return;
-} // StaggeredStokesPhysicalBoundaryHelper
-
-StaggeredStokesPhysicalBoundaryHelper::~StaggeredStokesPhysicalBoundaryHelper()
-{
-    // intentionally blank
-    return;
-} // ~StaggeredStokesPhysicalBoundaryHelper
-
 void
 StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
     const int u_data_idx,

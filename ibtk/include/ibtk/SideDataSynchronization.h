@@ -136,7 +136,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    SideDataSynchronization();
+    SideDataSynchronization() = default;
 
     /*!
      * \brief Destructor.

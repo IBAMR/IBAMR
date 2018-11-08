@@ -96,7 +96,6 @@
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/INSProjectionBcCoef.h"
 #include "ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
 #include "ibamr/INSVCStaggeredPressureBcCoef.h"
 #include "ibamr/INSVCStaggeredVelocityBcCoef.h"
 #include "ibamr/PETScKrylovStaggeredStokesSolver.h"
@@ -200,12 +199,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
 
     return;
 } // INSVCStaggeredConservativeHierarchyIntegrator
-
-INSVCStaggeredConservativeHierarchyIntegrator::~INSVCStaggeredConservativeHierarchyIntegrator()
-{
-    // intentionally blank
-    return;
-} // ~INSVCStaggeredConservativeHierarchyIntegrator
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(

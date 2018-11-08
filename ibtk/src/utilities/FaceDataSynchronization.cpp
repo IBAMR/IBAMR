@@ -73,12 +73,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FaceDataSynchronization::FaceDataSynchronization()
-{
-    // intentionally blank
-    return;
-} // FaceDataSynchronization
-
 FaceDataSynchronization::~FaceDataSynchronization()
 {
     if (d_is_initialized) deallocateOperatorState();

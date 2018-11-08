@@ -109,15 +109,6 @@ GeneralizedIBMethod::GeneralizedIBMethod(std::string object_name, Pointer<Databa
     return;
 } // GeneralizedIBMethod
 
-GeneralizedIBMethod::~GeneralizedIBMethod()
-{
-    // intentionally blank
-    //
-    // NOTE: Parent class constructor unregisters class with the restart
-    // manager.
-    return;
-} // ~GeneralizedIBMethod
-
 void
 GeneralizedIBMethod::registerIBKirchhoffRodForceGen(Pointer<IBKirchhoffRodForceGen> ib_force_and_torque_fcn)
 {

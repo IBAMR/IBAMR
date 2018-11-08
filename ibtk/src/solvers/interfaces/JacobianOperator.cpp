@@ -50,12 +50,6 @@ JacobianOperator::JacobianOperator(std::string object_name)
     return;
 } // JacobianOperator()
 
-JacobianOperator::~JacobianOperator()
-{
-    // intentionally blank
-    return;
-} // ~JacobianOperator()
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

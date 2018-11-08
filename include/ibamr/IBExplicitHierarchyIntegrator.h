@@ -91,7 +91,7 @@ public:
      * integrator object with the restart manager when the object is so
      * registered.
      */
-    ~IBExplicitHierarchyIntegrator();
+    ~IBExplicitHierarchyIntegrator() = default;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
