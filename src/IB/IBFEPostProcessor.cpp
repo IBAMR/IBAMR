@@ -288,6 +288,7 @@ IBFEPostProcessor::interpolateVariables(const double data_time)
     for (unsigned int k = 0; k < num_eulerian_vars; ++k)
     {
         System* system = d_scalar_interp_var_systems[k];
+        TBOX_ASSERT(system->is_initialized());
         const std::string& system_name = system->name();
         const int scratch_idx = d_scalar_interp_scratch_idxs[k];
         d_fe_data_manager->interp(scratch_idx, *system->solution, *X_ghost_vec, system_name, d_scalar_interp_specs[k]);
