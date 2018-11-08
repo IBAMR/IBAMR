@@ -71,6 +71,47 @@
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
 
+double structure_volume(EquationSystems *equation_systems)
+{
+      double J_integral = 0.0;
+      System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+      NumericVector<double>* X_vec = X_system.solution.get();
+      NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
+      X_vec->localize(*X_ghost_vec);
+      pout << "L2 norm: " << X_vec->l2_norm() << '\n';
+      pout << "size: " << X_vec->size() << '\n';
+      DofMap& X_dof_map = X_system.get_dof_map();
+      std::vector<vector<unsigned int> > X_dof_indices(NDIM);
+      libMesh::UniquePtr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
+      libMesh::UniquePtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
+      fe->attach_quadrature_rule(qrule.get());
+      const std::vector<double>& JxW = fe->get_JxW();
+      const std::vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
+      TensorValue<double> FF;
+      boost::multi_array<double, 2> X_node;
+      const MeshBase &mesh = equation_systems->get_mesh();
+      MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+      MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+      for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        {
+          Elem* const elem = *el_it;
+          fe->reinit(elem);
+          for (unsigned int d = 0; d < NDIM; ++d)
+            {
+              X_dof_map.dof_indices(elem, X_dof_indices[d], d);
+            }
+          const int n_qp = qrule->n_points();
+          get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
+          for (int qp = 0; qp < n_qp; ++qp)
+            {
+              jacobian(FF, qp, X_node, dphi);
+              J_integral += abs(FF.det()) * JxW[qp];
+            }
+        }
+
+    return SAMRAI_MPI::sumReduction(J_integral);
+}
+
 
 void create_mesh(const double ds,
                  const std::string elem_type,
@@ -710,39 +751,7 @@ Solver::run()
         }
 
       // Compute the volume of the structure.
-      double J_integral = 0.0;
-      System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
-      NumericVector<double>* X_vec = X_system.solution.get();
-      NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
-      X_vec->localize(*X_ghost_vec);
-      DofMap& X_dof_map = X_system.get_dof_map();
-      vector<vector<unsigned int> > X_dof_indices(NDIM);
-      libMesh::UniquePtr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
-      libMesh::UniquePtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
-      fe->attach_quadrature_rule(qrule.get());
-      const vector<double>& JxW = fe->get_JxW();
-      const vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
-      TensorValue<double> FF;
-      boost::multi_array<double, 2> X_node;
-      const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-      const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-      for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
-        {
-          Elem* const elem = *el_it;
-          fe->reinit(elem);
-          for (unsigned int d = 0; d < NDIM; ++d)
-            {
-              X_dof_map.dof_indices(elem, X_dof_indices[d], d);
-            }
-          const int n_qp = qrule->n_points();
-          get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
-          for (int qp = 0; qp < n_qp; ++qp)
-            {
-              jacobian(FF, qp, X_node, dphi);
-              J_integral += abs(FF.det()) * JxW[qp];
-            }
-        }
-      J_integral = SAMRAI_MPI::sumReduction(J_integral);
+      const double J_integral = structure_volume(equation_systems);
       if (SAMRAI_MPI::getRank() == 0)
         {
           volume_stream.precision(12);
