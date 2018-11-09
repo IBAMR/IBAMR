@@ -352,28 +352,27 @@ DirectMobilitySolver::solveSystem(Vec x, Vec b)
 
         for (int k = 0; k < num_structs; ++k)
         {
-            double* rhs = nullptr;
-            if (rank == managing_proc) rhs = new double[mat_size];
-            d_cib_strategy->copyVecToArray(b, rhs, struct_ids[k], data_depth, managing_proc);
+            std::vector<double> rhs;
+            if (rank == managing_proc) rhs.resize(mat_size);
+            d_cib_strategy->copyVecToArray(b, rhs.data(), struct_ids[k], data_depth, managing_proc);
             if (!d_recompute_mob_mat)
             {
-                d_cib_strategy->rotateArray(rhs,
+                d_cib_strategy->rotateArray(rhs.data(),
                                             struct_ids[k],
                                             /*use_transpose*/ true,
                                             managing_proc,
                                             data_depth);
             }
-            if (rank == managing_proc) computeSolution(mat, inv_type, d_ipiv_map[mat_name].first, rhs);
+            if (rank == managing_proc) computeSolution(mat, inv_type, d_ipiv_map[mat_name].first, rhs.data());
             if (!d_recompute_mob_mat)
             {
-                d_cib_strategy->rotateArray(rhs,
+                d_cib_strategy->rotateArray(rhs.data(),
                                             struct_ids[k],
                                             /*use_transpose*/ false,
                                             managing_proc,
                                             data_depth);
             }
-            d_cib_strategy->copyArrayToVec(x, rhs, struct_ids[k], data_depth, managing_proc);
-            delete[] rhs;
+            d_cib_strategy->copyArrayToVec(x, rhs.data(), struct_ids[k], data_depth, managing_proc);
         }
     }
 
@@ -406,28 +405,27 @@ DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
 
         for (int k = 0; k < num_structs; ++k)
         {
-            double* rhs = nullptr;
-            if (rank == managing_proc) rhs = new double[mat_size];
-            d_cib_strategy->copyFreeDOFsVecToArray(b, rhs, struct_ids[k], managing_proc);
+            std::vector<double> rhs;
+            if (rank == managing_proc) rhs.resize(mat_size);
+            d_cib_strategy->copyFreeDOFsVecToArray(b, rhs.data(), struct_ids[k], managing_proc);
             if (!d_recompute_mob_mat)
             {
-                d_cib_strategy->rotateArray(rhs,
+                d_cib_strategy->rotateArray(rhs.data(),
                                             struct_ids[k],
                                             /*use_transpose*/ true,
                                             managing_proc,
                                             data_depth);
             }
-            if (rank == managing_proc) computeSolution(mat, inv_type, d_ipiv_map[mat_name].second, rhs);
+            if (rank == managing_proc) computeSolution(mat, inv_type, d_ipiv_map[mat_name].second, rhs.data());
             if (!d_recompute_mob_mat)
             {
-                d_cib_strategy->rotateArray(rhs,
+                d_cib_strategy->rotateArray(rhs.data(),
                                             struct_ids[k],
                                             /*use_transpose*/ false,
                                             managing_proc,
                                             data_depth);
             }
-            d_cib_strategy->copyFreeDOFsArrayToVec(x, rhs, struct_ids[k], managing_proc);
-            delete[] rhs;
+            d_cib_strategy->copyFreeDOFsArrayToVec(x, rhs.data(), struct_ids[k], managing_proc);
         }
     }
 
@@ -619,9 +617,9 @@ DirectMobilitySolver::constructBodyMobilityMatrix()
 
         // Allocate a temporary matrix that holds the Matrix-Matrix product.
         // Here we are multiplying inverse of mobility matrix with geometric matrix.
-        auto product_mat_data = new double[row_size * col_size];
+        std::vector<double> product_mat_data(row_size * col_size);
         Mat product_mat;
-        MatCreateSeqDense(PETSC_COMM_SELF, row_size, col_size, product_mat_data, &product_mat);
+        MatCreateSeqDense(PETSC_COMM_SELF, row_size, col_size, product_mat_data.data(), &product_mat);
         MatCopy(geometric_mat, product_mat, SAME_NONZERO_PATTERN);
 
         for (int col = 0; col < col_size; ++col)
@@ -634,7 +632,6 @@ DirectMobilitySolver::constructBodyMobilityMatrix()
         MatTransposeMatMult(geometric_mat, product_mat, MAT_REUSE_MATRIX, PETSC_DEFAULT, &body_mob_mat);
 
         MatDestroy(&product_mat);
-        delete[] product_mat_data;
     }
 
     return;
