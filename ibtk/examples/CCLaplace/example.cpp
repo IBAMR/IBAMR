@@ -28,6 +28,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
+#include "ibtk/IBTK_Init.h"
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
 
@@ -60,14 +61,11 @@ bool
 run_example(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    IBTK_Init init(argc, argv, PETSC_COMM_WORLD, NULL, NULL);
 
     // Since SAMRAI and PETSc both require finalization routines we have to
     // ensure that no SAMRAI or PETSc objects are active at the point where we
-    // call SAMRAIManager::shutdown() or PetscFinalize. Hence, to guarantee
     // that all objects are cleaned up by that point, we put everything we use
     // in an inner scope.
     {
@@ -276,7 +274,5 @@ run_example(int argc, char* argv[])
 
     // At this point all SAMRAI, PETSc, and IBAMR objects have been cleaned
     // up, so we shut things down in the opposite order of initialization:
-    SAMRAIManager::shutdown();
-    PetscFinalize();
     return true;
 } // run_example

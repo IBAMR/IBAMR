@@ -28,6 +28,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
+#include "ibtk/IBTK_Init.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -125,10 +126,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 bool run_example(int argc, char** argv)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    IBTK_Init init(argc, argv, PETSC_COMM_WORLD, nullptr, nullptr);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -173,7 +172,7 @@ bool run_example(int argc, char** argv)
         //
         // Note that boundary condition data must be registered with each FE
         // system before calling IBFEMethod::initializeFEData().
-        Mesh mesh(init.comm(), NDIM);
+        Mesh mesh(init.getLibMeshInit()->comm(), NDIM);
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
@@ -462,7 +461,6 @@ bool run_example(int argc, char** argv)
 
     } // cleanup dynamically allocated objects prior to shutdown
 
-    SAMRAIManager::shutdown();
     return true;
 } // run_example
 

@@ -28,6 +28,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
+#include "ibtk/IBTK_Init.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -158,10 +159,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 bool run_example(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    IBTK_Init init(argc, argv, PETSC_COMM_WORLD, nullptr, nullptr);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -213,7 +212,7 @@ bool run_example(int argc, char* argv[])
 
         string elem_type = input_db->getString("ELEM_TYPE");
 
-        Mesh lower_mesh(init.comm(), NDIM);
+        Mesh lower_mesh(init.getLibMeshInit()->comm(), NDIM);
         MeshTools::Generation::build_square(lower_mesh,
                                             static_cast<int>(ceil(L / ds)),
                                             static_cast<int>(ceil(w / ds)),
@@ -224,7 +223,7 @@ bool run_example(int argc, char* argv[])
                                             Utility::string_to_enum<ElemType>(elem_type));
         lower_mesh.prepare_for_use();
 
-        Mesh upper_mesh(init.comm(), NDIM);
+        Mesh upper_mesh(init.getLibMeshInit()->comm(), NDIM);
         MeshTools::Generation::build_square(upper_mesh,
                                             static_cast<int>(ceil(L / ds)),
                                             static_cast<int>(ceil(w / ds)),
@@ -463,7 +462,6 @@ bool run_example(int argc, char* argv[])
 
     } // cleanup dynamically allocated objects prior to shutdown
 
-    SAMRAIManager::shutdown();
     return true;
 } // run_example
 

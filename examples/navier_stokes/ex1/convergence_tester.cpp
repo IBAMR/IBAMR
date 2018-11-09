@@ -28,6 +28,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // GENERAL CONFIGURATION
+#include "ibtk/IBTK_Init.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -52,10 +53,8 @@ int
 main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    IBTK_Init init(argc, argv, PETSC_COMM_WORLD, NULL, NULL);
 
     // Parse command line options, set some standard options from the input
     // file, and enable file logging.
@@ -359,7 +358,6 @@ main(int argc, char* argv[])
         pout << endl;
     }
 
-    SAMRAIManager::shutdown();
     SAMRAI_MPI::finalize();
     return 0;
 } // main

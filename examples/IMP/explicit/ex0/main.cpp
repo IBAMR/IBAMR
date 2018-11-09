@@ -28,6 +28,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
+#include "ibtk/IBTK_Init.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -108,10 +109,8 @@ int
 main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    IBTK_Init init(argc, argv, PETSC_COMM_WORLD, nullptr, nullptr);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -133,7 +132,7 @@ main(int argc, char* argv[])
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
         // Create a simple FE mesh.
-        Mesh mesh(init.comm(), NDIM);
+        Mesh mesh(init.getLibMeshInit()->comm(), NDIM);
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
@@ -378,6 +377,5 @@ main(int argc, char* argv[])
 
     } // cleanup dynamically allocated objects prior to shutdown
 
-    SAMRAIManager::shutdown();
     return 0;
 } // main

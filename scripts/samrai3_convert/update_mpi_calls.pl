@@ -64,7 +64,7 @@ for my $file (@filesToProcess) {
         open FILE, "< $file" || die "Cannot open file $file";
         open TEMPFILE, "> $tempFile" || die "Cannot open temporary file $tempFile";
         while ( my $str = <FILE> ) {
-            if ($printed == 0 && ($str =~ /#include\ "ibtk/ || $str =~ /#include\ "ibamr/)) {
+            if ($printed == 0 && ($str =~ /#include\ [<"]ibtk/ || $str =~ /#include\ [<"]ibamr/)) {
                 print TEMPFILE "#include \"ibtk/IBTK_MPI.h\"\n";
                 $printed = 1;
             }

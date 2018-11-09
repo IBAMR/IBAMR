@@ -29,6 +29,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
+#include "ibtk/IBTK_Init.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -126,10 +127,8 @@ bool
 run_example(int argc, char* argv[], double& end_time, double& end_u)
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    IBTK_Init init(argc, argv, PETSC_COMM_WORLD, NULL, NULL);
     SAMRAIManager::setMaxNumberPatchDataEntries(2054);
 
     { // cleanup dynamically allocated objects prior to shutdown
@@ -442,8 +441,6 @@ run_example(int argc, char* argv[], double& end_time, double& end_u)
 
     } // cleanup dynamically allocated objects prior to shutdown
 
-    SAMRAIManager::shutdown();
-    PetscFinalize();
     return true;
 } // main
 

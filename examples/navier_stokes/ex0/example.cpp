@@ -28,6 +28,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
+#include "ibtk/IBTK_Init.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -73,10 +74,8 @@ bool
 run_example(int argc, char* argv[], std::vector<double>& u_err, std::vector<double>& p_err)
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    IBTK_Init init(argc, argv, PETSC_COMM_WORLD, NULL, NULL);
     // resize u_err and p_err vectors to hold error data
     u_err.resize(3);
     p_err.resize(3);
@@ -360,8 +359,6 @@ run_example(int argc, char* argv[], std::vector<double>& u_err, std::vector<doub
 
     } // cleanup dynamically allocated objects prior to shutdown
     //double test_results[2] = {uMax_norm, pMax_norm};
-    SAMRAIManager::shutdown();
-    PetscFinalize();
     return true;
 } // run_example
 

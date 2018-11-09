@@ -78,7 +78,6 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
     // Initialize MPI and SAMRAI.
     SAMRAI_MPI::init(&argc, &argv);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
 
     // Resize Q_err to hold error norms
     Q_err.resize(3);
@@ -320,7 +319,6 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
 
     } // cleanup dynamically allocated objects prior to shutdown
 
-    SAMRAIManager::shutdown();
     SAMRAI_MPI::finalize();
     return true;
 } // main

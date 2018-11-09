@@ -28,6 +28,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // GENERAL CONFIGURATION
+#include "ibtk/IBTK_Init.h"
 #include <IBAMR_config.h>
 #include <SAMRAI_config.h>
 
@@ -73,12 +74,10 @@ int
 main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
     {
         tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-        tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-        tbox::SAMRAIManager::startup();
 
+        IBTK_Init init(argc, argv, PETSC_COMM_WORLD, nullptr, nullptr);
         if (argc != 2)
         {
             tbox::pout << "USAGE:  " << argv[0] << " <input filename>\n"
@@ -396,14 +395,14 @@ main(int argc, char* argv[])
             // Do the same thing for the FE data.
             string file_name;
 
-            Mesh mesh_coarse(init.comm(), NDIM);
+            Mesh mesh_coarse(init.getLibMeshInit()->comm(), NDIM);
             file_name = coarse_hier_dump_dirname + "/" + "fe_mesh.";
             sprintf(temp_buf, "%05d", coarse_iteration_num);
             file_name += temp_buf;
             file_name += ".xda";
             mesh_coarse.read(file_name);
 
-            Mesh mesh_fine(init.comm(), NDIM);
+            Mesh mesh_fine(init.getLibMeshInit()->comm(), NDIM);
             file_name = fine_hier_dump_dirname + "/" + "fe_mesh.";
             sprintf(temp_buf, "%05d", fine_iteration_num);
             file_name += temp_buf;
@@ -457,7 +456,6 @@ main(int argc, char* argv[])
             tbox::pout << endl;
         }
 
-        tbox::SAMRAIManager::shutdown();
     }
     return 0;
 } // main
