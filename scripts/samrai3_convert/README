@@ -1,7 +1,7 @@
 There are dozens of changes in the update from SAMRAI 2* to SAMRAI 3. This file contains a partial list of updates pertinent to IBAMR to update to SAMRAI 3.11.* as well as a summary of the perl scripts we have provided to help implement the changes. A more complete list of changes can be seen in the directory SAMRAI/docs/releases. Unfortunately, there are some changes that will require human intervention. The script update_to_samrai_3 is a bash script that will run all perl scripts described below. It can be run using
 ./update_to_samrai_3 <directory_to_change> <SAMRAI_source>
 
-All scripts can be run using the following command:RAperl <script name> <directory to change>
+All scripts can be run using the following command: perl <script name> <directory to change>
 
 The only exception is convertIncludePath.pl which requires knowledge of the SAMRAI source directory and must be run as:
 
@@ -19,7 +19,7 @@ The script changeArray.pl will replace any use of SAMRAI::Array<> with std::vect
 
 (3) SAMRAI MPI calls are no longer static functions. To make an MPI call using the SAMRAI wrappers now requires an SAMRAI_MPI object.
 
-This change can not be done automatically as we do not know the appropriate variables to construct the SAMRAI_MPI object. However, the script make_list_of_mpi.pl will search for SAMRAI_MPI calls and write descriptive messages to a text file located in the base directory to aid in making this change.
+We have included a static MPI class called IBTK_MPI that functions essentially the same as SAMRAI2's MPI class. A script is provided that replaces all SAMRAI MPI calls with IBTK MPI calls.
 
 (4) Box and Patch Iterators have been changed to use the now common begin() and end() notation.
 
@@ -55,7 +55,7 @@ To account for mulitiple SAMRAI problems per process, the interface of startup a
 
 (12) The interface for RefineOperator::refine() has changed.
 
-The Box argument "fine_box" in the refine() interface has changed to a BoxOverlap argument. You will ONLY have to make a change if you have written a custon RefineOperator.
+The Box argument "fine_box" in the refine() interface has changed to a BoxOverlap argument. You will ONLY have to make a change if you have written a custom RefineOperator.
 
 (13) SAMRAI include file locations have changed to prevent collisions.
 
@@ -68,7 +68,9 @@ IMPORTANT WARNING: This script looks for patterns of "#include
 name as SAMRAI classes this script will replace those includes as
 well.
 
-(14) Certain GriddingAlgorithm characteristics pertaining to levels have been moved to the PatchHierarchy
+Note that if you are using the SAMRAI m4 file for fortran array defines, it has changed locations to SAMRAI/pdat/fortran/.
+
+(14) Certain GriddingAlgorithm characteristics pertaining to levels have been moved to the PatchHierarchy.
 
 Calls like getMaxNumberOfLevels() and other level specific function calls have been moved to the PatchHierarchy class. The script make_list_of_change_to_patchHierarchy.pl creates a text file of possible GriddingAlgorithm calls that no longer exist.
 
