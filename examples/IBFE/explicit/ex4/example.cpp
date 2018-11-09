@@ -85,7 +85,7 @@ structure_volume(EquationSystems* equation_systems)
     libMesh::UniquePtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();
-    const std::vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
+    const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
     TensorValue<double> FF;
     boost::multi_array<double, 2> X_node;
     const MeshBase& mesh = equation_systems->get_mesh();
@@ -231,8 +231,8 @@ PK1_dev_stress_function(TensorValue<double>& PP,
                         const libMesh::Point& /*X*/,
                         const libMesh::Point& /*s*/,
                         Elem* const /*elem*/,
-                        const vector<const vector<double>*>& /*var_data*/,
-                        const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                        const std::vector<const std::vector<double>*>& /*var_data*/,
+                        const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
                         double /*time*/,
                         void* /*ctx*/)
 {
@@ -246,8 +246,8 @@ PK1_dil_stress_function(TensorValue<double>& PP,
                         const libMesh::Point& /*X*/,
                         const libMesh::Point& /*s*/,
                         Elem* const /*elem*/,
-                        const vector<const vector<double>*>& /*var_data*/,
-                        const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                        const std::vector<const std::vector<double>*>& /*var_data*/,
+                        const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
                         double /*time*/,
                         void* /*ctx*/)
 {
