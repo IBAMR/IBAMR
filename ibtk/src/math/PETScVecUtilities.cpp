@@ -70,7 +70,6 @@
 #include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 namespace SAMRAI

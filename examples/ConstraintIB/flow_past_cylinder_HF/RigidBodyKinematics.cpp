@@ -40,7 +40,6 @@
 #include "ibamr/namespaces.h"
 #include "muParser.h"
 #include "tbox/MathUtilities.h"
-#include "tbox/SAMRAI_MPI.h"
 
 namespace IBAMR
 {

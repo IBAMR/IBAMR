@@ -39,7 +39,6 @@
 #include <ibtk/ibtk_utilities.h>
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
-#include <tbox/SAMRAI_MPI.h>
 
 #include <map>
 #include <string>

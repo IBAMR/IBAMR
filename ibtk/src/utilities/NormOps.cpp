@@ -54,7 +54,6 @@
 #include "ibtk/NormOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 
 namespace SAMRAI
 {

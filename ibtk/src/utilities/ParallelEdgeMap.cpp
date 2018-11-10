@@ -41,7 +41,6 @@
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/ParallelEdgeMap.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

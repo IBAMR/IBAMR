@@ -64,7 +64,6 @@
 #include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

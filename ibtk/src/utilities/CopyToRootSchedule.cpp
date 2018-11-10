@@ -48,7 +48,6 @@
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Schedule.h"
 #include "tbox/Transaction.h"
 #include "tbox/Utilities.h"

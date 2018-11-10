@@ -64,7 +64,6 @@ using namespace libMesh;
 #include <tbox/PIO.h>
 #include <tbox/Pointer.h>
 #include <tbox/SAMRAIManager.h>
-#include <tbox/SAMRAI_MPI.h>
 #include <tbox/Utilities.h>
 
 using namespace IBTK;

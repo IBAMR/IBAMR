@@ -38,7 +38,6 @@
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/MathUtilities.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
