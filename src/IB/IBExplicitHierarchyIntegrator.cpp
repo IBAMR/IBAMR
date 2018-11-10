@@ -59,6 +59,7 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_enums.h"
 #include "tbox/Database.h"
@@ -472,7 +473,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
             cfl_max = std::max(cfl_max, u_max * dt / dx_min);
         }
     }
-    cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
+    cfl_max = IBTK_MPI::maxReduction(cfl_max);
     d_regrid_cfl_estimate += cfl_max;
     if (d_enable_logging)
         plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";

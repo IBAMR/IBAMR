@@ -68,6 +68,7 @@
 #include "ibamr/IBStandardSourceGen.h"
 #include "ibamr/IBTargetPointForceSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LData.h"
 #include "ibtk/LIndexSetData.h"
@@ -1302,7 +1303,7 @@ IBRedundantInitializer::initializeLSiloDataWriter(const int level_number)
     // WARNING: For now, we just register the visualization data on MPI process
     // 0.  This will fail if the structure is too large to be stored in the
     // memory available to a single MPI process.
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         for (unsigned int j = 0; j < d_num_vertex[level_number].size(); ++j)
         {

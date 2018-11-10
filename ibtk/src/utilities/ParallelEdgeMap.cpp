@@ -38,6 +38,7 @@
 #include <utility>
 #include <vector>
 
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/ParallelEdgeMap.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/SAMRAI_MPI.h"
@@ -82,13 +83,13 @@ ParallelEdgeMap::removeEdge(const std::pair<int, int>& link, int mastr_idx)
 void
 ParallelEdgeMap::communicateData()
 {
-    const int size = SAMRAI_MPI::getNodes();
-    const int rank = SAMRAI_MPI::getRank();
+    const int size = IBTK_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
 
     std::vector<int> num_additions_and_removals(2 * size, 0);
     num_additions_and_removals[2 * rank] = static_cast<int>(d_pending_additions.size());
     num_additions_and_removals[2 * rank + 1] = static_cast<int>(d_pending_removals.size());
-    SAMRAI_MPI::sumReduction(&num_additions_and_removals[0], 2 * size);
+    IBTK_MPI::sumReduction(&num_additions_and_removals[0], 2 * size);
 
     int num_transactions = 0, offset = 0;
     for (int k = 0; k < size; ++k)
@@ -117,7 +118,7 @@ ParallelEdgeMap::communicateData()
         transactions[SIZE * offset + 1] = cit->second.first;
         transactions[SIZE * offset + 2] = cit->second.second;
     }
-    SAMRAI_MPI::sumReduction(&transactions[0], SIZE * num_transactions);
+    IBTK_MPI::sumReduction(&transactions[0], SIZE * num_transactions);
 
     offset = 0;
     for (int k = 0; k < size; ++k)

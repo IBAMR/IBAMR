@@ -29,6 +29,7 @@
 
 // Config files
 #include "ibtk/IBTK_Init.h"
+#include "ibtk/IBTK_MPI.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -313,7 +314,7 @@ main(int argc, char* argv[])
 
         // Open streams to save volume of structure.
         ofstream volume_stream;
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             volume_stream.open("volume.curve", ios_base::out | ios_base::trunc);
         }
@@ -366,7 +367,7 @@ main(int argc, char* argv[])
         }
 
         // Close the logging streams.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             volume_stream.close();
         }

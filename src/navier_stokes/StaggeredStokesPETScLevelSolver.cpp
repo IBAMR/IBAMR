@@ -55,6 +55,7 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/PETScLevelSolver.h"
 #include "ibtk/PoissonUtilities.h"
 #include "petscmat.h"
@@ -179,7 +180,7 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
 
     // Setup PETSc objects.
     int ierr;
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x);
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
@@ -209,7 +210,7 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
                     d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
                 local_cf_bdry_box_size += type_1_cf_bdry.size();
             }
-            level_covers_entire_domain = SAMRAI_MPI::sumReduction(local_cf_bdry_box_size) == 0;
+            level_covers_entire_domain = IBTK_MPI::sumReduction(local_cf_bdry_box_size) == 0;
         }
 
         if (level_covers_entire_domain)

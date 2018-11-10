@@ -41,7 +41,6 @@
 #include "CellData.h"
 #include "CellVariable.h"
 #include "IntVector.h"
-#include "ibtk/NormOps.h"
 #include "Patch.h"
 #include "PatchCellDataNormOpsReal.h"
 #include "PatchData.h"
@@ -51,6 +50,8 @@
 #include "SAMRAIVectorReal.h"
 #include "SideData.h"
 #include "SideVariable.h"
+#include "ibtk/IBTK_MPI.h"
+#include "ibtk/NormOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
@@ -101,9 +102,9 @@ NormOps::L1Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, const
     const double L1_norm_local = L1Norm_local(samrai_vector);
     if (local_only) return L1_norm_local;
 
-    const int nprocs = SAMRAI_MPI::getNodes();
+    const int nprocs = IBTK_MPI::getNodes();
     std::vector<double> L1_norm_proc(nprocs, 0.0);
-    SAMRAI_MPI::allGather(L1_norm_local, &L1_norm_proc[0]);
+    IBTK_MPI::allGather(L1_norm_local, &L1_norm_proc[0]);
     const double ret_val = accurate_sum(L1_norm_proc);
     return ret_val;
 } // L1Norm
@@ -114,9 +115,9 @@ NormOps::L2Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, const
     const double L2_norm_local = L2Norm_local(samrai_vector);
     if (local_only) return L2_norm_local;
 
-    const int nprocs = SAMRAI_MPI::getNodes();
+    const int nprocs = IBTK_MPI::getNodes();
     std::vector<double> L2_norm_proc(nprocs, 0.0);
-    SAMRAI_MPI::allGather(L2_norm_local, &L2_norm_proc[0]);
+    IBTK_MPI::allGather(L2_norm_local, &L2_norm_proc[0]);
     const double ret_val = std::sqrt(accurate_sum_of_squares(L2_norm_proc));
     return ret_val;
 } // L2Norm

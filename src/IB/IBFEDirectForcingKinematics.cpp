@@ -36,6 +36,7 @@
 #include "ibamr/IBFEMethod.h"
 #include "ibamr/namespaces.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "libmesh/equation_systems.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -248,7 +249,7 @@ IBFEDirectForcingKinematics::forwardEulerStep(double current_time,
     const unsigned int X_sys_num = X_system.number();
 
     MeshBase& mesh = equation_systems->get_mesh();
-    const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
+    const unsigned int total_local_nodes = mesh.n_nodes_on_proc(IBTK_MPI::getRank());
     std::vector<std::vector<numeric_index_type> > nodal_X_indices(NDIM);
     std::vector<std::vector<double> > nodal_X0_values(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -332,7 +333,7 @@ IBFEDirectForcingKinematics::midpointStep(double current_time,
     const unsigned int X_sys_num = X_system.number();
 
     MeshBase& mesh = equation_systems->get_mesh();
-    const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
+    const unsigned int total_local_nodes = mesh.n_nodes_on_proc(IBTK_MPI::getRank());
     std::vector<std::vector<numeric_index_type> > nodal_X_indices(NDIM);
     std::vector<std::vector<double> > nodal_X0_values(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -574,8 +575,8 @@ IBFEDirectForcingKinematics::computeCOMOfStructure(Eigen::Vector3d& X0)
             vol_part += JxW[qp];
         }
     }
-    SAMRAI_MPI::sumReduction(&X0[0], NDIM);
-    vol_part = SAMRAI_MPI::sumReduction(vol_part);
+    IBTK_MPI::sumReduction(&X0[0], NDIM);
+    vol_part = IBTK_MPI::sumReduction(vol_part);
     X0 /= vol_part;
 
     VecRestoreArray(X_local_ghost_vec, &X_local_ghost_soln);
@@ -655,7 +656,7 @@ IBFEDirectForcingKinematics::computeMOIOfStructure(Eigen::Matrix3d& I, const Eig
 #endif
         }
     }
-    SAMRAI_MPI::sumReduction(&I(0, 0), 9);
+    IBTK_MPI::sumReduction(&I(0, 0), 9);
 
     // Fill-in the symmetric part of inertia tensor.
     I(1, 0) = I(0, 1);
@@ -684,7 +685,7 @@ IBFEDirectForcingKinematics::computeImposedLagrangianForceDensity(PetscVector<do
     const unsigned int U_sys_num = U_system.number();
 
     MeshBase& mesh = equation_systems->get_mesh();
-    const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
+    const unsigned int total_local_nodes = mesh.n_nodes_on_proc(IBTK_MPI::getRank());
     std::vector<std::vector<numeric_index_type> > nodal_indices(NDIM);
     std::vector<std::vector<double> > nodal_X_values(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -842,9 +843,9 @@ IBFEDirectForcingKinematics::computeMixedLagrangianForceDensity(PetscVector<doub
 #endif
         }
     }
-    SAMRAI_MPI::sumReduction(&F[0], 3);
-    SAMRAI_MPI::sumReduction(&L[0], 3);
-    vol_mesh = SAMRAI_MPI::sumReduction(vol_mesh);
+    IBTK_MPI::sumReduction(&F[0], 3);
+    IBTK_MPI::sumReduction(&L[0], 3);
+    vol_mesh = IBTK_MPI::sumReduction(vol_mesh);
 
     ierr = VecRestoreArray(X_local_ghost_vec, &X_local_ghost_soln);
     IBTK_CHKERRQ(ierr);

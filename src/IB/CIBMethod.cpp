@@ -37,8 +37,9 @@
 #include "ibamr/MobilityFunctions.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h"
-#include "ibtk/ibtk_utilities.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_utilities.h"
 
 namespace IBAMR
 {
@@ -261,7 +262,7 @@ CIBMethod::preprocessIntegrateData(double current_time, double new_time, int num
         }
 
         // Set data for free bodies.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             if (num_free_dofs)
             {
@@ -300,7 +301,7 @@ CIBMethod::preprocessIntegrateData(double current_time, double new_time, int num
 
     // Create PETSc Vecs for free DOFs.
     const int n = free_dofs_counter;
-    const int N = SAMRAI_MPI::sumReduction(free_dofs_counter);
+    const int N = IBTK_MPI::sumReduction(free_dofs_counter);
     VecCreateMPI(PETSC_COMM_WORLD, n, N, &d_U);
     VecCreateMPI(PETSC_COMM_WORLD, n, N, &d_F);
 
@@ -346,7 +347,7 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
         d_l_data_manager->scatterPETScToLagrangian(lambda_petsc_vec_parallel, lambda_lag_vec_parallel, finest_ln);
         d_l_data_manager->scatterToZero(lambda_lag_vec_parallel, lambda_lag_vec_seq);
 
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             const PetscScalar* L;
             VecGetArrayRead(lambda_lag_vec_seq, &L);
@@ -866,7 +867,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
     d_center_of_mass_half = d_center_of_mass_new;
     d_quaternion_half = d_quaternion_new;
 
-    flag_regrid = SAMRAI_MPI::sumReduction(flag_regrid);
+    flag_regrid = IBTK_MPI::sumReduction(flag_regrid);
     if (flag_regrid)
     {
         d_time_integrator_needs_regrid = true;
@@ -1004,7 +1005,7 @@ CIBMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double scale
             F[d] += L_array[k * NDIM + d];
         }
     }
-    SAMRAI_MPI::sumReduction(F, NDIM);
+    IBTK_MPI::sumReduction(F, NDIM);
 
     // Subtract the mean from Eulerian body force
     const int coarsest_ln = 0;
@@ -1205,7 +1206,7 @@ CIBMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rigid
         F[5] += P[1] * R_dr[0] - P[0] * R_dr[1];
 #endif
     }
-    SAMRAI_MPI::sumReduction(&F[0], s_max_free_dofs);
+    IBTK_MPI::sumReduction(&F[0], s_max_free_dofs);
     p_data.restoreArrays();
     d_l_data_manager->getLData("X0_unshifted", struct_ln)->restoreArrays();
 
@@ -1246,7 +1247,7 @@ CIBMethod::copyVecToArray(Vec b,
 
     // Wrap the raw data in a PETSc Vec
     PetscInt size = total_nodes * data_depth;
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     PetscInt array_local_size = 0;
     if (rank == array_rank) array_local_size = size;
     Vec array_vec;
@@ -1319,7 +1320,7 @@ CIBMethod::copyArrayToVec(Vec b,
 
     // Wrap the array in a PETSc Vec
     PetscInt size = total_nodes * data_depth;
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     PetscInt array_local_size = 0;
     if (rank == array_rank) array_local_size = size;
     Vec array_vec;
@@ -1375,7 +1376,7 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
     const double dt = d_new_time - d_current_time;
     const int struct_ln = getStructuresLevelNumber();
     const char* ib_kernel = d_l_data_manager->getDefaultInterpKernelFunction().c_str();
-    const int rank = SAMRAI_MPI::getRank();
+    const int rank = IBTK_MPI::getRank();
 
     // Get the size of matrix.
     unsigned num_nodes = 0;
@@ -1473,7 +1474,7 @@ CIBMethod::constructGeometricMatrix(const std::string& /*mat_name*/,
                                     const int managing_rank)
 {
     const int struct_ln = getStructuresLevelNumber();
-    const int rank = SAMRAI_MPI::getRank();
+    const int rank = IBTK_MPI::getRank();
 
     // Get the size of matrix
     unsigned num_nodes = 0;
@@ -1578,7 +1579,7 @@ CIBMethod::rotateArray(double* array,
     }
 #endif
 
-    if (SAMRAI_MPI::getRank() == managing_proc)
+    if (IBTK_MPI::getRank() == managing_proc)
     {
         const bool position_system = (depth % NDIM == 0);
         const bool force_system = (depth % s_max_free_dofs == 0);
@@ -1655,7 +1656,7 @@ CIBMethod::getFromInput(Pointer<Database> input_db)
         std::string dir_name = input_db->getStringWithDefault("lambda_dirname", "./lambda");
         if (!from_restart) Utilities::recursiveMkdir(dir_name);
 
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             std::string filename = dir_name + "/" + "lambda";
             if (from_restart)
@@ -1769,7 +1770,7 @@ CIBMethod::computeCOMOfStructures(IBTK::EigenAlignedVector<Eigen::Vector3d>& cen
 
         for (unsigned struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
-            SAMRAI_MPI::sumReduction(&center_of_mass[struct_no][0], NDIM);
+            IBTK_MPI::sumReduction(&center_of_mass[struct_no][0], NDIM);
             const int total_nodes = getNumberOfNodes(struct_no);
             center_of_mass[struct_no] /= total_nodes;
         }

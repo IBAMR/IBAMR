@@ -68,6 +68,7 @@
 #include "ibamr/IBStandardSourceGen.h"
 #include "ibamr/IBTargetPointForceSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LData.h"
 #include "ibtk/LIndexSetData.h"
@@ -221,8 +222,8 @@ void
 IBStandardInitializer::readVertexFiles(const std::string& extension)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -235,7 +236,7 @@ IBStandardInitializer::readVertexFiles(const std::string& extension)
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) IBTK_MPI::recv(&flag, sz, rank - 1, false, j);
 
             if (j == 0)
             {
@@ -254,7 +255,7 @@ IBStandardInitializer::readVertexFiles(const std::string& extension)
             {
                 plog << d_object_name << ":  "
                      << "processing vertex data from ASCII input file named " << vertex_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
 
                 // The first entry in the file is the number of vertices.
                 if (!std::getline(file_stream, line_string))
@@ -322,7 +323,7 @@ IBStandardInitializer::readVertexFiles(const std::string& extension)
                 plog << d_object_name << ":  "
                      << "read " << d_num_vertex[ln][j] << " vertices from ASCII input file named " << vertex_filename
                      << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
             }
             else
             {
@@ -330,12 +331,12 @@ IBStandardInitializer::readVertexFiles(const std::string& extension)
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) IBTK_MPI::send(&flag, sz, rank + 1, false, j);
         }
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI_MPI::barrier();
+    if (d_use_file_batons) IBTK_MPI::barrier();
     return;
 } // readVertexFiles
 
@@ -343,8 +344,8 @@ void
 IBStandardInitializer::readSpringFiles(const std::string& extension, const bool input_uses_global_idxs)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -364,7 +365,7 @@ IBStandardInitializer::readSpringFiles(const std::string& extension, const bool 
                                           d_num_vertex[ln][j]);
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) IBTK_MPI::recv(&flag, sz, rank - 1, false, j);
 
             // Ensure that the file exists.
             const std::string spring_filename = d_base_filename[ln][j] + extension;
@@ -374,7 +375,7 @@ IBStandardInitializer::readSpringFiles(const std::string& extension, const bool 
             {
                 plog << d_object_name << ":  "
                      << "processing spring data from ASCII input file named " << spring_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of edges in the input
                 // file.
@@ -584,16 +585,16 @@ IBStandardInitializer::readSpringFiles(const std::string& extension, const bool 
 
                 plog << d_object_name << ":  "
                      << "read " << num_edges << " edges from ASCII input file named " << spring_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) IBTK_MPI::send(&flag, sz, rank + 1, false, j);
         }
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI_MPI::barrier();
+    if (d_use_file_batons) IBTK_MPI::barrier();
     return;
 } // readSpringFiles
 
@@ -601,8 +602,8 @@ void
 IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool input_uses_global_idxs)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -622,7 +623,7 @@ IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool
                                           d_num_vertex[ln][j]);
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) IBTK_MPI::recv(&flag, sz, rank - 1, false, j);
 
             // Ensure that the file exists.
             const std::string xspring_filename = d_base_filename[ln][j] + extension;
@@ -632,7 +633,7 @@ IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool
             {
                 plog << d_object_name << ":  "
                      << "processing crosslink spring data from ASCII input file named " << xspring_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of edges in the input
                 // file.
@@ -843,16 +844,16 @@ IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool
 
                 plog << d_object_name << ":  "
                      << "read " << num_edges << " edges from ASCII input file named " << xspring_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) IBTK_MPI::send(&flag, sz, rank + 1, false, j);
         }
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI_MPI::barrier();
+    if (d_use_file_batons) IBTK_MPI::barrier();
     return;
 } // readXSpringFiles
 
@@ -860,8 +861,8 @@ void
 IBStandardInitializer::readBeamFiles(const std::string& extension, const bool input_uses_global_idxs)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -880,7 +881,7 @@ IBStandardInitializer::readBeamFiles(const std::string& extension, const bool in
                                           d_num_vertex[ln][j]);
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) IBTK_MPI::recv(&flag, sz, rank - 1, false, j);
 
             const std::string beam_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
@@ -889,7 +890,7 @@ IBStandardInitializer::readBeamFiles(const std::string& extension, const bool in
             {
                 plog << d_object_name << ":  "
                      << "processing beam data from ASCII input file named " << beam_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of beams in
                 // the input file.
@@ -1110,16 +1111,16 @@ IBStandardInitializer::readBeamFiles(const std::string& extension, const bool in
 
                 plog << d_object_name << ":  "
                      << "read " << num_beams << " beams from ASCII input file named " << beam_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) IBTK_MPI::send(&flag, sz, rank + 1, false, j);
         }
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI_MPI::barrier();
+    if (d_use_file_batons) IBTK_MPI::barrier();
     return;
 } // readBeamFiles
 
@@ -1127,8 +1128,8 @@ void
 IBStandardInitializer::readRodFiles(const std::string& extension, const bool input_uses_global_idxs)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -1146,7 +1147,7 @@ IBStandardInitializer::readRodFiles(const std::string& extension, const bool inp
                                           d_num_vertex[ln][j]);
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) IBTK_MPI::recv(&flag, sz, rank - 1, false, j);
 
             const std::string rod_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
@@ -1155,7 +1156,7 @@ IBStandardInitializer::readRodFiles(const std::string& extension, const bool inp
             {
                 plog << d_object_name << ":  "
                      << "processing rod data from ASCII input file named " << rod_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of rods in
                 // the input file.
@@ -1480,16 +1481,16 @@ IBStandardInitializer::readRodFiles(const std::string& extension, const bool inp
 
                 plog << d_object_name << ":  "
                      << "read " << num_rods << " rods from ASCII input file named " << rod_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) IBTK_MPI::send(&flag, sz, rank + 1, false, j);
         }
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI_MPI::barrier();
+    if (d_use_file_batons) IBTK_MPI::barrier();
     return;
 } // readRodFiles
 
@@ -1497,8 +1498,8 @@ void
 IBStandardInitializer::readTargetPointFiles(const std::string& extension)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -1515,7 +1516,7 @@ IBStandardInitializer::readTargetPointFiles(const std::string& extension)
             const int max_idx = d_num_vertex[ln][j];
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) IBTK_MPI::recv(&flag, sz, rank - 1, false, j);
 
             std::set<int> target_point_idxs;
             TargetSpec default_spec;
@@ -1531,7 +1532,7 @@ IBStandardInitializer::readTargetPointFiles(const std::string& extension)
                 plog << d_object_name << ":  "
                      << "processing target point data from ASCII input file named " << target_point_stiffness_filename
                      << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of target
                 // point specifications in the input file.
@@ -1656,7 +1657,7 @@ IBStandardInitializer::readTargetPointFiles(const std::string& extension)
                 plog << d_object_name << ":  "
                      << "read " << num_target_points << " target points from ASCII input file named "
                      << target_point_stiffness_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
             }
 
             // Modify the target point stiffness constants according to whether
@@ -1689,12 +1690,12 @@ IBStandardInitializer::readTargetPointFiles(const std::string& extension)
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) IBTK_MPI::send(&flag, sz, rank + 1, false, j);
         }
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI_MPI::barrier();
+    if (d_use_file_batons) IBTK_MPI::barrier();
     return;
 } // readTargetPointFiles
 
@@ -1702,8 +1703,8 @@ void
 IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -1718,7 +1719,7 @@ IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
             const int max_idx = d_num_vertex[ln][j];
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) IBTK_MPI::recv(&flag, sz, rank - 1, false, j);
 
             std::set<int> anchor_point_idxs;
             AnchorSpec default_spec;
@@ -1733,7 +1734,7 @@ IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
                 plog << d_object_name << ":  "
                      << "processing anchor point data from ASCII input file named " << anchor_point_filename
                      << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of anchor
                 // points in the input file.
@@ -1821,11 +1822,11 @@ IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
                 plog << d_object_name << ":  "
                      << "read " << num_anchor_pts << " anchor points from ASCII input file named "
                      << anchor_point_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) IBTK_MPI::send(&flag, sz, rank + 1, false, j);
         }
     }
     return;
@@ -1835,8 +1836,8 @@ void
 IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -1851,7 +1852,7 @@ IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
             const int max_idx = d_num_vertex[ln][j];
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) IBTK_MPI::recv(&flag, sz, rank - 1, false, j);
 
             std::set<int> mass_point_idxs;
             BdryMassSpec default_spec;
@@ -1866,7 +1867,7 @@ IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
             {
                 plog << d_object_name << ":  "
                      << "processing boundary mass data from ASCII input file named " << bdry_mass_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of massive IB
                 // points in the input file.
@@ -1978,7 +1979,7 @@ IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
                 plog << d_object_name << ":  "
                      << "read " << num_bdry_mass_pts << " boundary mass points from ASCII input file named "
                      << bdry_mass_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
             }
 
             // Modify the boundary masses and boundary mass stiffness constants
@@ -2011,7 +2012,7 @@ IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) IBTK_MPI::send(&flag, sz, rank + 1, false, j);
         }
     }
     return;
@@ -2021,8 +2022,8 @@ void
 IBStandardInitializer::readDirectorFiles(const std::string& extension)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -2033,7 +2034,7 @@ IBStandardInitializer::readDirectorFiles(const std::string& extension)
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) IBTK_MPI::recv(&flag, sz, rank - 1, false, j);
 
             d_directors[ln][j].resize(d_num_vertex[ln][j], std::vector<double>(3 * 3, 0.0));
 
@@ -2044,7 +2045,7 @@ IBStandardInitializer::readDirectorFiles(const std::string& extension)
             {
                 plog << d_object_name << ":  "
                      << "processing director data from ASCII input file named " << directors_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of sets of
                 // directors in the input file.
@@ -2132,11 +2133,11 @@ IBStandardInitializer::readDirectorFiles(const std::string& extension)
                 plog << d_object_name << ":  "
                      << "read " << num_directors_pts << " director triads from ASCII input file named "
                      << directors_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) IBTK_MPI::send(&flag, sz, rank + 1, false, j);
         }
     }
     return;
@@ -2146,8 +2147,8 @@ void
 IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -2164,7 +2165,7 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
             const int max_idx = d_num_vertex[ln][j];
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) IBTK_MPI::recv(&flag, sz, rank - 1, false, j);
 
             const std::string inst_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
@@ -2173,7 +2174,7 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
             {
                 plog << d_object_name << ":  "
                      << "processing instrumentation data from ASCII input file named " << inst_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of
                 // instruments in the input file.
@@ -2420,11 +2421,11 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
                 plog << d_object_name << ":  "
                      << "read " << num_inst_pts << " instrumentation points from ASCII input file named "
                      << inst_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) IBTK_MPI::send(&flag, sz, rank + 1, false, j);
         }
     }
     IBInstrumentationSpec::setInstrumentNames(instrument_names);
@@ -2435,8 +2436,8 @@ void
 IBStandardInitializer::readSourceFiles(const std::string& extension)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -2454,7 +2455,7 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
             const int max_idx = d_num_vertex[ln][j];
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) IBTK_MPI::recv(&flag, sz, rank - 1, false, j);
 
             const std::string source_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
@@ -2463,7 +2464,7 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
             {
                 plog << d_object_name << ":  "
                      << "processing source data from ASCII input file named " << source_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of sources in
                 // the input file.
@@ -2651,11 +2652,11 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
                 plog << d_object_name << ":  "
                      << "read " << num_source_pts << " source points from ASCII input file named " << source_filename
                      << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) IBTK_MPI::send(&flag, sz, rank + 1, false, j);
         }
         IBStandardSourceGen::setNumSources(ln, source_offset);
         IBStandardSourceGen::setSourceNames(ln, source_names);

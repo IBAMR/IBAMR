@@ -58,6 +58,7 @@
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/PETScMatUtilities.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
@@ -170,7 +171,7 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     }
 
     // Determine the index ranges.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int n_local = num_dofs_per_proc[mpi_rank];
     const int i_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int i_upper = i_lower + n_local;
@@ -320,7 +321,7 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
     }
 
     // Determine the index ranges.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int n_local = num_dofs_per_proc[mpi_rank];
     const int i_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int i_upper = i_lower + n_local;
@@ -458,7 +459,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
     }
 
     // Determine the index ranges.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int n_local = num_dofs_per_proc[mpi_rank];
     const int proc_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int proc_upper = proc_lower + n_local;
@@ -831,7 +832,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     ierr = VecGetOwnershipRange(X_vec, &i_lower, &i_upper);
     IBTK_CHKERRQ(ierr);
 
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int n_local = num_dofs_per_proc[mpi_rank];
     const int j_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int j_upper = j_lower + n_local;
@@ -1274,7 +1275,7 @@ PETScMatUtilities::constructConservativeProlongationOp_cell(Mat& mat,
     const IntVector<NDIM> fine_coarse_ratio = fine_ratio / coarse_ratio;
 
     // Determine the matrix dimensions and index ranges.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int m_local = num_fine_dofs_per_proc[mpi_rank];
     const int n_local = num_coarse_dofs_per_proc[mpi_rank];
     const int i_fine_lower =
@@ -1428,7 +1429,7 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
     const IntVector<NDIM> fine_coarse_ratio = fine_ratio / coarse_ratio;
 
     // Determine the matrix dimensions and index ranges.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int m_local = num_fine_dofs_per_proc[mpi_rank];
     const int n_local = num_coarse_dofs_per_proc[mpi_rank];
     const int i_fine_lower =
@@ -1711,7 +1712,7 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
     const IntVector<NDIM> fine_coarse_ratio = fine_ratio / coarse_ratio;
 
     // Determine the matrix dimensions and index ranges.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int m_local = num_fine_dofs_per_proc[mpi_rank];
     const int n_local = num_coarse_dofs_per_proc[mpi_rank];
     const int i_fine_lower =

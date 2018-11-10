@@ -39,6 +39,7 @@
 
 #include "IntVector.h"
 #include "ibtk/FixedSizedStream.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/ParallelMap.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
@@ -84,11 +85,11 @@ ParallelMap::removeItem(const int key)
 void
 ParallelMap::communicateData()
 {
-    const int size = SAMRAI_MPI::getNodes();
-    const int rank = SAMRAI_MPI::getRank();
+    const int size = IBTK_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
 
     // Add items to the map.
-    if (SAMRAI_MPI::maxReduction(static_cast<int>(d_pending_additions.size())) > 0)
+    if (IBTK_MPI::maxReduction(static_cast<int>(d_pending_additions.size())) > 0)
     {
         StreamableManager* streamable_manager = StreamableManager::getManager();
 
@@ -96,7 +97,7 @@ ParallelMap::communicateData()
         // process.
         std::vector<int> num_additions(size, 0);
         num_additions[rank] = static_cast<int>(d_pending_additions.size());
-        SAMRAI_MPI::sumReduction(&num_additions[0], size);
+        IBTK_MPI::sumReduction(&num_additions[0], size);
 
         // Get the local values to send and determine the amount of data to be
         // broadcast by each process.
@@ -110,7 +111,7 @@ ParallelMap::communicateData()
         std::vector<int> data_sz(size, 0);
         data_sz[rank] = static_cast<int>(tbox::AbstractStream::sizeofInt() * keys_to_send.size() +
                                          streamable_manager->getDataStreamSize(data_items_to_send));
-        SAMRAI_MPI::sumReduction(&data_sz[0], size);
+        IBTK_MPI::sumReduction(&data_sz[0], size);
 
         // Broadcast data from each process.
         for (int sending_proc = 0; sending_proc < size; ++sending_proc)
@@ -128,7 +129,7 @@ ParallelMap::communicateData()
                 TBOX_ASSERT(static_cast<int>(d_pending_additions.size()) == num_keys);
                 TBOX_ASSERT(data_size == data_sz[sending_proc]);
 #endif
-                SAMRAI_MPI::bcast(static_cast<char*>(stream.getBufferStart()), data_size, sending_proc);
+                IBTK_MPI::bcast(static_cast<char*>(stream.getBufferStart()), data_size, sending_proc);
                 for (int k = 0; k < num_keys; ++k)
                 {
                     d_map[keys_to_send[k]] = data_items_to_send[k];
@@ -139,7 +140,7 @@ ParallelMap::communicateData()
                 // Receive and unpack data broadcast from process sending_proc.
                 std::vector<char> buffer(data_sz[sending_proc]);
                 int data_size = data_sz[sending_proc];
-                SAMRAI_MPI::bcast(&buffer[0], data_size, sending_proc);
+                IBTK_MPI::bcast(&buffer[0], data_size, sending_proc);
 #if !defined(NDEBUG)
                 TBOX_ASSERT(data_size == data_sz[sending_proc]);
 #endif
@@ -164,13 +165,13 @@ ParallelMap::communicateData()
     }
 
     // Remove items from the map.
-    if (SAMRAI_MPI::maxReduction(static_cast<int>(d_pending_removals.size())) > 0)
+    if (IBTK_MPI::maxReduction(static_cast<int>(d_pending_removals.size())) > 0)
     {
         // Determine how many keys have been registered for removal on each
         // process.
         std::vector<int> num_removals(size, 0);
         num_removals[rank] = static_cast<int>(d_pending_removals.size());
-        SAMRAI_MPI::sumReduction(&num_removals[0], size);
+        IBTK_MPI::sumReduction(&num_removals[0], size);
 
         // Broadcast data from each process.
         for (int sending_proc = 0; sending_proc < size; ++sending_proc)
@@ -183,7 +184,7 @@ ParallelMap::communicateData()
 #if !defined(NDEBUG)
                 TBOX_ASSERT(static_cast<int>(d_pending_removals.size()) == num_keys);
 #endif
-                SAMRAI_MPI::bcast(&d_pending_removals[0], num_keys, sending_proc);
+                IBTK_MPI::bcast(&d_pending_removals[0], num_keys, sending_proc);
                 for (int k = 0; k < num_keys; ++k)
                 {
                     d_map.erase(d_pending_removals[k]);
@@ -193,7 +194,7 @@ ParallelMap::communicateData()
             {
                 // Receive and unpack data broadcast from process sending_proc.
                 std::vector<int> keys_received(num_removals[sending_proc]);
-                SAMRAI_MPI::bcast(&keys_received[0], num_keys, sending_proc);
+                IBTK_MPI::bcast(&keys_received[0], num_keys, sending_proc);
                 for (int k = 0; k < num_keys; ++k)
                 {
                     d_map.erase(keys_received[k]);

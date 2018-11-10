@@ -60,6 +60,7 @@
 #include "ibtk/CartGridFunctionSet.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/PoissonSolver.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
@@ -479,7 +480,7 @@ INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel<NDIM> > level) cons
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         stable_dt = std::min(stable_dt, getStableTimestep(patch));
     }
-    stable_dt = SAMRAI_MPI::minReduction(stable_dt);
+    stable_dt = IBTK_MPI::minReduction(stable_dt);
     return stable_dt;
 } // getStableTimestep
 

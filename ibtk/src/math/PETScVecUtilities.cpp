@@ -61,11 +61,12 @@
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
+#include "ibtk/IndexUtilities.h"
 #include "ibtk/PETScVecUtilities.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
 #include "ibtk/compiler_hints.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "ibtk/IndexUtilities.h"
 #include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
@@ -473,11 +474,11 @@ PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs
 
     // Determine the number of DOFs local to each MPI process and compute the
     // local DOF index offset.
-    const int mpi_size = SAMRAI_MPI::getNodes();
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_size = IBTK_MPI::getNodes();
+    const int mpi_rank = IBTK_MPI::getRank();
     num_dofs_per_proc.resize(mpi_size);
     std::fill(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
-    SAMRAI_MPI::allGather(local_dof_count, &num_dofs_per_proc[0]);
+    IBTK_MPI::allGather(local_dof_count, &num_dofs_per_proc[0]);
     const int local_dof_offset = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
 
     // Assign local DOF indices.
@@ -585,11 +586,11 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
 
     // Determine the number of DOFs local to each MPI process and compute the
     // local DOF index offset.
-    const int mpi_size = SAMRAI_MPI::getNodes();
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_size = IBTK_MPI::getNodes();
+    const int mpi_rank = IBTK_MPI::getRank();
     num_dofs_per_proc.resize(mpi_size);
     std::fill(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
-    SAMRAI_MPI::allGather(local_dof_count, &num_dofs_per_proc[0]);
+    IBTK_MPI::allGather(local_dof_count, &num_dofs_per_proc[0]);
     const int local_dof_offset = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
 
     // Assign local DOF indices.
@@ -673,7 +674,7 @@ PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
     // Note that num of local dofs can be greater than the local
     // mapping size, i.e., it is possible to map a sub-component of the
     // vector.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int n_local = num_dofs_per_proc[mpi_rank];
     const int i_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int i_upper = i_lower + n_local;
@@ -743,7 +744,7 @@ PETScVecUtilities::constructPatchLevelAO_side(AO& ao,
     }
 
     // Compute PETSc to SAMRAI index mapping
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int n_local = num_dofs_per_proc[mpi_rank];
     const int i_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int i_upper = i_lower + n_local;

@@ -30,6 +30,7 @@
 
 // Config files
 #include "ibtk/IBTK_Init.h"
+#include "ibtk/IBTK_MPI.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -343,7 +344,7 @@ run_example(int argc, char* argv[], double& end_time, double& end_u)
                         postproc_data_dump_dirname);
         }
 
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             U_stream.open("./Lambda/U.txt", std::ios_base::out | ios_base::trunc);
             U_stream.precision(10);
@@ -431,11 +432,11 @@ run_example(int argc, char* argv[], double& end_time, double& end_u)
             }
         }
 
-         if (SAMRAI_MPI::getRank() == 0)
-         {
-             U_stream.close();
-         }
-          
+        if (IBTK_MPI::getRank() == 0)
+        {
+            U_stream.close();
+        }
+
         // Cleanup boundary condition specification objects (when necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 

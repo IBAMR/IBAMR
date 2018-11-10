@@ -42,6 +42,7 @@
 #include "ibamr/IBSourceSpec.h"
 #include "ibamr/IBStandardSourceGen.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LMesh.h"
@@ -178,8 +179,8 @@ IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*
         const int source_idx = spec->getSourceIndex();
         ++d_num_perimeter_nodes[level_number][source_idx];
     }
-    SAMRAI_MPI::sumReduction(&d_num_perimeter_nodes[level_number][0],
-                             static_cast<int>(d_num_perimeter_nodes[level_number].size()));
+    IBTK_MPI::sumReduction(&d_num_perimeter_nodes[level_number][0],
+                           static_cast<int>(d_num_perimeter_nodes[level_number].size()));
     return;
 } // initializeLevelData
 
@@ -241,7 +242,7 @@ IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
             X_src_flattened[NDIM * k + d] = X_src[k][d];
         }
     }
-    SAMRAI_MPI::sumReduction(&X_src_flattened[0], static_cast<int>(X_src_flattened.size()));
+    IBTK_MPI::sumReduction(&X_src_flattened[0], static_cast<int>(X_src_flattened.size()));
     for (unsigned int k = 0; k < X_src.size(); ++k)
     {
         for (unsigned int d = 0; d < NDIM; ++d)

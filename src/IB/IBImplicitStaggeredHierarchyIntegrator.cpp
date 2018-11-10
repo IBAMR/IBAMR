@@ -65,6 +65,7 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
@@ -342,7 +343,7 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
             cfl_max = std::max(cfl_max, u_max * dt / dx_min);
         }
     }
-    cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
+    cfl_max = IBTK_MPI::maxReduction(cfl_max);
     d_regrid_cfl_estimate += cfl_max;
     if (d_enable_logging)
         plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";

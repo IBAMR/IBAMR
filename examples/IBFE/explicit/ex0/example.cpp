@@ -29,6 +29,7 @@
 
 // Config files
 #include "ibtk/IBTK_Init.h"
+#include "ibtk/IBTK_MPI.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -405,7 +406,7 @@ bool run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<
 
         // Open streams to save volume of structure.
         ofstream volume_stream;
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             volume_stream.open("volume.curve", ios_base::out | ios_base::trunc);
         }
@@ -581,8 +582,8 @@ bool run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<
                     J_integral += abs(FF.det()) * JxW[qp];
                 }
             }
-            J_integral = SAMRAI_MPI::sumReduction(J_integral);
-            if (SAMRAI_MPI::getRank() == 0)
+            J_integral = IBTK_MPI::sumReduction(J_integral);
+            if (IBTK_MPI::getRank() == 0)
             {
                 volume_stream.precision(12);
                 volume_stream.setf(ios::fixed, ios::floatfield);
@@ -591,7 +592,7 @@ bool run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<
         }
 
         // Close the logging streams.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             volume_stream.close();
         }
@@ -620,7 +621,7 @@ output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     // Write Cartesian data.
     string file_name = data_dump_dirname + "/" + "hier_data.";
     char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
+    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, IBTK_MPI::getRank());
     file_name += temp_buf;
     Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
     hier_db->create(file_name);

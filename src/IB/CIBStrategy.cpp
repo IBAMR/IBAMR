@@ -35,6 +35,7 @@
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/SAMRAI_MPI.h"
@@ -579,7 +580,7 @@ CIBStrategy::copyFreeDOFsVecToArray(Vec b, double* array, const std::vector<unsi
 #endif
 
     // Wrap the raw data in a PETSc Vec.
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     PetscInt array_size = num_structs * s_max_free_dofs;
     PetscInt array_local_size = 0;
     if (rank == array_rank) array_local_size = array_size;
@@ -662,7 +663,7 @@ CIBStrategy::copyFreeDOFsArrayToVec(Vec b, double* array, const std::vector<unsi
 #endif
 
     // Wrap the raw data in a PETSc Vec.
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     PetscInt array_size = num_structs * s_max_free_dofs;
     PetscInt array_local_size = 0;
     if (rank == array_rank) array_local_size = array_size;
@@ -713,7 +714,7 @@ CIBStrategy::vecToRDV(Vec U, RigidDOFVector& Ur)
         Ur.setZero();
     }
 
-    SAMRAI_MPI::sumReduction(&Ur[0], s);
+    IBTK_MPI::sumReduction(&Ur[0], s);
     VecRestoreArray(U, &a);
     return;
 } // vecToRDV
@@ -724,7 +725,7 @@ CIBStrategy::rdvToVec(const RigidDOFVector& Ur, Vec& U)
     if (U == nullptr)
     {
         PetscInt n = 0, N = s_max_free_dofs;
-        if (!SAMRAI_MPI::getRank()) n = N;
+        if (!IBTK_MPI::getRank()) n = N;
         VecCreateMPI(PETSC_COMM_WORLD, n, N, &U);
     }
 

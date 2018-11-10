@@ -87,7 +87,7 @@
 #include "boost/math/special_functions/round.hpp"
 #include "boost/multi_array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/ibtk_utilities.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
@@ -951,8 +951,8 @@ LDataManager::computeLagrangianStructureCenterOfMass(const int structure_id, con
     }
     d_lag_mesh_data[level_number][POSN_DATA_NAME]->restoreArrays();
 
-    SAMRAI_MPI::sumReduction(&X_com[0], NDIM);
-    node_counter = SAMRAI_MPI::sumReduction(node_counter);
+    IBTK_MPI::sumReduction(&X_com[0], NDIM);
+    node_counter = IBTK_MPI::sumReduction(node_counter);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         X_com[d] /= static_cast<double>(node_counter);
@@ -990,8 +990,8 @@ LDataManager::computeLagrangianStructureBoundingBox(const int structure_id, cons
     }
     d_lag_mesh_data[level_number][POSN_DATA_NAME]->restoreArrays();
 
-    SAMRAI_MPI::minReduction(&X_lower[0], NDIM);
-    SAMRAI_MPI::maxReduction(&X_upper[0], NDIM);
+    IBTK_MPI::minReduction(&X_lower[0], NDIM);
+    IBTK_MPI::maxReduction(&X_upper[0], NDIM);
     return std::make_pair(X_lower, X_upper);
 } // computeLagrangianStructureBoundingBox
 
@@ -1026,8 +1026,8 @@ LDataManager::reinitLagrangianStructure(const Point& X_center, const int structu
             }
         }
     }
-    SAMRAI_MPI::minReduction(&X_lower[0], NDIM);
-    SAMRAI_MPI::maxReduction(&X_upper[0], NDIM);
+    IBTK_MPI::minReduction(&X_lower[0], NDIM);
+    IBTK_MPI::maxReduction(&X_upper[0], NDIM);
     std::pair<Point, Point> bounding_box = std::make_pair(X_lower, X_upper);
 
     // Compute the displacement.
@@ -1561,7 +1561,7 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
     {
         if (!d_level_contains_lag_data[level_number] || d_displaced_strct_ids[level_number].empty()) continue;
 
-        const int num_procs = SAMRAI_MPI::getNodes();
+        const int num_procs = IBTK_MPI::getNodes();
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         Pointer<BoxTree<NDIM> > box_tree = level->getBoxTree();
         const ProcessorMapping& processor_mapping = level->getProcessorMapping();
@@ -1602,7 +1602,7 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
         {
             for (int dst_proc = 0; dst_proc < num_procs; ++dst_proc)
             {
-                if (src_proc == SAMRAI_MPI::getRank())
+                if (src_proc == IBTK_MPI::getRank())
                 {
                     transactions[src_proc][dst_proc] =
                         new LNodeTransaction(src_proc, dst_proc, src_index_set[dst_proc]);
@@ -1627,7 +1627,7 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
         {
             for (int dst_proc = 0; dst_proc < num_procs; ++dst_proc)
             {
-                if (dst_proc == SAMRAI_MPI::getRank())
+                if (dst_proc == IBTK_MPI::getRank())
                 {
                     Pointer<LNodeTransaction> transaction = transactions[src_proc][dst_proc];
                     const std::vector<LNodeTransactionComponent>& dst_index_set = transaction->getDestinationData();
@@ -2170,7 +2170,7 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hiera
         const unsigned int num_local_nodes = d_lag_init->computeLocalNodeCountOnPatchLevel(
             hierarchy, level_number, init_data_time, can_be_refined, initial_time);
         const auto sum_num_local_nodes =
-            static_cast<unsigned int>(SAMRAI_MPI::sumReduction(static_cast<int>(num_local_nodes)));
+            static_cast<unsigned int>(IBTK_MPI::sumReduction(static_cast<int>(num_local_nodes)));
         if (num_global_nodes != sum_num_local_nodes)
         {
             TBOX_ERROR("LDataManager::initializeLevelData()"
@@ -2315,7 +2315,7 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hiera
             }
         }
         const auto num_initialized_global_nodes =
-            static_cast<unsigned int>(SAMRAI_MPI::sumReduction(static_cast<int>(local_nodes.size())));
+            static_cast<unsigned int>(IBTK_MPI::sumReduction(static_cast<int>(local_nodes.size())));
         if (num_initialized_global_nodes != d_num_nodes[level_number])
         {
             TBOX_ERROR("LDataManager::initializeLevelData()"
@@ -3085,12 +3085,12 @@ LDataManager::computeNodeOffsets(unsigned int& num_nodes, unsigned int& node_off
 {
     IBTK_TIMER_START(t_compute_node_offsets);
 
-    const int mpi_size = SAMRAI_MPI::getNodes();
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_size = IBTK_MPI::getNodes();
+    const int mpi_rank = IBTK_MPI::getRank();
 
     std::vector<int> num_nodes_proc(mpi_size, 0);
 
-    SAMRAI_MPI::allGather(num_local_nodes, &num_nodes_proc[0]);
+    IBTK_MPI::allGather(num_local_nodes, &num_nodes_proc[0]);
 
     node_offset = std::accumulate(num_nodes_proc.begin(), num_nodes_proc.begin() + mpi_rank, 0);
 

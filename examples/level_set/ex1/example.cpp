@@ -46,6 +46,7 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include "ibtk/IBTK_MPI.h"
 #include <LocationIndexRobinBcCoefs.h>
 #include <TimeRefinementIntegrator.h>
 #include <ibamr/AdvectorExplicitPredictorPatchOps.h>
@@ -76,7 +77,6 @@ bool
 run_example(int argc, char* argv[], std::vector<double>& Q_err)
 {
     // Initialize MPI and SAMRAI.
-    SAMRAI_MPI::init(&argc, &argv);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
 
     // Resize Q_err to hold error norms
@@ -315,9 +315,9 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
             }
         }
         // Perform sum reduction
-        num_interface_pts = SAMRAI_MPI::sumReduction(num_interface_pts);
-        E_interface = SAMRAI_MPI::sumReduction(E_interface);
-        E_domain = SAMRAI_MPI::sumReduction(E_domain);
+        num_interface_pts = IBTK_MPI::sumReduction(num_interface_pts);
+        E_interface = IBTK_MPI::sumReduction(E_interface);
+        E_domain = IBTK_MPI::sumReduction(E_domain);
 
         pout << "Error in Q near interface after level set initialization:" << std::endl
              << "L1-norm:  " << std::setprecision(10) << E_interface << std::endl;

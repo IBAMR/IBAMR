@@ -29,6 +29,7 @@
 
 // Config files
 #include "ibtk/IBTK_Init.h"
+#include "ibtk/IBTK_MPI.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -300,7 +301,7 @@ compute_inflow_flux(const Pointer<PatchHierarchy<NDIM> > hierarchy, const int U_
             }
         }
     }
-    SAMRAI_MPI::sumReduction(&Q_in, 1);
+    IBTK_MPI::sumReduction(&Q_in, 1);
     return Q_in;
 }
 
@@ -647,8 +648,8 @@ bool run_example(int argc, char** argv)
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
-            J_dil_min = SAMRAI_MPI::minReduction(J_dil_min);
-            J_dil_max = SAMRAI_MPI::maxReduction(J_dil_max);
+            J_dil_min = IBTK_MPI::minReduction(J_dil_min);
+            J_dil_max = IBTK_MPI::maxReduction(J_dil_max);
 
             pout << "J_min = " << J_dil_min << "\n"
                  << "J_max = " << J_dil_max << "\n";

@@ -29,6 +29,7 @@
 
 // Config files
 #include "ibtk/IBTK_Init.h"
+#include "ibtk/IBTK_MPI.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -255,7 +256,7 @@ run_example(int argc, char* argv[])
 
         // Streams to write-out data.
         std::ofstream C_D_stream, C_L_stream;
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             C_D_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
             C_L_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
@@ -310,7 +311,7 @@ run_example(int argc, char* argv[])
         }
 
         // Close the logging streams.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             C_D_stream.close();
             C_L_stream.close();
@@ -345,8 +346,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
             F[d] += F_arr[k][d];
         }
     }
-    SAMRAI_MPI::sumReduction(F, NDIM);
-    if (SAMRAI_MPI::getRank() == 0)
+    IBTK_MPI::sumReduction(F, NDIM);
+    if (IBTK_MPI::getRank() == 0)
     {
         C_D_stream.precision(12);
         C_D_stream.setf(ios::fixed, ios::floatfield);

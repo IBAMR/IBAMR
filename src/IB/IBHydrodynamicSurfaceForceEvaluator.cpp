@@ -33,7 +33,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <utility>
 
-#include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
 #include "ArrayDataBasicOps.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
@@ -43,12 +42,14 @@
 #include "PatchHierarchy.h"
 #include "SideData.h"
 #include "SideIndex.h"
+#include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/INSStaggeredPressureBcCoef.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/INSVCStaggeredPressureBcCoef.h"
 #include "ibamr/namespaces.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
@@ -160,7 +161,7 @@ IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
 
     // Output data stream
     // Set up the streams for printing drag and torque
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         bool from_restart = RestartManager::getManager()->isFromRestart();
         if (from_restart)
@@ -311,10 +312,10 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForce()
         }
     }
     // Print the hydrodynamic force to file.
-    SAMRAI_MPI::sumReduction(pressure_force.data(), 3);
-    SAMRAI_MPI::sumReduction(viscous_force.data(), 3);
+    IBTK_MPI::sumReduction(pressure_force.data(), 3);
+    IBTK_MPI::sumReduction(viscous_force.data(), 3);
 
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         *d_hydro_force_stream << integrator_time << '\t' << pressure_force[0] << '\t' << pressure_force[1] << '\t'
                               << pressure_force[2] << '\t' << viscous_force[0] << '\t' << viscous_force[1] << '\t'

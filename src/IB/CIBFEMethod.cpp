@@ -37,6 +37,7 @@
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ibtk_utilities.h"
 #include "libmesh/equation_systems.h"
@@ -226,7 +227,7 @@ CIBFEMethod::preprocessIntegrateData(double current_time, double new_time, int n
         }
 
         // Set data for free bodies.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             if (num_free_dofs)
             {
@@ -264,7 +265,7 @@ CIBFEMethod::preprocessIntegrateData(double current_time, double new_time, int n
 
     // Create PETSc Vecs for free DOFs.
     const int n = free_dofs_counter;
-    const int N = SAMRAI_MPI::sumReduction(free_dofs_counter);
+    const int N = IBTK_MPI::sumReduction(free_dofs_counter);
     VecCreateMPI(PETSC_COMM_WORLD, n, N, &d_U);
     VecCreateMPI(PETSC_COMM_WORLD, n, N, &d_F);
 
@@ -380,7 +381,7 @@ CIBFEMethod::eulerStep(const double current_time, const double new_time)
     {
         EquationSystems& equation_systems = *d_equation_systems[part];
         MeshBase& mesh = equation_systems.get_mesh();
-        const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
+        const unsigned int total_local_nodes = mesh.n_nodes_on_proc(IBTK_MPI::getRank());
         System& X_system = *d_X_systems[part];
         const unsigned int X_sys_num = X_system.number();
         PetscVector<double>& X_half = *d_X_half_vecs[part];
@@ -456,7 +457,7 @@ CIBFEMethod::midpointStep(const double current_time, const double new_time)
     {
         EquationSystems& equation_systems = *d_equation_systems[part];
         MeshBase& mesh = equation_systems.get_mesh();
-        const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
+        const unsigned int total_local_nodes = mesh.n_nodes_on_proc(IBTK_MPI::getRank());
         System& X_system = *d_X_systems[part];
         const unsigned int X_sys_num = X_system.number();
         PetscVector<double>& X_new = *d_X_new_vecs[part];
@@ -669,7 +670,7 @@ CIBFEMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double sca
             }
         }
     }
-    SAMRAI_MPI::sumReduction(F, NDIM);
+    IBTK_MPI::sumReduction(F, NDIM);
 
     // Subtract the mean from Eulerian body force
     const int coarsest_ln = 0;
@@ -846,7 +847,7 @@ CIBFEMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rig
 #endif
         }
     }
-    SAMRAI_MPI::sumReduction(&F[0], s_max_free_dofs);
+    IBTK_MPI::sumReduction(&F[0], s_max_free_dofs);
 } // computeNetRigidGeneralizedForce
 
 void
@@ -865,7 +866,7 @@ CIBFEMethod::copyVecToArray(Vec b,
         total_nodes += getNumberOfNodes(struct_id);
     }
     PetscInt size = total_nodes * data_depth;
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     PetscInt array_local_size = 0;
     if (rank == array_rank) array_local_size = size;
     Vec array_vec;
@@ -922,7 +923,7 @@ CIBFEMethod::copyArrayToVec(Vec b,
         total_nodes += getNumberOfNodes(struct_id);
     }
     PetscInt size = total_nodes * data_depth;
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     PetscInt array_local_size = 0;
     if (rank == array_rank) array_local_size = size;
     Vec array_vec;
@@ -980,7 +981,7 @@ CIBFEMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector&
     else
     {
         MeshBase& mesh = equation_systems.get_mesh();
-        const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
+        const unsigned int total_local_nodes = mesh.n_nodes_on_proc(IBTK_MPI::getRank());
         auto& X_system = equation_systems.get_system<System>(CIBFEMethod::COORDS_SYSTEM_NAME);
         auto& U_system = equation_systems.get_system<System>(CIBFEMethod::CONSTRAINT_VELOCITY_SYSTEM_NAME);
         const unsigned int X_sys_num = X_system.number();
@@ -1371,8 +1372,8 @@ CIBFEMethod::computeCOMOfStructure(Eigen::Vector3d& center_of_mass, EquationSyst
             vol_part += JxW[qp];
         }
     }
-    SAMRAI_MPI::sumReduction(&center_of_mass[0], NDIM);
-    vol_part = SAMRAI_MPI::sumReduction(vol_part);
+    IBTK_MPI::sumReduction(&center_of_mass[0], NDIM);
+    vol_part = IBTK_MPI::sumReduction(vol_part);
 
     for (unsigned int d = 0; d < NDIM; ++d)
     {

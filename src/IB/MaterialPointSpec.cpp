@@ -36,6 +36,7 @@
 
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/StreamableFactory.h"
 #include "ibtk/StreamableManager.h"
 #include "tbox/SAMRAI_MPI.h"
@@ -56,7 +57,7 @@ MaterialPointSpec::registerWithStreamableManager()
     // register the factory class with the StreamableManager, and to ensure that
     // all processes employ the same class ID for the MaterialPointSpec
     // object.
-    SAMRAI_MPI::barrier();
+    IBTK_MPI::barrier();
     if (!getIsRegisteredWithStreamableManager())
     {
 #if !defined(NDEBUG)
@@ -64,7 +65,7 @@ MaterialPointSpec::registerWithStreamableManager()
 #endif
         STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new MaterialPointSpecFactory());
     }
-    SAMRAI_MPI::barrier();
+    IBTK_MPI::barrier();
     return;
 } // registerWithStreamableManager
 

@@ -40,6 +40,7 @@
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/NormOps.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/ibtk_utilities.h"
@@ -331,7 +332,7 @@ PETScSAMRAIVectorReal::VecMDot_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscSca
     {
         val[i] = PSVR_CAST2(x)->dot(PSVR_CAST2(y[i]), local_only);
     }
-    SAMRAI_MPI::sumReduction(val, nv);
+    IBTK_MPI::sumReduction(val, nv);
     IBTK_TIMER_STOP(t_vec_m_dot);
     PetscFunctionReturn(0);
 }
@@ -359,7 +360,7 @@ PETScSAMRAIVectorReal::VecNorm_SAMRAI(Vec x, NormType type, PetscScalar* val)
         val[0] = NormOps::L1Norm(PSVR_CAST2(x), local_only);
         val[1] = NormOps::L2Norm(PSVR_CAST2(x), local_only);
         val[1] = val[1] * val[1];
-        SAMRAI_MPI::sumReduction(val, 2);
+        IBTK_MPI::sumReduction(val, 2);
         val[1] = std::sqrt(val[1]);
     }
     else
@@ -395,7 +396,7 @@ PETScSAMRAIVectorReal::VecMTDot_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscSc
     {
         val[i] = PSVR_CAST2(x)->dot(PSVR_CAST2(y[i]), local_only);
     }
-    SAMRAI_MPI::sumReduction(val, nv);
+    IBTK_MPI::sumReduction(val, nv);
     IBTK_TIMER_STOP(t_vec_m_t_dot);
     PetscFunctionReturn(0);
 }

@@ -29,6 +29,7 @@
 
 // Config files
 #include "ibtk/IBTK_Init.h"
+#include "ibtk/IBTK_MPI.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -483,7 +484,7 @@ run_example(int argc, char* argv[])
         }
 
         // Open streams to save lift and drag coefficients.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
             lift_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
@@ -563,7 +564,7 @@ run_example(int argc, char* argv[])
         }
 
         // Close the logging streams.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             drag_stream.close();
             lift_stream.close();
@@ -634,8 +635,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
             }
         }
     }
-    SAMRAI_MPI::sumReduction(F_integral, NDIM);
-    if (SAMRAI_MPI::getRank() == 0)
+    IBTK_MPI::sumReduction(F_integral, NDIM);
+    if (IBTK_MPI::getRank() == 0)
     {
         drag_stream.precision(12);
         drag_stream.setf(ios::fixed, ios::floatfield);
@@ -658,7 +659,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     X_fcn.init();
     DenseVector<double> X_A(2);
     X_fcn(libMesh::Point(0.6, 0.2, 0), 0.0, X_A);
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         A_x_posn_stream.precision(12);
         A_x_posn_stream.setf(ios::fixed, ios::floatfield);

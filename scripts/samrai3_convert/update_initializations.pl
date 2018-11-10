@@ -77,7 +77,7 @@ for my $file (@filesToProcess) {
             next;
         }
         # Removed closing calls.
-        if ($str =~ /SAMRAIManager::startup\(\)/ || $str =~ /SAMRAIManager::shutdown\(\)/ || $str =~ /PetscFinalize\(\)/)
+        if ($str =~ /SAMRAIManager::startup\(\)/ || $str =~ /SAMRAIManager::shutdown\(\)/ || $str =~ /PetscFinalize\(\)/ || $str =~ /SAMRAI_MPI::init/)
         {
             $str = "\n";
             next;

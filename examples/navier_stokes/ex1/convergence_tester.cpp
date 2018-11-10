@@ -29,6 +29,7 @@
 
 // GENERAL CONFIGURATION
 #include "ibtk/IBTK_Init.h"
+#include "ibtk/IBTK_MPI.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -138,17 +139,17 @@ main(int argc, char* argv[])
     {
         char temp_buf[128];
 
-        sprintf(temp_buf, "%05d.samrai.%05d", coarse_iteration_num, SAMRAI_MPI::getRank());
+        sprintf(temp_buf, "%05d.samrai.%05d", coarse_iteration_num, IBTK_MPI::getRank());
         string coarse_file_name = coarse_hier_dump_dirname + "/" + "hier_data.";
         coarse_file_name += temp_buf;
 
-        sprintf(temp_buf, "%05d.samrai.%05d", fine_iteration_num, SAMRAI_MPI::getRank());
+        sprintf(temp_buf, "%05d.samrai.%05d", fine_iteration_num, IBTK_MPI::getRank());
         string fine_file_name = fine_hier_dump_dirname + "/" + "hier_data.";
         fine_file_name += temp_buf;
 
-        for (int rank = 0; rank < SAMRAI_MPI::getNodes(); ++rank)
+        for (int rank = 0; rank < IBTK_MPI::getNodes(); ++rank)
         {
-            if (rank == SAMRAI_MPI::getRank())
+            if (rank == IBTK_MPI::getRank())
             {
                 fstream coarse_fin, fine_fin;
                 coarse_fin.open(coarse_file_name.c_str(), ios::in);
@@ -160,7 +161,7 @@ main(int argc, char* argv[])
                 coarse_fin.close();
                 fine_fin.close();
             }
-            SAMRAI_MPI::barrier();
+            IBTK_MPI::barrier();
         }
 
         if (!files_exist) break;

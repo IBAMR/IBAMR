@@ -63,6 +63,7 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/PETScMatUtilities.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
@@ -146,7 +147,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     }
 
     // Determine the index ranges.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int nlocal = num_dofs_per_proc[mpi_rank];
     const int ilower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int iupper = ilower + nlocal;
@@ -832,7 +833,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
     is_field_name[P_FIELD_IDX] = "pressure";
 
     // DOFs on this processor.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int n_local_dofs = num_dofs_per_proc[mpi_rank];
 
     const int first_local_dof = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);

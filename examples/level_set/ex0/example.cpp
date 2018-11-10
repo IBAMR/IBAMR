@@ -46,6 +46,7 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include "ibtk/IBTK_MPI.h"
 #include <LocationIndexRobinBcCoefs.h>
 #include <TimeRefinementIntegrator.h>
 #include <ibamr/AdvectorExplicitPredictorPatchOps.h>
@@ -76,7 +77,6 @@ bool
 run_example(int argc, char* argv[], std::vector<double>& Q_err)
 {
     // Initialize MPI and SAMRAI.
-    SAMRAI_MPI::init(&argc, &argv);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
 
     // Resize Q_err to hold error norms

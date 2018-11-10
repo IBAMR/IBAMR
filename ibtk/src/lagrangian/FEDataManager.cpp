@@ -82,9 +82,10 @@
 #include "VariableDatabase.h"
 #include "boost/multi_array.hpp"
 #include "ibtk/FECache.h"
-#include "ibtk/FEMapCache.h"
 #include "ibtk/FEDataManager.h"
+#include "ibtk/FEMapCache.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
@@ -2667,8 +2668,7 @@ FEDataManager::computeActiveElementBoundingBoxes()
             d_active_elem_bboxes_flattened[(2 * e + 1) * NDIM + d] = d_active_elem_bboxes[e].second[d];
         }
     }
-    SAMRAI_MPI::sumReduction(&d_active_elem_bboxes_flattened[0],
-                             static_cast<int>(d_active_elem_bboxes_flattened.size()));
+    IBTK_MPI::sumReduction(&d_active_elem_bboxes_flattened[0], static_cast<int>(d_active_elem_bboxes_flattened.size()));
     for (unsigned int e = 0; e < n_elem; ++e)
     {
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -2871,7 +2871,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         }
 
         // Check to see if we are done.
-        done = SAMRAI_MPI::sumReduction(new_frontier ? 1 : 0) == 0;
+        done = IBTK_MPI::sumReduction(new_frontier ? 1 : 0) == 0;
     }
 
     // Set the active patch element data.

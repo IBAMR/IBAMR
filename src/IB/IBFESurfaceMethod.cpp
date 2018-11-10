@@ -72,6 +72,7 @@
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
@@ -1073,7 +1074,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             }
         }
 
-        SAMRAI_MPI::sumReduction(&F_integral(0), NDIM);
+        IBTK_MPI::sumReduction(&F_integral(0), NDIM);
 
         // Solve for F.
         d_fe_data_managers[part]->computeL2Projection(
@@ -1082,8 +1083,8 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         {
             d_fe_data_managers[part]->computeL2Projection(
                 *DP_vec, *DP_rhs_vec, PRESSURE_JUMP_SYSTEM_NAME, d_use_consistent_mass_matrix);
-            DP_rhs_integral = SAMRAI_MPI::sumReduction(DP_rhs_integral);
-            surface_area = SAMRAI_MPI::sumReduction(surface_area);
+            DP_rhs_integral = IBTK_MPI::sumReduction(DP_rhs_integral);
+            surface_area = IBTK_MPI::sumReduction(surface_area);
             if (d_normalize_pressure_jump) DP_vec->add(-DP_rhs_integral / surface_area);
             DP_vec->close();
         }
@@ -1912,8 +1913,8 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
             mesh_has_first_order_elems = mesh_has_first_order_elems || elem->default_order() == FIRST;
             mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
         }
-        mesh_has_first_order_elems = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems);
-        mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
+        mesh_has_first_order_elems = IBTK_MPI::maxReduction(mesh_has_first_order_elems);
+        mesh_has_second_order_elems = IBTK_MPI::maxReduction(mesh_has_second_order_elems);
         if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
             (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
         {

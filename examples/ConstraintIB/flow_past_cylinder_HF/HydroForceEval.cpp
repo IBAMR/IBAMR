@@ -34,6 +34,7 @@
 
 #include "HydroForceEval.h"
 
+#include "ibtk/IBTK_MPI.h"
 #include <Box.h>
 #include <CartesianGridGeometry.h>
 #include <CellIndex.h>
@@ -123,11 +124,11 @@ HydroForceEval::HydroForceEval(const std::string& object_name,
     {
         Utilities::recursiveMkdir(d_dir_name);
 
-        const int nodes = SAMRAI_MPI::getNodes();
+        const int nodes = IBTK_MPI::getNodes();
         for (int n = 0; n < nodes; ++n) Utilities::recursiveMkdir(d_dir_name + "/node" + patch::to_string(n));
     }
 
-    if (!SAMRAI_MPI::getRank())
+    if (!IBTK_MPI::getRank())
     {
         d_force_stream.resize(d_num_structs);
         for (int struct_no = 0; struct_no < d_num_structs; ++struct_no)
@@ -147,7 +148,7 @@ HydroForceEval::HydroForceEval(const std::string& object_name,
 HydroForceEval::~HydroForceEval()
 {
     // Delete printing streams.
-    if (!SAMRAI_MPI::getRank())
+    if (!IBTK_MPI::getRank())
     {
         for (int struct_no = 0; struct_no < d_num_structs; ++struct_no) delete (d_force_stream[struct_no]);
     }
@@ -302,15 +303,15 @@ HydroForceEval::calcHydroForce(const int u_idx,
             }
         }
         // Sum across all processors.
-        SAMRAI_MPI::sumReduction(&p_net_force[struct_no][0], NDIM);
-        SAMRAI_MPI::sumReduction(&v_net_force[struct_no][0], NDIM);
+        IBTK_MPI::sumReduction(&p_net_force[struct_no][0], NDIM);
+        IBTK_MPI::sumReduction(&v_net_force[struct_no][0], NDIM);
     }
-    SAMRAI_MPI::sumReduction(&p_net_torque[0], d_num_structs);
-    SAMRAI_MPI::sumReduction(&v_net_torque[0], d_num_structs);
+    IBTK_MPI::sumReduction(&p_net_torque[0], d_num_structs);
+    IBTK_MPI::sumReduction(&v_net_torque[0], d_num_structs);
 
 #if !defined(NDEBUG)
     // Check all surface points found.
-    SAMRAI_MPI::sumReduction(&local_patch_found[0], d_num_structs);
+    IBTK_MPI::sumReduction(&local_patch_found[0], d_num_structs);
     for (int struct_no = 0; struct_no < d_num_structs; ++struct_no)
     {
         TBOX_ASSERT(local_patch_found[struct_no] == 0.5 * d_num_elem[struct_no] * (d_num_elem[struct_no] + 1));
@@ -318,7 +319,7 @@ HydroForceEval::calcHydroForce(const int u_idx,
 #endif
 
     // Print net force and torque data.
-    if (print && !SAMRAI_MPI::getRank())
+    if (print && !IBTK_MPI::getRank())
     {
         for (int struct_no = 0; struct_no < d_num_structs; ++struct_no)
         {
@@ -432,8 +433,8 @@ void
 HydroForceEval::readVertexFiles(const std::string& extension)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     int flag = 1;
     int sz = 1;
     const bool use_file_batons = true;
@@ -443,7 +444,7 @@ HydroForceEval::readVertexFiles(const std::string& extension)
     for (int j = 0; j < d_num_structs; ++j)
     {
         // Wait for the previous MPI process to finish reading the current file.
-        if (use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+        if (use_file_batons && rank != 0) IBTK_MPI::recv(&flag, sz, rank - 1, false, j);
 
         // Ensure that the file exists.
         const std::string vertex_filename = d_struct_names[j] + extension;
@@ -453,7 +454,7 @@ HydroForceEval::readVertexFiles(const std::string& extension)
         {
             plog << d_object_name << ":  "
                  << "processing vertex data from ASCII input file named " << vertex_filename << std::endl
-                 << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                 << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
 
             // The first entry in the file is the number of vertices.
             if (!std::getline(file_stream, line_string))
@@ -519,7 +520,7 @@ HydroForceEval::readVertexFiles(const std::string& extension)
             plog << d_object_name << ":  "
                  << "read " << d_num_vertex[j] << " vertices from ASCII input file named " << vertex_filename
                  << std::endl
-                 << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                 << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
         }
         else
         {
@@ -527,11 +528,11 @@ HydroForceEval::readVertexFiles(const std::string& extension)
         }
 
         // Free the next MPI process to start reading the current file.
-        if (use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+        if (use_file_batons && rank != nodes - 1) IBTK_MPI::send(&flag, sz, rank + 1, false, j);
     }
 
     // Synchronize the processes.
-    if (use_file_batons) SAMRAI_MPI::barrier();
+    if (use_file_batons) IBTK_MPI::barrier();
 
     return;
 } // readVertexFiles
@@ -540,8 +541,8 @@ void
 HydroForceEval::readElemFiles(const std::string& extension)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     int flag = 1;
     int sz = 1;
     const bool use_file_batons = true;
@@ -551,7 +552,7 @@ HydroForceEval::readElemFiles(const std::string& extension)
     for (int j = 0; j < d_num_structs; ++j)
     {
         // Wait for the previous MPI process to finish reading the current file.
-        if (use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+        if (use_file_batons && rank != 0) IBTK_MPI::recv(&flag, sz, rank - 1, false, j);
 
         // Ensure that the file exists.
         const std::string elem_filename = d_struct_names[j] + extension;
@@ -561,7 +562,7 @@ HydroForceEval::readElemFiles(const std::string& extension)
         {
             plog << d_object_name << ":  "
                  << "processing vertex data from ASCII input file named " << elem_filename << std::endl
-                 << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                 << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
 
             // The first entry in the file is the number of vertices.
             if (!std::getline(file_stream, line_string))
@@ -644,7 +645,7 @@ HydroForceEval::readElemFiles(const std::string& extension)
 
             plog << d_object_name << ":  "
                  << "read " << d_num_elem[j] << " vertices from ASCII input file named " << elem_filename << std::endl
-                 << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                 << "  on MPI process " << IBTK_MPI::getRank() << std::endl;
         }
         else
         {
@@ -652,11 +653,11 @@ HydroForceEval::readElemFiles(const std::string& extension)
         }
 
         // Free the next MPI process to start reading the current file.
-        if (use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+        if (use_file_batons && rank != nodes - 1) IBTK_MPI::send(&flag, sz, rank + 1, false, j);
     }
 
     // Synchronize the processes.
-    if (use_file_batons) SAMRAI_MPI::barrier();
+    if (use_file_batons) IBTK_MPI::barrier();
 
     return;
 } // readElemFiles
@@ -697,7 +698,7 @@ HydroForceEval::printData(const std::vector<std::set<Elem, elem_cmp> > elem_set,
                           const double time,
                           const int iteration_num)
 {
-    const int rank = SAMRAI_MPI::getRank();
+    const int rank = IBTK_MPI::getRank();
 
     std::ofstream hf_stream;
     for (int struct_no = 0; struct_no < d_num_structs; ++struct_no)

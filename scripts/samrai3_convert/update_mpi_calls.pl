@@ -39,10 +39,10 @@ for my $file (@filesToProcess) {
     while ( my $str = <FILE> ) {
 
         # Search for SAMRAI_MPI calls
-        if ($str =~ s/SAMRAI_MPI::/IBTK_MPI::/g) {
+        if ($str =~ s/(tbox::)?SAMRAI_MPI::/IBTK_MPI::/g) {
             $found = 1;
         }
-        if ($str =~ /IBTK_MPI::setCommunicator/ || $str =~ /IBTK_MPI::setCallAbortInSerialInsteadOfExit/) {
+        if ($str =~ /IBTK_MPI::setCommunicator/ || $str =~ /IBTK_MPI::setCallAbortInSerialInsteadOfExit/ || $str =~ /IBTK_MPI::abort/ || $str =~ /IBTK_MPI::finalize/) {
             $str =~ s/IBTK_MPI::/SAMRAI_MPI::/g;
         }
         if ($str =~ s/IBTK_MPI::commWorld/IBTK_MPI::getSAMRAIWorld()/g) {

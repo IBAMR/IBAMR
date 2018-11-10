@@ -32,6 +32,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/IBTK_Init.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/app_namespaces.h"
 
 namespace IBTK
@@ -48,11 +49,11 @@ IBTK_Init::IBTK_Init(int argc, char** argv, IBTK_MPI::comm communicator, char* p
 #endif
 #if SAMRAI_VERSION_MAJOR > 2
     SAMRAIManager::initialize();
-    SAMRAI_MPI::init(comm);
+    IBTK_MPI::init(comm);
 #else
     SAMRAI_MPI::setCommunicator(communicator);
 #endif
-    IBTK_MPI::setCommunicator(communicator);
+    SAMRAI_MPI::setCommunicator(communicator);
     SAMRAIManager::startup();
 }
 

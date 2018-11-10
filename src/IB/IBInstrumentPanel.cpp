@@ -64,6 +64,7 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
@@ -538,7 +539,7 @@ IBInstrumentPanel::IBInstrumentPanel(std::string object_name, Pointer<Database> 
 IBInstrumentPanel::~IBInstrumentPanel()
 {
     // Close the log file stream.
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         d_log_file_stream.close();
     }
@@ -624,7 +625,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarc
     }
 
     // Communicate local data to all processes.
-    d_num_meters = SAMRAI_MPI::maxReduction(max_meter_index) + 1;
+    d_num_meters = IBTK_MPI::maxReduction(max_meter_index) + 1;
     max_node_index.resize(d_num_meters, -1);
     d_num_perimeter_nodes.clear();
     d_num_perimeter_nodes.resize(d_num_meters, -1);
@@ -632,7 +633,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarc
     {
         d_num_perimeter_nodes[m] = max_node_index[m] + 1;
     }
-    SAMRAI_MPI::maxReduction(d_num_meters > 0 ? &d_num_perimeter_nodes[0] : nullptr, d_num_meters);
+    IBTK_MPI::maxReduction(d_num_meters > 0 ? &d_num_perimeter_nodes[0] : nullptr, d_num_meters);
 #if !defined(NDEBUG)
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
@@ -675,7 +676,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarc
             std::max(d_max_instrument_name_len, static_cast<int>(d_instrument_names[m].length()));
     }
 
-    if (d_output_log_file && SAMRAI_MPI::getRank() == 0 && !d_log_file_stream.is_open())
+    if (d_output_log_file && IBTK_MPI::getRank() == 0 && !d_log_file_stream.is_open())
     {
         const bool from_restart = RestartManager::getManager()->isFromRestart();
         if (from_restart)
@@ -778,7 +779,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
                 X_perimeter_flattened.end(), d_X_perimeter[m][n].data(), d_X_perimeter[m][n].data() + NDIM);
         }
     }
-    SAMRAI_MPI::sumReduction(&X_perimeter_flattened[0], static_cast<int>(X_perimeter_flattened.size()));
+    IBTK_MPI::sumReduction(&X_perimeter_flattened[0], static_cast<int>(X_perimeter_flattened.size()));
     for (unsigned int m = 0, k = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)
@@ -1076,10 +1077,10 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     }
 
     // Synchronize the values across all processes.
-    SAMRAI_MPI::sumReduction(&d_flow_values[0], d_num_meters);
-    SAMRAI_MPI::sumReduction(&d_mean_pres_values[0], d_num_meters);
-    SAMRAI_MPI::sumReduction(&d_point_pres_values[0], d_num_meters);
-    SAMRAI_MPI::sumReduction(&A[0], d_num_meters);
+    IBTK_MPI::sumReduction(&d_flow_values[0], d_num_meters);
+    IBTK_MPI::sumReduction(&d_mean_pres_values[0], d_num_meters);
+    IBTK_MPI::sumReduction(&d_point_pres_values[0], d_num_meters);
+    IBTK_MPI::sumReduction(&A[0], d_num_meters);
 
     // Normalize the mean pressure.
     for (unsigned int m = 0; m < d_num_meters; ++m)
@@ -1141,7 +1142,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                 U_perimeter_flattened.end(), U_perimeter[m][n].data(), U_perimeter[m][n].data() + NDIM);
         }
     }
-    SAMRAI_MPI::sumReduction(&U_perimeter_flattened[0], static_cast<int>(U_perimeter_flattened.size()));
+    IBTK_MPI::sumReduction(&U_perimeter_flattened[0], static_cast<int>(U_perimeter_flattened.size()));
     for (unsigned int m = 0, k = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)
@@ -1184,7 +1185,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     if (d_flow_units != "" || d_pres_units != "") plog << "\n";
     plog << std::string(d_max_instrument_name_len + 94, '*') << "\n";
 
-    if (d_output_log_file && SAMRAI_MPI::getRank() == 0)
+    if (d_output_log_file && IBTK_MPI::getRank() == 0)
     {
         outputLogData(d_log_file_stream);
         d_log_file_stream.flush();
@@ -1233,8 +1234,8 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
     char temp_buf[SILO_NAME_BUFSIZE];
     std::string current_file_name;
     DBfile* dbfile;
-    const unsigned int mpi_rank = SAMRAI_MPI::getRank();
-    const unsigned int mpi_nodes = SAMRAI_MPI::getNodes();
+    const unsigned int mpi_rank = IBTK_MPI::getRank();
+    const unsigned int mpi_nodes = IBTK_MPI::getNodes();
 
     // Create the working directory.
     sprintf(temp_buf, "%06d", d_instrument_read_timestep_num);

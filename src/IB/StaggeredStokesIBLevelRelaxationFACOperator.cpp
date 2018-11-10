@@ -85,6 +85,7 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/PETScMatUtilities.h"
 #include "ibtk/PETScVecUtilities.h"
 #include "ibtk/RefinePatchStrategySet.h"
@@ -285,7 +286,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
 
         // Update the residual, r = f - A*u, to include the IB part of the operator.
         int ierr;
-        int rank = SAMRAI_MPI::getRank();
+        int rank = IBTK_MPI::getRank();
         for (int ln = coarsest_level_num; ln <= finest_level_num; ++ln)
         {
             Vec solution_vec, residual_vec;
@@ -331,7 +332,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
 
         // Compute the residual, r = f - A*u.
         int ierr;
-        int rank = SAMRAI_MPI::getRank();
+        int rank = IBTK_MPI::getRank();
         for (int ln = coarsest_level_num; ln <= finest_level_num; ++ln)
         {
             Vec solution_vec;

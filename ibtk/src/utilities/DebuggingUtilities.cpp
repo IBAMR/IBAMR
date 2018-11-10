@@ -56,6 +56,7 @@
 #include "SideIndex.h"
 #include "boost/multi_array.hpp"
 #include "ibtk/DebuggingUtilities.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LData.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/PIO.h"
@@ -116,7 +117,7 @@ DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
             }
         }
     }
-    return SAMRAI_MPI::minReduction(num_nans) > 0;
+    return IBTK_MPI::minReduction(num_nans) > 0;
 } // checkCellDataForNaNs
 
 bool
@@ -168,7 +169,7 @@ DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
             }
         }
     }
-    return SAMRAI_MPI::minReduction(num_nans) > 0;
+    return IBTK_MPI::minReduction(num_nans) > 0;
 } // checkFaceDataForNaNs
 
 bool
@@ -217,7 +218,7 @@ DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
             }
         }
     }
-    return SAMRAI_MPI::minReduction(num_nans) > 0;
+    return IBTK_MPI::minReduction(num_nans) > 0;
 } // checkNodeDataForNaNs
 
 bool
@@ -269,7 +270,7 @@ DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
             }
         }
     }
-    return SAMRAI_MPI::minReduction(num_nans) > 0;
+    return IBTK_MPI::minReduction(num_nans) > 0;
 } // checkSideDataForNaNs
 
 void
@@ -285,8 +286,8 @@ DebuggingUtilities::saveCellData(const int patch_data_idx,
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     for (int n = 0; n < nodes; ++n)
     {
         if (n == rank)
@@ -324,7 +325,7 @@ DebuggingUtilities::saveCellData(const int patch_data_idx,
                 }
             }
         }
-        SAMRAI_MPI::barrier();
+        IBTK_MPI::barrier();
     }
     return;
 } // saveCellData
@@ -342,8 +343,8 @@ DebuggingUtilities::saveFaceData(const int patch_data_idx,
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     for (int n = 0; n < nodes; ++n)
     {
         if (n == rank)
@@ -384,7 +385,7 @@ DebuggingUtilities::saveFaceData(const int patch_data_idx,
                 }
             }
         }
-        SAMRAI_MPI::barrier();
+        IBTK_MPI::barrier();
     }
     return;
 } // saveFaceData
@@ -402,8 +403,8 @@ DebuggingUtilities::saveNodeData(const int patch_data_idx,
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     for (int n = 0; n < nodes; ++n)
     {
         if (n == rank)
@@ -441,7 +442,7 @@ DebuggingUtilities::saveNodeData(const int patch_data_idx,
                 }
             }
         }
-        SAMRAI_MPI::barrier();
+        IBTK_MPI::barrier();
     }
     return;
 } // saveNodeData
@@ -459,8 +460,8 @@ DebuggingUtilities::saveSideData(const int patch_data_idx,
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     for (int n = 0; n < nodes; ++n)
     {
         if (n == rank)
@@ -501,7 +502,7 @@ DebuggingUtilities::saveSideData(const int patch_data_idx,
                 }
             }
         }
-        SAMRAI_MPI::barrier();
+        IBTK_MPI::barrier();
     }
     return;
 } // saveSideData
@@ -520,8 +521,8 @@ DebuggingUtilities::saveLagrangianData(const Pointer<LData> lag_data,
     Utilities::recursiveMkdir(truncated_dirname);
 
     const boost::multi_array_ref<double, 2>& array_data = *lag_data->getGhostedLocalFormVecArray();
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     for (int n = 0; n < nodes; ++n)
     {
         if (n == rank)
@@ -554,7 +555,7 @@ DebuggingUtilities::saveLagrangianData(const Pointer<LData> lag_data,
             }
             of.close();
         }
-        SAMRAI_MPI::barrier();
+        IBTK_MPI::barrier();
     }
     lag_data->restoreArrays();
     return;

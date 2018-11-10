@@ -31,6 +31,7 @@
 
 // Config files
 #include "ibtk/IBTK_Init.h"
+#include "ibtk/IBTK_MPI.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -574,7 +575,7 @@ run_example(int argc, char* argv[])
 
         // File to write to for fluid mass data
         ofstream mass_file;
-        if (!SAMRAI_MPI::getRank()) mass_file.open("mass_fluid.txt");
+        if (!IBTK_MPI::getRank()) mass_file.open("mass_fluid.txt");
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -625,7 +626,7 @@ run_example(int argc, char* argv[])
             const double mass_fluid = hier_rho_data_ops.integral(rho_ins_idx, wgt_sc_idx);
 
             // Write to file
-            if (!SAMRAI_MPI::getRank())
+            if (!IBTK_MPI::getRank())
             {
                 mass_file << std::setprecision(13) << loop_time << "\t" << mass_fluid << std::endl;
             }
@@ -662,7 +663,7 @@ run_example(int argc, char* argv[])
         }
 
         // Close file
-        if (!SAMRAI_MPI::getRank()) mass_file.close();
+        if (!IBTK_MPI::getRank()) mass_file.close();
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).

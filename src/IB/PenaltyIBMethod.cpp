@@ -44,6 +44,7 @@
 #include "ibamr/PenaltyIBMethod.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LInitStrategy.h"
@@ -369,7 +370,7 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
 
     if (d_do_log)
     {
-        max_displacement = SAMRAI_MPI::maxReduction(max_displacement);
+        max_displacement = IBTK_MPI::maxReduction(max_displacement);
         plog << d_object_name << "::computeLagrangianForce(): maximum point displacement: " << max_displacement << "\n";
     }
     return;

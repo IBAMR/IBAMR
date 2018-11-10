@@ -32,6 +32,7 @@
 
 // Config files
 #include "ibtk/IBTK_Init.h"
+#include "ibtk/IBTK_MPI.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -89,7 +90,7 @@ ConstrainedNodalVel(libMesh::NumericVector<double>& U_k,
                     void* /*ctx*/)
 {
     MeshBase& mesh = equation_systems->get_mesh();
-    const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
+    const unsigned int total_local_nodes = mesh.n_nodes_on_proc(IBTK_MPI::getRank());
     System& X_system = equation_systems->get_system<System>(CIBFEMethod::COORDS_SYSTEM_NAME);
     System& U_system = equation_systems->get_system<System>(CIBFEMethod::CONSTRAINT_VELOCITY_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
@@ -681,7 +682,7 @@ output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     // Write Cartesian data.
     string file_name = data_dump_dirname + "/" + "hier_data.";
     char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
+    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, IBTK_MPI::getRank());
     file_name += temp_buf;
     Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
     hier_db->create(file_name);

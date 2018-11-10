@@ -32,6 +32,7 @@
 
 // Config files
 #include "ibtk/IBTK_Init.h"
+#include "ibtk/IBTK_MPI.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -352,7 +353,7 @@ run_example(int argc, char** argv)
         }
 
         // Open streams to save COM position and velocity.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             X_stream.open("X.curve", ios_base::out | ios_base::trunc);
             U_stream.open("U.curve", ios_base::out | ios_base::trunc);
@@ -420,7 +421,7 @@ run_example(int argc, char** argv)
         }
 
         // Close the logging streams.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             X_stream.close();
             U_stream.close();
@@ -441,7 +442,7 @@ postprocess_data(double loop_time, Pointer<IBFEDirectForcingKinematics> df_kinem
     const Eigen::Vector3d& X = df_kinematics_ops->getStructureCOM();
     const Eigen::Vector3d& U = df_kinematics_ops->getCOMTransVelocity();
     const Eigen::Vector3d& W = df_kinematics_ops->getCOMRotVelocity();
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         X_stream << loop_time << "\t" << X[0] << "\t" << X[1] << endl;
         U_stream << loop_time << "\t" << U[0] << "\t" << U[1] << "\t" << W[2] << endl;

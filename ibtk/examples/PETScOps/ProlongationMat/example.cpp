@@ -30,6 +30,7 @@
 
 // Config files
 #include "ibtk/IBTK_Init.h"
+#include "ibtk/IBTK_MPI.h"
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
 
@@ -197,7 +198,7 @@ run_example(int argc, char* argv[])
         }
 
         // Construct the coarse and fine level PETSc Vecs
-        const int mpi_rank = SAMRAI_MPI::getRank();
+        const int mpi_rank = IBTK_MPI::getRank();
         const int n_local_coarsest = num_dofs_per_proc[coarsest_ln][mpi_rank];
         const int n_total_coarsest =
             std::accumulate(num_dofs_per_proc[coarsest_ln].begin(), num_dofs_per_proc[coarsest_ln].end(), 0);

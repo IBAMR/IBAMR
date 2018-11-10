@@ -70,15 +70,16 @@
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/BoxPartitioner.h"
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
-#include "ibtk/BoxPartitioner.h"
 #include "libmesh/boundary_info.h"
 #include "libmesh/compare_types.h"
 #include "libmesh/dense_vector.h"
@@ -2782,10 +2783,10 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
         }
 
         // Report the maximum displacement between this pair of parts.
-        SAMRAI_MPI::maxReduction(&d_overlap_force_part_max_displacement[part_idx[0]][part_idx[1]], 1);
+        IBTK_MPI::maxReduction(&d_overlap_force_part_max_displacement[part_idx[0]][part_idx[1]], 1);
         plog << "max displacement from part " << part_idx[0] << " to part " << part_idx[1] << ": "
              << d_overlap_force_part_max_displacement[part_idx[0]][part_idx[1]] << "\n";
-        SAMRAI_MPI::maxReduction(&d_overlap_force_part_max_displacement[part_idx[1]][part_idx[0]], 1);
+        IBTK_MPI::maxReduction(&d_overlap_force_part_max_displacement[part_idx[1]][part_idx[0]], 1);
         plog << "max displacement from part " << part_idx[1] << " to part " << part_idx[0] << ": "
              << d_overlap_force_part_max_displacement[part_idx[1]][part_idx[0]] << "\n";
     }
@@ -3629,8 +3630,8 @@ IBFEMethod::commonConstructor(const std::string& object_name,
             mesh_has_first_order_elems = mesh_has_first_order_elems || elem->default_order() == FIRST;
             mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
         }
-        mesh_has_first_order_elems = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems);
-        mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
+        mesh_has_first_order_elems = IBTK_MPI::maxReduction(mesh_has_first_order_elems);
+        mesh_has_second_order_elems = IBTK_MPI::maxReduction(mesh_has_second_order_elems);
         if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
             (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
         {
