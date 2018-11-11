@@ -413,7 +413,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                             }
                             for (int d = 0; d < NDIM; ++d)
                             {
-                                (*W_cc_data)(i, d) = std::sqrt(2.0) * ((*W_cc_data)(i, d) - trace / double(NDIM));
+                                (*W_cc_data)(i, d) = std::sqrt(2.0) * ((*W_cc_data)(i, d) - trace / static_cast<double>(NDIM));
                             }
                         }
                     }

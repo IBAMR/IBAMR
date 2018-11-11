@@ -256,8 +256,8 @@ build_meter_web(DBfile* dbfile,
             // Get the coordinate and normal vector data.
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                block_X[d * npoints + i] = float(X_web[m][n][d]);
-                block_dA[d * npoints + i] = float(dA_web[m][n][d]);
+                block_X[d * npoints + i] = static_cast<float>(X_web[m][n][d]);
+                block_dA[d * npoints + i] = static_cast<float>(dA_web[m][n][d]);
             }
         }
     }
@@ -273,7 +273,7 @@ build_meter_web(DBfile* dbfile,
 
     // Write out the variables.
     int cycle = timestep;
-    auto time = float(simulation_time);
+    auto time = static_cast<float>(simulation_time);
     double dtime = simulation_time;
 
     static const int MAX_OPTS = 3;
@@ -1294,7 +1294,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
         }
 
         int cycle = timestep_num;
-        auto time = float(simulation_time);
+        auto time = static_cast<float>(simulation_time);
         double dtime = simulation_time;
 
         static const int MAX_OPTS = 3;
