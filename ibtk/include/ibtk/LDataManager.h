@@ -1165,7 +1165,7 @@ private:
     /*!
      * Indicates whether the LData is in synch with the LNodeData.
      */
-    std::vector<bool> d_needs_synch = { true };
+    std::vector<bool> d_needs_synch;
 
     /*!
      * PETSc AO objects provide mappings between the fixed global Lagrangian
