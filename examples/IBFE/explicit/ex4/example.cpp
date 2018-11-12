@@ -462,15 +462,18 @@ Solver::setup_lagrangian_data()
     // initializeFEEquationSystems.
     {
         ib_method_ops = new IBFEMethod(
-            "IBFEMethod", get_comp_db("IBFEMethod"), &mesh, get_comp_db("GriddingAlgorithm")->getInteger("max_levels"));
+            "IBFEMethod", get_comp_db("IBFEMethod"), &mesh,
+            get_comp_db("GriddingAlgorithm")->getInteger("max_levels"));
 
         ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
         IBFEMethod::PK1StressFcnData PK1_dev_stress_data(PK1_dev_stress_function);
         IBFEMethod::PK1StressFcnData PK1_dil_stress_data(PK1_dil_stress_function);
         PK1_dev_stress_data.quad_order =
-            Utility::string_to_enum<libMesh::Order>(input_db.getStringWithDefault("PK1_DEV_QUAD_ORDER", "THIRD"));
+            Utility::string_to_enum<libMesh::Order>(
+                input_db.getStringWithDefault("PK1_DEV_QUAD_ORDER", "THIRD"));
         PK1_dil_stress_data.quad_order =
-            Utility::string_to_enum<libMesh::Order>(input_db.getStringWithDefault("PK1_DIL_QUAD_ORDER", "FIRST"));
+            Utility::string_to_enum<libMesh::Order>(
+                input_db.getStringWithDefault("PK1_DIL_QUAD_ORDER", "FIRST"));
         ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
         ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
         if (input_db.getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
@@ -503,7 +506,8 @@ Solver::setup_coupled_data()
     };
 
     time_integrator = new IBExplicitHierarchyIntegrator(
-        "IBHierarchyIntegrator", get_comp_db("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
+        "IBHierarchyIntegrator", get_comp_db("IBHierarchyIntegrator"),
+        ib_method_ops, navier_stokes_integrator);
 
     // Create Eulerian body force function specification objects.
     if (input_db.keyExists("ForcingFunction"))
