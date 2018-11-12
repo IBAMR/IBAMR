@@ -303,6 +303,9 @@ protected:
     std::unique_ptr<IBFEPostProcessor> postprocessor;
     std::unique_ptr<ExodusII_IO> exodus_io;
 
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
+    get_database(const std::string &component_name);
+
     void setup_eulerian_data();
 
     void setup_lagrangian_data();
@@ -354,35 +357,37 @@ Solver::Solver(int argc, char** argv, const LibMeshInit& init)
 
 
 
+SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
+Solver::get_database(const std::string &component)
+{
+    return app_initializer.getComponentDatabase(component);
+}
+
+
+
 void
 Solver::setup_eulerian_data()
 {
-    // convenience lambda
-    auto get_comp_db = [&](const std::string& component)
-    {
-        return app_initializer.getComponentDatabase(component);
-    };
-
     // First part: set up the basic SAMRAI objects:
     {
-        grid_geometry = new CartesianGridGeometry<NDIM>("CartesianGeometry", get_comp_db("CartesianGeometry"));
+        grid_geometry = new CartesianGridGeometry<NDIM>("CartesianGeometry", get_database("CartesianGeometry"));
         patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         box_generator = new BergerRigoutsos<NDIM>();
-        load_balancer = new LoadBalancer<NDIM>("LoadBalancer", get_comp_db("LoadBalancer"));
+        load_balancer = new LoadBalancer<NDIM>("LoadBalancer", get_database("LoadBalancer"));
     }
 
     // Second part: set up the relevant IBAMR object:
     {
-        const std::string solver_type = get_comp_db("Main")->getString("solver_type");
+        const std::string solver_type = get_database("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
             navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
-                "INSStaggeredHierarchyIntegrator", get_comp_db("INSStaggeredHierarchyIntegrator"));
+                "INSStaggeredHierarchyIntegrator", get_database("INSStaggeredHierarchyIntegrator"));
         }
         else if (solver_type == "COLLOCATED")
         {
             navier_stokes_integrator = new INSCollocatedHierarchyIntegrator(
-                "INSCollocatedHierarchyIntegrator", get_comp_db("INSCollocatedHierarchyIntegrator"));
+                "INSCollocatedHierarchyIntegrator", get_database("INSCollocatedHierarchyIntegrator"));
         }
         else
         {
@@ -394,14 +399,14 @@ Solver::setup_eulerian_data()
         if (input_db.keyExists("VelocityInitialConditions"))
         {
             Pointer<CartGridFunction> u_init =
-                new muParserCartGridFunction("u_init", get_comp_db("VelocityInitialConditions"), grid_geometry);
+                new muParserCartGridFunction("u_init", get_database("VelocityInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
 
         if (input_db.keyExists("PressureInitialConditions"))
         {
             Pointer<CartGridFunction> p_init =
-                new muParserCartGridFunction("p_init", get_comp_db("PressureInitialConditions"), grid_geometry);
+                new muParserCartGridFunction("p_init", get_database("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
 
@@ -421,7 +426,7 @@ Solver::setup_eulerian_data()
                 const std::string bc_coefs_db_name = bc_coefs_db_name_stream.str();
 
                 u_bc_coefs.emplace_back(
-                    new muParserRobinBcCoefs(bc_coefs_name, get_comp_db(bc_coefs_db_name), grid_geometry));
+                    new muParserRobinBcCoefs(bc_coefs_name, get_database(bc_coefs_db_name), grid_geometry));
             }
 
             // Now that we have the BCs set up we can pass non-owning pointers
@@ -440,12 +445,6 @@ Solver::setup_eulerian_data()
 void
 Solver::setup_lagrangian_data()
 {
-    // convenience lambda
-    auto get_comp_db = [&](const std::string& component)
-    {
-        return app_initializer.getComponentDatabase(component);
-    };
-
     // Set up the mesh:
     {
         const double dx = input_db.getDouble("DX");
@@ -462,8 +461,8 @@ Solver::setup_lagrangian_data()
     // initializeFEEquationSystems.
     {
         ib_method_ops = new IBFEMethod(
-            "IBFEMethod", get_comp_db("IBFEMethod"), &mesh,
-            get_comp_db("GriddingAlgorithm")->getInteger("max_levels"));
+            "IBFEMethod", get_database("IBFEMethod"), &mesh,
+            get_database("GriddingAlgorithm")->getInteger("max_levels"));
 
         ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
         IBFEMethod::PK1StressFcnData PK1_dev_stress_data(PK1_dev_stress_function);
@@ -499,29 +498,23 @@ Solver::setup_lagrangian_data()
 void
 Solver::setup_coupled_data()
 {
-    // convenience lambda
-    auto get_comp_db = [&](const std::string& component)
-    {
-        return app_initializer.getComponentDatabase(component);
-    };
-
     time_integrator = new IBExplicitHierarchyIntegrator(
-        "IBHierarchyIntegrator", get_comp_db("IBHierarchyIntegrator"),
+        "IBHierarchyIntegrator", get_database("IBHierarchyIntegrator"),
         ib_method_ops, navier_stokes_integrator);
 
     // Create Eulerian body force function specification objects.
     if (input_db.keyExists("ForcingFunction"))
     {
         Pointer<CartGridFunction> f_fcn =
-            new muParserCartGridFunction("f_fcn", get_comp_db("ForcingFunction"), grid_geometry);
+            new muParserCartGridFunction("f_fcn", get_database("ForcingFunction"), grid_geometry);
         time_integrator->registerBodyForceFunction(f_fcn);
     }
 
     error_detector = new StandardTagAndInitialize<NDIM>(
-        "StandardTagAndInitialize", time_integrator, get_comp_db("StandardTagAndInitialize"));
+        "StandardTagAndInitialize", time_integrator, get_database("StandardTagAndInitialize"));
 
     gridding_algorithm = new GriddingAlgorithm<NDIM>(
-        "GriddingAlgorithm", get_comp_db("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+        "GriddingAlgorithm", get_database("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
     // Now that we have the gridding algorithm we can initialize patches and
     // (TODO) partition the Lagrangian mesh:
