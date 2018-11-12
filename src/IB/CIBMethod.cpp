@@ -1676,7 +1676,7 @@ CIBMethod::getFromInput(Pointer<Database> input_db)
     if (input_db->keyExists("lambda_filenames"))
     {
         tbox::Array<std::string> lambda_filenames = input_db->getStringArray("lambda_filenames");
-        TBOX_ASSERT(lambda_filenames.size() == (int)d_num_rigid_parts);
+        TBOX_ASSERT(lambda_filenames.size() == static_cast<int>(d_num_rigid_parts));
         for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
         {
             d_lambda_filename[struct_no] = lambda_filenames[struct_no];
@@ -1686,7 +1686,7 @@ CIBMethod::getFromInput(Pointer<Database> input_db)
     if (input_db->keyExists("weight_filenames"))
     {
         tbox::Array<std::string> weight_filenames = input_db->getStringArray("weight_filenames");
-        TBOX_ASSERT(weight_filenames.size() == (int)d_num_rigid_parts);
+        TBOX_ASSERT(weight_filenames.size() == static_cast<int>(d_num_rigid_parts));
         for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
         {
             d_reg_filename[struct_no] = weight_filenames[struct_no];

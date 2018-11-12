@@ -876,7 +876,7 @@ RelaxationLSMethod::computeRegionVolume(Pointer<HierarchyMathOps> hier_math_ops,
             const double* const patch_dx = patch_geom->getDx();
             double alpha = 1.0;
             for (int d = 0; d < NDIM; ++d) alpha *= patch_dx[d];
-            alpha = std::pow(alpha, 1.0 / ((double)NDIM));
+            alpha = std::pow(alpha, 1.0 / static_cast<double>(NDIM));
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {

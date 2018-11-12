@@ -122,7 +122,7 @@ build_local_marker_cloud(DBfile* dbfile,
         // Get the coordinate data.
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            block_X[d * nmarks + i] = float(X[NDIM * i + d]);
+            block_X[d * nmarks + i] = static_cast<float>(X[NDIM * i + d]);
         }
 
         // Get the variable data.
@@ -133,7 +133,7 @@ build_local_marker_cloud(DBfile* dbfile,
             const int vardepth = vardepths[v];
             for (int d = 0; d < varplotdepth; ++d)
             {
-                block_varvals[v][d * nmarks + i] = float(varvals[v][vardepth * i + varstartdepth + d]);
+                block_varvals[v][d * nmarks + i] = static_cast<float>(varvals[v][vardepth * i + varstartdepth + d]);
             }
         }
     }
@@ -149,7 +149,7 @@ build_local_marker_cloud(DBfile* dbfile,
 
     // Write out the variables.
     int cycle = time_step;
-    auto time = float(simulation_time);
+    auto time = static_cast<float>(simulation_time);
     double dtime = simulation_time;
 
     static const int MAX_OPTS = 3;
@@ -279,7 +279,7 @@ build_local_curv_block(DBfile* dbfile,
                 // Get the coordinate data.
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    block_X[d * ntot + offset] = float(X[NDIM * idx + d]);
+                    block_X[d * ntot + offset] = static_cast<float>(X[NDIM * idx + d]);
                 }
 
                 // Get the variable data.
@@ -290,7 +290,7 @@ build_local_curv_block(DBfile* dbfile,
                     const int vardepth = vardepths[v];
                     for (int d = 0; d < varplotdepth; ++d)
                     {
-                        block_varvals[v][d * ntot + offset] = float(varvals[v][vardepth * idx + varstartdepth + d]);
+                        block_varvals[v][d * ntot + offset] = static_cast<float>(varvals[v][vardepth * idx + varstartdepth + d]);
                     }
                 }
 
@@ -315,7 +315,7 @@ build_local_curv_block(DBfile* dbfile,
 
     // Write out the variables.
     int cycle = time_step;
-    auto time = float(simulation_time);
+    auto time = static_cast<float>(simulation_time);
     double dtime = simulation_time;
 
     static const int MAX_OPTS = 3;
@@ -447,7 +447,7 @@ build_local_ucd_mesh(DBfile* dbfile,
         // Get the coordinate data.
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            block_X[d * ntot + offset] = float(X[NDIM * offset + d]);
+            block_X[d * ntot + offset] = static_cast<float>(X[NDIM * offset + d]);
         }
 
         // Get the variable data.
@@ -458,7 +458,7 @@ build_local_ucd_mesh(DBfile* dbfile,
             const int vardepth = vardepths[v];
             for (int d = 0; d < varplotdepth; ++d)
             {
-                block_varvals[v][d * ntot + offset] = float(varvals[v][vardepth * offset + varstartdepth + d]);
+                block_varvals[v][d * ntot + offset] = static_cast<float>(varvals[v][vardepth * offset + varstartdepth + d]);
             }
         }
 
@@ -504,7 +504,7 @@ build_local_ucd_mesh(DBfile* dbfile,
     int ndims = NDIM;
 
     int cycle = time_step;
-    auto time = float(simulation_time);
+    auto time = static_cast<float>(simulation_time);
     double dtime = simulation_time;
 
     static const int MAX_OPTS = 3;
@@ -1820,7 +1820,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
         }
 
         int cycle = time_step_number;
-        auto time = float(simulation_time);
+        auto time = static_cast<float>(simulation_time);
         double dtime = simulation_time;
 
         static const int MAX_OPTS = 3;

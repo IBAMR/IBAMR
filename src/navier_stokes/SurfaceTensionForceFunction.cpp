@@ -388,7 +388,7 @@ SurfaceTensionForceFunction::convertToHeaviside(int phi_idx,
             const double* const patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-            double eps = d_num_interface_cells * std::pow(vol_cell, 1.0 / (double)NDIM);
+            double eps = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
             const Box<NDIM>& patch_box = patch->getBox();
             Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);
