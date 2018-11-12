@@ -610,6 +610,9 @@ Solver::run()
     // - time_integrator->initializePatchHierarchy requires ib_method_ops to
     //   have called initializeFEData (which completely sets it up)
     //
+    // In principle, there should be a way to initialize the postprocessor
+    // after initializing the timestepper, but this does not seem possible at
+    // the present time (we get assertion failures in libMesh).
     setup_output_writers();
 
     setup_coupled_data();
