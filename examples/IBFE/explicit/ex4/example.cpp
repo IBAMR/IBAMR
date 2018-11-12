@@ -263,8 +263,6 @@ class Solver
 public:
     Solver(int argc, char** argv, const LibMeshInit& init);
 
-    ~Solver();
-
     void run();
 
 protected:
@@ -292,9 +290,10 @@ protected:
     Pointer<LoadBalancer<NDIM> > load_balancer;
     Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm;
 
-    // Fluid data.
+    // Fluid data. navier_stokes_integrator stores pointers to elements of
+    // u_bc_coefs.
+    std::vector<std::unique_ptr<RobinBcCoefStrategy<NDIM>>> u_bc_coefs;
     Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
-    std::vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs;
 
     // coupled data.
     Pointer<IBFEMethod> ib_method_ops;
@@ -353,10 +352,7 @@ Solver::Solver(int argc, char** argv, const LibMeshInit& init)
     beta_s = input_db.getDouble("BETA_S");
 }
 
-Solver::~Solver()
-{
-    for (RobinBcCoefStrategy<NDIM>* ptr : u_bc_coefs) delete ptr;
-}
+
 
 void
 Solver::setup_eulerian_data()
@@ -424,14 +420,22 @@ Solver::setup_eulerian_data()
                 bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
                 const std::string bc_coefs_db_name = bc_coefs_db_name_stream.str();
 
-                u_bc_coefs.push_back(
+                u_bc_coefs.emplace_back(
                     new muParserRobinBcCoefs(bc_coefs_name, get_comp_db(bc_coefs_db_name), grid_geometry));
             }
 
-            navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
+            // Now that we have the BCs set up we can pass non-owning pointers
+            // into the Navier Stokes integrator.
+            std::vector<RobinBcCoefStrategy<NDIM> *> bcs;
+            for (std::unique_ptr<RobinBcCoefStrategy<NDIM>> &bc : u_bc_coefs)
+                bcs.push_back(bc.get());
+
+            navier_stokes_integrator->registerPhysicalBoundaryConditions(bcs);
         }
     }
 }
+
+
 
 void
 Solver::setup_lagrangian_data()
