@@ -1402,8 +1402,8 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
     }
 
     // Get the position data
-    double* XW = nullptr;
-    if (rank == managing_rank) XW = new double[size];
+    std::vector<double> XW;
+    if (rank == managing_rank) XW.resize(size);
     Vec X;
     if (initial_time)
     {
@@ -1416,7 +1416,7 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
         getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
         X = (*X_half_data)[struct_ln]->getVec();
     }
-    copyVecToArray(X, XW, prototype_struct_ids, /*depth*/ NDIM, managing_rank);
+    copyVecToArray(X, XW.data(), prototype_struct_ids, /*depth*/ NDIM, managing_rank);
 
     // Generate mobility matrix
     if (rank == managing_rank)
@@ -1424,7 +1424,7 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
         if (mat_type == RPY)
         {
             MobilityFunctions::constructRPYMobilityMatrix(
-                ib_kernel, mu, grid_dx[0], &XW[0], num_nodes, f_periodic_corr, mobility_mat_data);
+                ib_kernel, mu, grid_dx[0], XW.data(), num_nodes, f_periodic_corr, mobility_mat_data);
         }
         else if (mat_type == EMPIRICAL)
         {
@@ -1433,7 +1433,7 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
                                                                 rho,
                                                                 dt,
                                                                 grid_dx[0],
-                                                                &XW[0],
+                                                                XW.data(),
                                                                 num_nodes,
                                                                 0,
                                                                 f_periodic_corr,
@@ -1448,7 +1448,7 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
 
     // Regularize the mobility matrix
     Vec W = d_l_data_manager->getLData("regulator", struct_ln)->getVec();
-    copyVecToArray(W, XW, prototype_struct_ids, /*depth*/ NDIM, managing_rank);
+    copyVecToArray(W, XW.data(), prototype_struct_ids, /*depth*/ NDIM, managing_rank);
     if (rank == managing_rank)
     {
         for (int i = 0; i < size; ++i)
@@ -1462,7 +1462,6 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
                 }
             }
         }
-        delete[] XW;
         MatDenseRestoreArray(mobility_mat, &mobility_mat_data);
     }
 
@@ -1490,10 +1489,10 @@ CIBMethod::constructGeometricMatrix(const std::string& /*mat_name*/,
     int block_size = s_max_free_dofs;
 
     // Get the position data.
-    double* X_data = nullptr;
-    if (rank == managing_rank) X_data = new double[row_size];
+    std::vector<double> X_data;
+    if (rank == managing_rank) X_data.resize(row_size);
     Vec X = d_l_data_manager->getLData("X0_unshifted", struct_ln)->getVec();
-    copyVecToArray(X, X_data, prototype_struct_ids, /*depth*/ NDIM, managing_rank);
+    copyVecToArray(X, X_data.data(), prototype_struct_ids, /*depth*/ NDIM, managing_rank);
 
     // Fill the geometric matrix.
     if (rank == managing_rank)
@@ -1555,7 +1554,6 @@ CIBMethod::constructGeometricMatrix(const std::string& /*mat_name*/,
 #endif
             }
         }
-        delete[] X_data;
         MatDenseRestoreArray(geometric_mat, &geometric_mat_data);
     }
 
