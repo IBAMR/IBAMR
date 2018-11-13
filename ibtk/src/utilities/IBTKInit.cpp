@@ -50,10 +50,9 @@ IBTKInit::IBTKInit(int argc, char** argv, IBTK_MPI::comm communicator, char* pet
 #if SAMRAI_VERSION_MAJOR > 2
     SAMRAIManager::initialize();
     IBTK_MPI::init(comm);
-#else
-    SAMRAI_MPI::setCommunicator(communicator);
 #endif
     SAMRAI_MPI::setCommunicator(communicator);
+    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 }
 

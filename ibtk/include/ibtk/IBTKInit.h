@@ -75,6 +75,21 @@ public:
     ~IBTKInit();
 
     /**
+     * Set maximum number of patch data entries supported by SAMRAI.
+     */
+    static void setMaxNumberPatchDataEntries(int a)
+    {
+        SAMRAI::tbox::SAMRAIManager::setMaxNumberPatchDataEntries(a);
+    }
+
+    /**
+     * Set flag indicating whether exit or MPI_Abort is called when running with one processor.
+     */
+    static void setCallAbortInSerialInsteadOfExit()
+    {
+        SAMRAI::tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
+    }
+    /**
      * Get libMesh initialization object.
      */
     std::shared_ptr<libMesh::LibMeshInit> getLibMeshInit()
@@ -88,6 +103,11 @@ public:
     }
 
 private:
+    IBTKInit() = delete;
+
+    IBTKInit(const IBTKInit& from) = delete;
+
+    IBTKInit& operator=(const IBTKInit& that) = delete;
 #ifdef IBTK_HAVE_LIBMESH
     std::shared_ptr<libMesh::LibMeshInit> d_libmesh_init;
 #endif
