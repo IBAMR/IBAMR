@@ -1102,8 +1102,8 @@ CIBSaddlePointSolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void* /*mctx*
     }
 
     std::streamsize old_precision = tbox::plog.precision(16);
-    tbox::plog << std::scientific << it << " SP_KSP " << print_normtype << " resid norm " << (double)rnorm
-               << " true resid norm " << (double)truenorm << " ||r(i)||/||b|| " << (double)(truenorm / bnorm)
+    tbox::plog << std::scientific << it << " SP_KSP " << print_normtype << " resid norm " << rnorm
+               << " true resid norm " << truenorm << " ||r(i)||/||b|| " << truenorm / bnorm
                << std::endl;
     tbox::plog.precision(old_precision);
 

@@ -132,7 +132,7 @@ RNG::genrand(double* rn)
     y ^= TEMPERING_SHIFT_T(y) & TEMPERING_MASK_C;
     y ^= TEMPERING_SHIFT_L(y);
 
-    *rn = ((double)y * 2.3283064365386963e-10); /* reals: [0,1)-interval */
+    *rn = (static_cast<double>(y) * 2.3283064365386963e-10); /* reals: [0,1)-interval */
     return;
 } // genrand
 

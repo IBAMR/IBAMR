@@ -912,7 +912,7 @@ IBAMR::IBHydrodynamicForceEvaluator::registerStructurePlotData(Pointer<VisItData
 
             // Set plot variable to strct_id + 1
             Pointer<CellData<NDIM, double> > inside_strct_data = patch->getPatchData(fobj.inside_strct_idx);
-            inside_strct_data->fillAll((double)strct_id + 1, trim_box);
+            inside_strct_data->fillAll(static_cast<double>(strct_id + 1), trim_box);
         }
     }
 
@@ -974,7 +974,7 @@ IBAMR::IBHydrodynamicForceEvaluator::updateStructurePlotData(Pointer<PatchHierar
 
             // Set plot variable to strct_id + 1
             Pointer<CellData<NDIM, double> > inside_strct_data = patch->getPatchData(fobj.inside_strct_idx);
-            inside_strct_data->fillAll((double)strct_id + 1, trim_box);
+            inside_strct_data->fillAll(static_cast<double>(strct_id + 1), trim_box);
         }
     }
 

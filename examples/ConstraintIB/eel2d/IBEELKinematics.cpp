@@ -266,15 +266,15 @@ IBEELKinematics::setImmersedBodyLayout(Pointer<PatchHierarchy<NDIM> > patch_hier
     }
 
     // No. of points on the backbone and till head.
-    const int BodyNx = int(ceil(LENGTH_FISH / d_mesh_width[0]));
-    const int HeadNx = int(ceil(LENGTH_HEAD / d_mesh_width[0]));
+    const int BodyNx = static_cast<int>(ceil(LENGTH_FISH / d_mesh_width[0]));
+    const int HeadNx = static_cast<int>(ceil(LENGTH_HEAD / d_mesh_width[0]));
 
     d_ImmersedBodyData.clear();
     for (int i = 1; i <= HeadNx; ++i)
     {
         const double s = (i - 1) * d_mesh_width[0];
         const double section = sqrt(2 * WIDTH_HEAD * s - s * s);
-        const int NumPtsInSection = 2 * int(ceil(section / d_mesh_width[1]));
+        const int NumPtsInSection = 2 * static_cast<int>(ceil(section / d_mesh_width[1]));
         d_ImmersedBodyData.insert(std::make_pair(s, NumPtsInSection));
     }
 
@@ -282,7 +282,7 @@ IBEELKinematics::setImmersedBodyLayout(Pointer<PatchHierarchy<NDIM> > patch_hier
     {
         const double s = (i - 1) * d_mesh_width[0];
         const double section = WIDTH_HEAD * (LENGTH_FISH - s) / (LENGTH_FISH - LENGTH_HEAD);
-        const int NumPtsInHeight = 2 * int(ceil(section / d_mesh_width[1]));
+        const int NumPtsInHeight = 2 * static_cast<int>(ceil(section / d_mesh_width[1]));
         d_ImmersedBodyData.insert(std::make_pair(s, NumPtsInHeight));
     }
 
@@ -355,7 +355,7 @@ IBEELKinematics::transformManeuverAxisAndCalculateTangents(const double angleFro
     d_map_transformed_tangent.clear();
     d_map_transformed_sign.clear();
 
-    const int BodyNx = int(ceil(LENGTH_FISH / d_mesh_width[0]));
+    const int BodyNx = static_cast<int>(ceil(LENGTH_FISH / d_mesh_width[0]));
     std::vector<double> transformed_coord(2);
     for (int i = 0; i <= (BodyNx - 1); ++i)
     {
@@ -451,7 +451,7 @@ IBEELKinematics::setEelSpecificVelocity(const double time,
                 radius_circular_path = std::abs(CUT_OFF_RADIUS * std::pow((CUT_OFF_ANGLE / angle_bw_target_vision), 1));
             }
             // set the reference maneuver axis coordinates.
-            const int BodyNx = int(ceil(LENGTH_FISH / d_mesh_width[0]));
+            const int BodyNx = static_cast<int>(ceil(LENGTH_FISH / d_mesh_width[0]));
             if (radius_circular_path != __INFINITY)
             {
                 const double angle_sector = LENGTH_FISH / radius_circular_path;

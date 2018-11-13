@@ -340,7 +340,7 @@ IBRedundantInitializer::initializeStructurePosition()
 #endif
 
             // Shift and scale the position of structures
-            for (unsigned int k = 0; k < unsigned(d_num_vertex[ln][j]); ++k)
+            for (unsigned int k = 0; k < static_cast<unsigned>(d_num_vertex[ln][j]); ++k)
             {
                 Point& X = d_vertex_posn[ln][j][k];
                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -586,7 +586,7 @@ IBRedundantInitializer::initializeDirectorAndRods()
 
                 const int min_idx = 0;
                 const int max_idx = d_num_vertex[ln][j];
-                if (d_directors[ln][j].size() != unsigned(max_idx))
+                if (d_directors[ln][j].size() != static_cast<unsigned>(max_idx))
                 {
                     TBOX_ERROR(d_object_name << "\n Not enough director vectors supplied for structure " << j
                                              << "on level " << ln << ".");
@@ -811,7 +811,7 @@ IBRedundantInitializer::initializeInstrumentationData()
                                                  << " is out of range.\n");
                     }
                     std::pair<int, int>& meter_map = it->second;
-                    if (meter_map.first < 0 || unsigned(meter_map.first) >= instrument_names.size())
+                    if (meter_map.first < 0 || static_cast<unsigned>(meter_map.first) >= instrument_names.size())
                     {
                         TBOX_ERROR(d_object_name << ":\n Invalid meter number on level " << ln
                                                  << " and structure number " << j << ".\n Meter index "

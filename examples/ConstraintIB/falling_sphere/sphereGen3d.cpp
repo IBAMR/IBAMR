@@ -62,7 +62,7 @@ main()
 
     std::fstream sphere_coord_stream;
     sphere_coord_stream.open("sphere3d.vertex", std::fstream::out);
-    assert((unsigned)total_lag_pts == sphere_coords[0].size());
+    assert(static_cast<std::size_t>(total_lag_pts) == sphere_coords[0].size());
     sphere_coord_stream << total_lag_pts << "\n";
     for (int k = 0; k < total_lag_pts; ++k)
     {

@@ -109,7 +109,7 @@ VelocityInitialCondition::setDataOnPatch(const int data_idx,
         const double* const patch_dx = patch_geom->getDx();
         double vol_cell = 1.0;
         for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-        double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / (double)NDIM);
+        double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
         const Box<NDIM>& patch_box = patch->getBox();
         for (int axis = 0; axis < NDIM; ++axis)
         {
