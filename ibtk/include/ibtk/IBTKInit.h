@@ -79,9 +79,9 @@ public:
     /**
      * Get libMesh initialization object.
      */
-    libMesh::LibMeshInit& getLibMeshInit()
+    static libMesh::LibMeshInit* getLibMeshInit()
     {
-        return d_libmesh_init;
+        return s_libmesh_init;
     }
 #endif
 private:
@@ -101,7 +101,7 @@ private:
     IBTKInit& operator=(const IBTKInit& that) = delete;
 
 #ifdef IBTK_HAVE_LIBMESH
-    libMesh::LibMeshInit d_libmesh_init;
+    static libMesh::LibMeshInit* s_libmesh_init;
 #endif
 };
 

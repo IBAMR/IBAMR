@@ -38,6 +38,8 @@
 namespace IBTK
 {
 /////////////////////////////// STATIC //////////////////////////////////////
+LibMeshInit* IBTKInit::s_libmesh_init = nullptr;
+
 IBTKInit&
 IBTKInit::initialize(int argc, char** argv, IBTK_MPI::comm communicator, char* petsc_file, char* petsc_help)
 {
@@ -49,12 +51,11 @@ IBTKInit::initialize(int argc, char** argv, IBTK_MPI::comm communicator, char* p
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 IBTKInit::IBTKInit(int argc, char** argv, IBTK_MPI::comm communicator, char* petsc_file, char* petsc_help)
-#ifdef IBTK_HAVE_LIBMESH
-    : d_libmesh_init(argc, argv, communicator)
 {
+#ifdef IBTK_HAVE_LIBMESH
+    s_libmesh_init = new LibMeshInit(argc, argv, communicator);
     libMesh::ReferenceCounter::disable_print_counter_info();
 #else
-{
     // We need to initialize PETSc.
     PetscInitialize(&argc, &argv, petsc_file, petsc_help);
 #endif
