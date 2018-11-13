@@ -290,8 +290,9 @@ protected:
     Pointer<LoadBalancer<NDIM> > load_balancer;
     Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm;
 
-    // Fluid data. navier_stokes_integrator stores pointers to elements of
-    // u_bc_coefs.
+    // Fluid data. navier_stokes_integrator stores non-owning pointers to
+    // elements of u_bc_coefs, so it must be destroyed before
+    // navier_stokes_integrator.
     std::vector<std::unique_ptr<RobinBcCoefStrategy<NDIM>>> u_bc_coefs;
     Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
 
@@ -303,6 +304,7 @@ protected:
     std::unique_ptr<IBFEPostProcessor> postprocessor;
     std::unique_ptr<ExodusII_IO> exodus_io;
 
+    // convenience method for accessing databases.
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
     get_database(const std::string &component_name);
 
@@ -604,6 +606,9 @@ Solver::run()
     // - time_integrator->initializePatchHierarchy requires ib_method_ops to
     //   have called initializeFEData (which completely sets it up)
     //
+    // In principle, there should be a way to initialize the postprocessor
+    // after initializing the timestepper, but this does not seem possible at
+    // the present time (we get assertion failures in libMesh).
     setup_output_writers();
 
     setup_coupled_data();
