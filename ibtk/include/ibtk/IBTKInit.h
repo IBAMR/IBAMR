@@ -65,7 +65,7 @@ public:
      */
     IBTKInit(int argc,
               char** argvmake,
-              IBTK_MPI::comm communicator = PETSC_COMM_WORLD,
+              IBTK_MPI::comm communicator = MPI_COMM_WORLD,
               char* petsc_file = nullptr,
               char* petsc_help = nullptr);
 

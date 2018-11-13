@@ -77,7 +77,6 @@ run_example(int argc, char* argv[], std::vector<double>& u_err, std::vector<doub
     // Initialize PETSc, MPI, and SAMRAI.
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     IBTKInit init(argc, argv, PETSC_COMM_WORLD, NULL, NULL);
-    IBTKInit init2(argc, argv, PETSC_COMM_WORLD, NULL, NULL);
     // resize u_err and p_err vectors to hold error data
     u_err.resize(3);
     p_err.resize(3);
