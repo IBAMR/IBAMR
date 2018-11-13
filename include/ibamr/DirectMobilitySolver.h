@@ -266,8 +266,8 @@ private:
 
     // Structure(s) stuff.
     //\{
-    std::map<std::string, std::pair<double*, double*> > d_mat_map;
-    std::map<std::string, double*> d_geometric_mat_map;
+    std::map<std::string, std::pair<std::vector<double>, std::vector<double>> > d_mat_map;
+    std::map<std::string, std::vector<double>> d_geometric_mat_map;
     std::map<std::string, int> d_mat_proc_map;
     std::map<std::string, std::vector<unsigned> > d_mat_prototype_id_map;
     std::map<std::string, std::vector<std::vector<unsigned> > > d_mat_actual_id_map;
@@ -277,7 +277,7 @@ private:
     std::map<std::string, unsigned int> d_mat_parts_map;
     std::map<std::string, std::pair<double, double> > d_mat_scale_map;
     std::map<std::string, std::string> d_mat_filename_map;
-    std::map<std::string, std::pair<int*, int*> > d_ipiv_map; // permutation matrices for LU
+    std::map<std::string, std::pair<std::vector<int>, std::vector<int>> > d_ipiv_map; // permutation matrices for LU
 
     // PETSc representation of matrices.
     std::map<std::string, std::pair<Mat, Mat> > d_petsc_mat_map;

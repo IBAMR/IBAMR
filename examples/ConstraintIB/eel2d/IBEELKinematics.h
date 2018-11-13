@@ -254,9 +254,9 @@ private:
     /*!
      * Time and position variables.
      */
-    double* d_parser_time;
-    double* d_parser_posn;
-    double* d_parser_normal;
+    mutable double d_parser_time;
+    mutable IBTK::Point d_parser_posn;
+    mutable IBTK::Point d_parser_normal;
 
     /*!
      * Array containing initial coordinates of the food location.

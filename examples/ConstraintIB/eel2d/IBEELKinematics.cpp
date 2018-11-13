@@ -83,9 +83,7 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
       d_incremented_angle_from_reference_axis(3),
       d_tagged_pt_position(3),
       d_mesh_width(NDIM),
-      d_parser_time(new double),
-      d_parser_posn(new double[NDIM]),
-      d_parser_normal(new double[NDIM])
+      d_parser_time(0.0)
 {
     // Read from inputdb
     d_initAngle_bodyAxis_x = input_db->getDoubleWithDefault("initial_angle_body_axis_0", 0.0);
@@ -149,22 +147,22 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
         (*cit)->DefineConst("PI", pi);
 
         // Variables
-        (*cit)->DefineVar("T", d_parser_time);
-        (*cit)->DefineVar("t", d_parser_time);
+        (*cit)->DefineVar("T", &d_parser_time);
+        (*cit)->DefineVar("t", &d_parser_time);
         for (int d = 0; d < NDIM; ++d)
         {
             std::ostringstream stream;
             stream << d;
             const std::string postfix = stream.str();
-            (*cit)->DefineVar("X" + postfix, &(d_parser_posn[d]));
-            (*cit)->DefineVar("x" + postfix, &(d_parser_posn[d]));
-            (*cit)->DefineVar("X_" + postfix, &(d_parser_posn[d]));
-            (*cit)->DefineVar("x_" + postfix, &(d_parser_posn[d]));
+            (*cit)->DefineVar("X" + postfix, d_parser_posn.data()+d);
+            (*cit)->DefineVar("x" + postfix, d_parser_posn.data()+d);
+            (*cit)->DefineVar("X_" + postfix, d_parser_posn.data()+d);
+            (*cit)->DefineVar("x_" + postfix, d_parser_posn.data()+d);
 
-            (*cit)->DefineVar("N" + postfix, &(d_parser_normal[d]));
-            (*cit)->DefineVar("n" + postfix, &(d_parser_normal[d]));
-            (*cit)->DefineVar("N_" + postfix, &(d_parser_normal[d]));
-            (*cit)->DefineVar("n_" + postfix, &(d_parser_normal[d]));
+            (*cit)->DefineVar("N" + postfix, d_parser_normal.data()+d);
+            (*cit)->DefineVar("n" + postfix, d_parser_normal.data()+d);
+            (*cit)->DefineVar("N_" + postfix, d_parser_normal.data()+d);
+            (*cit)->DefineVar("n_" + postfix, d_parser_normal.data()+d);
         }
     }
 
@@ -193,9 +191,8 @@ IBEELKinematics::~IBEELKinematics()
     {
         delete (*cit);
     }
-    delete d_parser_time;
-    delete[] d_parser_posn;
-    delete[] d_parser_normal;
+    //delete d_parser_time;
+
 
     return;
 
@@ -397,7 +394,7 @@ IBEELKinematics::setEelSpecificVelocity(const double time,
                                         const std::vector<double>& center_of_mass,
                                         const std::vector<double>& tagged_pt_position)
 {
-    *d_parser_time = time;
+    d_parser_time = time;
     const double angleFromHorizontal = d_initAngle_bodyAxis_x + incremented_angle_from_reference_axis[2];
 
     if (d_bodyIsManeuvering)
@@ -595,7 +592,7 @@ IBEELKinematics::setShape(const double time, const std::vector<double>& /*increm
 
     // Find the deformed shape. Rotate the shape about center of mass.
     TBOX_ASSERT(d_new_time == time);
-    *d_parser_time = time;
+    d_parser_time = time;
     std::vector<double> shape_new(NDIM);
 
     int lag_idx = -1;
