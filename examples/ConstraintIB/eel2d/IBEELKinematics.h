@@ -35,14 +35,14 @@
 
 /////////////////////////////////////// INCLUDES ////////////////////////////////
 #include <iostream>
-#include <vector>
 #include <map>
+#include <vector>
 
+#include "PatchHierarchy.h"
 #include "ibamr/ConstraintIBKinematics.h"
+#include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
-#include "tbox/Array.h"
-#include "PatchHierarchy.h"
 
 namespace mu
 {
@@ -213,12 +213,12 @@ private:
     std::map<double, double> d_map_transformed_tangent;
 
     /*!
-    * map of tangents along the body/maneuver axis in reference/unrotated frame.The key used is arc length 's' and it
-    * stores only the abs(theta).
-    * Sign of tangent is stored separately. This is done to avoid a lot of if conditions needed to determine the
-    * quadrant of the
-    * angle.
-    */
+     * map of tangents along the body/maneuver axis in reference/unrotated frame.The key used is arc length 's' and it
+     * stores only the abs(theta).
+     * Sign of tangent is stored separately. This is done to avoid a lot of if conditions needed to determine the
+     * quadrant of the
+     * angle.
+     */
     std::map<double, double> d_map_reference_tangent;
 
     /*!
@@ -246,8 +246,8 @@ private:
     mu::Parser* d_body_shape_parser;
 
     /*!
-    * The mu::Parser objects which evaluate the data-setting functions.
-    */
+     * The mu::Parser objects which evaluate the data-setting functions.
+     */
     std::vector<mu::Parser*> d_deformationvel_parsers;
     std::vector<mu::Parser*> d_all_parsers;
 
@@ -265,5 +265,5 @@ private:
 
 }; // IBEELKinematics
 
-} // IBAMR
+} // namespace IBAMR
 #endif //#ifndef included_IBEELKinematics

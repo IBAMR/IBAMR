@@ -35,13 +35,13 @@
 #include <fstream>
 #include <iostream>
 
+#include "CartesianPatchGeometry.h"
 #include "IBEELKinematics.h"
 #include "PatchLevel.h"
-#include "CartesianPatchGeometry.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/MathUtilities.h"
 #include "ibamr/namespaces.h"
 #include "muParser.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/SAMRAI_MPI.h"
 
 namespace IBAMR
 {
@@ -66,7 +66,7 @@ static const double CUT_OFF_ANGLE = PII / 4;
 static const double CUT_OFF_RADIUS = 0.7;
 static const double LOWER_CUT_OFF_ANGLE = 7 * PII / 180;
 
-} // namespace unknown
+} // namespace
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -107,12 +107,8 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
         {
             deformationvel_function_strings.push_back("0.0");
             TBOX_WARNING("IBEELKinematics::IBEELKinematics() :\n"
-                         << "  no function corresponding to key ``"
-                         << key_name
-                         << " '' found for dimension = "
-                         << d
-                         << "; using def_vel = 0.0. "
-                         << std::endl);
+                         << "  no function corresponding to key ``" << key_name << " '' found for dimension = " << d
+                         << "; using def_vel = 0.0. " << std::endl);
         }
 
         d_deformationvel_parsers.push_back(new mu::Parser());
@@ -154,15 +150,15 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
             std::ostringstream stream;
             stream << d;
             const std::string postfix = stream.str();
-            (*cit)->DefineVar("X" + postfix, d_parser_posn.data()+d);
-            (*cit)->DefineVar("x" + postfix, d_parser_posn.data()+d);
-            (*cit)->DefineVar("X_" + postfix, d_parser_posn.data()+d);
-            (*cit)->DefineVar("x_" + postfix, d_parser_posn.data()+d);
+            (*cit)->DefineVar("X" + postfix, d_parser_posn.data() + d);
+            (*cit)->DefineVar("x" + postfix, d_parser_posn.data() + d);
+            (*cit)->DefineVar("X_" + postfix, d_parser_posn.data() + d);
+            (*cit)->DefineVar("x_" + postfix, d_parser_posn.data() + d);
 
-            (*cit)->DefineVar("N" + postfix, d_parser_normal.data()+d);
-            (*cit)->DefineVar("n" + postfix, d_parser_normal.data()+d);
-            (*cit)->DefineVar("N_" + postfix, d_parser_normal.data()+d);
-            (*cit)->DefineVar("n_" + postfix, d_parser_normal.data()+d);
+            (*cit)->DefineVar("N" + postfix, d_parser_normal.data() + d);
+            (*cit)->DefineVar("n" + postfix, d_parser_normal.data() + d);
+            (*cit)->DefineVar("N_" + postfix, d_parser_normal.data() + d);
+            (*cit)->DefineVar("n_" + postfix, d_parser_normal.data() + d);
         }
     }
 
@@ -191,9 +187,6 @@ IBEELKinematics::~IBEELKinematics()
     {
         delete (*cit);
     }
-    //delete d_parser_time;
-
-
     return;
 
 } // ~IBEELKinematics
@@ -222,8 +215,7 @@ IBEELKinematics::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
 
     d_current_time = db->getDouble("d_current_time");

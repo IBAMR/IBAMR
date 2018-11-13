@@ -61,8 +61,8 @@ class Parser;
 namespace IBAMR
 {
 /*!
-* \brief Class RigidBodyKinematics provides definition for base ConstraintIBKinematics class.
-*/
+ * \brief Class RigidBodyKinematics provides definition for base ConstraintIBKinematics class.
+ */
 class RigidBodyKinematics : public ConstraintIBKinematics
 {
 public:
@@ -176,6 +176,6 @@ private:
 
 }; // RigidBodyKinematics
 
-} // IBAMR
+} // namespace IBAMR
 
 #endif // included_RgidBodyKinematics
