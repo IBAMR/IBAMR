@@ -370,10 +370,13 @@ Solver::setup_eulerian_data()
 {
     // First part: set up the basic SAMRAI objects:
     {
-        grid_geometry = new CartesianGridGeometry<NDIM>("CartesianGeometry", get_database("CartesianGeometry"));
-        patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        grid_geometry = new CartesianGridGeometry<NDIM>("CartesianGeometry",
+                                                        get_database("CartesianGeometry"));
+        patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy",
+                                                   grid_geometry);
         box_generator = new BergerRigoutsos<NDIM>();
-        load_balancer = new LoadBalancer<NDIM>("LoadBalancer", get_database("LoadBalancer"));
+        load_balancer = new LoadBalancer<NDIM>("LoadBalancer",
+                                               get_database("LoadBalancer"));
     }
 
     // Second part: set up the relevant IBAMR object:
@@ -382,12 +385,14 @@ Solver::setup_eulerian_data()
         if (solver_type == "STAGGERED")
         {
             navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
-                "INSStaggeredHierarchyIntegrator", get_database("INSStaggeredHierarchyIntegrator"));
+                "INSStaggeredHierarchyIntegrator",
+                get_database("INSStaggeredHierarchyIntegrator"));
         }
         else if (solver_type == "COLLOCATED")
         {
             navier_stokes_integrator = new INSCollocatedHierarchyIntegrator(
-                "INSCollocatedHierarchyIntegrator", get_database("INSCollocatedHierarchyIntegrator"));
+                "INSCollocatedHierarchyIntegrator",
+                get_database("INSCollocatedHierarchyIntegrator"));
         }
         else
         {
@@ -399,14 +404,16 @@ Solver::setup_eulerian_data()
         if (input_db.keyExists("VelocityInitialConditions"))
         {
             Pointer<CartGridFunction> u_init =
-                new muParserCartGridFunction("u_init", get_database("VelocityInitialConditions"), grid_geometry);
+                new muParserCartGridFunction("u_init", get_database("VelocityInitialConditions"),
+                                             grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
 
         if (input_db.keyExists("PressureInitialConditions"))
         {
             Pointer<CartGridFunction> p_init =
-                new muParserCartGridFunction("p_init", get_database("PressureInitialConditions"), grid_geometry);
+                new muParserCartGridFunction("p_init", get_database("PressureInitialConditions"),
+                                             grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
 
@@ -426,7 +433,8 @@ Solver::setup_eulerian_data()
                 const std::string bc_coefs_db_name = bc_coefs_db_name_stream.str();
 
                 u_bc_coefs.emplace_back(
-                    new muParserRobinBcCoefs(bc_coefs_name, get_database(bc_coefs_db_name), grid_geometry));
+                    new muParserRobinBcCoefs(bc_coefs_name, get_database(bc_coefs_db_name),
+                                             grid_geometry));
             }
 
             // Now that we have the BCs set up we can pass non-owning pointers
@@ -506,7 +514,8 @@ Solver::setup_coupled_data()
     if (input_db.keyExists("ForcingFunction"))
     {
         Pointer<CartGridFunction> f_fcn =
-            new muParserCartGridFunction("f_fcn", get_database("ForcingFunction"), grid_geometry);
+            new muParserCartGridFunction("f_fcn", get_database("ForcingFunction"),
+                                         grid_geometry);
         time_integrator->registerBodyForceFunction(f_fcn);
     }
 
@@ -514,7 +523,8 @@ Solver::setup_coupled_data()
         "StandardTagAndInitialize", time_integrator, get_database("StandardTagAndInitialize"));
 
     gridding_algorithm = new GriddingAlgorithm<NDIM>(
-        "GriddingAlgorithm", get_database("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+        "GriddingAlgorithm", get_database("GriddingAlgorithm"), error_detector, box_generator,
+        load_balancer);
 
     // Now that we have the gridding algorithm we can initialize patches and
     // (TODO) partition the Lagrangian mesh:
@@ -567,7 +577,8 @@ Solver::setup_output_writers()
     Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
     Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
     HierarchyGhostCellInterpolation::InterpolationTransactionComponent p_ghostfill(
-        /*data_idx*/ -1, "LINEAR_REFINE", /*use_cf_bdry_interpolation*/ false, "CONSERVATIVE_COARSEN", "LINEAR");
+        /*data_idx*/ -1, "LINEAR_REFINE", /*use_cf_bdry_interpolation*/ false,
+        "CONSERVATIVE_COARSEN", "LINEAR");
     FEDataManager::InterpSpec p_interp_spec("PIECEWISE_LINEAR",
                                             QGAUSS,
                                             FIFTH,
@@ -623,7 +634,9 @@ Solver::run()
         if (uses_visit)
         {
             time_integrator->setupPlotData();
-            app_initializer.getVisItDataWriter()->writePlotData(patch_hierarchy, iteration_num, loop_time);
+            app_initializer.getVisItDataWriter()->writePlotData(patch_hierarchy,
+                                                                iteration_num,
+                                                                loop_time);
         }
         if (uses_exodus)
         {
@@ -643,7 +656,8 @@ Solver::run()
     // Main time step loop.
     const double loop_time_end = time_integrator->getEndTime();
     double dt = 0.0;
-    while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
+    while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) &&
+           time_integrator->stepsRemaining())
     {
         iteration_num = time_integrator->getIntegratorStep();
         loop_time = time_integrator->getIntegratorTime();
