@@ -64,6 +64,7 @@ IBTKInit::IBTKInit(int argc, char** argv, IBTK_MPI::comm communicator, char* pet
 #endif
     SAMRAI_MPI::setCommunicator(communicator);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
+    SAMRAIManager::setMaxNumberPatchDataEntries(std::max(2048, SAMRAIManager::getMaxNumberPatchDataEntries()));
     SAMRAIManager::startup();
 }
 

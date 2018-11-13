@@ -74,21 +74,6 @@ public:
      * Destructor. Closes libraries appropriately.
      */
     ~IBTKInit();
-    /**
-     * Set maximum number of patch data entries supported by SAMRAI.
-     */
-    static void setMaxNumberPatchDataEntries(int a)
-    {
-        SAMRAI::tbox::SAMRAIManager::setMaxNumberPatchDataEntries(a);
-    }
-
-    /**
-     * Set flag indicating whether exit or MPI_Abort is called when running with one processor.
-     */
-    static void setCallAbortInSerialInsteadOfExit()
-    {
-        SAMRAI::tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    }
 
 #ifdef IBTK_HAVE_LIBMESH
     /**
