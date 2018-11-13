@@ -508,8 +508,8 @@ KrylovFreeBodyMobilitySolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void*
     }
 
     std::streamsize old_precision = tbox::plog.precision(16);
-    tbox::plog << std::scientific << it << " KFBMInv_KSP " << print_normtype << " resid norm " << static_cast<double>(rnorm)
-               << " true resid norm " << static_cast<double>(truenorm) << " ||r(i)||/||b|| " << static_cast<double>(truenorm / bnorm)
+    tbox::plog << std::scientific << it << " KFBMInv_KSP " << print_normtype << " resid norm " << rnorm
+               << " true resid norm " << truenorm << " ||r(i)||/||b|| " << truenorm / bnorm
                << std::endl;
     tbox::plog.precision(old_precision);
     PetscFunctionReturn(0);

@@ -226,7 +226,7 @@ main()
     }
     std::fstream eelstream;
     eelstream.open("eel3d.vertex", std::fstream::out);
-    assert(static_cast<unsigned>(total_lag_pts) == shape_new[0].size());
+    assert(static_cast<std::size_t>(total_lag_pts) == shape_new[0].size());
     eelstream << total_lag_pts << "\n";
 
     for (int k = 1; k <= total_lag_pts; ++k)

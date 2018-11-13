@@ -788,7 +788,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
 
         // Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const auto structs_on_this_ln = static_cast<unsigned>(structIDs.size());
+        const auto structs_on_this_ln = structIDs.size();
 #if !defined(NDEBUG)
         TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
