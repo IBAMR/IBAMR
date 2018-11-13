@@ -291,8 +291,7 @@ protected:
     Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm;
 
     // Fluid data. navier_stokes_integrator stores non-owning pointers to
-    // elements of u_bc_coefs, so it must be destroyed before
-    // navier_stokes_integrator.
+    // elements of u_bc_coefs, so they must be destroyed in this order.
     std::vector<std::unique_ptr<RobinBcCoefStrategy<NDIM> > > u_bc_coefs;
     Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
 
@@ -321,15 +320,12 @@ Solver::Solver(int argc, char** argv, const LibMeshInit& init)
       input_db(*app_initializer.getInputDatabase()),
       dump_viz_data(app_initializer.dumpVizData()),
       viz_dump_interval(app_initializer.getVizDumpInterval()),
-      uses_visit(dump_viz_data && app_initializer.getVisItDataWriter())
+      uses_visit(dump_viz_data && app_initializer.getVisItDataWriter()),
 #ifdef LIBMESH_HAVE_EXODUS_API
-      ,
-      uses_exodus(dump_viz_data && !app_initializer.getExodusIIFilename().empty())
+      uses_exodus(dump_viz_data && !app_initializer.getExodusIIFilename().empty()),
 #else
-      ,
-      uses_exodus(false)
+      uses_exodus(false),
 #endif
-      ,
       exodus_filename(app_initializer.getExodusIIFilename()),
       dump_postproc_data(app_initializer.dumpPostProcessingData()),
       postproc_data_dump_interval(app_initializer.getPostProcessingDataDumpInterval()),
