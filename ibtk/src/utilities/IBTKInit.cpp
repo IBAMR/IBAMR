@@ -37,14 +37,25 @@
 
 namespace IBTK
 {
-IBTKInit::IBTKInit(int argc, char** argv, IBTK_MPI::comm communicator, char* petsc_file, char* petsc_help)
+/////////////////////////////// STATIC //////////////////////////////////////
+IBTKInit&
+IBTKInit::initialize(int argc, char** argv, IBTK_MPI::comm communicator, char* petsc_file, char* petsc_help)
 {
+    static IBTKInit instance(argc, argv, communicator, petsc_file, petsc_help);
+
+    return instance;
+}
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+IBTKInit::IBTKInit(int argc, char** argv, IBTK_MPI::comm communicator, char* petsc_file, char* petsc_help)
 #ifdef IBTK_HAVE_LIBMESH
-    d_libmesh_init = std::make_shared<LibMeshInit>(argc, argv);
+    : d_libmesh_init(argc, argv, communicator)
+{
     libMesh::ReferenceCounter::disable_print_counter_info();
 #else
+{
     // We need to initialize PETSc.
-    // TODO: Should we include a way to pass these extra options to PetscInitialize?
     PetscInitialize(&argc, &argv, petsc_file, petsc_help);
 #endif
 #if SAMRAI_VERSION_MAJOR > 2
@@ -60,6 +71,9 @@ IBTKInit::~IBTKInit()
 {
     pout << "IBTKInit destructor called. Shutting down libraries.\n";
     SAMRAIManager::shutdown();
+#if SAMRAI_VERSION_MAJOR > 3
+    SAMRAIManager::finalize();
+#endif
 #ifndef IBTK_HAVE_LIBMESH
     PetscFinalize();
 #endif

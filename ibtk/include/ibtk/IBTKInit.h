@@ -52,8 +52,9 @@ namespace IBTK
 /**
  * @brief Initialization for IBAMR programs.
  *
- * The IBTKInit class handles the initializations for PETSc, LibMesh, and SAMRAI. This object should be initialized at
- * the start of the main() function. The destruction of the object correctly closes the libraries.
+ * The singleton IBTKInit class handles the initializations for PETSc, LibMesh, and SAMRAI. This object should be
+ * created using the initialize() function at the start of the main() function. The destruction of the object correctly
+ * closes the libraries.
  *
  */
 
@@ -61,19 +62,18 @@ class IBTKInit
 {
 public:
     /**
-     * Constructor for IBTKInit. Initializes libraries and sets the SAMRAI world communicator.
+     * The initialize function creates and returns a static IBTKInit object which initializes all pertinent libraries.
      */
-    IBTKInit(int argc,
-              char** argvmake,
-              IBTK_MPI::comm communicator = MPI_COMM_WORLD,
-              char* petsc_file = nullptr,
-              char* petsc_help = nullptr);
+    static IBTKInit& initialize(int argc,
+                                char** argv,
+                                IBTK_MPI::comm communicator = MPI_COMM_WORLD,
+                                char* petsc_file = nullptr,
+                                char* petsc_help = nullptr);
 
     /**
      * Destructor. Closes libraries appropriately.
      */
     ~IBTKInit();
-
     /**
      * Set maximum number of patch data entries supported by SAMRAI.
      */
@@ -89,27 +89,34 @@ public:
     {
         SAMRAI::tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     }
+
+#ifdef IBTK_HAVE_LIBMESH
     /**
      * Get libMesh initialization object.
      */
-    std::shared_ptr<libMesh::LibMeshInit> getLibMeshInit()
+    libMesh::LibMeshInit& getLibMeshInit()
     {
-#ifdef IBTK_HAVE_LIBMESH
         return d_libmesh_init;
-#else
-        TBOX_ERROR("IBTKInit::getLibMeshInit() \n"
-                   << "IBAMR not compiled with libMesh!\n");
-#endif
     }
-
+#endif
 private:
+    /**
+     * Constructor for IBTKInit. Initializes libraries and sets the SAMRAI world communicator.
+     */
+    IBTKInit(int argc,
+             char** argvmake,
+             IBTK_MPI::comm communicator = MPI_COMM_WORLD,
+             char* petsc_file = nullptr,
+             char* petsc_help = nullptr);
+
     IBTKInit() = delete;
 
     IBTKInit(const IBTKInit& from) = delete;
 
     IBTKInit& operator=(const IBTKInit& that) = delete;
+
 #ifdef IBTK_HAVE_LIBMESH
-    std::shared_ptr<libMesh::LibMeshInit> d_libmesh_init;
+    libMesh::LibMeshInit d_libmesh_init;
 #endif
 };
 
