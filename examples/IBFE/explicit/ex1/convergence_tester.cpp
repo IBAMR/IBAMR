@@ -28,7 +28,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // GENERAL CONFIGURATION
-#include "ibtk/IBTK_Init.h"
+#include "ibtk/IBTKInit.h"
 #include "ibtk/IBTK_MPI.h"
 #include <IBAMR_config.h>
 #include <SAMRAI_config.h>
@@ -78,7 +78,7 @@ main(int argc, char* argv[])
     {
         SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
 
-        IBTK_Init init(argc, argv, PETSC_COMM_WORLD, nullptr, nullptr);
+        IBTKInit init(argc, argv, PETSC_COMM_WORLD, nullptr, nullptr);
         if (argc != 2)
         {
             tbox::pout << "USAGE:  " << argv[0] << " <input filename>\n"

@@ -28,7 +28,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
-#include "ibtk/IBTK_Init.h"
+#include "ibtk/IBTKInit.h"
 #include "ibtk/IBTK_MPI.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
@@ -69,7 +69,7 @@ run_example(int argc, char* argv[], std::vector<double>& C_err)
 {
     // Initialize PETSc, MPI, and SAMRAI.
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    IBTK_Init init(argc, argv, PETSC_COMM_WORLD, NULL, NULL);
+    IBTKInit init(argc, argv, PETSC_COMM_WORLD, NULL, NULL);
 
     //resize C_err to contain calculated error data
     C_err.resize(3);

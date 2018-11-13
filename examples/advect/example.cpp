@@ -28,7 +28,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
-#include "ibtk/IBTK_Init.h"
+#include "ibtk/IBTKInit.h"
 #include "ibtk/IBTK_MPI.h"
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
@@ -72,7 +72,7 @@
 bool run_example(int argc, char* argv[], std::vector<double>& Q_err)
 {
     // Initialize MPI and SAMRAI.
-    IBTK_Init init(argc, argv, MPI_COMM_WORLD, nullptr, nullptr);
+    IBTKInit init(argc, argv, MPI_COMM_WORLD, nullptr, nullptr);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     
     // Resize Q_err to hold error norms

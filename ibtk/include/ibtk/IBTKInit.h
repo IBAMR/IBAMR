@@ -1,4 +1,4 @@
-// Filename: IBTK_Init.cpp
+// Filename: IBTKInit.h
 //
 // Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
@@ -29,41 +29,70 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#ifndef included_IBTKInit
+#define included_IBTKInit
+
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/IBTK_Init.h"
+#include "SAMRAI_config.h"
+#include "tbox/SAMRAIManager.h"
+#include "tbox/SAMRAI_MPI.h"
+#include <IBTK_config.h>
+
+#include <petscsys.h>
+#ifdef IBTK_HAVE_LIBMESH
+#include "libmesh/libmesh.h"
+#include "libmesh/reference_counter.h"
+#endif
+
 #include "ibtk/IBTK_MPI.h"
-#include "ibtk/app_namespaces.h"
 
 namespace IBTK
 {
-IBTK_Init::IBTK_Init(int argc, char** argv, IBTK_MPI::comm communicator, char* petsc_file, char* petsc_help)
-{
-#ifdef IBTK_HAVE_LIBMESH
-    d_libmesh_init = std::make_shared<LibMeshInit>(argc, argv);
-    libMesh::ReferenceCounter::disable_print_counter_info();
-#else
-    // We need to initialize PETSc.
-    // TODO: Should we include a way to pass these extra options to PetscInitialize?
-    PetscInitialize(&argc, &argv, petsc_file, petsc_help);
-#endif
-#if SAMRAI_VERSION_MAJOR > 2
-    SAMRAIManager::initialize();
-    IBTK_MPI::init(comm);
-#else
-    SAMRAI_MPI::setCommunicator(communicator);
-#endif
-    SAMRAI_MPI::setCommunicator(communicator);
-    SAMRAIManager::startup();
-}
+/**
+ * @brief Initialization for IBAMR programs.
+ *
+ * The IBTKInit class handles the initializations for PETSc, LibMesh, and SAMRAI. This object should be initialized at
+ * the start of the main() function. The destruction of the object correctly closes the libraries.
+ *
+ */
 
-IBTK_Init::~IBTK_Init()
+class IBTKInit
 {
-    pout << "IBTK_Init destructor called. Shutting down libraries.\n";
-    SAMRAIManager::shutdown();
-#ifndef IBTK_HAVE_LIBMESH
-    PetscFinalize();
+public:
+    /**
+     * Constructor for IBTKInit. Initializes libraries and sets the SAMRAI world communicator.
+     */
+    IBTKInit(int argc,
+              char** argvmake,
+              IBTK_MPI::comm communicator = PETSC_COMM_WORLD,
+              char* petsc_file = nullptr,
+              char* petsc_help = nullptr);
+
+    /**
+     * Destructor. Closes libraries appropriately.
+     */
+    ~IBTKInit();
+
+    /**
+     * Get libMesh initialization object.
+     */
+    std::shared_ptr<libMesh::LibMeshInit> getLibMeshInit()
+    {
+#ifdef IBTK_HAVE_LIBMESH
+        return d_libmesh_init;
+#else
+        TBOX_ERROR("IBTKInit::getLibMeshInit() \n"
+                   << "IBAMR not compiled with libMesh!\n");
 #endif
-}
+    }
+
+private:
+#ifdef IBTK_HAVE_LIBMESH
+    std::shared_ptr<libMesh::LibMeshInit> d_libmesh_init;
+#endif
+};
 
 } // namespace IBTK
+
+#endif

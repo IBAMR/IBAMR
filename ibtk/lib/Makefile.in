@@ -171,7 +171,7 @@ libIBTK_a_AR = $(AR) $(ARFLAGS)
 libIBTK_a_LIBADD =
 am__dirstamp = $(am__leading_dot)dirstamp
 am_libIBTK_a_OBJECTS = $(top_builddir)/src/lagrangian/fortran/lagrangian_delta.$(OBJEXT) \
-	../src/utilities/IBTK_Init.$(OBJEXT) \
+	../src/utilities/IBTKInit.$(OBJEXT) \
 	../src/utilities/IBTK_MPI.$(OBJEXT)
 libIBTK_a_OBJECTS = $(am_libIBTK_a_OBJECTS)
 libIBTK2d_a_AR = $(AR) $(ARFLAGS)
@@ -953,7 +953,7 @@ am__depfiles_remade = ../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellIn
 	../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSAMRAIVectorReal.Po \
 	../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSNESFunctionGOWrapper.Po \
 	../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSNESJacobianJOWrapper.Po \
-	../src/utilities/$(DEPDIR)/IBTK_Init.Po \
+	../src/utilities/$(DEPDIR)/IBTKInit.Po \
 	../src/utilities/$(DEPDIR)/IBTK_MPI.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-AppInitializer.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunction.Po \
@@ -1413,11 +1413,11 @@ SUFFIXES = .f.m4
 lib_LIBRARIES = libIBTK.a $(am__append_1) $(am__append_2)
 libIBTK_a_SOURCES = \
 $(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f \
-../src/utilities/IBTK_Init.cpp \
+../src/utilities/IBTKInit.cpp \
 ../src/utilities/IBTK_MPI.cpp
 
 pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
-	../include/ibtk/IBTK_Init.h ../include/ibtk/IBTK_MPI.h \
+	../include/ibtk/IBTKInit.h ../include/ibtk/IBTK_MPI.h \
 	../include/ibtk/app_namespaces.h \
 	../include/ibtk/compiler_hints.h ../include/ibtk/ibtk_enums.h \
 	../include/ibtk/ibtk_utilities.h ../include/ibtk/namespaces.h \
@@ -1805,8 +1805,7 @@ $(top_builddir)/src/lagrangian/fortran/lagrangian_delta.$(OBJEXT):  \
 ../src/utilities/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ../src/utilities/$(DEPDIR)
 	@: > ../src/utilities/$(DEPDIR)/$(am__dirstamp)
-../src/utilities/IBTK_Init.$(OBJEXT):  \
-	../src/utilities/$(am__dirstamp) \
+../src/utilities/IBTKInit.$(OBJEXT): ../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/IBTK_MPI.$(OBJEXT): ../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -2980,7 +2979,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSAMRAIVectorReal.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSNESFunctionGOWrapper.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSNESJacobianJOWrapper.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/IBTK_Init.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/IBTKInit.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/IBTK_MPI.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-AppInitializer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunction.Po@am__quote@ # am--include-marker
@@ -6904,7 +6903,7 @@ distclean: distclean-am
 	-rm -f ../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSAMRAIVectorReal.Po
 	-rm -f ../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSNESFunctionGOWrapper.Po
 	-rm -f ../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSNESJacobianJOWrapper.Po
-	-rm -f ../src/utilities/$(DEPDIR)/IBTK_Init.Po
+	-rm -f ../src/utilities/$(DEPDIR)/IBTKInit.Po
 	-rm -f ../src/utilities/$(DEPDIR)/IBTK_MPI.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-AppInitializer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunction.Po
@@ -7197,7 +7196,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSAMRAIVectorReal.Po
 	-rm -f ../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSNESFunctionGOWrapper.Po
 	-rm -f ../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSNESJacobianJOWrapper.Po
-	-rm -f ../src/utilities/$(DEPDIR)/IBTK_Init.Po
+	-rm -f ../src/utilities/$(DEPDIR)/IBTKInit.Po
 	-rm -f ../src/utilities/$(DEPDIR)/IBTK_MPI.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-AppInitializer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunction.Po
