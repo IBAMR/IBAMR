@@ -64,11 +64,11 @@ public:
     /**
      * The initialize function creates and returns a static IBTKInit object which initializes all pertinent libraries.
      */
-    static IBTKInit& initialize(int argc,
-                                char** argv,
-                                IBTK_MPI::comm communicator = MPI_COMM_WORLD,
-                                char* petsc_file = nullptr,
-                                char* petsc_help = nullptr);
+    static void initialize(int argc,
+                           char** argv,
+                           IBTK_MPI::comm communicator = MPI_COMM_WORLD,
+                           char* petsc_file = nullptr,
+                           char* petsc_help = nullptr);
 
     /**
      * Destructor. Closes libraries appropriately.

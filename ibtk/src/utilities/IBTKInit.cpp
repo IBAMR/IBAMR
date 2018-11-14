@@ -43,12 +43,14 @@ LibMeshInit* IBTKInit::s_libmesh_init = nullptr;
 #endif
 bool IBTKInit::s_initialized = false;
 
-IBTKInit&
+void
 IBTKInit::initialize(int argc, char** argv, IBTK_MPI::comm communicator, char* petsc_file, char* petsc_help)
 {
+    if (s_initialized)
+    {
+        TBOX_WARNING("IBAMR already initialized. Multiple initialize() calls will be ignored.");
+    }
     static IBTKInit instance(argc, argv, communicator, petsc_file, petsc_help);
-
-    return instance;
 }
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
