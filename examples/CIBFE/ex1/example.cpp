@@ -198,7 +198,6 @@ run_example(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     IBTKInit::initialize(argc, argv, MPI_COMM_WORLD, nullptr, nullptr);
-    SAMRAIManager::setMaxNumberPatchDataEntries(2048);
 
     { // cleanup dynamically allocated objects prior to shutdown
 

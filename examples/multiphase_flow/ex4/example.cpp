@@ -85,9 +85,6 @@ run_example(int argc, char* argv[])
     // Initialize PETSc, MPI, and SAMRAI.
     IBTKInit::initialize(argc, argv, MPI_COMM_WORLD, NULL, NULL);
 
-    // Increase maximum patch data component indices
-    SAMRAIManager::setMaxNumberPatchDataEntries(2500);
-
     { // cleanup dynamically allocated objects prior to shutdown
 
         // Parse command line options, set some standard options from the input

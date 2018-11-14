@@ -80,9 +80,6 @@ run_example(int argc, char* argv[])
     // Initialize PETSc, MPI, and SAMRAI.
     IBTKInit::initialize(argc, argv, MPI_COMM_WORLD, NULL, NULL);
 
-    // Increase maximum patch data component indices
-    SAMRAIManager::setMaxNumberPatchDataEntries(2500);
-
     // resize u_err and p_err vectors to hold error data
     std::vector<double> u_err;
     std::vector<double> p_err;
