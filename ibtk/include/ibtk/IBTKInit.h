@@ -84,6 +84,9 @@ public:
         return s_libmesh_init;
     }
 #endif
+
+    static bool checkInitialized();
+
 private:
     /**
      * Constructor for IBTKInit. Initializes libraries and sets the SAMRAI world communicator.
@@ -103,6 +106,7 @@ private:
 #ifdef IBTK_HAVE_LIBMESH
     static libMesh::LibMeshInit* s_libmesh_init;
 #endif
+    static bool s_initialized;
 };
 
 } // namespace IBTK

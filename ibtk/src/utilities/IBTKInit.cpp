@@ -38,7 +38,10 @@
 namespace IBTK
 {
 /////////////////////////////// STATIC //////////////////////////////////////
+#ifdef IBTK_HAVE_LIBMESH
 LibMeshInit* IBTKInit::s_libmesh_init = nullptr;
+#endif
+bool IBTKInit::s_initialized = false;
 
 IBTKInit&
 IBTKInit::initialize(int argc, char** argv, IBTK_MPI::comm communicator, char* petsc_file, char* petsc_help)
@@ -69,6 +72,7 @@ IBTKInit::IBTKInit(int argc, char** argv, IBTK_MPI::comm communicator, char* pet
     SAMRAI_MPI::setCommunicator(communicator);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
+    s_initialized = true;
 }
 
 IBTKInit::~IBTKInit()
@@ -81,7 +85,18 @@ IBTKInit::~IBTKInit()
 #ifndef IBTK_HAVE_LIBMESH
     PetscFinalize();
 #endif
-
+    s_initialized = false;
 }
 
+bool
+IBTKInit::checkInitialized()
+{
+    if (!s_initialized)
+    {
+        TBOX_ERROR(
+            "IBAMR is not initialized! IBAMR must be initialized by an appropriate call to IBTKInit::initialize() "
+            "prior to using any of the library.");
+    }
+    return s_initialized;
+}
 } // namespace IBTK
