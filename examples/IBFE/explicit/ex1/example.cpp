@@ -131,8 +131,7 @@ bool
 run_example(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    IBTKInit init(argc, argv, PETSC_COMM_WORLD, nullptr, nullptr);
+    IBTKInit::initialize(argc, argv, MPI_COMM_WORLD, nullptr, nullptr);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -180,7 +179,7 @@ run_example(int argc, char* argv[])
         //
         // Note that boundary condition data must be registered with each FE
         // system before calling IBFEMethod::initializeFEData().
-        Mesh mesh(init.getLibMeshInit()->comm(), NDIM);
+        Mesh mesh(IBTKInit::getLibMeshInit()->comm(), NDIM);
         const double R = 0.25;
         const double w = 0.0625;
         const double dx0 = 1.0 / 64.0;

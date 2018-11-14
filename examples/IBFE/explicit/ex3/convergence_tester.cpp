@@ -78,7 +78,7 @@ main(int argc, char* argv[])
     {
         SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
 
-        IBTKInit init(argc, argv, PETSC_COMM_WORLD, nullptr, nullptr);
+        IBTKInit::initialize(argc, argv, MPI_COMM_WORLD, nullptr, nullptr);
         if (argc != 2)
         {
             tbox::pout << "USAGE:  " << argv[0] << " <input filename>\n"
@@ -396,14 +396,14 @@ main(int argc, char* argv[])
             // Do the same thing for the FE data.
             string file_name;
 
-            Mesh mesh_coarse(init.getLibMeshInit()->comm(), NDIM);
+            Mesh mesh_coarse(IBTKInit::getLibMeshInit()->comm(), NDIM);
             file_name = coarse_hier_dump_dirname + "/" + "fe_mesh.";
             sprintf(temp_buf, "%05d", coarse_iteration_num);
             file_name += temp_buf;
             file_name += ".xda";
             mesh_coarse.read(file_name);
 
-            Mesh mesh_fine(init.getLibMeshInit()->comm(), NDIM);
+            Mesh mesh_fine(IBTKInit::getLibMeshInit()->comm(), NDIM);
             file_name = fine_hier_dump_dirname + "/" + "fe_mesh.";
             sprintf(temp_buf, "%05d", fine_iteration_num);
             file_name += temp_buf;

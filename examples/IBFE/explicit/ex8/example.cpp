@@ -328,8 +328,7 @@ using namespace ModelData;
 bool run_example(int argc, char** argv)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    //  SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    IBTKInit init(argc, argv, PETSC_COMM_WORLD, nullptr, nullptr);
+    IBTKInit::initialize(argc, argv, MPI_COMM_WORLD, nullptr, nullptr);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -372,7 +371,7 @@ bool run_example(int argc, char** argv)
         string block_elem_type = input_db->getStringWithDefault("BLOCK_ELEM_TYPE", "QUAD9");
         string beam_elem_type = input_db->getStringWithDefault("BEAM_ELEM_TYPE", "QUAD9");
 
-        Mesh block1_mesh(init.getLibMeshInit()->comm(), NDIM);
+        Mesh block1_mesh(IBTKInit::getLibMeshInit()->comm(), NDIM);
         MeshTools::Generation::build_square(block1_mesh,
                                             ceil(0.5 / ds_block),
                                             ceil(0.5 / ds_block),
@@ -381,7 +380,7 @@ bool run_example(int argc, char** argv)
                                             0.0,
                                             0.5,
                                             Utility::string_to_enum<ElemType>(block_elem_type));
-        Mesh block2_mesh(init.getLibMeshInit()->comm(), NDIM);
+        Mesh block2_mesh(IBTKInit::getLibMeshInit()->comm(), NDIM);
         MeshTools::Generation::build_square(block2_mesh,
                                             ceil(0.5 / ds_block),
                                             ceil(0.5 / ds_block),
@@ -411,7 +410,7 @@ bool run_example(int argc, char** argv)
         const double beam_y_lower = 0.5 - 0.016;
         const double beam_y_upper = 0.5;
         int n_beam_y = max(static_cast<int>(ceil(beam_y_upper - beam_y_lower / ds_beam)), 4);
-        Mesh beam_mesh(init.getLibMeshInit()->comm(), NDIM);
+        Mesh beam_mesh(IBTKInit::getLibMeshInit()->comm(), NDIM);
         MeshTools::Generation::build_square(
             beam_mesh, n_beam_x, n_beam_y, beam_x_lower, beam_x_upper, beam_y_lower, beam_y_upper, QUAD4);
         if (beam_use_mapped_grid)

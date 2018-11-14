@@ -226,8 +226,7 @@ bool
 run_example(int argc, char** argv)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    IBTKInit init(argc, argv, PETSC_COMM_WORLD, nullptr, nullptr);
+    IBTKInit::initialize(argc, argv, MPI_COMM_WORLD, nullptr, nullptr);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -273,7 +272,7 @@ run_example(int argc, char** argv)
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
         // Create a simple FE mesh.
-        Mesh solid_mesh(init.getLibMeshInit()->comm(), NDIM);
+        Mesh solid_mesh(IBTKInit::getLibMeshInit()->comm(), NDIM);
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");

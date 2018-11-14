@@ -77,7 +77,7 @@ bool
 run_example(int argc, char* argv[], std::vector<double>& Q_err)
 {
     // Initialize MPI and SAMRAI.
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
+    IBTKInit::initialize(argc, argv, MPI_COMM_WORLD, nullptr, nullptr);
 
     // Resize Q_err to hold error norms
     Q_err.resize(3);

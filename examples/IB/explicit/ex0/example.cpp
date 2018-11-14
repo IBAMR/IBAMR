@@ -255,8 +255,7 @@ generate_springs(
 bool run_example(int argc, char* argv[],  std::vector<double>& u_err,  std::vector<double>& p_err)
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    IBTKInit init(argc, argv, PETSC_COMM_WORLD, NULL, NULL);
+    IBTKInit::initialize(argc, argv, MPI_COMM_WORLD, NULL, NULL);
 
     //resize error vectors to hold data from u and p
     u_err.resize(3);

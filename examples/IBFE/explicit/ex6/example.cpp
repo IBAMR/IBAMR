@@ -201,8 +201,7 @@ bool
 run_example(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    IBTKInit init(argc, argv, PETSC_COMM_WORLD, nullptr, nullptr);
+    IBTKInit::initialize(argc, argv, MPI_COMM_WORLD, nullptr, nullptr);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -248,7 +247,7 @@ run_example(int argc, char* argv[])
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
 
-        Mesh block_mesh(init.getLibMeshInit()->comm(), NDIM);
+        Mesh block_mesh(IBTKInit::getLibMeshInit()->comm(), NDIM);
         string block_elem_type = input_db->getString("BLOCK_ELEM_TYPE");
         const double R = 0.05;
         if (block_elem_type == "TRI3" || block_elem_type == "TRI6")
@@ -287,7 +286,7 @@ run_example(int argc, char* argv[])
             n(1) += 0.2;
         }
 
-        Mesh beam_mesh(init.getLibMeshInit()->comm(), NDIM);
+        Mesh beam_mesh(IBTKInit::getLibMeshInit()->comm(), NDIM);
         string beam_elem_type = input_db->getString("BEAM_ELEM_TYPE");
         MeshTools::Generation::build_square(beam_mesh,
                                             ceil(0.4 / ds),

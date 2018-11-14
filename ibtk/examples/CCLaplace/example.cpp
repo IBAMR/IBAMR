@@ -61,8 +61,7 @@ bool
 run_example(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    IBTKInit init(argc, argv, PETSC_COMM_WORLD, NULL, NULL);
+    IBTKInit::initialize(argc, argv, MPI_COMM_WORLD, NULL, NULL);
 
     // Since SAMRAI and PETSc both require finalization routines we have to
     // ensure that no SAMRAI or PETSc objects are active at the point where we

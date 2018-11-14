@@ -131,8 +131,7 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 bool run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<double>& p_err)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    IBTKInit init(argc, argv, PETSC_COMM_WORLD, nullptr, nullptr);
+    IBTKInit::initialize(argc, argv, MPI_COMM_WORLD, nullptr, nullptr);
 
     // resize u_err and p_err to hold error data
     u_err.resize(3);
@@ -182,7 +181,7 @@ bool run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<
         //
         // Note that boundary condition data must be registered with each FE
         // system before calling IBFEMethod::initializeFEData().
-        Mesh mesh(init.getLibMeshInit()->comm(), NDIM);
+        Mesh mesh(IBTKInit::getLibMeshInit()->comm(), NDIM);
         const double R = 0.25;
         const double w = 0.0625;
         const double dx0 = 1.0 / 64.0;

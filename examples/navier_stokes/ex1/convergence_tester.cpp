@@ -55,7 +55,7 @@ main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    IBTKInit init(argc, argv, PETSC_COMM_WORLD, NULL, NULL);
+    IBTKInit::initialize(argc, argv, MPI_COMM_WORLD, NULL, NULL);
 
     // Parse command line options, set some standard options from the input
     // file, and enable file logging.
