@@ -46,6 +46,7 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include "ibtk/IBTKInit.h"
 #include "ibtk/IBTK_MPI.h"
 #include <LocationIndexRobinBcCoefs.h>
 #include <TimeRefinementIntegrator.h>
