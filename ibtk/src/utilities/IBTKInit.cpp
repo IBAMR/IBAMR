@@ -58,6 +58,8 @@ IBTKInit::IBTKInit(int argc, char** argv, IBTK_MPI::comm communicator, char* pet
 #ifdef IBTK_HAVE_LIBMESH
     s_libmesh_init = new LibMeshInit(argc, argv, communicator);
     libMesh::ReferenceCounter::disable_print_counter_info();
+    NULL_USE(petsc_file);
+    NULL_USE(petsc_help);
 #else
     // We need to initialize PETSc.
     PetscInitialize(&argc, &argv, petsc_file, petsc_help);
@@ -86,17 +88,5 @@ IBTKInit::~IBTKInit()
     PetscFinalize();
 #endif
     s_initialized = false;
-}
-
-bool
-IBTKInit::checkInitialized()
-{
-    if (!s_initialized)
-    {
-        TBOX_ERROR(
-            "IBAMR is not initialized! IBAMR must be initialized by an appropriate call to IBTKInit::initialize() "
-            "prior to using any of the library.");
-    }
-    return s_initialized;
 }
 } // namespace IBTK

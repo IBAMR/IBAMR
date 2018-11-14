@@ -85,7 +85,16 @@ public:
     }
 #endif
 
-    static bool checkInitialized();
+    inline static bool checkInitialized()
+    {
+        if (!s_initialized)
+        {
+            TBOX_ERROR(
+                "IBAMR is not initialized! IBAMR must be initialized by an appropriate call to IBTKInit::initialize() "
+                "prior to using any of the library.");
+        }
+        return s_initialized;
+    }
 
 private:
     /**
