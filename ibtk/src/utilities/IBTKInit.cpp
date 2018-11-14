@@ -62,10 +62,12 @@ IBTKInit::IBTKInit(int argc, char** argv, IBTK_MPI::comm communicator, char* pet
 #if SAMRAI_VERSION_MAJOR > 2
     SAMRAIManager::initialize();
     IBTK_MPI::init(comm);
+    SAMRAIManager::setMaxNumberPatchDataEntries(std::max(2048,SAMRAIManager::getMaxNumberPatchDataEntries()));
+#else
+    SAMRAIManager::setMaxNumberPatchDataEntries(2048);
 #endif
     SAMRAI_MPI::setCommunicator(communicator);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::setMaxNumberPatchDataEntries(std::max(2048, SAMRAIManager::getMaxNumberPatchDataEntries()));
     SAMRAIManager::startup();
 }
 
@@ -79,6 +81,7 @@ IBTKInit::~IBTKInit()
 #ifndef IBTK_HAVE_LIBMESH
     PetscFinalize();
 #endif
+
 }
 
 } // namespace IBTK
