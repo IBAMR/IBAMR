@@ -83,7 +83,7 @@ IBTKInit::~IBTKInit()
 {
     pout << "IBTKInit destructor called. Shutting down libraries.\n";
     SAMRAIManager::shutdown();
-#if SAMRAI_VERSION_MAJOR > 3
+#if SAMRAI_VERSION_MAJOR > 2
     SAMRAIManager::finalize();
 #endif
 #ifdef IBTK_HAVE_LIBMESH
