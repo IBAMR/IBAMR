@@ -55,7 +55,7 @@ namespace
 {
 static const double PII = 3.14159265358979323846264338327950288419716939937510;
 
-} // namespace anonymous
+} // namespace
 
 RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
                                          Pointer<Database> input_db,
@@ -63,8 +63,7 @@ RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
                                          Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                                          bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
-      d_parser_time(new double),
-      d_parser_posn(new double[NDIM]),
+      d_parser_time(0.0),
       d_center_of_mass(3, 0.0),
       d_incremented_angle_from_reference_axis(3, 0.0),
       d_tagged_pt_position(3, 0.0)
@@ -87,12 +86,8 @@ RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
         {
             d_kinematicsvel_function_strings.push_back("0.0");
             TBOX_WARNING("RigidBodyKinematics::RigidBodyKinematics() :\n"
-                         << "  no function corresponding to key "
-                         << key_name
-                         << "found for dimension = "
-                         << d
-                         << "; using kinematics_vel = 0.0. "
-                         << std::endl);
+                         << "  no function corresponding to key " << key_name << "found for dimension = " << d
+                         << "; using kinematics_vel = 0.0. " << std::endl);
         }
 
         d_kinematicsvel_parsers.push_back(new mu::Parser());
@@ -109,17 +104,17 @@ RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
         (*cit)->DefineConst("PI", PII);
 
         // Variables
-        (*cit)->DefineVar("T", d_parser_time);
-        (*cit)->DefineVar("t", d_parser_time);
+        (*cit)->DefineVar("T", &d_parser_time);
+        (*cit)->DefineVar("t", &d_parser_time);
         for (int d = 0; d < NDIM; ++d)
         {
             std::ostringstream stream;
             stream << d;
             const std::string postfix = stream.str();
-            (*cit)->DefineVar("X" + postfix, &(d_parser_posn[d]));
-            (*cit)->DefineVar("x" + postfix, &(d_parser_posn[d]));
-            (*cit)->DefineVar("X_" + postfix, &(d_parser_posn[d]));
-            (*cit)->DefineVar("x_" + postfix, &(d_parser_posn[d]));
+            (*cit)->DefineVar("X" + postfix, d_parser_posn.data() + d);
+            (*cit)->DefineVar("x" + postfix, d_parser_posn.data() + d);
+            (*cit)->DefineVar("X_" + postfix, d_parser_posn.data() + d);
+            (*cit)->DefineVar("x_" + postfix, d_parser_posn.data() + d);
         }
     }
 
@@ -160,8 +155,7 @@ RigidBodyKinematics::~RigidBodyKinematics()
     {
         delete (*cit);
     }
-    delete d_parser_time;
-    delete[] d_parser_posn;
+
     return;
 
 } //~RigidBodyKinematics
@@ -190,8 +184,7 @@ RigidBodyKinematics::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
 
     d_current_time = db->getDouble("d_current_time");
@@ -211,7 +204,7 @@ RigidBodyKinematics::setRigidBodySpecificVelocity(const double time,
                                                   const std::vector<double>& /*tagged_pt_position*/)
 {
     std::vector<double> vel_parser(NDIM);
-    *d_parser_time = time;
+    d_parser_time = time;
     for (int d = 0; d < NDIM; ++d) d_parser_posn[d] = center_of_mass[d];
     for (int d = 0; d < NDIM; ++d) vel_parser[d] = d_kinematicsvel_parsers[d]->Eval();
 

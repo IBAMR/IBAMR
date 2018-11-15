@@ -48,57 +48,57 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 
-extern "C" {
+extern "C"
+{
+    // LAPACK function to do LU factorization.
+    int dgetrf_(const int& n1, const int& n2, double* a, const int& lda, int* ipiv, int& info);
 
-// LAPACK function to do LU factorization.
-int dgetrf_(const int& n1, const int& n2, double* a, const int& lda, int* ipiv, int& info);
+    // LAPACK function to find soultion using the LU factorization.
+    int dgetrs_(const char* trans,
+                const int& n,
+                const int& nrhs,
+                const double* a,
+                const int& lda,
+                const int* ipiv,
+                double* b,
+                const int& ldb,
+                int& info);
 
-// LAPACK function to find soultion using the LU factorization.
-int dgetrs_(const char* trans,
-            const int& n,
-            const int& nrhs,
-            const double* a,
-            const int& lda,
-            const int* ipiv,
-            double* b,
-            const int& ldb,
-            int& info);
+    // LAPACK function to do Cholesky factorization.
+    int dpotrf_(const char* uplo, const int& n, double* a, const int& lda, int& info);
 
-// LAPACK function to do Cholesky factorization.
-int dpotrf_(const char* uplo, const int& n, double* a, const int& lda, int& info);
+    // LAPACK function to find solution using Cholesky factorization.
+    int dpotrs_(const char* uplo,
+                const int& n,
+                const int& nrhs,
+                const double* a,
+                const int& lda,
+                double* b,
+                const int& ldb,
+                int& info);
 
-// LAPACK function to find solution using Cholesky factorization.
-int dpotrs_(const char* uplo,
-            const int& n,
-            const int& nrhs,
-            const double* a,
-            const int& lda,
-            double* b,
-            const int& ldb,
-            int& info);
-
-// LAPACK function to do SVD factorization.
-void dsyevr_(const char* jobz,
-             const char* range,
-             const char* uplo,
-             const int& n,
-             double* a,
-             const int& lda,
-             const double& vl,
-             const double& vu,
-             const int& il,
-             const int& iu,
-             const double& abstol,
-             int& m,
-             double* w,
-             double* z,
-             const int& ldz,
-             int* isuppz,
-             double* work,
-             const int& lwork,
-             int* iwork,
-             const int& liwork,
-             int& info);
+    // LAPACK function to do SVD factorization.
+    void dsyevr_(const char* jobz,
+                 const char* range,
+                 const char* uplo,
+                 const int& n,
+                 double* a,
+                 const int& lda,
+                 const double& vl,
+                 const double& vu,
+                 const int& il,
+                 const int& iu,
+                 const double& abstol,
+                 int& m,
+                 double* w,
+                 double* z,
+                 const int& ldz,
+                 int* isuppz,
+                 double* work,
+                 const int& lwork,
+                 int* iwork,
+                 const int& liwork,
+                 int& info);
 }
 
 namespace IBAMR
@@ -112,7 +112,7 @@ static Timer* t_solve_system;
 static Timer* t_solve_body_system;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
-}
+} // namespace
 
 ////////////////////////////// PUBLIC ////////////////////////////////////////
 
@@ -146,27 +146,10 @@ DirectMobilitySolver::~DirectMobilitySolver()
         MatDestroy(&body_mobility_mat);
     }
 
-    for (const auto& mat_pair : d_mat_map)
-    {
-        delete[](mat_pair.second).first;
-        delete[](mat_pair.second).second;
-    }
-
     for (const auto& mat_pair : d_petsc_geometric_mat_map)
     {
         Mat& geometric_mat = d_petsc_geometric_mat_map[mat_pair.first];
         MatDestroy(&geometric_mat);
-    }
-
-    for (const auto& mat_pair : d_geometric_mat_map)
-    {
-        delete[] mat_pair.second;
-    }
-
-    for (const auto& mat_pair : d_ipiv_map)
-    {
-        delete[](mat_pair.second).first;
-        delete[](mat_pair.second).second;
     }
 
     d_is_initialized = false;
@@ -230,9 +213,6 @@ DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
     d_mat_inv_type_map[mat_name] = inv_type;
     d_mat_filename_map[mat_name] = filename;
     d_mat_scale_map[mat_name] = scale;
-    d_mat_map[mat_name] = std::make_pair<double*, double*>(nullptr, nullptr);
-    d_geometric_mat_map[mat_name] = nullptr;
-    d_ipiv_map[mat_name] = std::make_pair<int*, int*>(nullptr, nullptr);
     d_petsc_mat_map[mat_name] = std::make_pair<Mat, Mat>(nullptr, nullptr);
     d_petsc_geometric_mat_map[mat_name] = nullptr;
 
@@ -243,34 +223,34 @@ DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
 
     if (rank == managing_proc)
     {
-        d_mat_map[mat_name].first = new double[mobility_mat_size * mobility_mat_size];
+        d_mat_map[mat_name].first.resize(mobility_mat_size * mobility_mat_size);
         MatCreateSeqDense(PETSC_COMM_SELF,
                           mobility_mat_size,
                           mobility_mat_size,
-                          d_mat_map[mat_name].first,
+                          d_mat_map[mat_name].first.data(),
                           &d_petsc_mat_map[mat_name].first);
 
-        d_mat_map[mat_name].second = new double[body_mobility_mat_size * body_mobility_mat_size];
+        d_mat_map[mat_name].second.resize(body_mobility_mat_size * body_mobility_mat_size);
         MatCreateSeqDense(PETSC_COMM_SELF,
                           body_mobility_mat_size,
                           body_mobility_mat_size,
-                          d_mat_map[mat_name].second,
+                          d_mat_map[mat_name].second.data(),
                           &d_petsc_mat_map[mat_name].second);
 
-        d_geometric_mat_map[mat_name] = new double[mobility_mat_size * body_mobility_mat_size];
+        d_geometric_mat_map[mat_name].resize(mobility_mat_size * body_mobility_mat_size);
         MatCreateSeqDense(PETSC_COMM_SELF,
                           mobility_mat_size,
                           body_mobility_mat_size,
-                          d_geometric_mat_map[mat_name],
+                          d_geometric_mat_map[mat_name].data(),
                           &d_petsc_geometric_mat_map[mat_name]);
 
         if (d_mat_inv_type_map[mat_name].first == LAPACK_LU)
         {
-            d_ipiv_map[mat_name].first = new int[mobility_mat_size];
+            d_ipiv_map[mat_name].first.resize(mobility_mat_size);
         }
         if (d_mat_inv_type_map[mat_name].second == LAPACK_LU)
         {
-            d_ipiv_map[mat_name].second = new int[body_mobility_mat_size];
+            d_ipiv_map[mat_name].second.resize(body_mobility_mat_size);
         }
     }
 
@@ -363,7 +343,7 @@ DirectMobilitySolver::solveSystem(Vec x, Vec b)
                                             managing_proc,
                                             data_depth);
             }
-            if (rank == managing_proc) computeSolution(mat, inv_type, d_ipiv_map[mat_name].first, rhs.data());
+            if (rank == managing_proc) computeSolution(mat, inv_type, d_ipiv_map[mat_name].first.data(), rhs.data());
             if (!d_recompute_mob_mat)
             {
                 d_cib_strategy->rotateArray(rhs.data(),
@@ -416,7 +396,7 @@ DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
                                             managing_proc,
                                             data_depth);
             }
-            if (rank == managing_proc) computeSolution(mat, inv_type, d_ipiv_map[mat_name].second, rhs.data());
+            if (rank == managing_proc) computeSolution(mat, inv_type, d_ipiv_map[mat_name].second.data(), rhs.data());
             if (!d_recompute_mob_mat)
             {
                 d_cib_strategy->rotateArray(rhs.data(),
@@ -591,7 +571,7 @@ DirectMobilitySolver::factorizeMobilityMatrix()
         const int mat_size = d_mat_nodes_map[mat_name] * NDIM;
         double* mat_data = nullptr;
         MatDenseGetArray(mat, &mat_data);
-        factorizeDenseMatrix(mat_data, mat_size, inv_type, d_ipiv_map[mat_name].first, mat_name, "Mobility");
+        factorizeDenseMatrix(mat_data, mat_size, inv_type, d_ipiv_map[mat_name].first.data(), mat_name, "Mobility");
         MatDenseRestoreArray(mat, &mat_data);
     }
     return;
@@ -626,7 +606,8 @@ DirectMobilitySolver::constructBodyMobilityMatrix()
         {
             double* col_data;
             MatDenseGetArray(product_mat, &col_data);
-            computeSolution(mobility_mat, mobility_inv_type, d_ipiv_map[mat_name].first, &col_data[col * row_size]);
+            computeSolution(
+                mobility_mat, mobility_inv_type, d_ipiv_map[mat_name].first.data(), &col_data[col * row_size]);
             MatDenseRestoreArray(product_mat, &col_data);
         }
         MatTransposeMatMult(geometric_mat, product_mat, MAT_REUSE_MATRIX, PETSC_DEFAULT, &body_mob_mat);
@@ -652,7 +633,8 @@ DirectMobilitySolver::factorizeBodyMobilityMatrix()
 
         double* mat_data = nullptr;
         MatDenseGetArray(mat, &mat_data);
-        factorizeDenseMatrix(mat_data, mat_size, inv_type, d_ipiv_map[mat_name].second, mat_name, "Body Mobility");
+        factorizeDenseMatrix(
+            mat_data, mat_size, inv_type, d_ipiv_map[mat_name].second.data(), mat_name, "Body Mobility");
         MatDenseRestoreArray(mat, &mat_data);
     }
     return;
@@ -674,12 +656,9 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
         if (err)
         {
             TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). " << err_msg << " matrix factorization "
-                                                                        << " failed for matrix handle "
-                                                                        << mat_name
-                                                                        << " with error code "
-                                                                        << err
-                                                                        << " using LAPACK CHOLESKY."
-                                                                        << std::endl);
+                                                                        << " failed for matrix handle " << mat_name
+                                                                        << " with error code " << err
+                                                                        << " using LAPACK CHOLESKY." << std::endl);
         }
     }
     else if (inv_type == LAPACK_LU)
@@ -687,13 +666,10 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
         dgetrf_(mat_size, mat_size, mat_data, mat_size, ipiv, err);
         if (err)
         {
-            TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). " << err_msg << " matrix factorization "
-                                                                        << "failed for matrix handle "
-                                                                        << mat_name
-                                                                        << " with error code "
-                                                                        << err
-                                                                        << " using LAPACK LU."
-                                                                        << std::endl);
+            TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). "
+                       << err_msg << " matrix factorization "
+                       << "failed for matrix handle " << mat_name << " with error code " << err << " using LAPACK LU."
+                       << std::endl);
         }
     }
     else if (inv_type == LAPACK_SVD)
@@ -735,13 +711,10 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
                 err);
         if (err)
         {
-            TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). " << err_msg << " matrix factorization "
-                                                                        << "failed for matrix handle "
-                                                                        << mat_name
-                                                                        << " with error code "
-                                                                        << err
-                                                                        << " using LAPACK SVD at first stage."
-                                                                        << std::endl);
+            TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). "
+                       << err_msg << " matrix factorization "
+                       << "failed for matrix handle " << mat_name << " with error code " << err
+                       << " using LAPACK SVD at first stage." << std::endl);
         }
 
         lwork = static_cast<int>(wkopt);
@@ -773,13 +746,10 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
                 err);
         if (err)
         {
-            TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). " << err_msg << " matrix factorization "
-                                                                        << "failed for matrix handle "
-                                                                        << mat_name
-                                                                        << " with error code "
-                                                                        << err
-                                                                        << " using LAPACK SVD at second stage."
-                                                                        << std::endl);
+            TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). "
+                       << err_msg << " matrix factorization "
+                       << "failed for matrix handle " << mat_name << " with error code " << err
+                       << " using LAPACK SVD at second stage." << std::endl);
         }
 
         // Make negative eigenvalues to be equal to min eigen value from
@@ -820,9 +790,7 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
     else
     {
         TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(): Unsupported dense "
-                   << "matrix inversion method called for "
-                   << err_msg
-                   << std::endl);
+                   << "matrix inversion method called for " << err_msg << std::endl);
     }
 
     return;
@@ -844,9 +812,7 @@ DirectMobilitySolver::computeSolution(Mat& mat, const MobilityMatrixInverseType&
         if (err)
         {
             TBOX_ERROR("DirectMobilitySolver::computeSolution(). Solution failed using "
-                       << "LAPACK CHOLESKY with error code "
-                       << err
-                       << std::endl);
+                       << "LAPACK CHOLESKY with error code " << err << std::endl);
         }
     }
     else if (inv_type == LAPACK_LU)
@@ -856,9 +822,7 @@ DirectMobilitySolver::computeSolution(Mat& mat, const MobilityMatrixInverseType&
         if (err)
         {
             TBOX_ERROR("DirectMobilitySolver::computeSolution(). Solution failed using "
-                       << "LAPACK LU with error code "
-                       << err
-                       << std::endl);
+                       << "LAPACK LU with error code " << err << std::endl);
         }
     }
     else if (inv_type == LAPACK_SVD)
