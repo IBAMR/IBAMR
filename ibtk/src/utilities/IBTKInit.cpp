@@ -86,7 +86,10 @@ IBTKInit::~IBTKInit()
 #if SAMRAI_VERSION_MAJOR > 3
     SAMRAIManager::finalize();
 #endif
-#ifndef IBTK_HAVE_LIBMESH
+#ifdef IBTK_HAVE_LIBMESH
+    delete s_libmesh_init;
+    s_libmesh_init = nullptr;
+#else
     PetscFinalize();
 #endif
     s_initialized = false;
