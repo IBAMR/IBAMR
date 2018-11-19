@@ -817,22 +817,55 @@ protected:
            d_new_time = std::numeric_limits<double>::quiet_NaN(),
            d_half_time = std::numeric_limits<double>::quiet_NaN();
 
-    /*
+    /*!
      * FE data associated with this object.
      */
     std::vector<libMesh::MeshBase*> d_meshes;
     int d_max_level_number;
     std::vector<std::unique_ptr<libMesh::EquationSystems>> d_equation_systems;
 
+    /// Number of parts owned by the present object.
     const unsigned int d_num_parts = 1;
+
+    /// Currently, each FEDataManager object is associated with exactly one part.
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
+
+    /// Minimum ghost cell width.
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
+
+    /// Vectors of pointers to the systems for each part (for position, velocity, force
+    /// density, sources, and body stress normalization).
     std::vector<libMesh::ExplicitSystem*> d_X_systems, d_U_systems, d_F_systems, d_Q_systems, d_Phi_systems;
+
+    /*!
+     * Vectors of pointers to the position vectors (both solutions and
+     * RHS). All of these vectors are owned by the libMesh::System objects
+     * except for the ones in d_X_IB_ghost_vecs, which are owned by the
+     * FEDataManager objects.
+     */
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_rhs_vecs, d_X_new_vecs, d_X_half_vecs,
         d_X_IB_ghost_vecs;
+
+    /// Vector of pointers to the velocity vectors (both solutions and RHS).
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_rhs_vecs, d_U_new_vecs, d_U_half_vecs;
+
+    /*!
+     * Vectors of pointers to the body force vectors (both solutions and
+     * RHS). All of these vectors are owned by the libMesh::System objects
+     * except for the ones in d_F_IB_ghost_vecs, which are owned by the
+     * FEDataManager objects.
+     */
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_rhs_vecs, d_F_tmp_vecs, d_F_IB_ghost_vecs;
+
+    /*!
+     * Vectors of pointers to the fluid source or sink density vectors. All of
+     * these vectors are owned by the libMesh::System objects except for the
+     * ones in d_Q_IB_ghost_vecs, which are owned by the FEDataManager
+     * objects.
+     */
     std::vector<libMesh::PetscVector<double>*> d_Q_half_vecs, d_Q_rhs_vecs, d_Q_IB_ghost_vecs;
+
+    /// Vector of pointers to body stress normalization vectors (both solutions and RHS).
     std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs, d_Phi_rhs_vecs;
 
     /**
@@ -844,16 +877,27 @@ protected:
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_U_IB_rhs_vecs;
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_X_IB_solution_vecs;
 
-    bool d_fe_equation_systems_initialized = false, d_fe_data_initialized = false;
+    /*!
+     * Whether or not the libMesh equation systems objects have been
+     * initialized (i.e., whether or not initializeFEEquationSystems has been
+     * called).
+     */
+    bool d_fe_equation_systems_initialized = false;
 
-    /*
+    /*!
+     * Whether or not all finite element data (including that initialized by
+     * initializeFEEquationSystems), such system matrices, is available.
+     */
+    bool d_fe_data_initialized = false;
+
+    /*!
      * Type of partitioner to use. See the main documentation of this class
      * for more information.
      */
     LibmeshPartitionerType d_libmesh_partitioner_type = AUTOMATIC;
 
     /*
-     * Method paramters.
+     * Method parameters.
      */
     IBTK::FEDataManager::InterpSpec d_default_interp_spec;
     IBTK::FEDataManager::SpreadSpec d_default_spread_spec;
