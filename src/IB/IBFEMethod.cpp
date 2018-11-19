@@ -1369,7 +1369,12 @@ IBFEMethod::setSpreadSpec(const FEDataManager::SpreadSpec& spread_spec, const un
 void
 IBFEMethod::initializeFEEquationSystems()
 {
-    if (d_fe_equation_systems_initialized) return;
+    if (d_fe_equation_systems_initialized)
+    {
+        // 1. call reinit_solutions() on each system in d_equation_systems
+        // 2.
+        return;
+    }
 
     const bool from_restart = RestartManager::getManager()->isFromRestart();
 

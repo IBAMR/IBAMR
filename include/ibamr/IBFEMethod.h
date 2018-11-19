@@ -768,14 +768,75 @@ protected:
     const unsigned int d_num_parts = 1;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems, d_Q_systems, d_Phi_systems;
-    std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double> *> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
-    std::vector<libMesh::PetscVector<double> *> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_Q_half_vecs, d_Q_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs;
 
-    bool d_fe_equation_systems_initialized = false, d_fe_data_initialized = false;
+    /// libMesh System objects for the displacement of each part.
+    std::vector<libMesh::System *> d_X_systems;
+
+    /// libMesh System objects for the velocity of each part.
+    std::vector<libMesh::System *> d_U_systems;
+
+    /// libMesh System objects for the elastic force (i.e., what is computed
+    /// by computeInteriorForceDensity) of each part.
+    std::vector<libMesh::System *> d_F_systems;
+
+    /// libMesh System objects for body forces of each part.
+    std::vector<libMesh::System *> d_Q_systems;
+
+    /// libMesh System objects for body stress normalization of each part.
+    std::vector<libMesh::System *> d_Phi_systems;
+
+    /// Pointers to the X (displacement) vectors owned by each system.
+    std::vector<libMesh::PetscVector<double> *> d_X_current_vecs;
+
+    /// Intermediate (i.e., only used during a time step) vectors owned by
+    /// this object.
+    std::vector<libMesh::PetscVector<double> *> d_X_new_vecs;
+
+    /// Intermediate (i.e., only used during a time step) vectors owned by
+    /// this object.
+    std::vector<libMesh::PetscVector<double> *> d_X_half_vecs;
+
+    /// Pointers to vectors (owned by this object) containing ghost X
+    /// (displacement) data. The vectors are owned by an FEDataManager
+    /// instance.
+    std::vector<libMesh::PetscVector<double> *> d_X_IB_ghost_vecs;
+
+    /// Pointers to the U (velocity) vectors owned by each system.
+    std::vector<libMesh::PetscVector<double> *> d_U_current_vecs;
+
+    /// Pointers to intermediate U (i.e., only used during a time step)
+    /// vectors owned by this object.
+    std::vector<libMesh::PetscVector<double> *> d_U_new_vecs;
+
+    /// Intermediate (i.e., only used during a time step) vectors owned by
+    /// this object.
+    std::vector<libMesh::PetscVector<double> *> d_U_half_vecs;
+
+    /// Pointers to the F (elastic force) solution vectors of each part.
+    std::vector<libMesh::PetscVector<double> *> d_F_half_vecs;
+
+    /// Pointers to ghosted F (elastic force) solution vectors of each
+    /// part. The vectors are owned by an FEDataManager instance.
+    std::vector<libMesh::PetscVector<double> *> d_F_IB_ghost_vecs;
+
+    /// Pointers to the Q solution vectors.
+    std::vector<libMesh::PetscVector<double> *> d_Q_half_vecs;
+
+    /// Pointers to the Q solution vectors with ghost data. The vectors are
+    /// owned by an FEDataManager instance.
+    std::vector<libMesh::PetscVector<double> *> d_Q_IB_ghost_vecs;
+
+    /// Pointers to the Phi solution vectors.
+    std::vector<libMesh::PetscVector<double> *> d_Phi_half_vecs;
+
+    // Whether or not the libMesh equation systems objects have been
+    // initialized (i.e., whether or not initializeFEEquationSystems has been
+    // called)
+    bool d_fe_equation_systems_initialized = false;
+
+    // Whether or not all finite element data (including that initialized by
+    // initializeFEEquationSystems), such system matrices, is available.
+    bool d_fe_data_initialized = false;
 
     /*
      * Method paramters.
