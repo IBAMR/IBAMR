@@ -167,6 +167,31 @@ level_can_be_refined(int level_number, int max_levels)
     return level_number < finest_level_number;
 }
 
+/*!
+ * \brief Perform a `dynamic_cast` with `std::unique_ptr`s.
+ *
+ * The function throws an exception of type `std::bad_cast` if the
+ * `dynamic_cast` does not succeed. This is the same exception you would get
+ * if a regular `dynamic_cast` between object types (but not pointer types)
+ * does not succeed.
+ */
+template <typename To, typename From>
+std::unique_ptr<To>
+dynamic_unique_cast(std::unique_ptr<From> &&p)
+{
+    if (To *cast = dynamic_cast<To *>(p.get()))
+    {
+        std::unique_ptr<To> result(cast);
+        p.release();
+        return result;
+    }
+    else
+    {
+        throw std::bad_cast();
+    }
+}
+
+
 using Matrix2d = Eigen::Matrix<double, 2, 2>;
 using Vector2d = Eigen::Matrix<double, 2, 1>;
 using ColumnVector2d = Eigen::Matrix<double, 2, 1>;
