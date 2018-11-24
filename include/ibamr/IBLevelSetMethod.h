@@ -1,4 +1,4 @@
-// Filename: LevelSetIBMethod.h
+// Filename: IBLevelSetMethod.h
 // Created on 12 Oct 2018 by Amneet Bhalla
 //
 // Copyright (c) 2002-2018, Amneet Bhalla
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBAMR_LevelSetIBMethod
-#define included_IBAMR_LevelSetIBMethod
+#ifndef included_IBAMR_IBLevelSetMethod
+#define included_IBAMR_IBLevelSetMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -88,27 +88,40 @@ class RefineSchedule;
 namespace IBAMR
 {
 /*!
- * \brief Class LevelSetIBMethod is a concrete IBStrategy class that uses IBMethod and IBFEMethod
+ * \brief Class IBLevelSetMethod is a concrete IBStrategy class that uses IBInterpolantMethod and IBFEMethod
  * objects to initialize and transport rigid body level sets for Brinkman penalized IBMethod. This
  * class is supposed to be used with INSVCHierarchyIntegrator class.
  */
-class LevelSetIBMethod : public IBStrategy
+class IBLevelSetMethod : public IBStrategy
 {
 public:
     /*!
      * \brief Constructor.
      */
-    LevelSetIBMethod(SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops, SAMRAI::tbox::Pointer<IBStrategy> ibfe_method_ops)
+    IBLevelSetMethod(SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops, SAMRAI::tbox::Pointer<IBStrategy> ibfe_method_ops)
         : d_ib_method_ops(ib_method_ops), d_ibfe_method_ops(ibfe_method_ops)
     {
         // intentionally blank
         return;
-    } // LevelSetIBMethod
+    } // IBLevelSetMethod
+
+    /*!
+     * \brief Get IBMethod ops object.
+     */
+    SAMRAI::tbox::Pointer<IBStrategy> getIBMethodOps() const
+    {
+        return d_ib_method_ops;
+    } // getIBMethodOps
+
+    /*!
+     * \brief Deactivate FE mesh based operations.
+     */
+    void deactivateIBFEMethod();
 
     /*!
      * \brief Destructor.
      */
-    ~LevelSetIBMethod();
+    ~IBLevelSetMethod();
 
     /*!
      * Register the IBHierarchyIntegrator object that is using this strategy
@@ -345,7 +358,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LevelSetIBMethod(const LevelSetIBMethod& from);
+    IBLevelSetMethod(const IBLevelSetMethod& from);
 
     /*!
      * \brief Assignment operator.
@@ -356,7 +369,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LevelSetIBMethod& operator=(const LevelSetIBMethod& that);
+    IBLevelSetMethod& operator=(const IBLevelSetMethod& that);
 
     /*!
      * \brief The set of IBStrategy objects.
@@ -367,4 +380,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_LevelSetIBMethod
+#endif //#ifndef included_IBAMR_IBLevelSetMethod

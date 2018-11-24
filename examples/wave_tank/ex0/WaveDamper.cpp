@@ -107,7 +107,7 @@ WaveDamper::DampOutletWaves(double /*current_time*/,
         }
     }
 
-    // Modify the level set in the generation zone.
+    // Modify the level set in the absorption zone.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);

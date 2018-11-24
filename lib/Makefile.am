@@ -66,10 +66,13 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/IBInstrumentPanel.cpp \
 ../src/IB/IBInstrumentationSpec.cpp \
 ../src/IB/IBInstrumentationSpecFactory.cpp \
+../src/IB/IBInterpolantHierarchyIntegrator.cpp \
+../src/IB/IBInterpolantMethod.cpp \
 ../src/IB/IBKirchhoffRodForceGen.cpp \
 ../src/IB/IBLagrangianForceStrategy.cpp \
 ../src/IB/IBLagrangianForceStrategySet.cpp \
 ../src/IB/IBLagrangianSourceStrategy.cpp \
+../src/IB/IBLevelSetMethod.cpp \
 ../src/IB/IBMethod.cpp \
 ../src/IB/IBRedundantInitializer.cpp \
 ../src/IB/IBRodForceSpec.cpp \
@@ -211,10 +214,13 @@ pkg_include_HEADERS += \
 ../include/ibamr/IBImplicitStrategy.h \
 ../include/ibamr/IBInstrumentPanel.h \
 ../include/ibamr/IBInstrumentationSpec.h \
+../include/ibamr/IBInterpolantHierarchyIntegrator.h \
+../include/ibamr/IBInterpolantMethod.h \
 ../include/ibamr/IBKirchhoffRodForceGen.h \
 ../include/ibamr/IBLagrangianForceStrategy.h \
 ../include/ibamr/IBLagrangianForceStrategySet.h \
 ../include/ibamr/IBLagrangianSourceStrategy.h \
+../include/ibamr/IBLevelSetMethod.h \
 ../include/ibamr/IBMethod.h \
 ../include/ibamr/IBMethodPostProcessStrategy.h \
 ../include/ibamr/IBRedundantInitializer.h \

@@ -21,12 +21,12 @@ callTagLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy<NDIM> 
                                          const bool uses_richardson_extrapolation_too,
                                          void* ctx)
 {
-    if (initial_time || level_number == hierarchy->getFinestLevelNumber()) return;
+    if (initial_time) return;
 
     TagLSRefinementCells* ptr_ls_tagger = static_cast<TagLSRefinementCells*>(ctx);
 
     TBOX_ASSERT(hierarchy);
-    TBOX_ASSERT((level_number >= 0) && (level_number < hierarchy->getFinestLevelNumber()));
+    TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 
     // Get the current level set information
@@ -46,7 +46,7 @@ callTagLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy<NDIM> 
         for (CellIterator<NDIM> ic(patch_box); ic; ic++)
         {
             const hier::Index<NDIM>& i = ic();
-            const double dist_norm = (*ls_data)(i)-ptr_ls_tagger->d_tag_value;
+            const double dist_norm = std::abs((*ls_data)(i)-ptr_ls_tagger->d_tag_value);
 
             if (dist_norm <= ptr_ls_tagger->d_tag_abs_thresh)
             {

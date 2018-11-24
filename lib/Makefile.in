@@ -218,11 +218,14 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/IB/IBInstrumentPanel.cpp \
 	../src/IB/IBInstrumentationSpec.cpp \
 	../src/IB/IBInstrumentationSpecFactory.cpp \
+	../src/IB/IBInterpolantHierarchyIntegrator.cpp \
+	../src/IB/IBInterpolantMethod.cpp \
 	../src/IB/IBKirchhoffRodForceGen.cpp \
 	../src/IB/IBLagrangianForceStrategy.cpp \
 	../src/IB/IBLagrangianForceStrategySet.cpp \
 	../src/IB/IBLagrangianSourceStrategy.cpp \
-	../src/IB/IBMethod.cpp ../src/IB/IBRedundantInitializer.cpp \
+	../src/IB/IBLevelSetMethod.cpp ../src/IB/IBMethod.cpp \
+	../src/IB/IBRedundantInitializer.cpp \
 	../src/IB/IBRodForceSpec.cpp \
 	../src/IB/IBRodForceSpecFactory.cpp \
 	../src/IB/IBHydrodynamicSurfaceForceEvaluator.cpp \
@@ -365,10 +368,13 @@ am__objects_3 = ../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBInstrumentPanel.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBInstrumentationSpec.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-IBInterpolantMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBKirchhoffRodForceGen.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBLagrangianForceStrategy.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBLagrangianForceStrategySet.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-IBLevelSetMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBRedundantInitializer.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBRodForceSpec.$(OBJEXT) \
@@ -502,11 +508,14 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/IB/IBInstrumentPanel.cpp \
 	../src/IB/IBInstrumentationSpec.cpp \
 	../src/IB/IBInstrumentationSpecFactory.cpp \
+	../src/IB/IBInterpolantHierarchyIntegrator.cpp \
+	../src/IB/IBInterpolantMethod.cpp \
 	../src/IB/IBKirchhoffRodForceGen.cpp \
 	../src/IB/IBLagrangianForceStrategy.cpp \
 	../src/IB/IBLagrangianForceStrategySet.cpp \
 	../src/IB/IBLagrangianSourceStrategy.cpp \
-	../src/IB/IBMethod.cpp ../src/IB/IBRedundantInitializer.cpp \
+	../src/IB/IBLevelSetMethod.cpp ../src/IB/IBMethod.cpp \
+	../src/IB/IBRedundantInitializer.cpp \
 	../src/IB/IBRodForceSpec.cpp \
 	../src/IB/IBRodForceSpecFactory.cpp \
 	../src/IB/IBHydrodynamicSurfaceForceEvaluator.cpp \
@@ -649,10 +658,13 @@ am__objects_5 = ../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBInstrumentPanel.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBInstrumentationSpec.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-IBInterpolantMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBKirchhoffRodForceGen.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBLagrangianForceStrategy.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBLagrangianForceStrategySet.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-IBLevelSetMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBRedundantInitializer.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBRodForceSpec.$(OBJEXT) \
@@ -808,10 +820,13 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpec.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpecFactory.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategySet.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLevelSetMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po \
@@ -870,10 +885,13 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpec.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpecFactory.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategySet.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLevelSetMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po \
@@ -1141,10 +1159,13 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/IBImplicitStrategy.h \
 	../include/ibamr/IBInstrumentPanel.h \
 	../include/ibamr/IBInstrumentationSpec.h \
+	../include/ibamr/IBInterpolantHierarchyIntegrator.h \
+	../include/ibamr/IBInterpolantMethod.h \
 	../include/ibamr/IBKirchhoffRodForceGen.h \
 	../include/ibamr/IBLagrangianForceStrategy.h \
 	../include/ibamr/IBLagrangianForceStrategySet.h \
 	../include/ibamr/IBLagrangianSourceStrategy.h \
+	../include/ibamr/IBLevelSetMethod.h \
 	../include/ibamr/IBMethod.h \
 	../include/ibamr/IBMethodPostProcessStrategy.h \
 	../include/ibamr/IBRedundantInitializer.h \
@@ -1589,10 +1610,13 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/IBImplicitStrategy.h \
 	../include/ibamr/IBInstrumentPanel.h \
 	../include/ibamr/IBInstrumentationSpec.h \
+	../include/ibamr/IBInterpolantHierarchyIntegrator.h \
+	../include/ibamr/IBInterpolantMethod.h \
 	../include/ibamr/IBKirchhoffRodForceGen.h \
 	../include/ibamr/IBLagrangianForceStrategy.h \
 	../include/ibamr/IBLagrangianForceStrategySet.h \
 	../include/ibamr/IBLagrangianSourceStrategy.h \
+	../include/ibamr/IBLevelSetMethod.h \
 	../include/ibamr/IBMethod.h \
 	../include/ibamr/IBMethodPostProcessStrategy.h \
 	../include/ibamr/IBRedundantInitializer.h \
@@ -1687,11 +1711,14 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/CIBMethod.cpp \
 	../src/IB/IBInstrumentPanel.cpp \
 	../src/IB/IBInstrumentationSpec.cpp \
 	../src/IB/IBInstrumentationSpecFactory.cpp \
+	../src/IB/IBInterpolantHierarchyIntegrator.cpp \
+	../src/IB/IBInterpolantMethod.cpp \
 	../src/IB/IBKirchhoffRodForceGen.cpp \
 	../src/IB/IBLagrangianForceStrategy.cpp \
 	../src/IB/IBLagrangianForceStrategySet.cpp \
 	../src/IB/IBLagrangianSourceStrategy.cpp \
-	../src/IB/IBMethod.cpp ../src/IB/IBRedundantInitializer.cpp \
+	../src/IB/IBLevelSetMethod.cpp ../src/IB/IBMethod.cpp \
+	../src/IB/IBRedundantInitializer.cpp \
 	../src/IB/IBRodForceSpec.cpp \
 	../src/IB/IBRodForceSpecFactory.cpp \
 	../src/IB/IBHydrodynamicSurfaceForceEvaluator.cpp \
@@ -1964,6 +1991,10 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBInstrumentationSpecFactory.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-IBInterpolantMethod.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBKirchhoffRodForceGen.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBLagrangianForceStrategy.$(OBJEXT):  \
@@ -1971,6 +2002,8 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/IB/libIBAMR2d_a-IBLagrangianForceStrategySet.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBLagrangianSourceStrategy.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-IBLevelSetMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
@@ -2381,6 +2414,10 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBInstrumentationSpecFactory.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-IBInterpolantMethod.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBKirchhoffRodForceGen.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBLagrangianForceStrategy.$(OBJEXT):  \
@@ -2388,6 +2425,8 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/IB/libIBAMR3d_a-IBLagrangianForceStrategySet.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBLagrangianSourceStrategy.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-IBLevelSetMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
@@ -2759,10 +2798,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpec.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpecFactory.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategySet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLevelSetMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po@am__quote@ # am--include-marker
@@ -2821,10 +2863,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpec.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpecFactory.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategySet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLevelSetMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po@am__quote@ # am--include-marker
@@ -3341,6 +3386,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBInstrumentationSpecFactory.obj `if test -f '../src/IB/IBInstrumentationSpecFactory.cpp'; then $(CYGPATH_W) '../src/IB/IBInstrumentationSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBInstrumentationSpecFactory.cpp'; fi`
 
+../src/IB/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.o: ../src/IB/IBInterpolantHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.Tpo -c -o ../src/IB/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.o `test -f '../src/IB/IBInterpolantHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/IBInterpolantHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBInterpolantHierarchyIntegrator.cpp' object='../src/IB/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.o `test -f '../src/IB/IBInterpolantHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/IBInterpolantHierarchyIntegrator.cpp
+
+../src/IB/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.obj: ../src/IB/IBInterpolantHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.Tpo -c -o ../src/IB/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.obj `if test -f '../src/IB/IBInterpolantHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/IBInterpolantHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBInterpolantHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBInterpolantHierarchyIntegrator.cpp' object='../src/IB/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.obj `if test -f '../src/IB/IBInterpolantHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/IBInterpolantHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBInterpolantHierarchyIntegrator.cpp'; fi`
+
+../src/IB/libIBAMR2d_a-IBInterpolantMethod.o: ../src/IB/IBInterpolantMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBInterpolantMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-IBInterpolantMethod.o `test -f '../src/IB/IBInterpolantMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBInterpolantMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBInterpolantMethod.cpp' object='../src/IB/libIBAMR2d_a-IBInterpolantMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBInterpolantMethod.o `test -f '../src/IB/IBInterpolantMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBInterpolantMethod.cpp
+
+../src/IB/libIBAMR2d_a-IBInterpolantMethod.obj: ../src/IB/IBInterpolantMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBInterpolantMethod.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-IBInterpolantMethod.obj `if test -f '../src/IB/IBInterpolantMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBInterpolantMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBInterpolantMethod.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBInterpolantMethod.cpp' object='../src/IB/libIBAMR2d_a-IBInterpolantMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBInterpolantMethod.obj `if test -f '../src/IB/IBInterpolantMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBInterpolantMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBInterpolantMethod.cpp'; fi`
+
 ../src/IB/libIBAMR2d_a-IBKirchhoffRodForceGen.o: ../src/IB/IBKirchhoffRodForceGen.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBKirchhoffRodForceGen.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Tpo -c -o ../src/IB/libIBAMR2d_a-IBKirchhoffRodForceGen.o `test -f '../src/IB/IBKirchhoffRodForceGen.cpp' || echo '$(srcdir)/'`../src/IB/IBKirchhoffRodForceGen.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Po
@@ -3396,6 +3469,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBLagrangianSourceStrategy.cpp' object='../src/IB/libIBAMR2d_a-IBLagrangianSourceStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBLagrangianSourceStrategy.obj `if test -f '../src/IB/IBLagrangianSourceStrategy.cpp'; then $(CYGPATH_W) '../src/IB/IBLagrangianSourceStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBLagrangianSourceStrategy.cpp'; fi`
+
+../src/IB/libIBAMR2d_a-IBLevelSetMethod.o: ../src/IB/IBLevelSetMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBLevelSetMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLevelSetMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-IBLevelSetMethod.o `test -f '../src/IB/IBLevelSetMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBLevelSetMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLevelSetMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLevelSetMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBLevelSetMethod.cpp' object='../src/IB/libIBAMR2d_a-IBLevelSetMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBLevelSetMethod.o `test -f '../src/IB/IBLevelSetMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBLevelSetMethod.cpp
+
+../src/IB/libIBAMR2d_a-IBLevelSetMethod.obj: ../src/IB/IBLevelSetMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBLevelSetMethod.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLevelSetMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-IBLevelSetMethod.obj `if test -f '../src/IB/IBLevelSetMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBLevelSetMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBLevelSetMethod.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLevelSetMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLevelSetMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBLevelSetMethod.cpp' object='../src/IB/libIBAMR2d_a-IBLevelSetMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBLevelSetMethod.obj `if test -f '../src/IB/IBLevelSetMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBLevelSetMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBLevelSetMethod.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-IBMethod.o: ../src/IB/IBMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-IBMethod.o `test -f '../src/IB/IBMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBMethod.cpp
@@ -5147,6 +5234,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBInstrumentationSpecFactory.obj `if test -f '../src/IB/IBInstrumentationSpecFactory.cpp'; then $(CYGPATH_W) '../src/IB/IBInstrumentationSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBInstrumentationSpecFactory.cpp'; fi`
 
+../src/IB/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.o: ../src/IB/IBInterpolantHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.Tpo -c -o ../src/IB/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.o `test -f '../src/IB/IBInterpolantHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/IBInterpolantHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBInterpolantHierarchyIntegrator.cpp' object='../src/IB/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.o `test -f '../src/IB/IBInterpolantHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/IBInterpolantHierarchyIntegrator.cpp
+
+../src/IB/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.obj: ../src/IB/IBInterpolantHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.Tpo -c -o ../src/IB/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.obj `if test -f '../src/IB/IBInterpolantHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/IBInterpolantHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBInterpolantHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBInterpolantHierarchyIntegrator.cpp' object='../src/IB/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.obj `if test -f '../src/IB/IBInterpolantHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/IBInterpolantHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBInterpolantHierarchyIntegrator.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-IBInterpolantMethod.o: ../src/IB/IBInterpolantMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBInterpolantMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-IBInterpolantMethod.o `test -f '../src/IB/IBInterpolantMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBInterpolantMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBInterpolantMethod.cpp' object='../src/IB/libIBAMR3d_a-IBInterpolantMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBInterpolantMethod.o `test -f '../src/IB/IBInterpolantMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBInterpolantMethod.cpp
+
+../src/IB/libIBAMR3d_a-IBInterpolantMethod.obj: ../src/IB/IBInterpolantMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBInterpolantMethod.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-IBInterpolantMethod.obj `if test -f '../src/IB/IBInterpolantMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBInterpolantMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBInterpolantMethod.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBInterpolantMethod.cpp' object='../src/IB/libIBAMR3d_a-IBInterpolantMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBInterpolantMethod.obj `if test -f '../src/IB/IBInterpolantMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBInterpolantMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBInterpolantMethod.cpp'; fi`
+
 ../src/IB/libIBAMR3d_a-IBKirchhoffRodForceGen.o: ../src/IB/IBKirchhoffRodForceGen.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBKirchhoffRodForceGen.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Tpo -c -o ../src/IB/libIBAMR3d_a-IBKirchhoffRodForceGen.o `test -f '../src/IB/IBKirchhoffRodForceGen.cpp' || echo '$(srcdir)/'`../src/IB/IBKirchhoffRodForceGen.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Po
@@ -5202,6 +5317,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBLagrangianSourceStrategy.cpp' object='../src/IB/libIBAMR3d_a-IBLagrangianSourceStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBLagrangianSourceStrategy.obj `if test -f '../src/IB/IBLagrangianSourceStrategy.cpp'; then $(CYGPATH_W) '../src/IB/IBLagrangianSourceStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBLagrangianSourceStrategy.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-IBLevelSetMethod.o: ../src/IB/IBLevelSetMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBLevelSetMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLevelSetMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-IBLevelSetMethod.o `test -f '../src/IB/IBLevelSetMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBLevelSetMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLevelSetMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLevelSetMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBLevelSetMethod.cpp' object='../src/IB/libIBAMR3d_a-IBLevelSetMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBLevelSetMethod.o `test -f '../src/IB/IBLevelSetMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBLevelSetMethod.cpp
+
+../src/IB/libIBAMR3d_a-IBLevelSetMethod.obj: ../src/IB/IBLevelSetMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBLevelSetMethod.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLevelSetMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-IBLevelSetMethod.obj `if test -f '../src/IB/IBLevelSetMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBLevelSetMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBLevelSetMethod.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLevelSetMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLevelSetMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBLevelSetMethod.cpp' object='../src/IB/libIBAMR3d_a-IBLevelSetMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBLevelSetMethod.obj `if test -f '../src/IB/IBLevelSetMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBLevelSetMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBLevelSetMethod.cpp'; fi`
 
 ../src/IB/libIBAMR3d_a-IBMethod.o: ../src/IB/IBMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-IBMethod.o `test -f '../src/IB/IBMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBMethod.cpp
@@ -6849,10 +6978,13 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpecFactory.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategySet.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLevelSetMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po
@@ -6911,10 +7043,13 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpecFactory.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategySet.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLevelSetMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po
@@ -7154,10 +7289,13 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpecFactory.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantHierarchyIntegrator.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInterpolantMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategySet.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLevelSetMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po
@@ -7216,10 +7354,13 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpecFactory.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantHierarchyIntegrator.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInterpolantMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategySet.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLevelSetMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po

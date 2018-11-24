@@ -30,7 +30,7 @@ void callLSLocateColumnInterfaceCallbackFunction(int D_idx,
 // Assumes the lower left corner of the column is the lower left corner of the domain, for simplicity
 struct ColumnInterface
 {
-    double AMPLITUDE, WAVENUMBER, DEPTH, X_ZONE_START, X_ZONE_END;
+    double AMPLITUDE, WAVENUMBER, DEPTH;
 };
 
 class LSLocateColumnInterface

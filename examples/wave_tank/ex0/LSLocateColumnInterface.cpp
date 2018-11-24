@@ -67,8 +67,6 @@ LSLocateColumnInterface::setLevelSetPatchData(int D_idx,
     const double& A = d_init_column.AMPLITUDE;
     const double& k = d_init_column.WAVENUMBER;
     const double& d = d_init_column.DEPTH;
-    const double& x_zone_start = d_init_column.X_ZONE_START;
-    const double& x_zone_end = d_init_column.X_ZONE_END;
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -94,24 +92,11 @@ LSLocateColumnInterface::setLevelSetPatchData(int D_idx,
                 }
 
                 double x_posn = coord[0];
-                if (x_posn <= x_zone_start)
-                {
 #if (NDIM == 2)
-                    (*D_data)(ci) = coord[1] - A * cos(k * x_posn) - d;
+                (*D_data)(ci) = coord[1] - A * cos(k * x_posn) - d;
 #elif (NDIM == 3)
-                    (*D_data)(ci) = coord[2] - A * cos(k * x_posn) - d;
+                (*D_data)(ci) = coord[2] - A * cos(k * x_posn) - d;
 #endif
-                }
-                else
-                {
-                    double xtilde = (x_posn - x_zone_start) / (x_zone_end - x_zone_start);
-                    double gamma = 1.0 - (exp(std::pow(xtilde, 2.0)) - 1.0) / (exp(1.0) - 1.0);
-#if (NDIM == 2)
-                    (*D_data)(ci) = coord[1] - gamma * A * cos(k * x_posn) - d;
-#elif (NDIM == 3)
-                    (*D_data)(ci) = coord[2] - gamma * A * cos(k * x_posn) - d;
-#endif
-                }
             }
         }
     }

@@ -189,12 +189,13 @@ run_example(int argc, char* argv[])
         // Setup level set information
         ColumnInterface column;
         column.DEPTH = input_db->getDouble("DEPTH");
+        column.AMPLITUDE = 0.0;
+        column.WAVENUMBER = 0.0;
 
         const string& ls_name = "level_set";
         Pointer<CellVariable<NDIM, double> > phi_var = new CellVariable<NDIM, double>(ls_name);
         adv_diff_integrator->registerTransportedQuantity(phi_var);
         adv_diff_integrator->setDiffusionCoefficient(phi_var, 0.0);
-        // Set the advection velocity of the bubble.
         adv_diff_integrator->setAdvectionVelocity(phi_var, time_integrator->getAdvectionVelocityVariable());
 
         Pointer<RelaxationLSMethod> level_set_ops =
