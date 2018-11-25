@@ -65,8 +65,8 @@ LSLocateColumnInterface::setLevelSetPatchData(int D_idx,
 
     // Set the initial condition for locating the interface
     const double& A = d_init_column.AMPLITUDE;
-    const double& k = d_init_column.WAVENUMBER;
-    const double& d = d_init_column.DEPTH;
+    const double& K = d_init_column.WAVENUMBER;
+    const double& D = d_init_column.DEPTH;
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -93,9 +93,9 @@ LSLocateColumnInterface::setLevelSetPatchData(int D_idx,
 
                 double x_posn = coord[0];
 #if (NDIM == 2)
-                (*D_data)(ci) = coord[1] - A * cos(k * x_posn) - d;
+                (*D_data)(ci) = coord[1] - A * cos(K * x_posn) - D;
 #elif (NDIM == 3)
-                (*D_data)(ci) = coord[2] - A * cos(k * x_posn) - d;
+                (*D_data)(ci) = coord[2] - A * cos(K * x_posn) - D;
 #endif
             }
         }

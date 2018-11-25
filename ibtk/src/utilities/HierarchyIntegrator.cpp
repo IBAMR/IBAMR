@@ -1253,11 +1253,10 @@ HierarchyIntegrator::atRegridPointSpecialized() const
     }
     else
     {
-        // Always regrid before integrating timestep #1.
+        // Always regrid before integrating timestep # 0.
         const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
         if (initial_time)
             return true;
-
         else
             return (d_integrator_step > 0) && (d_regrid_interval != 0) && (d_integrator_step % d_regrid_interval == 0);
     }
