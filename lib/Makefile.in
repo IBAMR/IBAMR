@@ -104,10 +104,12 @@ host_triplet = @host@
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IMPInitializer.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IMPMethod.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/MaterialPointSpec.cpp \
-@LIBMESH_ENABLED_TRUE@  ../src/IB/MaterialPointSpecFactory.cpp
+@LIBMESH_ENABLED_TRUE@  ../src/IB/MaterialPointSpecFactory.cpp \
+@LIBMESH_ENABLED_TRUE@  ../src/level_set/FESurfaceDistanceEvaluator.cpp
 
 @LIBMESH_ENABLED_TRUE@am__append_6 = \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/CIBFEMethod.h \
+@LIBMESH_ENABLED_TRUE@  ../include/ibamr/FESurfaceDistanceEvaluator.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFECentroidPostProcessor.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEDirectForcingKinematics.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEInstrumentPanel.h \
@@ -319,6 +321,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/IB/IBFESurfaceMethod.cpp ../src/IB/IMPInitializer.cpp \
 	../src/IB/IMPMethod.cpp ../src/IB/MaterialPointSpec.cpp \
 	../src/IB/MaterialPointSpecFactory.cpp \
+	../src/level_set/FESurfaceDistanceEvaluator.cpp \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op2d.f \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
@@ -344,7 +347,8 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IMPInitializer.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IMPMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-MaterialPointSpec.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-MaterialPointSpecFactory.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-MaterialPointSpecFactory.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.$(OBJEXT)
 am__objects_3 = ../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBMobilitySolver.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBSaddlePointSolver.$(OBJEXT) \
@@ -609,6 +613,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/IB/IBFESurfaceMethod.cpp ../src/IB/IMPInitializer.cpp \
 	../src/IB/IMPMethod.cpp ../src/IB/MaterialPointSpec.cpp \
 	../src/IB/MaterialPointSpecFactory.cpp \
+	../src/level_set/FESurfaceDistanceEvaluator.cpp \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op3d.f \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \
@@ -634,7 +639,8 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IMPInitializer.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IMPMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-MaterialPointSpec.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-MaterialPointSpecFactory.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-MaterialPointSpecFactory.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/level_set/libIBAMR3d_a-FESurfaceDistanceEvaluator.$(OBJEXT)
 am__objects_5 = ../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBMobilitySolver.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBSaddlePointSolver.$(OBJEXT) \
@@ -945,10 +951,12 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po \
 	../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po \
 	../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Po \
 	../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po \
+	../src/level_set/$(DEPDIR)/libIBAMR2d_a-FESurfaceDistanceEvaluator.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSMethod.Po \
+	../src/level_set/$(DEPDIR)/libIBAMR3d_a-FESurfaceDistanceEvaluator.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Po \
@@ -1237,6 +1245,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
 	../include/ibamr/Wall.h ../include/ibamr/WallForceEvaluator.h \
 	../include/ibamr/CIBFEMethod.h \
+	../include/ibamr/FESurfaceDistanceEvaluator.h \
 	../include/ibamr/IBFECentroidPostProcessor.h \
 	../include/ibamr/IBFEDirectForcingKinematics.h \
 	../include/ibamr/IBFEInstrumentPanel.h \
@@ -2300,6 +2309,9 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-MaterialPointSpecFactory.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.$(OBJEXT):  \
+	../src/level_set/$(am__dirstamp) \
+	../src/level_set/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/adv_diff/fortran/$(am__dirstamp):
 	@$(MKDIR_P) $(top_builddir)/src/adv_diff/fortran
 	@: > $(top_builddir)/src/adv_diff/fortran/$(am__dirstamp)
@@ -2699,6 +2711,9 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-MaterialPointSpecFactory.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/level_set/libIBAMR3d_a-FESurfaceDistanceEvaluator.$(OBJEXT):  \
+	../src/level_set/$(am__dirstamp) \
+	../src/level_set/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.$(OBJEXT):  \
 	$(top_builddir)/src/adv_diff/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/adv_diff/fortran/$(DEPDIR)/$(am__dirstamp)
@@ -2923,10 +2938,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-FESurfaceDistanceEvaluator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSMethod.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-FESurfaceDistanceEvaluator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Po@am__quote@ # am--include-marker
@@ -4912,6 +4929,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-MaterialPointSpecFactory.obj `if test -f '../src/IB/MaterialPointSpecFactory.cpp'; then $(CYGPATH_W) '../src/IB/MaterialPointSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/MaterialPointSpecFactory.cpp'; fi`
 
+../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.o: ../src/level_set/FESurfaceDistanceEvaluator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.o -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FESurfaceDistanceEvaluator.Tpo -c -o ../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.o `test -f '../src/level_set/FESurfaceDistanceEvaluator.cpp' || echo '$(srcdir)/'`../src/level_set/FESurfaceDistanceEvaluator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FESurfaceDistanceEvaluator.Tpo ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FESurfaceDistanceEvaluator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/FESurfaceDistanceEvaluator.cpp' object='../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.o `test -f '../src/level_set/FESurfaceDistanceEvaluator.cpp' || echo '$(srcdir)/'`../src/level_set/FESurfaceDistanceEvaluator.cpp
+
+../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.obj: ../src/level_set/FESurfaceDistanceEvaluator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.obj -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FESurfaceDistanceEvaluator.Tpo -c -o ../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.obj `if test -f '../src/level_set/FESurfaceDistanceEvaluator.cpp'; then $(CYGPATH_W) '../src/level_set/FESurfaceDistanceEvaluator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/FESurfaceDistanceEvaluator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FESurfaceDistanceEvaluator.Tpo ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FESurfaceDistanceEvaluator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/FESurfaceDistanceEvaluator.cpp' object='../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.obj `if test -f '../src/level_set/FESurfaceDistanceEvaluator.cpp'; then $(CYGPATH_W) '../src/level_set/FESurfaceDistanceEvaluator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/FESurfaceDistanceEvaluator.cpp'; fi`
+
 ../src/IB/libIBAMR3d_a-CIBMethod.o: ../src/IB/CIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-CIBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-CIBMethod.o `test -f '../src/IB/CIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/CIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Po
@@ -6760,6 +6791,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-MaterialPointSpecFactory.obj `if test -f '../src/IB/MaterialPointSpecFactory.cpp'; then $(CYGPATH_W) '../src/IB/MaterialPointSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/MaterialPointSpecFactory.cpp'; fi`
 
+../src/level_set/libIBAMR3d_a-FESurfaceDistanceEvaluator.o: ../src/level_set/FESurfaceDistanceEvaluator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR3d_a-FESurfaceDistanceEvaluator.o -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FESurfaceDistanceEvaluator.Tpo -c -o ../src/level_set/libIBAMR3d_a-FESurfaceDistanceEvaluator.o `test -f '../src/level_set/FESurfaceDistanceEvaluator.cpp' || echo '$(srcdir)/'`../src/level_set/FESurfaceDistanceEvaluator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FESurfaceDistanceEvaluator.Tpo ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FESurfaceDistanceEvaluator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/FESurfaceDistanceEvaluator.cpp' object='../src/level_set/libIBAMR3d_a-FESurfaceDistanceEvaluator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR3d_a-FESurfaceDistanceEvaluator.o `test -f '../src/level_set/FESurfaceDistanceEvaluator.cpp' || echo '$(srcdir)/'`../src/level_set/FESurfaceDistanceEvaluator.cpp
+
+../src/level_set/libIBAMR3d_a-FESurfaceDistanceEvaluator.obj: ../src/level_set/FESurfaceDistanceEvaluator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR3d_a-FESurfaceDistanceEvaluator.obj -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FESurfaceDistanceEvaluator.Tpo -c -o ../src/level_set/libIBAMR3d_a-FESurfaceDistanceEvaluator.obj `if test -f '../src/level_set/FESurfaceDistanceEvaluator.cpp'; then $(CYGPATH_W) '../src/level_set/FESurfaceDistanceEvaluator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/FESurfaceDistanceEvaluator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FESurfaceDistanceEvaluator.Tpo ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FESurfaceDistanceEvaluator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/FESurfaceDistanceEvaluator.cpp' object='../src/level_set/libIBAMR3d_a-FESurfaceDistanceEvaluator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR3d_a-FESurfaceDistanceEvaluator.obj `if test -f '../src/level_set/FESurfaceDistanceEvaluator.cpp'; then $(CYGPATH_W) '../src/level_set/FESurfaceDistanceEvaluator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/FESurfaceDistanceEvaluator.cpp'; fi`
+
 .f.o:
 	$(AM_V_F77)$(F77COMPILE) -c -o $@ $<
 
@@ -7103,10 +7148,12 @@ distclean: distclean-am
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Po
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po
+	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FESurfaceDistanceEvaluator.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSMethod.Po
+	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FESurfaceDistanceEvaluator.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Po
@@ -7414,10 +7461,12 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Po
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po
+	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FESurfaceDistanceEvaluator.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSMethod.Po
+	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FESurfaceDistanceEvaluator.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Po
