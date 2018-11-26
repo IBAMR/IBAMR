@@ -172,7 +172,8 @@ if LIBMESH_ENABLED
   ../src/IB/IMPInitializer.cpp \
   ../src/IB/IMPMethod.cpp \
   ../src/IB/MaterialPointSpec.cpp \
-  ../src/IB/MaterialPointSpecFactory.cpp
+  ../src/IB/MaterialPointSpecFactory.cpp \
+  ../src/level_set/FESurfaceDistanceEvaluator.cpp
 endif
 
 pkg_include_HEADERS += \
@@ -288,6 +289,7 @@ pkg_include_HEADERS += \
 if LIBMESH_ENABLED
   pkg_include_HEADERS += \
   ../include/ibamr/CIBFEMethod.h \
+  ../include/ibamr/FESurfaceDistanceEvaluator.h \
   ../include/ibamr/IBFECentroidPostProcessor.h \
   ../include/ibamr/IBFEDirectForcingKinematics.h \
   ../include/ibamr/IBFEInstrumentPanel.h \
