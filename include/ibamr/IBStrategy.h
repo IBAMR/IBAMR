@@ -535,12 +535,12 @@ protected:
     /*!
      * The IBHierarchyIntegrator object that is using this strategy class.
      */
-    IBHierarchyIntegrator* d_ib_solver;
+    IBHierarchyIntegrator* d_ib_solver = nullptr;
 
     /*!
      * Whether to use "fixed" Lagrangian-Eulerian coupling operators.
      */
-    bool d_use_fixed_coupling_ops;
+    bool d_use_fixed_coupling_ops = false;
 
 private:
     /*!

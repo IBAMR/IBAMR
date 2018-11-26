@@ -213,7 +213,10 @@ DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
     d_mat_inv_type_map[mat_name] = inv_type;
     d_mat_filename_map[mat_name] = filename;
     d_mat_scale_map[mat_name] = scale;
-    d_petsc_mat_map[mat_name] = std::make_pair<Mat, Mat>(nullptr, nullptr);
+    d_mat_map[mat_name] = { {}, {} };
+    d_geometric_mat_map[mat_name] = {};
+    d_ipiv_map[mat_name] = { {}, {} };
+    d_petsc_mat_map[mat_name] = { nullptr, nullptr };
     d_petsc_geometric_mat_map[mat_name] = nullptr;
 
     // Allocate the actual matrices.
