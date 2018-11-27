@@ -450,7 +450,7 @@ protected:
      * The names of the refinement operators used to prolong the coarse grid
      * correction.
      */
-    std::string d_U_prolongation_method = "CONSTANT_REFINE", d_P_prolongation_method = "LIENAR_REFINE";
+    std::string d_U_prolongation_method = "CONSTANT_REFINE", d_P_prolongation_method = "LINEAR_REFINE";
 
     /*
      * The names of the coarsening operators used to restrict the fine grid
