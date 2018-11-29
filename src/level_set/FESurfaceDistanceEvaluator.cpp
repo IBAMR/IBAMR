@@ -97,15 +97,19 @@ const double FESurfaceDistanceEvaluator::s_large_distance = 1234567.0;
 FESurfaceDistanceEvaluator::FESurfaceDistanceEvaluator(const std::string& object_name,
                                                        Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                                                        Pointer<IBFEMethod> ibfe_method,
+                                                       const libMesh::Mesh& mesh,
                                                        const BoundaryMesh& bdry_mesh,
                                                        const int part,
-                                                       const int gcw)
+                                                       const int gcw,
+                                                       bool use_extracted_bdry_mesh)
     : d_object_name(object_name),
       d_patch_hierarchy(patch_hierarchy),
       d_ibfe_method(ibfe_method),
+      d_mesh(mesh),
       d_bdry_mesh(bdry_mesh),
       d_part(part),
-      d_gcw(gcw)
+      d_gcw(gcw),
+      d_use_vol_extracted_bdry_mesh(use_extracted_bdry_mesh)
 {
 // The only supported element type for this class
 #if (NDIM == 2)
@@ -117,7 +121,7 @@ FESurfaceDistanceEvaluator::FESurfaceDistanceEvaluator(const std::string& object
 
     // Note that this class is specialized to work on a boundary mesh with dim = NDIM - 1
     // derived from a volumetric mesh.
-    if (d_bdry_mesh.mesh_dimension() != NDIM - 1)
+    if (d_use_vol_extracted_bdry_mesh && d_bdry_mesh.mesh_dimension() != NDIM - 1)
     {
         TBOX_ERROR(
             "FESurfaceDistanceEvaluator presently requires a boundary mesh with dim = NDIM - 1 to be registered");
@@ -158,14 +162,21 @@ FESurfaceDistanceEvaluator::mapIntersections()
     IntVector<NDIM> ghost_width = d_gcw;
 
     // Compute a bounding box for the entire structure, relying on LibMesh parallel decomposition
-    MeshBase::const_element_iterator el_it = d_bdry_mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end = d_bdry_mesh.active_local_elements_end();
+    MeshBase::const_element_iterator el_it = d_mesh.active_local_elements_begin();
+    MeshBase::const_element_iterator el_end = d_mesh.active_local_elements_end();
+    ;
+    if (d_use_vol_extracted_bdry_mesh)
+    {
+        el_it = d_bdry_mesh.active_local_elements_begin();
+        el_end = d_bdry_mesh.active_local_elements_end();
+    }
     IBTK::Vector3d elem_bl, elem_tr;
     elem_bl << std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), std::numeric_limits<int>::max();
     elem_tr << std::numeric_limits<int>::min(), std::numeric_limits<int>::min(), std::numeric_limits<int>::min();
     for (; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
+
         // Get the coordinates of the nodes
         const libMesh::Point& s0 = elem->point(0);
         libMesh::Point n0 = s0;
@@ -228,7 +239,7 @@ FESurfaceDistanceEvaluator::mapIntersections()
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* patch_X_lower = patch_geom->getXLower();
-        const Index<NDIM>& patch_lower_index = patch_box.lower();
+        const SAMRAI::hier::Index<NDIM>& patch_lower_index = patch_box.lower();
         const double* const patch_dx = patch_geom->getDx();
 
         // If the patch box doesn't intersect the structure box, no need to do computations
@@ -314,7 +325,14 @@ FESurfaceDistanceEvaluator::mapIntersections()
                 if (found_intersection)
                 {
                     // Store the element corresponding to the volumetric mesh
-                    d_cell_elem_neighbor_map[ci].insert(elem->interior_parent());
+                    if (d_use_vol_extracted_bdry_mesh)
+                    {
+                        d_cell_elem_neighbor_map[ci].insert(elem->interior_parent());
+                    }
+                    else
+                    {
+                        d_cell_elem_neighbor_map[ci].insert(elem);
+                    }
                 }
             }
         }
@@ -338,179 +356,18 @@ FESurfaceDistanceEvaluator::computeSignedDistance(int n_idx, int d_idx)
     TBOX_ASSERT(n_idx >= 0);
     TBOX_ASSERT(d_idx >= 0);
 #endif
-    // Get the normals for the boundary mesh using a surface quadrature rule
-    EquationSystems* equation_systems = d_ibfe_method->getFEDataManager()->getEquationSystems();
-    System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-    X_system.solution->localize(*X_system.current_local_solution);
-    DofMap& X_dof_map = X_system.get_dof_map();
-    FEType fe_type = X_dof_map.variable_type(0);
-    const int bdry_mesh_dim = d_bdry_mesh.mesh_dimension();
-    libMesh::UniquePtr<FEBase> fe_bdry(FEBase::build(NDIM, fe_type));
 
-    // Ensures only a single quadrature point is used for the normals, which is sufficient for linear elements.
-    libMesh::UniquePtr<QBase> qrule_bdry = QBase::build(QGAUSS, bdry_mesh_dim, CONSTANT);
-    fe_bdry->attach_quadrature_rule(qrule_bdry.get());
-
-    // Loop over patches on finest level
-    const int finest_ln = d_patch_hierarchy->getFinestLevelNumber();
-    IBFEMethod::CoordinateMappingFcnData mapping = d_ibfe_method->getInitialCoordinateMappingFunction(/*part*/ 0);
-    const bool identity_mapping = !(mapping.fcn);
-    Pointer<PatchLevel<NDIM> > level = d_patch_hierarchy->getPatchLevel(finest_ln);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    if (d_use_vol_extracted_bdry_mesh)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Index<NDIM>& patch_lower_index = patch_box.lower();
-        Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-        const double* patch_X_lower = patch_geom->getXLower();
-        const double* const patch_dx = patch_geom->getDx();
-        Pointer<CellData<NDIM, double> > n_data = patch->getPatchData(n_idx);
-        Pointer<CellData<NDIM, double> > d_data = patch->getPatchData(d_idx);
-
-        // Note that we only work with cells that satisfy the intersecting criteria.
-        for (Box<NDIM>::Iterator it(patch_box); it; it++)
-        {
-            CellIndex<NDIM> ci(it());
-            const bool contains_key = (d_cell_elem_neighbor_map.find(ci) != d_cell_elem_neighbor_map.end());
-            if (contains_key)
-            {
-                std::set<Elem*> elem_set = d_cell_elem_neighbor_map[ci];
-                const int num_elements = static_cast<int>(elem_set.size());
-                (*n_data)(ci) = num_elements;
-
-                // Loop over the cutting elements and find the minimum distance
-                IBTK::VectorNd P;
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    P[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_index(d)) + 0.5);
-                }
-                double min_dist = std::numeric_limits<double>::max();
-
-                // Create a pair to take care of normals for cells equidistant to multiple elements.
-                std::vector<std::pair<libMesh::Elem*, IBTK::VectorNd> > vec_equidistant_pair;
-                for (std::set<Elem*>::const_iterator it = elem_set.begin(); it != elem_set.end(); ++it)
-                {
-                    Elem* elem = *it;
-
-                    // Loop over the sides of the element. If it has no neighbors on a side,
-                    // then it MUST live on the boundary of the mesh
-                    for (unsigned int s = 0; s < elem->n_sides(); ++s)
-                    {
-                        if (elem->neighbor(s) != NULL) continue;
-                        UniquePtr<Elem> side_elem = elem->build_side(s, /*proxy*/ false);
-                        IBTK::VectorNd v, w, proj;
-                        double dist = std::numeric_limits<double>::max();
-
-                        // Get the nodes
-                        const libMesh::Point& s0 = side_elem->point(0);
-                        libMesh::Point n0 = s0;
-                        const libMesh::Point& s1 = side_elem->point(1);
-                        libMesh::Point n1 = s1;
-#if (NDIM == 3)
-                        const libMesh::Point& s2 = side_elem->point(2);
-                        libMesh::Point n2 = s2;
-#endif
-                        if (!identity_mapping)
-                        {
-                            mapping.fcn(n0, s0, mapping.ctx);
-                            mapping.fcn(n1, s1, mapping.ctx);
-#if (NDIM == 3)
-                            mapping.fcn(n2, s2, mapping.ctx);
-#endif
-                        }
-#if (NDIM == 2)
-                        v << n0(0), n0(1);
-                        w << n1(0), n1(1);
-
-                        const double L2 = (v - w).squaredNorm();
-                        if (MathUtilities<double>::equalEps(L2, 0.0))
-                        {
-                            // Special case where line element collapses to a point.
-                            // Shouldn't happen.
-                            proj = v;
-                            dist = (proj - P).norm();
-                        }
-                        else
-                        {
-                            // Parameterize and project
-                            // Note that this will take care of the edge case where the projection
-                            // does not fall on the line
-                            const double t = std::max(0.0, std::min(1.0, (P - v).dot(w - v) / L2));
-                            proj = v + t * (w - v);
-                            dist = (P - proj).norm();
-                        }
-#endif
-#if (NDIM == 3)
-                        proj = getClosestPoint3D(P, n0, n1, n2);
-                        dist = (P - proj).norm();
-#endif
-
-                        // If the distance is the same as the minimal distance, then the cell is equidistant
-                        // to multiple elements, so add it to the set.
-                        if (MathUtilities<double>::equalEps(dist, min_dist))
-                        {
-                            vec_equidistant_pair.push_back(std::make_pair(elem, proj));
-                        }
-                        else if (dist < min_dist)
-                        {
-                            // If a new minimal element is found, clear the previous vector of pairs and simply keep
-                            // this one
-                            min_dist = dist;
-                            vec_equidistant_pair.clear();
-                            vec_equidistant_pair.push_back(std::make_pair(elem, proj));
-                        }
-                    }
-                }
-
-                // Determine the sign based on the normal vectors at the quadrature points
-                // For linear elements considered in this class, the normal is the same no matter the quadrature point
-                // If the cell is equidistant to multiple elements, take the average normal from those elements
-                double sgn = 0.0;
-                const size_t vec_length = vec_equidistant_pair.size();
-                TBOX_ASSERT(vec_length > 0);
-                IBTK::VectorNd avg_unit_normal, avg_proj;
-                avg_unit_normal.setZero();
-                avg_proj.setZero();
-                std::vector<std::pair<Elem*, IBTK::VectorNd> >::const_iterator it;
-                for (it = vec_equidistant_pair.begin(); it != vec_equidistant_pair.end(); ++it)
-                {
-                    Elem* elem = (*it).first;
-                    IBTK::VectorNd proj = (*it).second;
-                    avg_proj += proj;
-
-                    // Loop over the sides of the element. If it has no neighbors on a side,
-                    // then it MUST live on the boundary of the mesh
-                    for (unsigned int s = 0; s < elem->n_sides(); ++s)
-                    {
-                        if (elem->neighbor(s) != NULL) continue;
-                        {
-                            fe_bdry->reinit(elem, s);
-                            const unsigned int n_qp = qrule_bdry->n_points();
-                            const std::vector<libMesh::Point>& bdry_normals = fe_bdry->get_normals();
-                            TBOX_ASSERT(n_qp == 1); // for now
-                            unsigned int qp = 0;
-                            for (int d = 0; d < NDIM; ++d)
-                            {
-                                avg_unit_normal(d) += bdry_normals[qp](d);
-                            }
-                        }
-                    }
-                }
-
-                // Take the average normal and normalize it
-                avg_unit_normal /= (double)vec_length;
-                avg_unit_normal /= avg_unit_normal.norm();
-
-                // Average the proj point
-                avg_proj /= (double)vec_length;
-
-                // Compute the signed distance function.
-                sgn = avg_unit_normal.dot(P - avg_proj) <= 0.0 ? -1.0 : 1.0;
-                (*d_data)(ci) = sgn * min_dist;
-            }
-        }
+        computeSignedDistanceVolExtractedBdryMesh(n_idx, d_idx);
     }
-} // computeSignedDistance
+    else
+    {
+        computeSignedDistanceSurfaceMesh(n_idx, d_idx);
+    }
+
+    return;
+}
 
 void
 FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx)
@@ -550,8 +407,8 @@ FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            const Index<NDIM>& patch_lower_index = patch_box.lower();
-            const Index<NDIM>& patch_upper_index = patch_box.upper();
+            const SAMRAI::hier::Index<NDIM>& patch_lower_index = patch_box.lower();
+            const SAMRAI::hier::Index<NDIM>& patch_upper_index = patch_box.upper();
 
             Pointer<CellData<NDIM, double> > D_iter_data = patch->getPatchData(D_iter_idx);
             double* const D = D_iter_data->getPointer(0);
@@ -1060,8 +917,14 @@ FESurfaceDistanceEvaluator::collectNeighboringPatchElements(int level_number)
 
         // Loop over the active elements and see if their centroids or nodes reside
         // in the patch interior grown by the specified ghost cell width
-        MeshBase::const_element_iterator el_it = d_bdry_mesh.active_elements_begin();
-        const MeshBase::const_element_iterator el_end = d_bdry_mesh.active_elements_end();
+        MeshBase::const_element_iterator el_it = d_mesh.active_elements_begin();
+        MeshBase::const_element_iterator el_end = d_mesh.active_elements_end();
+        ;
+        if (d_use_vol_extracted_bdry_mesh)
+        {
+            el_it = d_bdry_mesh.active_elements_begin();
+            el_end = d_bdry_mesh.active_elements_end();
+        }
         for (; el_it != el_end; ++el_it)
         {
             bool in_patch = false;
@@ -1110,6 +973,394 @@ FESurfaceDistanceEvaluator::collectNeighboringPatchElements(int level_number)
     }
     return;
 } // collectNeighboringPatchElements
+
+void
+FESurfaceDistanceEvaluator::computeSignedDistanceVolExtractedBdryMesh(int n_idx, int d_idx)
+{
+    // Get the normals for the boundary mesh using a surface quadrature rule
+    EquationSystems* equation_systems = d_ibfe_method->getFEDataManager()->getEquationSystems();
+    System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+    X_system.solution->localize(*X_system.current_local_solution);
+    DofMap& X_dof_map = X_system.get_dof_map();
+    FEType fe_type = X_dof_map.variable_type(0);
+    const int bdry_mesh_dim = d_bdry_mesh.mesh_dimension();
+    libMesh::UniquePtr<FEBase> fe_bdry(FEBase::build(NDIM, fe_type));
+
+    // Ensures only a single quadrature point is used for the normals, which is sufficient for linear elements.
+    libMesh::UniquePtr<QBase> qrule_bdry = QBase::build(QGAUSS, bdry_mesh_dim, CONSTANT);
+    fe_bdry->attach_quadrature_rule(qrule_bdry.get());
+
+    // Loop over patches on finest level
+    const int finest_ln = d_patch_hierarchy->getFinestLevelNumber();
+    IBFEMethod::CoordinateMappingFcnData mapping = d_ibfe_method->getInitialCoordinateMappingFunction(d_part);
+    const bool identity_mapping = !(mapping.fcn);
+    Pointer<PatchLevel<NDIM> > level = d_patch_hierarchy->getPatchLevel(finest_ln);
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        const SAMRAI::hier::Index<NDIM>& patch_lower_index = patch_box.lower();
+        Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* patch_X_lower = patch_geom->getXLower();
+        const double* const patch_dx = patch_geom->getDx();
+        Pointer<CellData<NDIM, double> > n_data = patch->getPatchData(n_idx);
+        Pointer<CellData<NDIM, double> > d_data = patch->getPatchData(d_idx);
+
+        // Note that we only work with cells that satisfy the intersecting criteria.
+        for (Box<NDIM>::Iterator it(patch_box); it; it++)
+        {
+            CellIndex<NDIM> ci(it());
+            const bool contains_key = (d_cell_elem_neighbor_map.find(ci) != d_cell_elem_neighbor_map.end());
+            if (contains_key)
+            {
+                std::set<Elem*> elem_set = d_cell_elem_neighbor_map[ci];
+                const int num_elements = static_cast<int>(elem_set.size());
+                (*n_data)(ci) = num_elements;
+
+                // Loop over the cutting elements and find the minimum distance
+                IBTK::VectorNd P;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    P[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_index(d)) + 0.5);
+                }
+                double min_dist = std::numeric_limits<double>::max();
+
+                // Create a pair to take care of normals for cells equidistant to multiple elements.
+                std::vector<std::pair<libMesh::Elem*, IBTK::VectorNd> > vec_equidistant_pair;
+                for (std::set<Elem*>::const_iterator it = elem_set.begin(); it != elem_set.end(); ++it)
+                {
+                    Elem* elem = *it;
+
+                    // Loop over the sides of the element. If it has no neighbors on a side,
+                    // then it MUST live on the boundary of the mesh
+                    for (unsigned int s = 0; s < elem->n_sides(); ++s)
+                    {
+                        if (elem->neighbor(s) != NULL) continue;
+                        UniquePtr<Elem> side_elem = elem->build_side(s, /*proxy*/ false);
+                        IBTK::VectorNd v, w, proj;
+                        double dist = std::numeric_limits<double>::max();
+
+                        // Get the nodes
+                        const libMesh::Point& s0 = side_elem->point(0);
+                        libMesh::Point n0 = s0;
+                        const libMesh::Point& s1 = side_elem->point(1);
+                        libMesh::Point n1 = s1;
+#if (NDIM == 3)
+                        const libMesh::Point& s2 = side_elem->point(2);
+                        libMesh::Point n2 = s2;
+#endif
+                        if (!identity_mapping)
+                        {
+                            mapping.fcn(n0, s0, mapping.ctx);
+                            mapping.fcn(n1, s1, mapping.ctx);
+#if (NDIM == 3)
+                            mapping.fcn(n2, s2, mapping.ctx);
+#endif
+                        }
+#if (NDIM == 2)
+                        v << n0(0), n0(1);
+                        w << n1(0), n1(1);
+
+                        const double L2 = (v - w).squaredNorm();
+                        if (MathUtilities<double>::equalEps(L2, 0.0))
+                        {
+                            // Special case where line element collapses to a point.
+                            // Shouldn't happen.
+                            proj = v;
+                            dist = (proj - P).norm();
+                        }
+                        else
+                        {
+                            // Parameterize and project
+                            // Note that this will take care of the edge case where the projection
+                            // does not fall on the line
+                            const double t = std::max(0.0, std::min(1.0, (P - v).dot(w - v) / L2));
+                            proj = v + t * (w - v);
+                            dist = (P - proj).norm();
+                        }
+#endif
+#if (NDIM == 3)
+                        proj = getClosestPoint3D(P, n0, n1, n2);
+                        dist = (P - proj).norm();
+#endif
+
+                        // If the distance is the same as the minimal distance, then the cell is equidistant
+                        // to multiple elements, so add it to the set.
+                        if (MathUtilities<double>::equalEps(dist, min_dist))
+                        {
+                            vec_equidistant_pair.push_back(std::make_pair(elem, proj));
+                        }
+                        else if (dist < min_dist)
+                        {
+                            // If a new minimal element is found, clear the previous vector of pairs and simply keep
+                            // this one
+                            min_dist = dist;
+                            vec_equidistant_pair.clear();
+                            vec_equidistant_pair.push_back(std::make_pair(elem, proj));
+                        }
+                    }
+                }
+
+                // Determine the sign based on the normal vectors at the quadrature points
+                // For linear elements considered in this class, the normal is the same no matter the quadrature point
+                // If the cell is equidistant to multiple elements, take the average normal from those elements
+                double sgn = 0.0;
+                const size_t vec_length = vec_equidistant_pair.size();
+                TBOX_ASSERT(vec_length > 0);
+                IBTK::VectorNd avg_unit_normal, avg_proj;
+                avg_unit_normal.setZero();
+                avg_proj.setZero();
+                std::vector<std::pair<Elem*, IBTK::VectorNd> >::const_iterator it;
+                for (it = vec_equidistant_pair.begin(); it != vec_equidistant_pair.end(); ++it)
+                {
+                    Elem* elem = (*it).first;
+                    IBTK::VectorNd proj = (*it).second;
+                    avg_proj += proj;
+
+                    // Loop over the sides of the element. If it has no neighbors on a side,
+                    // then it MUST live on the boundary of the mesh
+                    for (unsigned int s = 0; s < elem->n_sides(); ++s)
+                    {
+                        if (elem->neighbor(s) != NULL) continue;
+                        {
+                            fe_bdry->reinit(elem, s);
+                            const unsigned int n_qp = qrule_bdry->n_points();
+                            const std::vector<libMesh::Point>& bdry_normals = fe_bdry->get_normals();
+                            TBOX_ASSERT(n_qp == 1); // for now
+                            unsigned int qp = 0;
+                            for (int d = 0; d < NDIM; ++d)
+                            {
+                                avg_unit_normal(d) += bdry_normals[qp](d);
+                            }
+                        }
+                    }
+                }
+
+                // Take the average normal and normalize it
+                avg_unit_normal /= (double)vec_length;
+                avg_unit_normal /= avg_unit_normal.norm();
+
+                // Average the proj point
+                avg_proj /= (double)vec_length;
+
+                // Compute the signed distance function.
+                sgn = avg_unit_normal.dot(P - avg_proj) <= 0.0 ? -1.0 : 1.0;
+                (*d_data)(ci) = sgn * min_dist;
+            }
+        }
+    }
+} // computeSignedDistanceVolExtractedBdryMesh
+
+void
+FESurfaceDistanceEvaluator::computeSignedDistanceSurfaceMesh(int n_idx, int d_idx)
+{
+    // Get the normals for the boundary mesh using a surface quadrature rule
+    EquationSystems* equation_systems = d_ibfe_method->getFEDataManager()->getEquationSystems();
+    System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+    X_system.solution->localize(*X_system.current_local_solution);
+    DofMap& X_dof_map = X_system.get_dof_map();
+    FEType fe_type = X_dof_map.variable_type(0);
+    const int surface_mesh_dim = d_mesh.mesh_dimension();
+    libMesh::UniquePtr<FEBase> fe_surface(FEBase::build(surface_mesh_dim, fe_type));
+    std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
+    dphi_dxi[0] = &fe_surface->get_dphidxi();
+    if (NDIM > 2) dphi_dxi[1] = &fe_surface->get_dphideta();
+
+    // Ensures only a single quadrature point is used for the normals, which is sufficient for linear elements.
+    libMesh::UniquePtr<QBase> qrule_surface = QBase::build(QGAUSS, surface_mesh_dim, CONSTANT);
+    fe_surface->attach_quadrature_rule(qrule_surface.get());
+
+    // Local variables to compute surface normal.
+    VectorValue<double> N;
+    std::array<VectorValue<double>, 2> dX_dxi;
+    boost::multi_array<double, 2> X_node;
+    typename boost::multi_array<double, 2>::extent_gen extents;
+    int n_nodes = NDIM == 2 ? 2 : 3;
+    int n_vars = NDIM;
+    X_node.resize(extents[n_nodes][n_vars]);
+
+    // Loop over patches on finest level
+    const int finest_ln = d_patch_hierarchy->getFinestLevelNumber();
+    IBFEMethod::CoordinateMappingFcnData mapping = d_ibfe_method->getInitialCoordinateMappingFunction(d_part);
+    const bool identity_mapping = !(mapping.fcn);
+    Pointer<PatchLevel<NDIM> > level = d_patch_hierarchy->getPatchLevel(finest_ln);
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        const SAMRAI::hier::Index<NDIM>& patch_lower_index = patch_box.lower();
+        Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* patch_X_lower = patch_geom->getXLower();
+        const double* const patch_dx = patch_geom->getDx();
+        Pointer<CellData<NDIM, double> > n_data = patch->getPatchData(n_idx);
+        Pointer<CellData<NDIM, double> > d_data = patch->getPatchData(d_idx);
+
+        // Note that we only work with cells that satisfy the intersecting criteria.
+        for (Box<NDIM>::Iterator it(patch_box); it; it++)
+        {
+            CellIndex<NDIM> ci(it());
+            const bool contains_key = (d_cell_elem_neighbor_map.find(ci) != d_cell_elem_neighbor_map.end());
+            if (contains_key)
+            {
+                std::set<Elem*> elem_set = d_cell_elem_neighbor_map[ci];
+                const int num_elements = static_cast<int>(elem_set.size());
+                (*n_data)(ci) = num_elements;
+
+                // Loop over the cutting elements and find the minimum distance
+                IBTK::VectorNd P;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    P[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_index(d)) + 0.5);
+                }
+                double min_dist = std::numeric_limits<double>::max();
+
+                // Create a pair to take care of normals for cells equidistant to multiple elements.
+                std::vector<std::pair<libMesh::Elem*, IBTK::VectorNd> > vec_equidistant_pair;
+                for (std::set<Elem*>::const_iterator it = elem_set.begin(); it != elem_set.end(); ++it)
+                {
+                    Elem* elem = *it;
+
+                    IBTK::VectorNd v, w, proj;
+                    double dist = std::numeric_limits<double>::max();
+
+                    // Get the nodes
+                    const libMesh::Point& s0 = elem->point(0);
+                    libMesh::Point n0 = s0;
+                    const libMesh::Point& s1 = elem->point(1);
+                    libMesh::Point n1 = s1;
+#if (NDIM == 3)
+                    const libMesh::Point& s2 = elem->point(2);
+                    libMesh::Point n2 = s2;
+#endif
+                    if (!identity_mapping)
+                    {
+                        mapping.fcn(n0, s0, mapping.ctx);
+                        mapping.fcn(n1, s1, mapping.ctx);
+#if (NDIM == 3)
+                        mapping.fcn(n2, s2, mapping.ctx);
+#endif
+                    }
+#if (NDIM == 2)
+                    v << n0(0), n0(1);
+                    w << n1(0), n1(1);
+
+                    const double L2 = (v - w).squaredNorm();
+                    if (MathUtilities<double>::equalEps(L2, 0.0))
+                    {
+                        // Special case where line element collapses to a point.
+                        // Shouldn't happen.
+                        proj = v;
+                        dist = (proj - P).norm();
+                    }
+                    else
+                    {
+                        // Parameterize and project
+                        // Note that this will take care of the edge case where the projection
+                        // does not fall on the line
+                        const double t = std::max(0.0, std::min(1.0, (P - v).dot(w - v) / L2));
+                        proj = v + t * (w - v);
+                        dist = (P - proj).norm();
+                    }
+#endif
+#if (NDIM == 3)
+                    proj = getClosestPoint3D(P, n0, n1, n2);
+                    dist = (P - proj).norm();
+#endif
+
+                    // If the distance is the same as the minimal distance, then the cell is equidistant
+                    // to multiple elements, so add it to the set.
+                    if (MathUtilities<double>::equalEps(dist, min_dist))
+                    {
+                        vec_equidistant_pair.push_back(std::make_pair(elem, proj));
+                    }
+                    else if (dist < min_dist)
+                    {
+                        // If a new minimal element is found, clear the previous vector of pairs and simply keep
+                        // this one
+                        min_dist = dist;
+                        vec_equidistant_pair.clear();
+                        vec_equidistant_pair.push_back(std::make_pair(elem, proj));
+                    }
+                }
+
+                // Determine the sign based on the normal vectors at the quadrature points
+                // For linear elements considered in this class, the normal is the same no matter the quadrature point
+                // If the cell is equidistant to multiple elements, take the average normal from those elements
+                double sgn = 0.0;
+                const size_t vec_length = vec_equidistant_pair.size();
+                TBOX_ASSERT(vec_length > 0);
+                IBTK::VectorNd avg_unit_normal, avg_proj;
+                avg_unit_normal.setZero();
+                avg_proj.setZero();
+                std::vector<std::pair<Elem*, IBTK::VectorNd> >::const_iterator it;
+                for (it = vec_equidistant_pair.begin(); it != vec_equidistant_pair.end(); ++it)
+                {
+                    Elem* elem = (*it).first;
+                    fe_surface->reinit(elem);
+
+                    IBTK::VectorNd proj = (*it).second;
+                    avg_proj += proj;
+
+                    // Get the nodes
+                    const libMesh::Point& s0 = elem->point(0);
+                    libMesh::Point n0 = s0;
+                    const libMesh::Point& s1 = elem->point(1);
+                    libMesh::Point n1 = s1;
+#if (NDIM == 3)
+                    const libMesh::Point& s2 = elem->point(2);
+                    libMesh::Point n2 = s2;
+#endif
+                    if (!identity_mapping)
+                    {
+                        mapping.fcn(n0, s0, mapping.ctx);
+                        mapping.fcn(n1, s1, mapping.ctx);
+
+                        X_node[0][0] = n0(0);
+                        X_node[0][1] = n0(1);
+                        X_node[1][0] = n1(0);
+                        X_node[1][1] = n1(1);
+#if (NDIM == 3)
+                        mapping.fcn(n2, s2, mapping.ctx);
+                        X_node[2][0] = n2(0);
+                        X_node[2][1] = n2(1);
+                        X_node[2][2] = n2(2);
+#endif
+                    }
+
+                    const unsigned int n_qp = qrule_surface->n_points();
+                    TBOX_ASSERT(n_qp == 1);
+
+                    unsigned int qp = 0;
+                    for (unsigned int k = 0; k < NDIM - 1; ++k)
+                    {
+                        interpolate(dX_dxi[k], qp, X_node, *dphi_dxi[k]);
+                    }
+                    if (NDIM == 2)
+                    {
+                        dX_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
+                    }
+                    N = (dX_dxi[0].cross(dX_dxi[1])).unit();
+
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        avg_unit_normal(d) += N(d);
+                    }
+                }
+
+                // Take the average normal and normalize it
+                avg_unit_normal /= (double)vec_length;
+                avg_unit_normal /= avg_unit_normal.norm();
+
+                // Average the proj point
+                avg_proj /= (double)vec_length;
+
+                // Compute the signed distance function.
+                sgn = avg_unit_normal.dot(P - avg_proj) <= 0.0 ? -1.0 : 1.0;
+                (*d_data)(ci) = sgn * min_dist;
+            }
+        }
+    }
+} // computeSignedDistanceSurfaceMesh
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
