@@ -421,11 +421,20 @@ FEDataManager::reinitElementMappings()
 {
     IBTK_TIMER_START(t_reinit_element_mappings);
 
+    // We reinitialize mappings after repartitioning, so clear the cache since
+    // most of its content is no longer relevant:
+    for (std::pair<const unsigned int, std::unique_ptr<SystemDofMapCache> > &pair
+             : d_system_dof_map_cache)
+    {
+        pair.second->clear();
+    }
+
     // Delete cached hierarchy-dependent data.
     d_active_patch_elem_map.clear();
     d_active_patch_node_map.clear();
     d_active_patch_ghost_dofs.clear();
     d_system_ghost_vec.clear();
+
 
     // Reset the mappings between grid patches and active mesh elements.
     collectActivePatchElements(d_active_patch_elem_map, d_level_number, d_ghost_width);

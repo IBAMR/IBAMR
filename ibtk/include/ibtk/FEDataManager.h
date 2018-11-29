@@ -117,6 +117,17 @@ public:
         {
         }
 
+        inline ~SystemDofMapCache() = default;
+
+        /*!
+         * Clear the contents of the cache.
+         */
+        inline void
+        clear()
+        {
+            d_dof_cache.clear();
+        }
+
         /*!
          * Populate the vector @p dof_indices with the dofs corresponding to
          * variable @var on element @elem. The dof indices on each cell are
