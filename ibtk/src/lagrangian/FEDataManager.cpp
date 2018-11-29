@@ -426,10 +426,6 @@ FEDataManager::reinitElementMappings()
     d_active_patch_elem_map.clear();
     d_active_patch_node_map.clear();
     d_active_patch_ghost_dofs.clear();
-    for (const auto& ghost_vec : d_system_ghost_vec)
-    {
-        delete ghost_vec.second;
-    }
     d_system_ghost_vec.clear();
 
     // Reset the mappings between grid patches and active mesh elements.
@@ -465,12 +461,12 @@ FEDataManager::buildGhostedSolutionVector(const std::string& system_name, const 
             collect_unique_elems(active_elems, d_active_patch_elem_map);
             collectGhostDOFIndices(d_active_patch_ghost_dofs[system_name], active_elems, system_name);
         }
-        UniquePtr<NumericVector<double> > sol_ghost_vec = NumericVector<double>::build(sol_vec->comm());
+        std::unique_ptr<NumericVector<double> > sol_ghost_vec = NumericVector<double>::build(sol_vec->comm());
         sol_ghost_vec->init(
             sol_vec->size(), sol_vec->local_size(), d_active_patch_ghost_dofs[system_name], true, GHOSTED);
-        d_system_ghost_vec[system_name] = sol_ghost_vec.release();
+        d_system_ghost_vec[system_name] = std::move(sol_ghost_vec);
     }
-    NumericVector<double>* sol_ghost_vec = d_system_ghost_vec[system_name];
+    NumericVector<double>* sol_ghost_vec = d_system_ghost_vec[system_name].get();
     if (localize_data) copy_and_synch(*sol_vec, *sol_ghost_vec, /*close_v_in*/ false);
 
     IBTK_TIMER_STOP(t_build_ghosted_solution_vector);
@@ -1729,10 +1725,10 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name)
         const std::vector<std::vector<double> >& phi = fe->get_phi();
 
         // Build solver components.
-        LinearSolver<double>* solver = LinearSolver<double>::build(comm).release();
+        std::unique_ptr<LinearSolver<double>> solver = LinearSolver<double>::build(comm);
         solver->init();
 
-        SparseMatrix<double>* M_mat = SparseMatrix<double>::build(comm).release();
+        std::unique_ptr<SparseMatrix<double>> M_mat = SparseMatrix<double>::build(comm);
         M_mat->attach_dof_map(dof_map);
         M_mat->init();
 
@@ -1816,12 +1812,12 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name)
         solver->reuse_preconditioner(true);
 
         // Store the solver, mass matrix, and configuration options.
-        d_L2_proj_solver[system_name] = solver;
-        d_L2_proj_matrix[system_name] = M_mat;
+        d_L2_proj_solver[system_name] = std::move(solver);
+        d_L2_proj_matrix[system_name] = std::move(M_mat);
     }
 
     IBTK_TIMER_STOP(t_build_l2_projection_solver);
-    return std::make_pair(d_L2_proj_solver[system_name], d_L2_proj_matrix[system_name]);
+    return std::make_pair(d_L2_proj_solver[system_name].get(), d_L2_proj_matrix[system_name].get());
 } // buildL2ProjectionSolver
 
 NumericVector<double>*
@@ -1855,7 +1851,7 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
         const std::vector<std::vector<double> >& phi = fe->get_phi();
 
         // Build solver components.
-        NumericVector<double>* M_vec = system.solution->zero_clone().release();
+        std::unique_ptr<NumericVector<double>> M_vec = system.solution->zero_clone();
 
         // Loop over the mesh to construct the system matrix.
         DenseMatrix<double> M_e;
@@ -1941,11 +1937,11 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
         M_vec->close();
 
         // Store the diagonal mass matrix.
-        d_L2_proj_matrix_diag[system_name] = M_vec;
+        d_L2_proj_matrix_diag[system_name] = std::move(M_vec);
     }
 
     IBTK_TIMER_STOP(t_build_diagonal_l2_mass_matrix);
-    return d_L2_proj_matrix_diag[system_name];
+    return d_L2_proj_matrix_diag[system_name].get();
 } // buildDiagonalL2MassMatrix
 
 bool
@@ -2363,27 +2359,6 @@ FEDataManager::FEDataManager(std::string object_name,
         t_put_to_database = TimerManager::getManager()->getTimer("IBTK::FEDataManager::putToDatabase()");)
     return;
 } // FEDataManager
-
-FEDataManager::~FEDataManager()
-{
-    for (const auto& ghost_vec : d_system_ghost_vec)
-    {
-        delete ghost_vec.second;
-    }
-    for (const auto& solver : d_L2_proj_solver)
-    {
-        delete solver.second;
-    }
-    for (const auto& matrix : d_L2_proj_matrix)
-    {
-        delete matrix.second;
-    }
-    for (const auto& matrix : d_L2_proj_matrix_diag)
-    {
-        delete matrix.second;
-    }
-    return;
-} // ~FEDataManager
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

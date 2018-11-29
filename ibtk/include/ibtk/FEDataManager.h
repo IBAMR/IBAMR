@@ -664,7 +664,7 @@ protected:
     /*!
      * \brief The FEDataManager destructor cleans up any allocated data objects.
      */
-    ~FEDataManager();
+    ~FEDataManager() = default;
 
 private:
     /*!
@@ -834,15 +834,15 @@ private:
     /*
      * Ghost vectors for the various equation systems.
      */
-    std::map<std::string, libMesh::NumericVector<double>*> d_system_ghost_vec;
+    std::map<std::string, std::unique_ptr<libMesh::NumericVector<double>>> d_system_ghost_vec;
 
     /*
      * Linear solvers and related data for performing interpolation in the IB-FE
      * framework.
      */
-    std::map<std::string, libMesh::LinearSolver<double>*> d_L2_proj_solver;
-    std::map<std::string, libMesh::SparseMatrix<double>*> d_L2_proj_matrix;
-    std::map<std::string, libMesh::NumericVector<double>*> d_L2_proj_matrix_diag;
+    std::map<std::string, std::unique_ptr<libMesh::LinearSolver<double>>> d_L2_proj_solver;
+    std::map<std::string, std::unique_ptr<libMesh::SparseMatrix<double>>> d_L2_proj_matrix;
+    std::map<std::string, std::unique_ptr<libMesh::NumericVector<double>>> d_L2_proj_matrix_diag;
 };
 } // namespace IBTK
 
