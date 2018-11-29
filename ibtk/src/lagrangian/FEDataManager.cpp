@@ -471,6 +471,10 @@ FEDataManager::reinitElementMappings()
 {
     IBTK_TIMER_START(t_reinit_element_mappings);
 
+    // We reinitialize mappings after repartitioning, so clear the cache since
+    // its content is no longer relevant:
+    d_system_dof_map_cache.clear();
+
     // Delete cached hierarchy-dependent data.
     d_active_patch_elem_map.clear();
     d_active_patch_node_map.clear();
