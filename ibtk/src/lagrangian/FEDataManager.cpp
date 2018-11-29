@@ -416,6 +416,13 @@ FEDataManager::getActivePatchNodeMap() const
     return d_active_patch_node_map;
 } // getActivePatchNodeMap
 
+// TODO: reinitElementMappings is now doing two related, but separate, things:
+// it figures out which libMesh elems are locally relevant (after solving for
+// new system coordinates) and also resets all data related to
+// partitioning. It should be possible to improve performance by splitting
+// what is done here into something that does what the original version did
+// (i.e., assume no repartitioning) and a second function that clears data
+// that is stale after repartitioning.
 void
 FEDataManager::reinitElementMappings()
 {
@@ -433,8 +440,13 @@ FEDataManager::reinitElementMappings()
     d_active_patch_elem_map.clear();
     d_active_patch_node_map.clear();
     d_active_patch_ghost_dofs.clear();
+    d_active_elem_bboxes.clear();
     d_system_ghost_vec.clear();
 
+    // also clear any stored matrices:
+    d_L2_proj_solver.clear();
+    d_L2_proj_matrix.clear();
+    d_L2_proj_matrix_diag.clear();
 
     // Reset the mappings between grid patches and active mesh elements.
     collectActivePatchElements(d_active_patch_elem_map, d_level_number, d_ghost_width);
