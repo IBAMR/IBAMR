@@ -2167,7 +2167,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 
-    if (initial_time)
+    if (true) // TODO when may we reuse cached data?
     {
         // Determine the active elements associated with the prescribed patch
         // level.
@@ -2590,8 +2590,17 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     // processor will have access to all of the element bounding boxes.  This is
     // not a scalable approach, but we won't worry about this until it becomes
     // an actual issue.
+    //
+    // TODO: rewrite this function to use the new bounding box class instead
+    // of the present ad-hoc std::pair<Point, Point> implementation.
     computeActiveElementBoundingBoxes();
-    int local_patch_num = 0;
+
+    // Find all libMesh elements whose bounding boxes are within the patch.
+    //
+    // TODO: it should be possible to remove this once we partition libMesh
+    // cells based on SAMRAI data. Put another way: frontier_elems will, by
+    // construction, contain all locally owned cells.
+    unsigned int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         std::set<Elem*>& frontier_elems = frontier_patch_elems[local_patch_num];
