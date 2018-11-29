@@ -54,6 +54,13 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+IBLevelSetMethod::IBLevelSetMethod(Pointer<IBStrategy> ib_method_ops, Pointer<IBStrategy> ibfe_method_ops)
+    : d_ib_method_ops(ib_method_ops), d_ibfe_method_ops(ibfe_method_ops)
+{
+    // intentionally blank
+    return;
+} // IBLevelSetMethod
+
 void
 IBLevelSetMethod::deactivateIBFEMethod()
 {
@@ -99,9 +106,11 @@ IBLevelSetMethod::registerEulerianCommunicationAlgorithms()
 const IntVector<NDIM>&
 IBLevelSetMethod::getMinimumGhostCellWidth() const
 {
-    IntVector<NDIM> gcw = 0;
+    static IntVector<NDIM> gcw = 0;
     if (d_ib_method_ops) gcw = IntVector<NDIM>::max(gcw, d_ib_method_ops->getMinimumGhostCellWidth());
     if (d_ibfe_method_ops) gcw = IntVector<NDIM>::max(gcw, d_ibfe_method_ops->getMinimumGhostCellWidth());
+    pout << "inside level set IB \n";
+    pout << gcw << "\n";
     return gcw;
 } // getMinimumGhostCellWidth
 

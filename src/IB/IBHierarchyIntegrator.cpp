@@ -227,7 +227,6 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
 
     // Initialize all variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
     const IntVector<NDIM> ib_ghosts = d_ib_method_ops->getMinimumGhostCellWidth();
     const IntVector<NDIM> ghosts = 1;
 

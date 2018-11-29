@@ -157,8 +157,8 @@ IBInterpolantMethod::IBInterpolantMethod(const std::string& object_name,
         d_registered_for_restart = true;
     }
 
-    // Create context for variable interpolation
     // Set some default values.
+    d_struct_lag_idx_range.resize(d_num_rigid_parts);
     d_quaternion_current.resize(d_num_rigid_parts, Eigen::Quaterniond::Identity());
     d_quaternion_new.resize(d_num_rigid_parts, Eigen::Quaterniond::Identity());
     d_center_of_mass_initial.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
@@ -448,7 +448,7 @@ IBInterpolantMethod::interpolateVelocity(const int u_data_idx,
                                          const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                          const double data_time)
 {
-    // intentionally left-blank
+    pout << "IBInterpolantMethod::interpolateVelocity(). This method is not implemented." << std::endl;
     return;
 } // interpolateVelocity
 
@@ -481,7 +481,7 @@ IBInterpolantMethod::interpolateQ(const double data_time)
 void
 IBInterpolantMethod::forwardEulerStep(const double /*current_time*/, const double /*new_time*/)
 {
-    // intentionally left-blank
+    pout << "IBInterpolantMethod::forwardEulerStep(). This method is not implemented." << std::endl;
     return;
 } // forwardEulerStep
 
@@ -579,6 +579,13 @@ IBInterpolantMethod::updateMeshPosition(double current_time,
 
     return;
 } // updateMeshPosition
+
+void
+IBInterpolantMethod::computeLagrangianForce(double /*data_time*/)
+{
+    pout << "IBInterpolantMethod::computeLagrangianForce(). This method is not implemented." << std::endl;
+    return;
+} // computeLagrangianForce
 
 void
 IBInterpolantMethod::spreadForce(const int /*f_data_idx*/,

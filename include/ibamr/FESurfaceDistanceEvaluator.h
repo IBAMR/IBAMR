@@ -65,9 +65,11 @@ public:
     FESurfaceDistanceEvaluator(const std::string& object_name,
                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
                                SAMRAI::tbox::Pointer<IBAMR::IBFEMethod> ibfe_method,
+                               const libMesh::Mesh& mesh,
                                const libMesh::BoundaryMesh& bdry_mesh,
                                const int part,
-                               const int gcw = 1);
+                               const int gcw = 1,
+                               bool use_extracted_bdry_mesh = true);
 
     /*!
      * Destructor for this class.
@@ -170,6 +172,16 @@ private:
     void collectNeighboringPatchElements(int level_number);
 
     /*!
+     * Compute signed distance from volume extracted boundary mesh.
+     */
+    void computeSignedDistanceVolExtractedBdryMesh(int n_idx, int d_idx);
+
+    /*!
+     * Compute signed distance from surface mesh.
+     */
+    void computeSignedDistanceSurfaceMesh(int n_idx, int d_idx);
+
+    /*!
      * Name of this object.
      */
     std::string d_object_name;
@@ -185,6 +197,11 @@ private:
     SAMRAI::tbox::Pointer<IBAMR::IBFEMethod> d_ibfe_method;
 
     /*!
+     * Volume mesh object
+     */
+    const libMesh::Mesh& d_mesh;
+
+    /*!
      * Boundary mesh object
      */
     const libMesh::BoundaryMesh& d_bdry_mesh;
@@ -198,6 +215,11 @@ private:
      * The desired ghost cell width.
      */
     int d_gcw;
+
+    /*!
+     * Check if we are using volume extracted boundary mesh.
+     */
+    bool d_use_vol_extracted_bdry_mesh;
 
     /*!
      * The supported element type for this class

@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = IB IBFE IMP adv_diff advect navier_stokes ConstraintIB CIB CIBFE level_set multiphase_flow vc_navier_stokes wave_tank
+SUBDIRS = IB IBFE IBLevelSet IMP adv_diff advect navier_stokes ConstraintIB CIB CIBFE level_set multiphase_flow vc_navier_stokes wave_tank
 
 all:
 	if test "$(CONFIGURATION_BUILD_DIR)" != ""; then \
@@ -20,6 +20,7 @@ if GTEST_ENABLED
 gtest:
 	@(cd IB               && make gtest) || exit 1;
 	@(cd IBFE             && make gtest) || exit 1;
+	@(cd IBLevelSet       && make gtest) || exit 1;
 ##      @(cd IMP              && make gtest) || exit 1;
 	@(cd adv_diff         && make gtest) || exit 1;
 	@(cd advect           && make gtest) || exit 1;
@@ -30,10 +31,12 @@ gtest:
 	@(cd level_set        && make gtest) || exit 1;
 	@(cd multiphase_flow  && make gtest) || exit 1;
 	@(cd vc_navier_stokes && make gtest) || exit 1;
+	@(cd wave_tank        && make gtest) || exit 1;
 
 gtest-long:
 	@(cd IB               && make gtest-long) || exit 1;
 	@(cd IBFE             && make gtest-long) || exit 1;
+	@(cd IBLevelSet       && make gtest-long) || exit 1;
 ##      @(cd IMP              && make gtest-long) || exit 1;
 	@(cd adv_diff         && make gtest-long) || exit 1;
 	@(cd advect           && make gtest-long) || exit 1;
@@ -44,10 +47,12 @@ gtest-long:
 	@(cd level_set        && make gtest-long) || exit 1;
 	@(cd multiphase_flow  && make gtest-long) || exit 1;
 	@(cd vc_navier_stokes && make gtest-long) || exit 1;
+	@(cd wave_tank        && make gtest-long) || exit 1;
 
 gtest-all:
 	@(cd IB               && make gtest-all) || exit 1;
 	@(cd IBFE             && make gtest-all) || exit 1;
+	@(cd IBLevelSet       && make gtest-all) || exit 1;
 ##      @(cd IMP              && make gtest-all) || exit 1;
 	@(cd adv_diff         && make gtest-all) || exit 1;
 	@(cd advect           && make gtest-all) || exit 1;
@@ -58,6 +63,7 @@ gtest-all:
 	@(cd level_set        && make gtest-all) || exit 1;
 	@(cd multiphase_flow  && make gtest-all) || exit 1;
 	@(cd vc_navier_stokes && make gtest-all) || exit 1;
+	@(cd wave_tank        && make gtest-all) || exit 1;
 
 else
 gtest:

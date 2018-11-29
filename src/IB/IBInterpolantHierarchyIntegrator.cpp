@@ -60,7 +60,6 @@ IBInterpolantHierarchyIntegrator::IBInterpolantHierarchyIntegrator(const std::st
     : IBHierarchyIntegrator(object_name, input_db, ib_ls_method_ops, ins_hier_integrator, register_for_restart),
       d_ib_ls_method_ops(ib_ls_method_ops)
 {
-    d_ib_method_ops = ib_ls_method_ops;
     d_ib_interpolant_method_ops = d_ib_ls_method_ops->getIBMethodOps();
 
     // Initialize object with data read from the input and restart databases.

@@ -408,7 +408,7 @@ protected:
     double d_current_time, d_new_time, d_half_time;
 
     /*!
-     * Vector of Lagrnagian indices of all structures.
+     * Vector of Lagrangian indices of all structures.
      */
     std::vector<std::pair<int, int> > d_struct_lag_idx_range;
 

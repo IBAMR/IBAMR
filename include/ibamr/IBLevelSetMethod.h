@@ -98,12 +98,8 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBLevelSetMethod(SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops, SAMRAI::tbox::Pointer<IBStrategy> ibfe_method_ops)
-        : d_ib_method_ops(ib_method_ops), d_ibfe_method_ops(ibfe_method_ops)
-    {
-        // intentionally blank
-        return;
-    } // IBLevelSetMethod
+    IBLevelSetMethod(SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops,
+                     SAMRAI::tbox::Pointer<IBStrategy> ibfe_method_ops);
 
     /*!
      * \brief Get IBMethod ops object.
