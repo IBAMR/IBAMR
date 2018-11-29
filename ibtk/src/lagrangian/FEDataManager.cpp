@@ -2601,15 +2601,13 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         std::set<Elem*>& frontier_elems = frontier_patch_elems[local_patch_num];
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-        Point x_lower;
-        for (unsigned int d = 0; d < NDIM; ++d) x_lower[d] = pgeom->getXLower()[d];
-        Point x_upper;
-        for (unsigned int d = 0; d < NDIM; ++d) x_upper[d] = pgeom->getXUpper()[d];
         const double* const dx = pgeom->getDx();
+        Point x_lower;
+        Point x_upper;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            x_lower[d] -= dx[d] * ghost_width[d];
-            x_upper[d] += dx[d] * ghost_width[d];
+            x_lower[d] = pgeom->getXLower()[d] - dx[d] * ghost_width[d];
+            x_upper[d] = pgeom->getXUpper()[d] + dx[d] * ghost_width[d];
         }
 
         MeshBase::const_element_iterator el_it = mesh.active_elements_begin();
