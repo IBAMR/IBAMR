@@ -152,9 +152,11 @@ FESurfaceDistanceEvaluator::mapIntersections()
     IBTK_TIMER_STOP(t_collectNeighboringPatchElements);
 
     IBTK_TIMER_START(t_buildIntersectionMap);
+
+    // Clear out the data structure.
+    d_cell_elem_neighbor_map.clear();
+
     // Loop over patches on finest level, while keeping track of the local patch indexing
-    IBFEMethod::CoordinateMappingFcnData mapping = d_ibfe_method->getInitialCoordinateMappingFunction(d_part);
-    const bool identity_mapping = !(mapping.fcn);
     Pointer<PatchLevel<NDIM> > level = d_patch_hierarchy->getPatchLevel(finest_ln);
     int local_patch_num = 0;
 
@@ -178,23 +180,13 @@ FESurfaceDistanceEvaluator::mapIntersections()
         const Elem* const elem = *el_it;
 
         // Get the coordinates of the nodes
-        const libMesh::Point& s0 = elem->point(0);
-        libMesh::Point n0 = s0;
-        const libMesh::Point& s1 = elem->point(1);
-        libMesh::Point n1 = s1;
+        const libMesh::Point& n0 = elem->point(0);
+        const libMesh::Point& n1 = elem->point(1);
+
 #if (NDIM == 3)
-        const libMesh::Point& s2 = elem->point(2);
-        libMesh::Point n2 = s2;
+        const libMesh::Point& n2 = elem->point(2);
 #endif
 
-        if (!identity_mapping)
-        {
-            mapping.fcn(n0, s0, mapping.ctx);
-            mapping.fcn(n1, s1, mapping.ctx);
-#if (NDIM == 3)
-            mapping.fcn(n2, s2, mapping.ctx);
-#endif
-        }
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             elem_bl[d] = std::min(elem_bl[d], n0(d));
@@ -291,23 +283,12 @@ FESurfaceDistanceEvaluator::mapIntersections()
             {
                 // Get the coordinates of the nodes
                 Elem* const elem = *eit;
-                const libMesh::Point& s0 = elem->point(0);
-                libMesh::Point n0 = s0;
-                const libMesh::Point& s1 = elem->point(1);
-                libMesh::Point n1 = s1;
-#if (NDIM == 3)
-                const libMesh::Point& s2 = elem->point(2);
-                libMesh::Point n2 = s2;
-#endif
+                const libMesh::Point& n0 = elem->point(0);
+                const libMesh::Point& n1 = elem->point(1);
 
-                if (!identity_mapping)
-                {
-                    mapping.fcn(n0, s0, mapping.ctx);
-                    mapping.fcn(n1, s1, mapping.ctx);
 #if (NDIM == 3)
-                    mapping.fcn(n2, s2, mapping.ctx);
+                const libMesh::Point& n2 = elem->point(2);
 #endif
-                }
 
                 // Intersection detection routines
 #if (NDIM == 2)
@@ -889,8 +870,8 @@ FESurfaceDistanceEvaluator::getClosestPoint3D(const IBTK::Vector3d& P,
 void
 FESurfaceDistanceEvaluator::collectNeighboringPatchElements(int level_number)
 {
-    IBFEMethod::CoordinateMappingFcnData mapping = d_ibfe_method->getInitialCoordinateMappingFunction(d_part);
-    const bool identity_mapping = !(mapping.fcn);
+    // Clear out the data structure.
+    d_active_neighbor_patch_bdry_elem_map.clear();
 
     // Setup data structures used to assign elements to patches.
     Pointer<PatchLevel<NDIM> > level = d_patch_hierarchy->getPatchLevel(level_number);
@@ -919,7 +900,6 @@ FESurfaceDistanceEvaluator::collectNeighboringPatchElements(int level_number)
         // in the patch interior grown by the specified ghost cell width
         MeshBase::const_element_iterator el_it = d_mesh.active_elements_begin();
         MeshBase::const_element_iterator el_end = d_mesh.active_elements_end();
-        ;
         if (d_use_vol_extracted_bdry_mesh)
         {
             el_it = d_bdry_mesh.active_elements_begin();
@@ -939,9 +919,7 @@ FESurfaceDistanceEvaluator::collectNeighboringPatchElements(int level_number)
             }
 
             // First check the centroids
-            const libMesh::Point& c0 = elem->centroid();
-            libMesh::Point c = c0;
-            if (!identity_mapping) mapping.fcn(c, c0, mapping.ctx);
+            const libMesh::Point& c = elem->centroid();
 
             bool centroid_in_patch = true;
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -953,14 +931,12 @@ FESurfaceDistanceEvaluator::collectNeighboringPatchElements(int level_number)
             const unsigned int n_nodes = elem->n_nodes();
             for (unsigned int k = 0; k < n_nodes && !in_patch; ++k)
             {
-                const libMesh::Point& n0 = elem->point(k);
-                libMesh::Point n = n0;
-                if (!identity_mapping) mapping.fcn(n, n0, mapping.ctx);
+                const libMesh::Point& n = elem->point(k);
 
                 bool node_in_patch = true;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    in_patch = node_in_patch && (x_lower[d] <= c(d) && c(d) <= x_upper[d]);
+                    in_patch = node_in_patch && (x_lower[d] <= n(d) && n(d) <= x_upper[d]);
                 }
             }
 
@@ -978,9 +954,8 @@ void
 FESurfaceDistanceEvaluator::computeSignedDistanceVolExtractedBdryMesh(int n_idx, int d_idx)
 {
     // Get the normals for the boundary mesh using a surface quadrature rule
-    EquationSystems* equation_systems = d_ibfe_method->getFEDataManager()->getEquationSystems();
+    EquationSystems* equation_systems = d_ibfe_method->getFEDataManager(d_part)->getEquationSystems();
     System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-    X_system.solution->localize(*X_system.current_local_solution);
     DofMap& X_dof_map = X_system.get_dof_map();
     FEType fe_type = X_dof_map.variable_type(0);
     const int bdry_mesh_dim = d_bdry_mesh.mesh_dimension();
@@ -992,8 +967,6 @@ FESurfaceDistanceEvaluator::computeSignedDistanceVolExtractedBdryMesh(int n_idx,
 
     // Loop over patches on finest level
     const int finest_ln = d_patch_hierarchy->getFinestLevelNumber();
-    IBFEMethod::CoordinateMappingFcnData mapping = d_ibfe_method->getInitialCoordinateMappingFunction(d_part);
-    const bool identity_mapping = !(mapping.fcn);
     Pointer<PatchLevel<NDIM> > level = d_patch_hierarchy->getPatchLevel(finest_ln);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
@@ -1041,22 +1014,12 @@ FESurfaceDistanceEvaluator::computeSignedDistanceVolExtractedBdryMesh(int n_idx,
                         double dist = std::numeric_limits<double>::max();
 
                         // Get the nodes
-                        const libMesh::Point& s0 = side_elem->point(0);
-                        libMesh::Point n0 = s0;
-                        const libMesh::Point& s1 = side_elem->point(1);
-                        libMesh::Point n1 = s1;
+                        const libMesh::Point& n0 = side_elem->point(0);
+                        const libMesh::Point& n1 = side_elem->point(1);
 #if (NDIM == 3)
-                        const libMesh::Point& s2 = side_elem->point(2);
-                        libMesh::Point n2 = s2;
+                        const libMesh::Point& n2 = side_elem->point(2);
 #endif
-                        if (!identity_mapping)
-                        {
-                            mapping.fcn(n0, s0, mapping.ctx);
-                            mapping.fcn(n1, s1, mapping.ctx);
-#if (NDIM == 3)
-                            mapping.fcn(n2, s2, mapping.ctx);
-#endif
-                        }
+
 #if (NDIM == 2)
                         v << n0(0), n0(1);
                         w << n1(0), n1(1);
@@ -1155,9 +1118,8 @@ void
 FESurfaceDistanceEvaluator::computeSignedDistanceSurfaceMesh(int n_idx, int d_idx)
 {
     // Get the normals for the boundary mesh using a surface quadrature rule
-    EquationSystems* equation_systems = d_ibfe_method->getFEDataManager()->getEquationSystems();
+    EquationSystems* equation_systems = d_ibfe_method->getFEDataManager(d_part)->getEquationSystems();
     System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-    X_system.solution->localize(*X_system.current_local_solution);
     DofMap& X_dof_map = X_system.get_dof_map();
     FEType fe_type = X_dof_map.variable_type(0);
     const int surface_mesh_dim = d_mesh.mesh_dimension();
@@ -1181,8 +1143,6 @@ FESurfaceDistanceEvaluator::computeSignedDistanceSurfaceMesh(int n_idx, int d_id
 
     // Loop over patches on finest level
     const int finest_ln = d_patch_hierarchy->getFinestLevelNumber();
-    IBFEMethod::CoordinateMappingFcnData mapping = d_ibfe_method->getInitialCoordinateMappingFunction(d_part);
-    const bool identity_mapping = !(mapping.fcn);
     Pointer<PatchLevel<NDIM> > level = d_patch_hierarchy->getPatchLevel(finest_ln);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
@@ -1224,22 +1184,12 @@ FESurfaceDistanceEvaluator::computeSignedDistanceSurfaceMesh(int n_idx, int d_id
                     double dist = std::numeric_limits<double>::max();
 
                     // Get the nodes
-                    const libMesh::Point& s0 = elem->point(0);
-                    libMesh::Point n0 = s0;
-                    const libMesh::Point& s1 = elem->point(1);
-                    libMesh::Point n1 = s1;
+                    const libMesh::Point& n0 = elem->point(0);
+                    const libMesh::Point& n1 = elem->point(1);
 #if (NDIM == 3)
-                    const libMesh::Point& s2 = elem->point(2);
-                    libMesh::Point n2 = s2;
+                    const libMesh::Point& n2 = elem->point(2);
 #endif
-                    if (!identity_mapping)
-                    {
-                        mapping.fcn(n0, s0, mapping.ctx);
-                        mapping.fcn(n1, s1, mapping.ctx);
-#if (NDIM == 3)
-                        mapping.fcn(n2, s2, mapping.ctx);
-#endif
-                    }
+
 #if (NDIM == 2)
                     v << n0(0), n0(1);
                     w << n1(0), n1(1);
@@ -1302,30 +1252,19 @@ FESurfaceDistanceEvaluator::computeSignedDistanceSurfaceMesh(int n_idx, int d_id
                     avg_proj += proj;
 
                     // Get the nodes
-                    const libMesh::Point& s0 = elem->point(0);
-                    libMesh::Point n0 = s0;
-                    const libMesh::Point& s1 = elem->point(1);
-                    libMesh::Point n1 = s1;
-#if (NDIM == 3)
-                    const libMesh::Point& s2 = elem->point(2);
-                    libMesh::Point n2 = s2;
-#endif
-                    if (!identity_mapping)
-                    {
-                        mapping.fcn(n0, s0, mapping.ctx);
-                        mapping.fcn(n1, s1, mapping.ctx);
+                    const libMesh::Point& n0 = elem->point(0);
+                    const libMesh::Point& n1 = elem->point(1);
+                    X_node[0][0] = n0(0);
+                    X_node[0][1] = n0(1);
+                    X_node[1][0] = n1(0);
+                    X_node[1][1] = n1(1);
 
-                        X_node[0][0] = n0(0);
-                        X_node[0][1] = n0(1);
-                        X_node[1][0] = n1(0);
-                        X_node[1][1] = n1(1);
 #if (NDIM == 3)
-                        mapping.fcn(n2, s2, mapping.ctx);
-                        X_node[2][0] = n2(0);
-                        X_node[2][1] = n2(1);
-                        X_node[2][2] = n2(2);
+                    const libMesh::Point& n2 = elem->point(2);
+                    X_node[2][0] = n2(0);
+                    X_node[2][1] = n2(1);
+                    X_node[2][2] = n2(2);
 #endif
-                    }
 
                     const unsigned int n_qp = qrule_surface->n_points();
                     TBOX_ASSERT(n_qp == 1);

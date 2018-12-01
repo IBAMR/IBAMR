@@ -52,6 +52,7 @@
 #include <libmesh/matlab_io.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
+#include <libmesh/mesh_modification.h>
 #include <libmesh/mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
@@ -132,16 +133,6 @@ static double shift_x, shift_y;
 #if (NDIM == 3)
 static double shift_z;
 #endif
-void
-coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
-{
-    X(0) = s(0) + shift_x;
-    X(1) = s(1) + shift_y;
-#if (NDIM == 3)
-    X(2) = s(2) + shift_z;
-#endif
-    return;
-} // coordinate_mapping_function
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -277,6 +268,18 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
             MeshTools::Generation::build_sphere(solid_mesh, circle.R, r, Utility::string_to_enum<ElemType>(elem_type));
         }
 
+        // Translate the mesh to a new location.
+        // This can also be achieved by libMesh's canned routine MeshTools::Modification::translate().
+        for (MeshBase::node_iterator it = solid_mesh.nodes_begin(); it != solid_mesh.nodes_end(); ++it)
+        {
+            Node* n = *it;
+            libMesh::Point& x = *n;
+            x(0) += shift_x;
+            x(1) += shift_y;
+#if (NDIM == 3)
+            x(2) += shift_z;
+#endif
+        }
         solid_mesh.prepare_for_use();
 
         // Create boundary mesh
@@ -560,8 +563,7 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
 
         // Configure the IBFE solver.
         ibfe_method_ops->initializeFEEquationSystems();
-        ibfe_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
-        EquationSystems* equation_systems = ibfe_method_ops->getFEDataManager()->getEquationSystems();
+        EquationSystems* equation_systems = ibfe_method_ops->getFEDataManager(/*part*/ 0)->getEquationSystems();
 
         // Configure the IBInterpolant solver.
         Pointer<IBRedundantInitializer> ib_initializer = new IBRedundantInitializer(
