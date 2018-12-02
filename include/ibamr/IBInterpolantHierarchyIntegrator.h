@@ -162,7 +162,6 @@ private:
      */
     SAMRAI::tbox::Pointer<IBLevelSetMethod> d_ib_ls_method_ops;
     SAMRAI::tbox::Pointer<IBInterpolantMethod> d_ib_interpolant_method_ops;
-    SAMRAI::tbox::Pointer<INSHierarchyIntegrator> d_ins_hier_integrator;
 };
 
 } // namespace IBAMR

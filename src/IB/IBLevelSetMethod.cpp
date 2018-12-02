@@ -109,8 +109,7 @@ IBLevelSetMethod::getMinimumGhostCellWidth() const
     static IntVector<NDIM> gcw = 0;
     if (d_ib_method_ops) gcw = IntVector<NDIM>::max(gcw, d_ib_method_ops->getMinimumGhostCellWidth());
     if (d_ibfe_method_ops) gcw = IntVector<NDIM>::max(gcw, d_ibfe_method_ops->getMinimumGhostCellWidth());
-    pout << "inside level set IB \n";
-    pout << gcw << "\n";
+
     return gcw;
 } // getMinimumGhostCellWidth
 

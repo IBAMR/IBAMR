@@ -225,7 +225,8 @@ IBInterpolantMethod::registerEulerianVariables()
     {
         const std::string& var_name = it->first;
         d_q_interp_idx[var_name] = -1;
-        registerVariable(d_q_interp_idx[var_name], d_q_var[var_name], ib_ghosts, d_ib_solver->getScratchContext());
+        registerVariable(
+            d_q_interp_idx[var_name], d_q_var[var_name], ib_ghosts, NULL /*d_ib_solver->getScratchContext()*/);
     }
 
     return;
@@ -262,6 +263,9 @@ IBInterpolantMethod::registerVariableAndHierarchyIntegrator(const std::string& v
     d_q_var[var_name] = var;
     d_q_depth[var_name] = var_depth;
     d_q_hier_integrator[var_name] = hier_integrator;
+    d_q_interp_idx[var_name] = -1;
+    d_Q_current_data[var_name] = {};
+    d_Q_new_data[var_name] = {};
 
     return;
 } // registerVariableAndHierarchyIntegrator
@@ -400,7 +404,7 @@ IBInterpolantMethod::preprocessIntegrateData(double current_time, double new_tim
 } // preprocessIntegrateData
 
 void
-IBInterpolantMethod::postprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
+IBInterpolantMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
 {
     int ierr;
     const int coarsest_ln = 0;
@@ -474,6 +478,15 @@ IBInterpolantMethod::interpolateQ(const double data_time)
                                  getGhostfillRefineSchedules(d_object_name + "::ghost_fill_alg"),
                                  data_time);
     }
+
+    return;
+} // interpolateQ
+
+void
+IBInterpolantMethod::interpolateQ()
+{
+    interpolateQ(d_current_time);
+    interpolateQ(d_new_time);
 
     return;
 } // interpolateQ
@@ -600,6 +613,19 @@ IBInterpolantMethod::spreadForce(const int /*f_data_idx*/,
 void
 IBInterpolantMethod::spreadQ(double data_time)
 {
+    int finest_ln = d_hierarchy->getFinestLevelNumber();
+    Pointer<PatchLevel<NDIM> > finest_level = d_hierarchy->getPatchLevel(finest_ln);
+    const IntVector<NDIM>& ratio = finest_level->getRatio();
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    const double* dx0 = grid_geom->getDx();
+    std::array<double, NDIM> dx;
+    PetscScalar vol = 1.0;
+    for (unsigned i = 0; i < NDIM; ++i)
+    {
+        dx[i] = dx0[i] / ratio(i);
+        vol *= dx[i];
+    }
+
     std::vector<Pointer<LData> >* X_data;
     getPositionData(&X_data, data_time);
     std::vector<Pointer<LData> >* Q_data;
@@ -610,13 +636,29 @@ IBInterpolantMethod::spreadQ(double data_time)
         const std::string& name = it->first;
         int q_data_idx = d_q_interp_idx[name];
         zeroOutEulerianData(name, q_data_idx);
+
         getQData(name, &Q_data, data_time);
+        Vec l_data_vec = (*Q_data)[finest_ln]->getVec();
+        VecScale(l_data_vec, vol);
         d_l_data_manager->spread(q_data_idx, *Q_data, *X_data, (RobinPhysBdryPatchStrategy*)NULL);
-        copyEulerianDataToIntegrator(name, q_data_idx, data_time);
+        VecScale(l_data_vec, 1.0 / vol);
     }
 
     return;
 } // spreadQ
+
+void
+IBInterpolantMethod::copyEulerianDataToIntegrator(double data_time)
+{
+    typedef std::map<std::string, std::vector<Pointer<LData> > >::iterator map_it;
+    for (map_it it = d_Q_current_data.begin(); it != d_Q_current_data.end(); ++it)
+    {
+        const std::string& name = it->first;
+        int q_data_idx = d_q_interp_idx[name];
+        copyEulerianDataToIntegrator(name, q_data_idx, data_time);
+    }
+
+} // copyEulerianDataToIntegrator
 
 void
 IBInterpolantMethod::initializePatchHierarchy(
@@ -836,8 +878,8 @@ IBInterpolantMethod::copyEulerianDataFromIntegrator(const std::string& var_name,
     }
 
     // Copy integrator data into q_data_idx
-    Pointer<Variable<NDIM> > cc_var = var;
-    Pointer<Variable<NDIM> > sc_var = var;
+    Pointer<CellVariable<NDIM, double> > cc_var = var;
+    Pointer<SideVariable<NDIM, double> > sc_var = var;
     if (cc_var)
     {
         HierarchyCellDataOpsReal<NDIM, double> hier_data_ops(d_hierarchy);
@@ -858,8 +900,8 @@ IBInterpolantMethod::zeroOutEulerianData(const std::string& var_name, int q_data
 {
     Pointer<Variable<NDIM> > var = d_q_var[var_name];
 
-    Pointer<Variable<NDIM> > cc_var = var;
-    Pointer<Variable<NDIM> > sc_var = var;
+    Pointer<CellVariable<NDIM, double> > cc_var = var;
+    Pointer<SideVariable<NDIM, double> > sc_var = var;
     if (cc_var)
     {
         HierarchyCellDataOpsReal<NDIM, double> hier_data_ops(d_hierarchy);
@@ -900,8 +942,8 @@ IBInterpolantMethod::copyEulerianDataToIntegrator(const std::string& var_name, i
     }
 
     // Copy integrator data into q_data_idx
-    Pointer<Variable<NDIM> > cc_var = var;
-    Pointer<Variable<NDIM> > sc_var = var;
+    Pointer<CellVariable<NDIM, double> > cc_var = var;
+    Pointer<SideVariable<NDIM, double> > sc_var = var;
     if (cc_var)
     {
         HierarchyCellDataOpsReal<NDIM, double> hier_data_ops(d_hierarchy);

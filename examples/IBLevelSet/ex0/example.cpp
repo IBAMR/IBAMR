@@ -95,6 +95,20 @@ struct CircularInterface
 };
 CircularInterface circle;
 
+// Struct to reset solid level set
+struct SolidLevelSetResetter
+{
+    Pointer<IBInterpolantMethod> ib_interp_ops;
+};
+
+void
+reset_solid_level_set_callback_fcn(double /*current_time*/, double new_time, int /*cycle_num*/, void* ctx)
+{
+    SolidLevelSetResetter* resetter = static_cast<SolidLevelSetResetter*>(ctx);
+    resetter->ib_interp_ops->copyEulerianDataToIntegrator(new_time);
+    return;
+}
+
 void
 generate_interp_mesh(const unsigned int& strct_num,
                      const int& ln,
@@ -108,8 +122,8 @@ generate_interp_mesh(const unsigned int& strct_num,
     }
 
     // Create a block mesh around the FE mesh.
-    double X_lower[2] = { circle.X0[0] - 1.5 * circle.R, circle.X0[1] - 1.5 * circle.R };
-    double X_upper[2] = { circle.X0[0] + 1.5 * circle.R, circle.X0[1] + 1.5 * circle.R };
+    double X_lower[2] = { circle.X0[0] - 2.5 * circle.R, circle.X0[1] - 2.5 * circle.R };
+    double X_upper[2] = { circle.X0[0] + 2.5 * circle.R, circle.X0[1] + 2.5 * circle.R };
 
     int Nx = static_cast<int>((X_upper[0] - X_lower[0]) / dx);
     int Ny = static_cast<int>((X_upper[1] - X_lower[1]) / dx);
@@ -405,6 +419,10 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         SetLSProperties* ptr_setSetLSProperties = new SetLSProperties("SetLSProperties", level_set_gas_ops);
         adv_diff_integrator->registerResetFunction(
             phi_var_gas, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
+        SolidLevelSetResetter solid_level_set_resetter;
+        solid_level_set_resetter.ib_interp_ops = ib_interpolant_method_ops;
+        adv_diff_integrator->registerIntegrateHierarchyCallback(&reset_solid_level_set_callback_fcn,
+                                                                static_cast<void*>(&solid_level_set_resetter));
 
         // Setup the advected and diffused fluid quantities.
         Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
@@ -574,6 +592,8 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         ib_initializer->setStructureNamesOnLevel(finest_ln, struct_list_vec);
         ib_initializer->registerInitStructureFunction(generate_interp_mesh);
         ib_interpolant_method_ops->registerLInitStrategy(ib_initializer);
+        ib_interpolant_method_ops->registerVariableAndHierarchyIntegrator(
+            ls_name_solid, 1, phi_var_solid, adv_diff_integrator);
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
@@ -687,6 +707,7 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         double E_domain = 0.0;
         double E_interface = 0.0;
         int num_interface_pts = 0;
+        double volume_near_interface = 0.0;
         // Compute L1 Norm for specific regions
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -707,9 +728,10 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
                     Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
                     const double* const patch_dx = patch_geom->getDx();
 
-                    if (std::abs(phi) < 1.2 * patch_dx[0])
+                    if (std::abs(phi) <= 1.2 * patch_dx[0])
                     {
                         E_interface += std::abs(err) * dV;
+                        volume_near_interface += dV;
                         num_interface_pts++;
                     }
                     if (phi > -0.8) E_domain += std::abs(err) * dV;
@@ -720,9 +742,10 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         num_interface_pts = SAMRAI_MPI::sumReduction(num_interface_pts);
         E_interface = SAMRAI_MPI::sumReduction(E_interface);
         E_domain = SAMRAI_MPI::sumReduction(E_domain);
+        volume_near_interface = SAMRAI_MPI::sumReduction(volume_near_interface);
 
         pout << "Error in D near interface after level set initialization:" << std::endl
-             << "L1-norm:  " << std::setprecision(10) << E_interface << std::endl;
+             << "L1-norm:  " << std::setprecision(10) << E_interface / volume_near_interface << std::endl;
         pout << "Error in D in entire domain (minus center) after level set initialization:" << std::endl
              << "L1-norm:  " << std::setprecision(10) << E_domain << std::endl;
         pout << "Number of points within the interface (used to compute interface error):" << std::endl
@@ -743,6 +766,13 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
+        double dt = time_integrator->getMaximumTimeStepSize();
+
+        // Copy the distance function into level set of solid.
+        int phi_solid_idx =
+            var_db->mapVariableAndContextToIndex(phi_var_solid, adv_diff_integrator->getCurrentContext());
+        hier_cc_data_ops.copyData(phi_solid_idx, d_idx);
+
         if (dump_viz_data)
         {
             pout << "\n\nWriting visualization files...\n\n";
@@ -759,10 +789,9 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
             }
         }
 
-        return 1;
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
-        double dt = 0.0;
+        dt = 0.0;
         while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
@@ -792,6 +821,7 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
             {
                 pout << "\nWriting visualization files...\n\n";
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+                silo_data_writer->writePlotData(iteration_num, loop_time);
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
             {
@@ -803,6 +833,8 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
+
+            return 1;
         }
 
         if (dump_viz_data && uses_visit)

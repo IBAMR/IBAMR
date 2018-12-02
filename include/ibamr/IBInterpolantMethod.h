@@ -217,6 +217,11 @@ public:
     void interpolateQ(double data_time);
 
     /*!
+     * Interpolate the Eulerian quantities to the curvilinear mesh at both current and new time.
+     */
+    void interpolateQ();
+
+    /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
@@ -269,6 +274,19 @@ public:
      * Spread Q on the Eulerian grid.
      */
     void spreadQ(double data_time);
+
+    /*!
+     * Get the patch data index of Q.
+     */
+    int getEulerianQPatchDataIndex(const std::string& var_name)
+    {
+        return d_q_interp_idx[var_name];
+    } // getEulerianQPatchDataIndex
+
+    /*!
+     * Copy the spreaded data back to the integrator.
+     */
+    void copyEulerianDataToIntegrator(double data_time);
 
     /*!
      * Initialize Lagrangian data corresponding to the given AMR patch hierarchy

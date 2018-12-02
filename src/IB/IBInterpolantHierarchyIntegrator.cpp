@@ -31,6 +31,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 
 #include "ibamr/IBInterpolantHierarchyIntegrator.h"
 #include "ibamr/IBInterpolantMethod.h"
@@ -101,6 +102,10 @@ IBInterpolantHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
     // Initialize the fluid solver.
     d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
+    // At initial time interpolate Q.
+    bool initial_time = MathUtilities<double>::equalEps(current_time, 0.0);
+    if (initial_time) d_ib_interpolant_method_ops->interpolateQ();
+
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
 
@@ -125,7 +130,7 @@ IBInterpolantHierarchyIntegrator::integrateHierarchy(const double current_time,
     // Move the mesh to new location.
     std::vector<Eigen::Vector3d> U(1), W(1);
     U[0].setZero();
-    U[0][0] = 1.0;
+    U[0][0] = 1000.0;
     W[0].setZero();
     d_ib_interpolant_method_ops->updateMeshPosition(current_time, new_time, U, W);
 
