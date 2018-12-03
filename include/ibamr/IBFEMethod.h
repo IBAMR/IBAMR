@@ -763,7 +763,7 @@ protected:
      */
     std::vector<libMesh::MeshBase*> d_meshes;
     int d_max_level_number;
-    std::vector<libMesh::EquationSystems*> d_equation_systems;
+    std::vector<std::unique_ptr<libMesh::EquationSystems>> d_equation_systems;
 
     const unsigned int d_num_parts = 1;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
