@@ -894,9 +894,15 @@ FEDataManager::prolongData(const int f_data_idx,
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType F_fe_type = F_dof_map.variable_type(0);
-    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
+    for (unsigned i = 0; i < n_vars; ++i)
+    {
+        TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
+    }
     FEType X_fe_type = X_dof_map.variable_type(0);
-    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
+    for (unsigned d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
+    }
     UniquePtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr;
     if (F_fe_type != X_fe_type)
     {
@@ -1517,9 +1523,15 @@ FEDataManager::restrictData(const int f_data_idx,
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType F_fe_type = F_dof_map.variable_type(0);
-    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
+    for (unsigned i = 0; i < n_vars; ++i)
+    {
+        TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
+    }
     FEType X_fe_type = X_dof_map.variable_type(0);
-    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
+    for (unsigned d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
+    }
     UniquePtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr;
     if (F_fe_type != X_fe_type)
     {
@@ -2183,7 +2195,10 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
         std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
         FEType fe_type = X_dof_map.variable_type(0);
-        for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
+        for (unsigned d = 0; d < NDIM; ++d)
+        {
+            TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
+        }
         UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
         const std::vector<std::vector<double> >& phi = fe->get_phi();
 
@@ -2413,7 +2428,10 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
         std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
         FEType fe_type = X_dof_map.variable_type(0);
-        for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
+        for (unsigned d = 0; d < NDIM; ++d)
+        {
+            TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
+        }
         UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
         const std::vector<std::vector<double> >& phi = fe->get_phi();
 
@@ -2571,7 +2589,10 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
-    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
+    for (unsigned d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
+    }
     UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
     const std::vector<std::vector<double> >& phi = fe->get_phi();
     NumericVector<double>* X_vec = getCoordsVector();
@@ -2601,15 +2622,13 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         std::set<Elem*>& frontier_elems = frontier_patch_elems[local_patch_num];
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-        Point x_lower;
-        for (unsigned int d = 0; d < NDIM; ++d) x_lower[d] = pgeom->getXLower()[d];
-        Point x_upper;
-        for (unsigned int d = 0; d < NDIM; ++d) x_upper[d] = pgeom->getXUpper()[d];
         const double* const dx = pgeom->getDx();
+        Point x_lower;
+        Point x_upper;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            x_lower[d] -= dx[d] * ghost_width[d];
-            x_upper[d] += dx[d] * ghost_width[d];
+            x_lower[d] = pgeom->getXLower()[d] - dx[d] * ghost_width[d];
+            x_upper[d] = pgeom->getXUpper()[d] + dx[d] * ghost_width[d];
         }
 
         MeshBase::const_element_iterator el_it = mesh.active_elements_begin();
