@@ -522,7 +522,7 @@ public:
      * reinitialization (e.g. because the element type or p_level changed);
      * false otherwise.
      */
-    static bool updateQuadratureRule(libMesh::UniquePtr<libMesh::QBase>& qrule,
+    static bool updateQuadratureRule(std::unique_ptr<libMesh::QBase>& qrule,
                                      libMesh::QuadratureType quad_type,
                                      libMesh::Order quad_order,
                                      bool use_adaptive_quadrature,
@@ -540,7 +540,7 @@ public:
      * reinitialization (e.g. because the element type or p_level changed);
      * false otherwise.
      */
-    static bool updateInterpQuadratureRule(libMesh::UniquePtr<libMesh::QBase>& qrule,
+    static bool updateInterpQuadratureRule(std::unique_ptr<libMesh::QBase>& qrule,
                                            const InterpSpec& spec,
                                            const libMesh::Elem* elem,
                                            const boost::multi_array<double, 2>& X_node,
@@ -555,7 +555,7 @@ public:
      * reinitialization (e.g. because the element type or p_level changed);
      * false otherwise.
      */
-    static bool updateSpreadQuadratureRule(libMesh::UniquePtr<libMesh::QBase>& qrule,
+    static bool updateSpreadQuadratureRule(std::unique_ptr<libMesh::QBase>& qrule,
                                            const SpreadSpec& spec,
                                            const libMesh::Elem* elem,
                                            const boost::multi_array<double, 2>& X_node,

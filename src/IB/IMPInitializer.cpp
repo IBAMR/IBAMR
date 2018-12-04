@@ -32,9 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 #include <map>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -63,7 +64,6 @@
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/ibtk_utilities.h"
-#include "libmesh/auto_ptr.h"
 #include "libmesh/elem.h"
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
@@ -163,8 +163,8 @@ IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     // and weighting factors.
     const int dim = mesh->mesh_dimension();
     FEType fe_type(FIRST, LAGRANGE);
-    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
-    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<libMesh::Point>& q_point = fe->get_xyz();
     const std::vector<double>& JxW = fe->get_JxW();

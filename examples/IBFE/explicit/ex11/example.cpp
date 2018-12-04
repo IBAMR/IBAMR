@@ -356,7 +356,7 @@ run_example(int argc, char** argv)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        libMesh::UniquePtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
@@ -497,8 +497,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     F_vec->localize(*F_ghost_vec);
     const DofMap& dof_map = F_system.get_dof_map();
     FEType fe_type = dof_map.variable_type(0);
-    libMesh::UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
-    libMesh::UniquePtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
+    std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
     fe->attach_quadrature_rule(qrule.get());
     const vector<double>& JxW = fe->get_JxW();
     const vector<vector<double> >& phi = fe->get_phi();

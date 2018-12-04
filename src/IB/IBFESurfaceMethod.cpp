@@ -36,6 +36,7 @@
 #include <array>
 #include <cmath>
 #include <limits>
+#include <memory>
 #include <ostream>
 #include <set>
 #include <string>
@@ -76,7 +77,6 @@
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
-#include "libmesh/auto_ptr.h"
 #include "libmesh/boundary_info.h"
 #include "libmesh/compare_types.h"
 #include "libmesh/dense_vector.h"
@@ -86,6 +86,7 @@
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
+#include "libmesh/enum_xdr_mode.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/fe_type.h"
 #include "libmesh/fem_context.h"
@@ -105,7 +106,6 @@
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
-#include "libmesh/enum_xdr_mode.h"
 #include "petscvec.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
@@ -538,7 +538,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
         const MeshBase& mesh = equation_systems->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
-        UniquePtr<QBase> qrule;
+        std::unique_ptr<QBase> qrule;
 
         // Extract the FE systems and DOF maps, and setup the FE object.
         System& U_system = *d_U_systems[part];
@@ -557,7 +557,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
         TBOX_ASSERT(U_fe_type == X_fe_type);
         FEType fe_type = U_fe_type;
-        UniquePtr<FEBase> fe = FEBase::build(dim, fe_type);
+        std::unique_ptr<FEBase> fe = FEBase::build(dim, fe_type);
         const std::vector<double>& JxW = fe->get_JxW();
         const std::vector<std::vector<double> >& phi = fe->get_phi();
         std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
@@ -578,18 +578,18 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         VecGhostGetLocalForm(X_global_vec, &X_local_vec);
         double* X_local_soln;
         VecGetArray(X_local_vec, &X_local_soln);
-        UniquePtr<NumericVector<double> > X0_vec = X_petsc_vec->clone();
+        std::unique_ptr<NumericVector<double> > X0_vec = X_petsc_vec->clone();
         X_system.get_vector("INITIAL_COORDINATES").localize(*X0_vec);
         X0_vec->close();
 
         // Loop over the patches to interpolate values to the element quadrature
         // points from the grid, then use these values to compute the projection
         // of the interpolated velocity field onto the FE basis functions.
-        UniquePtr<NumericVector<double> > U_rhs_vec = U_vec->zero_clone();
+        std::unique_ptr<NumericVector<double> > U_rhs_vec = U_vec->zero_clone();
         std::vector<DenseVector<double> > U_rhs_e(NDIM);
-        UniquePtr<NumericVector<double> > U_n_rhs_vec = U_n_vec->zero_clone();
+        std::unique_ptr<NumericVector<double> > U_n_rhs_vec = U_n_vec->zero_clone();
         std::vector<DenseVector<double> > U_n_rhs_e(NDIM);
-        UniquePtr<NumericVector<double> > U_t_rhs_vec = U_t_vec->zero_clone();
+        std::unique_ptr<NumericVector<double> > U_t_rhs_vec = U_t_vec->zero_clone();
         std::vector<DenseVector<double> > U_t_rhs_e(NDIM);
         boost::multi_array<double, 2> X_node, x_node;
         std::vector<double> U_qp, x_qp;
@@ -861,11 +861,11 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 
         // Setup global and elemental right-hand-side vectors.
         NumericVector<double>* F_vec = d_F_half_vecs[part];
-        UniquePtr<NumericVector<double> > F_rhs_vec = F_vec->zero_clone();
+        std::unique_ptr<NumericVector<double> > F_rhs_vec = F_vec->zero_clone();
         DenseVector<double> F_rhs_e[NDIM];
         NumericVector<double>* DP_vec = d_DP_half_vecs[part];
-        UniquePtr<NumericVector<double> > DP_rhs_vec =
-            (d_use_jump_conditions ? DP_vec->zero_clone() : UniquePtr<NumericVector<double> >());
+        std::unique_ptr<NumericVector<double> > DP_rhs_vec =
+            (d_use_jump_conditions ? DP_vec->zero_clone() : std::unique_ptr<NumericVector<double> >());
         DenseVector<double> DP_rhs_e;
         VectorValue<double>& F_integral = d_lag_surface_force_integral[part];
         F_integral.zero();
@@ -914,9 +914,9 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 
         FEType fe_type = F_fe_type;
 
-        UniquePtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
+        std::unique_ptr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
 
-        UniquePtr<FEBase> fe = FEBase::build(dim, fe_type);
+        std::unique_ptr<FEBase> fe = FEBase::build(dim, fe_type);
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
         const std::vector<std::vector<double> >& phi = fe->get_phi();
@@ -1522,7 +1522,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
     TBOX_ASSERT(DP_fe_type == X_fe_type);
     FEType fe_type = DP_fe_type;
 
-    UniquePtr<FEBase> fe = FEBase::build(dim, fe_type);
+    std::unique_ptr<FEBase> fe = FEBase::build(dim, fe_type);
     const std::vector<std::vector<double> >& phi = fe->get_phi();
     std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
     dphi_dxi[0] = &fe->get_dphidxi();
