@@ -292,7 +292,7 @@ bool run_example(int argc, char** argv)
         EquationSystems* bndry_equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Setup solid systems.
-        libMesh::UniquePtr<EquationSystems> solid_equation_systems(new EquationSystems(solid_mesh));
+        std::unique_ptr<EquationSystems> solid_equation_systems(new EquationSystems(solid_mesh));
         x_solid_system = &solid_equation_systems->add_system<ExplicitSystem>("position");
         u_solid_system = &solid_equation_systems->add_system<ExplicitSystem>("velocity");
         Order order = SECOND;
@@ -402,8 +402,8 @@ bool run_example(int argc, char** argv)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        libMesh::UniquePtr<ExodusII_IO> exodus_solid_io(uses_exodus ? new ExodusII_IO(solid_mesh) : NULL);
-        libMesh::UniquePtr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(bndry_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_solid_io(uses_exodus ? new ExodusII_IO(solid_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(bndry_mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();

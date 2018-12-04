@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <memory>
 #include <ostream>
 #include <set>
 #include <string>
@@ -52,7 +53,6 @@
 #include "ibtk/FEDataManager.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/libmesh_utilities.h"
-#include "libmesh/auto_ptr.h"
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/equation_systems.h"

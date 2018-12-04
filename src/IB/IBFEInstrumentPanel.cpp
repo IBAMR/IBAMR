@@ -616,8 +616,8 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
             FEType fe_type = displacement_sys.variable_type(0);
 
             // set up FE objects
-            UniquePtr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
-            UniquePtr<QBase> qrule(QBase::build(d_quad_type, NDIM - 1, d_quad_order[jj]));
+            std::unique_ptr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
+            std::unique_ptr<QBase> qrule(QBase::build(d_quad_type, NDIM - 1, d_quad_order[jj]));
             fe_elem->attach_quadrature_rule(qrule.get());
             //  for evaluating the displacement system
             const std::vector<Real>& JxW = fe_elem->get_JxW();
@@ -836,7 +836,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
         FEType fe_type = velocity_sys.variable_type(0);
 
         // set up FE objects
-        UniquePtr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
+        std::unique_ptr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
         QGauss qrule(NDIM - 1, fe_type.default_quadrature_order());
         fe_elem->attach_quadrature_rule(&qrule);
 

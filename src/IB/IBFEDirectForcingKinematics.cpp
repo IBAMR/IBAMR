@@ -544,9 +544,9 @@ IBFEDirectForcingKinematics::computeCOMOfStructure(Eigen::Vector3d& X0)
     DofMap& X_dof_map = X_system.get_dof_map();
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
-    UniquePtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+    std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
 
-    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<double> >& phi = fe->get_phi();
@@ -612,9 +612,9 @@ IBFEDirectForcingKinematics::computeMOIOfStructure(Eigen::Matrix3d& I, const Eig
     DofMap& X_dof_map = X_system.get_dof_map();
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
-    UniquePtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+    std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
 
-    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<double> >& phi = fe->get_phi();
@@ -790,8 +790,8 @@ IBFEDirectForcingKinematics::computeMixedLagrangianForceDensity(PetscVector<doub
     std::vector<std::vector<unsigned int> > U_dof_indices(NDIM);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = U_dof_map.variable_type(0);
-    UniquePtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
-    UniquePtr<FEBase> fe_autoptr(FEBase::build(dim, fe_type));
+    std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+    std::unique_ptr<FEBase> fe_autoptr(FEBase::build(dim, fe_type));
     FEBase* fe = fe_autoptr.get();
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();
