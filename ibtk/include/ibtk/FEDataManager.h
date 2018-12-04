@@ -104,17 +104,29 @@ namespace IBTK
 class FEDataManager : public SAMRAI::tbox::Serializable, public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
 {
 public:
+    /*!
+     * Class which enables fast lookup of dofs on a given libMesh <code>elem</code>.
+     */
     class SystemDofMapCache
     {
     public:
+        /*!
+         * Constructor.
+         */
         inline SystemDofMapCache(libMesh::System& system) : d_dof_map(system.get_dof_map())
         {
         }
 
-        inline ~SystemDofMapCache() = default;
-
+        /*!
+         * Populate the vector @p dof_indices with the dofs corresponding to
+         * variable @var on element @elem. The dof indices on each cell are
+         * cached: i.e., the second call to this function with the same @p
+         * elem and @p var is much faster than the first.
+         */
         inline void
-        dof_indices(const libMesh::Elem* const elem, std::vector<unsigned int>& dof_indices, const unsigned int var = 0)
+        dof_indices(const libMesh::Elem* const elem,
+                    std::vector<unsigned int>& dof_indices,
+                    const unsigned int var = 0)
         {
             const libMesh::dof_id_type elem_id = elem->id();
             std::vector<std::vector<unsigned int> >& elem_dof_indices = d_dof_cache[elem_id];
