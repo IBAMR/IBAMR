@@ -378,8 +378,8 @@ CIBFEMethod::eulerStep(const double current_time, const double new_time)
     Eigen::Vector3d Rxdr = Eigen::Vector3d::Zero();
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
-        EquationSystems* equation_systems = d_equation_systems[part];
-        MeshBase& mesh = equation_systems->get_mesh();
+        EquationSystems& equation_systems = *d_equation_systems[part];
+        MeshBase& mesh = equation_systems.get_mesh();
         const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
         System& X_system = *d_X_systems[part];
         const unsigned int X_sys_num = X_system.number();
@@ -454,8 +454,8 @@ CIBFEMethod::midpointStep(const double current_time, const double new_time)
     Eigen::Vector3d Rxdr = Eigen::Vector3d::Zero();
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
-        EquationSystems* equation_systems = d_equation_systems[part];
-        MeshBase& mesh = equation_systems->get_mesh();
+        EquationSystems& equation_systems = *d_equation_systems[part];
+        MeshBase& mesh = equation_systems.get_mesh();
         const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
         System& X_system = *d_X_systems[part];
         const unsigned int X_sys_num = X_system.number();
@@ -627,8 +627,8 @@ CIBFEMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double sca
         VecGetArray(L_local_ghost_vec, &L_local_ghost_soln);
 
         // Build quadrature rule.
-        EquationSystems* equation_systems = d_equation_systems[part];
-        MeshBase& mesh = equation_systems->get_mesh();
+        EquationSystems& equation_systems = *d_equation_systems[part];
+        MeshBase& mesh = equation_systems.get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
         UniquePtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
 
@@ -762,8 +762,8 @@ CIBFEMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rig
     VecNestGetSubVecs(L, nullptr, &vL);
 
     // Get mesh.
-    EquationSystems* equation_systems = d_equation_systems[part];
-    MeshBase& mesh = equation_systems->get_mesh();
+    EquationSystems& equation_systems = *d_equation_systems[part];
+    MeshBase& mesh = equation_systems.get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
     UniquePtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
 
@@ -969,20 +969,20 @@ CIBFEMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector&
     PetscVector<double>& U_k = *d_U_constrained_half_vecs[part];
     PetscVector<double>& X_half = *d_X_half_vecs[part];
     const Eigen::Vector3d& X_com = d_center_of_mass_half[part];
-    EquationSystems* equation_systems = d_equation_systems[part];
+    EquationSystems& equation_systems = *d_equation_systems[part];
 
     if (d_constrained_velocity_fcns_data[part].nodalvelfcn)
     {
         d_constrained_velocity_fcns_data[part].nodalvelfcn(
-            U_k, U, X_half, X_com, equation_systems, d_new_time, d_constrained_velocity_fcns_data[part].ctx);
+            U_k, U, X_half, X_com, &equation_systems, d_new_time, d_constrained_velocity_fcns_data[part].ctx);
         if (!U_k.closed()) U_k.close();
     }
     else
     {
-        MeshBase& mesh = equation_systems->get_mesh();
+        MeshBase& mesh = equation_systems.get_mesh();
         const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
-        auto& X_system = equation_systems->get_system<System>(CIBFEMethod::COORDS_SYSTEM_NAME);
-        auto& U_system = equation_systems->get_system<System>(CIBFEMethod::CONSTRAINT_VELOCITY_SYSTEM_NAME);
+        auto& X_system = equation_systems.get_system<System>(CIBFEMethod::COORDS_SYSTEM_NAME);
+        auto& U_system = equation_systems.get_system<System>(CIBFEMethod::CONSTRAINT_VELOCITY_SYSTEM_NAME);
         const unsigned int X_sys_num = X_system.number();
         const unsigned int U_sys_num = U_system.number();
 
@@ -1075,20 +1075,20 @@ CIBFEMethod::initializeFEData()
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Get mesh info.
-        EquationSystems* equation_systems = d_equation_systems[part];
-        const MeshBase& mesh = equation_systems->get_mesh();
+        EquationSystems& equation_systems = *d_equation_systems[part];
+        const MeshBase& mesh = equation_systems.get_mesh();
         d_num_nodes[part] = mesh.n_nodes();
 
         // Assemble additional systems.
-        auto& U_constraint_system = equation_systems->get_system<System>(CONSTRAINT_VELOCITY_SYSTEM_NAME);
+        auto& U_constraint_system = equation_systems.get_system<System>(CONSTRAINT_VELOCITY_SYSTEM_NAME);
         U_constraint_system.assemble_before_solve = false;
         U_constraint_system.assemble();
     }
 
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
-        EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-        computeCOMOfStructure(d_center_of_mass_initial[part], equation_systems);
+        EquationSystems& equation_systems = *d_fe_data_managers[part]->getEquationSystems();
+        computeCOMOfStructure(d_center_of_mass_initial[part], &equation_systems);
     }
 
     d_initial_com_initialized = true;
@@ -1260,8 +1260,8 @@ CIBFEMethod::commonConstructor(Pointer<Database> input_db)
     // Add additional variable corresponding to constraint velocity.
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
-        EquationSystems* equation_systems = d_equation_systems[part];
-        auto& U_constraint_system = equation_systems->add_system<System>(CONSTRAINT_VELOCITY_SYSTEM_NAME);
+        EquationSystems& equation_systems = *d_equation_systems[part];
+        auto& U_constraint_system = equation_systems.add_system<System>(CONSTRAINT_VELOCITY_SYSTEM_NAME);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             std::ostringstream os;
