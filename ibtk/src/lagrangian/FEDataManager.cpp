@@ -372,13 +372,12 @@ FEDataManager::getDofMapCache(const std::string& system_name)
 FEDataManager::SystemDofMapCache*
 FEDataManager::getDofMapCache(unsigned int system_num)
 {
-    Pointer<SystemDofMapCache> dof_map_cache = d_system_dof_map_cache[system_num];
-    if (!dof_map_cache)
+    std::unique_ptr<SystemDofMapCache> &dof_map_cache = d_system_dof_map_cache[system_num];
+    if (dof_map_cache == nullptr)
     {
-        d_system_dof_map_cache[system_num] = new SystemDofMapCache(d_es->get_system(system_num));
-        dof_map_cache = d_system_dof_map_cache[system_num];
+        dof_map_cache.reset(new SystemDofMapCache(d_es->get_system(system_num)));
     }
-    return dof_map_cache.getPointer();
+    return dof_map_cache.get();
 } // getDofMapCache
 
 int

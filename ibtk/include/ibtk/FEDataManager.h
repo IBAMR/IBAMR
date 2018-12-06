@@ -833,7 +833,7 @@ private:
      */
     libMesh::EquationSystems* d_es = nullptr;
     int d_level_number = IBTK::invalid_level_number;
-    std::map<unsigned int, SAMRAI::tbox::Pointer<SystemDofMapCache> > d_system_dof_map_cache;
+    std::map<unsigned int, std::unique_ptr<SystemDofMapCache> > d_system_dof_map_cache;
 
     /*
      * Data to manage mappings between mesh elements and grid patches.
