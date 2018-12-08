@@ -115,6 +115,7 @@ public:
     static const std::string WSS_O_SYSTEM_NAME;
     static const std::string WSS_I_SYSTEM_NAME;
     static const std::string P_O_SYSTEM_NAME;
+    static const std::string P_I_SYSTEM_NAME;
     static const std::string TAU_SYSTEM_NAME;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > mask_var;
@@ -548,7 +549,7 @@ protected:
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
     std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_WSS_o_systems,
         d_P_j_systems, d_WSS_i_systems;
-    std::vector<libMesh::System*> d_P_o_systems, d_TAU_systems;
+    std::vector<libMesh::System*> d_P_o_systems, d_P_i_systems, d_TAU_systems;
     std::vector<boost::array<libMesh::System*, NDIM> > d_DU_j_systems;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
         d_X_IB_ghost_vecs;

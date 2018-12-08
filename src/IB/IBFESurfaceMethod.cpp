@@ -162,6 +162,7 @@ const std::string IBFESurfaceMethod::PRESSURE_JUMP_SYSTEM_NAME = "IB [[p]] syste
 const std::string IBFESurfaceMethod::WSS_O_SYSTEM_NAME = "One sided exterior shear stress system";
 const std::string IBFESurfaceMethod::WSS_I_SYSTEM_NAME = "One sided interior shear stress system";
 const std::string IBFESurfaceMethod::P_O_SYSTEM_NAME = "One sided exterior pressure system";
+const std::string IBFESurfaceMethod::P_I_SYSTEM_NAME = "One sided interior pressure system";
 const std::string IBFESurfaceMethod::TAU_SYSTEM_NAME = "traction system";
 const std::string IBFESurfaceMethod::TANGENTIAL_VELOCITY_SYSTEM_NAME = "IB tangential velocity system";
 const boost::array<std::string, NDIM> IBFESurfaceMethod::VELOCITY_JUMP_SYSTEM_NAME = {
@@ -348,6 +349,9 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
     d_P_o_half_vecs.resize(d_num_parts);
     d_P_o_IB_ghost_vecs.resize(d_num_parts);
 
+    d_P_i_systems.resize(d_num_parts);
+    d_P_i_half_vecs.resize(d_num_parts);
+    d_P_i_IB_ghost_vecs.resize(d_num_parts);
 
     d_DU_j_systems.resize(d_num_parts);
     d_DU_j_half_vecs.resize(d_num_parts);
@@ -418,6 +422,12 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
                 dynamic_cast<PetscVector<double>*>(d_P_o_systems[part]->current_local_solution.get());
             d_P_o_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
                 d_fe_data_managers[part]->buildGhostedSolutionVector(P_O_SYSTEM_NAME, /*localize_data*/ false));
+                
+            d_P_i_systems[part] = &d_equation_systems[part]->get_system(P_I_SYSTEM_NAME);
+            d_P_i_half_vecs[part] =
+                dynamic_cast<PetscVector<double>*>(d_P_i_systems[part]->current_local_solution.get());
+            d_P_i_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+                d_fe_data_managers[part]->buildGhostedSolutionVector(P_I_SYSTEM_NAME, /*localize_data*/ false));
                 
         }
 
@@ -593,6 +603,11 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
             *d_P_o_systems[part]->solution = *d_P_o_half_vecs[part];
             d_P_o_systems[part]->solution->close();
             d_P_o_systems[part]->solution->localize(*d_P_o_systems[part]->current_local_solution);
+            
+            d_P_i_half_vecs[part]->close();
+            *d_P_i_systems[part]->solution = *d_P_i_half_vecs[part];
+            d_P_i_systems[part]->solution->close();
+            d_P_i_systems[part]->solution->localize(*d_P_i_systems[part]->current_local_solution);
            
         }
 
@@ -672,6 +687,11 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
     d_P_o_systems.clear();
     d_P_o_half_vecs.clear();
     d_P_o_IB_ghost_vecs.clear();
+    
+    
+    d_P_i_systems.clear();
+    d_P_i_half_vecs.clear();
+    d_P_i_IB_ghost_vecs.clear();
 
     d_TAU_systems.clear();
     d_TAU_half_vecs.clear();
@@ -2023,6 +2043,9 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                 System& P_o_system = equation_systems->add_system<System>(P_O_SYSTEM_NAME);
                 P_o_system.add_variable("P_o_", d_fe_order[part], d_fe_family[part]);
                 
+                 System& P_i_system = equation_systems->add_system<System>(P_I_SYSTEM_NAME);
+                P_i_system.add_variable("P_i_", d_fe_order[part], d_fe_family[part]);
+                
             }
 
             if (d_use_velocity_jump_conditions)
@@ -2133,6 +2156,10 @@ IBFESurfaceMethod::initializeFEData()
             System& P_o_system = equation_systems->get_system<System>(P_O_SYSTEM_NAME);
             P_o_system.assemble_before_solve = false;
             P_o_system.assemble();
+            
+            System& P_i_system = equation_systems->get_system<System>(P_I_SYSTEM_NAME);
+            P_i_system.assemble_before_solve = false;
+            P_i_system.assemble();
 
         }
         if (d_use_velocity_jump_conditions)
@@ -2366,7 +2393,8 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_fe_data_managers[part]->getPatchHierarchy();
 
     NumericVector<double>* P_o_vec = d_P_o_half_vecs[part];
-
+    
+	NumericVector<double>* P_i_vec = d_P_i_half_vecs[part];
 	
     NumericVector<double>* P_j_ghost_vec = d_P_j_IB_ghost_vecs[part];
 
@@ -2377,6 +2405,10 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
     (*P_o_rhs_vec).zero();
     DenseVector<double> P_o_rhs_e;
     
+    
+    UniquePtr<NumericVector<double> > P_i_rhs_vec = (*P_i_vec).zero_clone();
+    (*P_i_rhs_vec).zero();
+    DenseVector<double> P_i_rhs_e;
 
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
@@ -2430,14 +2462,19 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
     TBOX_ASSERT(P_o_dof_map.variable_type(0) == X_fe_type);
     std::vector<unsigned int> P_o_dof_indices;
     
-
+    System& P_i_system = equation_systems->get_system(P_I_SYSTEM_NAME);
+    const DofMap& P_i_dof_map = P_i_system.get_dof_map();
+    FEDataManager::SystemDofMapCache& P_i_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(P_I_SYSTEM_NAME);
+    TBOX_ASSERT(P_i_dof_map.variable_type(0) == X_fe_type);
+    std::vector<unsigned int> P_i_dof_indices;
+    
     const std::vector<std::vector<Elem*> >& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
 
     boost::multi_array<double, 2> x_node;
     boost::multi_array<double, 1> P_j_node;
     std::vector<double> x_qp, x_o_qp, x_i_qp;
-    std::vector<double> P_o_qp, Q_o_qp, Q_i_qp, P_j_qp, p_qp, N_qp;
+    std::vector<double> P_o_qp, P_i_qp, Q_o_qp, Q_i_qp, P_j_qp, p_qp, N_qp;
 
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
@@ -2475,6 +2512,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
             diag_dis += dx[d] * dx[d];
         }
         const double dh = d_p_calc_width * sqrt(diag_dis);
+        
 
         const int p_ghost_num = static_cast<int>(ceil(2.0 * dh / patch_dx_min));
 
@@ -2510,6 +2548,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
 
         if (!n_qp_patch) continue;
         P_o_qp.resize(n_qp_patch);
+        P_i_qp.resize(n_qp_patch);
         Q_o_qp.resize(n_qp_patch);
         Q_i_qp.resize(n_qp_patch);
         P_j_qp.resize(n_qp_patch);
@@ -2518,6 +2557,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
         x_qp.resize(NDIM * n_qp_patch);
         N_qp.resize(NDIM * n_qp_patch);
         std::fill(P_o_qp.begin(), P_o_qp.end(), 0.0);
+        std::fill(P_i_qp.begin(), P_i_qp.end(), 0.0);
         std::fill(Q_i_qp.begin(), Q_i_qp.end(), 0.0);
         std::fill(Q_o_qp.begin(), Q_o_qp.end(), 0.0);
         std::fill(P_j_qp.begin(), P_j_qp.end(), 0.0);
@@ -2662,7 +2702,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
             {
 
                P_o_qp[local_indices[k]] =  P_j_qp[local_indices[k]] + Q_i_qp[local_indices[k]]; //0.5 * ( P_j_qp[local_indices[k]] + Q_i_qp[local_indices[k]] + Q_o_qp[local_indices[k]]);
-
+	           P_i_qp[local_indices[k]] =  -(P_j_qp[local_indices[k]] - Q_o_qp[local_indices[k]]);
             }
         }
 
@@ -2675,6 +2715,9 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
 
             P_o_dof_map_cache.dof_indices(elem, P_o_dof_indices);
             P_o_rhs_e.resize(static_cast<int>(P_o_dof_indices.size()));
+            
+            P_i_dof_map_cache.dof_indices(elem, P_i_dof_indices);
+            P_i_rhs_e.resize(static_cast<int>(P_i_dof_indices.size()));
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -2696,25 +2739,34 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
                 {
                     const double p_JxW = phi[k][qp] * JxW[qp];
                     P_o_rhs_e(k) += P_o_qp[idx] * p_JxW;
+                    P_i_rhs_e(k) += P_i_qp[idx] * p_JxW;
                 }
             }
 
             P_o_dof_map.constrain_element_vector(P_o_rhs_e, P_o_dof_indices);
             P_o_rhs_vec->add_vector(P_o_rhs_e, P_o_dof_indices);
-
+            
+            P_i_dof_map.constrain_element_vector(P_i_rhs_e, P_i_dof_indices);
+            P_i_rhs_vec->add_vector(P_i_rhs_e, P_i_dof_indices);
+            
             qp_offset += n_qp;
         }
     }
     P_o_rhs_vec->close();
-
+	P_i_rhs_vec->close();
+	
     d_fe_data_managers[part]->computeL2Projection(
         *P_o_vec, *P_o_rhs_vec, P_O_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
+
+    d_fe_data_managers[part]->computeL2Projection(
+        *P_i_vec, *P_i_rhs_vec, P_I_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
 
     d_X_half_vecs[part]->close();
     d_X_current_vecs[part]->close();
     d_X_new_vecs[part]->close();
 
     d_P_o_half_vecs[part]->close();
+    d_P_i_half_vecs[part]->close();
     d_P_j_IB_ghost_vecs[part]->close();
     d_X_IB_ghost_vecs[part]->close();
 
