@@ -62,6 +62,7 @@
 
 namespace IBAMR
 {
+class BrinkmanPenalizationStrategy;
 class ConvectiveOperator;
 } // namespace IBAMR
 namespace IBTK
@@ -292,23 +293,11 @@ public:
     void registerResetFluidViscosityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
 
     /*!
-     * \brief Function to add damping zone term to the momentum equation.
-     *
-     * \Note The interface expects additive behavior for damping_coef_idx patch data index. This
-     * allows multiple damping zones to be represented by same patach data index.
+     * \brief Register BrinkmanPenalizationStrategy objects to add Brinkman penalization term
+     * in the momentum equation.
      */
-    typedef void (*AddDampingZoneFcnPtr)(int damping_coef_idx,
-                                         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                         int cycle_num,
-                                         double time,
-                                         double current_time,
-                                         double new_time,
-                                         void* ctx);
-
-    /*!
-     * \brief Register function to add a damping zone in the simulation.
-     */
-    void registerAddDampingZoneFcn(AddDampingZoneFcnPtr callback, void* ctx);
+    virtual void
+    registerBrinkmanPenalizationStrategy(SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> brinkman_force);
 
     /*!
      * \brief Supply initial conditions for the density field, if maintained by the fluid integrator.
@@ -413,6 +402,15 @@ public:
     {
         return d_mu_bc_coef;
     }
+
+    /*!
+     * \brief Get the Brinkman penalization objects registered with this class.
+     */
+    const std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> >&
+    getBrinkmanPenalizationStrategy() const
+    {
+        return d_brinkman_force;
+    } // getBrinkmanPenalizationStrategy
 
 protected:
     /*!
@@ -576,10 +574,9 @@ protected:
     std::vector<void*> d_reset_rho_fcns_ctx, d_reset_mu_fcns_ctx;
 
     /*!
-     * Functions adding damping zone coefficient if registered with this integrator.
+     * Brinkman force strategy objects registered with this integrator.
      */
-    std::vector<AddDampingZoneFcnPtr> d_add_L_fcns;
-    std::vector<void*> d_add_L_fcns_ctx;
+    std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> > d_brinkman_force;
 
     /*!
      * Temporary storage variables that contain intermediate quantities

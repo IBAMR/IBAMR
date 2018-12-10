@@ -40,16 +40,15 @@
 #include "Eigen/Core"
 #include "Eigen/Geometry"
 #include "RobinBcCoefStrategy.h"
-#include <ibamr/AdvDiffHierarchyIntegrator.h>
-#include <ibamr/INSHierarchyIntegrator.h>
-#include <ibtk/LData.h>
-#include <ibtk/LDataManager.h>
-#include <ibtk/ibtk_utilities.h>
+#include "ibtk/ibtk_utilities.h"
+#include "tbox/DescribedClass.h"
 
-namespace IBTK
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+namespace IBAMR
 {
-class LData;
-} // namespace IBTK
+class AdvDiffHierarchyIntegrator;
+class INSHierarchyIntegrator;
+} // namespace IBAMR
 namespace SAMRAI
 {
 namespace hier
@@ -85,7 +84,7 @@ namespace IBAMR
  *
  * \note  This class will work with both the constant and variable viscosity
  */
-class IBHydrodynamicSurfaceForceEvaluator
+class IBHydrodynamicSurfaceForceEvaluator : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -103,9 +102,40 @@ public:
     virtual ~IBHydrodynamicSurfaceForceEvaluator();
 
     /*!
-     * \brief Compute the hydrodynamic force via surface integration.
+     * \brief Compute the hydrodynamic force via surface integration after all the hierarchy
+     * variables have been integrated.
+     *
+     * \note The users should call this routine if the hydrodynamic forces need to be computed just
+     * as a postprocessing step.
      */
-    virtual void computeHydrodynamicForce();
+    virtual void computeHydrodynamicForceTorque(IBTK::Vector3d& pressure_force,
+                                                IBTK::Vector3d& viscous_force,
+                                                IBTK::Vector3d& pressure_torque,
+                                                IBTK::Vector3d& viscous_torque,
+                                                const IBTK::Vector3d& X0);
+
+    /*!
+     * \brief Compute the hydrodynamic force via surface integration while the integration of
+     * variables is happening during a given timestep.
+     */
+    virtual void computeHydrodynamicForceTorque(IBTK::Vector3d& pressure_force,
+                                                IBTK::Vector3d& viscous_force,
+                                                IBTK::Vector3d& pressure_torque,
+                                                IBTK::Vector3d& viscous_torque,
+                                                const IBTK::Vector3d& X0,
+                                                double time,
+                                                double current_time,
+                                                double new_time);
+    /*!
+     * \brief Set the surface contour value <em> s <\em> of the level set field, such that \f$ \phi(s) = \partial \Omega
+     * \f$.
+     */
+    virtual void setSurfaceContourLevel(double s = 0);
+
+    /*!
+     * \brief Indicate if the force and torque results need to be written on a file.
+     */
+    void writeToFile(bool write_to_file = true);
 
 private:
     /*!
@@ -137,7 +167,9 @@ private:
      * Fill required patch data and ghost cells.
      */
     void fillPatchData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
-                       const double fill_time);
+                       double fill_time,
+                       bool use_cuurent_ctx,
+                       bool use_new_ctx);
 
     /*!
      * \brief Object name.
@@ -190,12 +222,25 @@ private:
     double d_surface_contour_value = 0.0;
 
     /*!
-     * \brief File streams associated for the output.
+     * \brief Whether to write results on a text file.
+     */
+    bool d_write_to_file = false;
+
+    /*!
+     * \brief File streams associated for the output of hydrodynamic force.
      *
      * \note Columns 1-3 represent sum of -p.n dA. Columns 4-6 represent sum of n.(grad U + grad U^T) dA.
      *
      */
-    std::ofstream* d_hydro_force_stream;
+    std::ofstream* d_hydro_force_stream = nullptr;
+
+    /*!
+     * \brief File streams associated for the output of hydrodynamic torque.
+     *
+     * \note Columns 1-3 represent sum of r X -p.n dA. Columns 4-6 represent sum of r x n.(grad U + grad U^T) dA.
+     *
+     */
+    std::ofstream* d_hydro_torque_stream = nullptr;
 };
 } // namespace IBAMR
 

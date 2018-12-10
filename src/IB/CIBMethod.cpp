@@ -1729,7 +1729,7 @@ CIBMethod::getFromRestart()
         d_quaternion_current[struct_no].x() = Q_coeffs[1];
         d_quaternion_current[struct_no].y() = Q_coeffs[2];
         d_quaternion_current[struct_no].z() = Q_coeffs[3];
-        d_quaternion_current[struct_no].normalized();
+        d_quaternion_current[struct_no].normalize();
     }
 
     return;

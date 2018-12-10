@@ -58,6 +58,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
+#include <ibamr/BrinkmanPenalizationRigidBodyDynamics.h>
 #include <ibamr/FESurfaceDistanceEvaluator.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/IBInterpolantHierarchyIntegrator.h>
@@ -78,6 +79,7 @@
 
 // Application specific includes.
 #include "GravityForcing.h"
+#include "InterfacialGravityForcing.h"
 #include "LSLocateGasInterface.h"
 #include "SetFluidGasSolidDensity.h"
 #include "SetFluidGasSolidViscosity.h"
@@ -90,7 +92,7 @@ double dx, ds;
 // Struct to maintain the properties of the circular interface
 struct CircularInterface
 {
-    IBTK::Vector X0;
+    Eigen::Vector3d X0;
     double R;
 };
 CircularInterface circle;
@@ -99,15 +101,166 @@ CircularInterface circle;
 struct SolidLevelSetResetter
 {
     Pointer<IBInterpolantMethod> ib_interp_ops;
+    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator;
+    Pointer<CellVariable<NDIM, double> > ls_solid_var;
+    Pointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd;
 };
 
 void
-reset_solid_level_set_callback_fcn(double /*current_time*/, double new_time, int /*cycle_num*/, void* ctx)
+reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*cycle_num*/, void* ctx)
 {
     SolidLevelSetResetter* resetter = static_cast<SolidLevelSetResetter*>(ctx);
     resetter->ib_interp_ops->copyEulerianDataToIntegrator(new_time);
+
+    // Get the new centroid of the body
+    const double dt = new_time - current_time;
+    Eigen::Vector3d XCOM_current = resetter->bp_rbd->getCurrentCOMPosn();
+    Eigen::Vector3d XCOM_new = XCOM_current + dt * (resetter->bp_rbd->getNewCOMTransVelocity());
+
+    // Set a large value away from the solid body.
+    Pointer<PatchHierarchy<NDIM> > patch_hier = resetter->adv_diff_integrator->getPatchHierarchy();
+    const int finest_ln = patch_hier->getFinestLevelNumber();
+
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int ls_solid_idx =
+        var_db->mapVariableAndContextToIndex(resetter->ls_solid_var, resetter->adv_diff_integrator->getNewContext());
+
+    for (int ln = 0; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* patch_X_lower = patch_geom->getXLower();
+            const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+            const double* const patch_dx = patch_geom->getDx();
+
+            Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                const Index<NDIM>& ci = it();
+                Eigen::Vector3d coord = Eigen::Vector3d::Zero();
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
+                }
+                const double distance =
+                    std::sqrt(std::pow((coord[0] - XCOM_new(0)), 2.0) + std::pow((coord[1] - XCOM_new(1)), 2.0)
+#if (NDIM == 3)
+                              + std::pow((coord[2] - XCOM_new(2)), 2.0)
+#endif
+                                  ) -
+                    circle.R;
+
+                if (distance >= 7 * patch_dx[0])
+                {
+                    (*ls_solid_data)(ci) = 123.0;
+                }
+            }
+        }
+    }
+
     return;
 }
+
+void
+calculate_distance_analytically(Pointer<PatchHierarchy<NDIM> > patch_hierarchy, int E_idx)
+{
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* patch_X_lower = patch_geom->getXLower();
+            const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+            const double* const patch_dx = patch_geom->getDx();
+
+            Pointer<CellData<NDIM, double> > E_data = patch->getPatchData(E_idx);
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                CellIndex<NDIM> ci(it());
+
+                // Get physical coordinates
+                IBTK::Vector coord = IBTK::Vector::Zero();
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
+                }
+                const double distance =
+                    std::sqrt(std::pow((coord[0] - circle.X0(0)), 2.0) + std::pow((coord[1] - circle.X0(1)), 2.0)
+#if (NDIM == 3)
+                              + std::pow((coord[2] - circle.X0(2)), 2.0)
+#endif
+                    );
+
+                (*E_data)(ci) = distance - circle.R;
+            }
+        }
+    }
+
+    return;
+} // calculate_distance_analytically
+
+void
+calculate_error_near_band(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                          int E_idx,
+                          int d_idx,
+                          int W_idx,
+                          double& E_interface,
+                          int& num_interface_pts,
+                          double& volume_near_interface)
+
+{
+    E_interface = 0.0;
+    num_interface_pts = 0;
+    volume_near_interface = 0.0;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(d_idx);
+            Pointer<CellData<NDIM, double> > E_data = patch->getPatchData(E_idx);
+            Pointer<CellData<NDIM, double> > W_data = patch->getPatchData(W_idx);
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                CellIndex<NDIM> ci(it());
+                const double phi = (*D_data)(ci);
+                const double err = (*E_data)(ci);
+                const double dV = (*W_data)(ci);
+                Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                const double* const patch_dx = patch_geom->getDx();
+
+                if (std::abs(err) <= 4.0 * patch_dx[0])
+                {
+                    if (std::abs(phi) <= 1.2 * patch_dx[0])
+                    {
+                        E_interface += std::abs(err - phi) * dV;
+                        volume_near_interface += dV;
+                        num_interface_pts++;
+                    }
+                    (*E_data)(ci) = std::abs(err - phi);
+                }
+                else
+                {
+                    (*E_data)(ci) = 0.0;
+                }
+            }
+        }
+    }
+    num_interface_pts = SAMRAI_MPI::sumReduction(num_interface_pts);
+    E_interface = SAMRAI_MPI::sumReduction(E_interface);
+    volume_near_interface = SAMRAI_MPI::sumReduction(volume_near_interface);
+
+    return;
+} // calculate_error_near_band
 
 void
 generate_interp_mesh(const unsigned int& strct_num,
@@ -142,6 +295,26 @@ generate_interp_mesh(const unsigned int& strct_num,
 
     return;
 } // generate_interp_mesh
+
+// double SOLID_VEL = 1.0; // 1031.0234;
+void
+imposed_kinematics(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* ctx)
+{
+    U_com.setZero();
+    //  U_com[0] = SOLID_VEL;
+    W_com.setZero();
+    return;
+} // imposed_kinematics
+
+void
+external_force_torque(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T, void* ctx)
+{
+    F.setZero();
+    F[1] = -1.0e3 / 2.0 * M_PI * std::pow(circle.R, 2) * 9.81;
+    //  U_com[0] = SOLID_VEL;
+    T.setZero();
+    return;
+} // imposed_kinematics
 
 static double shift_x, shift_y;
 #if (NDIM == 3)
@@ -421,6 +594,8 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
             phi_var_gas, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
         SolidLevelSetResetter solid_level_set_resetter;
         solid_level_set_resetter.ib_interp_ops = ib_interpolant_method_ops;
+        solid_level_set_resetter.adv_diff_integrator = adv_diff_integrator;
+        solid_level_set_resetter.ls_solid_var = phi_var_solid;
         adv_diff_integrator->registerIntegrateHierarchyCallback(&reset_solid_level_set_callback_fcn,
                                                                 static_cast<void*>(&solid_level_set_resetter));
 
@@ -435,7 +610,6 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         {
             rho_var = new CellVariable<NDIM, double>("rho");
         }
-
         navier_stokes_integrator->registerMassDensityVariable(rho_var);
         navier_stokes_integrator->registerViscosityVariable(mu_var);
 
@@ -565,8 +739,15 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         // Body forces.
         std::vector<double> grav_const(NDIM);
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
-        Pointer<CartGridFunction> grav_force =
-            new GravityForcing("GravityForcing", navier_stokes_integrator, grav_const);
+        // Pointer<CartGridFunction> grav_force =
+        //    new GravityForcing("GravityForcing", navier_stokes_integrator, grav_const);
+        Pointer<CartGridFunction> grav_force = new InterfacialGravityForcing("InterfacialGravityForcing",
+                                                                             adv_diff_integrator,
+                                                                             phi_var_gas,
+                                                                             grav_const,
+                                                                             rho_gas,
+                                                                             rho_fluid,
+                                                                             num_gas_interface_cells);
 
         Pointer<SurfaceTensionForceFunction> surface_tension_force =
             new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
@@ -593,7 +774,27 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         ib_initializer->registerInitStructureFunction(generate_interp_mesh);
         ib_interpolant_method_ops->registerLInitStrategy(ib_initializer);
         ib_interpolant_method_ops->registerVariableAndHierarchyIntegrator(
-            ls_name_solid, 1, phi_var_solid, adv_diff_integrator);
+            ls_name_solid, /*depth*/ 1, phi_var_solid, adv_diff_integrator);
+
+        // Configure the Brinkman penalization object to do the rigid body dynamics.
+        Pointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd =
+            new BrinkmanPenalizationRigidBodyDynamics("Brinkman Body",
+                                                      phi_var_solid,
+                                                      adv_diff_integrator,
+                                                      navier_stokes_integrator,
+                                                      app_initializer->getComponentDatabase("BrinkmanPenalization"),
+                                                      /*register_for_restart*/ true);
+        FreeRigidDOFVector free_dofs;
+        free_dofs << 0, 1, 0;
+        Eigen::Vector3d U_i = Eigen::Vector3d::Zero();
+        const double mass = rho_solid * M_PI * std::pow(circle.R, 2);
+        // U_i[0] = SOLID_VEL;
+        bp_rbd->setSolveRigidBodyVelocity(free_dofs);
+        bp_rbd->registerKinematicsFunction(&imposed_kinematics);
+        bp_rbd->registerExternalForceTorqueFunction(&external_force_torque);
+        bp_rbd->setInitialConditions(circle.X0, U_i, U_i, mass);
+        navier_stokes_integrator->registerBrinkmanPenalizationStrategy(bp_rbd);
+        solid_level_set_resetter.bp_rbd = bp_rbd;
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
@@ -626,8 +827,7 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         }
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.setToScalar(n_idx, 0.0);
-        hier_cc_data_ops.setToScalar(d_idx, 0.0);
-        // hier_cc_data_ops.setToScalar(d_idx, FESurfaceDistanceEvaluator::s_large_distance);
+        hier_cc_data_ops.setToScalar(d_idx, 5 * dx);
         visit_data_writer->registerPlotQuantity("num_elements", "SCALAR", n_idx);
         visit_data_writer->registerPlotQuantity("distance", "SCALAR", d_idx);
 
@@ -647,9 +847,9 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         pout << "Computing distances" << std::endl;
         surface_distance_eval->computeSignedDistance(n_idx, d_idx);
         pout << "Finished computing distances" << std::endl;
-        // pout << "Updating sign" << std::endl;
-        // surface_distance_eval->updateSignAwayFromInterface(d_idx);
-        // pout << "Finished updating sign" << std::endl;
+        pout << "Updating sign" << std::endl;
+        surface_distance_eval->updateSignAwayFromInterface(d_idx, patch_hierarchy, 5 * dx);
+        pout << "Finished updating sign" << std::endl;
 
         // Compute the error.
         Pointer<CellVariable<NDIM, double> > E_var = new CellVariable<NDIM, double>("E");
@@ -659,95 +859,19 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
             if (!level->checkAllocated(E_idx)) level->allocatePatchData(E_idx, time_integrator->getIntegratorTime());
         }
+
         Pointer<HierarchyMathOps> hier_math_ops =
             new HierarchyMathOps("HierarchyMathOps", patch_hierarchy, coarsest_ln, finest_ln);
-
-        // Compute L1 error from analytical solution
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-                Pointer<CellData<NDIM, double> > E_data = patch->getPatchData(E_idx);
-                for (Box<NDIM>::Iterator it(patch_box); it; it++)
-                {
-                    CellIndex<NDIM> ci(it());
-
-                    // Get physical coordinates
-                    IBTK::Vector coord = IBTK::Vector::Zero();
-                    Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                    const double* patch_X_lower = patch_geom->getXLower();
-                    const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
-                    const double* const patch_dx = patch_geom->getDx();
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        coord[d] =
-                            patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
-                    }
-                    const double distance =
-                        std::sqrt(std::pow((coord[0] - circle.X0(0)), 2.0) + std::pow((coord[1] - circle.X0(1)), 2.0)
-#if (NDIM == 3)
-                                  + std::pow((coord[2] - circle.X0(2)), 2.0)
-#endif
-                        );
-
-                    (*E_data)(ci) = distance - circle.R;
-                }
-            }
-        }
-
-        HierarchyCellDataOpsReal<NDIM, double> cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-        cc_data_ops.subtract(E_idx, E_idx, d_idx);
         const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
-        pout << "Error in D after level set initialization:" << std::endl
-             << "L1-norm:  " << std::setprecision(10) << cc_data_ops.L1Norm(E_idx, wgt_cc_idx) << std::endl;
 
-        double E_domain = 0.0;
         double E_interface = 0.0;
         int num_interface_pts = 0;
         double volume_near_interface = 0.0;
-        // Compute L1 Norm for specific regions
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-                Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(d_idx);
-                Pointer<CellData<NDIM, double> > E_data = patch->getPatchData(E_idx);
-                Pointer<CellData<NDIM, double> > W_data = patch->getPatchData(wgt_cc_idx);
-                for (Box<NDIM>::Iterator it(patch_box); it; it++)
-                {
-                    CellIndex<NDIM> ci(it());
-                    const double phi = (*D_data)(ci);
-                    const double err = (*E_data)(ci);
-                    const double dV = (*W_data)(ci);
-                    Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                    const double* const patch_dx = patch_geom->getDx();
-
-                    if (std::abs(phi) <= 1.2 * patch_dx[0])
-                    {
-                        E_interface += std::abs(err) * dV;
-                        volume_near_interface += dV;
-                        num_interface_pts++;
-                    }
-                    if (phi > -0.8) E_domain += std::abs(err) * dV;
-                }
-            }
-        }
-        // Perform sum reduction
-        num_interface_pts = SAMRAI_MPI::sumReduction(num_interface_pts);
-        E_interface = SAMRAI_MPI::sumReduction(E_interface);
-        E_domain = SAMRAI_MPI::sumReduction(E_domain);
-        volume_near_interface = SAMRAI_MPI::sumReduction(volume_near_interface);
-
+        calculate_distance_analytically(patch_hierarchy, E_idx);
+        calculate_error_near_band(
+            patch_hierarchy, E_idx, d_idx, wgt_cc_idx, E_interface, num_interface_pts, volume_near_interface);
         pout << "Error in D near interface after level set initialization:" << std::endl
              << "L1-norm:  " << std::setprecision(10) << E_interface / volume_near_interface << std::endl;
-        pout << "Error in D in entire domain (minus center) after level set initialization:" << std::endl
-             << "L1-norm:  " << std::setprecision(10) << E_domain << std::endl;
         pout << "Number of points within the interface (used to compute interface error):" << std::endl
              << num_interface_pts << std::endl;
 
@@ -766,7 +890,6 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
-        double dt = time_integrator->getMaximumTimeStepSize();
 
         // Copy the distance function into level set of solid.
         int phi_solid_idx =
@@ -791,7 +914,7 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
-        dt = 0.0;
+        double dt = 0.0;
         while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
@@ -813,6 +936,14 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
 
+            /*circle.X0(0)  += SOLID_VEL * dt;
+            calculate_distance_analytically(patch_hierarchy, E_idx);
+            calculate_error_near_band(patch_hierarchy, E_idx, phi_solid_idx, wgt_cc_idx, E_interface, num_interface_pts,
+            volume_near_interface); pout << "Error in D near interface after level set initialization:" << std::endl
+            << "L1-norm:  " << std::setprecision(10) << E_interface / volume_near_interface << std::endl;
+            pout << "Number of points within the interface (used to compute interface error):" << std::endl
+            << num_interface_pts << std::endl;*/
+
             // At specified intervals, write visualization and restart files,
             // and print out timer data.
             iteration_num += 1;
@@ -820,6 +951,7 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
             if (dump_viz_data && uses_visit && (iteration_num % viz_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting visualization files...\n\n";
+                time_integrator->setupPlotData();
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
                 silo_data_writer->writePlotData(iteration_num, loop_time);
             }
@@ -833,13 +965,6 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
-
-            return 1;
-        }
-
-        if (dump_viz_data && uses_visit)
-        {
-            visit_data_writer->writePlotData(patch_hierarchy, iteration_num + 1, loop_time);
         }
 
     } // cleanup dynamically allocated objects prior to shutdown

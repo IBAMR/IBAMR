@@ -351,7 +351,9 @@ FESurfaceDistanceEvaluator::computeSignedDistance(int n_idx, int d_idx)
 }
 
 void
-FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx)
+FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx,
+                                                        Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                                                        double large_distance)
 {
     // Allocate scratch variable on the finest level.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -362,15 +364,15 @@ FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx)
     TBOX_ASSERT(!D_var.isNull());
 #endif
     static const IntVector<NDIM> cell_ghosts = 1;
-    const int D_iter_idx =
-        var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::ITER"), cell_ghosts);
-    const int finest_ln = d_patch_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM> > level = d_patch_hierarchy->getPatchLevel(finest_ln);
+    const int D_iter_idx = var_db->registerVariableAndContext(
+        D_var, var_db->getContext("FESurfaceDistanceEvaluator::updateSignAwayFromInterface::ITER"), cell_ghosts);
+    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+    Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(finest_ln);
     level->allocatePatchData(D_iter_idx, /*time*/ 0.0);
 
     // Copy d_idx to D_iter_idx
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_patch_hierarchy, finest_ln, finest_ln);
-    hier_cc_data_ops.setToScalar(D_iter_idx, s_large_distance, /*interior_only*/ false);
+    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, finest_ln, finest_ln);
+    hier_cc_data_ops.setToScalar(D_iter_idx, large_distance, /*interior_only*/ false);
     hier_cc_data_ops.copyData(D_iter_idx, D_idx);
 
     // Fill ghost cells
@@ -405,7 +407,7 @@ FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx)
                           patch_lower_index(2),
                           patch_upper_index(2),
 #endif
-                          s_large_distance,
+                          large_distance,
                           n_local_updates);
         }
         n_global_updates = SAMRAI_MPI::sumReduction(n_local_updates);

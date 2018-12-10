@@ -91,6 +91,7 @@
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/BrinkmanPenalizationStrategy.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
@@ -1009,7 +1010,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     d_velocity_C_idx = var_db->registerVariableAndContext(d_velocity_C_var, getCurrentContext(), no_ghosts);
 
     d_velocity_L_var = new SideVariable<NDIM, double>(d_object_name + "::velocity_L");
-    d_velocity_L_idx = var_db->registerVariableAndContext(d_velocity_L_var, getCurrentContext(), no_ghosts);
+    d_velocity_L_idx = var_db->registerVariableAndContext(d_velocity_L_var, getCurrentContext(), side_ghosts);
 
     d_velocity_rhs_C_var = new SideVariable<NDIM, double>(d_object_name + "::velocity_rhs_C");
     d_velocity_rhs_C_idx = var_db->registerVariableAndContext(d_velocity_rhs_C_var, getCurrentContext(), no_ghosts);
@@ -1196,6 +1197,13 @@ INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
     // Preprocess the operators and solvers
     preprocessOperatorsAndSolvers(current_time, new_time);
 
+    // Preprocess Brinkman penalization objects.
+    for (unsigned k = 0; k < d_brinkman_force.size(); ++k)
+    {
+        d_brinkman_force[k]->setTimeInterval(current_time, new_time);
+        d_brinkman_force[k]->preprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
+    }
+
     return;
 } // preprocessIntegrateHierarchy
 
@@ -1296,6 +1304,12 @@ INSVCStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double cu
         level->deallocatePatchData(d_mu_interp_idx);
         level->deallocatePatchData(d_N_full_idx);
         if (d_mu_var.isNull()) level->deallocatePatchData(d_mu_scratch_idx);
+    }
+
+    // Postprocess Brinkman penalization objects.
+    for (unsigned k = 0; k < d_brinkman_force.size(); ++k)
+    {
+        d_brinkman_force[k]->postprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
     }
 
     // Execute any registered callbacks.
@@ -1453,12 +1467,12 @@ INSVCStaggeredHierarchyIntegrator::registerResetFluidViscosityFcn(ResetFluidProp
 } // registerResetFluidViscosityFcn
 
 void
-INSVCStaggeredHierarchyIntegrator::registerAddDampingZoneFcn(AddDampingZoneFcnPtr callback, void* ctx)
+INSVCStaggeredHierarchyIntegrator::registerBrinkmanPenalizationStrategy(
+    Pointer<BrinkmanPenalizationStrategy> brinkman_force)
 {
-    d_add_L_fcns.push_back(callback);
-    d_add_L_fcns_ctx.push_back(ctx);
+    d_brinkman_force.push_back(brinkman_force);
     return;
-} // registerDampingZoneFcn
+} // registerBrinkmanPenalizationStrategy
 
 void
 INSVCStaggeredHierarchyIntegrator::registerMassDensityInitialConditions(const Pointer<CartGridFunction> rho_init_fcn)

@@ -134,7 +134,8 @@ am__objects_1 = main2d-ex_main.$(OBJEXT) \
 	main2d-LSLocateGasInterface.$(OBJEXT) \
 	main2d-TagLSRefinementCells.$(OBJEXT) \
 	main2d-SetLSProperties.$(OBJEXT) \
-	main2d-GravityForcing.$(OBJEXT)
+	main2d-GravityForcing.$(OBJEXT) \
+	main2d-InterfacialGravityForcing.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -151,7 +152,8 @@ am__objects_2 = test2d-test_main.$(OBJEXT) \
 	test2d-LSLocateGasInterface.$(OBJEXT) \
 	test2d-TagLSRefinementCells.$(OBJEXT) \
 	test2d-SetLSProperties.$(OBJEXT) \
-	test2d-GravityForcing.$(OBJEXT)
+	test2d-GravityForcing.$(OBJEXT) \
+	test2d-InterfacialGravityForcing.$(OBJEXT)
 am_test2d_OBJECTS = $(am__objects_2)
 test2d_OBJECTS = $(am_test2d_OBJECTS)
 test2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -174,6 +176,7 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/main2d-GravityForcing.Po \
+	./$(DEPDIR)/main2d-InterfacialGravityForcing.Po \
 	./$(DEPDIR)/main2d-LSLocateGasInterface.Po \
 	./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po \
 	./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po \
@@ -181,6 +184,7 @@ am__depfiles_remade = ./$(DEPDIR)/main2d-GravityForcing.Po \
 	./$(DEPDIR)/main2d-TagLSRefinementCells.Po \
 	./$(DEPDIR)/main2d-ex_main.Po \
 	./$(DEPDIR)/test2d-GravityForcing.Po \
+	./$(DEPDIR)/test2d-InterfacialGravityForcing.Po \
 	./$(DEPDIR)/test2d-LSLocateGasInterface.Po \
 	./$(DEPDIR)/test2d-SetFluidGasSolidDensity.Po \
 	./$(DEPDIR)/test2d-SetFluidGasSolidViscosity.Po \
@@ -551,8 +555,8 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXAMPLE_DRIVER = ex_main.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidDensity.h SetFluidGasSolidViscosity.cpp SetFluidGasSolidViscosity.h LSLocateGasInterface.cpp LSLocateGasInterface.h  TagLSRefinementCells.cpp TagLSRefinementCells.h SetLSProperties.cpp SetLSProperties.h GravityForcing.cpp GravityForcing.h
-GTEST_DRIVER = test_main.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidDensity.h SetFluidGasSolidViscosity.cpp SetFluidGasSolidViscosity.h LSLocateGasInterface.cpp LSLocateGasInterface.h  TagLSRefinementCells.cpp TagLSRefinementCells.h SetLSProperties.cpp SetLSProperties.h GravityForcing.cpp GravityForcing.h
+EXAMPLE_DRIVER = ex_main.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidDensity.h SetFluidGasSolidViscosity.cpp SetFluidGasSolidViscosity.h LSLocateGasInterface.cpp LSLocateGasInterface.h  TagLSRefinementCells.cpp TagLSRefinementCells.h SetLSProperties.cpp SetLSProperties.h GravityForcing.cpp GravityForcing.h InterfacialGravityForcing.cpp InterfacialGravityForcing.h
+GTEST_DRIVER = test_main.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidDensity.h SetFluidGasSolidViscosity.cpp SetFluidGasSolidViscosity.h LSLocateGasInterface.cpp LSLocateGasInterface.h  TagLSRefinementCells.cpp TagLSRefinementCells.h SetLSProperties.cpp SetLSProperties.h GravityForcing.cpp GravityForcing.h InterfacialGravityForcing.cpp InterfacialGravityForcing.h
 EXTRA_DIST = input2d input2d.test CircleMesh.msh
 GTESTS = $(am__append_1)
 EXAMPLES = $(am__append_2)
@@ -612,6 +616,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-GravityForcing.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-InterfacialGravityForcing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LSLocateGasInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po@am__quote@ # am--include-marker
@@ -619,6 +624,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-TagLSRefinementCells.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-ex_main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-GravityForcing.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-InterfacialGravityForcing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-LSLocateGasInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-SetFluidGasSolidDensity.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-SetFluidGasSolidViscosity.Po@am__quote@ # am--include-marker
@@ -754,6 +760,20 @@ main2d-GravityForcing.obj: GravityForcing.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-GravityForcing.obj `if test -f 'GravityForcing.cpp'; then $(CYGPATH_W) 'GravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/GravityForcing.cpp'; fi`
 
+main2d-InterfacialGravityForcing.o: InterfacialGravityForcing.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-InterfacialGravityForcing.o -MD -MP -MF $(DEPDIR)/main2d-InterfacialGravityForcing.Tpo -c -o main2d-InterfacialGravityForcing.o `test -f 'InterfacialGravityForcing.cpp' || echo '$(srcdir)/'`InterfacialGravityForcing.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-InterfacialGravityForcing.Tpo $(DEPDIR)/main2d-InterfacialGravityForcing.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='InterfacialGravityForcing.cpp' object='main2d-InterfacialGravityForcing.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-InterfacialGravityForcing.o `test -f 'InterfacialGravityForcing.cpp' || echo '$(srcdir)/'`InterfacialGravityForcing.cpp
+
+main2d-InterfacialGravityForcing.obj: InterfacialGravityForcing.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-InterfacialGravityForcing.obj -MD -MP -MF $(DEPDIR)/main2d-InterfacialGravityForcing.Tpo -c -o main2d-InterfacialGravityForcing.obj `if test -f 'InterfacialGravityForcing.cpp'; then $(CYGPATH_W) 'InterfacialGravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/InterfacialGravityForcing.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-InterfacialGravityForcing.Tpo $(DEPDIR)/main2d-InterfacialGravityForcing.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='InterfacialGravityForcing.cpp' object='main2d-InterfacialGravityForcing.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-InterfacialGravityForcing.obj `if test -f 'InterfacialGravityForcing.cpp'; then $(CYGPATH_W) 'InterfacialGravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/InterfacialGravityForcing.cpp'; fi`
+
 test2d-test_main.o: test_main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-test_main.o -MD -MP -MF $(DEPDIR)/test2d-test_main.Tpo -c -o test2d-test_main.o `test -f 'test_main.cpp' || echo '$(srcdir)/'`test_main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-test_main.Tpo $(DEPDIR)/test2d-test_main.Po
@@ -851,6 +871,20 @@ test2d-GravityForcing.obj: GravityForcing.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='GravityForcing.cpp' object='test2d-GravityForcing.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-GravityForcing.obj `if test -f 'GravityForcing.cpp'; then $(CYGPATH_W) 'GravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/GravityForcing.cpp'; fi`
+
+test2d-InterfacialGravityForcing.o: InterfacialGravityForcing.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-InterfacialGravityForcing.o -MD -MP -MF $(DEPDIR)/test2d-InterfacialGravityForcing.Tpo -c -o test2d-InterfacialGravityForcing.o `test -f 'InterfacialGravityForcing.cpp' || echo '$(srcdir)/'`InterfacialGravityForcing.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-InterfacialGravityForcing.Tpo $(DEPDIR)/test2d-InterfacialGravityForcing.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='InterfacialGravityForcing.cpp' object='test2d-InterfacialGravityForcing.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-InterfacialGravityForcing.o `test -f 'InterfacialGravityForcing.cpp' || echo '$(srcdir)/'`InterfacialGravityForcing.cpp
+
+test2d-InterfacialGravityForcing.obj: InterfacialGravityForcing.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-InterfacialGravityForcing.obj -MD -MP -MF $(DEPDIR)/test2d-InterfacialGravityForcing.Tpo -c -o test2d-InterfacialGravityForcing.obj `if test -f 'InterfacialGravityForcing.cpp'; then $(CYGPATH_W) 'InterfacialGravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/InterfacialGravityForcing.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-InterfacialGravityForcing.Tpo $(DEPDIR)/test2d-InterfacialGravityForcing.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='InterfacialGravityForcing.cpp' object='test2d-InterfacialGravityForcing.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-InterfacialGravityForcing.obj `if test -f 'InterfacialGravityForcing.cpp'; then $(CYGPATH_W) 'InterfacialGravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/InterfacialGravityForcing.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -984,6 +1018,7 @@ clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/main2d-GravityForcing.Po
+	-rm -f ./$(DEPDIR)/main2d-InterfacialGravityForcing.Po
 	-rm -f ./$(DEPDIR)/main2d-LSLocateGasInterface.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po
@@ -991,6 +1026,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/main2d-TagLSRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main2d-ex_main.Po
 	-rm -f ./$(DEPDIR)/test2d-GravityForcing.Po
+	-rm -f ./$(DEPDIR)/test2d-InterfacialGravityForcing.Po
 	-rm -f ./$(DEPDIR)/test2d-LSLocateGasInterface.Po
 	-rm -f ./$(DEPDIR)/test2d-SetFluidGasSolidDensity.Po
 	-rm -f ./$(DEPDIR)/test2d-SetFluidGasSolidViscosity.Po
@@ -1043,6 +1079,7 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/main2d-GravityForcing.Po
+	-rm -f ./$(DEPDIR)/main2d-InterfacialGravityForcing.Po
 	-rm -f ./$(DEPDIR)/main2d-LSLocateGasInterface.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po
@@ -1050,6 +1087,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/main2d-TagLSRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main2d-ex_main.Po
 	-rm -f ./$(DEPDIR)/test2d-GravityForcing.Po
+	-rm -f ./$(DEPDIR)/test2d-InterfacialGravityForcing.Po
 	-rm -f ./$(DEPDIR)/test2d-LSLocateGasInterface.Po
 	-rm -f ./$(DEPDIR)/test2d-SetFluidGasSolidDensity.Po
 	-rm -f ./$(DEPDIR)/test2d-SetFluidGasSolidViscosity.Po

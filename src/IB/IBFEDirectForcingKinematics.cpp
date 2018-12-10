@@ -484,9 +484,9 @@ IBFEDirectForcingKinematics::getFromInput(Pointer<Database> input_db, bool is_fr
         d_quaternion_half = d_quaternion_current;
         d_quaternion_new = d_quaternion_current;
 
-        d_quaternion_current.normalized();
-        d_quaternion_half.normalized();
-        d_quaternion_new.normalized();
+        d_quaternion_current.normalize();
+        d_quaternion_half.normalize();
+        d_quaternion_new.normalize();
     }
 
     return;
@@ -525,7 +525,7 @@ IBFEDirectForcingKinematics::getFromRestart()
     d_quaternion_current.x() = Q_coeffs[1];
     d_quaternion_current.y() = Q_coeffs[2];
     d_quaternion_current.z() = Q_coeffs[3];
-    d_quaternion_current.normalized();
+    d_quaternion_current.normalize();
 
     return;
 } // getFromRestart

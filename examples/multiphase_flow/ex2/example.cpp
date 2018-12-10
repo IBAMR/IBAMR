@@ -530,6 +530,8 @@ run_example(int argc, char* argv[])
                                                     adv_diff_integrator,
                                                     navier_stokes_integrator,
                                                     input_db->getDatabase("IBHydrodynamicSurfaceForceEvaluator"));
+        IBTK::Vector3d pressure_force, viscous_force, pressure_torque, viscous_torque;
+        hydro_force_evaluator->writeToFile();
 
         // Configure the IBFE solver.
         ib_method_ops->initializeFEEquationSystems();
@@ -599,7 +601,7 @@ run_example(int argc, char* argv[])
             circle.X0(0) = structure_COM[0];
             circle.X0(1) = structure_COM[1];
 #if (NDIM == 3)
-            circle.X0(2) = structure_COM[0][2];
+            circle.X0(2) = structure_COM[2];
 #endif
 
             pout << "\n";
@@ -608,8 +610,9 @@ run_example(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
 
-            // Compute and print the hydrodynamic force
-            hydro_force_evaluator->computeHydrodynamicForce();
+            // Compute and print the hydrodynamic force and torque.
+            hydro_force_evaluator->computeHydrodynamicForceTorque(
+                pressure_force, viscous_force, pressure_torque, viscous_torque, circle.X0);
 
             // Compute the fluid mass in the domain from interpolated density
             const int rho_ins_idx = navier_stokes_integrator->getLinearOperatorRhoPatchDataIndex();

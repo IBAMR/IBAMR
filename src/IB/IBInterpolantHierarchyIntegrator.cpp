@@ -31,11 +31,12 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 
 #include "ibamr/IBInterpolantHierarchyIntegrator.h"
+#include "ibamr/BrinkmanPenalizationRigidBodyDynamics.h"
 #include "ibamr/IBInterpolantMethod.h"
 #include "ibamr/IBLevelSetMethod.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h"
 #include "ibtk/LData.h"
@@ -128,10 +129,17 @@ IBInterpolantHierarchyIntegrator::integrateHierarchy(const double current_time,
     // (3) Solve the fluid equations using the updated value of the scalar.
 
     // Move the mesh to new location.
-    std::vector<Eigen::Vector3d> U(1), W(1);
-    U[0].setZero();
-    U[0][0] = 1000.0;
-    W[0].setZero();
+    Pointer<INSVCStaggeredHierarchyIntegrator> vc_ins_integrator = d_ins_hier_integrator;
+    const std::vector<Pointer<BrinkmanPenalizationStrategy> >& brinkman_force =
+        vc_ins_integrator->getBrinkmanPenalizationStrategy();
+    const std::size_t num_objects = brinkman_force.size();
+    std::vector<Eigen::Vector3d> U(num_objects), W(num_objects);
+    for (std::size_t k = 0; k < num_objects; ++k)
+    {
+        Pointer<BrinkmanPenalizationRigidBodyDynamics> rbd = brinkman_force[k];
+        U[k] = rbd->getNewCOMTransVelocity();
+        W[k] = rbd->getNewCOMRotVelocity();
+    }
     d_ib_interpolant_method_ops->updateMeshPosition(current_time, new_time, U, W);
 
     // Spread the scalar to the grid.
@@ -154,6 +162,53 @@ IBInterpolantHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
 {
     IBHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+
+    // Synchronize new state data.
+    if (!skip_synchronize_new_state_data)
+    {
+        if (d_enable_logging)
+            plog << d_object_name << "::postprocessIntegrateHierarchy(): synchronizing updated data\n";
+        synchronizeHierarchyData(NEW_DATA);
+    }
+
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const double dt = new_time - current_time;
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
+                                                               d_ins_hier_integrator->getNewContext());
+
+    // Determine the CFL number.
+    double cfl_max = 0.0;
+    PatchCellDataOpsReal<NDIM, double> patch_cc_ops;
+    PatchSideDataOpsReal<NDIM, double> patch_sc_ops;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const double* const dx = pgeom->getDx();
+            const double dx_min = *(std::min_element(dx, dx + NDIM));
+            Pointer<CellData<NDIM, double> > u_cc_new_data = patch->getPatchData(u_new_idx);
+            Pointer<SideData<NDIM, double> > u_sc_new_data = patch->getPatchData(u_new_idx);
+            double u_max = 0.0;
+            if (u_cc_new_data) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
+            if (u_sc_new_data) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
+            cfl_max = std::max(cfl_max, u_max * dt / dx_min);
+        }
+    }
+    cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
+    d_regrid_cfl_estimate += cfl_max;
+    if (d_enable_logging)
+        plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
+    if (d_enable_logging)
+        plog << d_object_name
+             << "::postprocessIntegrateHierarchy(): estimated upper bound on IB "
+                "point displacement since last regrid = "
+             << d_regrid_cfl_estimate << "\n";
 
     // Deallocate the fluid solver.
     d_ins_hier_integrator->postprocessIntegrateHierarchy(

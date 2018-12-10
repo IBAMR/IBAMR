@@ -36,7 +36,7 @@ NUM_INTERFACE_CELLS = 2.5
 MAX_LEVELS       = 1
 REF_RATIO        = 4
 REF_RATIO_FINEST = 4
-N                = 440
+N                = 220
 NFINEST          = (REF_RATIO^(MAX_LEVELS - 1))*N
 H_COARSEST       = LENGTH/N
 H                = LENGTH/NFINEST
@@ -150,7 +150,7 @@ PhiBcCoefs {
 
 
 // Simulation Parameters
-DELTA_FUNCTION       = "IB_6"
+DELTA_FUNCTION       = "IB_6"       //"DISCONTINUOUS_LINEAR"
 SOLVER_TYPE          = "STAGGERED"
 DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0
@@ -237,6 +237,10 @@ IBInterpolantMethod {
 
 IBRedundantInitializer {
     max_levels      = MAX_LEVELS
+}
+
+BrinkmanPenalization {
+    chi = 1e8
 }
 
 INSVCStaggeredConservativeHierarchyIntegrator {
@@ -476,7 +480,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt","Silo"
-   viz_dump_interval     = 1    //zero to turn off
+   viz_dump_interval     = 50    //zero to turn off
    viz_dump_dirname      = "viz_cylinder2d"
    visit_number_procs_per_file = 1
 

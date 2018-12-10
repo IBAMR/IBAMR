@@ -657,7 +657,7 @@ IBInterpolantMethod::copyEulerianDataToIntegrator(double data_time)
         int q_data_idx = d_q_interp_idx[name];
         copyEulerianDataToIntegrator(name, q_data_idx, data_time);
     }
-
+    return;
 } // copyEulerianDataToIntegrator
 
 void
