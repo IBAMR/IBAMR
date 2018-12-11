@@ -55,7 +55,7 @@ LSLocateCircularInterface::setLevelSetPatchData(int D_idx,
 
     // Set the initial condition for locating the interface
     const double& R = d_circle->R;
-    const IBTK::Vector& X0 = d_circle->X0;
+    const IBTK::Vector3d& X0 = d_circle->X0;
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {

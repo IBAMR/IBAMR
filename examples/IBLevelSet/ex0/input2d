@@ -150,7 +150,7 @@ PhiBcCoefs {
 
 
 // Simulation Parameters
-DELTA_FUNCTION       = "IB_6"       //"DISCONTINUOUS_LINEAR"
+DELTA_FUNCTION       = "IB_6"
 SOLVER_TYPE          = "STAGGERED"
 DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0
@@ -180,12 +180,13 @@ MU_IS_CONST          = FALSE
 ERROR_ON_DT_CHANGE   = FALSE
 
 // Application
+CHI = RHO_S/DT_MAX
 PRECOND_REINIT_INTERVAL      = 1
 VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
 DENSITY_CONVECTIVE_LIMITER   = "CUI"
 VELOCITY_CONVECTIVE_LIMITER  = "CUI"
 DENSITY_TS                   = "SSPRK3"
-OPERATOR_SCALE_FACTORS       = 1.0
+OPERATOR_SCALE_FACTORS       =   1.0  
 EXPLICITLY_REMOVE_NULLSPACE  = FALSE
 ENABLE_LOGGING               = TRUE
 
@@ -240,7 +241,7 @@ IBRedundantInitializer {
 }
 
 BrinkmanPenalization {
-    chi = 1e8
+    chi = CHI
 }
 
 INSVCStaggeredConservativeHierarchyIntegrator {

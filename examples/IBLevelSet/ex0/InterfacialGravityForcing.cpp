@@ -30,15 +30,15 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "InterfacialGravityForcing.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <IBAMR_config.h>
 #include <SAMRAI_config.h>
 
-// SAMRAI INCLUDES
+#include "InterfacialGravityForcing.h"
 #include <HierarchyDataOpsManager.h>
+#include <ibamr/app_namespaces.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
