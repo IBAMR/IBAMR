@@ -195,9 +195,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
     d_rho_sc_var = new SideVariable<NDIM, double>(d_object_name + "::rho_sc");
     d_rho_interp_cc_var = new CellVariable<NDIM, double>(d_object_name + "::rho_interp_cc", NDIM);
 
-    // Side centered state variable for old velocity, required for the convective operator.
-    d_U_old_var = new SideVariable<NDIM, double>(d_object_name + "::U_old");
-
     return;
 } // INSVCStaggeredConservativeHierarchyIntegrator
 
@@ -254,16 +251,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
             }
         }
     }
-
-    // The old velocity variable, required for conservative convective operator
-    registerVariable(d_U_old_current_idx,
-                     d_U_old_new_idx,
-                     d_U_old_scratch_idx,
-                     d_U_old_var,
-                     side_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE",
-                     d_U_init);
 
     // Set various objects with conservative time integrator.
     d_rho_p_integrator->setSideCenteredVelocityBoundaryConditions(d_U_bc_coefs);
@@ -554,9 +541,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
 
         // Integrate density and convective momentum.
         d_rho_p_integrator->integrate(dt);
-
-        // Keep track of the time-lagged velocity
-        d_hier_sc_data_ops->copyData(d_U_old_new_idx, d_U_current_idx);
     }
 
     // Execute any registered callbacks.

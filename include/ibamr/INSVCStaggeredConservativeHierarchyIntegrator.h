@@ -282,11 +282,6 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var;
 
-    /*!
-     * Side-centered velocity variable maintained from previous time step
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_old_var;
-
     /*
      * Patch data descriptor indices for all "state" variables managed by the
      * integrator.
@@ -294,7 +289,6 @@ private:
      * State variables have three contexts: current, scratch, and new.
      */
     int d_rho_sc_current_idx, d_rho_sc_scratch_idx, d_rho_sc_new_idx;
-    int d_U_old_current_idx, d_U_old_new_idx, d_U_old_scratch_idx;
 
     /*
      * Boundary condition object for the side-centered density variable maintained

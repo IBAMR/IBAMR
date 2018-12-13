@@ -412,6 +412,14 @@ public:
         return d_brinkman_force;
     } // getBrinkmanPenalizationStrategy
 
+    /*!
+     * \brief Get "old" velocity variable.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getOldVelocityVariable() const
+    {
+        return d_U_old_var;
+    } // getOldVelocityVariable
+
 protected:
     /*!
      * Determine the largest stable timestep on an individual patch.
@@ -522,6 +530,7 @@ protected:
      * Fluid solver variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_old_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_U_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_P_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_F_var;
@@ -593,6 +602,7 @@ protected:
      * State variables have three contexts: current, scratch, and new.
      */
     int d_U_current_idx, d_U_new_idx, d_U_scratch_idx;
+    int d_U_old_current_idx, d_U_old_new_idx, d_U_old_scratch_idx;
     int d_P_current_idx, d_P_new_idx, d_P_scratch_idx;
     int d_F_current_idx, d_F_new_idx, d_F_scratch_idx;
     int d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx;

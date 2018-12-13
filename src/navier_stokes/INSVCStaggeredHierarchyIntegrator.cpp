@@ -509,6 +509,7 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
     d_F_var = INSHierarchyIntegrator::d_F_var;
     d_Q_var = INSHierarchyIntegrator::d_Q_var;
     d_N_old_var = new SideVariable<NDIM, double>(d_object_name + "::N_old");
+    d_U_old_var = new SideVariable<NDIM, double>(d_object_name + "::U_old");
 
     d_U_cc_var = new CellVariable<NDIM, double>(d_object_name + "::U_cc", NDIM);
     d_F_cc_var = new CellVariable<NDIM, double>(d_object_name + "::F_cc", NDIM);
@@ -779,6 +780,15 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     const IntVector<NDIM> edge_ghosts = EDGEG;
     const IntVector<NDIM> no_ghosts = 0;
     const IntVector<NDIM> mu_cell_ghosts = MUCELLG;
+
+    registerVariable(d_U_old_current_idx,
+                     d_U_old_new_idx,
+                     d_U_old_scratch_idx,
+                     d_U_old_var,
+                     side_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE",
+                     d_U_init);
 
     registerVariable(d_U_current_idx,
                      d_U_new_idx,
@@ -1203,6 +1213,9 @@ INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         d_brinkman_force[k]->setTimeInterval(current_time, new_time);
         d_brinkman_force[k]->preprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
     }
+
+    // Keep track of the time-lagged velocity
+    d_hier_sc_data_ops->copyData(d_U_old_new_idx, d_U_current_idx);
 
     return;
 } // preprocessIntegrateHierarchy
