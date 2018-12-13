@@ -51,6 +51,7 @@
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
+#include "libmesh/explicit_system.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK
@@ -768,12 +769,13 @@ protected:
     const unsigned int d_num_parts = 1;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems, d_Q_systems, d_Phi_systems;
-    std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double> *> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
-    std::vector<libMesh::PetscVector<double> *> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_Q_half_vecs, d_Q_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs;
+    std::vector<libMesh::ExplicitSystem*> d_X_systems, d_U_systems, d_F_systems, d_Q_systems, d_Phi_systems;
+    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_rhs_vecs, d_X_new_vecs, d_X_half_vecs,
+        d_X_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_rhs_vecs, d_U_new_vecs, d_U_half_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_rhs_vecs, d_F_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_Q_half_vecs, d_Q_rhs_vecs, d_Q_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs, d_Phi_rhs_vecs;
 
     bool d_fe_equation_systems_initialized = false, d_fe_data_initialized = false;
 
