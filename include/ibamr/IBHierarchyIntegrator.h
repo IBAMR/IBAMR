@@ -44,7 +44,6 @@
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchyDataOpsReal.h"
 #include "IntVector.h"
-#include "LoadBalancer.h"
 #include "MultiblockDataTranslator.h"
 #include "PatchLevel.h"
 #include "RefineAlgorithm.h"
@@ -124,7 +123,7 @@ public:
     /*!
      * Register a load balancer for non-uniform load balancing.
      */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer);
+    virtual void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer) override;
 
     /*!
      * Return a pointer to the fluid velocity variable.
@@ -326,13 +325,6 @@ protected:
      * Body force functions.
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_body_force_fcn;
-
-    /*
-     * Nonuniform load balancing data structures.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
-    int d_workload_idx = IBTK::invalid_index;
 
     /*
      * Lagrangian marker data structures.

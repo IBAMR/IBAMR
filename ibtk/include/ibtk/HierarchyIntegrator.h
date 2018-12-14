@@ -52,6 +52,7 @@
 #include "ComponentSelector.h"
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
+#include "LoadBalancer.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
 #include "RefineSchedule.h"
@@ -271,6 +272,15 @@ public:
      * Return a pointer to the gridding algorithm object managed by the integrator.
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > getGriddingAlgorithm() const;
+
+    /*!
+     * Register a load balancer for non-uniform load balancing.
+     *
+     * @note inheriting classes may reimplement this method in such a way that
+     * @p load_balancer is registered with another object; e.g.,
+     * IBHierarchyIntegrator passes @p load_balancer to its IBStrategy object.
+     */
+    virtual void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer);
 
     /*!
      * Register a VisIt data writer so the integrator can output data files that
@@ -865,6 +875,13 @@ protected:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
+
+    /*
+     * Nonuniform load balancing data structures.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
+    int d_workload_idx = IBTK::invalid_index;
 
     /*
      * Indicates whether the hierarchy has been initialized.

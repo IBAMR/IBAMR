@@ -49,7 +49,6 @@
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
 #include "IntVector.h"
-#include "LoadBalancer.h"
 #include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
@@ -143,15 +142,7 @@ IBHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> f_fcn
 void
 IBHierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer)
 {
-#if !defined(NDEBUG)
-    TBOX_ASSERT(load_balancer);
-#endif
-    d_load_balancer = load_balancer;
-    if (d_workload_idx == -1)
-    {
-        d_workload_var = new CellVariable<NDIM, double>(d_object_name + "::workload");
-        registerVariable(d_workload_idx, d_workload_var, 0, getCurrentContext());
-    }
+    HierarchyIntegrator::registerLoadBalancer(load_balancer);
     d_ib_method_ops->registerLoadBalancer(load_balancer, d_workload_idx);
     return;
 } // registerLoadBalancer
