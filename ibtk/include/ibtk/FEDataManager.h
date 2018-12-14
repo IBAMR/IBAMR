@@ -813,7 +813,7 @@ private:
      * balancing.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
-    int d_workload_idx;
+    int d_workload_idx = IBTK::invalid_index;
 
     /*
      * The default kernel functions and quadrature rule used to mediate

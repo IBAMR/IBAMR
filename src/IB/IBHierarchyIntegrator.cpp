@@ -580,7 +580,7 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHie
 #endif
 
     // Initialize workload data.
-    if (d_workload_idx != -1)
+    if (d_workload_idx != IBTK::invalid_index)
     {
         HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops(hierarchy, level_number, level_number);
         level_cc_data_ops.setToScalar(d_workload_idx, 1.0);
