@@ -167,7 +167,15 @@ StokesFirstOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
             const double z_cell_surface =
                 (domain_x_lower[dir] + dz * (static_cast<double>(i(dir) - domain_box_lower(dir)) + 0.5)) - d_depth;
             const double eta = d_amplitude * cos(d_wave_number * dof_posn[0] - d_omega * fill_time);
-            const double vol_frac = (std::max(std::min(eta - z_cell_surface, dz / 2.0), -dz / 2.0) + dz / 2.0) / dz;
+            const double phi = -eta + z_cell_surface;
+            double h_phi;
+            const double dw = 2.0*dz;
+            if (phi < -dz) h_phi = 1.0;
+            else if (std::abs(phi) <= dz) h_phi = 1.0 - (0.5 + 0.5 * phi / dz + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / dz));
+            else h_phi = 0.0;
+            const double vol_frac = (std::max(std::min(eta - z_cell_surface, dw / 2.0), -dw / 2.0) + dw / 2.0) / dw;
+            // const double vol_frac = h_phi;
+            // const double vol_frac = 1.0;
 
             if (d_comp_idx == 0)
             {
