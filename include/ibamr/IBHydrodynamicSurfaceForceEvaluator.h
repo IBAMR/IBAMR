@@ -199,7 +199,7 @@ private:
     /*!
      * \brief Fluid velocity and pressure patch data indices.
      */
-    int d_u_idx = IBTK::invalid_index, d_u_old_idx = IBTK::invalid_index, d_p_idx = IBTK::invalid_index;
+    int d_u_idx = IBTK::invalid_index, d_p_idx = IBTK::invalid_index;
 
     /*!
      * \brief Viscosity patch data index.
@@ -215,21 +215,6 @@ private:
      * \brief Whether or not viscosity is constant.
      */
     bool d_mu_is_const;
-
-    /*!
-     * \brief Whether or not density is constant.
-     */
-    bool d_rho_is_const;
-
-    /*!
-     * \brief Density for the constant rho case.
-     */
-    double d_rho = std::numeric_limits<double>::quiet_NaN();
-
-    /*!
-     * \brief Density patch data index.
-     */
-    int d_rho_idx = IBTK::invalid_index;
 
     /*!
      * \brief The contour level that describes the surface of the solid object.
