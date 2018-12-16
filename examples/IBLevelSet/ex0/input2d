@@ -33,9 +33,9 @@ NUM_INTERFACE_CELLS = 2.5
 
 
 // grid spacing parameters
-MAX_LEVELS       = 1
-REF_RATIO        = 4
-REF_RATIO_FINEST = 4
+MAX_LEVELS       = 2
+REF_RATIO        = 2
+REF_RATIO_FINEST = 2
 N                = 220
 NFINEST          = (REF_RATIO^(MAX_LEVELS - 1))*N
 H_COARSEST       = LENGTH/N

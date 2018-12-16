@@ -305,44 +305,73 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     }
 #endif
 
+    // Get the interpolated density variable
+    const int rho_ins_idx = d_fluid_solver->getLinearOperatorRhoPatchDataIndex();
+
+    // Ghost fill the level set values.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
+    const int ls_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
+
+    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    int finest_ln = patch_hierarchy->getFinestLevelNumber();
+    Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    HierarchyCellDataOpsReal<NDIM, double> hier_cc_ops(patch_hierarchy);
+    hier_cc_ops.copyData(ls_scratch_idx, ls_solid_idx);
+
+    Pointer<RefineAlgorithm<NDIM> > ghost_fill_alg = new RefineAlgorithm<NDIM>();
+    Pointer<RefineOperator<NDIM> > refine_op = NULL;
+    ghost_fill_alg->registerRefine(ls_scratch_idx, ls_scratch_idx, ls_scratch_idx, refine_op);
+    ghost_fill_alg->createSchedule(finest_level)->fillData(time);
+
     // Set the rigid body velocity in u_idx
     Eigen::Vector3d r = Eigen::Vector3d::Zero();
     Eigen::Vector3d dr = Eigen::Vector3d::Zero();
     Eigen::Vector3d Wxdr = Eigen::Vector3d::Zero();
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
-    int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
     for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const Index<NDIM>& patch_box_upper = patch_box.upper();
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* patch_dx = patch_geom->getDx();
+        const double alpha = 2.0 * patch_dx[0];
 
-        Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
+        Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
         Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
+        Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
+        TBOX_ASSERT((ls_solid_data->getGhostCellWidth()).min() >= 1);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
             {
-                Index<NDIM> c_i = it();
-                SideIndex<NDIM> s_i(c_i, axis, SideIndex<NDIM>::Lower);
+                SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
 
-                if (c_i(axis) > patch_box_upper(axis))
+                const double phi_lower = (*ls_solid_data)(s_i.toCell(0));
+                const double phi_upper = (*ls_solid_data)(s_i.toCell(1));
+                const double phi = 0.5 * (phi_lower + phi_upper);
+                double Hphi;
+                if (phi < -alpha)
                 {
-                    c_i(axis) = patch_box_upper(axis);
+                    Hphi = 0.0;
                 }
-                const double& phi = (*ls_solid_data)(c_i);
-                if (phi <= 0.0)
+                else if (std::abs(phi) <= alpha)
+                {
+                    Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
+                }
+                else
+                {
+                    Hphi = 1.0;
+                }
+                if (phi <= alpha)
                 {
                     get_physical_coordinate(r, patch, s_i);
                     dr = r - d_center_of_mass_new;
                     Wxdr = d_rot_vel_new.cross(dr);
+                    const double penalty = (*rho_data)(s_i) / dt;
                     (*u_data)(s_i) = d_trans_vel_new(axis) + Wxdr(axis);
-                    (*u_data)(s_i) *= d_chi;
+                    (*u_data)(s_i) *= (1.0 - Hphi) * penalty;
                 }
             }
         }
@@ -358,8 +387,16 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
     TBOX_ASSERT(MathUtilities<double>::equalEps(time, d_new_time));
 #endif
 
+    const double dt = d_new_time - d_current_time;
+
+    // Get the interpolated density variable
+    const int rho_ins_idx = d_fluid_solver->getLinearOperatorRhoPatchDataIndex();
+
+    // Get the solid level set data. We have already copied new data into scratch data and have also
+    // filled its ghost cells on the finest level.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
+    const int ls_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
     Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
@@ -367,27 +404,41 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
     {
         Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const Index<NDIM>& patch_box_upper = patch_box.upper();
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* patch_dx = patch_geom->getDx();
+        const double alpha = 2.0 * patch_dx[0];
 
-        Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
+        Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
         Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
+        Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
             {
-                Index<NDIM> c_i = it();
-                SideIndex<NDIM> s_i(c_i, axis, SideIndex<NDIM>::Lower);
+                SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
 
-                if (c_i(axis) > patch_box_upper(axis))
+                const double phi_lower = (*ls_solid_data)(s_i.toCell(0));
+                const double phi_upper = (*ls_solid_data)(s_i.toCell(1));
+                const double phi = 0.5 * (phi_lower + phi_upper);
+                double Hphi;
+                if (phi < -alpha)
                 {
-                    c_i(axis) = patch_box_upper(axis);
+                    Hphi = 0.0;
                 }
-                const double& phi = (*ls_solid_data)(c_i);
-                if (phi <= 0.0)
+                else if (std::abs(phi) <= alpha)
                 {
-                    (*u_data)(s_i) = d_chi;
+                    Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
+                }
+                else
+                {
+                    Hphi = 1.0;
+                }
+
+                if (phi <= alpha)
+                {
+                    const double penalty = (*rho_data)(s_i) / dt;
+                    (*u_data)(s_i) = (1.0 - Hphi) * penalty;
                 }
             }
         }

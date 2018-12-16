@@ -94,6 +94,8 @@ struct CircularInterface
 {
     Eigen::Vector3d X0;
     double R;
+    double rho_solid;
+    double g_y;
 };
 CircularInterface circle;
 
@@ -309,7 +311,7 @@ void
 external_force_torque(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T, void* ctx)
 {
     F.setZero();
-    F[1] = -1.0e3 / 2.0 * M_PI * std::pow(circle.R, 2) * 9.81;
+    F[1] = circle.rho_solid * M_PI * std::pow(circle.R, 2) * circle.g_y;
     T.setZero();
     return;
 } // imposed_kinematics
@@ -618,6 +620,7 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         const double rho_gas = input_db->getDouble("RHO_G");
         const int num_solid_interface_cells = input_db->getDouble("NUM_SOLID_INTERFACE_CELLS");
         const int num_gas_interface_cells = input_db->getDouble("NUM_GAS_INTERFACE_CELLS");
+        circle.rho_solid = rho_solid;
         SetFluidGasSolidDensity* ptr_setFluidGasSolidDensity = new SetFluidGasSolidDensity("SetFluidGasSolidDensity",
                                                                                            adv_diff_integrator,
                                                                                            phi_var_solid,
@@ -737,6 +740,7 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         // Body forces.
         std::vector<double> grav_const(NDIM);
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
+        circle.g_y = grav_const[1];
         // Pointer<CartGridFunction> grav_force =
         //    new GravityForcing("GravityForcing", navier_stokes_integrator, grav_const);
         Pointer<CartGridFunction> grav_force = new InterfacialGravityForcing("InterfacialGravityForcing",
@@ -939,26 +943,33 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
             const bool last_step = !time_integrator->stepsRemaining();
             if (dump_viz_data && uses_visit && (iteration_num % viz_dump_interval == 0 || last_step))
             {
-                pout << "\nWriting visualization files...\n\n";
+                pout << "Writing visualization files...\n\n";
                 time_integrator->setupPlotData();
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
                 silo_data_writer->writePlotData(iteration_num, loop_time);
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
             {
-                pout << "\nWriting restart files...\n\nn";
+                pout << "Writing restart files...\n\nn";
                 RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
             }
             if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {
-                pout << "\nWriting timer data...\n\n";
+                pout << "Writing timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
         }
 
+        // Delete dumb pointers.
+        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
+        delete ptr_setFluidGasSolidDensity;
+        delete ptr_setFluidGasSolidViscosity;
+        delete rho_bc_coef;
+        delete mu_bc_coef;
+        delete phi_bc_coef;
+
     } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
-    SAMRAI_MPI::finalize();
     return true;
 } // main
