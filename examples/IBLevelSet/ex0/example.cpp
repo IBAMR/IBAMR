@@ -154,10 +154,11 @@ reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*c
                                   ) -
                     circle.R;
 
-                if (distance >= 7 * patch_dx[0])
-                {
-                    (*ls_solid_data)(ci) = 123.0;
-                }
+                (*ls_solid_data)(ci) = distance;
+                /* if (distance >= 7 * patch_dx[0])
+                 {
+                     (*ls_solid_data)(ci) = 123.0;
+                 }*/
             }
         }
     }
@@ -296,12 +297,10 @@ generate_interp_mesh(const unsigned int& strct_num,
     return;
 } // generate_interp_mesh
 
-// double SOLID_VEL = 1.0; // 1031.0234;
 void
 imposed_kinematics(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* ctx)
 {
     U_com.setZero();
-    //  U_com[0] = SOLID_VEL;
     W_com.setZero();
     return;
 } // imposed_kinematics
@@ -311,7 +310,6 @@ external_force_torque(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T, 
 {
     F.setZero();
     F[1] = -1.0e3 / 2.0 * M_PI * std::pow(circle.R, 2) * 9.81;
-    //  U_com[0] = SOLID_VEL;
     T.setZero();
     return;
 } // imposed_kinematics
@@ -788,7 +786,6 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         free_dofs << 0, 1, 0;
         Eigen::Vector3d U_i = Eigen::Vector3d::Zero();
         const double mass = rho_solid * M_PI * std::pow(circle.R, 2);
-        // U_i[0] = SOLID_VEL;
         bp_rbd->setSolveRigidBodyVelocity(free_dofs);
         bp_rbd->registerKinematicsFunction(&imposed_kinematics);
         bp_rbd->registerExternalForceTorqueFunction(&external_force_torque);
@@ -935,14 +932,6 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
             pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
-
-            /*circle.X0(0)  += SOLID_VEL * dt;
-            calculate_distance_analytically(patch_hierarchy, E_idx);
-            calculate_error_near_band(patch_hierarchy, E_idx, phi_solid_idx, wgt_cc_idx, E_interface, num_interface_pts,
-            volume_near_interface); pout << "Error in D near interface after level set initialization:" << std::endl
-            << "L1-norm:  " << std::setprecision(10) << E_interface / volume_near_interface << std::endl;
-            pout << "Number of points within the interface (used to compute interface error):" << std::endl
-            << num_interface_pts << std::endl;*/
 
             // At specified intervals, write visualization and restart files,
             // and print out timer data.

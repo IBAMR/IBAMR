@@ -230,8 +230,13 @@ IBInterpolantHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
 {
     if (d_integrator_is_initialized) return;
 
-    // Finish initializing the hierarchy integrator.  This function call should
-    // come at the end of this function.
+    // Pass on body force function to INS integrator.
+    if (d_body_force_fcn)
+    {
+        d_ins_hier_integrator->registerBodyForceFunction(d_body_force_fcn);
+    }
+
+    // Finish initializing the hierarchy integrator.
     IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
     return;
 } // initializeHierarchyIntegrator

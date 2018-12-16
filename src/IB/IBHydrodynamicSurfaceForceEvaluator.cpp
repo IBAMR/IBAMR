@@ -537,58 +537,58 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
         hier_mu_bdry_fill->initializeOperatorState(mu_transaction_comp, patch_hierarchy);
         hier_mu_bdry_fill->setHomogeneousBc(false);
         hier_mu_bdry_fill->fillData(fill_time);
+    }
 
-        // Fill ghost cells for pressure
-        Pointer<CellVariable<NDIM, double> > p_var = d_fluid_solver->getPressureVariable();
-        const int p_idx =
-            use_current_ctx ?
-                var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getCurrentContext()) :
-                use_new_ctx ? var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getNewContext()) : -1;
-        auto p_ins_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
-        auto p_vc_ins_bc_coef =
-            dynamic_cast<INSVCStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
-        InterpolationTransactionComponent p_transaction_comp;
-        if (p_ins_bc_coef)
-        {
-            p_ins_bc_coef->setTargetVelocityPatchDataIndex(d_u_idx);
-            InterpolationTransactionComponent p_transaction_comp(d_p_idx,
-                                                                 p_idx,
-                                                                 /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
-                                                                 /*USE_CF_INTERPOLATION*/ true,
-                                                                 /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
-                                                                 /*BDRY_EXTRAP_TYPE*/ "LINEAR",
-                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
-                                                                 p_ins_bc_coef,
-                                                                 Pointer<VariableFillPattern<NDIM> >(nullptr));
-            Pointer<HierarchyGhostCellInterpolation> hier_p_bdry_fill = new HierarchyGhostCellInterpolation();
-            hier_p_bdry_fill->initializeOperatorState(p_transaction_comp, patch_hierarchy);
-            hier_p_bdry_fill->setHomogeneousBc(false);
-            hier_p_bdry_fill->fillData(fill_time);
-        }
-        else if (p_vc_ins_bc_coef)
-        {
-            p_vc_ins_bc_coef->setTargetVelocityPatchDataIndex(d_u_idx);
-            InterpolationTransactionComponent p_transaction_comp(d_p_idx,
-                                                                 p_idx,
-                                                                 /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
-                                                                 /*USE_CF_INTERPOLATION*/ true,
-                                                                 /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
-                                                                 /*BDRY_EXTRAP_TYPE*/ "LINEAR",
-                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
-                                                                 p_vc_ins_bc_coef,
-                                                                 Pointer<VariableFillPattern<NDIM> >(nullptr));
+    // Fill ghost cells for pressure
+    Pointer<CellVariable<NDIM, double> > p_var = d_fluid_solver->getPressureVariable();
+    const int p_idx =
+        use_current_ctx ?
+            var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getCurrentContext()) :
+            use_new_ctx ? var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getNewContext()) : -1;
+    auto p_ins_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
+    auto p_vc_ins_bc_coef =
+        dynamic_cast<INSVCStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
+    InterpolationTransactionComponent p_transaction_comp;
+    if (p_ins_bc_coef)
+    {
+        p_ins_bc_coef->setTargetVelocityPatchDataIndex(d_u_idx);
+        InterpolationTransactionComponent p_transaction_comp(d_p_idx,
+                                                             p_idx,
+                                                             /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
+                                                             /*USE_CF_INTERPOLATION*/ true,
+                                                             /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
+                                                             /*BDRY_EXTRAP_TYPE*/ "LINEAR",
+                                                             /*CONSISTENT_TYPE_2_BDRY*/ false,
+                                                             p_ins_bc_coef,
+                                                             Pointer<VariableFillPattern<NDIM> >(nullptr));
+        Pointer<HierarchyGhostCellInterpolation> hier_p_bdry_fill = new HierarchyGhostCellInterpolation();
+        hier_p_bdry_fill->initializeOperatorState(p_transaction_comp, patch_hierarchy);
+        hier_p_bdry_fill->setHomogeneousBc(false);
+        hier_p_bdry_fill->fillData(fill_time);
+    }
+    else if (p_vc_ins_bc_coef)
+    {
+        p_vc_ins_bc_coef->setTargetVelocityPatchDataIndex(d_u_idx);
+        InterpolationTransactionComponent p_transaction_comp(d_p_idx,
+                                                             p_idx,
+                                                             /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
+                                                             /*USE_CF_INTERPOLATION*/ true,
+                                                             /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
+                                                             /*BDRY_EXTRAP_TYPE*/ "LINEAR",
+                                                             /*CONSISTENT_TYPE_2_BDRY*/ false,
+                                                             p_vc_ins_bc_coef,
+                                                             Pointer<VariableFillPattern<NDIM> >(nullptr));
 
-            Pointer<HierarchyGhostCellInterpolation> hier_p_bdry_fill = new HierarchyGhostCellInterpolation();
-            hier_p_bdry_fill->initializeOperatorState(p_transaction_comp, patch_hierarchy);
-            hier_p_bdry_fill->setHomogeneousBc(false);
-            hier_p_bdry_fill->fillData(fill_time);
-        }
-        else
-        {
-            TBOX_ERROR(d_object_name << "::IBHydrodynamicSurfaceForceEvaluator():\n"
-                                     << " no valid pressure boundary condition object registered with INS integrator.\n"
-                                     << " This statement should not have been reached");
-        }
+        Pointer<HierarchyGhostCellInterpolation> hier_p_bdry_fill = new HierarchyGhostCellInterpolation();
+        hier_p_bdry_fill->initializeOperatorState(p_transaction_comp, patch_hierarchy);
+        hier_p_bdry_fill->setHomogeneousBc(false);
+        hier_p_bdry_fill->fillData(fill_time);
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << "::IBHydrodynamicSurfaceForceEvaluator():\n"
+                                 << " no valid pressure boundary condition object registered with INS integrator.\n"
+                                 << " This statement should not have been reached");
     }
 
     return;
