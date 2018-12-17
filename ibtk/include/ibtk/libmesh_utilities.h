@@ -873,6 +873,35 @@ get_nodal_dof_indices(const libMesh::DofMap &dof_map,
 #endif
 }
 
+/*!
+ * Save, in a plain text file, the libMesh partitioning, with the format
+ *
+ *     x,y,z,rank
+ *
+ * where x, y, and z are the center of an Elem and rank is the current MPI
+ * rank.
+ *
+ * @note this function collates the output from all MPI processors in the
+ * communicator assigned to @p position_system, so it is an inherently serial
+ * function.
+ */
+inline void
+write_elem_partitioning(const std::string& file_name, const libMesh::System& position_system);
+
+/*!
+ * Save, in a plain text file, the libMesh Node partitioning, with the format
+ *
+ *     x,y,z,rank
+ *
+ * where x, y, and z are the coordinates of a Node and rank is the current MPI
+ * rank.
+ *
+ * @note this function collates the output from all MPI processors in the
+ * communicator assigned to @p position_system, so it is an inherently serial
+ * function.
+ */
+inline void
+write_node_partitioning(const std::string& file_name, const libMesh::System& position_system);
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

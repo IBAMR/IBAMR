@@ -93,6 +93,7 @@ host_triplet = @host@
 @SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBTK3d.a
 @LIBMESH_ENABLED_TRUE@am__append_3 = ../src/lagrangian/FEDataInterpolation.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/FEDataManager.cpp \
+@LIBMESH_ENABLED_TRUE@	../src/utilities/libmesh_utilities.cpp \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/FEDataInterpolation.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/FEDataManager.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/libmesh_utilities.h
@@ -286,6 +287,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/utilities/muParserCartGridFunction.cpp \
 	../src/lagrangian/FEDataInterpolation.cpp \
 	../src/lagrangian/FEDataManager.cpp \
+	../src/utilities/libmesh_utilities.cpp \
 	../include/ibtk/FEDataInterpolation.h \
 	../include/ibtk/FEDataManager.h \
 	../include/ibtk/libmesh_utilities.h \
@@ -310,7 +312,8 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
 @LIBMESH_ENABLED_TRUE@am__objects_1 = ../src/lagrangian/libIBTK2d_a-FEDataInterpolation.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-FEDataManager.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-FEDataManager.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK2d_a-libmesh_utilities.$(OBJEXT)
 am__objects_2 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK2d_a-CartCellDoubleLinearCFInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK2d_a-CartCellDoubleQuadraticCFInterpolation.$(OBJEXT) \
@@ -570,6 +573,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/utilities/muParserCartGridFunction.cpp \
 	../src/lagrangian/FEDataInterpolation.cpp \
 	../src/lagrangian/FEDataManager.cpp \
+	../src/utilities/libmesh_utilities.cpp \
 	../include/ibtk/FEDataInterpolation.h \
 	../include/ibtk/FEDataManager.h \
 	../include/ibtk/libmesh_utilities.h \
@@ -594,7 +598,8 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f
 @LIBMESH_ENABLED_TRUE@am__objects_3 = ../src/lagrangian/libIBTK3d_a-FEDataInterpolation.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-FEDataManager.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-FEDataManager.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK3d_a-libmesh_utilities.$(OBJEXT)
 am__objects_4 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK3d_a-CartCellDoubleLinearCFInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK3d_a-CartCellDoubleQuadraticCFInterpolation.$(OBJEXT) \
@@ -960,6 +965,7 @@ am__depfiles_remade = ../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellIn
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-StandardTagAndInitStrategySet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-Streamable.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-StreamableManager.Po \
+	../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-AppInitializer.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridFunction.Po \
@@ -990,6 +996,7 @@ am__depfiles_remade = ../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellIn
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-StandardTagAndInitStrategySet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-Streamable.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-StreamableManager.Po \
+	../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Po
 am__mv = mv -f
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -2197,6 +2204,9 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/lagrangian/libIBTK2d_a-FEDataManager.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK2d_a-libmesh_utilities.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/boundary/cf_interface/fortran/$(am__dirstamp):
 	@$(MKDIR_P) $(top_builddir)/src/boundary/cf_interface/fortran
 	@: > $(top_builddir)/src/boundary/cf_interface/fortran/$(am__dirstamp)
@@ -2655,6 +2665,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/lagrangian/libIBTK3d_a-FEDataManager.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK3d_a-libmesh_utilities.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation3d.$(OBJEXT): $(top_builddir)/src/boundary/cf_interface/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/boundary/cf_interface/fortran/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.$(OBJEXT): $(top_builddir)/src/boundary/cf_interface/fortran/$(am__dirstamp) \
@@ -2951,6 +2964,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-StandardTagAndInitStrategySet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-Streamable.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-StreamableManager.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-AppInitializer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridFunction.Po@am__quote@ # am--include-marker
@@ -2981,6 +2995,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-StandardTagAndInitStrategySet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-Streamable.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-StreamableManager.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -4693,6 +4708,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-FEDataManager.obj `if test -f '../src/lagrangian/FEDataManager.cpp'; then $(CYGPATH_W) '../src/lagrangian/FEDataManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FEDataManager.cpp'; fi`
 
+../src/utilities/libIBTK2d_a-libmesh_utilities.o: ../src/utilities/libmesh_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-libmesh_utilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Tpo -c -o ../src/utilities/libIBTK2d_a-libmesh_utilities.o `test -f '../src/utilities/libmesh_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/libmesh_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/libmesh_utilities.cpp' object='../src/utilities/libIBTK2d_a-libmesh_utilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-libmesh_utilities.o `test -f '../src/utilities/libmesh_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/libmesh_utilities.cpp
+
+../src/utilities/libIBTK2d_a-libmesh_utilities.obj: ../src/utilities/libmesh_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-libmesh_utilities.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Tpo -c -o ../src/utilities/libIBTK2d_a-libmesh_utilities.obj `if test -f '../src/utilities/libmesh_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/libmesh_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/libmesh_utilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/libmesh_utilities.cpp' object='../src/utilities/libIBTK2d_a-libmesh_utilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-libmesh_utilities.obj `if test -f '../src/utilities/libmesh_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/libmesh_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/libmesh_utilities.cpp'; fi`
+
 ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.o: ../src/boundary/HierarchyGhostCellInterpolation.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.o -MD -MP -MF ../src/boundary/$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Tpo -c -o ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.o `test -f '../src/boundary/HierarchyGhostCellInterpolation.cpp' || echo '$(srcdir)/'`../src/boundary/HierarchyGhostCellInterpolation.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/boundary/$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Tpo ../src/boundary/$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Po
@@ -6373,6 +6402,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-FEDataManager.obj `if test -f '../src/lagrangian/FEDataManager.cpp'; then $(CYGPATH_W) '../src/lagrangian/FEDataManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FEDataManager.cpp'; fi`
 
+../src/utilities/libIBTK3d_a-libmesh_utilities.o: ../src/utilities/libmesh_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-libmesh_utilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Tpo -c -o ../src/utilities/libIBTK3d_a-libmesh_utilities.o `test -f '../src/utilities/libmesh_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/libmesh_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/libmesh_utilities.cpp' object='../src/utilities/libIBTK3d_a-libmesh_utilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-libmesh_utilities.o `test -f '../src/utilities/libmesh_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/libmesh_utilities.cpp
+
+../src/utilities/libIBTK3d_a-libmesh_utilities.obj: ../src/utilities/libmesh_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-libmesh_utilities.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Tpo -c -o ../src/utilities/libIBTK3d_a-libmesh_utilities.obj `if test -f '../src/utilities/libmesh_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/libmesh_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/libmesh_utilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/libmesh_utilities.cpp' object='../src/utilities/libIBTK3d_a-libmesh_utilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-libmesh_utilities.obj `if test -f '../src/utilities/libmesh_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/libmesh_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/libmesh_utilities.cpp'; fi`
+
 .f.o:
 	$(AM_V_F77)$(F77COMPILE) -c -o $@ $<
 
@@ -6783,6 +6826,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-StandardTagAndInitStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-Streamable.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-StreamableManager.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-AppInitializer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridFunction.Po
@@ -6813,6 +6857,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-StandardTagAndInitStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-Streamable.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-StreamableManager.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -7068,6 +7113,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-StandardTagAndInitStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-Streamable.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-StreamableManager.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-AppInitializer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridFunction.Po
@@ -7098,6 +7144,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-StandardTagAndInitStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-Streamable.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-StreamableManager.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
