@@ -155,7 +155,8 @@ DIM_INDEPENDENT_SOURCES = \
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
 ../src/lagrangian/FEDataInterpolation.cpp \
-../src/lagrangian/FEDataManager.cpp
+../src/lagrangian/FEDataManager.cpp \
+../src/utilities/libmesh_utilities.cpp
 endif
 
 pkg_include_HEADERS += \
