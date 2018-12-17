@@ -4,9 +4,9 @@ RHO = 1.0
 L   = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 1                                      // maximum number of levels in locally refined grid
-REF_RATIO  = 2                                      // refinement ratio between levels
-N = 64                                              // actual    number of grid cells on coarsest grid level
+MAX_LEVELS = 3                                      // maximum number of levels in locally refined grid
+REF_RATIO  = 4                                      // refinement ratio between levels
+N = 32                                              // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N            // effective number of grid cells on finest   grid level
 DX0 = L/N                                           // mesh width on coarsest grid level
 DX  = L/NFINEST                                     // mesh width on finest   grid level
@@ -31,7 +31,7 @@ SOLVER_TYPE                = "STAGGERED"            // the fluid solver to use (
 CFL_MAX                    = 0.25                   // maximum CFL number
 DT                         = 0.25*CFL_MAX*DX/U_MAX  // maximum timestep size
 START_TIME                 = 0.0e0                  // initial simulation time
-END_TIME                   = 100*DT                   // final simulation time
+END_TIME                   = 10000*DT               // final simulation time
 GROW_DT                    = 2.0e0                  // growth factor for timesteps
 NUM_CYCLES                 = 1                      // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH"      // convective time stepping type
@@ -163,7 +163,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
-   viz_dump_interval           = int(0.125/DT)
+   viz_dump_interval           = 10
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
@@ -211,7 +211,7 @@ StandardTagAndInitialize {
 
 LoadBalancer {
    bin_pack_method     = "SPATIAL"
-   max_workload_factor = 1
+   max_workload_factor = 0.25
 }
 
 TimerManager{
