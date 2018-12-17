@@ -521,6 +521,21 @@ HierarchyIntegrator::getGriddingAlgorithm() const
 } // getGriddingAlgorithm
 
 void
+HierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(load_balancer);
+#endif
+    d_load_balancer = load_balancer;
+    if (d_workload_idx == IBTK::invalid_index)
+    {
+        d_workload_var = new CellVariable<NDIM, double>(d_object_name + "::workload");
+        registerVariable(d_workload_idx, d_workload_var, 0, getCurrentContext());
+    }
+    return;
+} // registerLoadBalancer
+
+void
 HierarchyIntegrator::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > visit_writer)
 {
     d_visit_writer = visit_writer;

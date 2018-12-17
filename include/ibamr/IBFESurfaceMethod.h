@@ -569,7 +569,7 @@ protected:
      * Nonuniform load balancing data structures.
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
-    int d_workload_idx;
+    int d_workload_idx = IBTK::invalid_index;
 
     /*
      * The object name is used as a handle to databases stored in restart files
