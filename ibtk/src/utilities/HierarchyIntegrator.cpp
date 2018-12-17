@@ -539,6 +539,11 @@ void
 HierarchyIntegrator::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > visit_writer)
 {
     d_visit_writer = visit_writer;
+    if (d_workload_idx != IBTK::invalid_index)
+    {
+        d_visit_writer->registerPlotQuantity(d_object_name + "::workload", "SCALAR", d_workload_idx);
+    }
+
     for (const auto& child_integrator : d_child_integrators)
     {
         child_integrator->registerVisItDataWriter(visit_writer);

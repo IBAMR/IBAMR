@@ -2104,7 +2104,9 @@ FEDataManager::updateSpreadQuadratureRule(std::unique_ptr<QBase>& qrule,
 void
 FEDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int finest_ln_in)
 {
-    if (!d_load_balancer) return;
+    if (d_workload_idx == IBTK::invalid_index) return;
+
+    reinitElementMappings();
 
     IBTK_TIMER_START(t_update_workload_estimates);
 

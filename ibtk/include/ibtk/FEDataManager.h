@@ -275,6 +275,10 @@ public:
 
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
+     *
+     * @note This function is not intended for use in user codes and is
+     * usually called by an object, like IBFEMethod, that sets up
+     * FEDataManager objects.
      */
     void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
                               int workload_data_idx);

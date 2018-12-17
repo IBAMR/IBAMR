@@ -1382,6 +1382,11 @@ IBFEMethod::initializeFEEquationSystems()
         manager_stream << "IBFEMethod FEDataManager::" << part;
         const std::string& manager_name = manager_stream.str();
         d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec[part], d_spread_spec[part]);
+        if (d_workload_idx != IBTK::invalid_index)
+        {
+            d_fe_data_managers[part]->registerLoadBalancer(d_load_balancer, d_workload_idx);
+        }
+
         d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
 
         // Create FE equation systems objects and corresponding variables.
@@ -1613,10 +1618,11 @@ IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
     d_workload_idx = workload_data_idx;
-
-    for (unsigned int part = 0; part < d_num_parts; ++part)
+    // if there are parts then update them too
+    for (IBTK::FEDataManager *data_manager : d_fe_data_managers)
     {
-        d_fe_data_managers[part]->registerLoadBalancer(load_balancer, workload_data_idx);
+        TBOX_ASSERT(data_manager);
+        data_manager->registerLoadBalancer(load_balancer, workload_data_idx);
     }
     return;
 } // registerLoadBalancer

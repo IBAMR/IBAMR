@@ -121,7 +121,8 @@ public:
     void registerBodyForceFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
 
     /*!
-     * Register a load balancer for non-uniform load balancing.
+     * Register a load balancer. The same load balancer is used with all
+     * member objects such as the integrator.
      */
     virtual void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer) override;
 
