@@ -110,6 +110,19 @@ public:
     } // getIBMethodOps
 
     /*!
+     * \brief Get IBFEMethod ops object.
+     */
+    SAMRAI::tbox::Pointer<IBStrategy> getIBFEMethodOps() const
+    {
+        if (d_ibfe_method_deactivated)
+        {
+            TBOX_WARNING("IBLevelSetMethod::getIBFEMethodOps() "
+                         << "IBFEMethod ops has been deactivated. " << std::endl);
+        }
+        return d_ibfe_method_ops;
+    } // getIBFEMethodOps
+
+    /*!
      * \brief Deactivate FE mesh based operations.
      */
     void deactivateIBFEMethod();
@@ -371,6 +384,11 @@ private:
      * \brief The set of IBStrategy objects.
      */
     SAMRAI::tbox::Pointer<IBStrategy> d_ib_method_ops, d_ibfe_method_ops;
+
+    /*!
+     * \brief Boolean to indicate if IBFEMethod has been deactivated.
+     */
+    bool d_ibfe_method_deactivated = false;
 };
 } // namespace IBAMR
 

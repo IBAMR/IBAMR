@@ -65,7 +65,8 @@ void
 IBLevelSetMethod::deactivateIBFEMethod()
 {
     d_ibfe_method_ops.setNull();
-    d_ibfe_method_ops = NULL;
+    d_ibfe_method_ops = nullptr;
+    d_ibfe_method_deactivated = true;
     return;
 } // deactivateIBFEMethod
 

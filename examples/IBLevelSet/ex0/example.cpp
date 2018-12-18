@@ -913,6 +913,17 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
             }
         }
 
+        // Deactivate IBFEMethod as we don't need it anymore.
+        ib_level_set_method_ops->deactivateIBFEMethod();
+        ibfe_method_ops.setNull();
+
+        // Open streams to save position and velocity of the structure.
+        ofstream rbd_stream;
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            rbd_stream.open("rbd.curve", ios_base::out | ios_base::trunc);
+        }
+
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -958,6 +969,22 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
                 pout << "Writing timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
+
+            if (SAMRAI_MPI::getRank() == 0)
+            {
+                const Eigen::Vector3d& rbd_posn = bp_rbd->getCurrentCOMPosn();
+                const Eigen::Vector3d& rbd_trans_vel = bp_rbd->getCurrentCOMTransVelocity();
+
+                rbd_stream.precision(12);
+                rbd_stream.setf(ios::fixed, ios::floatfield);
+                rbd_stream << loop_time << "\t" << rbd_posn[1] << "\t" << rbd_trans_vel[1] << std::endl;
+            }
+        }
+
+        // Close the logging streams.
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            rbd_stream.close();
         }
 
         // Delete dumb pointers.
