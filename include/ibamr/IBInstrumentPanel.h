@@ -243,7 +243,7 @@ private:
      * and web patch data (i.e., patch centroids and area-weighted normals) and
      * meter centroid data.
      */
-    struct IndexFortranOrder : public std::binary_function<SAMRAI::hier::Index<NDIM>, SAMRAI::hier::Index<NDIM>, bool>
+    struct IndexFortranOrder
     {
         inline bool operator()(const SAMRAI::hier::Index<NDIM>& lhs, const SAMRAI::hier::Index<NDIM>& rhs) const
         {

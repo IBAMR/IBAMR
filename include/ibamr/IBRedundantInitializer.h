@@ -154,7 +154,7 @@ public:
      * Edge data structures.
      */
     using Edge = std::pair<int, int>;
-    struct EdgeComp : public std::binary_function<Edge, Edge, bool>
+    struct EdgeComp
     {
         inline bool operator()(const Edge& e1, const Edge& e2) const
         {

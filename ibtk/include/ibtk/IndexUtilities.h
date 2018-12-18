@@ -50,7 +50,7 @@
 namespace IBTK
 {
 template <typename T>
-struct IndexOrder : std::binary_function<T, T, bool>
+struct IndexOrder
 {
     inline bool operator()(const T& lhs, const T& rhs) const
     {

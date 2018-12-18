@@ -130,7 +130,7 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 // interface ghost cells; used only to evaluate composite grid residuals.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
-struct IndexComp : std::binary_function<Index<NDIM>, Index<NDIM>, bool>
+struct IndexComp
 {
     inline bool operator()(const Index<NDIM>& lhs, const Index<NDIM>& rhs) const
     {

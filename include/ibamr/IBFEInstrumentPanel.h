@@ -259,7 +259,7 @@ private:
     /*!
      * \brief for ordering objects in a multimap.
      */
-    struct IndexFortranOrder : public std::binary_function<SAMRAI::hier::Index<NDIM>, SAMRAI::hier::Index<NDIM>, bool>
+    struct IndexFortranOrder
     {
         inline bool operator()(const SAMRAI::hier::Index<NDIM>& lhs, const SAMRAI::hier::Index<NDIM>& rhs) const
         {
