@@ -821,7 +821,7 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
     return is_interior_intersection;
 } // intersect_line_with_face
 
-struct DofObjectComp : std::binary_function<const libMesh::DofObject* const, const libMesh::DofObject* const, bool>
+struct DofObjectComp
 {
     inline bool operator()(const libMesh::DofObject* const lhs, const libMesh::DofObject* const rhs)
     {

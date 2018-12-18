@@ -172,7 +172,7 @@ static Timer* t_put_to_database;
 static const int FE_DATA_MANAGER_VERSION = 1;
 
 // Local helper functions.
-struct ElemComp : std::binary_function<Elem*, Elem*, bool>
+struct ElemComp
 {
     inline bool operator()(const Elem* const x, const Elem* const y) const
     {

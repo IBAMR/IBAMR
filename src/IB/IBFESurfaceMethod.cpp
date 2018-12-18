@@ -1476,7 +1476,7 @@ IBFESurfaceMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirn
 
 namespace
 {
-struct IndexOrder : std::binary_function<SAMRAI::hier::Index<NDIM>, SAMRAI::hier::Index<NDIM>, bool>
+struct IndexOrder
 {
     inline bool operator()(const SAMRAI::hier::Index<NDIM>& lhs, const SAMRAI::hier::Index<NDIM>& rhs) const
     {

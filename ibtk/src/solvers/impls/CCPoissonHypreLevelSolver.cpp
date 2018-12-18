@@ -105,7 +105,7 @@ enum HypreStructRelaxType
     RELAX_TYPE_RB_GAUSS_SEIDEL_NONSYMMETRIC = 3
 };
 
-struct IndexComp : std::binary_function<Index<NDIM>, Index<NDIM>, bool>
+struct IndexComp
 {
     bool operator()(const Index<NDIM>& lhs, const Index<NDIM>& rhs) const
     {
