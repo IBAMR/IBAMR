@@ -613,7 +613,7 @@ FEDataManager::spread(const int f_data_idx,
         VecGetArray(X_local_vec, &X_local_soln);
 
         // Spread from the nodes.
-        int local_patch_num = 0;
+        unsigned int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
             // The relevant collection of nodes.
@@ -709,10 +709,11 @@ FEDataManager::spread(const int f_data_idx,
         // Eulerian grid.
         boost::multi_array<double, 2> F_node, X_node;
         std::vector<double> F_JxW_qp, X_qp;
-        int local_patch_num = 0;
+        unsigned int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
             // The relevant collection of elements.
+            TBOX_ASSERT(local_patch_num < d_active_patch_elem_map.size());
             const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
@@ -937,10 +938,11 @@ FEDataManager::prolongData(const int f_data_idx,
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     const IntVector<NDIM>& ratio = level->getRatio();
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
-    int local_patch_num = 0;
+    unsigned int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
+        TBOX_ASSERT(local_patch_num < d_active_patch_elem_map.size());
         const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
@@ -1179,7 +1181,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
         VecGetArray(X_local_vec, &X_local_soln);
 
         // Interpolate to the nodes.
-        int local_patch_num = 0;
+        unsigned int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
             // The relevant collection of nodes.
@@ -1284,10 +1286,11 @@ FEDataManager::interpWeighted(const int f_data_idx,
         std::vector<DenseVector<double> > F_rhs_e(n_vars);
         boost::multi_array<double, 2> X_node;
         std::vector<double> F_qp, X_qp;
-        int local_patch_num = 0;
+        unsigned int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
             // The relevant collection of elements.
+            TBOX_ASSERT(local_patch_num < d_active_patch_elem_map.size());
             const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
@@ -1560,10 +1563,11 @@ FEDataManager::restrictData(const int f_data_idx,
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     const IntVector<NDIM>& ratio = level->getRatio();
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
-    int local_patch_num = 0;
+    unsigned int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
+        TBOX_ASSERT(local_patch_num < d_active_patch_elem_map.size());
         const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
@@ -2217,7 +2221,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         const IntVector<NDIM>& ratio = level->getRatio();
         const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
-        int local_patch_num = 0;
+        unsigned int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
             // The relevant collection of elements.
@@ -2390,7 +2394,15 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         if (!level->checkAllocated(d_qp_count_idx)) level->allocatePatchData(d_qp_count_idx);
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, ln, ln);
         hier_cc_data_ops.setToScalar(d_qp_count_idx, 0.0);
-        if (ln != d_level_number) continue;
+        if (ln != d_level_number)
+        {
+            continue;
+        }
+
+        // Ensure that all the required data is actually available: i.e., we
+        // have allocated a patch-elem map for each patch
+        TBOX_ASSERT(d_active_patch_elem_map.size() ==
+                    static_cast<std::size_t>(level->getProcessorMapping().getNumberOfLocalIndices()));
 
         // Extract the mesh.
         const MeshBase& mesh = d_es->get_mesh();
@@ -2423,9 +2435,10 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         // each Cartesian grid cell.
         boost::multi_array<double, 2> X_node;
         Point X_qp;
-        int local_patch_num = 0;
+        unsigned int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
+            TBOX_ASSERT(local_patch_num < d_active_patch_elem_map.size());
             const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
@@ -2577,7 +2590,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
     const IntVector<NDIM>& ratio = level->getRatio();
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
-    const int num_local_patches = level->getProcessorMapping().getNumberOfLocalIndices();
+    const unsigned int num_local_patches = level->getProcessorMapping().getNumberOfLocalIndices();
     std::vector<std::set<Elem*> > local_patch_elems(num_local_patches);
     std::vector<std::set<Elem*> > nonlocal_patch_elems(num_local_patches);
     std::vector<std::set<Elem*> > frontier_patch_elems(num_local_patches);
@@ -2591,7 +2604,8 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     // not a scalable approach, but we won't worry about this until it becomes
     // an actual issue.
     computeActiveElementBoundingBoxes();
-    int local_patch_num = 0;
+
+    unsigned int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         std::set<Elem*>& frontier_elems = frontier_patch_elems[local_patch_num];
@@ -2626,6 +2640,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
             }
         }
     }
+    TBOX_ASSERT(local_patch_num == num_local_patches);
 
     // Recursively add/remove elements from the active sets that were generated
     // via the bounding box method.
@@ -2650,7 +2665,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         // patch.
         boost::multi_array<double, 2> X_node;
         Point X_qp;
-        int local_patch_num = 0;
+        unsigned int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
             const std::set<Elem*>& frontier_elems = frontier_patch_elems[local_patch_num];
@@ -2746,7 +2761,9 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
+        TBOX_ASSERT(local_patch_num < active_patch_elems.size());
         std::vector<Elem*>& active_elems = active_patch_elems[local_patch_num];
+        TBOX_ASSERT(local_patch_num < local_patch_elems.size());
         const std::set<Elem*>& local_elems = local_patch_elems[local_patch_num];
         active_elems.resize(local_elems.size());
         int k = 0;
