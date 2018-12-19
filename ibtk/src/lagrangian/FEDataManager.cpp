@@ -598,19 +598,24 @@ FEDataManager::spread(const int f_data_idx,
         F_dX_vec->close();
 
         // Extract local form vectors.
+        int ierr;
         auto F_dX_petsc_vec = static_cast<PetscVector<double>*>(F_dX_vec.get());
         Vec F_dX_global_vec = F_dX_petsc_vec->vec();
         Vec F_dX_local_vec;
-        VecGhostGetLocalForm(F_dX_global_vec, &F_dX_local_vec);
+        ierr = VecGhostGetLocalForm(F_dX_global_vec, &F_dX_local_vec);
+        IBTK_CHKERRQ(ierr);
         double* F_dX_local_soln;
-        VecGetArray(F_dX_local_vec, &F_dX_local_soln);
+        ierr = VecGetArray(F_dX_local_vec, &F_dX_local_soln);
+        IBTK_CHKERRQ(ierr);
 
         auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
-        VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        ierr = VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
         double* X_local_soln;
-        VecGetArray(X_local_vec, &X_local_soln);
+        ierr = VecGetArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
 
         // Spread from the nodes.
         int local_patch_num = 0;
@@ -681,28 +686,37 @@ FEDataManager::spread(const int f_data_idx,
         }
 
         // Restore local form vectors.
-        VecRestoreArray(F_dX_local_vec, &F_dX_local_soln);
-        VecGhostRestoreLocalForm(F_dX_global_vec, &F_dX_local_vec);
+        ierr = VecRestoreArray(F_dX_local_vec, &F_dX_local_soln);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(F_dX_global_vec, &F_dX_local_vec);
+        IBTK_CHKERRQ(ierr);
 
-        VecRestoreArray(X_local_vec, &X_local_soln);
-        VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        ierr = VecRestoreArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
     }
     else
     {
         // Extract local form vectors.
+        int ierr;
         auto F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
         Vec F_global_vec = F_petsc_vec->vec();
         Vec F_local_vec;
-        VecGhostGetLocalForm(F_global_vec, &F_local_vec);
+        ierr = VecGhostGetLocalForm(F_global_vec, &F_local_vec);
+        IBTK_CHKERRQ(ierr);
         double* F_local_soln;
-        VecGetArray(F_local_vec, &F_local_soln);
+        ierr = VecGetArray(F_local_vec, &F_local_soln);
+        IBTK_CHKERRQ(ierr);
 
         auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
-        VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        ierr = VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
         double* X_local_soln;
-        VecGetArray(X_local_vec, &X_local_soln);
+        ierr = VecGetArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
 
         // Loop over the patches to interpolate nodal values on the FE mesh to
         // the element quadrature points, then spread those values onto the
@@ -826,11 +840,15 @@ FEDataManager::spread(const int f_data_idx,
         }
 
         // Restore local form vectors.
-        VecRestoreArray(F_local_vec, &F_local_soln);
-        VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
+        ierr = VecRestoreArray(F_local_vec, &F_local_soln);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
+        IBTK_CHKERRQ(ierr);
 
-        VecRestoreArray(X_local_vec, &X_local_soln);
-        VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        ierr = VecRestoreArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
     }
 
     // Accumulate data.
@@ -910,21 +928,26 @@ FEDataManager::prolongData(const int f_data_idx,
 
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
+    int ierr;
     if (close_F) F_vec.close();
     auto F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
     Vec F_global_vec = F_petsc_vec->vec();
     Vec F_local_vec;
-    VecGhostGetLocalForm(F_global_vec, &F_local_vec);
+    ierr = VecGhostGetLocalForm(F_global_vec, &F_local_vec);
+    IBTK_CHKERRQ(ierr);
     double* F_local_soln;
-    VecGetArray(F_local_vec, &F_local_soln);
+    ierr = VecGetArray(F_local_vec, &F_local_soln);
+    IBTK_CHKERRQ(ierr);
 
     if (close_X) X_vec.close();
     auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
     Vec X_global_vec = X_petsc_vec->vec();
     Vec X_local_vec;
-    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+    ierr = VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+    IBTK_CHKERRQ(ierr);
     double* X_local_soln;
-    VecGetArray(X_local_vec, &X_local_soln);
+    ierr = VecGetArray(X_local_vec, &X_local_soln);
+    IBTK_CHKERRQ(ierr);
 
     // Loop over the patches to interpolate nodal values on the FE mesh to the
     // points of the Eulerian grid.
@@ -1065,11 +1088,15 @@ FEDataManager::prolongData(const int f_data_idx,
         }
     }
 
-    VecRestoreArray(F_local_vec, &F_local_soln);
-    VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
+    ierr = VecRestoreArray(F_local_vec, &F_local_soln);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
+    IBTK_CHKERRQ(ierr);
 
-    VecRestoreArray(X_local_vec, &X_local_soln);
-    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+    ierr = VecRestoreArray(X_local_vec, &X_local_soln);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+    IBTK_CHKERRQ(ierr);
 
     IBTK_TIMER_STOP(t_prolong_data);
     return;
@@ -1171,12 +1198,15 @@ FEDataManager::interpWeighted(const int f_data_idx,
     if (use_nodal_quadrature)
     {
         // Extract the local form vectors.
+        int ierr;
         auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
-        VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        ierr = VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
         double* X_local_soln;
-        VecGetArray(X_local_vec, &X_local_soln);
+        ierr = VecGetArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
 
         // Interpolate to the nodes.
         int local_patch_num = 0;
@@ -1257,8 +1287,10 @@ FEDataManager::interpWeighted(const int f_data_idx,
         }
 
         // Restore local form vectors.
-        VecRestoreArray(X_local_vec, &X_local_soln);
-        VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        ierr = VecRestoreArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
 
         // Scale by the diagonal mass matrix.
         F_vec.close();
@@ -1270,20 +1302,26 @@ FEDataManager::interpWeighted(const int f_data_idx,
     else
     {
         // Extract local form vectors.
+        int ierr;
         auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
-        VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        ierr = VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
         double* X_local_soln;
-        VecGetArray(X_local_vec, &X_local_soln);
+        ierr = VecGetArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
 
         auto F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
         Vec F_global_vec = F_petsc_vec->vec();
         Vec F_local_vec;
-        VecGhostGetLocalForm(F_global_vec, &F_local_vec);
-        VecZeroEntries(F_local_vec);
+        ierr = VecGhostGetLocalForm(F_global_vec, &F_local_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecZeroEntries(F_local_vec);
+        IBTK_CHKERRQ(ierr);
         double* F_local_soln;
-        VecGetArray(F_local_vec, &F_local_soln);
+        ierr = VecGetArray(F_local_vec, &F_local_soln);
+        IBTK_CHKERRQ(ierr);
 
         // Loop over the patches to interpolate values to the element quadrature
         // points from the grid, then use these values to compute the projection
@@ -1449,10 +1487,14 @@ FEDataManager::interpWeighted(const int f_data_idx,
         }
 
         // Restore local form vectors.
-        VecRestoreArray(X_local_vec, &X_local_soln);
-        VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
-        VecRestoreArray(F_local_vec, &F_local_soln);
-        VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
+        ierr = VecRestoreArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreArray(F_local_vec, &F_local_soln);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
+        IBTK_CHKERRQ(ierr);
     }
 
     // Accumulate data.
@@ -1558,13 +1600,16 @@ FEDataManager::restrictData(const int f_data_idx,
 
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
+    int ierr;
     if (close_X) X_vec.close();
     auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
     Vec X_global_vec = X_petsc_vec->vec();
     Vec X_local_vec;
-    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+    ierr = VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+    IBTK_CHKERRQ(ierr);
     double* X_local_soln;
-    VecGetArray(X_local_vec, &X_local_soln);
+    ierr = VecGetArray(X_local_vec, &X_local_soln);
+    IBTK_CHKERRQ(ierr);
 
     // Loop over the patches to assemble the right-hand-side vector used to
     // solve for F.
@@ -1713,8 +1758,10 @@ FEDataManager::restrictData(const int f_data_idx,
         }
     }
 
-    VecRestoreArray(X_local_vec, &X_local_soln);
-    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+    ierr = VecRestoreArray(X_local_vec, &X_local_soln);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+    IBTK_CHKERRQ(ierr);
 
     // Solve for the nodal values.
     F_rhs_vec->close();
@@ -2222,12 +2269,15 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         std::unique_ptr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
         X_ghost_vec->init(X_vec->size(), X_vec->local_size(), X_ghost_dofs, true, GHOSTED);
         copy_and_synch(*X_vec, *X_ghost_vec, /*close_v_in*/ false);
+        int ierr;
         auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec.get());
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
-        VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        ierr = VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
         double* X_local_soln;
-        VecGetArray(X_local_vec, &X_local_soln);
+        ierr = VecGetArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
 
         // Tag cells for refinement whenever they contain active element
         // quadrature points.
@@ -2281,8 +2331,10 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
             }
         }
 
-        VecRestoreArray(X_local_vec, &X_local_soln);
-        VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        ierr = VecRestoreArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
     }
     else if (level_number + 1 == d_level_number && level_number < d_hierarchy->getFinestLevelNumber())
     {
@@ -2430,13 +2482,16 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         const std::vector<std::vector<double> >& phi = fe->get_phi();
 
         // Extract the underlying solution data.
+        int ierr;
         NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
         auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec);
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
-        VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        ierr = VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
         double* X_local_soln;
-        VecGetArray(X_local_vec, &X_local_soln);
+        ierr = VecGetArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
 
         // Determine the number of element quadrature points associated with
         // each Cartesian grid cell.
@@ -2486,8 +2541,10 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
             }
         }
 
-        VecRestoreArray(X_local_vec, &X_local_soln);
-        VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        ierr = VecRestoreArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
     }
     return;
 } // updateQuadPointCountData
@@ -2658,12 +2715,15 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         collectGhostDOFIndices(X_ghost_dofs, frontier_elems, COORDINATES_SYSTEM_NAME);
         X_ghost_vec->init(X_vec->size(), X_vec->local_size(), X_ghost_dofs, true, GHOSTED);
         copy_and_synch(*X_vec, *X_ghost_vec, /*close_v_in*/ false);
+        int ierr;
         auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec.get());
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
-        VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        ierr = VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
         double* X_local_soln;
-        VecGetArray(X_local_vec, &X_local_soln);
+        ierr = VecGetArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
 
         // Keep only those elements that have a quadrature point on the local
         // patch.
@@ -2721,8 +2781,10 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
             }
         }
 
-        VecRestoreArray(X_local_vec, &X_local_soln);
-        VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        ierr = VecRestoreArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
 
         // Rebuild the set of frontier elements, which are any neighbors of a
         // local element that has not already been determined to be either a
