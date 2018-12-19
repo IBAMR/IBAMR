@@ -885,7 +885,7 @@ get_nodal_dof_indices(const libMesh::DofMap &dof_map,
  * communicator assigned to @p position_system, so it is an inherently serial
  * function.
  */
-inline void
+void
 write_elem_partitioning(const std::string& file_name, const libMesh::System& position_system);
 
 /*!
@@ -900,7 +900,7 @@ write_elem_partitioning(const std::string& file_name, const libMesh::System& pos
  * communicator assigned to @p position_system, so it is an inherently serial
  * function.
  */
-inline void
+void
 write_node_partitioning(const std::string& file_name, const libMesh::System& position_system);
 } // namespace IBTK
 
