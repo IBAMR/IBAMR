@@ -775,6 +775,7 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
     d_U_current_vecs.resize(d_num_parts);
     d_U_new_vecs.resize(d_num_parts);
     d_U_half_vecs.resize(d_num_parts);
+    d_U_IB_ghost_vecs.resize(d_num_parts);
 
     d_F_systems.resize(d_num_parts);
     d_F_half_vecs.resize(d_num_parts);
@@ -804,6 +805,8 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
             d_U_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
         d_U_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_U_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+        d_U_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+            d_fe_data_managers[part]->buildGhostedSolutionVector(VELOCITY_SYSTEM_NAME, /*localize_data*/ false));
 
         d_F_systems[part] = &d_equation_systems[part]->get_system(FORCE_SYSTEM_NAME);
         d_F_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->current_local_solution.get());
@@ -908,6 +911,7 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
     d_U_current_vecs.clear();
     d_U_new_vecs.clear();
     d_U_half_vecs.clear();
+    d_U_IB_ghost_vecs.clear();
 
     d_F_systems.clear();
     d_F_half_vecs.clear();
@@ -969,7 +973,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     std::vector<PetscVector<double>*> U_rhs_vecs(d_num_parts);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        U_rhs_vecs[part] = static_cast<PetscVector<double>*>(U_vecs[part]->zero_clone().release());
+        U_rhs_vecs[part] = static_cast<PetscVector<double>*>(d_U_IB_ghost_vecs[part]);
         d_fe_data_managers[part]->interpWeighted(u_data_idx,
                                                  *U_rhs_vecs[part],
                                                  *d_X_IB_ghost_vecs[part],
@@ -978,14 +982,15 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                                  data_time,
                                                  /*close_F*/ false,
                                                  /*close_X*/ false);
-        int ierr = VecAssemblyBegin(U_rhs_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
     }
 
     // Solve for the interpolated data.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        int ierr = VecAssemblyEnd(U_rhs_vecs[part]->vec());
+        int ierr;
+        ierr = VecGhostUpdateBegin(U_rhs_vecs[part]->vec(), ADD_VALUES, SCATTER_REVERSE);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostUpdateEnd(U_rhs_vecs[part]->vec(), ADD_VALUES, SCATTER_REVERSE);
         IBTK_CHKERRQ(ierr);
         d_fe_data_managers[part]->computeL2Projection(*U_vecs[part],
                                                       *U_rhs_vecs[part],
@@ -993,7 +998,6 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                                       d_interp_spec[part].use_consistent_mass_matrix,
                                                       /*close_U*/ true,
                                                       /*close_F*/ false);
-        delete U_rhs_vecs[part];
     }
 
     // Account for any velocity constraints.

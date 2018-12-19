@@ -1129,7 +1129,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
-    std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
+    std::vector<std::vector<unsigned int> > F_dof_indices(n_vars), F_local_dof_indices(n_vars);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType F_fe_type = F_dof_map.variable_type(0);
     Order F_order = F_dof_map.variable_order(0);
@@ -1277,10 +1277,17 @@ FEDataManager::interpWeighted(const int f_data_idx,
         double* X_local_soln;
         VecGetArray(X_local_vec, &X_local_soln);
 
+        auto F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
+        Vec F_global_vec = F_petsc_vec->vec();
+        Vec F_local_vec;
+        VecGhostGetLocalForm(F_global_vec, &F_local_vec);
+        VecZeroEntries(F_local_vec);
+        double* F_local_soln;
+        VecGetArray(F_local_vec, &F_local_soln);
+
         // Loop over the patches to interpolate values to the element quadrature
         // points from the grid, then use these values to compute the projection
         // of the interpolated velocity field onto the FE basis functions.
-        F_vec.zero();
         std::vector<DenseVector<double> > F_rhs_e(n_vars);
         boost::multi_array<double, 2> X_node;
         std::vector<double> F_qp, X_qp;
@@ -1387,6 +1394,13 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
                     F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
+                    // TODO: This probably should be cached.
+                    F_local_dof_indices[i].resize(F_dof_indices[i].size());
+                    std::transform(
+                        F_dof_indices[i].begin(),
+                        F_dof_indices[i].end(),
+                        F_local_dof_indices[i].begin(),
+                        [&](unsigned int idx) -> unsigned int { return F_petsc_vec->map_global_to_local_index(idx); });
                     F_rhs_e[i].resize(static_cast<int>(F_dof_indices[i].size()));
                 }
                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -1425,7 +1439,10 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
                     F_dof_map.constrain_element_vector(F_rhs_e[i], F_dof_indices[i]);
-                    F_vec.add_vector(F_rhs_e[i], F_dof_indices[i]);
+                    for (size_t k = 0; k < F_rhs_e[i].size(); ++k)
+                    {
+                        F_local_soln[F_local_dof_indices[i][k]] += F_rhs_e[i](k);
+                    }
                 }
                 qp_offset += n_qp;
             }
@@ -1434,6 +1451,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
         // Restore local form vectors.
         VecRestoreArray(X_local_vec, &X_local_soln);
         VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        VecRestoreArray(F_local_vec, &F_local_soln);
+        VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
     }
 
     // Accumulate data.
