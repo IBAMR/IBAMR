@@ -937,7 +937,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                 const double data_time)
 {
-    std::vector<NumericVector<double>*> U_vecs(d_num_parts), X_vecs(d_num_parts);
+    std::vector<PetscVector<double>*> U_vecs(d_num_parts), X_vecs(d_num_parts);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         if (MathUtilities<double>::equalEps(data_time, d_current_time))
@@ -966,7 +966,15 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        copy_and_synch(*X_vecs[part], *d_X_IB_ghost_vecs[part], /*close_v_in*/ false);
+        int ierr;
+        ierr = VecCopy(X_vecs[part]->vec(), d_X_IB_ghost_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostUpdateBegin(d_X_IB_ghost_vecs[part]->vec(), INSERT_VALUES, SCATTER_FORWARD); IBTK_CHKERRQ(ierr);
+    }
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        int ierr = VecGhostUpdateEnd(d_X_IB_ghost_vecs[part]->vec(), INSERT_VALUES, SCATTER_FORWARD);
+        IBTK_CHKERRQ(ierr);
     }
 
     // Build the right-hand-sides to compute the interpolated data.
@@ -987,10 +995,12 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     // Solve for the interpolated data.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        int ierr;
-        ierr = VecGhostUpdateBegin(U_rhs_vecs[part]->vec(), ADD_VALUES, SCATTER_REVERSE);
+        int ierr = VecGhostUpdateBegin(U_rhs_vecs[part]->vec(), ADD_VALUES, SCATTER_REVERSE);
         IBTK_CHKERRQ(ierr);
-        ierr = VecGhostUpdateEnd(U_rhs_vecs[part]->vec(), ADD_VALUES, SCATTER_REVERSE);
+    }
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        int ierr = VecGhostUpdateEnd(U_rhs_vecs[part]->vec(), ADD_VALUES, SCATTER_REVERSE);
         IBTK_CHKERRQ(ierr);
         d_fe_data_managers[part]->computeL2Projection(*U_vecs[part],
                                                       *U_rhs_vecs[part],
