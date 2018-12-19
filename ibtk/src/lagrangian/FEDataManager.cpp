@@ -1313,15 +1313,19 @@ FEDataManager::interpWeighted(const int f_data_idx,
         IBTK_CHKERRQ(ierr);
 
         auto F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
+        const bool ghosted_vec = F_petsc_vec->type() == GHOSTED;
         Vec F_global_vec = F_petsc_vec->vec();
         Vec F_local_vec;
-        ierr = VecGhostGetLocalForm(F_global_vec, &F_local_vec);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecZeroEntries(F_local_vec);
-        IBTK_CHKERRQ(ierr);
         double* F_local_soln;
-        ierr = VecGetArray(F_local_vec, &F_local_soln);
-        IBTK_CHKERRQ(ierr);
+        if (ghosted_vec)
+        {
+            ierr = VecGhostGetLocalForm(F_global_vec, &F_local_vec);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecZeroEntries(F_local_vec);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecGetArray(F_local_vec, &F_local_soln);
+            IBTK_CHKERRQ(ierr);
+        }
 
         // Loop over the patches to interpolate values to the element quadrature
         // points from the grid, then use these values to compute the projection
@@ -1433,12 +1437,16 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 {
                     F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
                     // TODO: This probably should be cached.
-                    F_local_dof_indices[i].resize(F_dof_indices[i].size());
-                    std::transform(
-                        F_dof_indices[i].begin(),
-                        F_dof_indices[i].end(),
-                        F_local_dof_indices[i].begin(),
-                        [&](unsigned int idx) -> unsigned int { return F_petsc_vec->map_global_to_local_index(idx); });
+                    if (ghosted_vec)
+                    {
+                        F_local_dof_indices[i].resize(F_dof_indices[i].size());
+                        std::transform(F_dof_indices[i].begin(),
+                                       F_dof_indices[i].end(),
+                                       F_local_dof_indices[i].begin(),
+                                       [&](unsigned int idx) -> unsigned int {
+                                           return F_petsc_vec->map_global_to_local_index(idx);
+                                       });
+                    }
                     F_rhs_e[i].resize(static_cast<int>(F_dof_indices[i].size()));
                 }
                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -1477,9 +1485,16 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
                     F_dof_map.constrain_element_vector(F_rhs_e[i], F_dof_indices[i]);
-                    for (size_t k = 0; k < F_rhs_e[i].size(); ++k)
+                    if (ghosted_vec)
                     {
-                        F_local_soln[F_local_dof_indices[i][k]] += F_rhs_e[i](k);
+                        for (size_t k = 0; k < F_rhs_e[i].size(); ++k)
+                        {
+                            F_local_soln[F_local_dof_indices[i][k]] += F_rhs_e[i](k);
+                        }
+                    }
+                    else
+                    {
+                        F_vec.add_vector(F_rhs_e[i], F_dof_indices[i]);
                     }
                 }
                 qp_offset += n_qp;
@@ -1491,10 +1506,20 @@ FEDataManager::interpWeighted(const int f_data_idx,
         IBTK_CHKERRQ(ierr);
         ierr = VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
         IBTK_CHKERRQ(ierr);
-        ierr = VecRestoreArray(F_local_vec, &F_local_soln);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
-        IBTK_CHKERRQ(ierr);
+        if (ghosted_vec)
+        {
+            ierr = VecRestoreArray(F_local_vec, &F_local_soln);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
+            IBTK_CHKERRQ(ierr);
+            if (close_F)
+            {
+                ierr = VecGhostUpdateBegin(F_global_vec, ADD_VALUES, SCATTER_REVERSE);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecGhostUpdateEnd(F_global_vec, ADD_VALUES, SCATTER_REVERSE);
+                IBTK_CHKERRQ(ierr);
+            }
+        }
     }
 
     // Accumulate data.
