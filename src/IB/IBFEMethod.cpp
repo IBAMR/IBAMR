@@ -78,6 +78,7 @@
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
+#include "ibtk/BoxPartitioner.h"
 #include "libmesh/boundary_info.h"
 #include "libmesh/compare_types.h"
 #include "libmesh/dense_vector.h"
@@ -1785,7 +1786,19 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
     // if we are not initialized then there is nothing to do
     if (d_is_initialized)
     {
-        // This is where we will repartition in a future commit
+        // At this point in the code SAMRAI has already redistributed the
+        // patches (usually by taking into account the number of IB points on
+        // each patch). Here is the other half: we inform libMesh of the
+        // updated partitioning so that libMesh Elems and Nodes are on the
+        // same processor as the relevant SAMRAI patch.
+        for (unsigned int part = 0; part < d_num_parts; ++part)
+        {
+            EquationSystems& equation_systems = *d_fe_data_managers[part]->getEquationSystems();
+            MeshBase& mesh = equation_systems.get_mesh();
+            BoxPartitioner partitioner(*d_hierarchy,
+                                       equation_systems.get_system(COORDS_SYSTEM_NAME));
+            partitioner.repartition(mesh);
+        }
 
         reinitializeFEData();
         for (unsigned int part = 0; part < d_num_parts; ++part)

@@ -2629,7 +2629,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
                     SAMRAI::tbox::plog << "quadrature points on processor "
                                        << std::setw(right_padding) << std::left << rank
                                        << " = "
-                                       << n_q_points_on_processors[rank] << '\n'
+                                       << n_q_points_on_processors[rank]
                                        << " (pid is " << pids[rank] << ")\n";
                 }
             }
