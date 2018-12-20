@@ -24075,19 +24075,17 @@ else
 fi
 
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libMesh version 1.0.0 or newer" >&5
-$as_echo_n "checking for libMesh version 1.0.0 or newer... " >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libMesh version 1.1.0 or newer" >&5
+$as_echo_n "checking for libMesh version 1.1.0 or newer... " >&6; }
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 #include <libmesh/libmesh_config.h>
 
-#if !defined LIBMESH_SUBMINOR_VERSION
-#define LIBMESH_SUBMINOR_VERSION LIBMESH_MICRO_VERSION
-#endif
-#if LIBMESH_MAJOR_VERSION >= 1
+#if LIBMESH_MAJOR_VERSION >= 1 && LIBMESH_MINOR_VERSION >= 2
+// OK
 #else
-asdf
+#error
 #endif
 
 #ifdef FC_DUMMY_MAIN
