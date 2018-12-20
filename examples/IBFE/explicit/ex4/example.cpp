@@ -478,6 +478,12 @@ bool run_example(int argc, char** argv)
                 {
                     time_integrator->setupPlotData();
                     visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+
+                    // Write partitioning data from libMesh.
+                    IBTK::write_elem_partitioning("elem-part-" + std::to_string(iteration_num) + ".txt",
+                                                  equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME));
+                    IBTK::write_node_partitioning("node-part-" + std::to_string(iteration_num) + ".txt",
+                                                  equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME));
                 }
                 if (uses_exodus)
                 {
@@ -605,5 +611,6 @@ output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     sprintf(temp_buf, "%05d", iteration_num);
     file_name += temp_buf;
     equation_systems->write(file_name, (EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA));
+
     return;
 } // output_data
