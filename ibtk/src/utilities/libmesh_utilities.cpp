@@ -53,7 +53,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline void
+void
 write_elem_partitioning(const std::string& file_name, const libMesh::System& position_system)
 {
     const int current_rank = position_system.comm().rank();
@@ -121,7 +121,7 @@ write_elem_partitioning(const std::string& file_name, const libMesh::System& pos
     }
 }
 
-inline void
+void
 write_node_partitioning(const std::string& file_name, const libMesh::System& position_system)
 {
     const int current_rank = position_system.comm().rank();
