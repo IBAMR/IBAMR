@@ -937,7 +937,8 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                 const double data_time)
 {
-    std::vector<PetscVector<double>*> U_vecs(d_num_parts), X_vecs(d_num_parts);
+    std::vector<PetscVector<double>*> U_vecs(d_num_parts), U_rhs_vecs(d_num_parts), X_vecs(d_num_parts),
+        X_ghost_vecs(d_num_parts);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         if (MathUtilities<double>::equalEps(data_time, d_current_time))
@@ -955,6 +956,8 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
             U_vecs[part] = d_U_new_vecs[part];
             X_vecs[part] = d_X_new_vecs[part];
         }
+        U_rhs_vecs[part] = d_U_IB_ghost_vecs[part];
+        X_ghost_vecs[part] = d_X_IB_ghost_vecs[part];
     }
 
     // Communicate ghost data.
@@ -964,27 +967,15 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     }
     std::vector<Pointer<RefineSchedule<NDIM> > > no_fill(u_ghost_fill_scheds.size(), nullptr);
 
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        int ierr;
-        ierr = VecCopy(X_vecs[part]->vec(), d_X_IB_ghost_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGhostUpdateBegin(d_X_IB_ghost_vecs[part]->vec(), INSERT_VALUES, SCATTER_FORWARD); IBTK_CHKERRQ(ierr);
-    }
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        int ierr = VecGhostUpdateEnd(d_X_IB_ghost_vecs[part]->vec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-    }
+    batch_vec_copy(X_vecs, X_ghost_vecs);
+    batch_vec_ghost_update(X_ghost_vecs, INSERT_VALUES, SCATTER_FORWARD);
 
     // Build the right-hand-sides to compute the interpolated data.
-    std::vector<PetscVector<double>*> U_rhs_vecs(d_num_parts);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        U_rhs_vecs[part] = static_cast<PetscVector<double>*>(d_U_IB_ghost_vecs[part]);
         d_fe_data_managers[part]->interpWeighted(u_data_idx,
                                                  *U_rhs_vecs[part],
-                                                 *d_X_IB_ghost_vecs[part],
+                                                 *X_ghost_vecs[part],
                                                  VELOCITY_SYSTEM_NAME,
                                                  no_fill,
                                                  data_time,
@@ -993,15 +984,9 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     }
 
     // Solve for the interpolated data.
+    batch_vec_ghost_update(U_rhs_vecs, ADD_VALUES, SCATTER_REVERSE);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        int ierr = VecGhostUpdateBegin(U_rhs_vecs[part]->vec(), ADD_VALUES, SCATTER_REVERSE);
-        IBTK_CHKERRQ(ierr);
-    }
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        int ierr = VecGhostUpdateEnd(U_rhs_vecs[part]->vec(), ADD_VALUES, SCATTER_REVERSE);
-        IBTK_CHKERRQ(ierr);
         d_fe_data_managers[part]->computeL2Projection(*U_vecs[part],
                                                       *U_rhs_vecs[part],
                                                       VELOCITY_SYSTEM_NAME,
@@ -1172,24 +1157,24 @@ IBFEMethod::spreadForce(const int f_data_idx,
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 
     // Communicate ghost data.
+    std::vector<PetscVector<double>*> F_vecs(d_num_parts), F_ghost_vecs(d_num_parts), X_vecs(d_num_parts),
+        X_ghost_vecs(d_num_parts);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        PetscVector<double>* X_vec = d_X_half_vecs[part];
-        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        PetscVector<double>* F_vec = d_F_half_vecs[part];
-        PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
-        copy_and_synch(*X_vec, *X_ghost_vec, /*close_v_in*/ false);
-        copy_and_synch(*F_vec, *F_ghost_vec, /*close_v_in*/ false);
+        F_vecs[part] = d_F_half_vecs[part];
+        F_ghost_vecs[part] = d_F_IB_ghost_vecs[part];
+        X_vecs[part] = d_X_half_vecs[part];
+        X_ghost_vecs[part] = d_X_IB_ghost_vecs[part];
     }
+    batch_vec_copy({ F_vecs, X_vecs }, { F_ghost_vecs, X_ghost_vecs });
+    batch_vec_ghost_update({ F_ghost_vecs, X_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
     // Spread interior force density values.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         d_fe_data_managers[part]->spread(f_data_idx,
-                                         *F_ghost_vec,
-                                         *X_ghost_vec,
+                                         *F_ghost_vecs[part],
+                                         *X_ghost_vecs[part],
                                          FORCE_SYSTEM_NAME,
                                          f_phys_bdry_op,
                                          data_time,
@@ -1200,17 +1185,15 @@ IBFEMethod::spreadForce(const int f_data_idx,
     // Handle any transmission conditions.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         if (d_split_normal_force || d_split_tangential_force)
         {
             if (d_use_jump_conditions && d_split_normal_force)
             {
-                imposeJumpConditions(f_data_idx, *F_ghost_vec, *X_ghost_vec, data_time, part);
+                imposeJumpConditions(f_data_idx, *F_ghost_vecs[part], *X_ghost_vecs[part], data_time, part);
             }
             if (!d_use_jump_conditions || d_split_tangential_force)
             {
-                spreadTransmissionForceDensity(f_data_idx, *X_ghost_vec, f_phys_bdry_op, data_time, part);
+                spreadTransmissionForceDensity(f_data_idx, *X_ghost_vecs[part], f_phys_bdry_op, data_time, part);
             }
         }
     }
