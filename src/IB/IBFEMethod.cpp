@@ -1440,13 +1440,29 @@ void
 IBFEMethod::initializeFEData()
 {
     if (d_fe_data_initialized) return;
+
     initializeFEEquationSystems();
-    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    doInitializeFEData(RestartManager::getManager()->isFromRestart());
+    d_fe_data_initialized = true;
+    return;
+} // initializeFEData
+
+void
+IBFEMethod::reinitializeFEData()
+{
+    TBOX_ASSERT(d_fe_data_initialized);
+    doInitializeFEData(true);
+    return;
+} // reinitializeFEData
+
+void
+IBFEMethod::doInitializeFEData(const bool use_present_data)
+{
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Initialize FE equation systems.
         EquationSystems& equation_systems = *d_equation_systems[part];
-        if (from_restart)
+        if (use_present_data)
         {
             equation_systems.reinit();
         }
@@ -1483,16 +1499,22 @@ IBFEMethod::initializeFEData()
             Phi_system.assemble();
         }
 
-        bool initial_time = !from_restart;
         if (d_direct_forcing_kinematics_data[part])
         {
-            d_direct_forcing_kinematics_data[part]->initializeKinematicsData(initial_time);
+            // TODO: none of the data computed by initializeKinematicsData
+            // (e.g., the center of mass of the structure) should be different
+            // after we repartition. The previous version of this function
+            // used the same condition with restarts (i.e., the function
+            // argument was !from_restart). We should double check this but I
+            // believe this is correct.
+            d_direct_forcing_kinematics_data[part]->initializeKinematicsData(!use_present_data);
         }
 
         // Set up boundary conditions.  Specifically, add appropriate boundary
         // IDs to the BoundaryInfo object associated with the mesh, and add DOF
         // constraints for the nodal forces and velocities.
         const MeshBase& mesh = equation_systems.get_mesh();
+
         DofMap& F_dof_map = F_system.get_dof_map();
         DofMap& U_dof_map = U_system.get_dof_map();
         const unsigned int F_sys_num = F_system.number();
@@ -1542,9 +1564,8 @@ IBFEMethod::initializeFEData()
             }
         }
     }
-    d_fe_data_initialized = true;
     return;
-} // initializeFEData
+} // doInitializeFEData
 
 void
 IBFEMethod::registerEulerianVariables()
@@ -1619,8 +1640,12 @@ void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierar
 void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                        Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
+    // if we are not initialized then there is nothing to do
     if (d_is_initialized)
     {
+        // This is where we will repartition in a future commit
+
+        reinitializeFEData();
         for (unsigned int part = 0; part < d_num_parts; ++part)
         {
             d_fe_data_managers[part]->reinitElementMappings();

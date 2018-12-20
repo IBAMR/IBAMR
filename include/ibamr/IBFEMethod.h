@@ -555,6 +555,15 @@ public:
     void initializeFEData();
 
     /*!
+     * Reinitialize FE data by calling `reinit` on each part's EquationSystem,
+     * reassembling the system matrices, and setting boundary conditions.
+     *
+     * TODO when may we call this function? We should only call this after we
+     * repartition, which places it at a precise point in the AMR process.
+     */
+    void reinitializeFEData();
+
+    /*!
      * \brief Register Eulerian variables with the parent IBHierarchyIntegrator.
      */
     void registerEulerianVariables() override;
@@ -933,6 +942,15 @@ private:
      * members.
      */
     void getFromRestart();
+
+    /*!
+     * Do the actual work in reinitializeFEData and initializeFEData. if @p
+     * use_present_data is `true` then the current content of the solution
+     * vectors is used: more exactly, the coordinates and velocities (computed
+     * by initializeCoordinates and initializeVelocity) are considered as
+     * being up to date, as is the direct forcing kinematic data.
+     */
+    void doInitializeFEData(const bool use_present_data);
 };
 } // namespace IBAMR
 
