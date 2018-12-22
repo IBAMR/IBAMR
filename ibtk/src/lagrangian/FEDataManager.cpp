@@ -2485,7 +2485,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
                 {
                     interpolate(&X_qp[0], qp, X_node, phi);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
-                    if (patch_box.contains(i)) (*qp_count_data)(i) += 1.0;
+                    if (patch_box.contains(i)) (*qp_count_data)(i) += 10.0;
                 }
             }
         }
