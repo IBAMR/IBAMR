@@ -1051,7 +1051,7 @@ IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     }
     if (d_load_balancer && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
-        d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);
+        // d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number); ???
         d_l_data_manager->updateWorkloadEstimates(level_number, level_number);
     }
     return;

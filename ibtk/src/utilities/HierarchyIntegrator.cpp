@@ -532,6 +532,7 @@ HierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_bala
         d_workload_var = new CellVariable<NDIM, double>(d_object_name + "::workload");
         registerVariable(d_workload_idx, d_workload_var, 0, getCurrentContext());
     }
+    d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx);
     return;
 } // registerLoadBalancer
 
