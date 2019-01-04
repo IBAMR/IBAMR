@@ -1899,10 +1899,6 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
             {
                 DU_j_vec[d]->localize(*DU_j_ghost_vec[d]);
             }
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                DU_j_vec[d]->localize(*DU_j_ghost_vec[d]);
-            }
         }
 
         if (d_use_pressure_jump_conditions || d_use_velocity_jump_conditions)
