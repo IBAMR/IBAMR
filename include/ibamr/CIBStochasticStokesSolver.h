@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-
 #include <string>
 
 #include "IntVector.h"
@@ -62,8 +61,8 @@ namespace IBAMR
 {
 class StaggeredStokesPhysicalBoundaryHelper;
 class INSStaggeredHierarchyIntegrator;
-class StaggeredStokesSolver; 
-  
+class StaggeredStokesSolver;
+
 class CIBSaddlePointSolver;
 class CIBStrategy;
 class INSStaggeredHierarchyIntegrator;
@@ -89,10 +88,10 @@ public:
      * \brief Constructor.
      */
     CIBStochasticStokesSolver(const std::string& object_name,
-                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                             SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-                             SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
-                             const std::string& default_options_prefix);
+                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                              SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+                              SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
+                              const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
@@ -159,12 +158,12 @@ public:
      * \brief Set the current time interval.
      */
     virtual void setTimeInterval(double current_time, double new_time);
-    
+
     /*!
      * \brief compute vectors for the RFD.
      */
     void computeFUforRFD(Vec F_rfd, Vec U_rfd);
-    
+
     /*!
      * \brief compute the RFDs and modify RHS for solver
      */
@@ -200,13 +199,12 @@ private:
      * \return A reference to this object.
      */
     CIBStochasticStokesSolver& operator=(const CIBStochasticStokesSolver& that);
-    
-    
+
     /*!
      * \brief Initialize the Stokes solver needed in the preconditioning step.
      */
     void initializeRFDStokesSolver(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& sol_vec,
-                                const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs_vec);
+                                   const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs_vec);
 
     // Pointer to the constraint IB strategy.
     SAMRAI::tbox::Pointer<CIBStrategy> d_cib_strategy;
@@ -221,9 +219,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_wide_u_var, d_wide_f_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_wide_ctx;
     int d_wide_u_idx, d_wide_f_idx;
-    
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
 
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
 
     // SVR for holding widened u/f.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x_wide, d_b_wide;

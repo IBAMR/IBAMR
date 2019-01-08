@@ -32,23 +32,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/CIBMethod.h"
 #include "ibamr/CIBStochasticMethod.h"
+#include "ibamr/CIBMethod.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/MobilityFunctions.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h"
 #include "ibtk/LSiloDataWriter.h"
 
-
 namespace IBAMR
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CIBStochasticMethod::CIBStochasticMethod(const std::string& object_name,
-                     Pointer<Database> input_db,
-                     const int no_structures,
-                     bool register_for_restart)
+                                         Pointer<Database> input_db,
+                                         const int no_structures,
+                                         bool register_for_restart)
     : CIBMethod(object_name, input_db, no_structures, register_for_restart)
 {
     d_kT = 0.0;
@@ -108,21 +107,24 @@ void
 CIBStochasticMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
     d_reject = false;
-    CIBMethod::preprocessIntegrateData(current_time, new_time, num_cycles); 
+    CIBMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
 }
 
 void
 CIBStochasticMethod::midpointStep(double current_time, double new_time)
 {
-    if(!MathUtilities<double>::equalEps(current_time,d_ib_solver->getStartTime())){checkLagUpdate();}
-    if(d_reject)
+    if (!MathUtilities<double>::equalEps(current_time, d_ib_solver->getStartTime()))
     {
-      CIBMethod::midpointStep(current_time, current_time);
-      d_time_integrator_needs_regrid = false;
+        checkLagUpdate();
+    }
+    if (d_reject)
+    {
+        CIBMethod::midpointStep(current_time, current_time);
+        d_time_integrator_needs_regrid = false;
     }
     else
     {
-      CIBMethod::midpointStep(current_time, new_time);
+        CIBMethod::midpointStep(current_time, new_time);
     }
 }
 
@@ -130,17 +132,16 @@ void
 CIBStochasticMethod::checkLagUpdate()
 {
     int reject = 0;
-    
+
     Eigen::Matrix3d rotation_mat_new = Eigen::Matrix3d::Zero();
     Eigen::Vector3d dr = Eigen::Vector3d::Zero();
     Eigen::Vector3d R_dr_new = Eigen::Vector3d::Zero();
-    
+
     Eigen::Vector3d X_new = Eigen::Vector3d::Zero();
 
     // Get the grid extents.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 
-    
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     double domain_length[NDIM];
@@ -186,16 +187,19 @@ CIBStochasticMethod::checkLagUpdate()
             }
 
             // Rotate dr vector using the rotation matrix.
-	    rotation_mat_new = d_quaternion_new[struct_handle].toRotationMatrix();
-	    R_dr_new = rotation_mat_new * dr;
-	    
+            rotation_mat_new = d_quaternion_new[struct_handle].toRotationMatrix();
+            R_dr_new = rotation_mat_new * dr;
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_new(d) = d_center_of_mass_new[struct_handle][d] + R_dr_new(d);
                 if (!periodic_shift[d])
                 {
-                if(X_new(d) < domain_x_lower[d] || domain_x_upper[d] < X_new(d)){reject++; pout << "REJECTED BY WALL\n";}
+                    if (X_new(d) < domain_x_lower[d] || domain_x_upper[d] < X_new(d))
+                    {
+                        reject++;
+                        pout << "REJECTED BY WALL\n";
+                    }
                 }
             }
         }
@@ -203,26 +207,26 @@ CIBStochasticMethod::checkLagUpdate()
     }
 
     reject = SAMRAI_MPI::sumReduction(reject);
-    if(reject){
-	  d_reject = true;
-	  d_num_reject++;
+    if (reject)
+    {
+        d_reject = true;
+        d_num_reject++;
     }
-    
-    return;
-} //checkLagUpdate
 
-bool 
+    return;
+} // checkLagUpdate
+
+bool
 CIBStochasticMethod::getReject()
 {
-  return d_reject;
+    return d_reject;
 }
 
 int
 CIBStochasticMethod::getNumReject()
 {
-  return d_num_reject;
+    return d_num_reject;
 }
-
 
 void
 CIBStochasticMethod::moveLagrangianData(double delta)
@@ -233,7 +237,8 @@ CIBStochasticMethod::moveLagrangianData(double delta)
 
     // Fill the rotation matrix of structures with rotation angle 0.5*(W^n)*dt.
     std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
-    setRotationMatrix(d_rot_vel_half, d_quaternion_current, d_quaternion_half, rotation_mat, 0.5 * dt); // place to check
+    setRotationMatrix(d_rot_vel_half, d_quaternion_current, d_quaternion_half, rotation_mat, 0.5 * dt); // place to
+                                                                                                        // check
 
     // Get the domain limits.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -333,17 +338,16 @@ CIBStochasticMethod::moveLagrangianData(double delta)
     return;
 } // moveLagrangianData
 
-
 void
 CIBStochasticMethod::computeRFDforcesAndDisplacements()
 {
     Vec F_rfd, U_rfd;
-    double Vel_scale = (1.0/d_kT);
+    double Vel_scale = (1.0 / d_kT);
     getNetExternalForceTorque(&F_rfd, d_current_time);
     VecDuplicate(F_rfd, &U_rfd);
     VecCopy(F_rfd, U_rfd);
     VecScale(U_rfd, Vel_scale);
-    
+
     Vec U_all;
     VecScatter ctx;
     VecScatterCreateToAll(U_rfd, &ctx, &U_all);
@@ -351,34 +355,34 @@ CIBStochasticMethod::computeRFDforcesAndDisplacements()
     VecScatterEnd(ctx, U_rfd, U_all, INSERT_VALUES, SCATTER_FORWARD);
     const PetscScalar* U_array;
     VecGetArrayRead(U_all, &U_array);
-    
-        int part_free_dofs_begin = 0;
-        for (unsigned part = 0; part < d_num_rigid_parts; ++part)
-        {
-            int num_free_dofs;
-            const FreeRigidDOFVector& solve_dofs = getSolveRigidBodyVelocity(part, num_free_dofs);
-            if (!num_free_dofs) continue;
 
-            RDV UW;
-            eigenToRDV(d_trans_vel_current[part], d_rot_vel_current[part], UW);
-            const PetscScalar* a = &U_array[part_free_dofs_begin];
-            for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
+    int part_free_dofs_begin = 0;
+    for (unsigned part = 0; part < d_num_rigid_parts; ++part)
+    {
+        int num_free_dofs;
+        const FreeRigidDOFVector& solve_dofs = getSolveRigidBodyVelocity(part, num_free_dofs);
+        if (!num_free_dofs) continue;
+
+        RDV UW;
+        eigenToRDV(d_trans_vel_current[part], d_rot_vel_current[part], UW);
+        const PetscScalar* a = &U_array[part_free_dofs_begin];
+        for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
+        {
+            if (solve_dofs[k])
             {
-                if (solve_dofs[k])
-                {
-                    UW[k] = a[p];
-                    ++p;
-                }
+                UW[k] = a[p];
+                ++p;
             }
-            rdvToEigen(UW, d_trans_vel_current[part], d_rot_vel_current[part]);
-	    d_trans_vel_current[part] *= (d_L_scale*d_L_scale);
-            part_free_dofs_begin += num_free_dofs;
         }
+        rdvToEigen(UW, d_trans_vel_current[part], d_rot_vel_current[part]);
+        d_trans_vel_current[part] *= (d_L_scale * d_L_scale);
+        part_free_dofs_begin += num_free_dofs;
+    }
     VecDestroy(&U_rfd);
     VecRestoreArrayRead(U_all, &U_array);
     VecScatterDestroy(&ctx);
     VecDestroy(&U_all);
-    
+
     return;
 } // computeRFDforcesAndDisplacements
 
@@ -397,24 +401,24 @@ CIBStochasticMethod::setHalfTimeVelocity(Vec U)
     int part_free_dofs_begin = 0;
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
-      int num_free_dofs;
-      const FreeRigidDOFVector& solve_dofs = getSolveRigidBodyVelocity(part, num_free_dofs);
-      if (!num_free_dofs) continue;
+        int num_free_dofs;
+        const FreeRigidDOFVector& solve_dofs = getSolveRigidBodyVelocity(part, num_free_dofs);
+        if (!num_free_dofs) continue;
 
-      RDV UW;
-      eigenToRDV(d_trans_vel_half[part], d_rot_vel_half[part], UW);
-      const PetscScalar* a = &U_array[part_free_dofs_begin];
-      for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
-      {
-	if (solve_dofs[k])
+        RDV UW;
+        eigenToRDV(d_trans_vel_half[part], d_rot_vel_half[part], UW);
+        const PetscScalar* a = &U_array[part_free_dofs_begin];
+        for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
         {
-	  UW[k] = a[p];
-	  ++p;
-	}
-      }
-      rdvToEigen(UW, d_trans_vel_half[part], d_rot_vel_half[part]);
+            if (solve_dofs[k])
+            {
+                UW[k] = a[p];
+                ++p;
+            }
+        }
+        rdvToEigen(UW, d_trans_vel_half[part], d_rot_vel_half[part]);
 
-      part_free_dofs_begin += num_free_dofs;
+        part_free_dofs_begin += num_free_dofs;
     }
 
     VecRestoreArrayRead(U_all, &U_array);
@@ -424,11 +428,9 @@ CIBStochasticMethod::setHalfTimeVelocity(Vec U)
     return;
 } // setHalfTimeVelocity (Brennan Sprinkle)
 
-
 void
 CIBStochasticMethod::resetRFDVelocity()
 {
-  
     d_trans_vel_half = d_trans_vel_current;
     d_rot_vel_half = d_rot_vel_current;
     return;
@@ -455,7 +457,6 @@ CIBStochasticMethod::getInitialCOM(const unsigned int part, Eigen::Vector3d& C)
     C = d_center_of_mass_initial[part];
     return;
 }
-
 
 } // namespace IBAMR
 
