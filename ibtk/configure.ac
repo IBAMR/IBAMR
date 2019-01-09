@@ -11,7 +11,13 @@ AM_INIT_AUTOMAKE([1.12 -Wall -Werror dist-bzip2 foreign -Wno-extra-portability s
 AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])
 AC_LANG(C++)
-AX_CXX_COMPILE_STDCXX([11], [noext], [mandatory])
+dnl libMesh will automatically detect and use C++14 features if they are
+dnl available by default (e.g., with GCC 6.0 and newer). Ensure that we have the
+dnl same version flag by using exactly the same macro setup as libMesh:
+dnl
+dnl (this variable is set up by libMesh)
+enablecxx11=yes
+AX_CXX_COMPILE_STDCXX_11([],[mandatory])
 
 ###########################################################################
 # Checks for programs.
