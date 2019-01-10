@@ -445,7 +445,7 @@ IBHierarchyIntegrator::regridHierarchy()
     if (d_load_balancer)
     {
         if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): updating workload estimates\n";
-        d_hier_cc_data_ops->setToScalar(d_workload_idx, 1.0);
+        // d_hier_cc_data_ops->setToScalar(d_workload_idx, 1.0);
         d_ib_method_ops->updateWorkloadEstimates(d_hierarchy, d_workload_idx);
     }
 
@@ -569,14 +569,6 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHie
     }
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
-
-    // Initialize workload data.
-    if (d_workload_idx != IBTK::invalid_index)
-    {
-        HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops(hierarchy, level_number, level_number);
-        level_cc_data_ops.setToScalar(d_workload_idx, 1.0);
-        d_load_balancer->setUniformWorkload(level_number);
-    }
 
     // Initialize marker data
     if (d_mark_var)

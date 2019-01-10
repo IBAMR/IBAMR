@@ -468,6 +468,8 @@ bool run_example(int argc, char** argv)
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
+            // ib_method_ops->getFEDataManager()->updateWorkloadEstimates(2, 2);
+
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";

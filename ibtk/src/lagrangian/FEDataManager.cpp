@@ -2110,6 +2110,10 @@ FEDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int fines
 
     IBTK_TIMER_START(t_update_workload_estimates);
 
+    // Set a default value of 1 for all cells. We will add into this below.
+    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy);
+    hier_cc_data_ops.setToScalar(d_workload_idx, 1.0, /*interior_only*/ false);
+
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
@@ -2412,7 +2416,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
         if (!level->checkAllocated(d_qp_count_idx)) level->allocatePatchData(d_qp_count_idx);
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, ln, ln);
-        hier_cc_data_ops.setToScalar(d_qp_count_idx, 0.0);
+        hier_cc_data_ops.setToScalar(d_qp_count_idx, 0.0, /*interior_only*/ false);
         if (ln != d_level_number) continue;
 
         // Extract the mesh.
