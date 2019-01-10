@@ -129,6 +129,7 @@ AC_CONFIG_FILES([
   examples/CIB/ex2/Makefile
   examples/CIB/ex3/Makefile
   examples/CIB/ex4/Makefile
+  examples/CIB/ex5/Makefile
   examples/CIBFE/Makefile
   examples/CIBFE/ex0/Makefile
   examples/CIBFE/ex1/Makefile
