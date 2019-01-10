@@ -612,16 +612,12 @@ CIBStochasticStokesSolver::ComputeRFD_RHS(Vec b, Vec y)
         dynamic_cast<IBTK::PETScKrylovLinearSolver*>(LInv.getPointer());
 
     int max_its = petsc_stokes_krylov_solver->getMaxIterations();
-    //     KSPType ksp_type_temp;
-    //     KSPGetType(petsc_stokes_krylov_solver->getPETScKSP(), &ksp_type_temp);
-    //     const std::string old_Type = ksp_type_temp;
 
     petsc_stokes_krylov_solver->setKSPType("gmres");
     petsc_stokes_krylov_solver->setMaxIterations(2000);
     petsc_stokes_krylov_solver->setHomogeneousBc(false);
     petsc_stokes_krylov_solver->setLoggingEnabled(true);
 
-    // KSPView(petsc_stokes_krylov_solver->getPETScKSP(),PETSC_VIEWER_STDOUT_WORLD);
 
     petsc_stokes_krylov_solver->solveSystem(*u_p, *g_h);
 
@@ -630,8 +626,6 @@ CIBStochasticStokesSolver::ComputeRFD_RHS(Vec b, Vec y)
     petsc_stokes_krylov_solver->setHomogeneousBc(true);
     petsc_stokes_krylov_solver->setLoggingEnabled(false);
 
-    //     KSPGetType(petsc_stokes_krylov_solver->getPETScKSP(), &ksp_type_temp);
-    //     pout << "hopefully the same olllllll type: " << ksp_type_temp << "\n";
 
     u_data_idx = u_p->getComponentDescriptorIndex(0);
     transaction_comps[0] = InterpolationTransactionComponent(u_data_idx,
@@ -643,14 +637,13 @@ CIBStochasticStokesSolver::ComputeRFD_RHS(Vec b, Vec y)
                                                              d_u_bc_coefs,
                                                              NULL);
 
-    // Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill_2 = new HierarchyGhostCellInterpolation();
     hier_bdry_fill->initializeOperatorState(transaction_comps, u_p->getPatchHierarchy());
     hier_bdry_fill->setHomogeneousBc(false);
     hier_bdry_fill->fillData(half_time);
 
     // D^S3 = J(Q) * u^S3.
     VecZeroEntries(Ds3);
-    d_cib_strategy->setInterpolatedVelocityVector(Ds3, half_time); // TODO might need to set this back?
+    d_cib_strategy->setInterpolatedVelocityVector(Ds3, half_time);
     sib_method_ops->interpolateVelocity(u_data_idx,
                                         std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
                                         std::vector<Pointer<RefineSchedule<NDIM> > >(),
