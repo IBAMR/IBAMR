@@ -11,8 +11,8 @@ N = 64                                         // actual    number of grid cells
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
 DX0 = L/N                                      // mesh width on coarsest grid level
 DX  = L/NFINEST                                // mesh width on finest   grid level
-MFAC = 4.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
-ELEM_TYPE = "TRI6"                             // type of element to use for structure discretization
+MFAC = 2.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
+ELEM_TYPE = "TRI3"                             // type of element to use for structure discretization
 PK1_DEV_QUAD_ORDER = "SEVENTH"
 PK1_DIL_QUAD_ORDER = "FIFTH"
 USE_BOUNDARY_MESH = TRUE
@@ -24,6 +24,10 @@ USE_PRESSURE_JUMP_CONDITIONS        = TRUE             // whether to impose pres
 USE_VELOCITY_JUMP_CONDITIONS = TRUE			   // whether to impose the velocity jumps at fluid-structure interfaces
 COMPUTE_FLUID_TRACTION 	   = TRUE              // whether to compute the exterior fluid traction
 USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or lumped mass matrix
+
+USE_POINTWISE_JUMP_IMPOSITION = FALSE
+USE_L2_LAGRANGE_FAMILY = TRUE
+
 WSS_CALC_WIDTH 				= 1.05			   // ratio multiplied by the diagonal side of the grid spacing to calculate wss
 P_CALC_WIDTH 			   = 1.5               // ratio multiplied by the diogonal side of the grid spacing to calculate the pressure
 IB_POINT_DENSITY           = 4.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
@@ -51,16 +55,11 @@ ENABLE_LOGGING             = TRUE
 // model parameters
 KAPPA_S_BODY = 0.0 //2.5*DX/DT^2
 ETA_S_BODY = 0.0 //1.5*DX/DT
-KAPPA_S_SURFACE =0.0075*DX/DT^2 //100 //0.05 *DX/DT^2
-ETA_S_SURFACE = 0.025*DX/DT
+KAPPA_S_SURFACE =0.0001/DT^2 //100 //0.05 *DX/DT^2
+ETA_S_SURFACE = 0.0004/DT
 C1_S = 0.0
 
-// tether penalty data
-C1_S = 1.0e5
-KAPPA_S_BODY = 1.0e6
-ETA_S_BODY = 0.0
-KAPPA_S_SURFACE = 1.0e6
-ETA_S_SURFACE = 0.0
+
 
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
@@ -120,6 +119,8 @@ IBFESurfaceMethod {
    split_forces                = SPLIT_FORCES
    use_pressure_jump_conditions   = USE_PRESSURE_JUMP_CONDITIONS
    use_velocity_jump_conditions   = USE_VELOCITY_JUMP_CONDITIONS
+   use_l2_lagrange_family = USE_L2_LAGRANGE_FAMILY
+   use_pointwise_jump_imposition = USE_POINTWISE_JUMP_IMPOSITION
    use_consistent_mass_matrix  = USE_CONSISTENT_MASS_MATRIX
    IB_point_density            = IB_POINT_DENSITY
    p_calc_width				   = P_CALC_WIDTH
@@ -166,7 +167,7 @@ INSStaggeredHierarchyIntegrator {
    cfl                           = CFL_MAX
    dt_max                        = DT
    using_vorticity_tagging       = VORTICITY_TAGGING
-   vorticity_abs_thresh          = 0.125,0.25,0.5,1,2
+   vorticity_abs_thresh          = 0.125,0.25,0.5,1
    tag_buffer                    = TAG_BUFFER
    output_U                      = OUTPUT_U
    output_P                      = OUTPUT_P
@@ -226,7 +227,7 @@ GriddingAlgorithm {
       level_0 =   8,  8  // all finer levels will use same values as level_0
    }
    efficiency_tolerance = 0.80e0  // min % of tag cells in new patch level
-   combine_efficiency   = 0.80e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
+   combine_efficiency   = 0.60e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
 }
 
 StandardTagAndInitialize {
