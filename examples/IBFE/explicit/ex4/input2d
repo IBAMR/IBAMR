@@ -4,14 +4,14 @@ RHO = 1.0
 L   = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 3                                      // maximum number of levels in locally refined grid
-REF_RATIO  = 4                                      // refinement ratio between levels
-N = 32                                              // actual    number of grid cells on coarsest grid level
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N            // effective number of grid cells on finest   grid level
-DX0 = L/N                                           // mesh width on coarsest grid level
-DX  = L/NFINEST                                     // mesh width on finest   grid level
-MFAC = 2.0                                          // ratio of Lagrangian mesh width to Cartesian mesh width
-ELEM_TYPE = "TRI6"                                  // type of element to use for structure discretization
+MAX_LEVELS = 3                                     // maximum number of levels in locally refined grid
+REF_RATIO  = 4                                     // refinement ratio between levels
+N = 32                                             // actual    number of grid cells on coarsest grid level
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N           // effective number of grid cells on finest   grid level
+DX0 = L/N                                          // mesh width on coarsest grid level
+DX  = L/NFINEST                                    // mesh width on finest   grid level
+MFAC = 1.0                                         // ratio of Lagrangian mesh width to Cartesian mesh width
+ELEM_TYPE = "TRI6"                                 // type of element to use for structure discretization
 PK1_DEV_QUAD_ORDER = "FIFTH"
 PK1_DIL_QUAD_ORDER = "THIRD"
 
@@ -31,7 +31,7 @@ SOLVER_TYPE                = "STAGGERED"            // the fluid solver to use (
 CFL_MAX                    = 0.25                   // maximum CFL number
 DT                         = 0.25*CFL_MAX*DX/U_MAX  // maximum timestep size
 START_TIME                 = 0.0e0                  // initial simulation time
-END_TIME                   = 10000*DT               // final simulation time
+END_TIME                   = 1000*DT               // final simulation time
 GROW_DT                    = 2.0e0                  // growth factor for timesteps
 NUM_CYCLES                 = 1                      // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH"      // convective time stepping type

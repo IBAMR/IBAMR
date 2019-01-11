@@ -190,7 +190,7 @@ bool run_example(int argc, char** argv)
         const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
         const double R = 0.2;
-        if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
+        if (NDIM == 2)
         {
 #ifdef LIBMESH_HAVE_TRIANGLE
             const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
@@ -202,7 +202,8 @@ bool run_example(int argc, char** argv)
             TriangleInterface triangle(mesh);
             triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
             triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
-            triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
+            triangle.desired_area() = sqrt(3.0) / 4.0 * ds * ds;
+            triangle.minimum_angle() = 30.0;
             triangle.insert_extra_points() = true;
             triangle.smooth_after_generating() = true;
             triangle.triangulate();
