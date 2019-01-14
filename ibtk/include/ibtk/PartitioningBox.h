@@ -123,6 +123,13 @@ public:
     /// otherwise.
     bool contains(const Point &point) const;
 
+    /// Return a pointer to the first partitioning box.
+    const PartitioningBox * begin() const;
+
+    /// Return a pointer to one past the end of the end of the partitioning
+    /// box array.
+    const PartitioningBox * end() const;
+
 protected:
     /// The partitioning box that bounds all other partitioning boxes.
     PartitioningBox d_bounding_partitioning_box;

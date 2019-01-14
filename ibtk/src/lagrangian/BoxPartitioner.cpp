@@ -40,6 +40,7 @@
 #include <libmesh/numeric_vector.h>
 #include <libmesh/point.h>
 
+#include <tbox/PIO.h>
 #include <tbox/SAMRAI_MPI.h>
 
 #include <algorithm>
@@ -72,6 +73,68 @@ std::unique_ptr<libMesh::Partitioner> BoxPartitioner::clone() const
     return std::unique_ptr<libMesh::Partitioner>(new BoxPartitioner(d_partitioning_boxes,
                                                                     *d_position_system));
 } // clone
+
+void
+BoxPartitioner::writePartitioning(const std::string &file_name) const
+{
+    std::stringstream current_processor_output;
+
+    const int current_rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
+    for (const PartitioningBox& box : d_partitioning_boxes)
+    {
+        const Point bottom = box.bottom();
+        const Point top = box.top();
+
+        // This reference value is chosen so that the plots look good when the
+        // domain is a square or cube with edge length 1
+        const double ref_dx = 0.0025;
+        const double dx = top[0] - bottom[0];
+        const double dy = top[1] - bottom[1];
+        const double dz = NDIM == 3 ? top[NDIM - 1] - bottom[NDIM - 1] : 0.0;
+
+        const unsigned int n_x_points = dx/ref_dx;
+        const unsigned int n_y_points = dy/ref_dx;
+        const unsigned int n_z_points = NDIM == 3 ? dz/ref_dx : 1;
+        for (unsigned int i = 0; i < n_x_points; ++i)
+        {
+            for (unsigned int j = 0; j < n_y_points; ++j)
+            {
+                for (unsigned int k = 0; k < n_z_points; ++k)
+                {
+                    const double z = NDIM == 3 ? bottom[NDIM - 1] + k/double(n_z_points)*dz : 0.0;
+                    current_processor_output << bottom[0] + i/double(n_x_points)*dx
+                                         << ','
+                                         << bottom[1] + j/double(n_y_points)*dy
+                                         << ','
+                                         << z
+                                         << ','
+                                         << current_rank
+                                         << '\n';
+                }
+            }
+        }
+    }
+
+    // clear the file before we append to it
+    if (current_rank == 0)
+    {
+        std::remove(file_name.c_str());
+    }
+    const int n_processes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+    for (int rank = 0; rank < n_processes; ++rank)
+    {
+        if (rank == current_rank)
+        {
+            std::ofstream out(file_name, std::ios_base::app);
+            if (rank == 0)
+            {
+                out << "x,y,z,r\n";
+            }
+            out << current_processor_output.rdbuf();
+        }
+        SAMRAI::tbox::SAMRAI_MPI::barrier();
+    }
+} // writePartitioning
 
 void BoxPartitioner::_do_partition(libMesh::MeshBase& mesh, const unsigned int n)
 {
@@ -183,6 +246,7 @@ void BoxPartitioner::_do_partition(libMesh::MeshBase& mesh, const unsigned int n
 
     std::vector<libMesh::processor_id_type> node_ids(mesh.parallel_n_nodes());
     std::vector<libMesh::dof_id_type> local_node_ids;
+    std::size_t n_local_nodes = 0;
     node_n = 0;
     const auto end_node = mesh.active_nodes_end();
     for (auto node = mesh.active_nodes_begin(); node != end_node; ++node)
@@ -192,12 +256,30 @@ void BoxPartitioner::_do_partition(libMesh::MeshBase& mesh, const unsigned int n
             local_node_ids.push_back(node_n);
             TBOX_ASSERT(node_n < node_ids.size());
             node_ids[node_n] = current_rank + 1;
+            ++n_local_nodes;
         }
         ++node_n;
     }
 
-    // step 2: communicate the partitioning across all processors:
+    // step 1.5: log the current state of affairs:
+    const int n_processes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+    std::vector<unsigned long> nodes_on_processors(n_processes);
+    nodes_on_processors[current_rank] = n_local_nodes;
     int ierr = MPI_Allreduce(
+        MPI_IN_PLACE, nodes_on_processors.data(), nodes_on_processors.size(), MPI_UNSIGNED_LONG,
+        MPI_SUM, SAMRAI::tbox::SAMRAI_MPI::commWorld);
+    TBOX_ASSERT(ierr == 0);
+    if (current_rank == 0)
+    {
+        for (int rank = 0; rank < n_processes; ++rank)
+        {
+            SAMRAI::tbox::plog << "nodes on processor " << rank << " = "
+                               << nodes_on_processors[rank] << '\n';
+        }
+    }
+
+    // step 2: communicate the partitioning across all processors:
+    ierr = MPI_Allreduce(
         MPI_IN_PLACE, elem_ids.data(), elem_ids.size(), pid_integral_type,
         MPI_SUM, SAMRAI::tbox::SAMRAI_MPI::commWorld);
     TBOX_ASSERT(ierr == 0);

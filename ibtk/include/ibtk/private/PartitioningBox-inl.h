@@ -106,6 +106,18 @@ inline const Point& PartitioningBoxes::top() const
     return d_bounding_partitioning_box.top();
 } // top
 
+inline
+const PartitioningBox* PartitioningBoxes::begin() const
+{
+    return d_boxes.data();
+}
+
+inline
+const PartitioningBox* PartitioningBoxes::end() const
+{
+    return d_boxes.data() + d_boxes.size();
+}
+
 inline bool PartitioningBoxes::contains(const Point &point) const
 {
     if (d_bounding_partitioning_box.contains(point))

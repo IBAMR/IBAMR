@@ -76,6 +76,17 @@ public:
     BoxPartitioner(const PartitioningBoxes& partitioning_boxes,
                    const libMesh::System &position_system);
 
+    /*!
+     * Write the partitioning to a file in a simple point-based format: for
+     * each patch several points are printed to the specified file in the
+     * format
+     *
+     * x,y,z,r
+     *
+     * format.
+     */
+    void writePartitioning(const std::string &file_name) const;
+
     virtual std::unique_ptr<libMesh::Partitioner> clone() const override;
 
     virtual void _do_partition(libMesh::MeshBase& mesh, const unsigned int n) override;
