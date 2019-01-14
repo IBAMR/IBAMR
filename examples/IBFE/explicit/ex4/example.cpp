@@ -57,6 +57,7 @@
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/BoxPartitioner.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -483,14 +484,24 @@ bool run_example(int argc, char** argv)
                 pout << "\nWriting visualization files...\n\n";
                 if (uses_visit)
                 {
+                    const System& position_system = equation_systems->get_system(
+                        IBFEMethod::COORDS_SYSTEM_NAME);
                     time_integrator->setupPlotData();
                     visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
 
+                    {
+                        // TODO: I haven't yet been able to convince SAMRAI to
+                        // save this data, so do it here instead
+                        IBTK::BoxPartitioner partitioner(*patch_hierarchy,
+                                                         position_system);
+                        partitioner.writePartitioning("patch-part-" + std::to_string(iteration_num) + ".txt");
+                    }
+
                     // Write partitioning data from libMesh.
                     IBTK::write_elem_partitioning("elem-part-" + std::to_string(iteration_num) + ".txt",
-                                                  equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME));
+                                                  position_system);
                     IBTK::write_node_partitioning("node-part-" + std::to_string(iteration_num) + ".txt",
-                                                  equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME));
+                                                  position_system);
                 }
                 if (uses_exodus)
                 {
