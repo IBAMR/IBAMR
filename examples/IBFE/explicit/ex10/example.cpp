@@ -58,6 +58,8 @@
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/BoxPartitioner.h>
+#include <ibtk/libmesh_utilities.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/libmesh_utilities.h>
@@ -209,6 +211,14 @@ run_example(int argc, char** argv)
         solid_mesh.prepare_for_use();
         Mesh& mesh = solid_mesh;
 
+        // boring objects
+        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM> > load_balancer =
+            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
@@ -226,16 +236,14 @@ run_example(int argc, char** argv)
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        // We want to do load balancing based on the IB coupling information
+        // (i.e., add more patches where there are more IB points).
+        time_integrator->registerLoadBalancer(load_balancer);
+
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
@@ -344,6 +352,22 @@ run_example(int argc, char** argv)
             {
                 time_integrator->setupPlotData();
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+
+                const System& position_system = equation_systems->get_system(
+                    IBFEMethod::COORDS_SYSTEM_NAME);
+                {
+                    // TODO: I haven't yet been able to convince SAMRAI to
+                    // save this data, so do it here instead
+                    IBTK::BoxPartitioner partitioner(*patch_hierarchy,
+                                                     position_system);
+                    partitioner.writePartitioning("patch-part-" + std::to_string(iteration_num) + ".txt");
+                }
+
+                // Write partitioning data from libMesh.
+                IBTK::write_elem_partitioning("elem-part-" + std::to_string(iteration_num) + ".txt",
+                                              position_system);
+                IBTK::write_node_partitioning("node-part-" + std::to_string(iteration_num) + ".txt",
+                                              position_system);
             }
             if (uses_exodus)
             {
