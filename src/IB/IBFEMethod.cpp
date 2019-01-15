@@ -797,20 +797,16 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
         d_X_systems[part] = &d_equation_systems[part]->get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
         d_X_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_X_systems[part]->current_local_solution.get());
         d_X_rhs_vecs[part] = dynamic_cast<PetscVector<double>*>(d_X_systems[part]->rhs);
-        d_X_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_X_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-        d_X_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_X_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+        d_X_new_vecs[part] = dynamic_cast<PetscVector<double>*>(d_X_systems[part]->request_vector("new"));
+        d_X_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_X_systems[part]->request_vector("half"));
         d_X_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_fe_data_managers[part]->buildGhostedCoordsVector(/*localize_data*/ false));
 
         d_U_systems[part] = &d_equation_systems[part]->get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
         d_U_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->current_local_solution.get());
         d_U_rhs_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->rhs);
-        d_U_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_U_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-        d_U_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_U_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+        d_U_new_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->request_vector("new"));
+        d_U_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->request_vector("half"));
 
         d_F_systems[part] = &d_equation_systems[part]->get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
         d_F_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->current_local_solution.get());
@@ -876,13 +872,9 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
         // Reset time-dependent Lagrangian data.
         copy_and_synch(*d_X_new_vecs[part], *d_X_systems[part]->solution);
         *d_X_systems[part]->current_local_solution = *d_X_new_vecs[part];
-        delete d_X_new_vecs[part];
-        delete d_X_half_vecs[part];
 
         copy_and_synch(*d_U_new_vecs[part], *d_U_systems[part]->solution);
         *d_U_systems[part]->current_local_solution = *d_U_new_vecs[part];
-        delete d_U_new_vecs[part];
-        delete d_U_half_vecs[part];
 
         copy_and_synch(*d_F_half_vecs[part], *d_F_systems[part]->solution);
         *d_F_systems[part]->current_local_solution = *d_F_half_vecs[part];
@@ -1125,14 +1117,12 @@ IBFEMethod::computeLagrangianForce(const double data_time)
         computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
         if (d_direct_forcing_kinematics_data[part])
         {
-            int ierr;
-            PetscVector<double>* F_half_df = static_cast<PetscVector<double>*>(
-                d_F_half_vecs[part]->zero_clone().release()); // WARNING: must be manually deleted
+            std::unique_ptr<NumericVector<double> > F_half_df_ptr = d_F_half_vecs[part]->zero_clone();
+            PetscVector<double>* F_half_df = static_cast<PetscVector<double>*>(F_half_df_ptr.get());
             d_direct_forcing_kinematics_data[part]->computeLagrangianForce(
                 *F_half_df, *d_X_half_vecs[part], *d_U_half_vecs[part], data_time);
-            ierr = VecAXPY(d_F_half_vecs[part]->vec(), 1.0, F_half_df->vec());
+            int ierr = VecAXPY(d_F_half_vecs[part]->vec(), 1.0, F_half_df->vec());
             IBTK_CHKERRQ(ierr);
-            delete F_half_df;
         }
     }
     if (d_has_overlap_force_parts)
@@ -1412,6 +1402,8 @@ IBFEMethod::initializeFEEquationSystems()
         else
         {
             auto& X_system = equation_systems.add_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+            X_system.add_vector("new", /*projections*/ true, /*type*/ GHOSTED);
+            X_system.add_vector("half", /*projections*/ true, /*type*/ GHOSTED);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream os;
@@ -1428,6 +1420,8 @@ IBFEMethod::initializeFEEquationSystems()
             }
 
             auto& U_system = equation_systems.add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
+            U_system.add_vector("new", /*projections*/ true, /*type*/ GHOSTED);
+            U_system.add_vector("half", /*projections*/ true, /*type*/ GHOSTED);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream os;
@@ -2510,12 +2504,12 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
 {
     if (!d_has_overlap_force_parts) return;
 
-    std::vector<NumericVector<double>*> F_rhs_vec(d_num_parts);
+    std::vector<std::unique_ptr<NumericVector<double> > > F_rhs_vec(d_num_parts);
     for (unsigned int k = 0; k < d_num_parts; ++k)
     {
         if (d_is_overlap_force_part[k])
         {
-            F_rhs_vec[k] = F_vec[k]->zero_clone().release(); // \todo fix this when we update to C++11
+            F_rhs_vec[k] = F_vec[k]->zero_clone();
         }
     }
     d_overlap_force_part_max_displacement.resize(d_num_parts);
@@ -2658,15 +2652,6 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
             d_fe_data_managers[k]->computeL2Projection(
                 *F_tmp_vec, *F_rhs_vec[k], FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
             F_vec[k]->add(*F_tmp_vec);
-        }
-    }
-
-    // Cleanup.
-    for (unsigned int k = 0; k < d_num_parts; ++k)
-    {
-        if (d_is_overlap_force_part[k])
-        {
-            delete F_rhs_vec[k];
         }
     }
     return;
