@@ -39,6 +39,7 @@
 #include <algorithm>
 
 #include "Eigen/Core" // IWYU pragma: export
+#include "Eigen/StdVector"
 #include "tbox/PIO.h"
 #include "tbox/Utilities.h"
 
@@ -166,6 +167,14 @@ level_can_be_refined(int level_number, int max_levels)
     const int finest_level_number = max_levels - 1;
     return level_number < finest_level_number;
 }
+
+/*!
+ * Eigen types have special alignment requirements and require a specific
+ * memory allocator. This is a convenience type alias for a
+ * <code>std::vector</code> with the correct allocator.
+ */
+template <typename T>
+using EigenAlignedVector = std::vector<T, Eigen::aligned_allocator<T>>;
 
 using Matrix2d = Eigen::Matrix<double, 2, 2>;
 using Vector2d = Eigen::Matrix<double, 2, 1>;

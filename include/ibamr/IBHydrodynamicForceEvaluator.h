@@ -114,8 +114,9 @@ public:
 
     struct IBHydrodynamicForceObject
     {
-        // Structure details.
-        int strct_id;
+        // Since this structure has Eigen members we must explicitly override
+        // its new and delete operators:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         // Force, torque, and momentum of the body.
         IBTK::Vector3d F_current, T_current, P_current, L_current;
@@ -140,6 +141,9 @@ public:
 
         // Indicator variable index of the control volume for plotting
         int inside_strct_idx;
+
+        // Structure details.
+        int strct_id;
 
         // File streams associated for the output.
         std::ofstream *drag_CV_stream, *torque_CV_stream;
