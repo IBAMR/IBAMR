@@ -773,7 +773,7 @@ protected:
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_rhs_vecs, d_X_new_vecs, d_X_half_vecs,
         d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_rhs_vecs, d_U_new_vecs, d_U_half_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_rhs_vecs, d_F_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_rhs_vecs, d_F_tmp_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_Q_half_vecs, d_Q_rhs_vecs, d_Q_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs, d_Phi_rhs_vecs;
 

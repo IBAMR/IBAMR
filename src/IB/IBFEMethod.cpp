@@ -781,6 +781,7 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
     d_F_systems.resize(d_num_parts);
     d_F_half_vecs.resize(d_num_parts);
     d_F_rhs_vecs.resize(d_num_parts);
+    d_F_tmp_vecs.resize(d_num_parts);
     d_F_IB_ghost_vecs.resize(d_num_parts);
 
     d_Q_systems.resize(d_num_parts);
@@ -811,6 +812,7 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
         d_F_systems[part] = &d_equation_systems[part]->get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
         d_F_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->current_local_solution.get());
         d_F_rhs_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->rhs);
+        d_F_tmp_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->request_vector("tmp"));
         d_F_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME, /*localize_data*/ false));
 
@@ -916,6 +918,7 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
     d_F_systems.clear();
     d_F_half_vecs.clear();
     d_F_rhs_vecs.clear();
+    d_F_tmp_vecs.clear();
     d_F_IB_ghost_vecs.clear();
 
     d_Q_systems.clear();
@@ -1112,16 +1115,14 @@ IBFEMethod::computeLagrangianForce(const double data_time)
         {
             computeStressNormalization(*d_Phi_half_vecs[part], *d_X_half_vecs[part], data_time, part);
         }
-        // Zero-out force vector
         d_F_half_vecs[part]->zero();
         computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
         if (d_direct_forcing_kinematics_data[part])
         {
-            std::unique_ptr<NumericVector<double> > F_half_df_ptr = d_F_half_vecs[part]->zero_clone();
-            PetscVector<double>* F_half_df = static_cast<PetscVector<double>*>(F_half_df_ptr.get());
+            d_F_tmp_vecs[part]->zero();
             d_direct_forcing_kinematics_data[part]->computeLagrangianForce(
-                *F_half_df, *d_X_half_vecs[part], *d_U_half_vecs[part], data_time);
-            int ierr = VecAXPY(d_F_half_vecs[part]->vec(), 1.0, F_half_df->vec());
+                *d_F_tmp_vecs[part], *d_X_half_vecs[part], *d_U_half_vecs[part], data_time);
+            int ierr = VecAXPY(d_F_half_vecs[part]->vec(), 1.0, d_F_tmp_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -1141,7 +1142,7 @@ IBFEMethod::computeLagrangianForce(const double data_time)
                 copy_and_synch(*X_half_vec, *X_half_ghost_vecs[k], /*close_v_in*/ false);
             }
         }
-        std::vector<libMesh::PetscVector<double> *> vec_pointers;
+        std::vector<libMesh::PetscVector<double>*> vec_pointers;
         for (std::unique_ptr<libMesh::PetscVector<double>> &vec : X_half_ghost_vecs)
         {
             vec_pointers.push_back(vec.get());
@@ -1430,6 +1431,7 @@ IBFEMethod::initializeFEEquationSystems()
             }
 
             auto& F_system = equation_systems.add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+            X_system.add_vector("tmp", /*projections*/ false, /*type*/ PARALLEL);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream os;
@@ -2504,12 +2506,11 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
 {
     if (!d_has_overlap_force_parts) return;
 
-    std::vector<std::unique_ptr<NumericVector<double> > > F_rhs_vec(d_num_parts);
     for (unsigned int k = 0; k < d_num_parts; ++k)
     {
         if (d_is_overlap_force_part[k])
         {
-            F_rhs_vec[k] = F_vec[k]->zero_clone();
+            d_F_rhs_vecs[k]->zero();
         }
     }
     d_overlap_force_part_max_displacement.resize(d_num_parts);
@@ -2629,7 +2630,7 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     F_dof_map[k]->constrain_element_vector(F_rhs_e[k][d], F_dof_indices[k][d]);
-                    F_rhs_vec[k]->add_vector(F_rhs_e[k][d], F_dof_indices[k][d]);
+                    d_F_rhs_vecs[k]->add_vector(F_rhs_e[k][d], F_dof_indices[k][d]);
                 }
             }
         }
@@ -2648,10 +2649,9 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
     {
         if (d_is_overlap_force_part[k])
         {
-            std::unique_ptr<NumericVector<double> > F_tmp_vec = F_vec[k]->zero_clone();
             d_fe_data_managers[k]->computeL2Projection(
-                *F_tmp_vec, *F_rhs_vec[k], FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
-            F_vec[k]->add(*F_tmp_vec);
+                *d_F_tmp_vecs[k], *d_F_rhs_vecs[k], FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
+            F_vec[k]->add(*d_F_tmp_vecs[k]);
         }
     }
     return;
