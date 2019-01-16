@@ -1007,7 +1007,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                                       *d_U_rhs_vecs[part],
                                                       VELOCITY_SYSTEM_NAME,
                                                       d_interp_spec[part].use_consistent_mass_matrix,
-                                                      /*close_U*/ true,
+                                                      /*close_U*/ false,
                                                       /*close_F*/ false);
     }
 
@@ -1031,9 +1031,6 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
-        d_X_new_vecs[part]->close();
-        d_X_half_vecs[part]->close();
-
         if (d_direct_forcing_kinematics_data[part])
         {
             d_direct_forcing_kinematics_data[part]->forwardEulerStep(
@@ -1062,8 +1059,6 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
-        d_X_new_vecs[part]->close();
-        d_X_half_vecs[part]->close();
         if (d_direct_forcing_kinematics_data[part])
         {
             d_direct_forcing_kinematics_data[part]->midpointStep(
@@ -1095,8 +1090,6 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
-        d_X_new_vecs[part]->close();
-        d_X_half_vecs[part]->close();
         if (d_direct_forcing_kinematics_data[part])
         {
             d_direct_forcing_kinematics_data[part]->trapezoidalStep(
@@ -1119,6 +1112,13 @@ IBFEMethod::computeLagrangianForce(const double data_time)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
+        int ierr = VecGhostUpdateBegin(d_X_half_vecs[part]->vec(), INSERT_VALUES, SCATTER_FORWARD);
+        IBTK_CHKERRQ(ierr);
+    }
+    for (unsigned part = 0; part < d_num_parts; ++part)
+    {
+        int ierr = VecGhostUpdateEnd(d_X_half_vecs[part]->vec(), INSERT_VALUES, SCATTER_FORWARD);
+        IBTK_CHKERRQ(ierr);
         if (d_is_stress_normalization_part[part])
         {
             computeStressNormalization(*d_Phi_half_vecs[part], *d_X_half_vecs[part], data_time, part);
@@ -2390,7 +2390,18 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     }
 
     // Solve for G.
-    d_fe_data_managers[part]->computeL2Projection(G_vec, *G_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
+    PetscVector<double>* G_rhs_petsc_vec = static_cast<PetscVector<double>*>(G_rhs_vec.get());
+    int ierr;
+    ierr = VecAssemblyBegin(G_rhs_petsc_vec->vec());
+    IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(G_rhs_petsc_vec->vec());
+    IBTK_CHKERRQ(ierr);
+    d_fe_data_managers[part]->computeL2Projection(G_vec,
+                                                  *G_rhs_vec,
+                                                  FORCE_SYSTEM_NAME,
+                                                  d_use_consistent_mass_matrix,
+                                                  /*close G_vec*/ false,
+                                                  /*close G_rhs_vec*/ false);
     return;
 } // computeInteriorForceDensity
 
