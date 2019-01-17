@@ -948,7 +948,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                 const double data_time)
 {
-    std::vector<NumericVector<double>*> U_vecs(d_num_parts), X_vecs(d_num_parts);
+    std::vector<PetscVector<double>*> U_vecs(d_num_parts), X_vecs(d_num_parts);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         if (MathUtilities<double>::equalEps(data_time, d_current_time))
@@ -977,8 +977,10 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        *d_X_IB_ghost_vecs[part] = *X_vecs[part];
-        int ierr = VecGhostUpdateBegin(d_X_IB_ghost_vecs[part]->vec(), INSERT_VALUES, SCATTER_FORWARD);
+        int ierr;
+        ierr = VecCopy(X_vecs[part]->vec(), d_X_IB_ghost_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostUpdateBegin(d_X_IB_ghost_vecs[part]->vec(), INSERT_VALUES, SCATTER_FORWARD);
         IBTK_CHKERRQ(ierr);
     }
 
@@ -1186,11 +1188,12 @@ IBFEMethod::spreadForce(const int f_data_idx,
         PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* F_vec = d_F_half_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
-        *X_ghost_vec = *X_vec;
-        *F_ghost_vec = *F_vec;
         int ierr;
+        ierr = VecCopy(X_vec->vec(), X_ghost_vec->vec());
+        IBTK_CHKERRQ(ierr);
         ierr = VecGhostUpdateBegin(X_ghost_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
         IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(F_vec->vec(), F_ghost_vec->vec());
         ierr = VecGhostUpdateBegin(F_ghost_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
         IBTK_CHKERRQ(ierr);
     }

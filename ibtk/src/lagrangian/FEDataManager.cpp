@@ -2207,13 +2207,20 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         NumericVector<double>* X_vec = getCoordsVector();
         std::unique_ptr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
         X_ghost_vec->init(X_vec->size(), X_vec->local_size(), X_ghost_dofs, true, GHOSTED);
-        copy_and_synch(*X_vec, *X_ghost_vec, /*close_v_in*/ false);
+        *X_ghost_vec = *X_vec;
         auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec.get());
+        int ierr;
+        ierr = VecGhostUpdateBegin(X_petsc_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostUpdateEnd(X_petsc_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
+        IBTK_CHKERRQ(ierr);
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
-        VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        ierr = VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
         double* X_local_soln;
-        VecGetArray(X_local_vec, &X_local_soln);
+        ierr = VecGetArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
 
         // Tag cells for refinement whenever they contain active element
         // quadrature points.
@@ -2267,8 +2274,10 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
             }
         }
 
-        VecRestoreArray(X_local_vec, &X_local_soln);
-        VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        ierr = VecRestoreArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
     }
     else if (level_number + 1 == d_level_number && level_number < d_hierarchy->getFinestLevelNumber())
     {
