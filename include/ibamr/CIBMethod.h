@@ -512,7 +512,7 @@ private:
     /*!
      * \brief Compute center of mass of structures.
      */
-    void computeCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass,
+    void computeCOMOfStructures(IBTK::EigenAlignedVector<Eigen::Vector3d>& center_of_mass,
                                 std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data);
 
     /*!

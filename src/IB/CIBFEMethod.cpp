@@ -369,7 +369,7 @@ CIBFEMethod::eulerStep(const double current_time, const double new_time)
     const double dt = MathUtilities<double>::equalEps(d_rho, 0.0) ? 0.0 : (new_time - current_time);
 
     // Fill the rotation matrix of structures with rotation angle 0.5*(W^n)*dt.
-    std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
+    IBTK::EigenAlignedVector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
     setRotationMatrix(d_rot_vel_current, d_quaternion_current, d_quaternion_half, rotation_mat, 0.5 * dt);
 
     // Rotate the body with current rotational velocity about center of mass
@@ -445,7 +445,7 @@ CIBFEMethod::midpointStep(const double current_time, const double new_time)
     const double dt = new_time - current_time;
 
     // Fill the rotation matrix of structures with rotation angle (W^n+1)*dt.
-    std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
+    IBTK::EigenAlignedVector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
     setRotationMatrix(d_rot_vel_half, d_quaternion_current, d_quaternion_new, rotation_mat, dt);
 
     // Rotate the body with current rotational velocity about origin

@@ -75,6 +75,13 @@ class IBFEDirectForcingKinematics : public virtual SAMRAI::tbox::DescribedClass,
 {
 public:
     /*!
+     * Since this class has Eigen object members, which have special alignment
+     * requirements, we must explicitly override operator new to get the
+     * correct aligment for the object as a whole.
+     */
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    /*!
      * \brief Constructor.
      */
     IBFEDirectForcingKinematics(std::string object_name,

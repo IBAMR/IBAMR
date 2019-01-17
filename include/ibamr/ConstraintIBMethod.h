@@ -501,7 +501,7 @@ private:
     /*!
      * Moment of inertia of the structures.
      */
-    std::vector<Eigen::Matrix3d> d_moment_of_inertia_current, d_moment_of_inertia_new;
+    IBTK::EigenAlignedVector<Eigen::Matrix3d> d_moment_of_inertia_current, d_moment_of_inertia_new;
 
     /*!
      * Tag a Lagrangian point (generally eye of the fish) of the immersed structures.
