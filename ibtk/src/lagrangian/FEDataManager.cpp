@@ -2488,7 +2488,13 @@ FEDataManager::computeActiveElementBoundingBoxes()
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>& X_vec = *X_system.solution;
     NumericVector<double>& X_ghost_vec = *X_system.current_local_solution;
-    copy_and_synch(X_vec, X_ghost_vec, /*close_v_in*/ false);
+    X_ghost_vec = X_vec;
+    auto X_ghost_petsc_vec = static_cast<PetscVector<double>*>(&X_ghost_vec);
+    int ierr;
+    ierr = VecGhostUpdateBegin(X_ghost_petsc_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGhostUpdateEnd(X_ghost_petsc_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
+    IBTK_CHKERRQ(ierr);
 
     // Compute the lower and upper bounds of all active local elements in the
     // mesh.  Assumes nodal basis functions.
@@ -2643,13 +2649,20 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         collect_unique_elems(frontier_elems, frontier_patch_elems);
         collectGhostDOFIndices(X_ghost_dofs, frontier_elems, COORDINATES_SYSTEM_NAME);
         X_ghost_vec->init(X_vec->size(), X_vec->local_size(), X_ghost_dofs, true, GHOSTED);
-        copy_and_synch(*X_vec, *X_ghost_vec, /*close_v_in*/ false);
+        *X_ghost_vec = *X_vec;
         auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec.get());
+        int ierr;
+        ierr = VecGhostUpdateBegin(X_petsc_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostUpdateEnd(X_petsc_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
+        IBTK_CHKERRQ(ierr);
         Vec X_global_vec = X_petsc_vec->vec();
         Vec X_local_vec;
-        VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        ierr = VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
         double* X_local_soln;
-        VecGetArray(X_local_vec, &X_local_soln);
+        ierr = VecGetArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
 
         // Keep only those elements that have a quadrature point on the local
         // patch.
@@ -2707,8 +2720,10 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
             }
         }
 
-        VecRestoreArray(X_local_vec, &X_local_soln);
-        VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        ierr = VecRestoreArray(X_local_vec, &X_local_soln);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        IBTK_CHKERRQ(ierr);
 
         // Rebuild the set of frontier elements, which are any neighbors of a
         // local element that has not already been determined to be either a
