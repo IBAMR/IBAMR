@@ -589,16 +589,19 @@ FEDataManager::spread(const int f_data_idx,
 
     if (use_nodal_quadrature)
     {
+        // Store a copy of the F vector.
+        std::unique_ptr<NumericVector<double> > F_vec_bak = F_vec.clone();
+        *F_vec_bak = F_vec;
+
         // Multiply by the nodal volume fractions (to convert densities into
         // values).
-        std::unique_ptr<NumericVector<double> > F_dX_vec = F_vec.clone();
-        std::unique_ptr<NumericVector<double> > dX_vec = F_vec.clone();
-        copy_and_synch(*buildDiagonalL2MassMatrix(system_name), *dX_vec, /*close_v_in*/ false);
-        F_dX_vec->pointwise_mult(F_vec, *dX_vec);
-        F_dX_vec->close();
+        NumericVector<double>& F_dX_vec = F_vec;
+        const NumericVector<double>& dX_vec = *buildDiagonalL2MassMatrix(system_name);
+        F_dX_vec.pointwise_mult(F_vec, dX_vec);
+        F_dX_vec.close();
 
         // Extract local form vectors.
-        auto F_dX_petsc_vec = static_cast<PetscVector<double>*>(F_dX_vec.get());
+        auto F_dX_petsc_vec = static_cast<PetscVector<double>*>(&F_dX_vec);
         Vec F_dX_global_vec = F_dX_petsc_vec->vec();
         Vec F_dX_local_vec;
         VecGhostGetLocalForm(F_dX_global_vec, &F_dX_local_vec);
@@ -686,6 +689,9 @@ FEDataManager::spread(const int f_data_idx,
 
         VecRestoreArray(X_local_vec, &X_local_soln);
         VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+
+        // Restore the value of the F vector.
+        F_vec = *F_vec_bak;
     }
     else
     {
@@ -1262,9 +1268,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
 
         // Scale by the diagonal mass matrix.
         F_vec.close();
-        std::unique_ptr<NumericVector<double> > dX_vec = F_vec.clone();
-        copy_and_synch(*buildDiagonalL2MassMatrix(system_name), *dX_vec, /*close_v_in*/ false);
-        F_vec.pointwise_mult(F_vec, *dX_vec);
+        const NumericVector<double>& dX_vec = *buildDiagonalL2MassMatrix(system_name);
+        F_vec.pointwise_mult(F_vec, dX_vec);
         if (close_F) F_vec.close();
     }
     else

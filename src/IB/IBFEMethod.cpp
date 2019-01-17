@@ -382,7 +382,7 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
     if (d_is_stress_normalization_part[part]) return;
     d_has_stress_normalization_parts = true;
     d_is_stress_normalization_part[part] = true;
-    System& Phi_system = d_equation_systems[part]->add_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
+    auto& Phi_system = d_equation_systems[part]->add_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
     d_equation_systems[part]->parameters.set<Real>("Phi_epsilon") = d_epsilon;
     Phi_system.attach_assemble_function(assemble_poisson);
     Phi_system.add_variable("Phi", d_fe_order[part], d_fe_family[part]);
@@ -495,7 +495,7 @@ IBFEMethod::registerLagBodySourceFunction(const LagBodySourceFcnData& data, cons
     d_has_lag_body_source_parts = true;
     d_lag_body_source_part[part] = true;
     d_lag_body_source_fcn_data[part] = data;
-    System& Q_system = d_equation_systems[part]->add_system<ExplicitSystem>(SOURCE_SYSTEM_NAME);
+    auto& Q_system = d_equation_systems[part]->add_system<ExplicitSystem>(SOURCE_SYSTEM_NAME);
     Q_system.add_variable("Q", d_fe_order[part], d_fe_family[part]);
     return;
 } // registerLagBodySourceFunction
@@ -767,62 +767,70 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
     // Extract the FE data.
     d_X_systems.resize(d_num_parts);
     d_X_current_vecs.resize(d_num_parts);
+    d_X_rhs_vecs.resize(d_num_parts);
     d_X_new_vecs.resize(d_num_parts);
     d_X_half_vecs.resize(d_num_parts);
     d_X_IB_ghost_vecs.resize(d_num_parts);
 
     d_U_systems.resize(d_num_parts);
     d_U_current_vecs.resize(d_num_parts);
+    d_U_rhs_vecs.resize(d_num_parts);
     d_U_new_vecs.resize(d_num_parts);
     d_U_half_vecs.resize(d_num_parts);
 
     d_F_systems.resize(d_num_parts);
     d_F_half_vecs.resize(d_num_parts);
+    d_F_rhs_vecs.resize(d_num_parts);
+    d_F_tmp_vecs.resize(d_num_parts);
     d_F_IB_ghost_vecs.resize(d_num_parts);
 
     d_Q_systems.resize(d_num_parts);
     d_Q_half_vecs.resize(d_num_parts);
+    d_Q_rhs_vecs.resize(d_num_parts);
     d_Q_IB_ghost_vecs.resize(d_num_parts);
 
     d_Phi_systems.resize(d_num_parts);
     d_Phi_half_vecs.resize(d_num_parts);
+    d_Phi_rhs_vecs.resize(d_num_parts);
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        d_X_systems[part] = &d_equation_systems[part]->get_system(COORDS_SYSTEM_NAME);
+        d_X_systems[part] = &d_equation_systems[part]->get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
         d_X_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_X_systems[part]->current_local_solution.get());
-        d_X_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_X_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-        d_X_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_X_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+        d_X_rhs_vecs[part] = dynamic_cast<PetscVector<double>*>(d_X_systems[part]->rhs);
+        d_X_new_vecs[part] = dynamic_cast<PetscVector<double>*>(d_X_systems[part]->request_vector("new"));
+        d_X_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_X_systems[part]->request_vector("half"));
         d_X_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_fe_data_managers[part]->buildGhostedCoordsVector(/*localize_data*/ false));
 
-        d_U_systems[part] = &d_equation_systems[part]->get_system(VELOCITY_SYSTEM_NAME);
+        d_U_systems[part] = &d_equation_systems[part]->get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
         d_U_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->current_local_solution.get());
-        d_U_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_U_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-        d_U_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_U_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+        d_U_rhs_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->rhs);
+        d_U_new_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->request_vector("new"));
+        d_U_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->request_vector("half"));
 
-        d_F_systems[part] = &d_equation_systems[part]->get_system(FORCE_SYSTEM_NAME);
+        d_F_systems[part] = &d_equation_systems[part]->get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
         d_F_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->current_local_solution.get());
+        d_F_rhs_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->rhs);
+        d_F_tmp_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->request_vector("tmp"));
         d_F_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME, /*localize_data*/ false));
 
         if (d_lag_body_source_part[part])
         {
-            d_Q_systems[part] = &d_equation_systems[part]->get_system(SOURCE_SYSTEM_NAME);
+            d_Q_systems[part] = &d_equation_systems[part]->get_system<ExplicitSystem>(SOURCE_SYSTEM_NAME);
             d_Q_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_Q_systems[part]->current_local_solution.get());
+            d_Q_rhs_vecs[part] = dynamic_cast<PetscVector<double>*>(d_Q_systems[part]->rhs);
             d_Q_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
                 d_fe_data_managers[part]->buildGhostedSolutionVector(SOURCE_SYSTEM_NAME, /*localize_data*/ false));
         }
 
         if (d_is_stress_normalization_part[part])
         {
-            d_Phi_systems[part] = &d_equation_systems[part]->get_system(PHI_SYSTEM_NAME);
+            d_Phi_systems[part] = &d_equation_systems[part]->get_system<ExplicitSystem>(PHI_SYSTEM_NAME);
             d_Phi_half_vecs[part] =
                 dynamic_cast<PetscVector<double>*>(d_Phi_systems[part]->current_local_solution.get());
+            d_Phi_rhs_vecs[part] = dynamic_cast<PetscVector<double>*>(d_Phi_systems[part]->rhs);
         }
 
         // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
@@ -866,13 +874,9 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
         // Reset time-dependent Lagrangian data.
         copy_and_synch(*d_X_new_vecs[part], *d_X_systems[part]->solution);
         *d_X_systems[part]->current_local_solution = *d_X_new_vecs[part];
-        delete d_X_new_vecs[part];
-        delete d_X_half_vecs[part];
 
         copy_and_synch(*d_U_new_vecs[part], *d_U_systems[part]->solution);
         *d_U_systems[part]->current_local_solution = *d_U_new_vecs[part];
-        delete d_U_new_vecs[part];
-        delete d_U_half_vecs[part];
 
         copy_and_synch(*d_F_half_vecs[part], *d_F_systems[part]->solution);
         *d_F_systems[part]->current_local_solution = *d_F_half_vecs[part];
@@ -900,25 +904,31 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
 
     d_X_systems.clear();
     d_X_current_vecs.clear();
+    d_X_rhs_vecs.clear();
     d_X_new_vecs.clear();
     d_X_half_vecs.clear();
     d_X_IB_ghost_vecs.clear();
 
     d_U_systems.clear();
     d_U_current_vecs.clear();
+    d_U_rhs_vecs.clear();
     d_U_new_vecs.clear();
     d_U_half_vecs.clear();
 
     d_F_systems.clear();
     d_F_half_vecs.clear();
+    d_F_rhs_vecs.clear();
+    d_F_tmp_vecs.clear();
     d_F_IB_ghost_vecs.clear();
 
     d_Q_systems.clear();
     d_Q_half_vecs.clear();
+    d_Q_rhs_vecs.clear();
     d_Q_IB_ghost_vecs.clear();
 
     d_Phi_systems.clear();
     d_Phi_half_vecs.clear();
+    d_Phi_rhs_vecs.clear();
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -966,34 +976,31 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     }
 
     // Build the right-hand-sides to compute the interpolated data.
-    std::vector<PetscVector<double>*> U_rhs_vecs(d_num_parts);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        U_rhs_vecs[part] = static_cast<PetscVector<double>*>(U_vecs[part]->zero_clone().release());
         d_fe_data_managers[part]->interpWeighted(u_data_idx,
-                                                 *U_rhs_vecs[part],
+                                                 *d_U_rhs_vecs[part],
                                                  *d_X_IB_ghost_vecs[part],
                                                  VELOCITY_SYSTEM_NAME,
                                                  no_fill,
                                                  data_time,
                                                  /*close_F*/ false,
                                                  /*close_X*/ false);
-        int ierr = VecAssemblyBegin(U_rhs_vecs[part]->vec());
+        int ierr = VecAssemblyBegin(d_U_rhs_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
     }
 
     // Solve for the interpolated data.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        int ierr = VecAssemblyEnd(U_rhs_vecs[part]->vec());
+        int ierr = VecAssemblyEnd(d_U_rhs_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
         d_fe_data_managers[part]->computeL2Projection(*U_vecs[part],
-                                                      *U_rhs_vecs[part],
+                                                      *d_U_rhs_vecs[part],
                                                       VELOCITY_SYSTEM_NAME,
                                                       d_interp_spec[part].use_consistent_mass_matrix,
                                                       /*close_U*/ true,
                                                       /*close_F*/ false);
-        delete U_rhs_vecs[part];
     }
 
     // Account for any velocity constraints.
@@ -1108,19 +1115,15 @@ IBFEMethod::computeLagrangianForce(const double data_time)
         {
             computeStressNormalization(*d_Phi_half_vecs[part], *d_X_half_vecs[part], data_time, part);
         }
-        // Zero-out force vector
         d_F_half_vecs[part]->zero();
         computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
         if (d_direct_forcing_kinematics_data[part])
         {
-            int ierr;
-            PetscVector<double>* F_half_df = static_cast<PetscVector<double>*>(
-                d_F_half_vecs[part]->zero_clone().release()); // WARNING: must be manually deleted
+            d_F_tmp_vecs[part]->zero();
             d_direct_forcing_kinematics_data[part]->computeLagrangianForce(
-                *F_half_df, *d_X_half_vecs[part], *d_U_half_vecs[part], data_time);
-            ierr = VecAXPY(d_F_half_vecs[part]->vec(), 1.0, F_half_df->vec());
+                *d_F_tmp_vecs[part], *d_X_half_vecs[part], *d_U_half_vecs[part], data_time);
+            int ierr = VecAXPY(d_F_half_vecs[part]->vec(), 1.0, d_F_tmp_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
-            delete F_half_df;
         }
     }
     if (d_has_overlap_force_parts)
@@ -1139,7 +1142,7 @@ IBFEMethod::computeLagrangianForce(const double data_time)
                 copy_and_synch(*X_half_vec, *X_half_ghost_vecs[k], /*close_v_in*/ false);
             }
         }
-        std::vector<libMesh::PetscVector<double> *> vec_pointers;
+        std::vector<libMesh::PetscVector<double>*> vec_pointers;
         for (std::unique_ptr<libMesh::PetscVector<double>> &vec : X_half_ghost_vecs)
         {
             vec_pointers.push_back(vec.get());
@@ -1228,7 +1231,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
             *d_fe_data_managers[part]->getDofMapCache(SOURCE_SYSTEM_NAME);
         FEType Q_fe_type = Q_dof_map.variable_type(0);
         std::vector<unsigned int> Q_dof_indices;
-        System& X_system = equation_systems.get_system(COORDS_SYSTEM_NAME);
+        auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
@@ -1399,7 +1402,9 @@ IBFEMethod::initializeFEEquationSystems()
         }
         else
         {
-            auto& X_system = equation_systems.add_system<System>(COORDS_SYSTEM_NAME);
+            auto& X_system = equation_systems.add_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+            X_system.add_vector("new", /*projections*/ true, /*type*/ GHOSTED);
+            X_system.add_vector("half", /*projections*/ true, /*type*/ GHOSTED);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream os;
@@ -1407,7 +1412,7 @@ IBFEMethod::initializeFEEquationSystems()
                 X_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
-            auto& dX_system = equation_systems.add_system<System>(COORD_MAPPING_SYSTEM_NAME);
+            auto& dX_system = equation_systems.add_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream os;
@@ -1415,7 +1420,9 @@ IBFEMethod::initializeFEEquationSystems()
                 dX_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
-            auto& U_system = equation_systems.add_system<System>(VELOCITY_SYSTEM_NAME);
+            auto& U_system = equation_systems.add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
+            U_system.add_vector("new", /*projections*/ true, /*type*/ GHOSTED);
+            U_system.add_vector("half", /*projections*/ true, /*type*/ GHOSTED);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream os;
@@ -1423,7 +1430,8 @@ IBFEMethod::initializeFEEquationSystems()
                 U_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
-            auto& F_system = equation_systems.add_system<System>(FORCE_SYSTEM_NAME);
+            auto& F_system = equation_systems.add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+            X_system.add_vector("tmp", /*projections*/ false, /*type*/ PARALLEL);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream os;
@@ -1740,7 +1748,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     FEType Phi_fe_type = Phi_dof_map.variable_type(0);
     std::vector<int> Phi_vars(1, 0);
 
-    System& X_system = equation_systems.get_system(COORDS_SYSTEM_NAME);
+    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
     std::vector<int> X_vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) X_vars[d] = d;
 
@@ -1944,7 +1952,9 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     const unsigned int dim = mesh.mesh_dimension();
 
     // Setup global and elemental right-hand-side vectors.
-    std::unique_ptr<NumericVector<double> > G_rhs_vec = G_vec.zero_clone();
+    auto& G_system = equation_systems.get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+    NumericVector<double>* G_rhs_vec = G_system.rhs;
+    G_rhs_vec->zero();
     DenseVector<double> G_rhs_e[NDIM];
 
     // First handle the stress contributions.  These are handled separately because
@@ -1955,7 +1965,6 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         if (!d_PK1_stress_fcn_data[part][k].fcn) continue;
 
         // Extract the FE systems and DOF maps, and setup the FE object.
-        System& G_system = equation_systems.get_system(FORCE_SYSTEM_NAME);
         const DofMap& G_dof_map = G_system.get_dof_map();
         FEDataManager::SystemDofMapCache& G_dof_map_cache =
             *d_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
@@ -1965,7 +1974,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
             TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
         }
         std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
-        System& X_system = equation_systems.get_system(COORDS_SYSTEM_NAME);
+        auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
@@ -2135,7 +2144,6 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     // Now account for any additional force contributions.
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
-    System& G_system = equation_systems.get_system(FORCE_SYSTEM_NAME);
     const DofMap& G_dof_map = G_system.get_dof_map();
     FEDataManager::SystemDofMapCache& G_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
     FEType G_fe_type = G_dof_map.variable_type(0);
@@ -2144,8 +2152,8 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
     }
     std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
-    System& X_system = equation_systems.get_system(COORDS_SYSTEM_NAME);
-    System* Phi_system = Phi_vec ? &equation_systems.get_system(PHI_SYSTEM_NAME) : nullptr;
+    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+    System* Phi_system = Phi_vec ? &equation_systems.get_system<ExplicitSystem>(PHI_SYSTEM_NAME) : nullptr;
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
     std::vector<int> Phi_vars(1, 0);
@@ -2498,12 +2506,11 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
 {
     if (!d_has_overlap_force_parts) return;
 
-    std::vector<NumericVector<double>*> F_rhs_vec(d_num_parts);
     for (unsigned int k = 0; k < d_num_parts; ++k)
     {
         if (d_is_overlap_force_part[k])
         {
-            F_rhs_vec[k] = F_vec[k]->zero_clone().release(); // \todo fix this when we update to C++11
+            d_F_rhs_vecs[k]->zero();
         }
     }
     d_overlap_force_part_max_displacement.resize(d_num_parts);
@@ -2623,7 +2630,7 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     F_dof_map[k]->constrain_element_vector(F_rhs_e[k][d], F_dof_indices[k][d]);
-                    F_rhs_vec[k]->add_vector(F_rhs_e[k][d], F_dof_indices[k][d]);
+                    d_F_rhs_vecs[k]->add_vector(F_rhs_e[k][d], F_dof_indices[k][d]);
                 }
             }
         }
@@ -2642,19 +2649,9 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
     {
         if (d_is_overlap_force_part[k])
         {
-            std::unique_ptr<NumericVector<double> > F_tmp_vec = F_vec[k]->zero_clone();
             d_fe_data_managers[k]->computeL2Projection(
-                *F_tmp_vec, *F_rhs_vec[k], FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
-            F_vec[k]->add(*F_tmp_vec);
-        }
-    }
-
-    // Cleanup.
-    for (unsigned int k = 0; k < d_num_parts; ++k)
-    {
-        if (d_is_overlap_force_part[k])
-        {
-            delete F_rhs_vec[k];
+                *d_F_tmp_vecs[k], *d_F_rhs_vecs[k], FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
+            F_vec[k]->add(*d_F_tmp_vecs[k]);
         }
     }
     return;
@@ -2700,7 +2697,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     const unsigned int dim = mesh.mesh_dimension();
 
     // Extract the FE systems and DOF maps, and setup the FE object.
-    System& G_system = equation_systems.get_system(FORCE_SYSTEM_NAME);
+    auto& G_system = equation_systems.get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
     const DofMap& G_dof_map = G_system.get_dof_map();
     FEType G_fe_type = G_dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -2708,7 +2705,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
     }
     std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
-    System& X_system = equation_systems.get_system(COORDS_SYSTEM_NAME);
+    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
@@ -2960,7 +2957,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     TBOX_ASSERT(dim == NDIM);
 
     // Extract the FE systems and DOF maps, and setup the FE object.
-    System& G_system = equation_systems.get_system(FORCE_SYSTEM_NAME);
+    auto& G_system = equation_systems.get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
     DofMap& G_dof_map = G_system.get_dof_map();
     FEType G_fe_type = G_dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -2968,7 +2965,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
         TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
     }
     std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
-    System& X_system = equation_systems.get_system(COORDS_SYSTEM_NAME);
+    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
     DofMap& X_dof_map = X_system.get_dof_map();
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
@@ -3303,7 +3300,7 @@ IBFEMethod::initializeCoordinates(const unsigned int part)
 {
     EquationSystems& equation_systems = *d_fe_data_managers[part]->getEquationSystems();
     MeshBase& mesh = equation_systems.get_mesh();
-    System& X_system = equation_systems.get_system(COORDS_SYSTEM_NAME);
+    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>& X_coords = *X_system.solution;
     const bool identity_mapping = !d_coordinate_mapping_fcn_data[part].fcn;
@@ -3337,10 +3334,10 @@ IBFEMethod::updateCoordinateMapping(const unsigned int part)
 {
     EquationSystems& equation_systems = *d_fe_data_managers[part]->getEquationSystems();
     MeshBase& mesh = equation_systems.get_mesh();
-    System& X_system = equation_systems.get_system(COORDS_SYSTEM_NAME);
+    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>& X_coords = *X_system.solution;
-    System& dX_system = equation_systems.get_system(COORD_MAPPING_SYSTEM_NAME);
+    auto& dX_system = equation_systems.get_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
     const unsigned int dX_sys_num = dX_system.number();
     NumericVector<double>& dX_coords = *dX_system.solution;
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
@@ -3368,7 +3365,7 @@ IBFEMethod::initializeVelocity(const unsigned int part)
 {
     EquationSystems& equation_systems = *d_fe_data_managers[part]->getEquationSystems();
     MeshBase& mesh = equation_systems.get_mesh();
-    System& U_system = equation_systems.get_system(VELOCITY_SYSTEM_NAME);
+    auto& U_system = equation_systems.get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
     const unsigned int U_sys_num = U_system.number();
     NumericVector<double>& U_vec = *U_system.solution;
     VectorValue<double> U;
