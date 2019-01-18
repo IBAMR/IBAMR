@@ -986,15 +986,23 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                                  data_time,
                                                  /*close_F*/ false,
                                                  /*close_X*/ false);
+    }
+
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
         int ierr = VecAssemblyBegin(d_U_rhs_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
+    }
+
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        int ierr = VecAssemblyEnd(d_U_rhs_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
     }
 
     // Solve for the interpolated data.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        int ierr = VecAssemblyEnd(d_U_rhs_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
         d_fe_data_managers[part]->computeL2Projection(*U_vecs[part],
                                                       *d_U_rhs_vecs[part],
                                                       VELOCITY_SYSTEM_NAME,
