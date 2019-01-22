@@ -1362,10 +1362,32 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
         PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* Q_vec = d_Q_half_vecs[part];
         PetscVector<double>* Q_ghost_vec = d_Q_IB_ghost_vecs[part];
-        *X_ghost_vec = *X_vec;
-        *Q_ghost_vec = *Q_vec;
-        X_ghost_vec->close();
-        Q_ghost_vec->close();
+        int ierr;
+        ierr = VecCopy(X_vec->vec(), X_ghost_vec->vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(Q_vec->vec(), Q_ghost_vec->vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostUpdateBegin(X_ghost_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostUpdateBegin(Q_ghost_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
+        IBTK_CHKERRQ(ierr);
+    }
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        if (!d_lag_body_source_part[part]) continue;
+        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        PetscVector<double>* Q_ghost_vec = d_Q_IB_ghost_vecs[part];
+        int ierr;
+        ierr = VecGhostUpdateEnd(X_ghost_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostUpdateEnd(Q_ghost_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
+        IBTK_CHKERRQ(ierr);
+    }
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        if (!d_lag_body_source_part[part]) continue;
+        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        PetscVector<double>* Q_ghost_vec = d_Q_IB_ghost_vecs[part];
         d_fe_data_managers[part]->spread(q_data_idx,
                                          *Q_ghost_vec,
                                          *X_ghost_vec,
