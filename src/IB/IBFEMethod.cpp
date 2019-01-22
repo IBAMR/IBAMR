@@ -1109,8 +1109,19 @@ IBFEMethod::computeLagrangianForce(const double data_time)
         {
             computeStressNormalization(*d_Phi_half_vecs[part], *d_X_half_vecs[part], data_time, part);
         }
-        d_F_half_vecs[part]->zero();
-        computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
+        d_F_rhs_vecs[part]->zero();
+        assembleInteriorForceDensityRHS(
+            *d_F_rhs_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
+    }
+    batch_vec_assembly(d_F_rhs_vecs);
+    for (unsigned part = 0; part < d_num_parts; ++part)
+    {
+        d_fe_data_managers[part]->computeL2Projection(*d_F_half_vecs[part],
+                                                      *d_F_rhs_vecs[part],
+                                                      FORCE_SYSTEM_NAME,
+                                                      d_use_consistent_mass_matrix,
+                                                      /*close_U*/ false,
+                                                      /*close_F*/ false);
         if (d_direct_forcing_kinematics_data[part])
         {
             d_F_tmp_vecs[part]->zero();
@@ -1924,11 +1935,11 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
 }
 
 void
-IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
-                                        PetscVector<double>& X_vec,
-                                        PetscVector<double>* Phi_vec,
-                                        const double data_time,
-                                        const unsigned int part)
+IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
+                                            PetscVector<double>& X_vec,
+                                            PetscVector<double>* Phi_vec,
+                                            const double data_time,
+                                            const unsigned int part)
 {
     // Extract the mesh.
     EquationSystems& equation_systems = *d_fe_data_managers[part]->getEquationSystems();
@@ -1938,8 +1949,6 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
     // Setup global and elemental right-hand-side vectors.
     auto& G_system = equation_systems.get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
-    NumericVector<double>* G_rhs_vec = G_system.rhs;
-    G_rhs_vec->zero();
     DenseVector<double> G_rhs_e[NDIM];
 
     // First handle the stress contributions.  These are handled separately because
@@ -2121,7 +2130,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
             for (unsigned int i = 0; i < NDIM; ++i)
             {
                 G_dof_map.constrain_element_vector(G_rhs_e[i], G_dof_indices[i]);
-                G_rhs_vec->add_vector(G_rhs_e[i], G_dof_indices[i]);
+                G_rhs_vec.add_vector(G_rhs_e[i], G_dof_indices[i]);
             }
         }
     }
@@ -2362,25 +2371,11 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         for (unsigned int i = 0; i < NDIM; ++i)
         {
             G_dof_map.constrain_element_vector(G_rhs_e[i], G_dof_indices[i]);
-            G_rhs_vec->add_vector(G_rhs_e[i], G_dof_indices[i]);
+            G_rhs_vec.add_vector(G_rhs_e[i], G_dof_indices[i]);
         }
     }
-
-    // Solve for G.
-    auto G_rhs_petsc_vec = static_cast<PetscVector<double>*>(G_rhs_vec);
-    int ierr;
-    ierr = VecAssemblyBegin(G_rhs_petsc_vec->vec());
-    IBTK_CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(G_rhs_petsc_vec->vec());
-    IBTK_CHKERRQ(ierr);
-    d_fe_data_managers[part]->computeL2Projection(G_vec,
-                                                  *G_rhs_vec,
-                                                  FORCE_SYSTEM_NAME,
-                                                  d_use_consistent_mass_matrix,
-                                                  /*close G_vec*/ false,
-                                                  /*close G_rhs_vec*/ false);
     return;
-} // computeInteriorForceDensity
+} // assembleInteriorForceDensityRHS
 
 void
 IBFEMethod::resetOverlapNodalValues(const std::string& system_name, const std::vector<NumericVector<double>*>& F_vecs)
