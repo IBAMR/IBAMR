@@ -975,19 +975,8 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     }
     std::vector<Pointer<RefineSchedule<NDIM> > > no_fill(u_ghost_fill_scheds.size(), nullptr);
 
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        int ierr;
-        ierr = VecCopy(X_vecs[part]->vec(), d_X_IB_ghost_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGhostUpdateBegin(d_X_IB_ghost_vecs[part]->vec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-    }
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        int ierr = VecGhostUpdateEnd(d_X_IB_ghost_vecs[part]->vec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-    }
+    batch_vec_copy(X_vecs, d_X_IB_ghost_vecs);
+    batch_vec_ghost_update(d_X_IB_ghost_vecs, INSERT_VALUES, SCATTER_FORWARD);
 
     // Build the right-hand-sides to compute the interpolated data.
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -1001,16 +990,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                                  /*close_F*/ false,
                                                  /*close_X*/ false);
     }
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        int ierr = VecAssemblyBegin(d_U_rhs_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-    }
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        int ierr = VecAssemblyEnd(d_U_rhs_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-    }
+    batch_vec_assembly(d_U_rhs_vecs);
 
     // Solve for the interpolated data.
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -1122,16 +1102,7 @@ void
 IBFEMethod::computeLagrangianForce(const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
-    for (unsigned part = 0; part < d_num_parts; ++part)
-    {
-        int ierr = VecGhostUpdateBegin(d_X_half_vecs[part]->vec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-    }
-    for (unsigned part = 0; part < d_num_parts; ++part)
-    {
-        int ierr = VecGhostUpdateEnd(d_X_half_vecs[part]->vec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-    }
+    batch_vec_ghost_update(d_X_half_vecs, INSERT_VALUES, SCATTER_FORWARD);
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         if (d_is_stress_normalization_part[part])
@@ -1185,31 +1156,8 @@ IBFEMethod::spreadForce(const int f_data_idx,
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 
     // Communicate ghost data.
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        PetscVector<double>* X_vec = d_X_half_vecs[part];
-        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        PetscVector<double>* F_vec = d_F_half_vecs[part];
-        PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
-        int ierr;
-        ierr = VecCopy(X_vec->vec(), X_ghost_vec->vec());
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGhostUpdateBegin(X_ghost_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecCopy(F_vec->vec(), F_ghost_vec->vec());
-        ierr = VecGhostUpdateBegin(F_ghost_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-    }
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
-        int ierr;
-        ierr = VecGhostUpdateEnd(X_ghost_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGhostUpdateEnd(F_ghost_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-    }
+    batch_vec_copy({ d_X_half_vecs, d_F_half_vecs }, { d_X_IB_ghost_vecs, d_F_IB_ghost_vecs });
+    batch_vec_ghost_update({ d_X_IB_ghost_vecs, d_F_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
     // Spread interior force density values.
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -1355,42 +1303,14 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
                               const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    batch_vec_copy({ d_X_half_vecs, d_Q_half_vecs }, { d_X_IB_ghost_vecs, d_Q_IB_ghost_vecs });
+    batch_vec_ghost_update({ d_X_IB_ghost_vecs, d_Q_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         if (!d_lag_body_source_part[part]) continue;
-        PetscVector<double>* X_vec = d_X_half_vecs[part];
-        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        PetscVector<double>* Q_vec = d_Q_half_vecs[part];
-        PetscVector<double>* Q_ghost_vec = d_Q_IB_ghost_vecs[part];
-        int ierr;
-        ierr = VecCopy(X_vec->vec(), X_ghost_vec->vec());
-        IBTK_CHKERRQ(ierr);
-        ierr = VecCopy(Q_vec->vec(), Q_ghost_vec->vec());
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGhostUpdateBegin(X_ghost_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGhostUpdateBegin(Q_ghost_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-    }
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        if (!d_lag_body_source_part[part]) continue;
-        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        PetscVector<double>* Q_ghost_vec = d_Q_IB_ghost_vecs[part];
-        int ierr;
-        ierr = VecGhostUpdateEnd(X_ghost_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGhostUpdateEnd(Q_ghost_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-    }
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        if (!d_lag_body_source_part[part]) continue;
-        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        PetscVector<double>* Q_ghost_vec = d_Q_IB_ghost_vecs[part];
         d_fe_data_managers[part]->spread(q_data_idx,
-                                         *Q_ghost_vec,
-                                         *X_ghost_vec,
+                                         *d_Q_IB_ghost_vecs[part],
+                                         *d_X_IB_ghost_vecs[part],
                                          SOURCE_SYSTEM_NAME,
                                          q_phys_bdry_op,
                                          data_time,
