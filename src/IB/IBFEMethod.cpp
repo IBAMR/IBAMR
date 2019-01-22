@@ -983,13 +983,15 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         ierr = VecGhostUpdateBegin(d_X_IB_ghost_vecs[part]->vec(), INSERT_VALUES, SCATTER_FORWARD);
         IBTK_CHKERRQ(ierr);
     }
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        int ierr = VecGhostUpdateEnd(d_X_IB_ghost_vecs[part]->vec(), INSERT_VALUES, SCATTER_FORWARD);
+        IBTK_CHKERRQ(ierr);
+    }
 
     // Build the right-hand-sides to compute the interpolated data.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        int ierr;
-        ierr = VecGhostUpdateEnd(d_X_IB_ghost_vecs[part]->vec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
         d_fe_data_managers[part]->interpWeighted(u_data_idx,
                                                  *d_U_rhs_vecs[part],
                                                  *d_X_IB_ghost_vecs[part],
@@ -999,13 +1001,11 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                                  /*close_F*/ false,
                                                  /*close_X*/ false);
     }
-
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         int ierr = VecAssemblyBegin(d_U_rhs_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
     }
-
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         int ierr = VecAssemblyEnd(d_U_rhs_vecs[part]->vec());
@@ -1131,6 +1131,9 @@ IBFEMethod::computeLagrangianForce(const double data_time)
     {
         int ierr = VecGhostUpdateEnd(d_X_half_vecs[part]->vec(), INSERT_VALUES, SCATTER_FORWARD);
         IBTK_CHKERRQ(ierr);
+    }
+    for (unsigned part = 0; part < d_num_parts; ++part)
+    {
         if (d_is_stress_normalization_part[part])
         {
             computeStressNormalization(*d_Phi_half_vecs[part], *d_X_half_vecs[part], data_time, part);
@@ -1197,8 +1200,6 @@ IBFEMethod::spreadForce(const int f_data_idx,
         ierr = VecGhostUpdateBegin(F_ghost_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
         IBTK_CHKERRQ(ierr);
     }
-
-    // Spread interior force density values.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
@@ -1208,6 +1209,13 @@ IBFEMethod::spreadForce(const int f_data_idx,
         IBTK_CHKERRQ(ierr);
         ierr = VecGhostUpdateEnd(F_ghost_vec->vec(), INSERT_VALUES, SCATTER_FORWARD);
         IBTK_CHKERRQ(ierr);
+    }
+
+    // Spread interior force density values.
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         d_fe_data_managers[part]->spread(f_data_idx,
                                          *F_ghost_vec,
                                          *X_ghost_vec,
