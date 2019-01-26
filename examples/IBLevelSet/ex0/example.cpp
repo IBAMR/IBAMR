@@ -86,7 +86,7 @@
 #include "SetLSProperties.h"
 #include "TagLSRefinementCells.h"
 
-int coarsest_ln, finest_ln;
+int coarsest_ln, max_finest_ln;
 double dx, ds;
 
 // Struct to maintain the properties of the circular interface
@@ -121,13 +121,13 @@ reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*c
 
     // Set a large value away from the solid body.
     Pointer<PatchHierarchy<NDIM> > patch_hier = resetter->adv_diff_integrator->getPatchHierarchy();
-    const int finest_ln = patch_hier->getFinestLevelNumber();
+    const int hier_finest_ln = patch_hier->getFinestLevelNumber();
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int ls_solid_idx =
         var_db->mapVariableAndContextToIndex(resetter->ls_solid_var, resetter->adv_diff_integrator->getNewContext());
 
-    for (int ln = 0; ln <= finest_ln; ++ln)
+    for (int ln = 0; ln <= hier_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
@@ -171,7 +171,8 @@ reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*c
 void
 calculate_distance_analytically(Pointer<PatchHierarchy<NDIM> > patch_hierarchy, int E_idx)
 {
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    int hier_finest_ln = patch_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= hier_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -222,7 +223,8 @@ calculate_error_near_band(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     E_interface = 0.0;
     num_interface_pts = 0;
     volume_near_interface = 0.0;
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    int hier_finest_ln = patch_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= hier_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -271,7 +273,7 @@ generate_interp_mesh(const unsigned int& strct_num,
                      int& num_vertices,
                      std::vector<IBTK::Point>& vertex_posn)
 {
-    if (ln != finest_ln)
+    if (ln != max_finest_ln)
     {
         num_vertices = 0;
         vertex_posn.resize(num_vertices);
@@ -771,8 +773,8 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
             "IBRedundantInitializer", app_initializer->getComponentDatabase("IBRedundantInitializer"));
         std::vector<std::string> struct_list_vec(1, "InterpolationMesh");
         coarsest_ln = 0;
-        finest_ln = input_db->getInteger("MAX_LEVELS") - 1;
-        ib_initializer->setStructureNamesOnLevel(finest_ln, struct_list_vec);
+        max_finest_ln = input_db->getInteger("MAX_LEVELS") - 1;
+        ib_initializer->setStructureNamesOnLevel(max_finest_ln, struct_list_vec);
         ib_initializer->registerInitStructureFunction(generate_interp_mesh);
         ib_interpolant_method_ops->registerLInitStrategy(ib_initializer);
         ib_interpolant_method_ops->registerVariableAndHierarchyIntegrator(
@@ -820,13 +822,14 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         Pointer<VariableContext> main_ctx = var_db->getContext("Main");
         const int n_idx = var_db->registerVariableAndContext(n_var, main_ctx, no_width);
         const int d_idx = var_db->registerVariableAndContext(d_var, main_ctx, no_width);
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        int hier_finest_ln = patch_hierarchy->getFinestLevelNumber();
+        for (int ln = coarsest_ln; ln <= hier_finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(n_idx, 0.0);
             level->allocatePatchData(d_idx, 0.0);
         }
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, hier_finest_ln);
         hier_cc_data_ops.setToScalar(n_idx, 0.0);
         hier_cc_data_ops.setToScalar(d_idx, 5 * dx);
         visit_data_writer->registerPlotQuantity("num_elements", "SCALAR", n_idx);
@@ -855,14 +858,14 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         // Compute the error.
         Pointer<CellVariable<NDIM, double> > E_var = new CellVariable<NDIM, double>("E");
         const int E_idx = var_db->registerVariableAndContext(E_var, main_ctx);
-        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+        for (int ln = 0; ln <= hier_finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
             if (!level->checkAllocated(E_idx)) level->allocatePatchData(E_idx, time_integrator->getIntegratorTime());
         }
 
         Pointer<HierarchyMathOps> hier_math_ops =
-            new HierarchyMathOps("HierarchyMathOps", patch_hierarchy, coarsest_ln, finest_ln);
+            new HierarchyMathOps("HierarchyMathOps", patch_hierarchy, coarsest_ln, hier_finest_ln);
         const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
 
         double E_interface = 0.0;
