@@ -662,15 +662,15 @@ protected:
                                     unsigned int part);
 
     /*!
-     * \brief Compute the interior elastic density, possibly splitting off the
-     * normal component of the transmission force along the physical boundary of
-     * the Lagrangian structure.
+     * \brief Assemble the RHS for the interior elastic density, possibly
+     * splitting off the normal component of the transmission force along the
+     * physical boundary of the Lagrangian structure.
      */
-    void computeInteriorForceDensity(libMesh::PetscVector<double>& G_vec,
-                                     libMesh::PetscVector<double>& X_vec,
-                                     libMesh::PetscVector<double>* Phi_vec,
-                                     double data_time,
-                                     unsigned int part);
+    void assembleInteriorForceDensityRHS(libMesh::PetscVector<double>& G_rhs_vec,
+                                         libMesh::PetscVector<double>& X_vec,
+                                         libMesh::PetscVector<double>* Phi_vec,
+                                         double data_time,
+                                         unsigned int part);
 
     /*!
      * \brief Reset positions in overlap regions.

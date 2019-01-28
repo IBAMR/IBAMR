@@ -835,24 +835,24 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
 
         // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
         // U^{n+1/2} and U^{n+1} to equal U^{n}.
-        copy_and_synch(*d_X_systems[part]->solution, *d_X_current_vecs[part]);
+        *d_X_current_vecs[part] = *d_X_systems[part]->solution;
         *d_X_new_vecs[part] = *d_X_current_vecs[part];
         *d_X_half_vecs[part] = *d_X_current_vecs[part];
 
-        copy_and_synch(*d_U_systems[part]->solution, *d_U_current_vecs[part]);
+        *d_U_current_vecs[part] = *d_U_systems[part]->solution;
         *d_U_new_vecs[part] = *d_U_current_vecs[part];
         *d_U_half_vecs[part] = *d_U_current_vecs[part];
 
-        copy_and_synch(*d_F_systems[part]->solution, *d_F_half_vecs[part]);
+        *d_F_half_vecs[part] = *d_F_systems[part]->solution;
 
         if (d_lag_body_source_part[part])
         {
-            copy_and_synch(*d_Q_systems[part]->solution, *d_Q_half_vecs[part]);
+            *d_Q_half_vecs[part] = *d_Q_systems[part]->solution;
         }
 
         if (d_is_stress_normalization_part[part])
         {
-            copy_and_synch(*d_Phi_systems[part]->solution, *d_Phi_half_vecs[part]);
+            *d_Phi_half_vecs[part] = *d_Phi_systems[part]->solution;
         }
 
         if (d_direct_forcing_kinematics_data[part])
@@ -869,27 +869,29 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
 void
 IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
+    batch_vec_ghost_update(
+        { d_X_new_vecs, d_U_new_vecs, d_F_half_vecs, d_Q_half_vecs, d_Phi_half_vecs }, INSERT_VALUES, SCATTER_FORWARD);
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         // Reset time-dependent Lagrangian data.
-        copy_and_synch(*d_X_new_vecs[part], *d_X_systems[part]->solution);
+        *d_X_systems[part]->solution = *d_X_new_vecs[part];
         *d_X_systems[part]->current_local_solution = *d_X_new_vecs[part];
 
-        copy_and_synch(*d_U_new_vecs[part], *d_U_systems[part]->solution);
+        *d_U_systems[part]->solution = *d_U_new_vecs[part];
         *d_U_systems[part]->current_local_solution = *d_U_new_vecs[part];
 
-        copy_and_synch(*d_F_half_vecs[part], *d_F_systems[part]->solution);
+        *d_F_systems[part]->solution = *d_F_half_vecs[part];
         *d_F_systems[part]->current_local_solution = *d_F_half_vecs[part];
 
         if (d_lag_body_source_part[part])
         {
-            copy_and_synch(*d_Q_half_vecs[part], *d_Q_systems[part]->solution);
+            *d_Q_systems[part]->solution = *d_Q_half_vecs[part];
             *d_Q_systems[part]->current_local_solution = *d_Q_half_vecs[part];
         }
 
         if (d_is_stress_normalization_part[part])
         {
-            copy_and_synch(*d_Phi_half_vecs[part], *d_Phi_systems[part]->solution);
+            *d_Phi_systems[part]->solution = *d_Phi_half_vecs[part];
             *d_Phi_systems[part]->current_local_solution = *d_Phi_half_vecs[part];
         }
 
@@ -943,7 +945,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                 const double data_time)
 {
-    std::vector<NumericVector<double>*> U_vecs(d_num_parts), X_vecs(d_num_parts);
+    std::vector<PetscVector<double>*> U_vecs(d_num_parts), X_vecs(d_num_parts);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         if (MathUtilities<double>::equalEps(data_time, d_current_time))
@@ -970,10 +972,8 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     }
     std::vector<Pointer<RefineSchedule<NDIM> > > no_fill(u_ghost_fill_scheds.size(), nullptr);
 
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        copy_and_synch(*X_vecs[part], *d_X_IB_ghost_vecs[part], /*close_v_in*/ false);
-    }
+    batch_vec_copy(X_vecs, d_X_IB_ghost_vecs);
+    batch_vec_ghost_update(d_X_IB_ghost_vecs, INSERT_VALUES, SCATTER_FORWARD);
 
     // Build the right-hand-sides to compute the interpolated data.
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -987,28 +987,19 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                                  /*close_F*/ false,
                                                  /*close_X*/ false);
     }
-
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        int ierr = VecAssemblyBegin(d_U_rhs_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-    }
-
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        int ierr = VecAssemblyEnd(d_U_rhs_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-    }
+    batch_vec_assembly(d_U_rhs_vecs);
 
     // Solve for the interpolated data.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        d_fe_data_managers[part]->computeL2Projection(*U_vecs[part],
+        *d_U_systems[part]->solution = *U_vecs[part]; // TODO: Commenting out this line changes the solution slightly.
+        d_fe_data_managers[part]->computeL2Projection(*d_U_systems[part]->solution,
                                                       *d_U_rhs_vecs[part],
                                                       VELOCITY_SYSTEM_NAME,
                                                       d_interp_spec[part].use_consistent_mass_matrix,
-                                                      /*close_U*/ true,
+                                                      /*close_U*/ false,
                                                       /*close_F*/ false);
+        *U_vecs[part] = *d_U_systems[part]->solution;
     }
 
     // Account for any velocity constraints.
@@ -1031,9 +1022,6 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
-        d_X_new_vecs[part]->close();
-        d_X_half_vecs[part]->close();
-
         if (d_direct_forcing_kinematics_data[part])
         {
             d_direct_forcing_kinematics_data[part]->forwardEulerStep(
@@ -1062,8 +1050,6 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
-        d_X_new_vecs[part]->close();
-        d_X_half_vecs[part]->close();
         if (d_direct_forcing_kinematics_data[part])
         {
             d_direct_forcing_kinematics_data[part]->midpointStep(
@@ -1095,8 +1081,6 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
-        d_X_new_vecs[part]->close();
-        d_X_half_vecs[part]->close();
         if (d_direct_forcing_kinematics_data[part])
         {
             d_direct_forcing_kinematics_data[part]->trapezoidalStep(
@@ -1117,14 +1101,29 @@ void
 IBFEMethod::computeLagrangianForce(const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    batch_vec_ghost_update(d_X_half_vecs, INSERT_VALUES, SCATTER_FORWARD);
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         if (d_is_stress_normalization_part[part])
         {
             computeStressNormalization(*d_Phi_half_vecs[part], *d_X_half_vecs[part], data_time, part);
         }
-        d_F_half_vecs[part]->zero();
-        computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
+        d_F_rhs_vecs[part]->zero();
+        assembleInteriorForceDensityRHS(
+            *d_F_rhs_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
+    }
+    batch_vec_assembly(d_F_rhs_vecs);
+    for (unsigned part = 0; part < d_num_parts; ++part)
+    {
+        d_F_systems[part]->solution->zero(); // TODO: Commenting out this line changes the solution slightly but
+                                             // probably speeds up this solve slightly too.
+        d_fe_data_managers[part]->computeL2Projection(*d_F_systems[part]->solution,
+                                                      *d_F_rhs_vecs[part],
+                                                      FORCE_SYSTEM_NAME,
+                                                      d_use_consistent_mass_matrix,
+                                                      /*close_U*/ false,
+                                                      /*close_F*/ false);
+        *d_F_half_vecs[part] = *d_F_systems[part]->solution;
         if (d_direct_forcing_kinematics_data[part])
         {
             d_F_tmp_vecs[part]->zero();
@@ -1147,7 +1146,8 @@ IBFEMethod::computeLagrangianForce(const double data_time)
                 X_half_ghost_vecs[k] = std::unique_ptr<libMesh::PetscVector<double>>(
                     new libMesh::PetscVector<double>(
                     X_half_vec->comm(), X_half_vec->size(), X_half_vec->local_size(), ghost_idxs));
-                copy_and_synch(*X_half_vec, *X_half_ghost_vecs[k], /*close_v_in*/ false);
+                *X_half_ghost_vecs[k] = *X_half_vec;
+                X_half_ghost_vecs[k]->close();
             }
         }
         std::vector<libMesh::PetscVector<double>*> vec_pointers;
@@ -1169,15 +1169,8 @@ IBFEMethod::spreadForce(const int f_data_idx,
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 
     // Communicate ghost data.
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        PetscVector<double>* X_vec = d_X_half_vecs[part];
-        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        PetscVector<double>* F_vec = d_F_half_vecs[part];
-        PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
-        copy_and_synch(*X_vec, *X_ghost_vec, /*close_v_in*/ false);
-        copy_and_synch(*F_vec, *F_ghost_vec, /*close_v_in*/ false);
-    }
+    batch_vec_copy({ d_X_half_vecs, d_F_half_vecs }, { d_X_IB_ghost_vecs, d_F_IB_ghost_vecs });
+    batch_vec_ghost_update({ d_X_IB_ghost_vecs, d_F_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
     // Spread interior force density values.
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -1323,18 +1316,14 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
                               const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    batch_vec_copy({ d_X_half_vecs, d_Q_half_vecs }, { d_X_IB_ghost_vecs, d_Q_IB_ghost_vecs });
+    batch_vec_ghost_update({ d_X_IB_ghost_vecs, d_Q_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         if (!d_lag_body_source_part[part]) continue;
-        PetscVector<double>* X_vec = d_X_half_vecs[part];
-        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        PetscVector<double>* Q_vec = d_Q_half_vecs[part];
-        PetscVector<double>* Q_ghost_vec = d_Q_IB_ghost_vecs[part];
-        copy_and_synch(*X_vec, *X_ghost_vec, /*close_v_in*/ false);
-        copy_and_synch(*Q_vec, *Q_ghost_vec, /*close_v_in*/ false);
         d_fe_data_managers[part]->spread(q_data_idx,
-                                         *Q_ghost_vec,
-                                         *X_ghost_vec,
+                                         *d_Q_IB_ghost_vecs[part],
+                                         *d_X_IB_ghost_vecs[part],
                                          SOURCE_SYSTEM_NAME,
                                          q_phys_bdry_op,
                                          data_time,
@@ -1941,17 +1930,18 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     // Solve for Phi.
     Phi_rhs_vec->close();
     Phi_system.solve();
-    Phi_dof_map.enforce_constraints_exactly(Phi_system, &Phi_vec);
-    copy_and_synch(*Phi_system.solution, Phi_vec, /*close_v_in*/ false);
+    Phi_dof_map.enforce_constraints_exactly(Phi_system, Phi_system.solution.get());
+    Phi_vec = *Phi_system.solution;
+    Phi_vec.close();
     return;
 }
 
 void
-IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
-                                        PetscVector<double>& X_vec,
-                                        PetscVector<double>* Phi_vec,
-                                        const double data_time,
-                                        const unsigned int part)
+IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
+                                            PetscVector<double>& X_vec,
+                                            PetscVector<double>* Phi_vec,
+                                            const double data_time,
+                                            const unsigned int part)
 {
     // Extract the mesh.
     EquationSystems& equation_systems = *d_fe_data_managers[part]->getEquationSystems();
@@ -1961,8 +1951,6 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
     // Setup global and elemental right-hand-side vectors.
     auto& G_system = equation_systems.get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
-    NumericVector<double>* G_rhs_vec = G_system.rhs;
-    G_rhs_vec->zero();
     DenseVector<double> G_rhs_e[NDIM];
 
     // First handle the stress contributions.  These are handled separately because
@@ -2144,7 +2132,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
             for (unsigned int i = 0; i < NDIM; ++i)
             {
                 G_dof_map.constrain_element_vector(G_rhs_e[i], G_dof_indices[i]);
-                G_rhs_vec->add_vector(G_rhs_e[i], G_dof_indices[i]);
+                G_rhs_vec.add_vector(G_rhs_e[i], G_dof_indices[i]);
             }
         }
     }
@@ -2385,14 +2373,11 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         for (unsigned int i = 0; i < NDIM; ++i)
         {
             G_dof_map.constrain_element_vector(G_rhs_e[i], G_dof_indices[i]);
-            G_rhs_vec->add_vector(G_rhs_e[i], G_dof_indices[i]);
+            G_rhs_vec.add_vector(G_rhs_e[i], G_dof_indices[i]);
         }
     }
-
-    // Solve for G.
-    d_fe_data_managers[part]->computeL2Projection(G_vec, *G_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
     return;
-} // computeInteriorForceDensity
+} // assembleInteriorForceDensityRHS
 
 void
 IBFEMethod::resetOverlapNodalValues(const std::string& system_name, const std::vector<NumericVector<double>*>& F_vecs)

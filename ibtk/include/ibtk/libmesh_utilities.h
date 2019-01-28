@@ -169,6 +169,118 @@ copy_and_synch(libMesh::NumericVector<double>& v_in,
     if (close_v_out) v_out.close();
 }
 
+inline void
+batch_vec_copy(const std::vector<libMesh::PetscVector<double>*>& x_vecs,
+               const std::vector<libMesh::PetscVector<double>*>& y_vecs)
+{
+#if defined(NDEBUG)
+    TBOX_ASSERT(x_vecs.size() == y_vecs.size());
+#endif
+    for (unsigned int k = 0; k < x_vecs.size(); ++k)
+    {
+        if (!x_vecs[k] || !y_vecs[k]) continue;
+        int ierr = VecCopy(x_vecs[k]->vec(), y_vecs[k]->vec());
+        IBTK_CHKERRQ(ierr);
+    }
+}
+
+inline void
+batch_vec_copy(const std::vector<std::vector<libMesh::PetscVector<double>*> >& x_vecs,
+               const std::vector<std::vector<libMesh::PetscVector<double>*> >& y_vecs)
+{
+#if defined(NDEBUG)
+    TBOX_ASSERT(x_vecs.size() == y_vecs.size());
+#endif
+    for (unsigned int n = 0; n < x_vecs.size(); ++n)
+    {
+        batch_vec_copy(x_vecs[n], y_vecs[n]);
+    }
+}
+
+inline void
+batch_vec_assembly(const std::vector<libMesh::PetscVector<double>*>& vecs)
+{
+    for (const auto& v : vecs)
+    {
+        if (!v) continue;
+        int ierr = VecAssemblyBegin(v->vec());
+        IBTK_CHKERRQ(ierr);
+    }
+    for (const auto& v : vecs)
+    {
+        if (!v) continue;
+        int ierr = VecAssemblyEnd(v->vec());
+        IBTK_CHKERRQ(ierr);
+    }
+}
+
+inline void
+batch_vec_assembly(const std::vector<std::vector<libMesh::PetscVector<double>*> >& vecs)
+{
+    for (unsigned int n = 0; n < vecs.size(); ++n)
+    {
+        for (const auto& v : vecs[n])
+        {
+            if (!v) continue;
+            int ierr = VecAssemblyBegin(v->vec());
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+    for (unsigned int n = 0; n < vecs.size(); ++n)
+    {
+        for (const auto& v : vecs[n])
+        {
+            if (!v) continue;
+            int ierr = VecAssemblyEnd(v->vec());
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+}
+
+inline void
+batch_vec_ghost_update(const std::vector<libMesh::PetscVector<double>*>& vecs,
+                       const InsertMode insert_mode,
+                       const ScatterMode scatter_mode)
+{
+    for (const auto& v : vecs)
+    {
+        if (!v) continue;
+        int ierr = VecGhostUpdateBegin(v->vec(), insert_mode, scatter_mode);
+        IBTK_CHKERRQ(ierr);
+    }
+    for (const auto& v : vecs)
+    {
+        if (!v) continue;
+        int ierr = VecGhostUpdateEnd(v->vec(), insert_mode, scatter_mode);
+        IBTK_CHKERRQ(ierr);
+    }
+}
+
+inline void
+batch_vec_ghost_update(const std::vector<std::vector<libMesh::PetscVector<double>*> >& vecs,
+                       const InsertMode insert_mode,
+                       const ScatterMode scatter_mode)
+{
+    for (unsigned int n = 0; n < vecs.size(); ++n)
+    {
+        for (const auto& v : vecs[n])
+        {
+            if (!v) continue;
+            int ierr = VecGhostUpdateBegin(v->vec(), insert_mode, scatter_mode);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+    for (unsigned int n = 0; n < vecs.size(); ++n)
+    {
+        for (const auto& v : vecs[n])
+        {
+            if (!v) continue;
+            int ierr = VecGhostUpdateEnd(v->vec(), insert_mode, scatter_mode);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+}
+
 template <class MultiArray, class Array>
 inline void
 get_values_for_interpolation(MultiArray& U_node,
