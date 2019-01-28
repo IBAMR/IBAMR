@@ -79,6 +79,7 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "boost/multi_array.hpp"
+#include "ibtk/FECache.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
@@ -1154,7 +1155,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
     const unsigned int dim = mesh.mesh_dimension();
     std::unique_ptr<QBase> qrule;
 
-    // Extract the FE systems and DOF maps, and setup the FE object.
+    // Extract the FE systems and DOF maps, and setup the FECache objects.
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
     const DofMap& F_dof_map = F_system.get_dof_map();
@@ -1178,16 +1179,9 @@ FEDataManager::interpWeighted(const int f_data_idx,
         TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
         TBOX_ASSERT(X_dof_map.variable_order(d) == X_order);
     }
-    std::unique_ptr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr;
-    if (F_fe_type != X_fe_type)
-    {
-        X_fe_autoptr = std::unique_ptr<FEBase>(FEBase::build(dim, X_fe_type));
-    }
-    FEBase* F_fe = F_fe_autoptr.get();
-    FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : F_fe_autoptr.get();
-    const std::vector<double>& JxW_F = F_fe->get_JxW();
-    const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
-    const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
+
+    FECache F_fe_cache(dim, F_fe_type);
+    FECache X_fe_cache(dim, X_fe_type);
 
     // Communicate any unsynchronized ghost data.
     for (const auto& f_refine_sched : f_refine_scheds)
@@ -1200,6 +1194,24 @@ FEDataManager::interpWeighted(const int f_data_idx,
     // Check to see if we are using nodal quadrature.
     const bool use_nodal_quadrature =
         interp_spec.use_nodal_quadrature && (F_fe_type == X_fe_type && F_order == X_order);
+
+    // We only use the FECache objects if we do *not* use nodal quadrature so
+    // only perform sanity checks in that case:
+    if (!use_nodal_quadrature)
+    {
+        // This will break, at some point in the future, if we ever use
+        // nonnodal-interpolating finite elements. TODO: more finite elements
+        // will probably work.
+        std::vector<FEFamily> fe_family_whitelist {LAGRANGE, L2_LAGRANGE};
+        TBOX_ASSERT(std::find(fe_family_whitelist.begin(),
+                              fe_family_whitelist.end(),
+                              F_fe_type.family)
+                    != fe_family_whitelist.end());
+        TBOX_ASSERT(std::find(fe_family_whitelist.begin(),
+                              fe_family_whitelist.end(),
+                              X_fe_type.family)
+                    != fe_family_whitelist.end());
+    }
 
     if (use_nodal_quadrature)
     {
@@ -1360,6 +1372,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
             // quadrature points.
             qrule.reset();
             unsigned int qp_offset = 0;
+            std::set<std::pair<libMesh::QuadratureType, libMesh::Order> > used_X_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
@@ -1368,20 +1381,33 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                const bool qrule_changed = updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
-                if (qrule_changed)
+                updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
+                const std::pair<libMesh::QuadratureType, libMesh::Order> key(
+                    qrule->type(), qrule->get_order());
+                FEBase &X_fe = X_fe_cache[key];
+
+                // libMesh::FE defaults to recalculating *everything* when we
+                // call reinit unless we first request things (see
+                // FEGenericBase<>::determine_calculations() for the
+                // reinitialization logic). This only works for Lagrange
+                // elements (and similar nodal value elements).
+                //
+                // Furthermore: we can skip calling reinit() completely as
+                // long as we have called it on this FE object at least once.
+                if (used_X_quadratures.find(key) == used_X_quadratures.end())
                 {
-                    // NOTE: Because we are only using the shape function values
-                    // for the FE object associated with X, we only need to
-                    // reinitialize X_fe whenever the quadrature rule changes.
-                    // In particular, notice that the shape function values
-                    // depend only on the element type and quadrature rule, not
-                    // on the element geometry.
-                    X_fe->attach_quadrature_rule(qrule.get());
-                    X_fe->reinit(elem);
+                    // get_phi changes the state of the object if called
+                    // before reinit
+                    X_fe.get_phi();
+                    X_fe.reinit(elem);
+                    used_X_quadratures.insert(key);
                 }
+
+                const std::vector<std::vector<double>>& phi_X = X_fe.get_phi();
+
                 const unsigned int n_node = elem->n_nodes();
                 const unsigned int n_qp = qrule->n_points();
+                TBOX_ASSERT(n_qp == phi_X[0].size());
                 double* X_begin = &X_qp[NDIM * qp_offset];
                 std::fill(X_begin, X_begin + NDIM * n_qp, 0.0);
                 for (unsigned int k = 0; k < n_node; ++k)
@@ -1421,6 +1447,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
             // Loop over the elements and accumulate the right-hand-side values.
             qrule.reset();
             qp_offset = 0;
+            std::set<std::pair<libMesh::QuadratureType, libMesh::Order> > used_F_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
@@ -1434,21 +1461,33 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                const bool qrule_changed = updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
-                if (qrule_changed)
+                // TODO: like above, we only really need to know the number of
+                // quadrature points: we do not need to rebuild the quadrature
+                // rule.
+                updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
+                const std::pair<libMesh::QuadratureType, libMesh::Order> key(
+                    qrule->type(), qrule->get_order());
+                FEBase &F_fe = F_fe_cache[key];
+
+                // Like above: conditionally initialize the FE object if it is
+                // new
+                if (used_F_quadratures.find(key) == used_F_quadratures.end())
                 {
-                    // NOTE: Because we are only using the shape function values
-                    // for the FE object associated with X, we only need to
-                    // reinitialize X_fe whenever the quadrature rule changes.
-                    // In particular, notice that the shape function values
-                    // depend only on the element type and quadrature rule, not
-                    // on the element geometry.
-                    F_fe->attach_quadrature_rule(qrule.get());
-                    X_fe->attach_quadrature_rule(qrule.get());
-                    if (X_fe != F_fe) X_fe->reinit(elem);
+                    // get_phi changes the state of the object if called
+                    // before reinit
+                    F_fe.get_phi();
+                    F_fe.get_JxW();
+                    used_F_quadratures.insert(key);
                 }
-                F_fe->reinit(elem);
+
+                // Unlike above, we always reinit here since we need JxW
+                F_fe.reinit(elem);
+                const std::vector<std::vector<double> >& phi_F = F_fe.get_phi();
+                const std::vector<double> &JxW_F = F_fe.get_JxW();
+
                 const unsigned int n_qp = qrule->n_points();
+                TBOX_ASSERT(n_qp == phi_F[0].size());
+                TBOX_ASSERT(n_qp == JxW_F.size());
                 const size_t n_basis = F_dof_indices[0].size();
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
