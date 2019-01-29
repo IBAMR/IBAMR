@@ -1,7 +1,7 @@
 // Filename: GravityForcing.cpp
 // Created on 13 Nov 2017 by Nishant Nangia
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2019, Amneet Bhalla and Nishant Nangia
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without

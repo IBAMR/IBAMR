@@ -1,6 +1,6 @@
 // Filename: main.cpp
 //
-// Copyright (c) 2002-2017, Amneet Bhalla and Nishant Nangia
+// Copyright (c) 2002-2019, Amneet Bhalla and Nishant Nangia
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
