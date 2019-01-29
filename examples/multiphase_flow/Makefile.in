@@ -500,7 +500,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = ex0 ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 ex9
+SUBDIRS = ex0 ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 ex9 ex10 ex11 ex12 ex13
 COMPLETE_EXAMPLES = $(SUBDIRS)
 INCOMPLETE_EXAMPLES = 
 all: all-recursive
@@ -839,6 +839,10 @@ gtest:
 	@(cd ex7 && make gtest) || exit 1;
 	@(cd ex8 && make gtest) || exit 1;
 	@(cd ex9 && make gtest) || exit 1;
+	@(cd ex10 && make gtest) || exit 1;
+	@(cd ex11 && make gtest) || exit 1;
+	@(cd ex12 && make gtest) || exit 1;
+	@(cd ex13 && make gtest) || exit 1;
 
 gtest-long:
 	@(cd ex0 && make gtest-long) || exit 1;
@@ -851,6 +855,10 @@ gtest-long:
 	@(cd ex7 && make gtest-long) || exit 1;
 	@(cd ex8 && make gtest-long) || exit 1;
 	@(cd ex9 && make gtest-long) || exit 1;
+	@(cd ex10 && make gtest-long) || exit 1;
+	@(cd ex11 && make gtest-long) || exit 1;
+	@(cd ex12 && make gtest-long) || exit 1;
+	@(cd ex13 && make gtest-long) || exit 1;
 
 gtest-all:
 	@(cd ex0 && make gtest-long) || exit 1;
@@ -863,6 +871,10 @@ gtest-all:
 	@(cd ex7 && make gtest-long) || exit 1;
 	@(cd ex8 && make gtest-long) || exit 1;
 	@(cd ex9 && make gtest-long) || exit 1;
+	@(cd ex10 && make gtest-long) || exit 1;
+	@(cd ex11 && make gtest-long) || exit 1;
+	@(cd ex12 && make gtest-long) || exit 1;
+	@(cd ex13 && make gtest-long) || exit 1;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
