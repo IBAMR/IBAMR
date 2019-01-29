@@ -1428,7 +1428,7 @@ IBFEMethod::initializeFEEquationSystems()
             }
 
             auto& F_system = equation_systems.add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
-            X_system.add_vector("tmp", /*projections*/ false, /*type*/ PARALLEL);
+            F_system.add_vector("tmp", /*projections*/ false, /*type*/ PARALLEL);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream os;
