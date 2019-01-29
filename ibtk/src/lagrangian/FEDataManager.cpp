@@ -80,6 +80,7 @@
 #include "VariableDatabase.h"
 #include "boost/multi_array.hpp"
 #include "ibtk/FECache.h"
+#include "ibtk/FEMapCache.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
@@ -1184,6 +1185,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
     using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
     FECache F_fe_cache(dim, F_fe_type);
     FECache X_fe_cache(dim, X_fe_type);
+    FEMapCache fe_map_cache(dim);
 
     // Communicate any unsynchronized ghost data.
     for (const auto& f_refine_sched : f_refine_scheds)
@@ -1468,22 +1470,22 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
                 const quad_key_type key(elem->type(), qrule->type(), qrule->get_order());
                 FEBase &F_fe = F_fe_cache[key];
+                FEMap &fe_map = fe_map_cache[key];
 
                 // Like above: conditionally initialize the FE object if it is
                 // new
                 if (used_F_quadratures.find(key) == used_F_quadratures.end())
                 {
-                    // get_phi changes the state of the object if called
-                    // before reinit
+                    // Same as above
                     F_fe.get_phi();
-                    F_fe.get_JxW();
+                    F_fe.reinit(elem);
                     used_F_quadratures.insert(key);
                 }
 
-                // Unlike above, we always reinit here since we need JxW
-                F_fe.reinit(elem);
+                // JxW depends on the element
+                fe_map.compute_map(dim, qrule->get_weights(), elem, /*second derivatives*/false);
+                const std::vector<double> &JxW_F = fe_map.get_JxW();
                 const std::vector<std::vector<double> >& phi_F = F_fe.get_phi();
-                const std::vector<double> &JxW_F = F_fe.get_JxW();
 
                 const unsigned int n_qp = qrule->n_points();
                 TBOX_ASSERT(n_qp == phi_F[0].size());
