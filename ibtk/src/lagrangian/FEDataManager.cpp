@@ -1180,6 +1180,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
         TBOX_ASSERT(X_dof_map.variable_order(d) == X_order);
     }
 
+    // convenience alias for the quadrature key type used by FECache and FEMapCache
+    using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
     FECache F_fe_cache(dim, F_fe_type);
     FECache X_fe_cache(dim, X_fe_type);
 
@@ -1372,7 +1374,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
             // quadrature points.
             qrule.reset();
             unsigned int qp_offset = 0;
-            std::set<std::pair<libMesh::QuadratureType, libMesh::Order> > used_X_quadratures;
+            std::set<quad_key_type> used_X_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
@@ -1382,8 +1384,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
-                const std::pair<libMesh::QuadratureType, libMesh::Order> key(
-                    qrule->type(), qrule->get_order());
+                const quad_key_type key(elem->type(), qrule->type(), qrule->get_order());
                 FEBase &X_fe = X_fe_cache[key];
 
                 // libMesh::FE defaults to recalculating *everything* when we
@@ -1447,7 +1448,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
             // Loop over the elements and accumulate the right-hand-side values.
             qrule.reset();
             qp_offset = 0;
-            std::set<std::pair<libMesh::QuadratureType, libMesh::Order> > used_F_quadratures;
+            std::set<quad_key_type> used_F_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
@@ -1465,8 +1466,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 // quadrature points: we do not need to rebuild the quadrature
                 // rule.
                 updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
-                const std::pair<libMesh::QuadratureType, libMesh::Order> key(
-                    qrule->type(), qrule->get_order());
+                const quad_key_type key(elem->type(), qrule->type(), qrule->get_order());
                 FEBase &F_fe = F_fe_cache[key];
 
                 // Like above: conditionally initialize the FE object if it is

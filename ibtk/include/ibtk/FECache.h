@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <libmesh/enum_elem_type.h>
 #include <libmesh/enum_order.h>
 #include <libmesh/enum_quadrature_type.h>
 #include <libmesh/fe.h>
@@ -39,7 +40,7 @@
 
 #include <map>
 #include <memory>
-#include <utility>
+#include <tuple>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -70,6 +71,18 @@ class FECache
 {
 public:
     /**
+     * Key type. Completely describes (excepting p-refinement) a libMesh
+     * quadrature rule.
+     */
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+
+    /**
+     * Type of values stored by this class that are accessible through
+     * <code>operator[]</code>.
+     */
+    using value_type = libMesh::FEBase;
+
+    /**
      * Constructor. Sets up a cache of FE objects calculating values for the
      * given FEType argument. All cached FE objects have the same FEType.
      *
@@ -84,11 +97,11 @@ public:
      * Return a reference to an FE object that matches the specified
      * quadrature rule type and order.
      *
-     * @param quad_key a pair of enums that completely describes
+     * @param quad_key a tuple of enums that completely describes
      * a libMesh quadrature rule.
      */
-    libMesh::FEBase &
-    operator[](const std::pair<libMesh::QuadratureType, libMesh::Order> &quad_key);
+    value_type &
+    operator[](const key_type &quad_key);
 
     /**
      * Return the FEType stored by the current FECache.
@@ -111,14 +124,12 @@ protected:
      * Managed libMesh::Quadrature objects. These are attached to the FE
      * objects.
      */
-    std::map<std::pair<libMesh::QuadratureType, libMesh::Order>,
-             std::unique_ptr<libMesh::QBase>> quadratures;
+    std::map<key_type, std::unique_ptr<libMesh::QBase>> quadratures;
 
     /**
      * Managed libMesh::FE objects of specified dimension and family.
      */
-    std::map<std::pair<libMesh::QuadratureType, libMesh::Order>,
-             std::unique_ptr<libMesh::FEBase>> fes;
+    std::map<key_type, std::unique_ptr<libMesh::FEBase>> fes;
 };
 
 inline
@@ -135,9 +146,13 @@ FECache::getFEType() const
 }
 
 inline
-libMesh::FEBase &
-FECache::operator[](const std::pair<libMesh::QuadratureType, libMesh::Order> &quad_key)
+FECache::value_type &
+FECache::operator[](const FECache::key_type &quad_key)
 {
+    const libMesh::ElemType elem_type = std::get<0>(quad_key);
+    const libMesh::QuadratureType quad_type = std::get<1>(quad_key);
+    const libMesh::Order order = std::get<2>(quad_key);
+
     auto it = fes.find(quad_key);
     if (it == fes.end())
     {
@@ -146,11 +161,15 @@ FECache::operator[](const std::pair<libMesh::QuadratureType, libMesh::Order> &qu
 #ifndef NDBEBUG
         TBOX_ASSERT(quadratures.find(quad_key) == quadratures.end());
 #endif // ifndef NDEBUG
-        std::unique_ptr<libMesh::QBase> &new_quad = (*quadratures.emplace(
-            quad_key, libMesh::QBase::build(quad_key.first, dim, quad_key.second)).first).second;
+        std::unique_ptr<libMesh::QBase> &new_quad = (
+            *quadratures.emplace(
+                quad_key, libMesh::QBase::build(quad_type, dim, order)).first).second;
+        new_quad->init(elem_type);
 
-        libMesh::FEBase &fe = *(*fes.emplace(quad_key,
-                                             libMesh::FEBase::build(dim, fe_type)).first).second;
+        libMesh::FEBase &fe = *(
+            *fes.emplace(
+                quad_key, libMesh::FEBase::build(dim, fe_type)).first).second;
+
         fe.attach_quadrature_rule(new_quad.get());
         return fe;
     }
@@ -159,8 +178,6 @@ FECache::operator[](const std::pair<libMesh::QuadratureType, libMesh::Order> &qu
         return *(it->second);
     }
 }
-
-
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
