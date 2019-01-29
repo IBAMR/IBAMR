@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = ex0 ex1 ex2 ex3 ex4 ex5 ex6
+SUBDIRS = ex0 ex1 ex2 ex3 ex4 ex5 ex6 ex7 ex8 ex9
 
 COMPLETE_EXAMPLES = $(SUBDIRS)
 INCOMPLETE_EXAMPLES =
@@ -18,6 +18,9 @@ gtest:
 	@(cd ex4 && make gtest) || exit 1;
 	@(cd ex5 && make gtest) || exit 1;
 	@(cd ex6 && make gtest) || exit 1;
+	@(cd ex7 && make gtest) || exit 1;
+	@(cd ex8 && make gtest) || exit 1;
+	@(cd ex9 && make gtest) || exit 1;
 
 gtest-long:
 	@(cd ex0 && make gtest-long) || exit 1;
@@ -27,6 +30,9 @@ gtest-long:
 	@(cd ex4 && make gtest-long) || exit 1;
 	@(cd ex5 && make gtest-long) || exit 1;
 	@(cd ex6 && make gtest-long) || exit 1;
+	@(cd ex7 && make gtest-long) || exit 1;
+	@(cd ex8 && make gtest-long) || exit 1;
+	@(cd ex9 && make gtest-long) || exit 1;
 
 gtest-all:
 	@(cd ex0 && make gtest-long) || exit 1;
@@ -36,3 +42,6 @@ gtest-all:
 	@(cd ex4 && make gtest-long) || exit 1;
 	@(cd ex5 && make gtest-long) || exit 1;
 	@(cd ex6 && make gtest-long) || exit 1;
+	@(cd ex7 && make gtest-long) || exit 1;
+	@(cd ex8 && make gtest-long) || exit 1;
+	@(cd ex9 && make gtest-long) || exit 1;
