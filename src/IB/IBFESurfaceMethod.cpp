@@ -538,7 +538,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
         const MeshBase& mesh = equation_systems->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
-        std::unique_ptr<QBase> qrule;
+        QBase* qrule;
 
         // Extract the FE systems and DOF maps, and setup the FE object.
         System& U_system = *d_U_systems[part];
@@ -631,7 +631,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             std::fill(U_qp.begin(), U_qp.end(), 0.0);
 
             // Loop over the elements and compute the positions of the quadrature points.
-            qrule.reset();
+            qrule = nullptr;
             unsigned int qp_offset = 0;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
@@ -643,7 +643,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                 get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const bool qrule_changed =
                     FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
-                if (qrule_changed) fe->attach_quadrature_rule(qrule.get());
+                if (qrule_changed) fe->attach_quadrature_rule(qrule);
                 fe->reinit(elem);
                 const unsigned int n_node = elem->n_nodes();
                 const unsigned int n_qp = qrule->n_points();
@@ -684,7 +684,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             }
 
             // Loop over the elements and accumulate the right-hand-side values.
-            qrule.reset();
+            qrule = nullptr;
             qp_offset = 0;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
@@ -701,7 +701,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                 get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const bool qrule_changed =
                     FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
-                if (qrule_changed) fe->attach_quadrature_rule(qrule.get());
+                if (qrule_changed) fe->attach_quadrature_rule(qrule);
                 fe->reinit(elem);
                 const unsigned int n_qp = qrule->n_points();
                 const size_t n_basis = U_dof_indices[0].size();

@@ -218,11 +218,12 @@ inline double
 get_elem_hmax(const Elem* const elem, const boost::multi_array<double, 2>& X_node)
 {
     double hmax_squared = 0.0;
+    const unsigned int n_vertices = elem->n_vertices();
     if (elem->dim() == 1)
     {
-        for (unsigned int n1 = 0; n1 < elem->n_vertices(); ++n1)
+        for (unsigned int n1 = 0; n1 < n_vertices; ++n1)
         {
-            for (unsigned int n2 = n1 + 1; n2 < elem->n_vertices(); ++n2)
+            for (unsigned int n2 = n1 + 1; n2 < n_vertices; ++n2)
             {
                 double diff_sq = 0.0;
                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -235,12 +236,13 @@ get_elem_hmax(const Elem* const elem, const boost::multi_array<double, 2>& X_nod
     }
     else
     {
-        for (unsigned int e = 0; e < elem->n_edges(); ++e)
+        const unsigned int n_edges = elem->n_edges();
+        for (unsigned int e = 0; e < n_edges; ++e)
         {
-            for (unsigned int n1 = 0; n1 < elem->n_vertices(); ++n1)
+            for (unsigned int n1 = 0; n1 < n_vertices; ++n1)
             {
                 if (!elem->is_node_on_edge(n1, e)) continue;
-                for (unsigned int n2 = n1 + 1; n2 < elem->n_vertices(); ++n2)
+                for (unsigned int n2 = n1 + 1; n2 < n_vertices; ++n2)
                 {
                     if (!elem->is_node_on_edge(n2, e)) continue;
                     double diff_sq = 0.0;
@@ -543,7 +545,7 @@ FEDataManager::spread(const int f_data_idx,
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    std::unique_ptr<QBase> qrule;
+    QBase* qrule;
 
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& F_system = d_es->get_system(system_name);
@@ -763,7 +765,7 @@ FEDataManager::spread(const int f_data_idx,
 
             // Loop over the elements and compute the values to be spread and
             // the positions of the quadrature points.
-            qrule.reset();
+            qrule = nullptr;
             unsigned int qp_offset = 0;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
@@ -787,8 +789,8 @@ FEDataManager::spread(const int f_data_idx,
                     // In particular, notice that the shape function values
                     // depend only on the element type and quadrature rule, not
                     // on the element geometry.
-                    F_fe->attach_quadrature_rule(qrule.get());
-                    X_fe->attach_quadrature_rule(qrule.get());
+                    F_fe->attach_quadrature_rule(qrule);
+                    X_fe->attach_quadrature_rule(qrule);
                     if (X_fe != F_fe) X_fe->reinit(elem);
                 }
                 F_fe->reinit(elem);
@@ -1153,7 +1155,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    std::unique_ptr<QBase> qrule;
+    QBase* qrule;
 
     // Extract the FE systems and DOF maps, and setup the FECache objects.
     System& F_system = d_es->get_system(system_name);
@@ -1370,7 +1372,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
 
             // Loop over the elements and compute the positions of the
             // quadrature points.
-            qrule.reset();
+            qrule = nullptr;
             unsigned int qp_offset = 0;
             std::set<std::pair<libMesh::QuadratureType, libMesh::Order> > used_X_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -1445,7 +1447,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
             }
 
             // Loop over the elements and accumulate the right-hand-side values.
-            qrule.reset();
+            qrule = nullptr;
             qp_offset = 0;
             std::set<std::pair<libMesh::QuadratureType, libMesh::Order> > used_F_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -2100,7 +2102,7 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
 } // computeL2Projection
 
 bool
-FEDataManager::updateQuadratureRule(std::unique_ptr<QBase>& qrule,
+FEDataManager::updateQuadratureRule(QBase*& qrule,
                                     QuadratureType type,
                                     Order order,
                                     bool use_adaptive_quadrature,
@@ -2111,7 +2113,6 @@ FEDataManager::updateQuadratureRule(std::unique_ptr<QBase>& qrule,
 {
     unsigned int elem_dim = elem->dim();
     const ElemType elem_type = elem->type();
-    const unsigned int elem_p_level = elem->p_level();
     if (use_adaptive_quadrature)
     {
         const double hmax = get_elem_hmax(elem, X_node);
@@ -2131,21 +2132,31 @@ FEDataManager::updateQuadratureRule(std::unique_ptr<QBase>& qrule,
                           "or QGRID\n");
         }
     }
-    bool qrule_updated = false;
-    if (!qrule || qrule->type() != type || qrule->get_dim() != elem_dim || qrule->get_order() != order ||
-        qrule->get_elem_type() != elem_type || qrule->get_p_level() != elem_p_level)
+    using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    const quad_key_type key(elem_type, type, order);
+    static std::map<quad_key_type, std::unique_ptr<QBase> > quad_cache;
+    QBase* new_qrule = nullptr;
+    auto it = quad_cache.find(key);
+    if (it == quad_cache.end())
     {
-        qrule =
-            (type == QGRID ? std::unique_ptr<QBase>(new QGrid(elem_dim, order)) : QBase::build(type, elem_dim, order));
-        // qrule->allow_rules_with_negative_weights = false;
-        qrule->init(elem_type, elem_p_level);
-        qrule_updated = true;
+        new_qrule = quad_cache
+                        .emplace(key,
+                                 type == QGRID ? std::unique_ptr<QBase>(new QGrid(elem_dim, order)) :
+                                                 QBase::build(type, elem_dim, order))
+                        .first->second.get();
+        new_qrule->init(elem_type);
     }
+    else
+    {
+        new_qrule = it->second.get();
+    }
+    const bool qrule_updated = (!qrule || qrule != new_qrule);
+    qrule = new_qrule;
     return qrule_updated;
 }
 
 bool
-FEDataManager::updateInterpQuadratureRule(std::unique_ptr<QBase>& qrule,
+FEDataManager::updateInterpQuadratureRule(QBase*& qrule,
                                           const FEDataManager::InterpSpec& spec,
                                           const Elem* const elem,
                                           const boost::multi_array<double, 2>& X_node,
@@ -2156,7 +2167,7 @@ FEDataManager::updateInterpQuadratureRule(std::unique_ptr<QBase>& qrule,
 }
 
 bool
-FEDataManager::updateSpreadQuadratureRule(std::unique_ptr<QBase>& qrule,
+FEDataManager::updateSpreadQuadratureRule(QBase*& qrule,
                                           const FEDataManager::SpreadSpec& spec,
                                           const Elem* const elem,
                                           const boost::multi_array<double, 2>& X_node,
@@ -2269,7 +2280,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         const MeshBase& mesh = d_es->get_mesh();
         const Parallel::Communicator& comm = mesh.comm();
         const unsigned int dim = mesh.mesh_dimension();
-        std::unique_ptr<QBase> qrule;
+        QBase* qrule;
 
         // Extract the FE system and DOF map, and setup the FE object.
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
@@ -2338,7 +2349,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
                     // shape function values, which depend only on the element
                     // type and quadrature rule.  In particular, they do not
                     // depend on the element geometry.
-                    fe->attach_quadrature_rule(qrule.get());
+                    fe->attach_quadrature_rule(qrule);
                     fe->reinit(elem);
                 }
                 for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
@@ -2486,7 +2497,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         // Extract the mesh.
         const MeshBase& mesh = d_es->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
-        std::unique_ptr<QBase> qrule;
+        QBase* qrule;
 
         // Extract the FE system and DOF map, and setup the FE object.
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
@@ -2549,7 +2560,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
                     // shape function values, which depend only on the element
                     // type and quadrature rule.  In particular, they do not
                     // depend on the element geometry.
-                    fe->attach_quadrature_rule(qrule.get());
+                    fe->attach_quadrature_rule(qrule);
                     fe->reinit(elem);
                 }
                 for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
@@ -2654,7 +2665,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     const MeshBase& mesh = d_es->get_mesh();
     const Parallel::Communicator& comm = mesh.comm();
     const unsigned int dim = mesh.mesh_dimension();
-    std::unique_ptr<QBase> qrule;
+    QBase* qrule;
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
@@ -2783,7 +2794,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
                     // shape function values, which depend only on the element
                     // type and quadrature rule.  In particular, they do not
                     // depend on the element geometry.
-                    fe->attach_quadrature_rule(qrule.get());
+                    fe->attach_quadrature_rule(qrule);
                     fe->reinit(elem);
                 }
                 bool found_qp = false;
