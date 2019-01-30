@@ -30,6 +30,9 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#ifndef included_IBTK_FEMapCache
+#define included_IBTK_FEMapCache
+
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <libmesh/elem.h>
@@ -196,3 +199,5 @@ FEMapCache::operator[](const FEMapCache::key_type &quad_key)
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
+
+#endif //#ifndef included_IBTK_FEMapCache

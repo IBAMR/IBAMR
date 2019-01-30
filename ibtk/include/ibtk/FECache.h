@@ -30,6 +30,9 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#ifndef included_IBTK_FECache
+#define included_IBTK_FECache
+
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <libmesh/enum_elem_type.h>
@@ -186,3 +189,5 @@ FECache::operator[](const FECache::key_type &quad_key)
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
+
+#endif //#ifndef included_IBTK_FECache
