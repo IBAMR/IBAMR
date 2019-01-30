@@ -1,5 +1,5 @@
-// Filename: FECache.h
-// Created on 25 Jan 2019 by David Wells
+// Filename: FEMapCache.h
+// Created on 29 Jan 2019 by David Wells
 //
 // Copyright (c) 2019, Boyce Griffith
 // All rights reserved.
@@ -32,10 +32,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <libmesh/elem.h>
 #include <libmesh/enum_elem_type.h>
 #include <libmesh/enum_order.h>
 #include <libmesh/enum_quadrature_type.h>
-#include <libmesh/fe.h>
+#include <libmesh/fe_map.h>
 #include <libmesh/quadrature.h>
 
 #include <map>
@@ -51,23 +52,27 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 /**
- * \brief Class storing multiple libMesh::FE objects, each corresponding to a
- * different quadrature rule. Each FE object is configured with a quadrature
- * rule corresponding to the provided <code>quad_key</code> parameter.
+ * \brief Class storing multiple libMesh::FEMap objects, each corresponding to
+ * a different quadrature rule. Each FEMap object is configured with a
+ * quadrature rule corresponding to the provided <code>quad_key</code>
+ * parameter.
  *
- * The Lagrangian-Eulerian interaction code uses different quadrature rules on
- * different Elems to account for the change in size, over time, of each
- * corresponding grid cell. Since libMesh::FE objects cache values that are
- * independent of the current cell (such as shape function values) but
- * *dependent* upon the quadrature rule, it is much more efficient to store
- * one FE object for each quadrature rule instead of constantly recomputing,
- * e.g., shape function values.
+ * In some cases we only need to recalculate the products of the Jacobians and
+ * quadrature weights, but not the shape function values: at the present time
+ * this is not possible to do in libMesh through the standard FEBase
+ * interface. Hence, in IBAMR, we cache the FE (which compute shape function
+ * values) and FEMap (which compute Jacobians) objects separately and only
+ * call <code>reinit</code> on the appropriate object when necessary.
  *
- * This class essentially provides a wrapper around std::map to manage FE
+ * This class essentially provides a wrapper around std::map to manage FEMap
  * objects and the quadrature rules they use. The keys are descriptions of
  * quadrature rules.
+ *
+ * @note At the present time the only values accessible through the FEMap
+ * objects stored by this class are the Jacobians and JxW values: no second
+ * derivative or physical quadrature point information is computed.
  */
-class FECache
+class FEMapCache
 {
 public:
     /**
@@ -80,34 +85,27 @@ public:
      * Type of values stored by this class that are accessible through
      * <code>operator[]</code>.
      */
-    using value_type = libMesh::FEBase;
+    using value_type = libMesh::FEMap;
 
     /**
      * Constructor. Sets up a cache of FE objects calculating values for the
      * given FEType argument. All cached FE objects have the same FEType.
      *
-     * @param dim The dimension of the FE object.
+     * @param dim The dimension of the relevant libMesh::Mesh.
      *
-     * @param fe_type The libMesh FEType object describing the relevant finite
-     * element.
+     * @param dim The dimension of the relevant libMesh::Mesh.
      */
-    FECache(const unsigned int dim, const libMesh::FEType &fe_type);
+    FEMapCache(const unsigned int dim);
 
     /**
-     * Return a reference to an FE object that matches the specified
+     * Return a reference to an FEMap object that matches the specified
      * quadrature rule type and order.
      *
      * @param quad_key a tuple of enums that completely describes
      * a libMesh quadrature rule.
      */
-    value_type &
+    libMesh::FEMap &
     operator[](const key_type &quad_key);
-
-    /**
-     * Return the FEType stored by the current FECache.
-     */
-    libMesh::FEType
-    getFEType() const;
 
 protected:
     /**
@@ -116,45 +114,32 @@ protected:
     const unsigned int dim;
 
     /**
-     * Object describing the finite element type.
-     */
-    const libMesh::FEType fe_type;
-
-    /**
      * Managed libMesh::Quadrature objects. These are attached to the FE
      * objects.
      */
     std::map<key_type, std::unique_ptr<libMesh::QBase>> quadratures;
 
     /**
-     * Managed libMesh::FE objects of specified dimension and family.
+     * Managed libMesh::FEMap objects of specified dimension and family.
      */
-    std::map<key_type, std::unique_ptr<libMesh::FEBase>> fes;
+    std::map<key_type, libMesh::FEMap> fe_maps;
 };
 
 inline
-FECache::FECache(const unsigned int dim, const libMesh::FEType &fe_type)
+FEMapCache::FEMapCache(const unsigned int dim)
     : dim(dim)
-    , fe_type(fe_type)
 {}
 
 inline
-libMesh::FEType
-FECache::getFEType() const
-{
-    return fe_type;
-}
-
-inline
-FECache::value_type &
-FECache::operator[](const FECache::key_type &quad_key)
+libMesh::FEMap &
+FEMapCache::operator[](const FEMapCache::key_type &quad_key)
 {
     const libMesh::ElemType elem_type = std::get<0>(quad_key);
     const libMesh::QuadratureType quad_type = std::get<1>(quad_key);
     const libMesh::Order order = std::get<2>(quad_key);
 
-    auto it = fes.find(quad_key);
-    if (it == fes.end())
+    auto it = fe_maps.find(quad_key);
+    if (it == fe_maps.end())
     {
         // we should also need a new Quadrature object unless something has
         // gone wrong
@@ -166,18 +151,43 @@ FECache::operator[](const FECache::key_type &quad_key)
                 quad_key, libMesh::QBase::build(quad_type, dim, order)).first).second;
         new_quad->init(elem_type);
 
-        libMesh::FEBase &fe = *(
-            *fes.emplace(
-                quad_key, libMesh::FEBase::build(dim, fe_type)).first).second;
+        libMesh::FEMap &fe_map = fe_maps[quad_key];
+        // Calling this function enables JxW calculations
+        fe_map.get_JxW();
 
-        fe.attach_quadrature_rule(new_quad.get());
-        return fe;
+        // Doing this may not work with future (1.4.0 or up) versions of
+        // libMesh. In particular; init_reference_to_physical_map is
+        // undocumented (and almost surely is not intended for use by anyone
+        // but libMesh developers) and *happens* to not read any geometric or
+        // topological information from the Elem argument (just the default
+        // order and type).
+        std::unique_ptr<libMesh::Elem> exemplar_elem(libMesh::Elem::build(elem_type));
+
+        // This is one of very few functions in libMesh that is templated on
+        // the dimension (not spatial dimension) of the mesh
+        switch (dim)
+        {
+        case 1:
+            fe_map.init_reference_to_physical_map<1>(new_quad->get_points(), exemplar_elem.get());
+            break;
+        case 2:
+            fe_map.init_reference_to_physical_map<2>(new_quad->get_points(), exemplar_elem.get());
+            break;
+        case 3:
+            fe_map.init_reference_to_physical_map<3>(new_quad->get_points(), exemplar_elem.get());
+            break;
+        default:
+            TBOX_ASSERT(false);
+        }
+        return fe_map;
     }
     else
     {
-        return *(it->second);
+        return it->second;
     }
 }
+
+
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
