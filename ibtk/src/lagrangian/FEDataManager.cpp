@@ -219,11 +219,12 @@ inline double
 get_elem_hmax(const Elem* const elem, const boost::multi_array<double, 2>& X_node)
 {
     double hmax_squared = 0.0;
+    const unsigned int n_vertices = elem->n_vertices();
     if (elem->dim() == 1)
     {
-        for (unsigned int n1 = 0; n1 < elem->n_vertices(); ++n1)
+        for (unsigned int n1 = 0; n1 < n_vertices; ++n1)
         {
-            for (unsigned int n2 = n1 + 1; n2 < elem->n_vertices(); ++n2)
+            for (unsigned int n2 = n1 + 1; n2 < n_vertices; ++n2)
             {
                 double diff_sq = 0.0;
                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -236,12 +237,13 @@ get_elem_hmax(const Elem* const elem, const boost::multi_array<double, 2>& X_nod
     }
     else
     {
-        for (unsigned int e = 0; e < elem->n_edges(); ++e)
+        const unsigned int n_edges = elem->n_edges();
+        for (unsigned int e = 0; e < n_edges; ++e)
         {
-            for (unsigned int n1 = 0; n1 < elem->n_vertices(); ++n1)
+            for (unsigned int n1 = 0; n1 < n_vertices; ++n1)
             {
                 if (!elem->is_node_on_edge(n1, e)) continue;
-                for (unsigned int n2 = n1 + 1; n2 < elem->n_vertices(); ++n2)
+                for (unsigned int n2 = n1 + 1; n2 < n_vertices; ++n2)
                 {
                     if (!elem->is_node_on_edge(n2, e)) continue;
                     double diff_sq = 0.0;
