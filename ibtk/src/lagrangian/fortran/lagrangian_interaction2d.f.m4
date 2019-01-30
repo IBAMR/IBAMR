@@ -280,8 +280,17 @@ c
 c     Interpolate u onto V.
 c
          do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic1 = ic_trimmed_lower(1),ic_trimmed_upper(1)
+c
+c     Avoid explicitly zeroing the data by doing one outer iteration:
+c
+            do ic1 = ic_trimmed_lower(1),ic_trimmed_lower(1)
+               do ic0 = ic_trimmed_lower(0),ic_trimmed_upper(0)
+                  V(d,s) = w(0,ic0-ic_lower(0))
+     &                 *w(1,ic1-ic_lower(1))
+     &                 *u(ic0,ic1,d)
+               enddo
+            enddo
+            do ic1 = ic_trimmed_lower(1)+1,ic_trimmed_upper(1)
                do ic0 = ic_trimmed_lower(0),ic_trimmed_upper(0)
                   V(d,s) = V(d,s)
      &                 +w(0,ic0-ic_lower(0))
@@ -521,8 +530,17 @@ c
 c     Interpolate u onto V.
 c
          do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic1 = ic_trimmed_lower(1),ic_trimmed_upper(1)
+c
+c     Avoid explicitly zeroing the data by doing one outer iteration:
+c
+            do ic1 = ic_trimmed_lower(1),ic_trimmed_lower(1)
+               do ic0 = ic_trimmed_lower(0),ic_trimmed_upper(0)
+                  V(d,s) = w(0,ic0-ic_lower(0))
+     &                 *w(1,ic1-ic_lower(1))
+     &                 *u(ic0,ic1,d)
+               enddo
+            enddo
+            do ic1 = ic_trimmed_lower(1)+1,ic_trimmed_upper(1)
                do ic0 = ic_trimmed_lower(0),ic_trimmed_upper(0)
                   V(d,s) = V(d,s)
      &                 +w(0,ic0-ic_lower(0))
@@ -765,8 +783,17 @@ c
 c     Interpolate u onto V.
 c
          do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic1 = ic_lower(1),ic_upper(1)
+c
+c     Avoid explicitly zeroing the data by doing one outer iteration:
+c
+            do ic1 = ic_lower(1),ic_lower(1)
+               do ic0 = ic_lower(0),ic_upper(0)
+                  V(d,s) = w0(ic0-ic_lower(0))
+     &                 *w1(ic1-ic_lower(1))
+     &                 *u(ic0,ic1,d)
+               enddo
+            enddo
+            do ic1 = ic_lower(1)+1,ic_upper(1)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -1014,8 +1041,17 @@ c
 c     Interpolate u onto V.
 c
          do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic1 = ic_lower(1),ic_upper(1)
+c
+c     Avoid explicitly zeroing the data by doing one outer iteration:
+c
+            do ic1 = ic_lower(1),ic_lower(1)
+               do ic0 = ic_lower(0),ic_upper(0)
+                  V(d,s) = w0(ic0-ic_lower(0))
+     &                 *w1(ic1-ic_lower(1))
+     &                 *u(ic0,ic1,d)
+               enddo
+            enddo
+            do ic1 = ic_lower(1)+1,ic_upper(1)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -1257,8 +1293,17 @@ c
          istart1 =   max(ig_lower(1)-ic_lower(1),0)
          istop1  = 3-max(ic_upper(1)-ig_upper(1),0)
          do d = 0,depth-1
-            V(d,s) = 0.d0
-            do i1 = istart1,istop1
+c
+c     Avoid explicitly zeroing the data by doing one outer iteration:
+c
+            do i1 = istart1,istart1
+               ic1 = ic_lower(1)+i1
+               do i0 = istart0,istop0
+                  ic0 = ic_lower(0)+i0
+                  V(d,s) = w(i0,i1)*u(ic0,ic1,d)
+               enddo
+            enddo
+            do i1 = istart1+1,istop1
                ic1 = ic_lower(1)+i1
                do i0 = istart0,istop0
                   ic0 = ic_lower(0)+i0
@@ -1511,8 +1556,17 @@ c
          istart1 =   max(ig_lower(1)-ic_lower(1),0)
          istop1  = 7-max(ic_upper(1)-ig_upper(1),0)
          do d = 0,depth-1
-            V(d,s) = 0.d0
-            do i1 = istart1,istop1
+c
+c     Avoid explicitly zeroing the data by doing one outer iteration:
+c
+            do i1 = istart1,istart1
+               ic1 = ic_lower(1)+i1
+               do i0 = istart0,istop0
+                  ic0 = ic_lower(0)+i0
+                  V(d,s) = w(i0,i1)*u(ic0,ic1,d)
+               enddo
+            enddo
+            do i1 = istart1+1,istop1
                ic1 = ic_lower(1)+i1
                do i0 = istart0,istop0
                   ic0 = ic_lower(0)+i0
@@ -1797,8 +1851,17 @@ c
 c     Interpolate u onto V.
 c
          do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic1 = ic_lower(1),ic_upper(1)
+c
+c     Avoid explicitly zeroing the data by doing one outer iteration:
+c
+            do ic1 = ic_lower(1),ic_lower(1)
+               do ic0 = ic_lower(0),ic_upper(0)
+                  V(d,s) = w0(ic0-ic_lower(0))
+     &                 *w1(ic1-ic_lower(1))
+     &                 *u(ic0,ic1,d)
+               enddo
+            enddo
+            do ic1 = ic_lower(1)+1,ic_upper(1)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -2118,8 +2181,17 @@ c
          istart1 =   max(ig_lower(1)-ic_lower(1),0)
          istop1  = 5-max(ic_upper(1)-ig_upper(1),0)
          do d = 0,depth-1
-            V(d,s) = 0.d0
-            do i1 = istart1,istop1
+c
+c     Avoid explicitly zeroing the data by doing one outer iteration:
+c
+            do i1 = istart1,istart1
+               ic1 = ic_lower(1)+i1
+               do i0 = istart0,istop0
+                  ic0 = ic_lower(0)+i0
+                  V(d,s) = w(i0,i1)*u(ic0,ic1,d)
+               enddo
+            enddo
+            do i1 = istart1+1,istop1
                ic1 = ic_lower(1)+i1
                do i0 = istart0,istop0
                   ic0 = ic_lower(0)+i0
@@ -2403,8 +2475,17 @@ c
 c     Interpolate u onto V.
 c
          do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic1 = ic_lower(1),ic_upper(1)
+c
+c     Avoid explicitly zeroing the data by doing one outer iteration:
+c
+            do ic1 = ic_lower(1),ic_lower(1)
+               do ic0 = ic_lower(0),ic_upper(0)
+                  V(d,s) = w0(ic0-ic_lower(0))
+     &                 *w1(ic1-ic_lower(1))
+     &                 *u(ic0,ic1,d)
+               enddo
+            enddo
+            do ic1 = ic_lower(1)+1,ic_upper(1)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -2652,8 +2733,17 @@ c
 c     Interpolate u onto V.
 c
          do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic1 = ic_lower(1),ic_upper(1)
+c
+c     Avoid explicitly zeroing the data by doing one outer iteration:
+c
+            do ic1 = ic_lower(1),ic_lower(1)
+               do ic0 = ic_lower(0),ic_upper(0)
+                  V(d,s) = w0(ic0-ic_lower(0))
+     &                 *w1(ic1-ic_lower(1))
+     &                 *u(ic0,ic1,d)
+               enddo
+            enddo
+            do ic1 = ic_lower(1)+1,ic_upper(1)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -2901,8 +2991,17 @@ c
 c     Interpolate u onto V.
 c
          do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic1 = ic_lower(1),ic_upper(1)
+c
+c     Avoid explicitly zeroing the data by doing one outer iteration:
+c
+            do ic1 = ic_lower(1),ic_lower(1)
+               do ic0 = ic_lower(0),ic_upper(0)
+                  V(d,s) = w0(ic0-ic_lower(0))
+     &                 *w1(ic1-ic_lower(1))
+     &                 *u(ic0,ic1,d)
+               enddo
+            enddo
+            do ic1 = ic_lower(1)+1,ic_upper(1)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -3150,8 +3249,17 @@ c
 c     Interpolate u onto V.
 c
          do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic1 = ic_lower(1),ic_upper(1)
+c
+c     Avoid explicitly zeroing the data by doing one outer iteration:
+c
+            do ic1 = ic_lower(1),ic_lower(1)
+               do ic0 = ic_lower(0),ic_upper(0)
+                  V(d,s) = w0(ic0-ic_lower(0))
+     &                 *w1(ic1-ic_lower(1))
+     &                 *u(ic0,ic1,d)
+               enddo
+            enddo
+            do ic1 = ic_lower(1)+1,ic_upper(1)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
