@@ -258,6 +258,48 @@ get_elem_hmax(const Elem* const elem, const boost::multi_array<double, 2>& X_nod
     }
     return std::sqrt(hmax_squared);
 } // get_elem_hmax
+
+/**
+ * Return the quadrature key description (see QuadratureCache, FECache, and
+ * FEMapCache) of a quadrature rule.
+ *
+ * @seealso FEDataManager::updateQuadratureRule.
+ */
+inline
+std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>
+getQuadratureKey(const QuadratureType quad_type,
+                 Order order,
+                 const bool use_adaptive_quadrature,
+                 const double point_density,
+                 const Elem* const elem,
+                 const boost::multi_array<double, 2>& X_node,
+                 const double dx_min)
+{
+    const ElemType elem_type = elem->type();
+    TBOX_ASSERT(elem->p_level() == 0); // higher levels are not implemented
+    if (use_adaptive_quadrature)
+    {
+        const double hmax = get_elem_hmax(elem, X_node);
+        const int min_pts = elem->default_order() == FIRST ? 2 : 3;
+        const int npts = std::max(min_pts,
+                                  int(std::ceil(point_density * hmax / dx_min)));
+        switch (quad_type)
+        {
+        case QGAUSS:
+            order = static_cast<Order>(std::min(2 * npts - 1, static_cast<int>(FORTYTHIRD)));
+            break;
+        case QGRID:
+            order = static_cast<Order>(npts);
+            break;
+        default:
+            TBOX_ERROR("IBTK::getQuadratureKey():\n"
+                       << "  adaptive quadrature rules are available only for quad_type = QGAUSS "
+                       "or QGRID\n");
+        }
+    }
+
+    return std::make_tuple(elem_type, quad_type, order);
+}
 }
 
 const short int FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID = 0x100;
@@ -1183,7 +1225,6 @@ FEDataManager::interpWeighted(const int f_data_idx,
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    std::unique_ptr<QBase> qrule;
 
     // Extract the FE systems and DOF maps, and setup the FECache objects.
     System& F_system = d_es->get_system(system_name);
@@ -1215,6 +1256,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
     FECache F_fe_cache(dim, F_fe_type);
     FECache X_fe_cache(dim, X_fe_type);
     FEMapCache fe_map_cache(dim);
+    QuadratureCache quad_cache(dim);
 
     // Communicate any unsynchronized ghost data.
     for (const auto& f_refine_sched : f_refine_scheds)
@@ -1393,8 +1435,15 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
-                n_qp_patch += qrule->n_points();
+                const quad_key_type key = getQuadratureKey(interp_spec.quad_type,
+                                                           interp_spec.quad_order,
+                                                           interp_spec.use_adaptive_quadrature,
+                                                           interp_spec.point_density,
+                                                           elem,
+                                                           X_node,
+                                                           patch_dx_min);
+                QBase &qrule = quad_cache[key];
+                n_qp_patch += qrule.n_points();
             }
             if (!n_qp_patch) continue;
             F_qp.resize(n_vars * n_qp_patch);
@@ -1403,7 +1452,6 @@ FEDataManager::interpWeighted(const int f_data_idx,
 
             // Loop over the elements and compute the positions of the
             // quadrature points.
-            qrule.reset();
             unsigned int qp_offset = 0;
             std::set<quad_key_type> used_X_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -1414,8 +1462,14 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
-                const quad_key_type key(elem->type(), qrule->type(), qrule->get_order());
+                const quad_key_type key = getQuadratureKey(interp_spec.quad_type,
+                                                           interp_spec.quad_order,
+                                                           interp_spec.use_adaptive_quadrature,
+                                                           interp_spec.point_density,
+                                                           elem,
+                                                           X_node,
+                                                           patch_dx_min);
+                QBase &qrule = quad_cache[key];
                 FEBase &X_fe = X_fe_cache[key];
 
                 // libMesh::FE defaults to recalculating *everything* when we
@@ -1438,7 +1492,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 const std::vector<std::vector<double>>& phi_X = X_fe.get_phi();
 
                 const unsigned int n_node = elem->n_nodes();
-                const unsigned int n_qp = qrule->n_points();
+                const unsigned int n_qp = qrule.n_points();
                 TBOX_ASSERT(n_qp == phi_X[0].size());
                 double* X_begin = &X_qp[NDIM * qp_offset];
                 std::fill(X_begin, X_begin + NDIM * n_qp, 0.0);
@@ -1477,7 +1531,6 @@ FEDataManager::interpWeighted(const int f_data_idx,
             }
 
             // Loop over the elements and accumulate the right-hand-side values.
-            qrule.reset();
             qp_offset = 0;
             std::set<quad_key_type> used_F_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -1493,13 +1546,16 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                // TODO: like above, we only really need to know the number of
-                // quadrature points: we do not need to rebuild the quadrature
-                // rule.
-                updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
-                const quad_key_type key(elem->type(), qrule->type(), qrule->get_order());
+                const quad_key_type key = getQuadratureKey(interp_spec.quad_type,
+                                                           interp_spec.quad_order,
+                                                           interp_spec.use_adaptive_quadrature,
+                                                           interp_spec.point_density,
+                                                           elem,
+                                                           X_node,
+                                                           patch_dx_min);
                 FEBase &F_fe = F_fe_cache[key];
                 FEMap &fe_map = fe_map_cache[key];
+                QBase &qrule = quad_cache[key];
 
                 // Like above: conditionally initialize the FE object if it is
                 // new
@@ -1512,11 +1568,11 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 }
 
                 // JxW depends on the element
-                fe_map.compute_map(dim, qrule->get_weights(), elem, /*second derivatives*/false);
+                fe_map.compute_map(dim, qrule.get_weights(), elem, /*second derivatives*/false);
                 const std::vector<double> &JxW_F = fe_map.get_JxW();
                 const std::vector<std::vector<double> >& phi_F = F_fe.get_phi();
 
-                const unsigned int n_qp = qrule->n_points();
+                const unsigned int n_qp = qrule.n_points();
                 TBOX_ASSERT(n_qp == phi_F[0].size());
                 TBOX_ASSERT(n_qp == JxW_F.size());
                 const size_t n_basis = F_dof_indices[0].size();
@@ -2141,28 +2197,13 @@ FEDataManager::updateQuadratureRule(std::unique_ptr<QBase>& qrule,
                                     const double dx_min)
 {
     unsigned int elem_dim = elem->dim();
-    const ElemType elem_type = elem->type();
     const unsigned int elem_p_level = elem->p_level();
-    if (use_adaptive_quadrature)
-    {
-        const double hmax = get_elem_hmax(elem, X_node);
-        const int min_pts = elem->default_order() == FIRST ? 2 : 3;
-        const int npts = std::max(min_pts, static_cast<int>(std::ceil(point_density * hmax / dx_min)));
-        switch (type)
-        {
-        case QGAUSS:
-            order = static_cast<Order>(std::min(2 * npts - 1, static_cast<int>(FORTYTHIRD)));
-            break;
-        case QGRID:
-            order = static_cast<Order>(npts);
-            break;
-        default:
-            TBOX_ERROR("FEDataManager::updateQuadratureRule():\n"
-                       << "  adaptive quadrature rules are available only for quad_type = QGAUSS "
-                          "or QGRID\n");
-        }
-    }
     bool qrule_updated = false;
+
+    ElemType elem_type;
+    std::tie(elem_type, type, order) = getQuadratureKey(type, order, use_adaptive_quadrature,
+                                                        point_density, elem, X_node, dx_min);
+
     if (!qrule || qrule->type() != type || qrule->get_dim() != elem_dim || qrule->get_order() != order ||
         qrule->get_elem_type() != elem_type || qrule->get_p_level() != elem_p_level)
     {
