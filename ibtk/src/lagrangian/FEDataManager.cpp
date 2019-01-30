@@ -588,7 +588,6 @@ FEDataManager::spread(const int f_data_idx,
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    std::unique_ptr<QBase> qrule;
 
     // Extract the FE systems and DOF maps, and setup the FECache objects.
     System& F_system = d_es->get_system(system_name);
@@ -620,6 +619,7 @@ FEDataManager::spread(const int f_data_idx,
     FECache F_fe_cache(dim, F_fe_type);
     FECache X_fe_cache(dim, X_fe_type);
     FEMapCache fe_map_cache(dim);
+    QuadratureCache quad_cache(dim);
 
     // Check to see if we are using nodal quadrature.
     const bool use_nodal_quadrature =
@@ -813,8 +813,15 @@ FEDataManager::spread(const int f_data_idx,
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                updateSpreadQuadratureRule(qrule, spread_spec, elem, X_node, patch_dx_min);
-                n_qp_patch += qrule->n_points();
+                const quad_key_type key = getQuadratureKey(spread_spec.quad_type,
+                                                           spread_spec.quad_order,
+                                                           spread_spec.use_adaptive_quadrature,
+                                                           spread_spec.point_density,
+                                                           elem,
+                                                           X_node,
+                                                           patch_dx_min);
+                QBase &qrule = quad_cache[key];
+                n_qp_patch += qrule.n_points();
             }
             if (!n_qp_patch) continue;
             F_JxW_qp.resize(n_vars * n_qp_patch);
@@ -822,7 +829,6 @@ FEDataManager::spread(const int f_data_idx,
 
             // Loop over the elements and compute the values to be spread and
             // the positions of the quadrature points.
-            qrule.reset();
             unsigned int qp_offset = 0;
             std::set<quad_key_type> used_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -838,11 +844,17 @@ FEDataManager::spread(const int f_data_idx,
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                updateSpreadQuadratureRule(qrule, spread_spec, elem, X_node, patch_dx_min);
-                const quad_key_type key(elem->type(), qrule->type(), qrule->get_order());
+                const quad_key_type key = getQuadratureKey(spread_spec.quad_type,
+                                                           spread_spec.quad_order,
+                                                           spread_spec.use_adaptive_quadrature,
+                                                           spread_spec.point_density,
+                                                           elem,
+                                                           X_node,
+                                                           patch_dx_min);
                 FEBase &X_fe = X_fe_cache[key];
                 FEBase &F_fe = F_fe_cache[key];
                 FEMap &fe_map = fe_map_cache[key];
+                QBase &qrule = quad_cache[key];
 
                 // See the note in interpWeighted to explain why we override
                 // libMesh's reinit logic here
@@ -856,12 +868,12 @@ FEDataManager::spread(const int f_data_idx,
                 }
 
                 // JxW depends on the element
-                fe_map.compute_map(dim, qrule->get_weights(), elem, /*second derivatives*/false);
+                fe_map.compute_map(dim, qrule.get_weights(), elem, /*second derivatives*/false);
                 const std::vector<double>& JxW_F = fe_map.get_JxW();
                 const std::vector<std::vector<double>>& phi_F = F_fe.get_phi();
                 const std::vector<std::vector<double>>& phi_X = X_fe.get_phi();
 
-                const unsigned int n_qp = qrule->n_points();
+                const unsigned int n_qp = qrule.n_points();
                 TBOX_ASSERT(n_qp == phi_F[0].size());
                 TBOX_ASSERT(n_qp == phi_X[0].size());
                 TBOX_ASSERT(n_qp == JxW_F.size());
