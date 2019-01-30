@@ -1,5 +1,5 @@
-// Filename: FECache.h
-// Created on 25 Jan 2019 by David Wells
+// Filename: QuadratureCache.h
+// Created on 30 Jan 2019 by David Wells
 //
 // Copyright (c) 2019, Boyce Griffith
 // All rights reserved.
@@ -30,22 +30,19 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBTK_FECache
-#define included_IBTK_FECache
+#ifndef included_IBTK_QuadratureCache
+#define included_IBTK_QuadratureCache
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <libmesh/enum_elem_type.h>
 #include <libmesh/enum_order.h>
 #include <libmesh/enum_quadrature_type.h>
-#include <libmesh/fe.h>
-
+#include <libmesh/quadrature.h>
 
 #include <map>
 #include <memory>
 #include <tuple>
-
-#include <ibtk/QuadratureCache.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -56,23 +53,16 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 /**
- * \brief Class storing multiple libMesh::FE objects, each corresponding to a
- * different quadrature rule. Each FE object is configured with a quadrature
- * rule corresponding to the provided <code>quad_key</code> parameter.
+ * \brief Class storing multiple libMesh quadrature objects. We assume that
+ * quadrature rules are uniquely determined by the element type, quadrature
+ * type, and approximation order. There are several places in IBTK where we
+ * make this assumption, e.g., we will use data from two quadrature rules
+ * assumed to be equal (by this metric) to initialize FEMap objects.
  *
- * The Lagrangian-Eulerian interaction code uses different quadrature rules on
- * different Elems to account for the change in size, over time, of each
- * corresponding grid cell. Since libMesh::FE objects cache values that are
- * independent of the current cell (such as shape function values) but
- * *dependent* upon the quadrature rule, it is much more efficient to store
- * one FE object for each quadrature rule instead of constantly recomputing,
- * e.g., shape function values.
- *
- * This class essentially provides a wrapper around std::map to manage FE
- * objects and the quadrature rules they use. The keys are descriptions of
- * quadrature rules.
+ * This class essentially provides a wrapper around std::map to manage
+ * libMesh::QBase (and classes inheriting from it) objects.
  */
-class FECache
+class QuadratureCache
 {
 public:
     /**
@@ -85,21 +75,17 @@ public:
      * Type of values stored by this class that are accessible through
      * <code>operator[]</code>.
      */
-    using value_type = libMesh::FEBase;
+    using value_type = libMesh::QBase;
 
     /**
-     * Constructor. Sets up a cache of FE objects calculating values for the
-     * given FEType argument. All cached FE objects have the same FEType.
+     * Constructor. Sets up a cache of Quadrature objects.
      *
-     * @param dim The dimension of the FE object.
-     *
-     * @param fe_type The libMesh FEType object describing the relevant finite
-     * element.
+     * @param dim The dimension of the Quadrature object.
      */
-    FECache(const unsigned int dim, const libMesh::FEType &fe_type);
+    QuadratureCache(const unsigned int dim);
 
     /**
-     * Return a reference to an FE object that matches the specified
+     * Return a reference to a Quadrature object that matches the specified
      * quadrature rule type and order.
      *
      * @param quad_key a tuple of enums that completely describes
@@ -108,12 +94,6 @@ public:
     value_type &
     operator[](const key_type &quad_key);
 
-    /**
-     * Return the FEType stored by the current FECache.
-     */
-    libMesh::FEType
-    getFEType() const;
-
 protected:
     /**
      * Dimension of the FE mesh.
@@ -121,50 +101,32 @@ protected:
     const unsigned int dim;
 
     /**
-     * Object describing the finite element type.
+     * Managed libMesh::Quadrature objects.
      */
-    const libMesh::FEType fe_type;
-
-    /**
-     * Managed libMesh::Quadrature objects. These are attached to the FE
-     * objects.
-     */
-    QuadratureCache quadrature_cache;
-
-    /**
-     * Managed libMesh::FE objects of specified dimension and family.
-     */
-    std::map<key_type, std::unique_ptr<libMesh::FEBase>> fes;
+    std::map<key_type, std::unique_ptr<libMesh::QBase>> quadratures;
 };
 
 inline
-FECache::FECache(const unsigned int dim, const libMesh::FEType &fe_type)
+QuadratureCache::QuadratureCache(const unsigned int dim)
     : dim(dim)
-    , fe_type(fe_type)
-    , quadrature_cache(dim)
 {}
 
 inline
-libMesh::FEType
-FECache::getFEType() const
+QuadratureCache::value_type &
+QuadratureCache::operator[](const QuadratureCache::key_type &quad_key)
 {
-    return fe_type;
-}
-
-inline
-FECache::value_type &
-FECache::operator[](const FECache::key_type &quad_key)
-{
-    auto it = fes.find(quad_key);
-    if (it == fes.end())
+    auto it = quadratures.find(quad_key);
+    if (it == quadratures.end())
     {
-        libMesh::QBase &quad = quadrature_cache[quad_key];
-        libMesh::FEBase &fe = *(
-            *fes.emplace(
-                quad_key, libMesh::FEBase::build(dim, fe_type)).first).second;
+        const libMesh::ElemType elem_type = std::get<0>(quad_key);
+        const libMesh::QuadratureType quad_type = std::get<1>(quad_key);
+        const libMesh::Order order = std::get<2>(quad_key);
 
-        fe.attach_quadrature_rule(&quad);
-        return fe;
+        libMesh::QBase &new_quad = *(
+            *quadratures.emplace(
+                quad_key, libMesh::QBase::build(quad_type, dim, order)).first).second;
+        new_quad.init(elem_type);
+        return new_quad;
     }
     else
     {
@@ -180,4 +142,4 @@ FECache::operator[](const FECache::key_type &quad_key)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_FECache
+#endif //#ifndef included_IBTK_QuadratureCache
