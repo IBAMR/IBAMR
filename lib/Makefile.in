@@ -315,6 +315,7 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	../src/utilities/ConvectiveOperator.cpp \
 	../src/wave_tank/StokesFirstOrderWaveBcCoef.cpp \
 	../src/wave_tank/StokesSecondOrderWaveBcCoef.cpp \
+	../src/wave_tank/WaveDampingStrategy.cpp \
 	../src/IB/CIBFEMethod.cpp \
 	../src/IB/IBFECentroidPostProcessor.cpp \
 	../src/IB/IBFEDirectForcingKinematics.cpp \
@@ -474,6 +475,7 @@ am__objects_3 = ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.$(O
 	../src/utilities/libIBAMR2d_a-ConvectiveOperator.$(OBJEXT) \
 	../src/wave_tank/libIBAMR2d_a-StokesFirstOrderWaveBcCoef.$(OBJEXT) \
 	../src/wave_tank/libIBAMR2d_a-StokesSecondOrderWaveBcCoef.$(OBJEXT) \
+	../src/wave_tank/libIBAMR2d_a-WaveDampingStrategy.$(OBJEXT) \
 	$(am__objects_2)
 am_libIBAMR2d_a_OBJECTS = $(am__objects_3) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.$(OBJEXT) \
@@ -611,6 +613,7 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	../src/utilities/ConvectiveOperator.cpp \
 	../src/wave_tank/StokesFirstOrderWaveBcCoef.cpp \
 	../src/wave_tank/StokesSecondOrderWaveBcCoef.cpp \
+	../src/wave_tank/WaveDampingStrategy.cpp \
 	../src/IB/CIBFEMethod.cpp \
 	../src/IB/IBFECentroidPostProcessor.cpp \
 	../src/IB/IBFEDirectForcingKinematics.cpp \
@@ -770,6 +773,7 @@ am__objects_5 = ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.$(O
 	../src/utilities/libIBAMR3d_a-ConvectiveOperator.$(OBJEXT) \
 	../src/wave_tank/libIBAMR3d_a-StokesFirstOrderWaveBcCoef.$(OBJEXT) \
 	../src/wave_tank/libIBAMR3d_a-StokesSecondOrderWaveBcCoef.$(OBJEXT) \
+	../src/wave_tank/libIBAMR3d_a-WaveDampingStrategy.$(OBJEXT) \
 	$(am__objects_4)
 am_libIBAMR3d_a_OBJECTS = $(am__objects_5) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.$(OBJEXT) \
@@ -1073,8 +1077,10 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigid
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po \
 	../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-StokesFirstOrderWaveBcCoef.Po \
 	../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-StokesSecondOrderWaveBcCoef.Po \
+	../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-WaveDampingStrategy.Po \
 	../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-StokesFirstOrderWaveBcCoef.Po \
-	../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-StokesSecondOrderWaveBcCoef.Po
+	../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-StokesSecondOrderWaveBcCoef.Po \
+	../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-WaveDampingStrategy.Po
 am__mv = mv -f
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -1258,6 +1264,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/VCStaggeredStokesOperator.h \
 	../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
 	../include/ibamr/Wall.h ../include/ibamr/WallForceEvaluator.h \
+	../include/ibamr/WaveDampingStrategy.h \
 	../include/ibamr/CIBFEMethod.h \
 	../include/ibamr/FESurfaceDistanceEvaluator.h \
 	../include/ibamr/IBFECentroidPostProcessor.h \
@@ -1713,7 +1720,7 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/VCStaggeredStokesOperator.h \
 	../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
 	../include/ibamr/Wall.h ../include/ibamr/WallForceEvaluator.h \
-	$(am__append_6)
+	../include/ibamr/WaveDampingStrategy.h $(am__append_6)
 DIM_INDEPENDENT_SOURCES =  \
 	../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 	../src/IB/BrinkmanPenalizationStrategy.cpp \
@@ -1831,7 +1838,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	../src/utilities/ConvectiveOperator.cpp \
 	../src/wave_tank/StokesFirstOrderWaveBcCoef.cpp \
 	../src/wave_tank/StokesSecondOrderWaveBcCoef.cpp \
-	$(am__append_5)
+	../src/wave_tank/WaveDampingStrategy.cpp $(am__append_5)
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
@@ -2309,6 +2316,9 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/wave_tank/libIBAMR2d_a-StokesSecondOrderWaveBcCoef.$(OBJEXT):  \
 	../src/wave_tank/$(am__dirstamp) \
 	../src/wave_tank/$(DEPDIR)/$(am__dirstamp)
+../src/wave_tank/libIBAMR2d_a-WaveDampingStrategy.$(OBJEXT):  \
+	../src/wave_tank/$(am__dirstamp) \
+	../src/wave_tank/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-CIBFEMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.$(OBJEXT):  \
@@ -2715,6 +2725,9 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/wave_tank/libIBAMR3d_a-StokesSecondOrderWaveBcCoef.$(OBJEXT):  \
 	../src/wave_tank/$(am__dirstamp) \
 	../src/wave_tank/$(DEPDIR)/$(am__dirstamp)
+../src/wave_tank/libIBAMR3d_a-WaveDampingStrategy.$(OBJEXT):  \
+	../src/wave_tank/$(am__dirstamp) \
+	../src/wave_tank/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-CIBFEMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.$(OBJEXT):  \
@@ -3078,8 +3091,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-StokesFirstOrderWaveBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-StokesSecondOrderWaveBcCoef.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-WaveDampingStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-StokesFirstOrderWaveBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-StokesSecondOrderWaveBcCoef.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-WaveDampingStrategy.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -4832,6 +4847,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_tank/StokesSecondOrderWaveBcCoef.cpp' object='../src/wave_tank/libIBAMR2d_a-StokesSecondOrderWaveBcCoef.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_tank/libIBAMR2d_a-StokesSecondOrderWaveBcCoef.obj `if test -f '../src/wave_tank/StokesSecondOrderWaveBcCoef.cpp'; then $(CYGPATH_W) '../src/wave_tank/StokesSecondOrderWaveBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_tank/StokesSecondOrderWaveBcCoef.cpp'; fi`
+
+../src/wave_tank/libIBAMR2d_a-WaveDampingStrategy.o: ../src/wave_tank/WaveDampingStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_tank/libIBAMR2d_a-WaveDampingStrategy.o -MD -MP -MF ../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-WaveDampingStrategy.Tpo -c -o ../src/wave_tank/libIBAMR2d_a-WaveDampingStrategy.o `test -f '../src/wave_tank/WaveDampingStrategy.cpp' || echo '$(srcdir)/'`../src/wave_tank/WaveDampingStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-WaveDampingStrategy.Tpo ../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-WaveDampingStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_tank/WaveDampingStrategy.cpp' object='../src/wave_tank/libIBAMR2d_a-WaveDampingStrategy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_tank/libIBAMR2d_a-WaveDampingStrategy.o `test -f '../src/wave_tank/WaveDampingStrategy.cpp' || echo '$(srcdir)/'`../src/wave_tank/WaveDampingStrategy.cpp
+
+../src/wave_tank/libIBAMR2d_a-WaveDampingStrategy.obj: ../src/wave_tank/WaveDampingStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_tank/libIBAMR2d_a-WaveDampingStrategy.obj -MD -MP -MF ../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-WaveDampingStrategy.Tpo -c -o ../src/wave_tank/libIBAMR2d_a-WaveDampingStrategy.obj `if test -f '../src/wave_tank/WaveDampingStrategy.cpp'; then $(CYGPATH_W) '../src/wave_tank/WaveDampingStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_tank/WaveDampingStrategy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-WaveDampingStrategy.Tpo ../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-WaveDampingStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_tank/WaveDampingStrategy.cpp' object='../src/wave_tank/libIBAMR2d_a-WaveDampingStrategy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_tank/libIBAMR2d_a-WaveDampingStrategy.obj `if test -f '../src/wave_tank/WaveDampingStrategy.cpp'; then $(CYGPATH_W) '../src/wave_tank/WaveDampingStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_tank/WaveDampingStrategy.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-CIBFEMethod.o: ../src/IB/CIBFEMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-CIBFEMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-CIBFEMethod.o `test -f '../src/IB/CIBFEMethod.cpp' || echo '$(srcdir)/'`../src/IB/CIBFEMethod.cpp
@@ -6723,6 +6752,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_tank/libIBAMR3d_a-StokesSecondOrderWaveBcCoef.obj `if test -f '../src/wave_tank/StokesSecondOrderWaveBcCoef.cpp'; then $(CYGPATH_W) '../src/wave_tank/StokesSecondOrderWaveBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_tank/StokesSecondOrderWaveBcCoef.cpp'; fi`
 
+../src/wave_tank/libIBAMR3d_a-WaveDampingStrategy.o: ../src/wave_tank/WaveDampingStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_tank/libIBAMR3d_a-WaveDampingStrategy.o -MD -MP -MF ../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-WaveDampingStrategy.Tpo -c -o ../src/wave_tank/libIBAMR3d_a-WaveDampingStrategy.o `test -f '../src/wave_tank/WaveDampingStrategy.cpp' || echo '$(srcdir)/'`../src/wave_tank/WaveDampingStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-WaveDampingStrategy.Tpo ../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-WaveDampingStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_tank/WaveDampingStrategy.cpp' object='../src/wave_tank/libIBAMR3d_a-WaveDampingStrategy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_tank/libIBAMR3d_a-WaveDampingStrategy.o `test -f '../src/wave_tank/WaveDampingStrategy.cpp' || echo '$(srcdir)/'`../src/wave_tank/WaveDampingStrategy.cpp
+
+../src/wave_tank/libIBAMR3d_a-WaveDampingStrategy.obj: ../src/wave_tank/WaveDampingStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_tank/libIBAMR3d_a-WaveDampingStrategy.obj -MD -MP -MF ../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-WaveDampingStrategy.Tpo -c -o ../src/wave_tank/libIBAMR3d_a-WaveDampingStrategy.obj `if test -f '../src/wave_tank/WaveDampingStrategy.cpp'; then $(CYGPATH_W) '../src/wave_tank/WaveDampingStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_tank/WaveDampingStrategy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-WaveDampingStrategy.Tpo ../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-WaveDampingStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_tank/WaveDampingStrategy.cpp' object='../src/wave_tank/libIBAMR3d_a-WaveDampingStrategy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_tank/libIBAMR3d_a-WaveDampingStrategy.obj `if test -f '../src/wave_tank/WaveDampingStrategy.cpp'; then $(CYGPATH_W) '../src/wave_tank/WaveDampingStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_tank/WaveDampingStrategy.cpp'; fi`
+
 ../src/IB/libIBAMR3d_a-CIBFEMethod.o: ../src/IB/CIBFEMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-CIBFEMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBFEMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-CIBFEMethod.o `test -f '../src/IB/CIBFEMethod.cpp' || echo '$(srcdir)/'`../src/IB/CIBFEMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBFEMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBFEMethod.Po
@@ -7348,8 +7391,10 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po
 	-rm -f ../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-StokesFirstOrderWaveBcCoef.Po
 	-rm -f ../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-StokesSecondOrderWaveBcCoef.Po
+	-rm -f ../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-WaveDampingStrategy.Po
 	-rm -f ../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-StokesFirstOrderWaveBcCoef.Po
 	-rm -f ../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-StokesSecondOrderWaveBcCoef.Po
+	-rm -f ../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-WaveDampingStrategy.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -7665,8 +7710,10 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po
 	-rm -f ../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-StokesFirstOrderWaveBcCoef.Po
 	-rm -f ../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-StokesSecondOrderWaveBcCoef.Po
+	-rm -f ../src/wave_tank/$(DEPDIR)/libIBAMR2d_a-WaveDampingStrategy.Po
 	-rm -f ../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-StokesFirstOrderWaveBcCoef.Po
 	-rm -f ../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-StokesSecondOrderWaveBcCoef.Po
+	-rm -f ../src/wave_tank/$(DEPDIR)/libIBAMR3d_a-WaveDampingStrategy.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

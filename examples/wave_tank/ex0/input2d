@@ -14,8 +14,12 @@ TIME_PERIOD =  1.5
 OMEGA       =  2*PI/TIME_PERIOD
 WAVELENGTH  =  2.8264
 WAVENUMBER  =  2.223
-X_UR        = L, DEPTH
-WAVE_TYPE   = "SECOND_ORDER_STOKES"
+WAVE_TYPE   = "FIRST_ORDER_STOKES"
+
+// Damping parameters
+X_ZONE_START = L - 1.0 * WAVELENGTH
+X_ZONE_END = L
+ALPHA = 2.0
 
 // material properties
 MU_I       = 1.137e-3
@@ -57,14 +61,6 @@ SIGMA = 0.0 //0.0728
 U = "0.0"
 V = "0.0"
 
-
-WaveDamper {
-  x_zone_start = L - 1 * WAVELENGTH
-  x_zone_end = L
-  depth = DEPTH
-  alpha = 2.0
-}
-
 ProbePoints {
   probe_0 = 0.065,0.505
   probe_1 = 3.165,0.505
@@ -98,6 +94,7 @@ VelocityBcCoefs_0 {
         gravitational_constant =  G
         wave_number            =  WAVENUMBER
         amplitude              =  AMPLITUDE
+        num_interface_cells    =  NUM_INTERFACE_CELLS
    }
 }
 
@@ -123,16 +120,11 @@ VelocityBcCoefs_1 {
         gravitational_constant =  G
         wave_number            =  WAVENUMBER
         amplitude              =  AMPLITUDE
+        num_interface_cells    =  NUM_INTERFACE_CELLS
     }
 }
 
 PhiBcCoefs {
-
-    D  =  DEPTH
-    W  =  OMEGA
-    K  =  WAVENUMBER
-    A  =  AMPLITUDE
-
    acoef_function_0 = "0.0"
    acoef_function_1 = "0.0"
    acoef_function_2 = "0.0"
@@ -150,10 +142,6 @@ PhiBcCoefs {
 }
 
 RhoBcCoefs {
-
-   rho_o = RHO_O
-   rho_i = RHO_I
-
    acoef_function_0 = "0.0"
    acoef_function_1 = "0.0"
    acoef_function_2 = "0.0"

@@ -1,7 +1,7 @@
 // Filename: StokesSecondOrderWaveBcCoef.cpp
 // Created on 1 Sep 2018 by Amneet Bhalla
 //
-// Copyright (c) 2002-2018, Amneet Bhalla
+// Copyright (c) 2002-2019, Amneet Bhalla and Nishant Nangia
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -117,11 +117,14 @@ StokesSecondOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
+    // Compute a representative grid spacing
+    double vol_cell = 1.0;
+    for (int d = 0; d < NDIM; ++d) vol_cell *= dx[d];
+    double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+
     // Get physical domain box extents on patch box level.
     const SAMRAI::hier::Box<NDIM> domain_box =
         SAMRAI::hier::Box<NDIM>::refine(d_grid_geom->getPhysicalDomain()[0], pgeom->getRatio());
-    const IntVector<NDIM>& domain_box_lower = domain_box.lower();
-    const double* const domain_x_lower = d_grid_geom->getXLower();
     const int dir = (NDIM == 2) ? 1 : (NDIM == 3) ? 2 : -1;
 
     // We take location index = 0, i.e., x_lower to be the wave inlet.
@@ -150,8 +153,6 @@ StokesSecondOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef
         {
             const Index<NDIM>& i = b();
             // const double phi = (*ls_data)(i,0);
-            const double dz = dx[dir];
-
             if (acoef_data) (*acoef_data)(i, 0) = 1.0;
             if (bcoef_data) (*bcoef_data)(i, 0) = 0.0;
 
@@ -166,21 +167,30 @@ StokesSecondOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef
                     dof_posn[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)));
                 }
             }
+
+            // Compute a numerical heaviside at the boundary from the analytical wave elevation
             const double theta = d_wave_number * dof_posn[0] - d_omega * fill_time;
             const double kd = d_wave_number * d_depth;
-            const double z_cell_surface =
-                (domain_x_lower[dir] + dz * (static_cast<double>(i(dir) - domain_box_lower(dir)) + 0.5)) - d_depth;
-            const double eta = d_amplitude * cos(theta);
-            const double vol_frac = (std::max(std::min(eta - z_cell_surface, dz / 2.0), -dz / 2.0) + dz / 2.0) / dz;
+            const double z_plus_d = dof_posn[dir];
+            const double eta = 0.5 * H * cos(theta) +
+                               H * H * d_wave_number / 16.0 * cosh(kd) * (2.0 + cosh(2.0 * kd)) /
+                                   std::pow(sinh(kd), 3.0) * cos(2.0 * theta);
+            const double phi = -eta + (z_plus_d - d_depth);
+            double h_phi;
+            if (phi < -alpha)
+                h_phi = 1.0;
+            else if (std::abs(phi) <= alpha)
+                h_phi = 1.0 - (0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha));
+            else
+                h_phi = 0.0;
 
             if (d_comp_idx == 0)
             {
                 if (gcoef_data)
                 {
-                    const double z_plus_d = z_cell_surface + d_depth;
-                    (*gcoef_data)(i, 0) =
-                        vol_frac * (fac1 * cosh(d_wave_number * (z_plus_d)) * cos(theta) / cosh(kd) +
-                                    fac2 * cosh(2.0 * kd * z_plus_d) * cos(2.0 * theta) / std::pow(sinh(kd), 4.0));
+                    (*gcoef_data)(i, 0) = h_phi * (fac1 * cosh(d_wave_number * (z_plus_d)) * cos(theta) / cosh(kd) +
+                                                   fac2 * cosh(2.0 * d_wave_number * z_plus_d) * cos(2.0 * theta) /
+                                                       std::pow(sinh(kd), 4.0));
                 }
             }
 
@@ -189,10 +199,9 @@ StokesSecondOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef
 #if (NDIM == 2)
                 if (gcoef_data)
                 {
-                    const double z_plus_d = z_cell_surface - dz / 2.0 + d_depth;
-                    (*gcoef_data)(i, 0) =
-                        vol_frac * (fac1 * sinh(d_wave_number * z_plus_d) * sin(theta) / cosh(kd) +
-                                    fac2 * sinh(2.0 * kd * z_plus_d) * sin(2.0 * theta) / std::pow(sinh(kd), 4.0));
+                    (*gcoef_data)(i, 0) = h_phi * (fac1 * sinh(d_wave_number * z_plus_d) * sin(theta) / cosh(kd) +
+                                                   fac2 * sinh(2.0 * d_wave_number * z_plus_d) * sin(2.0 * theta) /
+                                                       std::pow(sinh(kd), 4.0));
                 }
 #elif (NDIM == 3)
                 if (gcoef_data) (*gcoef_data)(i, 0) = 0.0;
@@ -204,10 +213,9 @@ StokesSecondOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef
             {
                 if (gcoef_data)
                 {
-                    const double z_plus_d = z_cell_surface - dz / 2.0 + d_depth;
-                    (*gcoef_data)(i, 0) =
-                        vol_frac * (fac1 * sinh(d_wave_number * z_plus_d) * sin(theta) / cosh(kd) +
-                                    fac2 * sinh(2.0 * kd * z_plus_d) * sin(2.0 * theta) / std::pow(sinh(kd), 4.0));
+                    (*gcoef_data)(i, 0) = h_phi * (fac1 * sinh(d_wave_number * z_plus_d) * sin(theta) / cosh(kd) +
+                                                   fac2 * sinh(2.0 * d_wave_number * z_plus_d) * sin(2.0 * theta) /
+                                                       std::pow(sinh(kd), 4.0));
                 }
             }
 #endif
@@ -238,6 +246,7 @@ StokesSecondOrderWaveBcCoef::getFromInput(Pointer<Database> input_db)
     d_gravity = wave_db->getDouble("gravitational_constant");
     d_wave_number = wave_db->getDouble("wave_number");
     d_amplitude = wave_db->getDouble("amplitude");
+    d_num_interface_cells = wave_db->getDouble("num_interface_cells");
 
     return;
 } // getFromInput

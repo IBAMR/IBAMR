@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2018, Amneet Bhalla
+// Copyright (c) 2002-2019, Amneet Bhalla and Nishant Nangia
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,7 @@
 #include <ibamr/StokesFirstOrderWaveBcCoef.h>
 #include <ibamr/StokesSecondOrderWaveBcCoef.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
+#include <ibamr/WaveDampingStrategy.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
@@ -63,7 +64,6 @@
 #include "SetFluidProperties.h"
 #include "SetLSProperties.h"
 #include "TagLSRefinementCells.h"
-#include "WaveDamper.h"
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
@@ -189,8 +189,6 @@ run_example(int argc, char* argv[])
         // Setup level set information
         ColumnInterface column;
         column.DEPTH = input_db->getDouble("DEPTH");
-        column.AMPLITUDE = 0.0;
-        column.WAVENUMBER = 0.0;
 
         const string& ls_name = "level_set";
         Pointer<CellVariable<NDIM, double> > phi_var = new CellVariable<NDIM, double>(ls_name);
@@ -325,13 +323,21 @@ run_example(int argc, char* argv[])
         // Create a damping zone near the channel outlet to absorb water waves via time-splitting approach.
         // This method uses a time splitting approach and modifies the fluid momentum in the
         // post processing step.
-        WaveDamper* ptr_WaveDamper = new WaveDamper("WaveDamper",
-                                                    time_integrator,
-                                                    adv_diff_integrator,
-                                                    phi_var,
-                                                    app_initializer->getComponentDatabase("WaveDamper"));
-        time_integrator->registerPostprocessIntegrateHierarchyCallback(&callWaveDamperCallbackFunction,
-                                                                       static_cast<void*>(ptr_WaveDamper));
+        // Register callback function for tagging refined cells for level set data
+        const double x_zone_start = input_db->getDouble("X_ZONE_START");
+        const double x_zone_end = input_db->getDouble("X_ZONE_END");
+        const double depth = input_db->getDouble("DEPTH");
+        const double alpha = input_db->getDouble("ALPHA");
+        WaveDampingStrategy wave_damper;
+        wave_damper.d_x_zone_start = x_zone_start;
+        wave_damper.d_x_zone_end = x_zone_end;
+        wave_damper.d_depth = depth;
+        wave_damper.d_alpha = alpha;
+        wave_damper.d_ins_hier_integrator = time_integrator;
+        wave_damper.d_adv_diff_hier_integrator = adv_diff_integrator;
+        wave_damper.d_phi_var = phi_var;
+        time_integrator->registerPostprocessIntegrateHierarchyCallback(&callRelaxationZoneCallbackFunction,
+                                                                       static_cast<void*>(&wave_damper));
 
         RobinBcCoefStrategy<NDIM>* phi_bc_coef = NULL;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
@@ -491,7 +497,7 @@ run_example(int argc, char* argv[])
             // Max reduction over ls_val array to ensure that only processor 0 prints
             VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
             int phi_idx = var_db->mapVariableAndContextToIndex(phi_var, adv_diff_integrator->getCurrentContext());
-            double ls_val[num_probes];
+            std::vector<double> ls_val(num_probes);
             for (int i = 0; i < num_probes; ++i)
             {
                 ls_val[i] = -std::numeric_limits<double>::max();
@@ -568,7 +574,6 @@ run_example(int argc, char* argv[])
         delete ptr_SetLSProperties;
         delete ptr_SetFluidProperties;
         delete ptr_LSLocateColumnInterface;
-        delete ptr_WaveDamper;
         for (int i = 0; i < num_probes; ++i) delete probe_streams[i];
 
     } // cleanup dynamically allocated objects prior to shutdown

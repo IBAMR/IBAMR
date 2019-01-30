@@ -2,24 +2,27 @@
 PI = 3.14159265358979e+0
 
 // application parameters
-L     = 6.0
-H     = 1.0
 G     = 9.81
 GRAV_CONST = 0.0,-G
 
-// WAVE PARAMETRS
-DEPTH       =  0.5
-AMPLITUDE   =  0.025/2.0
-TIME_PERIOD =  1.5
-OMEGA       =  2*PI/TIME_PERIOD
-WAVELENGTH  =  2.8264
-WAVENUMBER  =  2.223
-WAVE_TYPE   = "FIRST_ORDER_STOKES"
+// Wave Parameters
+DEPTH       =  0.4
+HEIGHT      =  0.1 * DEPTH
+AMPLITUDE   =  HEIGHT/2.0
+TIME_PERIOD =  9.8995/sqrt(G/DEPTH)
+WAVELENGTH  =  9.232 * DEPTH
+WAVENUMBER  =  2.0*PI/WAVELENGTH
+OMEGA       =  2.0*PI/TIME_PERIOD
+WAVE_TYPE   = "SECOND_ORDER_STOKES"
+
+// domain parameters
+L     = 68.0 * DEPTH
+H     = 1.3 * DEPTH
 
 // Damping parameters
-X_ZONE_START = L - 1.0 * WAVELENGTH
+X_ZONE_START = L - 10.0 * DEPTH
 X_ZONE_END = L
-ALPHA = 2.0
+ALPHA = 3.5
 
 // material properties
 MU_I       = 1.137e-3
@@ -30,40 +33,48 @@ RHO_O      = 1.226
 NUM_INTERFACE_CELLS = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 3        // maximum number of levels in locally refined grid
+MAX_LEVELS = 1        // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 
-Ny = 25
-Nx = 150                                   // coarsest grid spacing
+Ny = 528
+Nx = 1768                                   // coarsest grid spacing
 NXFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
 NYFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Ny  // finest   grid spacing
+Hx = L/NXFINEST
+Hy = H/NYFINEST
 
 
 // Level set parameters
 LS_ORDER           = "THIRD_ORDER_ENO"
 LS_ABS_TOL         = 1e-8
 LS_REINIT_INTERVAL = 1
-MAX_ITERATIONS     = NYFINEST/4
+MAX_ITERATIONS     = 40
 APPLY_SIGN_FIX     = TRUE
 APPLY_SUBCELL_FIX  = TRUE
 APPLY_VOLUME_SHIFT = FALSE
 APPLY_MASS_CONSTRAINT = FALSE
+// LS_REPLACEMENT_INTERVAL = 1
 
 LS_TAG_VALUE = 0.0
-LS_TAG_ABS_THRESH = 2*L/Nx
+LS_TAG_ABS_THRESH = 2.0*L/Nx
 VORTICITY_REL_THRESH = 0.5
 
 
 // surface tension parameters
 DELTA_FUNCTION = "IB_4"
-SIGMA = 0.0 //0.0728
+SIGMA = 0.0
 
 U = "0.0"
 V = "0.0"
+PHI_INIT = "X_1 - D"
 
 ProbePoints {
-  probe_0 = 0.065,0.505
-  probe_1 = 3.165,0.505
+  probe_0 = 26.5*DEPTH, DEPTH + 2.0*Hy
+  probe_1 = 26.5*DEPTH + 5.0*DEPTH, DEPTH + 2.0*Hy
+  probe_2 = 26.5*DEPTH + 7.5*DEPTH, DEPTH + 2.0*Hy
+  probe_3 = 26.5*DEPTH + 10.0*DEPTH, DEPTH + 2.0*Hy
+  probe_4 = 26.5*DEPTH + 13.0*DEPTH, DEPTH + 2.0*Hy
+  probe_5 = 26.5*DEPTH + 17.0*DEPTH, DEPTH + 2.0*Hy
 
 }
 
@@ -124,6 +135,11 @@ VelocityBcCoefs_1 {
     }
 }
 
+PhiInitialConditions {
+   D = DEPTH
+   function_0 = PHI_INIT
+}
+
 PhiBcCoefs {
    acoef_function_0 = "0.0"
    acoef_function_1 = "0.0"
@@ -142,6 +158,10 @@ PhiBcCoefs {
 }
 
 RhoBcCoefs {
+
+   rho_o = RHO_O
+   rho_i = RHO_I
+
    acoef_function_0 = "0.0"
    acoef_function_1 = "0.0"
    acoef_function_2 = "0.0"
@@ -180,10 +200,10 @@ MuBcCoefs {
 SOLVER_TYPE                         = "STAGGERED"
 DISCRETIZATION_FORM                 = "CONSERVATIVE"
 START_TIME                          =  0.0e0     // initial simulation time
-END_TIME                            =  400.0e0    // final simulation time
+END_TIME                            =  30.0e0    // final simulation time
 GROW_DT                             =  2.0e0     // growth factor for timesteps
-MAX_INTEGRATOR_STEPS                =  5  // max number of simulation timesteps
-REGRID_INTERVAL                     =  10
+MAX_INTEGRATOR_STEPS                =  200000000  // max number of simulation timesteps
+REGRID_INTERVAL                     =  1
 CFL_MAX                             =  0.5   
 NUM_INS_CYCLES                      =  2
 NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "CUI"
@@ -193,7 +213,8 @@ CONVECTIVE_TS_TYPE                  = "MIDPOINT_RULE"    // convective time step
 NORMALIZE_PRESSURE                  = FALSE
 VORTICITY_TAGGING                   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                          = 2                          // size of tag buffer used by grid generation algorithm
-DT_MAX                              = 0.01
+REGRID_CFL_INTERVAL                 = 0.3                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+DT_MAX                              = 0.001
 OUTPUT_U                            = TRUE
 OUTPUT_P                            = TRUE
 OUTPUT_F                            = TRUE
@@ -207,9 +228,8 @@ ERROR_ON_DT_CHANGE                  = FALSE
 
 // More solver parameters
 PRECOND_REINIT_INTERVAL = 1
-// OPERATOR_SCALE_FACTORS      = abs(1.0/(RHO_I/2.0 - MU_I/2.0*N*REF_RATIO^(MAX_LEVELS - 1)))
 OPERATOR_SCALE_FACTORS   = 1.0
-VC_INTERPOLATION_TYPE   = "VC_AVERAGE_INTERP"
+VC_INTERPOLATION_TYPE   = "VC_HARMONIC_INTERP"
 DENSITY_CONVECTIVE_LIMITER   = "CUI"
 VELOCITY_CONVECTIVE_LIMITER  = "CUI"
 DENSITY_TS                   = "SSPRK3"
@@ -236,7 +256,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
    using_vorticity_tagging    = VORTICITY_TAGGING
    vorticity_rel_thresh       = VORTICITY_REL_THRESH
    tag_buffer                 = TAG_BUFFER
-   regrid_interval            = REGRID_INTERVAL
+   regrid_cfl_interval        = REGRID_CFL_INTERVAL
    output_U                   = OUTPUT_U
    output_P                   = OUTPUT_P
    output_F                   = OUTPUT_F
@@ -260,7 +280,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
    velocity_solver_db {
       ksp_type = "richardson"
       max_iterations = 5
-      rel_residual_tol = 1.0e-16
+      rel_residual_tol = 1.0e-2
    }
    velocity_precond_db {
       num_pre_sweeps = 0
@@ -270,7 +290,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
       coarse_solver_type = "VC_VELOCITY_PETSC_LEVEL_SOLVER"
       coarse_solver_rel_residual_tol = 1.0e-12
       coarse_solver_abs_residual_tol = 1.0e-50
-      coarse_solver_max_iterations = NXFINEST/4
+      coarse_solver_max_iterations = 50
       coarse_solver_db {
          ksp_type = "gmres"
          pc_type = "jacobi"
@@ -282,7 +302,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
     {
       ksp_type = "richardson"
       max_iterations = 5
-      rel_residual_tol = 1.0e-16
+      rel_residual_tol = 1.0e-2
     }
 
     pressure_precond_db {
@@ -293,7 +313,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
       coarse_solver_type = "PETSC_LEVEL_SOLVER"
       coarse_solver_rel_residual_tol = 1.0e-12
       coarse_solver_abs_residual_tol = 1.0e-50
-      coarse_solver_max_iterations = NXFINEST/4
+      coarse_solver_max_iterations = 50
       coarse_solver_db {
          ksp_type = "gmres"
          pc_type = "jacobi"
@@ -319,90 +339,90 @@ INSVCStaggeredConservativeHierarchyIntegrator {
 }
 
 INSVCStaggeredNonConservativeHierarchyIntegrator {
-    start_time                 = START_TIME
-    end_time                   = END_TIME
-    grow_dt                    = GROW_DT
-    convective_op_type         = NON_CONSERVATIVE_CONVECTIVE_OP_TYPE
-    convective_difference_form = CONVECTIVE_FORM
-    normalize_pressure         = NORMALIZE_PRESSURE
-    init_convective_time_stepping_type = INIT_CONVECTIVE_TS_TYPE
-    convective_time_stepping_type = CONVECTIVE_TS_TYPE
-    cfl                        = CFL_MAX
-    dt_max                     = DT_MAX
-    using_vorticity_tagging    = VORTICITY_TAGGING
-    vorticity_rel_thresh       = VORTICITY_REL_THRESH
-    tag_buffer                 = TAG_BUFFER
-    regrid_interval            = REGRID_INTERVAL
-    output_U                   = OUTPUT_U
-    output_P                   = OUTPUT_P
-    output_F                   = OUTPUT_F
-    output_Omega               = OUTPUT_OMEGA
-    output_Div_U               = OUTPUT_DIV_U
-    output_rho                 = OUTPUT_RHO
-    output_mu                  = OUTPUT_MU
-    rho_is_const               = RHO_IS_CONST
-    mu_is_const                = MU_IS_CONST
-    precond_reinit_interval    = PRECOND_REINIT_INTERVAL
-    operator_scale_factors     = OPERATOR_SCALE_FACTORS
-    vc_interpolation_type      = VC_INTERPOLATION_TYPE
-    enable_logging             = ENABLE_LOGGING
-    max_integrator_steps       = MAX_INTEGRATOR_STEPS
-    explicitly_remove_nullspace= EXPLICITLY_REMOVE_NULLSPACE
-    num_cycles                 = NUM_INS_CYCLES
+   start_time                 = START_TIME
+   end_time                   = END_TIME
+   grow_dt                    = GROW_DT
+   convective_op_type         = NON_CONSERVATIVE_CONVECTIVE_OP_TYPE
+   convective_difference_form = CONVECTIVE_FORM
+   normalize_pressure         = NORMALIZE_PRESSURE
+   init_convective_time_stepping_type = INIT_CONVECTIVE_TS_TYPE
+   convective_time_stepping_type = CONVECTIVE_TS_TYPE
+   cfl                        = CFL_MAX
+   dt_max                     = DT_MAX
+   using_vorticity_tagging    = VORTICITY_TAGGING
+   vorticity_rel_thresh       = VORTICITY_REL_THRESH
+   tag_buffer                 = TAG_BUFFER
+   regrid_cfl_interval        = REGRID_CFL_INTERVAL
+   output_U                   = OUTPUT_U
+   output_P                   = OUTPUT_P
+   output_F                   = OUTPUT_F
+   output_Omega               = OUTPUT_OMEGA
+   output_Div_U               = OUTPUT_DIV_U
+   output_rho                 = OUTPUT_RHO
+   output_mu                  = OUTPUT_MU
+   rho_is_const               = RHO_IS_CONST
+   mu_is_const                = MU_IS_CONST
+   precond_reinit_interval    = PRECOND_REINIT_INTERVAL
+   operator_scale_factors     = OPERATOR_SCALE_FACTORS 
+   vc_interpolation_type      = VC_INTERPOLATION_TYPE
+   enable_logging             = ENABLE_LOGGING
+   max_integrator_steps       = MAX_INTEGRATOR_STEPS
+   explicitly_remove_nullspace= EXPLICITLY_REMOVE_NULLSPACE
+   num_cycles                 = NUM_INS_CYCLES
 
-    // Solver parameters
-    velocity_solver_type = "VC_VELOCITY_PETSC_KRYLOV_SOLVER"
-    velocity_precond_type = "VC_VELOCITY_POINT_RELAXATION_FAC_PRECONDITIONER"
-    velocity_solver_db {
-        ksp_type = "richardson"
-        max_iterations = 5
-        rel_residual_tol = 1.0e-5
-    }
-    velocity_precond_db {
-        num_pre_sweeps = 0
-        num_post_sweeps = 3
-        prolongation_method = "CONSERVATIVE_LINEAR_REFINE"
-        restriction_method = "CONSERVATIVE_COARSEN"
-        coarse_solver_type = "VC_VELOCITY_PETSC_LEVEL_SOLVER"
-        coarse_solver_rel_residual_tol = 1.0e-12
-        coarse_solver_abs_residual_tol = 1.0e-50
-        coarse_solver_max_iterations = NXFINEST/4
-        coarse_solver_db {
-            ksp_type = "gmres"
-            pc_type = "jacobi"
-        }
-    }
+   // Solver parameters
+   velocity_solver_type = "VC_VELOCITY_PETSC_KRYLOV_SOLVER"
+   velocity_precond_type = "VC_VELOCITY_POINT_RELAXATION_FAC_PRECONDITIONER"
+   velocity_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 5
+      rel_residual_tol = 1.0e-5
+   }
+   velocity_precond_db {
+      num_pre_sweeps = 0
+      num_post_sweeps = 3
+      prolongation_method = "CONSERVATIVE_LINEAR_REFINE"
+      restriction_method = "CONSERVATIVE_COARSEN"
+      coarse_solver_type = "VC_VELOCITY_PETSC_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = NXFINEST/4
+      coarse_solver_db {
+         ksp_type = "gmres"
+         pc_type = "jacobi"
+      }
+   }
     pressure_solver_type = "PETSC_KRYLOV_SOLVER"
     pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-    pressure_solver_db
+    pressure_solver_db 
     {
-        ksp_type = "richardson"
-        max_iterations = 5
-        rel_residual_tol = 1.0e-5
+      ksp_type = "richardson"
+      max_iterations = 5
+      rel_residual_tol = 1.0e-5
     }
 
     pressure_precond_db {
-        num_pre_sweeps  = 0
-        num_post_sweeps = 3
-        prolongation_method = "LINEAR_REFINE"
-        restriction_method  = "CONSERVATIVE_COARSEN"
-        coarse_solver_type = "PETSC_LEVEL_SOLVER"
-        coarse_solver_rel_residual_tol = 1.0e-12
-        coarse_solver_abs_residual_tol = 1.0e-50
-        coarse_solver_max_iterations = NXFINEST/4
-        coarse_solver_db {
-            ksp_type = "gmres"
-            pc_type = "jacobi"
-        }
+      num_pre_sweeps  = 0
+      num_post_sweeps = 3
+      prolongation_method = "LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      coarse_solver_type = "PETSC_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = NXFINEST/4
+      coarse_solver_db {
+         ksp_type = "gmres"
+         pc_type = "jacobi"
+      }
     }
 
     regrid_projection_solver_type = "PETSC_KRYLOV_SOLVER"
     regrid_projection_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
     regrid_projection_solver_db
     {
-        ksp_type = "richardson"
-        max_iterations = 50
-        rel_residual_tol = 1.0e-8
+      ksp_type = "richardson"
+      max_iterations = 50
+      rel_residual_tol = 1.0e-8
     }
 }
 
@@ -451,12 +471,12 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 5
+   viz_dump_interval           = 1000
    viz_dump_dirname            = "viz_INS2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 0
+   restart_dump_interval       = 5000
    restart_dump_dirname        = "restart_INS2d"
 
 // timer dump parameters
@@ -499,7 +519,7 @@ GriddingAlgorithm {
 }
 
 StandardTagAndInitialize {
-   tagging_method = "GRADIENT_DETECTOR"
+   tagging_method = "REFINE_BOXES"
    RefineBoxes {
       level_0 = [( 0 , 0 ),( Nx - 1 , Ny - 1 )]
       level_1 = [( 0 , 0 ),( 2*Nx - 1 , 2*Ny - 1 )]

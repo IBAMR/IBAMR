@@ -1,7 +1,7 @@
-// Filename LSLocateColumnInterface.cpp
-// Created on Sep 4, 2018 by Nishant Nangia and Amneet Bhalla
+// Filename LSLocateGasInterface.cpp
+// Created on Nov 15, 2017 by Nishant Nangia
 
-#include "LSLocateColumnInterface.h"
+#include "LSLocateGasInterface.h"
 
 #include <CartesianGridGeometry.h>
 #include <ibamr/app_namespaces.h>
@@ -10,41 +10,41 @@
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 void
-callLSLocateColumnInterfaceCallbackFunction(int D_idx,
-                                            Pointer<HierarchyMathOps> hier_math_ops,
-                                            double time,
-                                            bool initial_time,
-                                            void* ctx)
+callLSLocateGasInterfaceCallbackFunction(int D_idx,
+                                         Pointer<HierarchyMathOps> hier_math_ops,
+                                         double time,
+                                         bool initial_time,
+                                         void* ctx)
 {
     // Set the level set information
-    static LSLocateColumnInterface* ptr_LSLocateColumnInterface = static_cast<LSLocateColumnInterface*>(ctx);
-    ptr_LSLocateColumnInterface->setLevelSetPatchData(D_idx, hier_math_ops, time, initial_time);
+    static LSLocateGasInterface* ptr_LSLocateGasInterface = static_cast<LSLocateGasInterface*>(ctx);
+    ptr_LSLocateGasInterface->setLevelSetPatchData(D_idx, hier_math_ops, time, initial_time);
 
     return;
-} // callLSLocateColumnInterfaceCallbackFunction
+} // callLSLocateGasInterfaceCallbackFunction
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
-LSLocateColumnInterface::LSLocateColumnInterface(const std::string& object_name,
-                                                 Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                                 Pointer<CellVariable<NDIM, double> > ls_var,
-                                                 ColumnInterface init_column)
-    : d_object_name(object_name), d_adv_diff_solver(adv_diff_solver), d_ls_var(ls_var), d_init_column(init_column)
+LSLocateGasInterface::LSLocateGasInterface(const std::string& object_name,
+                                           Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                           Pointer<CellVariable<NDIM, double> > ls_var,
+                                           const double init_height)
+    : d_object_name(object_name), d_adv_diff_solver(adv_diff_solver), d_ls_var(ls_var), d_init_height(init_height)
 {
     // intentionally left blank
     return;
-} // LSLocateColumnInterface
+} // LSLocateGasInterface
 
-LSLocateColumnInterface::~LSLocateColumnInterface()
+LSLocateGasInterface::~LSLocateGasInterface()
 {
     // intentionally left blank
     return;
 }
 
 void
-LSLocateColumnInterface::setLevelSetPatchData(int D_idx,
-                                              Pointer<HierarchyMathOps> hier_math_ops,
-                                              double time,
-                                              bool initial_time)
+LSLocateGasInterface::setLevelSetPatchData(int D_idx,
+                                           Pointer<HierarchyMathOps> hier_math_ops,
+                                           double /*time*/,
+                                           bool initial_time)
 {
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
@@ -64,7 +64,8 @@ LSLocateColumnInterface::setLevelSetPatchData(int D_idx,
     }
 
     // Set the initial condition for locating the interface
-    const double& depth = d_init_column.DEPTH;
+    const double H = d_init_height;
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
@@ -88,11 +89,11 @@ LSLocateColumnInterface::setLevelSetPatchData(int D_idx,
                     coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
                 }
 
-#if (NDIM == 2)
-                (*D_data)(ci) = coord[1] - depth;
-#elif (NDIM == 3)
-                (*D_data)(ci) = coord[2] - depth;
-#endif
+                const double distance = NDIM < 3 ? coord[1] - H : coord[2] - H;
+
+                // Initialize the locator data to be zero on the interface,
+                // negative inside, and positive outside
+                (*D_data)(ci) = distance;
             }
         }
     }

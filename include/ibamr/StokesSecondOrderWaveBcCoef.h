@@ -1,7 +1,7 @@
 // Filename: StokesSecondOrderWaveBcCoef.h
 // Created on 1 Sep 2018 by Amneet Bhalla
 //
-// Copyright (c) 2002-2018, Amneet Bhalla
+// Copyright (c) 2002-2019, Amneet Bhalla and Nishant Nangia
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -237,6 +237,11 @@ private:
      * Wave parameters.
      */
     double d_depth, d_omega, d_wave_number, d_amplitude, d_gravity;
+
+    /*!
+     * Number of interface cells.
+     */
+    double d_num_interface_cells;
 };
 } // namespace IBAMR
 

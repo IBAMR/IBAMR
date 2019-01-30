@@ -1,10 +1,10 @@
-// Filename LSLocateColumnInterface.h
-// Created on Sep 4, 2018 by Nishant Nangia and Amneet Bhalla
+// Filename LSLocateGasInterface.h
+// Created on Nov 15, 2017 by Nishant Nangia
 
 /////////////////////// INCLUDE GUARD ////////////////////////////////////
 
-#ifndef included_LSLocateColumnInterface
-#define included_LSLocateColumnInterface
+#ifndef included_LSLocateGasInterface
+#define included_LSLocateGasInterface
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
@@ -20,37 +20,31 @@ class HierarchyMathOps;
  * Pre processing call back function to be hooked into IBAMR:LInitStrategy
  */
 
-void callLSLocateColumnInterfaceCallbackFunction(int D_idx,
-                                                 SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                                 double time,
-                                                 bool initial_time,
-                                                 void* ctx);
+void callLSLocateGasInterfaceCallbackFunction(int D_idx,
+                                              SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                              double time,
+                                              bool initial_time,
+                                              void* ctx);
 
-// Struct to maintain the properties of the column interface, based on the mean fluid depth
-struct ColumnInterface
-{
-    double DEPTH;
-};
-
-class LSLocateColumnInterface
+class LSLocateGasInterface
 {
     /*!
-     * \brief class LSLocateColumnInterface is a utility class which is used to identify
+     * \brief class LSLocateGasInterface is a utility class which is used to identify
      * the circular interface for level set computations
      */
 public:
     /*!
      * The only constructor of this class.
      */
-    LSLocateColumnInterface(const std::string& object_name,
-                            SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
-                            ColumnInterface init_column);
+    LSLocateGasInterface(const std::string& object_name,
+                         SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
+                         const double init_height);
 
     /*!
      * Destructor for this class.
      */
-    ~LSLocateColumnInterface();
+    ~LSLocateGasInterface();
 
     /*!
      * Reinitialize the level set information
@@ -66,17 +60,17 @@ private:
     /*!
      * Default constructor is not implemented and should not be used.
      */
-    LSLocateColumnInterface();
+    LSLocateGasInterface();
 
     /*!
      * Default assignment operator is not implemented and should not be used.
      */
-    LSLocateColumnInterface& operator=(const LSLocateColumnInterface& that);
+    LSLocateGasInterface& operator=(const LSLocateGasInterface& that);
 
     /*!
      * Default copy constructor is not implemented and should not be used.
      */
-    LSLocateColumnInterface(const LSLocateColumnInterface& from);
+    LSLocateGasInterface(const LSLocateGasInterface& from);
 
     /*!
      * Name of this object.
@@ -89,14 +83,14 @@ private:
     SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
 
     /*!
-     * Level set variable
-     */
+ * Level set variable
+ */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
 
     /*!
      * Initial level set information.
      */
-    ColumnInterface d_init_column;
+    double d_init_height;
 };
 
-#endif // #ifndef included_LSLocateColumnInterface
+#endif // #ifndef included_LSLocateGasInterface

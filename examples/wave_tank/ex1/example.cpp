@@ -1,4 +1,4 @@
-// Filename: example.cpp
+// Filename: main.cpp
 //
 // Copyright (c) 2002-2019, Amneet Bhalla and Nishant Nangia
 // All rights reserved.
@@ -44,6 +44,7 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include "ibtk/IndexUtilities.h"
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/ConstraintIBMethod.h>
@@ -54,11 +55,13 @@
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibamr/RelaxationLSMethod.h>
+#include <ibamr/StokesFirstOrderWaveBcCoef.h>
+#include <ibamr/StokesSecondOrderWaveBcCoef.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
+#include <ibamr/WaveDampingStrategy.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
-#include <ibtk/IndexUtilities.h>
 #include <ibtk/LData.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -67,7 +70,7 @@
 #include "FlowGravityForcing.h"
 #include "GravityForcing.h"
 #include "LSLocateGasInterface.h"
-#include "LSLocateStructureInterface.h"
+#include "LSLocateTrapezoidalInterface.h"
 #include "RigidBodyKinematics.h"
 #include "SetFluidGasSolidDensity.h"
 #include "SetFluidGasSolidViscosity.h"
@@ -105,13 +108,12 @@ run_example(int argc, char* argv[])
     // Increase maximum patch data component indices
     SAMRAIManager::setMaxNumberPatchDataEntries(2500);
 
-    if (NDIM == 2)
-    {
-        TBOX_ERROR("Presently implemented only for NDIM == 3");
-    }
-
     { // cleanup dynamically allocated objects prior to shutdown
 
+        if (NDIM == 3)
+        {
+            TBOX_ERROR("This example is only implemented for NDIM = 2!");
+        }
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
@@ -228,58 +230,35 @@ run_example(int argc, char* argv[])
         ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);
 
         // Setup level set information
-        RectangleInterface rectangle;
-        rectangle.length = input_db->getDouble("RECTANGLE_LENGTH");
-        rectangle.width = input_db->getDouble("RECTANGLE_WIDTH");
-        rectangle.height = input_db->getDouble("RECTANGLE_HEIGHT");
-
-        if (!is_from_restart)
-        {
-            rectangle.X0(0) = input_db->getDouble("RECTANGLE_X");
-            rectangle.X0(1) = input_db->getDouble("RECTANGLE_Y");
-#if (NDIM == 3)
-            rectangle.X0(2) = input_db->getDouble("RECTANGLE_Z");
-#endif
-        }
-        else
-        {
-            const std::vector<std::vector<double> >& structure_COM = ib_method_ops->getCurrentStructureCOM();
-            rectangle.X0(0) = structure_COM[0][0];
-            rectangle.X0(1) = structure_COM[0][1];
-#if (NDIM == 3)
-            rectangle.X0(2) = structure_COM[0][2];
-#endif
-        }
-        const double greater_x_column = input_db->getDouble("GREATER_X_COLUMN");
-        const double less_z_column = input_db->getDouble("LESS_Z_COLUMN");
+        TrapezoidalInterface trapezoid;
+        input_db->getDoubleArray("BL", (trapezoid.BL).data(), NDIM);
+        input_db->getDoubleArray("TL", (trapezoid.TL).data(), NDIM);
+        input_db->getDoubleArray("TR", (trapezoid.TR).data(), NDIM);
+        input_db->getDoubleArray("BR", (trapezoid.BR).data(), NDIM);
+        const double fluid_height = input_db->getDouble("GAS_LS_INIT");
 
         const string& ls_name_solid = "level_set_solid";
-        const double vol_elem = input_db->getDoubleWithDefault("VOL_ELEM", -1.0);
         Pointer<CellVariable<NDIM, double> > phi_var_solid = new CellVariable<NDIM, double>(ls_name_solid);
         Pointer<RelaxationLSMethod> level_set_solid_ops =
             new RelaxationLSMethod(ls_name_solid, app_initializer->getComponentDatabase("LevelSet_Solid"));
-        LSLocateStructureInterface* ptr_LSLocateStructureInterface =
-            new LSLocateStructureInterface("LSLocateStructureInterface",
-                                           adv_diff_integrator,
-                                           phi_var_solid,
-                                           ib_method_ops->getLDataManager(),
-                                           vol_elem,
-                                           &rectangle);
+        LSLocateTrapezoidalInterface* ptr_LSLocateTrapezoidalInterface = new LSLocateTrapezoidalInterface(
+            "LSLocateTrapezoidalInterface", adv_diff_integrator, phi_var_solid, &trapezoid);
         level_set_solid_ops->registerInterfaceNeighborhoodLocatingFcn(
-            &callLSLocateStructureInterfaceCallbackFunction, static_cast<void*>(ptr_LSLocateStructureInterface));
+            &callLSLocateTrapezoidalInterfaceCallbackFunction, static_cast<void*>(ptr_LSLocateTrapezoidalInterface));
 
         const string& ls_name_gas = "level_set_gas";
         Pointer<CellVariable<NDIM, double> > phi_var_gas = new CellVariable<NDIM, double>(ls_name_gas);
         Pointer<RelaxationLSMethod> level_set_gas_ops =
             new RelaxationLSMethod(ls_name_gas, app_initializer->getComponentDatabase("LevelSet_Gas"));
-        LSLocateGasInterface* ptr_LSLocateGasInterface = new LSLocateGasInterface(
-            "LSLocateGasInterface", adv_diff_integrator, phi_var_gas, greater_x_column, less_z_column);
+        LSLocateGasInterface* ptr_LSLocateGasInterface =
+            new LSLocateGasInterface("LSLocateGasInterface", adv_diff_integrator, phi_var_gas, fluid_height);
         level_set_gas_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateGasInterfaceCallbackFunction,
                                                                     static_cast<void*>(ptr_LSLocateGasInterface));
 
         adv_diff_integrator->registerTransportedQuantity(phi_var_solid);
         adv_diff_integrator->setDiffusionCoefficient(phi_var_solid, 0.0);
-        // Don't advect phi_solid in this case
+
+        // The body is assumed to be stationary in this case
         // adv_diff_integrator->setAdvectionVelocity(phi_var_solid,
         //                                           navier_stokes_integrator->getAdvectionVelocityVariable());
 
@@ -315,10 +294,11 @@ run_example(int argc, char* argv[])
         // Array for input into callback function
         const int ls_reinit_interval = input_db->getInteger("LS_REINIT_INTERVAL");
         const double rho_fluid = input_db->getDouble("RHO_F");
-        const double rho_solid = input_db->getDouble("RHO_S");
+        const double rho_solid = input_db->getDoubleWithDefault("RHO_S", std::numeric_limits<double>::quiet_NaN());
         const double rho_gas = input_db->getDouble("RHO_G");
         const int num_solid_interface_cells = input_db->getDouble("NUM_SOLID_INTERFACE_CELLS");
         const int num_gas_interface_cells = input_db->getDouble("NUM_GAS_INTERFACE_CELLS");
+        const bool set_rho_solid = input_db->getBool("SET_RHO_S");
         SetFluidGasSolidDensity* ptr_setFluidGasSolidDensity = new SetFluidGasSolidDensity("SetFluidGasSolidDensity",
                                                                                            adv_diff_integrator,
                                                                                            phi_var_solid,
@@ -328,7 +308,8 @@ run_example(int argc, char* argv[])
                                                                                            rho_solid,
                                                                                            ls_reinit_interval,
                                                                                            num_solid_interface_cells,
-                                                                                           num_gas_interface_cells);
+                                                                                           num_gas_interface_cells,
+                                                                                           set_rho_solid);
         navier_stokes_integrator->registerResetFluidDensityFcn(&callSetFluidGasSolidDensityCallbackFunction,
                                                                static_cast<void*>(ptr_setFluidGasSolidDensity));
 
@@ -380,6 +361,7 @@ run_example(int argc, char* argv[])
         // Create Eulerian boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const string& wave_type = input_db->getString("WAVE_TYPE");
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -399,11 +381,52 @@ run_example(int argc, char* argv[])
                 bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
                 const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
 
-                u_bc_coefs[d] = new muParserRobinBcCoefs(
-                    bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
+                if (wave_type == "FIRST_ORDER_STOKES")
+                {
+                    u_bc_coefs[d] =
+                        new StokesFirstOrderWaveBcCoef(bc_coefs_name,
+                                                       d,
+                                                       app_initializer->getComponentDatabase(bc_coefs_db_name),
+                                                       grid_geometry,
+                                                       adv_diff_integrator,
+                                                       phi_var_gas);
+                }
+                else if (wave_type == "SECOND_ORDER_STOKES")
+                {
+                    u_bc_coefs[d] =
+                        new StokesSecondOrderWaveBcCoef(bc_coefs_name,
+                                                        d,
+                                                        app_initializer->getComponentDatabase(bc_coefs_db_name),
+                                                        grid_geometry,
+                                                        adv_diff_integrator,
+                                                        phi_var_gas);
+                }
+                else
+                {
+                    TBOX_ERROR("Unknown WAVE_TYPE = " << wave_type << " specified in the input file" << std::endl);
+                }
             }
             navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
+
+        // Create a damping zone near the channel outlet to absorb water waves via time-splitting approach.
+        // This method uses a time splitting approach and modifies the fluid momentum in the
+        // post processing step.
+        // Register callback function for tagging refined cells for level set data
+        const double x_zone_start = input_db->getDouble("X_ZONE_START");
+        const double x_zone_end = input_db->getDouble("X_ZONE_END");
+        const double depth = input_db->getDouble("DEPTH");
+        const double alpha = input_db->getDouble("ALPHA");
+        WaveDampingStrategy wave_damper;
+        wave_damper.d_x_zone_start = x_zone_start;
+        wave_damper.d_x_zone_end = x_zone_end;
+        wave_damper.d_depth = depth;
+        wave_damper.d_alpha = alpha;
+        wave_damper.d_ins_hier_integrator = navier_stokes_integrator;
+        wave_damper.d_adv_diff_hier_integrator = adv_diff_integrator;
+        wave_damper.d_phi_var = phi_var_gas;
+        time_integrator->registerPostprocessIntegrateHierarchyCallback(&callRelaxationZoneCallbackFunction,
+                                                                       static_cast<void*>(&wave_damper));
 
         RobinBcCoefStrategy<NDIM>* rho_bc_coef = NULL;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("DensityBcCoefs"))
@@ -446,7 +469,7 @@ run_example(int argc, char* argv[])
         }
         else if (grav_type == "FLOW")
         {
-            grav_force = new FlowGravityForcing("FlowGravityForcing",
+            grav_force = new FlowGravityForcing("InterfacialGravityForcing",
                                                 app_initializer->getComponentDatabase("FlowGravityForcing"),
                                                 adv_diff_integrator,
                                                 phi_var_gas,
@@ -481,7 +504,7 @@ run_example(int argc, char* argv[])
         vector<Pointer<ConstraintIBKinematics> > ibkinematics_ops_vec;
         Pointer<ConstraintIBKinematics> ib_kinematics_op;
         // struct_0
-        const string& object_name = "Rectangle";
+        const string& object_name = (NDIM == 2 ? "Trapezoid" : "NA");
         ib_kinematics_op = new RigidBodyKinematics(
             object_name,
             app_initializer->getComponentDatabase("ConstraintIBKinematics")->getDatabase(object_name),
@@ -492,6 +515,7 @@ run_example(int argc, char* argv[])
         // Register ConstraintIBKinematics, physical boundary operators and
         // other things with ConstraintIBMethod.
         ib_method_ops->registerConstraintIBKinematics(ibkinematics_ops_vec);
+        const double vol_elem = input_db->getDoubleWithDefault("VOL_ELEM", -1.0);
         if (vol_elem > 0.0) ib_method_ops->setVolumeElement(vol_elem, 0);
         ib_method_ops->setVelocityPhysBdryOp(time_integrator->getVelocityPhysBdryOp());
         ib_method_ops->initializeHierarchyOperatorsandData();
@@ -517,43 +541,65 @@ run_example(int argc, char* argv[])
         }
 
         // Get the probe points from the input file
-        Pointer<Database> pressure_probe_db = input_db->getDatabase("PressureProbes");
-        const int num_pressure_probes = (pressure_probe_db->getAllKeys()).getSize();
-        std::vector<std::vector<double> > pressure_probe_points;
-        std::vector<std::ofstream*> pressure_probe_streams;
-        pressure_probe_points.resize(num_pressure_probes);
-        pressure_probe_streams.resize(num_pressure_probes);
-        for (int i = 0; i < num_pressure_probes; ++i)
+        Pointer<Database> probe_db = input_db->getDatabase("ProbePoints");
+        const int num_probes = (probe_db->getAllKeys()).getSize();
+        std::vector<std::vector<double> > probe_points;
+        std::vector<std::ofstream*> probe_streams;
+        probe_points.resize(num_probes);
+        probe_streams.resize(num_probes);
+        for (int i = 0; i < num_probes; ++i)
         {
-            std::string probe_name = "p_probe_" + Utilities::intToString(i);
-            pressure_probe_points[i].resize(NDIM);
-            pressure_probe_db->getDoubleArray(probe_name, &pressure_probe_points[i][0], NDIM);
+            std::string probe_name = "probe_" + Utilities::intToString(i);
+            probe_points[i].resize(NDIM);
+            probe_db->getDoubleArray(probe_name, &probe_points[i][0], NDIM);
 
             if (!SAMRAI_MPI::getRank())
             {
                 if (is_from_restart)
                 {
-                    pressure_probe_streams[i] = new std::ofstream(probe_name.c_str(), std::fstream::app);
-                    pressure_probe_streams[i]->precision(10);
+                    probe_streams[i] = new std::ofstream(probe_name.c_str(), std::fstream::app);
+                    probe_streams[i]->precision(10);
                 }
                 else
                 {
-                    pressure_probe_streams[i] = new std::ofstream(probe_name.c_str(), std::fstream::out);
+                    probe_streams[i] = new std::ofstream(probe_name.c_str(), std::fstream::out);
 
-                    *pressure_probe_streams[i] << "Printing pressure at cell center closest to point ("
-                                               << pressure_probe_points[i][0] << ", " << pressure_probe_points[i][1]
+                    *probe_streams[i] << "Printing level set at cell center closest to point (" << probe_points[i][0]
+                                      << ", " << probe_points[i][1]
 #if (NDIM == 3)
-                                               << ", " << pressure_probe_points[i][2]
+                                      << ", " << probe_points[i][2]
 #endif
-                                               << ") " << std::endl;
-                    pressure_probe_streams[i]->precision(10);
+                                      << ") " << std::endl;
+                    probe_streams[i]->precision(10);
                 }
             }
         }
 
         // File to write to for fluid mass data
         ofstream mass_file;
-        if (!SAMRAI_MPI::getRank()) mass_file.open("mass_fluid.txt");
+        if (!SAMRAI_MPI::getRank())
+        {
+            if (is_from_restart)
+                mass_file.open("mass_fluid.txt", std::fstream::app);
+            else
+                mass_file.open("mass_fluid.txt", std::fstream::out);
+        }
+
+        // Files to write force data
+        ofstream lag_force_file, grav_force_file;
+        if (!SAMRAI_MPI::getRank())
+        {
+            if (is_from_restart)
+                lag_force_file.open("lag_force.txt", std::fstream::app);
+            else
+                lag_force_file.open("lag_force.txt", std::fstream::out);
+
+            if (is_from_restart)
+                grav_force_file.open("grav_force.txt", std::fstream::app);
+            else
+                grav_force_file.open("grav_force.txt", std::fstream::out);
+        }
+
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -585,36 +631,83 @@ run_example(int argc, char* argv[])
 #endif
             const int coarsest_ln = 0;
             const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-            HierarchySideDataOpsReal<NDIM, double> hier_rho_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
             hier_math_ops.setPatchHierarchy(patch_hierarchy);
             hier_math_ops.resetLevels(coarsest_ln, finest_ln);
             const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
-            const double mass_fluid = hier_rho_data_ops.integral(rho_ins_idx, wgt_sc_idx);
+            const double mass_fluid = hier_sc_data_ops.integral(rho_ins_idx, wgt_sc_idx);
+
+            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
             // Write to file
             if (!SAMRAI_MPI::getRank())
             {
-                mass_file << std::setprecision(13) << loop_time << "\t" << mass_fluid << std::endl;
+                mass_file << std::setprecision(13) << loop_time << '\t' << mass_fluid << std::endl;
             }
 
-            // Print out the pressure values at probe locations
-            // Note that it will print the nearest cell center
-            // Max reduction over p_val array to ensure that only processor 0 prints
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            Pointer<CellVariable<NDIM, double> > p_var = navier_stokes_integrator->getPressureVariable();
-            int p_idx = var_db->mapVariableAndContextToIndex(p_var, navier_stokes_integrator->getCurrentContext());
-            std::vector<double> p_val(num_pressure_probes);
-            for (int i = 0; i < num_pressure_probes; ++i)
+            // Get the values of the Lagrange multiplier to compute forces
+            const int struct_id = 0;
+            const double dV = (ib_method_ops->getVolumeElement())[struct_id];
+            IBTK::Vector3d lm_force = IBTK::Vector3d::Zero();
+            IBTK::Vector3d g_force = IBTK::Vector3d::Zero();
+            std::vector<Pointer<LData> > lag_force = ib_method_ops->getFullLagrangeMultiplierForce();
+            std::vector<Pointer<LData> > lag_rho = ib_method_ops->getInterpolatedLagrangianDensity();
+            LDataManager* l_data_manager = ib_method_ops->getLDataManager();
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                p_val[i] = -std::numeric_limits<double>::max();
+                if (!l_data_manager->levelContainsLagrangianData(ln)) continue;
+                boost::multi_array_ref<double, 2>& F_data = *lag_force[ln]->getLocalFormVecArray();
+                boost::multi_array_ref<double, 2>& R_data = *lag_rho[ln]->getLocalFormVecArray();
+                const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
+                const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+                const std::vector<int> structIDs = l_data_manager->getLagrangianStructureIDs(ln);
+
+                // Dealing specifically with a single structure
+                std::pair<int, int> lag_idx_range =
+                    l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_id], ln);
+                for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+                {
+                    const LNode* const node_idx = *cit;
+                    const int lag_idx = node_idx->getLagrangianIndex();
+                    if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
+                    {
+                        const int local_idx = node_idx->getLocalPETScIndex();
+                        const double* const F = &F_data[local_idx][0];
+                        const double* const R = &R_data[local_idx][0];
+
+                        for (int d = 0; d < NDIM; ++d) lm_force[d] += F[d] * dV;
+                        for (int d = 0; d < NDIM; ++d) g_force[d] += grav_const[d] * R[d] * dV;
+                    }
+                }
+                lag_force[ln]->restoreArrays();
+            }
+            SAMRAI_MPI::sumReduction(lm_force.data(), 3);
+            SAMRAI_MPI::sumReduction(g_force.data(), 3);
+            if (!SAMRAI_MPI::getRank())
+            {
+                lag_force_file << std::setprecision(8) << loop_time << '\t' << lm_force(0) << '\t' << lm_force(1)
+                               << '\t' << lm_force(2) << std::endl;
+
+                grav_force_file << std::setprecision(8) << loop_time << '\t' << g_force(0) << '\t' << g_force(1) << '\t'
+                                << g_force(2) << std::endl;
+            }
+
+            // Print out the level set values at probe locations
+            // Note that it will print the nearest cell center
+            // Max reduction over ls_val array to ensure that only processor 0 prints
+            int phi_idx = var_db->mapVariableAndContextToIndex(phi_var_gas, adv_diff_integrator->getCurrentContext());
+            std::vector<double> ls_val(num_probes);
+            for (int i = 0; i < num_probes; ++i)
+            {
+                ls_val[i] = -std::numeric_limits<double>::max();
                 bool found_point_in_patch = false;
                 for (int ln = finest_ln; ln >= coarsest_ln; --ln)
                 {
                     // Get the cell index for this point
                     Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-                    const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(
-                        &pressure_probe_points[i][0], level->getGridGeometry(), level->getRatio());
+                    const CellIndex<NDIM> cell_idx =
+                        IndexUtilities::getCellIndex(&probe_points[i][0], level->getGridGeometry(), level->getRatio());
                     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                     {
                         Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -623,20 +716,20 @@ run_example(int argc, char* argv[])
                         if (!contains_probe) continue;
 
                         // Get the level set value at this particular cell and print to stream
-                        Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_idx);
-                        p_val[i] = (*p_data)(cell_idx);
+                        Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);
+                        ls_val[i] = (*phi_data)(cell_idx);
                         found_point_in_patch = true;
                         if (found_point_in_patch) break;
                     }
                     if (found_point_in_patch) break;
                 }
             }
-            SAMRAI_MPI::maxReduction(&p_val[0], num_pressure_probes);
+            SAMRAI_MPI::maxReduction(&ls_val[0], num_probes);
             if (!SAMRAI_MPI::getRank())
             {
-                for (int i = 0; i < num_pressure_probes; ++i)
+                for (int i = 0; i < num_probes; ++i)
                 {
-                    *pressure_probe_streams[i] << loop_time << '\t' << p_val[i] << std::endl;
+                    *probe_streams[i] << loop_time << '\t' << ls_val[i] << std::endl;
                 }
             }
 
@@ -675,11 +768,13 @@ run_example(int argc, char* argv[])
 
         // Close file
         if (!SAMRAI_MPI::getRank()) mass_file.close();
+        if (!SAMRAI_MPI::getRank()) lag_force_file.close();
+        if (!SAMRAI_MPI::getRank()) grav_force_file.close();
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-        delete ptr_LSLocateStructureInterface;
+        delete ptr_LSLocateTrapezoidalInterface;
         delete ptr_LSLocateGasInterface;
         delete ptr_setFluidGasSolidDensity;
         delete ptr_setFluidGasSolidViscosity;
@@ -687,7 +782,7 @@ run_example(int argc, char* argv[])
         delete rho_bc_coef;
         delete mu_bc_coef;
         delete phi_bc_coef;
-        for (int i = 0; i < num_pressure_probes; ++i) delete pressure_probe_streams[i];
+        for (int i = 0; i < num_probes; ++i) delete probe_streams[i];
 
     } // cleanup dynamically allocated objects prior to shutdown
 
