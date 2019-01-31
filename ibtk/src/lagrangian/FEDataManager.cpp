@@ -802,6 +802,10 @@ FEDataManager::spread(const int f_data_idx,
             const double* const patch_dx = patch_geom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
+            // Determining which quadrature rule should be used on which
+            // processor is surprisingly expensive, so cache the keys:
+            std::vector<quad_key_type> quad_keys(num_active_patch_elems);
+
             // Setup vectors to store the values of F_JxW and X at the
             // quadrature points.
             unsigned int n_qp_patch = 0;
@@ -820,6 +824,7 @@ FEDataManager::spread(const int f_data_idx,
                                                            elem,
                                                            X_node,
                                                            patch_dx_min);
+                quad_keys[e_idx] = key;
                 QBase &qrule = quad_cache[key];
                 n_qp_patch += qrule.n_points();
             }
@@ -844,13 +849,7 @@ FEDataManager::spread(const int f_data_idx,
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                const quad_key_type key = getQuadratureKey(spread_spec.quad_type,
-                                                           spread_spec.quad_order,
-                                                           spread_spec.use_adaptive_quadrature,
-                                                           spread_spec.point_density,
-                                                           elem,
-                                                           X_node,
-                                                           patch_dx_min);
+                const quad_key_type &key = quad_keys[e_idx];
                 FEBase &X_fe = X_fe_cache[key];
                 FEBase &F_fe = F_fe_cache[key];
                 FEMap &fe_map = fe_map_cache[key];
@@ -1436,6 +1435,10 @@ FEDataManager::interpWeighted(const int f_data_idx,
             const double* const patch_dx = patch_geom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
+            // Determining which quadrature rule should be used on which
+            // processor is surprisingly expensive, so cache the keys:
+            std::vector<quad_key_type> quad_keys(num_active_patch_elems);
+
             // Setup vectors to store the values of F and X at the quadrature
             // points.
             unsigned int n_qp_patch = 0;
@@ -1456,6 +1459,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                                                            patch_dx_min);
                 QBase &qrule = quad_cache[key];
                 n_qp_patch += qrule.n_points();
+                quad_keys[e_idx] = key;
             }
             if (!n_qp_patch) continue;
             F_qp.resize(n_vars * n_qp_patch);
@@ -1474,13 +1478,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                const quad_key_type key = getQuadratureKey(interp_spec.quad_type,
-                                                           interp_spec.quad_order,
-                                                           interp_spec.use_adaptive_quadrature,
-                                                           interp_spec.point_density,
-                                                           elem,
-                                                           X_node,
-                                                           patch_dx_min);
+                const quad_key_type &key = quad_keys[e_idx];
                 QBase &qrule = quad_cache[key];
                 FEBase &X_fe = X_fe_cache[key];
 
@@ -1558,13 +1556,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                const quad_key_type key = getQuadratureKey(interp_spec.quad_type,
-                                                           interp_spec.quad_order,
-                                                           interp_spec.use_adaptive_quadrature,
-                                                           interp_spec.point_density,
-                                                           elem,
-                                                           X_node,
-                                                           patch_dx_min);
+                const quad_key_type &key = quad_keys[e_idx];
                 FEBase &F_fe = F_fe_cache[key];
                 FEMap &fe_map = fe_map_cache[key];
                 QBase &qrule = quad_cache[key];
