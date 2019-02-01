@@ -338,6 +338,7 @@ private:
     std::vector<std::vector<int> > d_system_all_vars, d_system_vars, d_system_grad_vars;
     std::vector<std::vector<size_t> > d_system_var_idx, d_system_grad_var_idx;
     std::vector<libMesh::NumericVector<double>*> d_system_data;
+    std::vector<const double*> d_system_local_vecs;
     std::vector<std::vector<size_t> > d_system_var_fe_type_idx, d_system_grad_var_fe_type_idx;
     std::vector<std::vector<std::vector<double> > > d_system_var_data;
     std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > > d_system_grad_var_data;

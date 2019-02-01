@@ -51,6 +51,12 @@ FEDataInterpolation::FEDataInterpolation(const unsigned int dim, FEDataManager* 
 
 FEDataInterpolation::~FEDataInterpolation()
 {
+    const size_t num_systems = d_systems.size();
+    for (size_t system_idx = 0; system_idx < num_systems; ++system_idx)
+    {
+        auto system_data = static_cast<PetscVector<double>*>(d_system_data[system_idx]);
+        system_data->restore_array();
+    }
     return;
 }
 
@@ -327,6 +333,14 @@ FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
         }
     }
 
+    // Get local form arrays for interpolation.
+    d_system_local_vecs.resize(num_systems);
+    for (size_t system_idx = 0; system_idx < num_systems; ++system_idx)
+    {
+        auto system_data = static_cast<PetscVector<double>*>(d_system_data[system_idx]);
+        d_system_local_vecs[system_idx] = system_data->get_array_read();
+    }
+
     // Indicate that we have initialized the class.
     d_initialized = true;
     return;
@@ -393,14 +407,13 @@ FEDataInterpolation::collectDataForInterpolation(const Elem* const elem)
         // Get the DOF mappings and local data for all variables.
         std::vector<std::vector<unsigned int> > dof_indices(num_vars);
         auto system_data = static_cast<PetscVector<double>*>(d_system_data[system_idx]);
-        const double* const system_local_array = system_data->get_array_read();
+        const double* const system_local_vec = d_system_local_vecs[system_idx];
         for (size_t k = 0; k < num_vars; ++k)
         {
             system_dof_map_cache->dof_indices(d_current_elem, dof_indices[k], all_vars[k]);
         }
         boost::multi_array<double, 2>& elem_data = d_system_elem_data[system_idx];
-        get_values_for_interpolation(elem_data, *system_data, system_local_array, dof_indices);
-        system_data->restore_array();
+        get_values_for_interpolation(elem_data, *system_data, system_local_vec, dof_indices);
     }
     return;
 }
