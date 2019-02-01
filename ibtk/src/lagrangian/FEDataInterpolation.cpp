@@ -392,13 +392,15 @@ FEDataInterpolation::collectDataForInterpolation(const Elem* const elem)
 
         // Get the DOF mappings and local data for all variables.
         std::vector<std::vector<unsigned int> > dof_indices(num_vars);
-        NumericVector<double>* system_data = d_system_data[system_idx];
+        auto system_data = static_cast<PetscVector<double>*>(d_system_data[system_idx]);
+        const double* const system_local_array = system_data->get_array_read();
         for (size_t k = 0; k < num_vars; ++k)
         {
             system_dof_map_cache->dof_indices(d_current_elem, dof_indices[k], all_vars[k]);
         }
         boost::multi_array<double, 2>& elem_data = d_system_elem_data[system_idx];
-        get_values_for_interpolation(elem_data, *system_data, dof_indices);
+        get_values_for_interpolation(elem_data, *system_data, system_local_array, dof_indices);
+        system_data->restore_array();
     }
     return;
 }
