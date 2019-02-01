@@ -2,9 +2,6 @@ clear all;
 
 clc;
 
-
-dx = 0.01;
-
 DEPTH       =  0.5;
 
 AMPLITUDE   =  0.025/2.0;
@@ -33,11 +30,10 @@ y = AMPLITUDE*cos(WAVENUMBER*x - OMEGA*(TIME - phase));
 
 
 
-% If comparing from a cell above the still water depth, need to plot -phi + h/2
+% If comparing from a cell above the still water depth, need to plot -phi + phi(0)
 % where h is the uniform grid spacing
 t = A(:,1);
-eta = -A(:,2) + dx/2;
-%shift = -dx/2.0; %max(B(:,2)) - max(y)
+eta = -A(:,2) + A(1,2);
 plot(TIME,y,'k-', t, eta,'r-');
 
 % Legend
