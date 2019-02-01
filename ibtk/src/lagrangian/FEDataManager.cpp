@@ -722,25 +722,19 @@ FEDataManager::spread(const int f_data_idx,
     }
     else
     {
-        // Extract local form vectors.
+        // Extract local form vectors. PetscVector::get_array_read()
+        // ultimately returns a pointer to a local form of the ghosted vector
+        // (i.e., via VecGhostGetLocalForm and VecGetArrayRead) which is
+        // exactly what we want.
+        //
+        // Extra note: since PetscVector::get_array_read sets
+        // PetscVector::_array_is_present to true, the function
+        // PetscVector::map_global_to_local_index is *much* faster and usually
+        // gets inlined. This speeds up get_values_for_interpolation a lot!
         auto F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
-        Vec F_global_vec = F_petsc_vec->vec();
-        Vec F_local_vec;
-        int ierr;
-        ierr = VecGhostGetLocalForm(F_global_vec, &F_local_vec);
-        IBTK_CHKERRQ(ierr);
-        double* F_local_soln;
-        ierr = VecGetArray(F_local_vec, &F_local_soln);
-        IBTK_CHKERRQ(ierr);
-
         auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
-        Vec X_global_vec = X_petsc_vec->vec();
-        Vec X_local_vec;
-        ierr = VecGhostGetLocalForm(X_global_vec, &X_local_vec);
-        IBTK_CHKERRQ(ierr);
-        double* X_local_soln;
-        ierr = VecGetArray(X_local_vec, &X_local_soln);
-        IBTK_CHKERRQ(ierr);
+        const double* F_local_soln = F_petsc_vec->get_array_read();
+        const double* X_local_soln = X_petsc_vec->get_array_read();
 
         // Loop over the patches to interpolate nodal values on the FE mesh to
         // the element quadrature points, then spread those values onto the
@@ -877,15 +871,8 @@ FEDataManager::spread(const int f_data_idx,
         }
 
         // Restore local form vectors.
-        ierr = VecRestoreArray(F_local_vec, &F_local_soln);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
-        IBTK_CHKERRQ(ierr);
-
-        ierr = VecRestoreArray(X_local_vec, &X_local_soln);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
-        IBTK_CHKERRQ(ierr);
+        F_petsc_vec->restore_array();
+        X_petsc_vec->restore_array();
     }
 
     // Accumulate data.
@@ -1351,16 +1338,10 @@ FEDataManager::interpWeighted(const int f_data_idx,
     }
     else
     {
-        // Extract local form vectors.
+        // Extract local form vectors. See the note in FEDataManager::spread
+        // to explain these calls.
         auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
-        Vec X_global_vec = X_petsc_vec->vec();
-        Vec X_local_vec;
-        int ierr;
-        ierr = VecGhostGetLocalForm(X_global_vec, &X_local_vec);
-        IBTK_CHKERRQ(ierr);
-        double* X_local_soln;
-        ierr = VecGetArray(X_local_vec, &X_local_soln);
-        IBTK_CHKERRQ(ierr);
+        const double* X_local_soln = X_petsc_vec->get_array_read();
 
         // Loop over the patches to interpolate values to the element quadrature
         // points from the grid, then use these values to compute the projection
@@ -1541,11 +1522,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
             }
         }
 
-        // Restore local form vectors.
-        ierr = VecRestoreArray(X_local_vec, &X_local_soln);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
-        IBTK_CHKERRQ(ierr);
+        // Restore local form vector.
+        X_petsc_vec->restore_array();
     }
 
     // Accumulate data.
