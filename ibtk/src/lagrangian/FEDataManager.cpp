@@ -2345,7 +2345,6 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         const MeshBase& mesh = d_es->get_mesh();
         const Parallel::Communicator& comm = mesh.comm();
         const unsigned int dim = mesh.mesh_dimension();
-        std::unique_ptr<QBase> qrule;
 
         // Extract the FE system and DOF map, and setup the FE object.
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
@@ -2357,8 +2356,9 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         {
             TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
         }
-        std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
+        using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+        FECache X_fe_cache(dim, fe_type);
+        QuadratureCache quad_cache(dim);
 
         // Setup and extract the underlying solution data.
         NumericVector<double>* X_vec = getCoordsVector();
@@ -2397,6 +2397,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
 
             Pointer<CellData<NDIM, int> > tag_data = patch->getPatchData(tag_index);
 
+            std::set<quad_key_type> used_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
@@ -2405,21 +2406,30 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                const bool qrule_changed =
-                    updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, X_node, patch_dx_min);
-                if (qrule_changed)
+
+                const quad_key_type key = getQuadratureKey(d_default_interp_spec.quad_type,
+                                                           d_default_interp_spec.quad_order,
+                                                           d_default_interp_spec.use_adaptive_quadrature,
+                                                           d_default_interp_spec.point_density,
+                                                           elem,
+                                                           X_node,
+                                                           patch_dx_min);
+                FEBase &X_fe = X_fe_cache[key];
+                QBase &qrule = quad_cache[key];
+
+                // See the note in interpWeighted to explain why we override
+                // libMesh's reinit logic here
+                if (used_quadratures.find(key) == used_quadratures.end())
                 {
-                    // NOTE: We only need to reinit the FE object whenever the
-                    // quadrature rule changes because we are only using the
-                    // shape function values, which depend only on the element
-                    // type and quadrature rule.  In particular, they do not
-                    // depend on the element geometry.
-                    fe->attach_quadrature_rule(qrule.get());
-                    fe->reinit(elem);
+                    X_fe.get_phi();
+                    X_fe.reinit(elem);
+                    used_quadratures.insert(key);
                 }
-                for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
+                const std::vector<std::vector<double>>& X_phi = X_fe.get_phi();
+
+                for (unsigned int qp = 0; qp < qrule.n_points(); ++qp)
                 {
-                    interpolate(&X_qp[0], qp, X_node, phi);
+                    interpolate(&X_qp[0], qp, X_node, X_phi);
 
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
                     tag_data->fill(1, Box<NDIM>(i - Index<NDIM>(1), i + Index<NDIM>(1)));
@@ -2562,7 +2572,6 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         // Extract the mesh.
         const MeshBase& mesh = d_es->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
-        std::unique_ptr<QBase> qrule;
 
         // Extract the FE system and DOF map, and setup the FE object.
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
@@ -2574,8 +2583,11 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         {
             TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
         }
-        std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
+
+        // convenience alias for the quadrature key type used by FECache and FEMapCache
+        using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+        FECache X_fe_cache(dim, fe_type);
+        QuadratureCache quad_cache(dim);
 
         // Extract the underlying solution data.
         NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
@@ -2608,6 +2620,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
 
             Pointer<CellData<NDIM, double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
 
+            std::set<quad_key_type> used_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
@@ -2616,21 +2629,30 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                const bool qrule_changed =
-                    updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, X_node, patch_dx_min);
-                if (qrule_changed)
+
+                const quad_key_type key = getQuadratureKey(d_default_interp_spec.quad_type,
+                                                           d_default_interp_spec.quad_order,
+                                                           d_default_interp_spec.use_adaptive_quadrature,
+                                                           d_default_interp_spec.point_density,
+                                                           elem,
+                                                           X_node,
+                                                           patch_dx_min);
+                FEBase &X_fe = X_fe_cache[key];
+                QBase &qrule = quad_cache[key];
+
+                // See the note in interpWeighted to explain why we override
+                // libMesh's reinit logic here
+                if (used_quadratures.find(key) == used_quadratures.end())
                 {
-                    // NOTE: We only need to reinit the FE object whenever the
-                    // quadrature rule changes because we are only using the
-                    // shape function values, which depend only on the element
-                    // type and quadrature rule.  In particular, they do not
-                    // depend on the element geometry.
-                    fe->attach_quadrature_rule(qrule.get());
-                    fe->reinit(elem);
+                    X_fe.get_phi();
+                    X_fe.reinit(elem);
+                    used_quadratures.insert(key);
                 }
-                for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
+                const std::vector<std::vector<double>>& X_phi = X_fe.get_phi();
+
+                for (unsigned int qp = 0; qp < qrule.n_points(); ++qp)
                 {
-                    interpolate(&X_qp[0], qp, X_node, phi);
+                    interpolate(&X_qp[0], qp, X_node, X_phi);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
                     if (patch_box.contains(i)) (*qp_count_data)(i) += 1.0;
                 }
@@ -2730,7 +2752,6 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     const MeshBase& mesh = d_es->get_mesh();
     const Parallel::Communicator& comm = mesh.comm();
     const unsigned int dim = mesh.mesh_dimension();
-    std::unique_ptr<QBase> qrule;
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
@@ -2740,10 +2761,13 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     {
         TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
     }
-    std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
-    const std::vector<std::vector<double> >& phi = fe->get_phi();
     NumericVector<double>* X_vec = getCoordsVector();
     std::unique_ptr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
+
+    // convenience alias for the quadrature key type used by FECache and FEMapCache
+    using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    FECache X_fe_cache(dim, fe_type);
+    QuadratureCache quad_cache(dim);
 
     // Setup data structures used to assign elements to patches.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
@@ -2826,6 +2850,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         boost::multi_array<double, 2> X_node;
         Point X_qp;
         int local_patch_num = 0;
+        std::set<quad_key_type> used_quadratures;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
             const std::set<Elem*>& frontier_elems = frontier_patch_elems[local_patch_num];
@@ -2850,22 +2875,31 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                const bool qrule_changed =
-                    updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, X_node, patch_dx_min);
-                if (qrule_changed)
+
+                const quad_key_type key = getQuadratureKey(d_default_interp_spec.quad_type,
+                                                           d_default_interp_spec.quad_order,
+                                                           d_default_interp_spec.use_adaptive_quadrature,
+                                                           d_default_interp_spec.point_density,
+                                                           elem,
+                                                           X_node,
+                                                           patch_dx_min);
+                FEBase &X_fe = X_fe_cache[key];
+                QBase &qrule = quad_cache[key];
+
+                // See the note in interpWeighted to explain why we override
+                // libMesh's reinit logic here
+                if (used_quadratures.find(key) == used_quadratures.end())
                 {
-                    // NOTE: We only need to reinit the FE object whenever the
-                    // quadrature rule changes because we are only using the
-                    // shape function values, which depend only on the element
-                    // type and quadrature rule.  In particular, they do not
-                    // depend on the element geometry.
-                    fe->attach_quadrature_rule(qrule.get());
-                    fe->reinit(elem);
+                    X_fe.get_phi();
+                    X_fe.reinit(elem);
+                    used_quadratures.insert(key);
                 }
+                const std::vector<std::vector<double>>& X_phi = X_fe.get_phi();
+
                 bool found_qp = false;
-                for (unsigned int qp = 0; qp < qrule->n_points() && !found_qp; ++qp)
+                for (unsigned int qp = 0; qp < qrule.n_points() && !found_qp; ++qp)
                 {
-                    interpolate(&X_qp[0], qp, X_node, phi);
+                    interpolate(&X_qp[0], qp, X_node, X_phi);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
                     if (ghost_box.contains(i))
                     {
