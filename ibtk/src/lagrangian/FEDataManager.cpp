@@ -399,6 +399,10 @@ FEDataManager::setEquationSystems(EquationSystems* const equation_systems, const
 {
     d_es = equation_systems;
     d_level_number = level_number;
+
+    // Now that we have the EquationSystems object we know the dimensionality
+    // of the mesh.
+    d_quadrature_cache = QuadratureCache(d_es->get_mesh().mesh_dimension());
     return;
 } // setEquationSystems
 
@@ -619,7 +623,6 @@ FEDataManager::spread(const int f_data_idx,
     FECache F_fe_cache(dim, F_fe_type);
     FECache X_fe_cache(dim, X_fe_type);
     FEMapCache fe_map_cache(dim);
-    QuadratureCache quad_cache(dim);
 
     // Check to see if we are using nodal quadrature.
     const bool use_nodal_quadrature =
@@ -825,7 +828,7 @@ FEDataManager::spread(const int f_data_idx,
                                                            X_node,
                                                            patch_dx_min);
                 quad_keys[e_idx] = key;
-                QBase &qrule = quad_cache[key];
+                QBase &qrule = d_quadrature_cache[key];
                 n_qp_patch += qrule.n_points();
             }
             if (!n_qp_patch) continue;
@@ -853,7 +856,7 @@ FEDataManager::spread(const int f_data_idx,
                 FEBase &X_fe = X_fe_cache[key];
                 FEBase &F_fe = F_fe_cache[key];
                 FEMap &fe_map = fe_map_cache[key];
-                QBase &qrule = quad_cache[key];
+                QBase &qrule = d_quadrature_cache[key];
 
                 // See the note in interpWeighted to explain why we override
                 // libMesh's reinit logic here
@@ -1267,7 +1270,6 @@ FEDataManager::interpWeighted(const int f_data_idx,
     FECache F_fe_cache(dim, F_fe_type);
     FECache X_fe_cache(dim, X_fe_type);
     FEMapCache fe_map_cache(dim);
-    QuadratureCache quad_cache(dim);
 
     // Communicate any unsynchronized ghost data.
     for (const auto& f_refine_sched : f_refine_scheds)
@@ -1457,7 +1459,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                                                            elem,
                                                            X_node,
                                                            patch_dx_min);
-                QBase &qrule = quad_cache[key];
+                QBase &qrule = d_quadrature_cache[key];
                 n_qp_patch += qrule.n_points();
                 quad_keys[e_idx] = key;
             }
@@ -1479,7 +1481,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type &key = quad_keys[e_idx];
-                QBase &qrule = quad_cache[key];
+                QBase &qrule = d_quadrature_cache[key];
                 FEBase &X_fe = X_fe_cache[key];
 
                 // libMesh::FE defaults to recalculating *everything* when we
@@ -1559,7 +1561,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 const quad_key_type &key = quad_keys[e_idx];
                 FEBase &F_fe = F_fe_cache[key];
                 FEMap &fe_map = fe_map_cache[key];
-                QBase &qrule = quad_cache[key];
+                QBase &qrule = d_quadrature_cache[key];
 
                 // Like above: conditionally initialize the FE object if it is
                 // new
@@ -2358,7 +2360,6 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         }
         using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
         FECache X_fe_cache(dim, fe_type);
-        QuadratureCache quad_cache(dim);
 
         // Setup and extract the underlying solution data.
         NumericVector<double>* X_vec = getCoordsVector();
@@ -2415,7 +2416,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
                                                            X_node,
                                                            patch_dx_min);
                 FEBase &X_fe = X_fe_cache[key];
-                QBase &qrule = quad_cache[key];
+                QBase &qrule = d_quadrature_cache[key];
 
                 // See the note in interpWeighted to explain why we override
                 // libMesh's reinit logic here
@@ -2502,7 +2503,8 @@ FEDataManager::FEDataManager(std::string object_name,
       d_registered_for_restart(register_for_restart),
       d_default_interp_spec(default_interp_spec),
       d_default_spread_spec(default_spread_spec),
-      d_ghost_width(std::move(ghost_width))
+      d_ghost_width(std::move(ghost_width)),
+      d_quadrature_cache(NDIM)
 {
     TBOX_ASSERT(!d_object_name.empty());
 
@@ -2587,7 +2589,6 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         // convenience alias for the quadrature key type used by FECache and FEMapCache
         using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
         FECache X_fe_cache(dim, fe_type);
-        QuadratureCache quad_cache(dim);
 
         // Extract the underlying solution data.
         NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
@@ -2638,7 +2639,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
                                                            X_node,
                                                            patch_dx_min);
                 FEBase &X_fe = X_fe_cache[key];
-                QBase &qrule = quad_cache[key];
+                QBase &qrule = d_quadrature_cache[key];
 
                 // See the note in interpWeighted to explain why we override
                 // libMesh's reinit logic here
@@ -2767,7 +2768,6 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     // convenience alias for the quadrature key type used by FECache and FEMapCache
     using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
     FECache X_fe_cache(dim, fe_type);
-    QuadratureCache quad_cache(dim);
 
     // Setup data structures used to assign elements to patches.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
@@ -2884,7 +2884,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
                                                            X_node,
                                                            patch_dx_min);
                 FEBase &X_fe = X_fe_cache[key];
-                QBase &qrule = quad_cache[key];
+                QBase &qrule = d_quadrature_cache[key];
 
                 // See the note in interpWeighted to explain why we override
                 // libMesh's reinit logic here

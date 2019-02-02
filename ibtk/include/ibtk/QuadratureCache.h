@@ -98,7 +98,7 @@ protected:
     /**
      * Dimension of the FE mesh.
      */
-    const unsigned int dim;
+    unsigned int dim;
 
     /**
      * Managed libMesh::Quadrature objects.
