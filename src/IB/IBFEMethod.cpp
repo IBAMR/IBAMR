@@ -1400,8 +1400,6 @@ IBFEMethod::initializeFEEquationSystems()
         else
         {
             auto& X_system = equation_systems.add_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
-            X_system.add_vector("new", /*projections*/ true, /*type*/ GHOSTED);
-            X_system.add_vector("half", /*projections*/ true, /*type*/ GHOSTED);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream os;
@@ -1418,8 +1416,6 @@ IBFEMethod::initializeFEEquationSystems()
             }
 
             auto& U_system = equation_systems.add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
-            U_system.add_vector("new", /*projections*/ true, /*type*/ GHOSTED);
-            U_system.add_vector("half", /*projections*/ true, /*type*/ GHOSTED);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream os;
@@ -1428,7 +1424,6 @@ IBFEMethod::initializeFEEquationSystems()
             }
 
             auto& F_system = equation_systems.add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
-            F_system.add_vector("tmp", /*projections*/ false, /*type*/ PARALLEL);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream os;
@@ -1436,6 +1431,53 @@ IBFEMethod::initializeFEEquationSystems()
                 F_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
         }
+
+        // Setup cached system vectors.
+        //
+        // NOTE: libMesh does not appear to preserve the type of the vector
+        // after restart, and so we manually reset these vectors here.
+        auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+        std::unique_ptr<NumericVector<double> > X_new_clone, X_half_clone;
+        if (from_restart)
+        {
+            NumericVector<double>* X_new = X_system.request_vector("new");
+            if (X_new) X_new_clone = X_new->clone();
+            NumericVector<double>* X_half = X_system.request_vector("half");
+            if (X_half) X_half_clone = X_half->clone();
+        }
+        X_system.remove_vector("new");
+        X_system.remove_vector("half");
+        X_system.add_vector("new", /*projections*/ true, /*type*/ GHOSTED);
+        X_system.add_vector("half", /*projections*/ true, /*type*/ GHOSTED);
+        if (X_new_clone) X_new_clone->localize(*X_system.request_vector("new"));
+        if (X_half_clone) X_half_clone->localize(*X_system.request_vector("half"));
+
+        auto& U_system = equation_systems.get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
+        std::unique_ptr<NumericVector<double> > U_new_clone, U_half_clone;
+        if (from_restart)
+        {
+            NumericVector<double>* U_new = U_system.request_vector("new");
+            if (U_new) U_new_clone = U_new->clone();
+            NumericVector<double>* U_half = U_system.request_vector("half");
+            if (U_half) U_half_clone = U_half->clone();
+        }
+        U_system.remove_vector("new");
+        U_system.remove_vector("half");
+        U_system.add_vector("new", /*projections*/ true, /*type*/ GHOSTED);
+        U_system.add_vector("half", /*projections*/ true, /*type*/ GHOSTED);
+        if (U_new_clone) U_new_clone->localize(*U_system.request_vector("new"));
+        if (U_half_clone) U_half_clone->localize(*U_system.request_vector("half"));
+
+        auto& F_system = equation_systems.get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+        std::unique_ptr<NumericVector<double> > F_tmp_clone;
+        if (from_restart)
+        {
+            NumericVector<double>* F_tmp = F_system.request_vector("tmp");
+            if (F_tmp) F_tmp_clone = F_tmp->clone();
+        }
+        F_system.remove_vector("tmp");
+        F_system.add_vector("tmp", /*projections*/ false, /*type*/ PARALLEL);
+        if (F_tmp_clone) F_tmp_clone->localize(*F_system.request_vector("tmp"));
     }
     d_fe_equation_systems_initialized = true;
     return;
