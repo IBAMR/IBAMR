@@ -1397,6 +1397,10 @@ INSVCStaggeredHierarchyIntegrator::regridHierarchy()
         regridProjection();
     }
 
+    // Reinitialize composite grid data.
+    const bool initial_time = false;
+    initializeCompositeHierarchyData(d_integrator_time, initial_time);
+
     // Synchronize the state data on the patch hierarchy.
     synchronizeHierarchyData(CURRENT_DATA);
     return;

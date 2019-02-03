@@ -460,7 +460,7 @@ IBHierarchyIntegrator::regridHierarchy()
 
     // Use the INSHierarchyIntegrator to handle Eulerian data management.
     if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): regridding the patch hierarchy\n";
-    HierarchyIntegrator::regridHierarchy();
+    d_ins_hier_integrator->regridHierarchy();
 
     // After regridding, finish Lagrangian data movement.
     if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement\n";
