@@ -30,6 +30,9 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#ifndef included_IBTK_FEMapCache
+#define included_IBTK_FEMapCache
+
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <libmesh/elem.h>
@@ -42,6 +45,8 @@
 #include <map>
 #include <memory>
 #include <tuple>
+
+#include <ibtk/QuadratureCache.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -114,10 +119,10 @@ protected:
     const unsigned int dim;
 
     /**
-     * Managed libMesh::Quadrature objects. These are attached to the FE
-     * objects.
+     * Managed libMesh::Quadrature objects. These are used to partially
+     * initialize (i.e., points but not weights are stored) the FEMap objects.
      */
-    std::map<key_type, std::unique_ptr<libMesh::QBase>> quadratures;
+    QuadratureCache quadrature_cache;
 
     /**
      * Managed libMesh::FEMap objects of specified dimension and family.
@@ -128,29 +133,17 @@ protected:
 inline
 FEMapCache::FEMapCache(const unsigned int dim)
     : dim(dim)
+    , quadrature_cache(dim)
 {}
 
 inline
 libMesh::FEMap &
 FEMapCache::operator[](const FEMapCache::key_type &quad_key)
 {
-    const libMesh::ElemType elem_type = std::get<0>(quad_key);
-    const libMesh::QuadratureType quad_type = std::get<1>(quad_key);
-    const libMesh::Order order = std::get<2>(quad_key);
-
     auto it = fe_maps.find(quad_key);
     if (it == fe_maps.end())
     {
-        // we should also need a new Quadrature object unless something has
-        // gone wrong
-#ifndef NDBEBUG
-        TBOX_ASSERT(quadratures.find(quad_key) == quadratures.end());
-#endif // ifndef NDEBUG
-        std::unique_ptr<libMesh::QBase> &new_quad = (
-            *quadratures.emplace(
-                quad_key, libMesh::QBase::build(quad_type, dim, order)).first).second;
-        new_quad->init(elem_type);
-
+        libMesh::QBase &quad = quadrature_cache[quad_key];
         libMesh::FEMap &fe_map = fe_maps[quad_key];
         // Calling this function enables JxW calculations
         fe_map.get_JxW();
@@ -161,6 +154,7 @@ FEMapCache::operator[](const FEMapCache::key_type &quad_key)
         // but libMesh developers) and *happens* to not read any geometric or
         // topological information from the Elem argument (just the default
         // order and type).
+        const libMesh::ElemType elem_type = std::get<0>(quad_key);
         std::unique_ptr<libMesh::Elem> exemplar_elem(libMesh::Elem::build(elem_type));
 
         // This is one of very few functions in libMesh that is templated on
@@ -168,13 +162,13 @@ FEMapCache::operator[](const FEMapCache::key_type &quad_key)
         switch (dim)
         {
         case 1:
-            fe_map.init_reference_to_physical_map<1>(new_quad->get_points(), exemplar_elem.get());
+            fe_map.init_reference_to_physical_map<1>(quad.get_points(), exemplar_elem.get());
             break;
         case 2:
-            fe_map.init_reference_to_physical_map<2>(new_quad->get_points(), exemplar_elem.get());
+            fe_map.init_reference_to_physical_map<2>(quad.get_points(), exemplar_elem.get());
             break;
         case 3:
-            fe_map.init_reference_to_physical_map<3>(new_quad->get_points(), exemplar_elem.get());
+            fe_map.init_reference_to_physical_map<3>(quad.get_points(), exemplar_elem.get());
             break;
         default:
             TBOX_ASSERT(false);
@@ -196,3 +190,5 @@ FEMapCache::operator[](const FEMapCache::key_type &quad_key)
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
+
+#endif //#ifndef included_IBTK_FEMapCache

@@ -53,6 +53,7 @@
 #include "VariableContext.h"
 #include "boost/multi_array.hpp"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/QuadratureCache.h"
 #include "libmesh/dof_map.h"
 #include "libmesh/elem.h"
 #include "libmesh/enum_order.h"
@@ -842,6 +843,12 @@ private:
     std::vector<std::vector<libMesh::Node*> > d_active_patch_node_map;
     std::map<std::string, std::vector<unsigned int> > d_active_patch_ghost_dofs;
     std::vector<std::pair<Point, Point> > d_active_elem_bboxes;
+
+    /*
+     * Cache of libMesh quadrature objects. Defaults to being an NDIM cache
+     * but is overwritten once a libMesh::EquationSystems object is attached.
+     */
+    QuadratureCache d_quadrature_cache;
 
     /*
      * Ghost vectors for the various equation systems.
