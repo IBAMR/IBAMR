@@ -65,6 +65,12 @@ void callRelaxationZoneCallbackFunction(double current_time,
                                         int num_cycles,
                                         void* ctx);
 
+void callConservedWaveAbsorbingCallbackFunction(double current_time,
+                                                double new_time,
+                                                bool skip_synchronize_new_state_data,
+                                                int num_cycles,
+                                                void* ctx);
+
 /*!
  * A struct holding the required information used by the wave damping function.
  */
@@ -86,6 +92,21 @@ struct WaveDampingStrategy
      */
     double d_x_zone_start, d_x_zone_end, d_depth;
     double d_alpha;
+};
+
+/*!
+ * A struct holding the required information used by the variable alpha damping method
+ */
+struct MassConservationFunctor
+{
+    std::pair<double, double> operator()(const double& alpha);
+    double d_dt;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > d_patch_hierarchy;
+    int d_u_idx;
+    int d_phi_scratch_idx;
+    int d_I_idx;
+    int d_dI_idx;
+    WaveDampingStrategy* d_ptr_wave_damper;
 };
 } // namespace IBAMR
 

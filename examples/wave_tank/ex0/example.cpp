@@ -336,8 +336,23 @@ run_example(int argc, char* argv[])
         wave_damper.d_ins_hier_integrator = time_integrator;
         wave_damper.d_adv_diff_hier_integrator = adv_diff_integrator;
         wave_damper.d_phi_var = phi_var;
-        time_integrator->registerPostprocessIntegrateHierarchyCallback(&callRelaxationZoneCallbackFunction,
-                                                                       static_cast<void*>(&wave_damper));
+
+        const string wave_damping_method = input_db->getStringWithDefault("WAVE_DAMPING_METHOD", "RELAXATION");
+        if (wave_damping_method == "RELAXATION")
+        {
+            time_integrator->registerPostprocessIntegrateHierarchyCallback(&callRelaxationZoneCallbackFunction,
+                                                                           static_cast<void*>(&wave_damper));
+        }
+        else if (wave_damping_method == "CONSERVING")
+        {
+            time_integrator->registerPostprocessIntegrateHierarchyCallback(&callConservedWaveAbsorbingCallbackFunction,
+                                                                           static_cast<void*>(&wave_damper));
+        }
+        else
+        {
+            TBOX_ERROR("Unknown WAVE_DAMPING_METHOD = " << wave_damping_method << " specified in the input file"
+                                                        << std::endl);
+        }
 
         RobinBcCoefStrategy<NDIM>* phi_bc_coef = NULL;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
