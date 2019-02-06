@@ -40,7 +40,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <unordered_map>
 
 #include "BasePatchLevel.h"
 #include "CellVariable.h"
@@ -52,8 +51,8 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "boost/multi_array.hpp"
-#include "ibtk/ibtk_utilities.h"
 #include "ibtk/QuadratureCache.h"
+#include "ibtk/ibtk_utilities.h"
 #include "libmesh/dof_map.h"
 #include "libmesh/elem.h"
 #include "libmesh/enum_order.h"
@@ -61,6 +60,7 @@
 #include "libmesh/system.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
+#include "tsl/robin_map.h"
 
 namespace IBTK
 {
@@ -145,7 +145,7 @@ public:
 
     private:
         libMesh::DofMap& d_dof_map;
-        std::unordered_map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > > d_dof_cache;
+        tsl::robin_map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > > d_dof_cache;
     };
 
     /*!
