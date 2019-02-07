@@ -38,9 +38,9 @@
 #include <map>
 #include <ostream>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
-#include <unordered_map>
 
 #include "BasePatchLevel.h"
 #include "CellVariable.h"
@@ -52,8 +52,8 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "boost/multi_array.hpp"
-#include "ibtk/ibtk_utilities.h"
 #include "ibtk/QuadratureCache.h"
+#include "ibtk/ibtk_utilities.h"
 #include "libmesh/dof_map.h"
 #include "libmesh/elem.h"
 #include "libmesh/enum_order.h"
@@ -119,8 +119,46 @@ public:
         /*!
          * Constructor.
          */
-        inline SystemDofMapCache(libMesh::System& system) : d_dof_map(system.get_dof_map())
+        inline SystemDofMapCache(libMesh::System& system,
+                                 const std::vector<std::vector<libMesh::Elem*> >& active_patch_elem_map)
+            : d_dof_map(system.get_dof_map()), d_active_patch_elem_map(active_patch_elem_map)
         {
+        }
+
+        /*!
+         * Populate the vector @p dof_indices with the dofs corresponding to
+         * variable @var on the element identified by the specified local patch
+         * index and local element index.  The dof indices on each cell are
+         * cached: i.e., the second call to this function with the same @p elem
+         * and @p var is much faster than the first.
+         */
+        inline void dof_indices(const std::pair<unsigned int, unsigned int>& key,
+                                std::vector<unsigned int>& dof_indices,
+                                const unsigned int var = 0)
+        {
+            const unsigned int local_patch_num = key.first;
+            const unsigned int local_elem_num = key.second;
+            if (d_dof_cache_vector.size() != d_active_patch_elem_map.size())
+            {
+                d_dof_cache_vector.resize(d_active_patch_elem_map.size());
+            }
+            if (d_dof_cache_vector[local_patch_num].size() != d_active_patch_elem_map[local_patch_num].size())
+            {
+                d_dof_cache_vector[local_patch_num].resize(d_active_patch_elem_map[local_patch_num].size());
+            }
+            std::vector<std::vector<unsigned int> >& elem_dof_indices =
+                d_dof_cache_vector[local_patch_num][local_elem_num];
+            if (elem_dof_indices.size() <= var)
+            {
+                elem_dof_indices.resize(var + 1);
+            }
+            if (elem_dof_indices[var].empty())
+            {
+                const libMesh::Elem* const elem = d_active_patch_elem_map[local_patch_num][local_elem_num];
+                d_dof_map.dof_indices(elem, elem_dof_indices[var], var);
+            }
+            dof_indices = elem_dof_indices[var];
+            return;
         }
 
         /*!
@@ -130,12 +168,10 @@ public:
          * elem and @p var is much faster than the first.
          */
         inline void
-        dof_indices(const libMesh::Elem* const elem,
-                    std::vector<unsigned int>& dof_indices,
-                    const unsigned int var = 0)
+        dof_indices(const libMesh::Elem* const elem, std::vector<unsigned int>& dof_indices, const unsigned int var = 0)
         {
             const libMesh::dof_id_type elem_id = elem->id();
-            std::vector<std::vector<unsigned int> >& elem_dof_indices = d_dof_cache[elem_id];
+            std::vector<std::vector<unsigned int> >& elem_dof_indices = d_dof_cache_map[elem_id];
             if (elem_dof_indices.size() <= var)
             {
                 elem_dof_indices.resize(var + 1);
@@ -150,7 +186,9 @@ public:
 
     private:
         libMesh::DofMap& d_dof_map;
-        std::unordered_map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > > d_dof_cache;
+        const std::vector<std::vector<libMesh::Elem*> >& d_active_patch_elem_map;
+        std::unordered_map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > > d_dof_cache_map;
+        std::vector<std::vector<std::vector<std::vector<unsigned int> > > > d_dof_cache_vector;
     };
 
     /*!
@@ -858,15 +896,15 @@ private:
     /*
      * Ghost vectors for the various equation systems.
      */
-    std::map<std::string, std::unique_ptr<libMesh::NumericVector<double>>> d_system_ghost_vec;
+    std::map<std::string, std::unique_ptr<libMesh::NumericVector<double> > > d_system_ghost_vec;
 
     /*
      * Linear solvers and related data for performing interpolation in the IB-FE
      * framework.
      */
-    std::map<std::string, std::unique_ptr<libMesh::LinearSolver<double>>> d_L2_proj_solver;
-    std::map<std::string, std::unique_ptr<libMesh::SparseMatrix<double>>> d_L2_proj_matrix;
-    std::map<std::string, std::unique_ptr<libMesh::NumericVector<double>>> d_L2_proj_matrix_diag;
+    std::map<std::string, std::unique_ptr<libMesh::LinearSolver<double> > > d_L2_proj_solver;
+    std::map<std::string, std::unique_ptr<libMesh::SparseMatrix<double> > > d_L2_proj_matrix;
+    std::map<std::string, std::unique_ptr<libMesh::NumericVector<double> > > d_L2_proj_matrix_diag;
 };
 } // namespace IBTK
 

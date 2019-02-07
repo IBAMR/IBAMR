@@ -425,7 +425,7 @@ FEDataManager::getDofMapCache(unsigned int system_num)
     std::unique_ptr<SystemDofMapCache> &dof_map_cache = d_system_dof_map_cache[system_num];
     if (dof_map_cache == nullptr)
     {
-        dof_map_cache.reset(new SystemDofMapCache(d_es->get_system(system_num)));
+        dof_map_cache.reset(new SystemDofMapCache(d_es->get_system(system_num), d_active_patch_elem_map));
     }
     return dof_map_cache.get();
 } // getDofMapCache
@@ -788,7 +788,7 @@ FEDataManager::spread(const int f_data_idx,
                 Elem* const elem = patch_elems[e_idx];
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+                    X_dof_map_cache.dof_indices({ local_patch_num, e_idx }, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type key = getQuadratureKey(spread_spec.quad_type,
@@ -815,12 +815,12 @@ FEDataManager::spread(const int f_data_idx,
                 Elem* const elem = patch_elems[e_idx];
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
-                    F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
+                    F_dof_map_cache.dof_indices({ local_patch_num, e_idx }, F_dof_indices[i], i);
                 }
                 get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, F_dof_indices);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+                    X_dof_map_cache.dof_indices({ local_patch_num, e_idx }, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type &key = quad_keys[e_idx];
@@ -1037,7 +1037,7 @@ FEDataManager::prolongData(const int f_data_idx,
             const unsigned int n_node = elem->n_nodes();
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+                X_dof_map_cache.dof_indices({ local_patch_num, e_idx }, X_dof_indices[d], d);
             }
 
             // Cache the nodal and physical coordinates of the element,
@@ -1110,7 +1110,7 @@ FEDataManager::prolongData(const int f_data_idx,
             // update the data on the grid.
             for (unsigned int i = 0; i < n_vars; ++i)
             {
-                F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
+                F_dof_map_cache.dof_indices({ local_patch_num, e_idx }, F_dof_indices[i], i);
             }
             get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, F_dof_indices);
             if (is_density) get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
@@ -1376,7 +1376,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 Elem* const elem = patch_elems[e_idx];
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+                    X_dof_map_cache.dof_indices({ local_patch_num, e_idx }, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type key = getQuadratureKey(interp_spec.quad_type,
@@ -1404,7 +1404,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 Elem* const elem = patch_elems[e_idx];
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+                    X_dof_map_cache.dof_indices({ local_patch_num, e_idx }, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type &key = quad_keys[e_idx];
@@ -1477,12 +1477,12 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 Elem* const elem = patch_elems[e_idx];
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
-                    F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
+                    F_dof_map_cache.dof_indices({ local_patch_num, e_idx }, F_dof_indices[i], i);
                     F_rhs_e[i].resize(static_cast<int>(F_dof_indices[i].size()));
                 }
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+                    X_dof_map_cache.dof_indices({ local_patch_num, e_idx }, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type &key = quad_keys[e_idx];
@@ -1689,7 +1689,7 @@ FEDataManager::restrictData(const int f_data_idx,
             const unsigned int n_node = elem->n_nodes();
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+                X_dof_map_cache.dof_indices({ local_patch_num, e_idx }, X_dof_indices[d], d);
             }
 
             // Cache the nodal and physical coordinates of the element,
@@ -1763,7 +1763,7 @@ FEDataManager::restrictData(const int f_data_idx,
             if (X_fe != F_fe) X_fe->reinit(elem, &intersection_ref_coords);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
-                F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
+                F_dof_map_cache.dof_indices({ local_patch_num, e_idx }, F_dof_indices[i], i);
                 F_rhs_e[i].resize(static_cast<int>(F_dof_indices[i].size()));
             }
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
@@ -2524,7 +2524,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
                 Elem* const elem = patch_elems[e_idx];
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+                    X_dof_map_cache.dof_indices({ local_patch_num, e_idx }, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
 
