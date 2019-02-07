@@ -317,6 +317,7 @@ FEDataManager*
 FEDataManager::getManager(const std::string& name,
                           const FEDataManager::InterpSpec& default_interp_spec,
                           const FEDataManager::SpreadSpec& default_spread_spec,
+                          const FEDataManager::WorkloadSpec& default_workload_spec,
                           const IntVector<NDIM>& min_ghost_width,
                           bool register_for_restart)
 {
@@ -327,7 +328,7 @@ FEDataManager::getManager(const std::string& name,
             IntVector<NDIM>(std::max(LEInteractor::getMinimumGhostWidth(default_interp_spec.kernel_fcn),
                                      LEInteractor::getMinimumGhostWidth(default_spread_spec.kernel_fcn))));
         s_data_manager_instances[name] =
-            new FEDataManager(name, default_interp_spec, default_spread_spec, ghost_width, register_for_restart);
+            new FEDataManager(name, default_interp_spec, default_spread_spec, default_workload_spec, ghost_width, register_for_restart);
     }
     if (!s_registered_callback)
     {
@@ -335,6 +336,16 @@ FEDataManager::getManager(const std::string& name,
         s_registered_callback = true;
     }
     return s_data_manager_instances[name];
+} // getManager
+
+FEDataManager*
+FEDataManager::getManager(const std::string& name,
+                          const FEDataManager::InterpSpec& default_interp_spec,
+                          const FEDataManager::SpreadSpec& default_spread_spec,
+                          const IntVector<NDIM>& min_ghost_width,
+                          bool register_for_restart)
+{
+    return getManager(name, default_interp_spec, default_spread_spec, {}, min_ghost_width, register_for_restart);
 } // getManager
 
 void
@@ -2161,7 +2172,7 @@ FEDataManager::updateSpreadQuadratureRule(std::unique_ptr<QBase>& qrule,
 void
 FEDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int finest_ln_in)
 {
-    if (!d_load_balancer) return;
+    if (d_workload_idx == IBTK::invalid_index) return;
 
     IBTK_TIMER_START(t_update_workload_estimates);
 
@@ -2177,7 +2188,12 @@ FEDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int fines
     {
         updateQuadPointCountData(ln, ln);
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, ln, ln);
-        hier_cc_data_ops.add(d_workload_idx, d_qp_count_idx, d_workload_idx);
+        if (d_default_workload_spec.clear_estimate)
+        {
+            hier_cc_data_ops.setToScalar(d_workload_idx, 0.0);
+        }
+        hier_cc_data_ops.axpy(d_workload_idx, d_default_workload_spec.q_point_weight,
+                              d_qp_count_idx, d_workload_idx);
     }
 
     IBTK_TIMER_STOP(t_update_workload_estimates);
@@ -2401,10 +2417,12 @@ FEDataManager::putToDatabase(Pointer<Database> db)
 FEDataManager::FEDataManager(std::string object_name,
                              FEDataManager::InterpSpec default_interp_spec,
                              FEDataManager::SpreadSpec default_spread_spec,
+                             FEDataManager::WorkloadSpec default_workload_spec,
                              IntVector<NDIM> ghost_width,
                              bool register_for_restart)
     : d_object_name(std::move(object_name)),
       d_registered_for_restart(register_for_restart),
+      d_default_workload_spec(default_workload_spec),
       d_default_interp_spec(default_interp_spec),
       d_default_spread_spec(default_spread_spec),
       d_ghost_width(std::move(ghost_width)),

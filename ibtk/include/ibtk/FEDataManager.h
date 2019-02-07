@@ -100,6 +100,18 @@ namespace IBTK
  * \brief Class FEDataManager coordinates data required for Lagrangian-Eulerian
  * interaction between a Lagrangian finite element (FE) mesh.
  *
+ * <h3>Parameters effecting workload estimate calculations</h3>
+ * FEDataManager can estimate the amount of work done in IBFE calculations
+ * (such as FEDataManager::spread). Since most calculations use a variable
+ * number of quadrature points on each libMesh element this estimate can vary
+ * quite a bit over different Eulerian cells corresponding to a single
+ * mesh. The current implementation estimates the workload on each cell of the
+ * background Eulerian grid by applying a background value representing the
+ * work on the Eulerian cell itself and a weight times the number of
+ * quadrature points on that cell. These values are set at the time of object
+ * construction through the FEDataManager::WorkloadSpec object, which contains
+ * reasonable defaults.
+ *
  * \note Multiple FEDataManager objects may be instantiated simultaneously.
  */
 class FEDataManager : public SAMRAI::tbox::Serializable, public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
@@ -221,6 +233,22 @@ public:
     };
 
     /*!
+     * \brief Struct WorkloadSpec encapsulates the parameters used to
+     * calculate workload estimates (i.e., the input to the load balancing
+     * algorithm).
+     */
+    struct WorkloadSpec
+    {
+        /// Whether or not to clear the workload index arrays at the start of
+        /// the calculation. This should be true unless some other object is
+        /// also adding values into the workload estimate.
+        bool clear_estimate = true;
+
+        /// The multiplier applied to each quadrature point.
+        double q_point_weight = 2.0;
+    };
+
+    /*!
      * \brief The name of the equation system which stores the spatial position
      * data.
      *
@@ -250,6 +278,20 @@ public:
      * class.  Consequently, all allocated managers are freed at program
      * completion.  Thus, users of this class do not explicitly allocate or
      * deallocate the FEDataManager instances.
+     *
+     * \return A pointer to the data manager instance.
+     */
+    static FEDataManager*
+    getManager(const std::string& name,
+               const InterpSpec& default_interp_spec,
+               const SpreadSpec& default_spread_spec,
+               const WorkloadSpec& default_workload_spec,
+               const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
+               bool register_for_restart = true);
+
+    /*!
+     * Same as the last function, but uses a default workload specification
+     * for compatibility.
      *
      * \return A pointer to the data manager instance.
      */
@@ -580,7 +622,9 @@ public:
                                            double dx_min);
 
     /*!
-     * \brief Update the cell workload estimate.
+     * \brief Update the cell workload estimate. Does nothing unless a
+     * workload variable was previously registered via
+     * FEDataManager::registerLoadBalancer.
      */
     void updateWorkloadEstimates(int coarsest_ln = -1, int finest_ln = -1);
 
@@ -676,6 +720,7 @@ protected:
     FEDataManager(std::string object_name,
                   InterpSpec default_interp_spec,
                   SpreadSpec default_spread_spec,
+                  WorkloadSpec default_workload_spec,
                   SAMRAI::hier::IntVector<NDIM> ghost_width,
                   bool register_for_restart = true);
 
@@ -820,6 +865,11 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
     int d_workload_idx = IBTK::invalid_index;
+
+    /*
+     * The default parameters used during workload calculations.
+     */
+    const WorkloadSpec d_default_workload_spec;
 
     /*
      * The default kernel functions and quadrature rule used to mediate
