@@ -107,6 +107,11 @@ class FEDataManager : public SAMRAI::tbox::Serializable, public SAMRAI::mesh::St
 public:
     /*!
      * Class which enables fast lookup of dofs on a given libMesh <code>elem</code>.
+     *
+     * @note The contents of this cache are invalidated when we regrid and the
+     * caches should be reset at that point. Copies of this class should
+     * always be retrieved via FEDataManager::getDofCache() to avoid this
+     * problem.
      */
     class SystemDofMapCache
     {
