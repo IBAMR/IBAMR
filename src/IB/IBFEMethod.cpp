@@ -1364,6 +1364,15 @@ IBFEMethod::setSpreadSpec(const FEDataManager::SpreadSpec& spread_spec, const un
 }
 
 void
+IBFEMethod::setWorkloadSpec(const FEDataManager::WorkloadSpec& workload_spec, const unsigned int part)
+{
+    TBOX_ASSERT(!d_fe_equation_systems_initialized);
+    TBOX_ASSERT(part < d_num_parts);
+    d_workload_spec[part] = workload_spec;
+    return;
+}
+
+void
 IBFEMethod::initializeFEEquationSystems()
 {
     if (d_fe_equation_systems_initialized) return;
@@ -1380,7 +1389,10 @@ IBFEMethod::initializeFEEquationSystems()
         std::ostringstream manager_stream;
         manager_stream << "IBFEMethod FEDataManager::" << part;
         const std::string& manager_name = manager_stream.str();
-        d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec[part], d_spread_spec[part]);
+        FEDataManager::WorkloadSpec workload_spec = d_workload_spec[part];
+        // See the documentation of setWorkloadSpec for an explanation
+        workload_spec.clear_estimate = false;
+        d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec[part], d_spread_spec[part], workload_spec);
         d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
 
         // Create FE equation systems objects and corresponding variables.
@@ -1684,8 +1696,27 @@ IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int
 } // registerLoadBalancer
 
 void
-IBFEMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
+IBFEMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > hierarchy, int workload_data_idx)
 {
+    if (workload_data_idx == IBTK::invalid_index) return;
+    TBOX_ASSERT(workload_data_idx == d_workload_idx);
+
+    // Since there may be multiple parts, and the parts know nothing about
+    // each-other, we have to set up the default workload value here and then
+    // add into it on each part. All Eulerian cells are assumed to have an
+    // equal workload.
+    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy);
+
+    for (const FEDataManager::WorkloadSpec &workload_spec : d_workload_spec)
+    {
+        if (workload_spec.clear_estimate)
+        {
+            hier_cc_data_ops.setToScalar(d_workload_idx, 1.0,
+                                         /*interior_only*/ false);
+            break;
+        }
+    }
+
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_fe_data_managers[part]->updateWorkloadEstimates();
@@ -3598,6 +3629,7 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     // Set up the interaction spec objects.
     d_interp_spec.resize(d_num_parts, d_default_interp_spec);
     d_spread_spec.resize(d_num_parts, d_default_spread_spec);
+    d_workload_spec.resize(d_num_parts);
 
     return;
 } // commonConstructor
