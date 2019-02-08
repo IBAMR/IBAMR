@@ -124,18 +124,12 @@ public:
         }
 
         /*!
-         * Populate the vector @p dof_indices with the dofs corresponding to
-         * variable @var on element @elem. The dof indices on each cell are
-         * cached: i.e., the second call to this function with the same @p
-         * elem and @p var is much faster than the first.
+         * Setup cached DOF data.  This will be a no-op if the DOF indices have
+         * already been computed for the given element and variable.
          */
-        inline void
-        dof_indices(const libMesh::Elem* const elem,
-                    std::vector<unsigned int>& dof_indices,
-                    const unsigned int var = 0)
+        inline void build_dof_indices(const libMesh::Elem* const elem, const unsigned int var = 0)
         {
-            const libMesh::dof_id_type elem_id = elem->id();
-            std::vector<std::vector<unsigned int> >& elem_dof_indices = d_dof_cache[elem_id];
+            std::vector<std::vector<unsigned int> >& elem_dof_indices = d_dof_cache[elem->id()];
             if (elem_dof_indices.size() <= var)
             {
                 elem_dof_indices.resize(var + 1);
@@ -144,7 +138,40 @@ public:
             {
                 d_dof_map.dof_indices(elem, elem_dof_indices[var], var);
             }
-            dof_indices = elem_dof_indices[var];
+            return;
+        }
+
+        /*!
+         * Return a const pointer to the dof_indices with the dofs corresponding
+         * to variable @var on element @elem. The dof indices on each cell are
+         * precomputed.
+         *
+         * \note IMPORTANT NOTE: The DOF indices must already be set up for the
+         * given element and all required variables.
+         */
+        inline const std::vector<unsigned int>* lookup_dof_indices(const libMesh::Elem* const elem,
+                                                                   const unsigned int var = 0) const
+        {
+            const libMesh::dof_id_type elem_id = elem->id();
+            auto elem_dof_indices_it = d_dof_cache.find(elem_id);
+#if !defined(NDEBUG)
+            TBOX_ASSERT(elem_dof_indices_it != d_dof_cache.end());
+            TBOX_ASSERT(var < elem_dof_indices_it->second.size());
+#endif
+            return &elem_dof_indices_it->second[var];
+        }
+
+        /*!
+         * Populate the vector @p dof_indices with the dofs corresponding to
+         * variable @var on element @elem. The dof indices on each cell are
+         * cached: i.e., the second call to this function with the same @p
+         * elem and @p var is much faster than the first.
+         */
+        inline void
+        dof_indices(const libMesh::Elem* const elem, std::vector<unsigned int>& dof_indices, const unsigned int var = 0)
+        {
+            build_dof_indices(elem, var);
+            dof_indices = d_dof_cache[elem->id()][var];
             return;
         }
 
