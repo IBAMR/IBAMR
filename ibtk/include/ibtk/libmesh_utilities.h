@@ -375,7 +375,7 @@ get_values_for_interpolation(MultiArray& U_node,
                              libMesh::NumericVector<double>& U_vec,
                              const std::vector<unsigned int>& dof_indices)
 {
-    libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
+    libMesh::PetscVector<double>* U_petsc_vec = static_cast<libMesh::PetscVector<double>*>(&U_vec);
     const double* const U_local_soln = U_petsc_vec->get_array_read();
     get_values_for_interpolation(U_node, *U_petsc_vec, U_local_soln, dof_indices);
     U_petsc_vec->restore_array();
@@ -388,7 +388,7 @@ get_values_for_interpolation(MultiArray& U_node,
                              libMesh::NumericVector<double>& U_vec,
                              const std::vector<unsigned int>* const dof_indices)
 {
-    libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
+    libMesh::PetscVector<double>* U_petsc_vec = static_cast<libMesh::PetscVector<double>*>(&U_vec);
     const double* const U_local_soln = U_petsc_vec->get_array_read();
     get_values_for_interpolation(U_node, *U_petsc_vec, U_local_soln, dof_indices);
     U_petsc_vec->restore_array();
@@ -401,7 +401,7 @@ get_values_for_interpolation(MultiArray& U_node,
                              libMesh::NumericVector<double>& U_vec,
                              const std::vector<std::vector<unsigned int> >& dof_indices)
 {
-    libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
+    libMesh::PetscVector<double>* U_petsc_vec = static_cast<libMesh::PetscVector<double>*>(&U_vec);
     const double* const U_local_soln = U_petsc_vec->get_array_read();
     get_values_for_interpolation(U_node, *U_petsc_vec, U_local_soln, dof_indices);
     U_petsc_vec->restore_array();
@@ -414,12 +414,107 @@ get_values_for_interpolation(MultiArray& U_node,
                              libMesh::NumericVector<double>& U_vec,
                              const std::vector<const std::vector<unsigned int>*>& dof_indices)
 {
-    libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
+    libMesh::PetscVector<double>* U_petsc_vec = static_cast<libMesh::PetscVector<double>*>(&U_vec);
     const double* const U_local_soln = U_petsc_vec->get_array_read();
     get_values_for_interpolation(U_node, *U_petsc_vec, U_local_soln, dof_indices);
     U_petsc_vec->restore_array();
     return;
 } // get_values_for_interpolation
+
+class PetscVectorLocalAdapter
+{
+public:
+    inline PetscVectorLocalAdapter(libMesh::NumericVector<double>& U_vec, const double* const U_local_soln = nullptr)
+        : d_U_petsc_vec(static_cast<libMesh::PetscVector<double>*>(&U_vec)), d_U_local_soln(U_local_soln)
+    {
+    }
+
+    inline ~PetscVectorLocalAdapter()
+    {
+        close();
+    }
+
+    inline void open()
+    {
+        d_U_local_soln = d_U_petsc_vec->get_array_read();
+    }
+
+    inline void close()
+    {
+        if (d_U_local_soln)
+        {
+            d_U_petsc_vec->restore_array();
+            d_U_local_soln = nullptr;
+        }
+    }
+
+    inline double operator()(int k, const std::vector<unsigned int>& dof_indices)
+    {
+#if !defined(NDEBUG)
+        TBOX_ASSERT(d_U_local_soln);
+#endif
+        return d_U_local_soln[d_U_petsc_vec->map_global_to_local_index(dof_indices[k])];
+    }
+
+    inline double operator()(int k, int i, const std::vector<std::vector<unsigned int> >& dof_indices)
+    {
+#if !defined(NDEBUG)
+        TBOX_ASSERT(d_U_local_soln);
+#endif
+        return d_U_local_soln[d_U_petsc_vec->map_global_to_local_index(dof_indices[i][k])];
+    }
+
+    inline double operator()(int k, const std::vector<unsigned int>* const dof_indices)
+    {
+#if !defined(NDEBUG)
+        TBOX_ASSERT(d_U_local_soln);
+#endif
+        return d_U_local_soln[d_U_petsc_vec->map_global_to_local_index((*dof_indices)[k])];
+    }
+
+    inline double operator()(int k, int i, const std::vector<const std::vector<unsigned int>*>& dof_indices)
+    {
+#if !defined(NDEBUG)
+        TBOX_ASSERT(d_U_local_soln);
+#endif
+        return d_U_local_soln[d_U_petsc_vec->map_global_to_local_index((*dof_indices[i])[k])];
+    }
+
+private:
+    libMesh::PetscVector<double>* const d_U_petsc_vec;
+    const double* d_U_local_soln;
+};
+
+template <class DofArray>
+inline void
+interpolate(double& U,
+            const int qp,
+            const PetscVectorLocalAdapter& U_node_adapter,
+            const std::vector<std::vector<double> >& phi,
+            const DofArray& dof_indices)
+{
+    U = U_node_adapter(0, dof_indices) * phi[0][qp];
+    for (int k = 1; k < static_cast<int>(phi.size()); ++k)
+    {
+        U += U_node_adapter(k, dof_indices) * phi[k][qp];
+    }
+    return;
+} // interpolate
+
+template <class DofArray>
+inline double
+interpolate(const int qp,
+            const PetscVectorLocalAdapter& U_node_adapter,
+            const std::vector<std::vector<double> >& phi,
+            const DofArray& dof_indices)
+{
+    double U = U_node_adapter(0, dof_indices) * phi[0][qp];
+    for (int k = 1; k < static_cast<int>(phi.size()); ++k)
+    {
+        U += U_node_adapter(k, dof_indices) * phi[k][qp];
+    }
+    return U;
+} // interpolate
 
 template <class MultiArray>
 inline void

@@ -752,11 +752,11 @@ FEDataManager::spread(const int f_data_idx,
     else
     {
         // Extract local form vectors.
-        auto F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
-        const double* const F_local_soln = F_petsc_vec->get_array_read();
-
         auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
         const double* const X_local_soln = X_petsc_vec->get_array_read();
+        PetscVectorLocalAdapter X_node_adapter(X_vec, X_local_soln);
+        PetscVectorLocalAdapter F_node_adapter(F_vec);
+        F_node_adapter.open();
 
         // Loop over the patches to interpolate nodal values on the FE mesh to
         // the element quadrature points, then spread those values onto the
@@ -825,12 +825,10 @@ FEDataManager::spread(const int f_data_idx,
                 {
                     F_dof_indices[i] = F_dof_map_cache.lookup_dof_indices(elem, i);
                 }
-                get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, F_dof_indices);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     X_dof_indices[d] = X_dof_map_cache.lookup_dof_indices(elem, d);
                 }
-                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type &key = quad_keys[e_idx];
                 FEBase &X_fe = X_fe_cache[key];
                 FEBase &F_fe = F_fe_cache[key];
@@ -868,7 +866,8 @@ FEDataManager::spread(const int f_data_idx,
                     {
                         for (unsigned int i = 0; i < n_vars; ++i)
                         {
-                            F_JxW_qp[n_vars * (qp_offset + qp) + i] += F_node[k][i] * phi_F[k][qp] * JxW_F[qp];
+                            F_JxW_qp[n_vars * (qp_offset + qp) + i] +=
+                                F_node_adapter(k, F_dof_indices[i]) * phi_F[k][qp] * JxW_F[qp];
                         }
                     }
                 }
@@ -878,7 +877,7 @@ FEDataManager::spread(const int f_data_idx,
                     {
                         for (unsigned int i = 0; i < NDIM; ++i)
                         {
-                            X_qp[NDIM * (qp_offset + qp) + i] += X_node[k][i] * phi_X[k][qp];
+                            X_qp[NDIM * (qp_offset + qp) + i] += X_node_adapter(k, X_dof_indices[i]) * phi_X[k][qp];
                         }
                     }
                 }
@@ -912,7 +911,6 @@ FEDataManager::spread(const int f_data_idx,
         }
 
         // Restore local form vectors.
-        F_petsc_vec->restore_array();
         X_petsc_vec->restore_array();
     }
 
@@ -1359,6 +1357,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
         // Extract local form vectors.
         auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
         const double* const X_local_soln = X_petsc_vec->get_array_read();
+        PetscVectorLocalAdapter X_node_adapter(X_vec, X_local_soln);
 
         // Loop over the patches to interpolate values to the element quadrature
         // points from the grid, then use these values to compute the projection
@@ -1426,7 +1425,6 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 {
                     X_dof_indices[d] = X_dof_map_cache.lookup_dof_indices(elem, d);
                 }
-                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type &key = quad_keys[e_idx];
                 QBase &qrule = d_quadrature_cache[key];
                 FEBase &X_fe = X_fe_cache[key];
@@ -1462,7 +1460,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                         const double& p_X = phi_X[k][qp];
                         for (unsigned int i = 0; i < NDIM; ++i)
                         {
-                            X_qp[NDIM * (qp_offset + qp) + i] += X_node[k][i] * p_X;
+                            X_qp[NDIM * (qp_offset + qp) + i] += X_node_adapter(k, X_dof_indices[i]) * p_X;
                         }
                     }
                 }
@@ -1500,11 +1498,6 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
                     F_rhs_e[i].resize(static_cast<int>(F_dof_indices[i].size()));
                 }
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    X_dof_indices[d] = X_dof_map_cache.lookup_dof_indices(elem, d);
-                }
-                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type &key = quad_keys[e_idx];
                 FEBase &F_fe = F_fe_cache[key];
                 FEMap &fe_map = fe_map_cache[key];
@@ -2366,7 +2359,6 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
                 for (unsigned int qp = 0; qp < qrule.n_points(); ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, X_phi);
-
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
                     tag_data->fill(1, Box<NDIM>(i - Index<NDIM>(1), i + Index<NDIM>(1)));
                 }
