@@ -45,6 +45,8 @@
 #include <utility>
 #include <vector>
 
+#include <unistd.h>
+
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
 #include "Box.h"
@@ -2476,6 +2478,19 @@ FEDataManager::FEDataManager(std::string object_name,
     return;
 } // FEDataManager
 
+void
+FEDataManager::setLoggingEnabled(bool enable_logging)
+{
+    d_enable_logging = enable_logging;
+    return;
+} // setLoggingEnabled
+
+bool
+FEDataManager::getLoggingEnabled() const
+{
+    return d_enable_logging;
+} // getLoggingEnabled
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
@@ -2483,6 +2498,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
 {
     // Set the node count data on the specified range of levels of the
     // hierarchy.
+    unsigned long n_local_q_points = 0;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -2570,7 +2586,47 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
                 {
                     interpolate(&X_qp[0], qp, X_node, X_phi);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
-                    if (patch_box.contains(i)) (*qp_count_data)(i) += 1.0;
+                    if (patch_box.contains(i))
+                    {
+                        (*qp_count_data)(i) += 1.0;
+                        ++n_local_q_points;
+                    }
+                }
+            }
+        }
+
+        if (d_enable_logging)
+        {
+            const int n_processes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+            const int current_rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
+            const auto right_padding = std::size_t(std::log10(n_processes)) + 1;
+
+
+            std::vector<int> pids(n_processes);
+            pids[current_rank] = getpid();
+            int ierr = MPI_Allreduce(
+                MPI_IN_PLACE, pids.data(),
+                pids.size(), MPI_INT,
+                MPI_SUM, SAMRAI::tbox::SAMRAI_MPI::commWorld);
+            TBOX_ASSERT(ierr == 0);
+
+            std::vector<unsigned long> n_q_points_on_processors(n_processes);
+            n_q_points_on_processors[current_rank] = n_local_q_points;
+
+            ierr = MPI_Allreduce(
+                MPI_IN_PLACE, n_q_points_on_processors.data(),
+                n_q_points_on_processors.size(), MPI_UNSIGNED_LONG,
+                MPI_SUM, SAMRAI::tbox::SAMRAI_MPI::commWorld);
+            TBOX_ASSERT(ierr == 0);
+            if (current_rank == 0)
+            {
+                for (int rank = 0; rank < n_processes; ++rank)
+                {
+                    SAMRAI::tbox::plog << "quadrature points on processor "
+                                       << std::setw(right_padding) << std::left << rank
+                                       << " = "
+                                       << n_q_points_on_processors[rank] << '\n'
+                                       << " (pid is " << pids[rank] << ")\n";
                 }
             }
         }

@@ -303,6 +303,19 @@ public:
                bool register_for_restart = true);
 
     /*!
+     * \brief Enable or disable logging.
+     *
+     * @note This is usually set by the IBFEMethod which owns the current
+     * FEDataManager, which reads the relevant boolean from the database.
+     */
+    void setLoggingEnabled(bool enable_logging = true);
+
+    /*!
+     * \brief Determine whether logging is enabled or disabled.
+     */
+    bool getLoggingEnabled() const;
+
+    /*!
      * Deallocate all of the FEDataManager instances.
      *
      * It is not necessary to call this function at program termination since it
@@ -827,6 +840,16 @@ private:
      */
     std::string d_object_name;
     bool d_registered_for_restart;
+
+    /*
+     * Whether or not to log data to the screen: see
+     * FEDataManager::setLoggingEnabled() and
+     * FEDataManager::getLoggingEnabled().
+     *
+     * @note This is usually set by IBFEMethod, which reads the relevant
+     * boolean from the database.
+     */
+    bool d_enable_logging = false;
 
     /*
      * We cache a pointer to the load balancer.
