@@ -828,10 +828,6 @@ FEDataManager::spread(const int f_data_idx,
                 get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, F_dof_indices);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X_dof_map_cache.build_dof_indices(elem, d);
-                }
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
                     X_dof_indices[d] = X_dof_map_cache.lookup_dof_indices(elem, d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
@@ -1504,11 +1500,6 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
                     F_rhs_e[i].resize(static_cast<int>(F_dof_indices[i].size()));
                 }
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    X_dof_indices[d] = X_dof_map_cache.lookup_dof_indices(elem, d);
-                }
-                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type &key = quad_keys[e_idx];
                 FEBase &F_fe = F_fe_cache[key];
                 FEMap &fe_map = fe_map_cache[key];
