@@ -719,18 +719,46 @@ FEDataManager::spread(const int f_data_idx,
     // Determine the type of data centering.
     Pointer<hier::Variable<NDIM> > f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    Pointer<CellVariable<NDIM, double> > f_cc_var = f_var;
-    Pointer<SideVariable<NDIM, double> > f_sc_var = f_var;
-    const bool cc_data = f_cc_var;
-    const bool sc_data = f_sc_var;
-    TBOX_ASSERT(cc_data || sc_data);
+    hier::Variable<NDIM>& f_var_ref = *f_var;
+    std::type_index f_type_id = typeid(f_var_ref);
 
     // Make a copy of the Eulerian data.
-    const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
+    int depth = -1, ghost_width = -1;
+    if (f_type_id == typeid(CellVariable<NDIM, double>))
+    {
+        Pointer<CellDataFactory<NDIM, double> > f_cc_fac = f_var->getPatchDataFactory();
+        depth = f_cc_fac->getDefaultDepth();
+        ghost_width = f_cc_fac->getGhostCellWidth().max();
+        TBOX_ASSERT(ghost_width == f_cc_fac->getGhostCellWidth().min());
+    }
+    else if (f_type_id == typeid(SideVariable<NDIM, double>))
+    {
+        Pointer<SideDataFactory<NDIM, double> > f_sc_fac = f_var->getPatchDataFactory();
+        depth = f_sc_fac->getDefaultDepth();
+        ghost_width = f_sc_fac->getGhostCellWidth().max();
+        TBOX_ASSERT(ghost_width == f_sc_fac->getGhostCellWidth().min());
+    }
+    else
+    {
+        TBOX_ERROR("unsupported data alignment for FEDataManager::spread(): " << f_type_id.name() << "\n");
+    }
+    const f_data_idx_map_key_type f_key{ f_type_id, depth, ghost_width };
+    int f_copy_data_idx = invalid_index;
+    auto it = d_f_data_idx_map.find(f_key);
+    if (it == d_f_data_idx_map.end())
+    {
+        if (d_enable_logging) plog << "cloning data index " << f_data_idx << "\n";
+        f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
+        d_f_data_idx_map[f_key] = f_copy_data_idx;
+    }
+    else
+    {
+        f_copy_data_idx = it->second;
+    }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(f_copy_data_idx);
+        if (!level->checkAllocated(f_copy_data_idx)) level->allocatePatchData(f_copy_data_idx);
     }
     Pointer<HierarchyDataOpsReal<NDIM, double> > f_data_ops =
         HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
@@ -868,18 +896,23 @@ FEDataManager::spread(const int f_data_idx,
             const Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), d_ghost_width);
             Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-            if (cc_data)
+            if (f_type_id == typeid(CellVariable<NDIM, double>))
             {
                 Pointer<CellData<NDIM, double> > f_cc_data = f_data;
                 LEInteractor::spread(
                     f_cc_data, F_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_spec.kernel_fcn);
             }
-            if (sc_data)
+            else if (f_type_id == typeid(SideVariable<NDIM, double>))
             {
                 Pointer<SideData<NDIM, double> > f_sc_data = f_data;
                 LEInteractor::spread(
                     f_sc_data, F_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_spec.kernel_fcn);
             }
+            else
+            {
+                TBOX_ERROR("unsupported data alignment for FEDataManager::spread(): " << f_type_id.name() << "\n");
+            }
+
             if (f_phys_bdry_op)
             {
                 f_phys_bdry_op->setPatchDataIndex(f_data_idx);
@@ -1004,18 +1037,23 @@ FEDataManager::spread(const int f_data_idx,
             // are within the ghost cell width of the patch interior.
             const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), d_ghost_width);
             Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-            if (cc_data)
+            if (f_type_id == typeid(CellVariable<NDIM, double>))
             {
                 Pointer<CellData<NDIM, double> > f_cc_data = f_data;
                 LEInteractor::spread(
                     f_cc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
             }
-            if (sc_data)
+            else if (f_type_id == typeid(SideVariable<NDIM, double>))
             {
                 Pointer<SideData<NDIM, double> > f_sc_data = f_data;
                 LEInteractor::spread(
                     f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
             }
+            else
+            {
+                TBOX_ERROR("unsupported data alignment for FEDataManager::spread(): " << f_type_id.name() << "\n");
+            }
+
             if (f_phys_bdry_op)
             {
                 f_phys_bdry_op->setPatchDataIndex(f_data_idx);
@@ -1031,12 +1069,6 @@ FEDataManager::spread(const int f_data_idx,
     // Accumulate data.
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(f_copy_data_idx);
-    }
-    var_db->removePatchDataIndex(f_copy_data_idx);
 
     IBTK_TIMER_STOP(t_spread);
     return;
@@ -2702,6 +2734,22 @@ FEDataManager::FEDataManager(std::string object_name,
         t_put_to_database = TimerManager::getManager()->getTimer("IBTK::FEDataManager::putToDatabase()");)
     return;
 } // FEDataManager
+
+FEDataManager::~FEDataManager()
+{
+    // Remove any cached data that is not automatically deleted.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    for (auto& v : d_f_data_idx_map)
+    {
+        int f_data_idx = v.second;
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            if (level->checkAllocated(f_data_idx)) level->deallocatePatchData(f_data_idx);
+        }
+        var_db->removePatchDataIndex(f_data_idx);
+    }
+}
 
 void
 FEDataManager::setLoggingEnabled(bool enable_logging)

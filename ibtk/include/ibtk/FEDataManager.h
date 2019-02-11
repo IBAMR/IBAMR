@@ -38,9 +38,10 @@
 #include <map>
 #include <ostream>
 #include <string>
+#include <typeindex>
+#include <unordered_map>
 #include <utility>
 #include <vector>
-#include <unordered_map>
 
 #include "BasePatchLevel.h"
 #include "CellVariable.h"
@@ -766,7 +767,7 @@ protected:
     /*!
      * \brief The FEDataManager destructor cleans up any allocated data objects.
      */
-    ~FEDataManager() = default;
+    ~FEDataManager();
 
 private:
     /*!
@@ -890,6 +891,14 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
+
+    /*
+     * Cached Eulerian data to use as scratch space in spreading.
+     *
+     * Profiling suggests that allocating/deallocating SAMR temporary data can be expensive on some systems.
+     */
+    using f_data_idx_map_key_type = std::tuple<std::type_index, /*data_depth*/ int, /*ghost_cell_width*/ int>;
+    std::map<f_data_idx_map_key_type, int> d_f_data_idx_map;
 
     /*
      * SAMRAI::hier::VariableContext object used for data management.
