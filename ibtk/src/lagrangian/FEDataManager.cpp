@@ -492,9 +492,17 @@ FEDataManager::reinitElementMappings()
     d_active_patch_elem_map.clear();
     d_active_patch_node_map.clear();
     d_active_patch_ghost_dofs.clear();
+    d_active_elem_bboxes.clear();
     d_system_ghost_vec.clear();
 
-    // Reset the mappings between grid patches and active mesh elements.
+    // also clear any stored matrices:
+    d_L2_proj_solver.clear();
+    d_L2_proj_matrix.clear();
+    d_L2_proj_matrix_diag.clear();
+
+    // Reset the mappings between grid patches and active mesh
+    // elements. collectActivePatchElements will populate d_active_elem_bboxes
+    // and use it.
     collectActivePatchElements(d_active_patch_elem_map, d_level_number, d_ghost_width);
     collectActivePatchNodes(d_active_patch_node_map, d_active_patch_elem_map);
 
