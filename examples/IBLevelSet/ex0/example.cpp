@@ -78,8 +78,8 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 // Application specific includes.
+#include "FlowGravityForcing.h"
 #include "GravityForcing.h"
-#include "InterfacialGravityForcing.h"
 #include "LSLocateGasInterface.h"
 #include "SetFluidGasSolidDensity.h"
 #include "SetFluidGasSolidViscosity.h"
@@ -743,15 +743,20 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         std::vector<double> grav_const(NDIM);
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
         circle.g_y = grav_const[1];
-        // Pointer<CartGridFunction> grav_force =
-        //    new GravityForcing("GravityForcing", navier_stokes_integrator, grav_const);
-        Pointer<CartGridFunction> grav_force = new InterfacialGravityForcing("InterfacialGravityForcing",
-                                                                             adv_diff_integrator,
-                                                                             phi_var_gas,
-                                                                             grav_const,
-                                                                             rho_gas,
-                                                                             rho_fluid,
-                                                                             num_gas_interface_cells);
+        Pointer<CartGridFunction> grav_force;
+        const string grav_type = input_db->getString("GRAV_TYPE");
+        if (grav_type == "FULL")
+        {
+            grav_force = new GravityForcing("GravityForcing", navier_stokes_integrator, grav_const);
+        }
+        else if (grav_type == "FLOW")
+        {
+            grav_force = new FlowGravityForcing("FlowGravityForcing",
+                                                app_initializer->getComponentDatabase("FlowGravityForcing"),
+                                                adv_diff_integrator,
+                                                phi_var_gas,
+                                                grav_const);
+        }
 
         Pointer<SurfaceTensionForceFunction> surface_tension_force =
             new SurfaceTensionForceFunction("SurfaceTensionForceFunction",

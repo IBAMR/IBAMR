@@ -7,6 +7,7 @@ RHO_G      = 1.2
 G          = 9.81
 GRAV_CONST = 0.0,-G
 GCW        = 4
+GRAV_TYPE  = "FLOW"
 
 
 // Optional flag to set viscosity in the solid region
@@ -44,6 +45,12 @@ H                = LENGTH/NFINEST
 // Parameters for setting rho and mu
 NUM_SOLID_INTERFACE_CELLS = 2.0
 NUM_GAS_INTERFACE_CELLS   = 2.0
+
+FlowGravityForcing {
+  rho_neg = RHO_G
+  rho_pos = RHO_F
+  num_interface_cells = NUM_GAS_INTERFACE_CELLS
+}
 
 // Level set option parameters
 LS_ORDER              = "THIRD_ORDER_ENO"

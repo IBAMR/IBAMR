@@ -461,7 +461,7 @@ run_example(int argc, char* argv[])
         // Initialize objects
         std::vector<double> grav_const(NDIM);
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
-        const string grav_type = input_db->getStringWithDefault("GRAV_TYPE", "VOLUMETRIC");
+        const string grav_type = input_db->getStringWithDefault("GRAV_TYPE", "FULL");
         Pointer<CartGridFunction> grav_force;
         if (grav_type == "FULL")
         {
@@ -469,7 +469,7 @@ run_example(int argc, char* argv[])
         }
         else if (grav_type == "FLOW")
         {
-            grav_force = new FlowGravityForcing("InterfacialGravityForcing",
+            grav_force = new FlowGravityForcing("FlowGravityForcing",
                                                 app_initializer->getComponentDatabase("FlowGravityForcing"),
                                                 adv_diff_integrator,
                                                 phi_var_gas,

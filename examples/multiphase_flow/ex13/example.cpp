@@ -438,7 +438,7 @@ run_example(int argc, char* argv[])
         // Initialize objects
         std::vector<double> grav_const(NDIM);
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
-        const string grav_type = input_db->getStringWithDefault("GRAV_TYPE", "VOLUMETRIC");
+        const string grav_type = input_db->getString("GRAV_TYPE");
         Pointer<CartGridFunction> grav_force;
         if (grav_type == "FULL")
         {

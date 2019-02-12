@@ -1,7 +1,7 @@
-// Filename: InterfacialGravityForcing.cpp
+// Filename: FlowGravityForcing.cpp
 // Created on 26 Nov 2018 by Nishant Nangia
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2019, Amneet Bhalla and Nishant Nangia
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,59 +30,57 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#include "FlowGravityForcing.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <IBAMR_config.h>
 #include <SAMRAI_config.h>
 
-#include "InterfacialGravityForcing.h"
+// SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
-#include <ibamr/app_namespaces.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-InterfacialGravityForcing::InterfacialGravityForcing(const std::string& object_name,
-                                                     Pointer<AdvDiffHierarchyIntegrator> adv_diff_hierarchy_integrator,
-                                                     Pointer<CellVariable<NDIM, double> > ls_gas_var,
-                                                     std::vector<double> grav_const,
-                                                     double rho_gas,
-                                                     double rho_fluid,
-                                                     int num_interfacial_cells)
+FlowGravityForcing::FlowGravityForcing(const std::string& object_name,
+                                       Pointer<Database> input_db,
+                                       Pointer<AdvDiffHierarchyIntegrator> adv_diff_hierarchy_integrator,
+                                       Pointer<CellVariable<NDIM, double> > ls_gas_var,
+                                       std::vector<double> grav_const)
     : d_object_name(object_name),
       d_adv_diff_hierarchy_integrator(adv_diff_hierarchy_integrator),
       d_ls_gas_var(ls_gas_var),
       d_grav_const(grav_const)
 
 {
-    d_rho_neg = rho_gas;
-    d_rho_pos = rho_fluid;
-    d_num_gas_interface_cells = num_interfacial_cells;
+    d_rho_neg = input_db->getDouble("rho_neg");
+    d_rho_pos = input_db->getDouble("rho_pos");
+    d_num_gas_interface_cells = input_db->getDouble("num_interface_cells");
     return;
-} // InterfacialGravityForcing
+} // FlowGravityForcing
 
-InterfacialGravityForcing::~InterfacialGravityForcing()
+FlowGravityForcing::~FlowGravityForcing()
 {
     // intentionally blank
     return;
-} // ~InterfacialGravityForcing
+} // ~FlowGravityForcing
 
 bool
-InterfacialGravityForcing::isTimeDependent() const
+FlowGravityForcing::isTimeDependent() const
 {
     return true;
 } // isTimeDependent
 
 void
-InterfacialGravityForcing::setDataOnPatchHierarchy(const int data_idx,
-                                                   Pointer<Variable<NDIM> > /*var*/,
-                                                   Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                   const double data_time,
-                                                   const bool /*initial_time*/,
-                                                   const int coarsest_ln_in,
-                                                   const int finest_ln_in)
+FlowGravityForcing::setDataOnPatchHierarchy(const int data_idx,
+                                            Pointer<hier::Variable<NDIM> > /*var*/,
+                                            Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                            const double data_time,
+                                            const bool /*initial_time*/,
+                                            const int coarsest_ln_in,
+                                            const int finest_ln_in)
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -124,8 +122,7 @@ InterfacialGravityForcing::setDataOnPatchHierarchy(const int data_idx,
     hier_bdry_fill->initializeOperatorState(ls_transaction_comp, hierarchy);
     hier_bdry_fill->fillData(data_time);
 
-    // Set the gravity force. In this version, the gravity force is an interfacial force that acts only on the fluid
-    // gas interface, which is found by reconstructing the density field on the gas level set
+    // Set the gravity force. In this version, the gravity force is reconstructed from the flow density field.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
@@ -134,9 +131,7 @@ InterfacialGravityForcing::setDataOnPatchHierarchy(const int data_idx,
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
-            const double* const patch_x_lower = patch_geom->getXLower();
             const Box<NDIM>& patch_box = patch->getBox();
-            const IntVector<NDIM>& patch_lower = patch_box.lower();
             Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(data_idx);
             const Pointer<CellData<NDIM, double> > ls_gas_data = patch->getPatchData(ls_gas_scratch_idx);
 
@@ -149,24 +144,6 @@ InterfacialGravityForcing::setDataOnPatchHierarchy(const int data_idx,
                 for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
                 {
                     SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
-
-                    // Dot the position vector with gravity vector
-                    double g_dot_x = 0.0;
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        double side_coord;
-                        if (d == axis)
-                        {
-                            side_coord =
-                                patch_x_lower[d] + patch_dx[d] * (static_cast<double>(s_i(d) - patch_lower(d)));
-                        }
-                        else
-                        {
-                            side_coord =
-                                patch_x_lower[d] + patch_dx[d] * (static_cast<double>(s_i(d) - patch_lower(d)) + 0.5);
-                        }
-                        g_dot_x += side_coord * d_grav_const[d];
-                    }
 
                     // Reconstruct density
                     double phi_gas_lower = (*ls_gas_data)(s_i.toCell(0));
@@ -200,8 +177,6 @@ InterfacialGravityForcing::setDataOnPatchHierarchy(const int data_idx,
                     }
                     const double rho_flow_lower = (d_rho_pos - d_rho_neg) * h_gas_lower + d_rho_neg;
                     const double rho_flow_upper = (d_rho_pos - d_rho_neg) * h_gas_upper + d_rho_neg;
-                    const double drho_flow = (rho_flow_upper - rho_flow_lower) / patch_dx[axis];
-                    //(*f_data)(s_i) = -g_dot_x * drho_flow;
                     (*f_data)(s_i) = d_grav_const[axis] * 2.0 * (rho_flow_lower * rho_flow_upper) /
                                      (rho_flow_lower + rho_flow_upper);
                 }
@@ -218,12 +193,12 @@ InterfacialGravityForcing::setDataOnPatchHierarchy(const int data_idx,
 } // setDataOnPatchHierarchy
 
 void
-InterfacialGravityForcing::setDataOnPatch(const int data_idx,
-                                          Pointer<Variable<NDIM> > /*var*/,
-                                          Pointer<Patch<NDIM> > patch,
-                                          const double /*data_time*/,
-                                          const bool initial_time,
-                                          Pointer<PatchLevel<NDIM> > /*patch_level*/)
+FlowGravityForcing::setDataOnPatch(const int data_idx,
+                                   Pointer<hier::Variable<NDIM> > /*var*/,
+                                   Pointer<Patch<NDIM> > patch,
+                                   const double /*data_time*/,
+                                   const bool initial_time,
+                                   Pointer<PatchLevel<NDIM> > /*patch_level*/)
 {
     if (initial_time)
     {

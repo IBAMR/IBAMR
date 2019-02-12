@@ -1,7 +1,7 @@
-// Filename: InterfacialGravityForcing.h
+// Filename: FlowGravityForcing.h
 // Created on 26 Nov 2018 by Nishant Nangia
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2019, Amneet Bhalla and Nishant Nangia
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,40 +30,39 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_InterfacialGravityForcing
-#define included_InterfacialGravityForcing
+#ifndef included_FlowGravityForcing
+#define included_FlowGravityForcing
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
-#include <tbox/Pointer.h>
+#include <ibamr/app_namespaces.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 /*!
- * \brief Class InterfacialGravityForcing provides forcing for the momentum equations
- * due to gravity in the variable density Navier-Stokes equations
+ * \brief Class FlowGravityForcing provides forcing for the momentum equations
+ * due to gravity in the variable coefficient Navier-Stokes equations, reconstructed
+ * from the flow density field.
  */
-class InterfacialGravityForcing : public IBTK::CartGridFunction
+class FlowGravityForcing : public CartGridFunction
 {
 public:
     /*!
      * \brief Class constructor.
      */
-    InterfacialGravityForcing(const std::string& object_name,
-                              SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_hierarchy_integrator,
-                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_gas_var,
-                              std::vector<double> grav_const,
-                              double rho_gas,
-                              double rho_fluid,
-                              int num_interfacial_cells);
+    FlowGravityForcing(const std::string& object_name,
+                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                       Pointer<AdvDiffHierarchyIntegrator> adv_diff_hierarchy_integrator,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_gas_var,
+                       std::vector<double> grav_const);
 
     /*!
      * \brief Empty destructor.
      */
-    ~InterfacialGravityForcing();
+    ~FlowGravityForcing();
 
     /*!
      * \name Methods to set patch data.
@@ -71,7 +70,7 @@ public:
     //\{
 
     /*!
-     * \brief Indicates whether the concrete InterfacialGravityForcing object is
+     * \brief Indicates whether the concrete FlowGravityForcing object is
      * time-dependent.
      */
     bool isTimeDependent() const;
@@ -81,8 +80,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 Pointer<hier::Variable<NDIM> > var,
+                                 Pointer<PatchHierarchy<NDIM> > hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
@@ -92,24 +91,23 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        Pointer<hier::Variable<NDIM> > var,
+                        Pointer<Patch<NDIM> > patch,
                         const double data_time,
                         const bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                        Pointer<PatchLevel<NDIM> > patch_level = Pointer<PatchLevel<NDIM> >(NULL));
 
     //\}
 
 private:
-    InterfacialGravityForcing();
+    FlowGravityForcing();
 
-    InterfacialGravityForcing(const InterfacialGravityForcing& from);
+    FlowGravityForcing(const FlowGravityForcing& from);
 
-    InterfacialGravityForcing& operator=(const InterfacialGravityForcing& that);
+    FlowGravityForcing& operator=(const FlowGravityForcing& that);
 
     std::string d_object_name;
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_hierarchy_integrator;
+    Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hierarchy_integrator;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_gas_var;
     double d_rho_neg, d_rho_pos;
     std::vector<double> d_grav_const;
@@ -118,4 +116,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_InterfacialGravityForcing
+#endif //#ifndef included_FlowGravityForcing

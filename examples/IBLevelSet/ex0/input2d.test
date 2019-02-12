@@ -7,6 +7,7 @@ RHO_G      = 1.2
 G          = 9.81
 GRAV_CONST = 0.0,-G
 GCW        = 4
+GRAV_TYPE  = "FLOW"
 
 
 // Optional flag to set viscosity in the solid region
@@ -22,18 +23,45 @@ R           = 0.055
 D           = 2.0*R
 HEIGHT      = 12.0*D
 LENGTH      = 20.0*D
+GAS_LS_INIT = 3.0*D
 XCOM        = LENGTH/2.0
-YCOM        = HEIGHT/2.0
+YCOM        = GAS_LS_INIT+5.05*D // 4.55D to bottom of cyl and 0.5D for up to COM
+
+// Surface tension parameters
+SIGMA               = 0.0
+SMOOTHER            = "IB_4"
+NUM_INTERFACE_CELLS = 2.5
 
 
 // grid spacing parameters
-MAX_LEVELS       = 1
-REF_RATIO        = 4
-REF_RATIO_FINEST = 4
-N                = 440
+MAX_LEVELS       = 2
+REF_RATIO        = 2
+REF_RATIO_FINEST = 2
+N                = 220
 NFINEST          = (REF_RATIO^(MAX_LEVELS - 1))*N
 H_COARSEST       = LENGTH/N
 H                = LENGTH/NFINEST
+
+// Parameters for setting rho and mu
+NUM_SOLID_INTERFACE_CELLS = 2.0
+NUM_GAS_INTERFACE_CELLS   = 2.0
+
+FlowGravityForcing {
+  rho_neg = RHO_G
+  rho_pos = RHO_F
+  num_interface_cells = NUM_GAS_INTERFACE_CELLS
+}
+
+// Level set option parameters
+LS_ORDER              = "THIRD_ORDER_ENO"
+LS_ABS_TOL            = 1.0e-6
+LS_REINIT_INTERVAL    = 1
+MAX_ITERATIONS        = 50
+LS_TAG_VALUE          = 0.0
+LS_TAG_ABS_THRESH     = 2*H_COARSEST
+APPLY_SIGN_FIX        = TRUE
+APPLY_SUBCELL_FIX     = TRUE
+APPLY_MASS_CONSTRAINT = FALSE
 
 
 VelocityInitialConditions {
@@ -135,7 +163,7 @@ DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0
 END_TIME             =   10.0e0
 GROW_DT              =   2.0e0
-MAX_INTEGRATOR_STEPS =   10000000
+MAX_INTEGRATOR_STEPS =   5
 CFL_MAX              =   0.3   
 NUM_INS_CYCLES       =   1
 NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "PPM"
@@ -159,12 +187,13 @@ MU_IS_CONST          = FALSE
 ERROR_ON_DT_CHANGE   = FALSE
 
 // Application
+CHI = RHO_S/DT_MAX
 PRECOND_REINIT_INTERVAL      = 1
 VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
 DENSITY_CONVECTIVE_LIMITER   = "CUI"
 VELOCITY_CONVECTIVE_LIMITER  = "CUI"
 DENSITY_TS                   = "SSPRK3"
-OPERATOR_SCALE_FACTORS       = 1.0
+OPERATOR_SCALE_FACTORS       =   1.0  
 EXPLICITLY_REMOVE_NULLSPACE  = FALSE
 ENABLE_LOGGING               = TRUE
 
@@ -176,7 +205,8 @@ SPLIT_FORCES               = FALSE
 USE_JUMP_CONDITIONS        = FALSE
 USE_CONSISTENT_MASS_MATRIX = TRUE
 IB_POINT_DENSITY           = 1.0
-USE_BOUNDARY_MESH          = TRUE      // whether to use solid mesh or boundary mesh
+USE_BOUNDARY_MESH          = FALSE            // whether to use boundary mesh extracted from solid mesh
+GMSH_FILENAME              = "CircleMesh.msh"
 
 
 // AdvDiff solver parameters
@@ -206,6 +236,19 @@ IBFEMethod {
     use_jump_conditions         = USE_JUMP_CONDITIONS
     use_consistent_mass_matrix  = USE_CONSISTENT_MASS_MATRIX
     IB_point_density            = IB_POINT_DENSITY
+}
+
+IBInterpolantMethod {
+    delta_fcn      = DELTA_FUNCTION
+    enable_logging = ENABLE_LOGGING
+}
+
+IBRedundantInitializer {
+    max_levels      = MAX_LEVELS
+}
+
+BrinkmanPenalization {
+    chi = CHI
 }
 
 INSVCStaggeredConservativeHierarchyIntegrator {
@@ -417,6 +460,23 @@ AdvDiffSemiImplicitHierarchyIntegrator {
    enable_logging                = ENABLE_LOGGING
 }
 
+LevelSet_Gas {
+    order                 = LS_ORDER
+    abs_tol               = LS_ABS_TOL
+    max_iterations        = MAX_ITERATIONS
+    enable_logging        = TRUE
+    reinit_interval       = LS_REINIT_INTERVAL
+    apply_sign_fix        = APPLY_SIGN_FIX
+    apply_subcell_fix     = APPLY_SUBCELL_FIX
+    apply_mass_constraint = APPLY_MASS_CONSTRAINT
+}
+
+SurfaceTensionForceFunction {
+    smoother            = SMOOTHER
+    sigma               = SIGMA
+    num_interface_cells = NUM_INTERFACE_CELLS
+}
+
 Main {
    solver_type = SOLVER_TYPE
    adv_diff_solver_type = ADV_DIFF_SOLVER_TYPE
@@ -428,7 +488,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt","Silo"
-   viz_dump_interval     = 1    //zero to turn off
+   viz_dump_interval     = 50    //zero to turn off
    viz_dump_dirname      = "viz_cylinder2d"
    visit_number_procs_per_file = 1
 
