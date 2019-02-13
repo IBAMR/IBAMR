@@ -535,13 +535,6 @@ public:
 
     /*!
      * Set the workload spec object used with a particular mesh part.
-     *
-     * @note Since the individual mesh parts do not know anything about
-     * each-other this class will always set
-     * FEDataManager::WorkloadSpec::clear_estimate to false in the value
-     * supplied to FEDataManager and zero the data once itself if
-     * requested. This prevents parts from zeroing data provided by other
-     * parts.
      */
     void setWorkloadSpec(const IBTK::FEDataManager::WorkloadSpec& workload_spec, unsigned int part = 0);
 
@@ -609,11 +602,6 @@ public:
      * load balancer and workload variable have been previously specified by
      * IBFEMethod::register_load_balancer then the workload_data_idx variable
      * index must be the same.
-     *
-     * @note This function computes workloads by setting the estimated work
-     * value on all cells to 1 and then using
-     * FEDataManager::updateWorkloadEstimates to compute the estimated
-     * Lagrangian contribution to the total amount of work.
      */
     void updateWorkloadEstimates(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                  int workload_data_idx) override;

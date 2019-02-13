@@ -239,11 +239,6 @@ public:
      */
     struct WorkloadSpec
     {
-        /// Whether or not to clear the workload index arrays at the start of
-        /// the calculation. This should be true unless some other object is
-        /// also adding values into the workload estimate.
-        bool clear_estimate = true;
-
         /// The multiplier applied to each quadrature point.
         double q_point_weight = 2.0;
     };

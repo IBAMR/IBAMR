@@ -441,13 +441,9 @@ IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > h
 void
 IBHierarchyIntegrator::regridHierarchy()
 {
-    // Update the workload pre-regridding.
-    if (d_load_balancer)
-    {
-        if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): updating workload estimates\n";
-        d_hier_cc_data_ops->setToScalar(d_workload_idx, 1.0);
-        d_ib_method_ops->updateWorkloadEstimates(d_hierarchy, d_workload_idx);
-    }
+    // This must be done here since (if a load balancer is used) it effects
+    // the distribution of patches.
+    updateWorkloadEstimates();
 
     // Collect the marker particles to level 0 of the patch hierarchy.
     if (d_mark_var)
@@ -570,14 +566,6 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHie
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
 
-    // Initialize workload data.
-    if (d_workload_idx != IBTK::invalid_index)
-    {
-        HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops(hierarchy, level_number, level_number);
-        level_cc_data_ops.setToScalar(d_workload_idx, 1.0);
-        d_load_balancer->setUniformWorkload(level_number);
-    }
-
     // Initialize marker data
     if (d_mark_var)
     {
@@ -644,6 +632,13 @@ IBHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putDouble("d_regrid_cfl_estimate", d_regrid_cfl_estimate);
     return;
 } // putToDatabaseSpecialized
+
+void
+IBHierarchyIntegrator::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM>> hierarchy, const int workload_data_idx)
+{
+    d_ib_method_ops->addWorkloadEstimate(hierarchy, workload_data_idx);
+    return;
+} // addWorkloadEstimate
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

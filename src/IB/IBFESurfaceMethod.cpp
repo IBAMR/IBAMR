@@ -1404,7 +1404,6 @@ IBFESurfaceMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierar
             hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
         if (d_load_balancer && level_number == d_fe_data_managers[part]->getLevelNumber())
         {
-            d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);
             d_fe_data_managers[part]->updateWorkloadEstimates(level_number, level_number);
         }
     }

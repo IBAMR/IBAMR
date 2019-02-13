@@ -252,6 +252,16 @@ protected:
      */
     void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
+    /*!
+     * Add the work contributions (excluding the background grid) for the
+     * current hierarchy into the variable with index
+     * <code>workload_data_idx</code>. The only direct workload contribution
+     * of this hierarchy manager is usually the work done by the IBStrategy
+     * object.
+     */
+    virtual void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                     const int workload_data_idx) override;
+
     /*
      * Boolean value that indicates whether the integrator has been initialized.
      */
