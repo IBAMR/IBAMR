@@ -1793,13 +1793,6 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             d_fe_data_managers[part]->reinitElementMappings();
         }
     }
-
-    // for debugging: print workload estimates here
-    const int current_rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
-    if (d_do_log && current_rank == 0)
-        SAMRAI::tbox::plog << "Regridding finished. Updating workload estimates.\n";
-    updateWorkloadEstimates(hierarchy, d_workload_idx);
-
     return;
 } // endDataRedistribution
 
