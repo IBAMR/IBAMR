@@ -1697,11 +1697,11 @@ IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int
 } // registerLoadBalancer
 
 void
-IBFEMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > hierarchy, int workload_data_idx)
+IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        d_fe_data_managers[part]->updateWorkloadEstimates();
+        d_fe_data_managers[part]->addWorkloadEstimate(hierarchy, workload_data_idx);
     }
 
     if (d_do_log)
@@ -1770,7 +1770,7 @@ IBFEMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > hierarchy, in
     }
 
     return;
-} // updateWorkloadEstimates
+} // addWorkloadEstimate
 
 void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                          Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)

@@ -237,11 +237,11 @@ IBStrategy::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > /*load_balancer*/,
 } // registerLoadBalancer
 
 void
-IBStrategy::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
+IBStrategy::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, const int /*workload_data_idx*/)
 {
     // intentionally blank
     return;
-} // updateWorkloadEstimates
+} // addWorkloadEstimate
 
 void IBStrategy::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                          Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)

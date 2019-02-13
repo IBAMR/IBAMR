@@ -320,6 +320,9 @@ public:
 
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
+     *
+     * @deprecated Since the correct workload index is passed in via
+     * addWorkloadEstimate this function is no longer necessary.
      */
     void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
                               int workload_data_idx);
@@ -630,11 +633,12 @@ public:
                                            double dx_min);
 
     /*!
-     * \brief Update the cell workload estimate. Does nothing unless a
-     * workload variable was previously registered via
-     * FEDataManager::registerLoadBalancer.
+     * \brief Update the cell workload estimate by adding a value (see the
+     * main documentation of this class for information on how this is
+     * computed) to the <code>d_workload_idx</code> cell variable.
      */
-    void updateWorkloadEstimates(int coarsest_ln = -1, int finest_ln = -1);
+    void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                             const int workload_data_idx, const int coarsest_ln = -1, const int finest_ln = -1);
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -848,6 +852,9 @@ private:
 
     /*
      * We cache a pointer to the load balancer.
+     *
+     * @deprecated This pointer is never used and will be removed in the
+     * future.
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
 
@@ -880,6 +887,10 @@ private:
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
      * cell variable used to determine the workload for nonuniform load
      * balancing.
+     *
+     * @deprecated d_workload_var and d_workload_idx will not be stored in a
+     * future release since the correct workload index will be provided as an
+     * argument to addWorkloadEstimate.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
     int d_workload_idx = IBTK::invalid_index;
