@@ -501,6 +501,10 @@ public:
 
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
+     *
+     * @deprecated This method is deprecated since the current strategy for
+     * handling non-uniform load balancing does not require that this object
+     * store a pointer to the load balancer.
      */
     void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
                               int workload_data_idx);
@@ -577,6 +581,10 @@ public:
 
     /*!
      * \brief Get the patch data descriptor index for the workload cell data.
+     *
+     * @deprecated This method is deprecated since, in future versions of
+     * IBAMR, this value will no longer be stored and will only be available
+     * via the parent hierarchy integrator.
      */
     int getWorkloadPatchDescriptorIndex() const;
 
@@ -801,7 +809,8 @@ public:
      *
      * in which alpha and beta are parameters that each default to the value 1.
      */
-    void updateWorkloadEstimates(int coarsest_ln = -1, int finest_ln = -1);
+    void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                             const int workload_data_idx, const int coarsest_ln = -1, const int finest_ln = -1);
 
     /*!
      * \brief Update the count of nodes per cell.
@@ -1058,6 +1067,8 @@ private:
 
     /*
      * We cache a pointer to the load balancer.
+     *
+     * @deprecated This will be removed in a future release since it is no longer necessary.
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
 
@@ -1080,6 +1091,10 @@ private:
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
      * cell variable used to determine the workload for nonuniform load
      * balancing.
+     *
+     * @deprecated d_workload_var and d_workload_idx will not be stored in a
+     * future release since the correct workload index will be provided as an
+     * argument to addWorkloadEstimate.
      */
     double d_beta_work = 1.0;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;

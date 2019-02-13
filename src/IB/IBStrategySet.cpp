@@ -339,14 +339,14 @@ IBStrategySet::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, 
 } // registerLoadBalancer
 
 void
-IBStrategySet::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > hierarchy, int workload_data_idx)
+IBStrategySet::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
 {
     for (const auto& strategy : d_strategy_set)
     {
-        strategy->updateWorkloadEstimates(hierarchy, workload_data_idx);
+        strategy->addWorkloadEstimate(hierarchy, workload_data_idx);
     }
     return;
-} // updateWorkloadEstimates
+} // addWorkloadEstimate
 
 void
 IBStrategySet::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,

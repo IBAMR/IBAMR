@@ -974,11 +974,11 @@ IMPMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int 
 } // registerLoadBalancer
 
 void
-IMPMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
+IMPMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
 {
-    d_l_data_manager->updateWorkloadEstimates();
+    d_l_data_manager->addWorkloadEstimate(hierarchy, workload_data_idx);
     return;
-} // updateWorkloadEstimates
+} // addWorkloadEstimate
 
 void IMPMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                         Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
@@ -1048,11 +1048,6 @@ IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
                 }
             }
         }
-    }
-    if (d_load_balancer && d_l_data_manager->levelContainsLagrangianData(level_number))
-    {
-        d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);
-        d_l_data_manager->updateWorkloadEstimates(level_number, level_number);
     }
     return;
 } // initializeLevelData

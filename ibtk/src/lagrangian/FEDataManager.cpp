@@ -369,6 +369,7 @@ FEDataManager::freeAllManagers()
 void
 FEDataManager::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
 {
+    IBTK_DEPRECATED_MEMBER_FUNCTION1("FEDataManager", "registerLoadBalancer");
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
     d_workload_idx = workload_data_idx;
@@ -2180,10 +2181,9 @@ FEDataManager::updateSpreadQuadratureRule(std::unique_ptr<QBase>& qrule,
 }
 
 void
-FEDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int finest_ln_in)
+FEDataManager::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                   const int workload_data_idx, const int coarsest_ln_in, const int finest_ln_in)
 {
-    if (d_workload_idx == IBTK::invalid_index) return;
-
     IBTK_TIMER_START(t_update_workload_estimates);
 
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
@@ -2197,18 +2197,14 @@ FEDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int fines
     if (coarsest_ln <= ln && ln <= finest_ln)
     {
         updateQuadPointCountData(ln, ln);
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, ln, ln);
-        if (d_default_workload_spec.clear_estimate)
-        {
-            hier_cc_data_ops.setToScalar(d_workload_idx, 0.0);
-        }
-        hier_cc_data_ops.axpy(d_workload_idx, d_default_workload_spec.q_point_weight,
-                              d_qp_count_idx, d_workload_idx);
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, ln, ln);
+        hier_cc_data_ops.axpy(workload_data_idx, d_default_workload_spec.q_point_weight,
+                              d_qp_count_idx, workload_data_idx);
     }
 
     IBTK_TIMER_STOP(t_update_workload_estimates);
     return;
-} // updateWorkloadEstimates
+} // addWorkloadEstimate
 
 void
 FEDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,

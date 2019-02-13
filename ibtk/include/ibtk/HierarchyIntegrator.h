@@ -264,6 +264,24 @@ public:
     bool stepsRemaining() const;
 
     /*!
+     * Update workload estimates on each level of the patch hierarchy. Does
+     * nothing unless a load balancer has previously been attached via
+     * HierarchyIntegrator::register_load_balancer. This function is usually
+     * called immediately before regridding so that, should a load balancer be
+     * registered with the current class, that load balancer can distribute
+     * patches in a way that gives each processor a roughly equal amount of
+     * work (instead of simply an equal number of cells).
+     *
+     * @note This function computes workloads by setting the estimated work
+     * value on all cells to 1 and then calling addWorkloadEstimate on the
+     * current object and on each child hierarchy integrator.
+     *
+     * @note The workload estimate itself is stored in the variable with index
+     * HierarchyIntegrator::d_workload_idx.
+     */
+    void updateWorkloadEstimates();
+
+    /*!
      * Return a pointer to the patch hierarchy managed by the integrator.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPatchHierarchy() const;
@@ -278,7 +296,17 @@ public:
      *
      * @note inheriting classes may reimplement this method in such a way that
      * @p load_balancer is registered with another object; e.g.,
-     * IBHierarchyIntegrator passes @p load_balancer to its IBStrategy object.
+     * IBHierarchyIntegrator passes @p load_balancer to its IBStrategy
+     * object. It will still usually be necessary to call
+     * HierarchyIntegrator::registerLoadBalancer at the beginning top of such
+     * overloaded functions.
+     *
+     * @note If it does not already exist, calling this function will also
+     * register a cell variable for containing workload estimates (and
+     * subsequently register that variable with the load balancer): The
+     * variable index is <code>d_workload_idx</code>. All inheriting classes
+     * assume that this is the cell variable associated with workload
+     * estimates and will write their own data into these arrays.
      */
     virtual void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer);
 
@@ -723,6 +751,20 @@ protected:
     virtual void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*!
+     * Virtual method to provide implementation-specific workload estimate
+     * calculations. This method will be called on each registered child
+     * integrator. The intent of this function is that any HierarchyIntegrator
+     * object that manages data whose work varies from SAMRAI cell to SAMRAI
+     * cell will represent its additional workload by summing estimates into
+     * the <code>workload_data_idx</code> variable.
+     *
+     * @note The default version of this function, i.e.,
+     * HierarchyIntegrator::addWorkloadEstimate(), does nothing.
+     */
+    virtual void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                     const int workload_data_idx);
+
+    /*!
      * Execute any user-specified preprocessIntegrateHierarchy callback
      * functions.
      */
@@ -881,6 +923,19 @@ protected:
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
+
+    /*!
+     * The index of the workload estimate variable. If the current integrator
+     * is a child integrator then this variable index may not be set to the
+     * correct variable index since the parent is assumed to manage the
+     * variable, and the correct index is always provided when calling
+     * HierarchyIntegrator::addWorkloadEstimate() from parent integrators.
+     *
+     * If necessary, this variable can be retrieved from the variable database
+     * under the name <code>object_name + "::workload"</code>, where
+     * <code>object_name</code> is the name of the parent hierarchy
+     * integrator.
+     */
     int d_workload_idx = IBTK::invalid_index;
 
     /*

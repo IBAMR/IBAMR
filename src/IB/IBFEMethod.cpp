@@ -1391,10 +1391,8 @@ IBFEMethod::initializeFEEquationSystems()
         std::ostringstream manager_stream;
         manager_stream << "IBFEMethod FEDataManager::" << part;
         const std::string& manager_name = manager_stream.str();
-        FEDataManager::WorkloadSpec workload_spec = d_workload_spec[part];
-        // See the documentation of setWorkloadSpec for an explanation
-        workload_spec.clear_estimate = false;
-        d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec[part], d_spread_spec[part], workload_spec);
+        d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec[part], d_spread_spec[part], d_workload_spec[part]);
+
         d_fe_data_managers[part]->setLoggingEnabled(d_do_log);
         d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
 
@@ -1699,30 +1697,11 @@ IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int
 } // registerLoadBalancer
 
 void
-IBFEMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > hierarchy, int workload_data_idx)
+IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
 {
-    if (workload_data_idx == IBTK::invalid_index) return;
-    TBOX_ASSERT(workload_data_idx == d_workload_idx);
-
-    // Since there may be multiple parts, and the parts know nothing about
-    // each-other, we have to set up the default workload value here and then
-    // add into it on each part. All Eulerian cells are assumed to have an
-    // equal workload.
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy);
-
-    for (const FEDataManager::WorkloadSpec &workload_spec : d_workload_spec)
-    {
-        if (workload_spec.clear_estimate)
-        {
-            hier_cc_data_ops.setToScalar(d_workload_idx, 1.0,
-                                         /*interior_only*/ false);
-            break;
-        }
-    }
-
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        d_fe_data_managers[part]->updateWorkloadEstimates();
+        d_fe_data_managers[part]->addWorkloadEstimate(hierarchy, workload_data_idx);
     }
 
     if (d_do_log)
@@ -1739,6 +1718,7 @@ IBFEMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > hierarchy, in
         TBOX_ASSERT(ierr == 0);
 
         std::vector<double> workload_per_processor(n_processes);
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy);
         workload_per_processor[current_rank] = hier_cc_data_ops.L1Norm(d_workload_idx, -1, true);
 
         const auto right_padding = std::size_t(std::log10(n_processes)) + 1;
@@ -1790,7 +1770,7 @@ IBFEMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > hierarchy, in
     }
 
     return;
-} // updateWorkloadEstimates
+} // addWorkloadEstimate
 
 void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                          Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
@@ -1799,7 +1779,7 @@ void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierar
     return;
 } // beginDataRedistribution
 
-void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
+void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                        Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     // if we are not initialized then there is nothing to do
@@ -1813,13 +1793,6 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
             d_fe_data_managers[part]->reinitElementMappings();
         }
     }
-
-    // for debugging: print workload estimates here
-    const int current_rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
-    if (d_do_log && current_rank == 0)
-        SAMRAI::tbox::plog << "Regridding finished. Updating workload estimates.\n";
-    updateWorkloadEstimates(hierarchy, d_workload_idx);
-
     return;
 } // endDataRedistribution
 
@@ -1839,11 +1812,6 @@ IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
         d_fe_data_managers[part]->setPatchLevels(0, finest_hier_level);
         d_fe_data_managers[part]->initializeLevelData(
             hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
-        if (d_load_balancer && level_number == d_fe_data_managers[part]->getLevelNumber())
-        {
-            d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);
-            d_fe_data_managers[part]->updateWorkloadEstimates(level_number, level_number);
-        }
     }
     return;
 } // initializeLevelData

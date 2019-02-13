@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LMesh.h"
 
@@ -149,6 +150,7 @@ LDataManager::getLNodePatchDescriptorIndex() const
 inline int
 LDataManager::getWorkloadPatchDescriptorIndex() const
 {
+    IBTK_DEPRECATED_MEMBER_FUNCTION1("LDataManager", "getWorkloadPatchDescriptorIndex");
     return d_workload_idx;
 } // getWorkloadPatchDescriptorIndex
 

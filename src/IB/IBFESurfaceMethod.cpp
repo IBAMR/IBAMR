@@ -1357,14 +1357,14 @@ IBFESurfaceMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balanc
 } // registerLoadBalancer
 
 void
-IBFESurfaceMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
+IBFESurfaceMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        d_fe_data_managers[part]->updateWorkloadEstimates();
+        d_fe_data_managers[part]->addWorkloadEstimate(hierarchy, workload_data_idx);
     }
     return;
-} // updateWorkloadEstimates
+} // addWorkloadEstimate
 
 void IBFESurfaceMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                                 Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
@@ -1402,11 +1402,6 @@ IBFESurfaceMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierar
         d_fe_data_managers[part]->setPatchLevels(0, finest_hier_level);
         d_fe_data_managers[part]->initializeLevelData(
             hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
-        if (d_load_balancer && level_number == d_fe_data_managers[part]->getLevelNumber())
-        {
-            d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);
-            d_fe_data_managers[part]->updateWorkloadEstimates(level_number, level_number);
-        }
     }
     return;
 } // initializeLevelData
