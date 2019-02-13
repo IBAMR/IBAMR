@@ -1,0 +1,23 @@
+Changed: The way that workload estimation is handled in IBAMR has been
+completely rewritten and is largely incompatible with the previous
+system. Unfortunately, there was no way to consistently allow multiple objects
+to contribute workload estimations under the old scheme, so the changes were
+incompatible. The newer version permits all hierarchy integrators owned by the
+parent object to add workload contributions (i.e., estimates of work per cell
+that they do beyond what must already happen on one cell of the Eulerian
+discretization).
+
+Classes inheriting from HierarchyIntegrator that need to do work with anything
+but non-SAMRAI data (e.g., finite element meshes owned by FEDataManager) should
+override the new HierarchyIntegrator::addWorkloadEstimate method to add their
+workload estimate on each cell into the same workload array owned by the parent
+integrator. The parent integrator assumes that the sum of all such workload
+estimates are a reasonable approximation of the computational work required per
+cell.
+
+Many non-hierarchy classes, such as LDataManager, were also modified in this
+step to use addWorkloadEstimate instead of the previous and ambiguous
+updateWorkloadEstimates function.
+
+<br>
+(David Wells, 2019/02/13)
