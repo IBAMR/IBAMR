@@ -1569,7 +1569,6 @@ IBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     {
         Pointer<LData> F_data = d_l_data_manager->createLData("F", level_number, NDIM, /*manage_data*/ true);
     }
-    d_l_data_manager->updateWorkloadEstimates(level_number, level_number);
     return;
 } // initializeLevelData
 

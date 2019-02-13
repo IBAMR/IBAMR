@@ -1049,7 +1049,6 @@ IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
             }
         }
     }
-    d_l_data_manager->updateWorkloadEstimates(level_number, level_number);
     return;
 } // initializeLevelData
 
