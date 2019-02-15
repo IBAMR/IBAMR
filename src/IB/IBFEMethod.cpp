@@ -1781,18 +1781,26 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
     // if we are not initialized then there is nothing to do
     if (d_is_initialized)
     {
+        // Checking the workload index like this breaks incapsulation, but
+        // since this is inside the library and not user code its not so bad
+        const bool workload_is_setup = d_ib_solver
+            ? d_ib_solver->getWorkloadDataIndex() != IBTK::invalid_index : false;
         // At this point in the code SAMRAI has already redistributed the
         // patches (usually by taking into account the number of IB points on
         // each patch). Here is the other half: we inform libMesh of the
         // updated partitioning so that libMesh Elems and Nodes are on the
         // same processor as the relevant SAMRAI patch.
-        for (unsigned int part = 0; part < d_num_parts; ++part)
+        if (d_libmesh_partitioner_type == SAMRAI_BOX ||
+            (d_libmesh_partitioner_type == AUTOMATIC && workload_is_setup))
         {
-            EquationSystems& equation_systems = *d_fe_data_managers[part]->getEquationSystems();
-            MeshBase& mesh = equation_systems.get_mesh();
-            BoxPartitioner partitioner(*d_hierarchy,
-                                       equation_systems.get_system(COORDS_SYSTEM_NAME));
-            partitioner.repartition(mesh);
+            for (unsigned int part = 0; part < d_num_parts; ++part)
+            {
+                EquationSystems& equation_systems = *d_fe_data_managers[part]->getEquationSystems();
+                MeshBase& mesh = equation_systems.get_mesh();
+                BoxPartitioner partitioner(*d_hierarchy,
+                                           equation_systems.get_system(COORDS_SYSTEM_NAME));
+                partitioner.repartition(mesh);
+            }
         }
 
         reinitializeFEData();
@@ -1869,6 +1877,7 @@ IBFEMethod::putToDatabase(Pointer<Database> db)
     db->putBool("d_split_tangential_force", d_split_tangential_force);
     db->putBool("d_use_jump_conditions", d_use_jump_conditions);
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
+    db->putString("d_libmesh_partitioner_type", enum_to_string<LibmeshPartitionerType>(d_libmesh_partitioner_type));
     return;
 } // putToDatabase
 
@@ -3802,6 +3811,12 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_do_log = db->getBool("enable_logging");
 
     if (db->isDouble("epsilon")) d_epsilon = db->getDouble("epsilon");
+
+    if (db->keyExists("libmesh_partitioner_type"))
+    {
+        d_libmesh_partitioner_type = string_to_enum<LibmeshPartitionerType>(
+            db->getString("libmesh_partitioner_type"));
+    }
     return;
 } // getFromInput
 
