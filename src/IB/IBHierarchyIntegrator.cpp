@@ -143,7 +143,6 @@ void
 IBHierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer)
 {
     HierarchyIntegrator::registerLoadBalancer(load_balancer);
-    d_ib_method_ops->registerLoadBalancer(load_balancer, d_workload_idx);
     return;
 } // registerLoadBalancer
 

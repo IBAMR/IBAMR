@@ -1470,6 +1470,7 @@ IBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
 void
 IBMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
 {
+    IBAMR_DEPRECATED_MEMBER_FUNCTION1("IBMethod", "registerLoadBalancer");
 #if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
 #endif
