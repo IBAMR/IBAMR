@@ -1345,6 +1345,7 @@ IBFESurfaceMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hiera
 void
 IBFESurfaceMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
 {
+    IBAMR_DEPRECATED_MEMBER_FUNCTION1("IBFESurfaceMethod", "registerLoadBalancer");
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
     d_workload_idx = workload_data_idx;

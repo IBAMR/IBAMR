@@ -68,6 +68,7 @@
 #include "boost/math/special_functions/round.hpp"
 #include "boost/multi_array.hpp"
 #include "ibamr/IMPMethod.h"
+#include "ibamr/ibamr_utilities.h"
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -964,6 +965,7 @@ IMPMethod::registerPK1StressTensorFunction(PK1StressFcnPtr PK1_stress_fcn, void*
 void
 IMPMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
 {
+    IBAMR_DEPRECATED_MEMBER_FUNCTION1("IMPMethod", "registerLoadBalancer");
 #if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
 #endif

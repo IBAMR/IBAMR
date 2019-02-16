@@ -43,6 +43,7 @@
 #include "PatchHierarchy.h"
 #include "ibamr/IBStrategy.h"
 #include "ibamr/IBStrategySet.h"
+#include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
@@ -331,6 +332,7 @@ IBStrategySet::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy
 void
 IBStrategySet::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
 {
+    IBAMR_DEPRECATED_MEMBER_FUNCTION1("IBStrategySet", "registerLoadBalancer");
     for (const auto& strategy : d_strategy_set)
     {
         strategy->registerLoadBalancer(load_balancer, workload_data_idx);

@@ -232,6 +232,7 @@ IBStrategy::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > /*hierarchy*
 void
 IBStrategy::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > /*load_balancer*/, int /*workload_data_idx*/)
 {
+    IBAMR_DEPRECATED_MEMBER_FUNCTION1("IBStrategy", "registerLoadBalancer");
     // intentionally blank
     return;
 } // registerLoadBalancer
