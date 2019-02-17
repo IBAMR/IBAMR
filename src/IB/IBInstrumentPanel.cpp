@@ -659,9 +659,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarc
         d_instrument_names.resize(d_num_meters);
         for (unsigned int m = 0; m < d_num_meters; ++m)
         {
-            std::ostringstream meter_stream;
-            meter_stream << "meter_" << m;
-            d_instrument_names[m] = meter_stream.str();
+            d_instrument_names[m] = "meter_" + std::to_string(m);
         }
         IBInstrumentationSpec::setInstrumentNames(d_instrument_names);
     }

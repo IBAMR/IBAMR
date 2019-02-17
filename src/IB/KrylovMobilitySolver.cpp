@@ -580,14 +580,12 @@ KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
     {
         for (unsigned int k = 0; k < NDIM; ++k)
         {
-            std::ostringstream stream;
-            stream << k;
-            d_nul_vecs[k] = sol_vec.cloneVector(d_object_name + "::nul_vec_U_" + stream.str());
+            d_nul_vecs[k] = sol_vec.cloneVector(d_object_name + "::nul_vec_U_" + std::to_string(k));
             d_nul_vecs[k]->allocateVectorData(d_current_time);
             d_nul_vecs[k]->setToScalar(0.0);
 
             SAMRAIVectorReal<NDIM, double> svr_u(
-                d_object_name + "::U_nul_vec_U_" + stream.str(), patch_hier, coarsest_ln, finest_ln);
+                d_object_name + "::U_nul_vec_U_" + std::to_string(k), patch_hier, coarsest_ln, finest_ln);
             svr_u.addComponent(sol_vec.getComponentVariable(0),
                                sol_vec.getComponentDescriptorIndex(0),
                                sol_vec.getControlVolumeIndex(0));

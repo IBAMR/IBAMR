@@ -122,9 +122,7 @@ IBFEPostProcessor::registerVectorVariable(const std::string& name,
     const bool is_from_restart = restart_manager->isFromRestart();
     for (unsigned int i = 0; i < dim; ++i)
     {
-        std::ostringstream os;
-        os << name << "_" << i;
-        if (!is_from_restart) system.add_variable(os.str(), fe_order, fe_family);
+        if (!is_from_restart) system.add_variable(name + "_" + std::to_string(i), fe_order, fe_family);
     }
     d_vector_var_systems.push_back(&system);
     d_vector_var_fcns.push_back(fcn);
@@ -152,9 +150,7 @@ IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
     {
         for (unsigned int j = 0; j < var_dim; ++j)
         {
-            std::ostringstream os;
-            os << var_name << "_" << i << j;
-            if (!is_from_restart) system.add_variable(os.str(), var_fe_order, var_fe_family);
+            if (!is_from_restart) system.add_variable(var_name + "_" + std::to_string(i) + std::to_string(j), var_fe_order, var_fe_family);
         }
     }
     d_tensor_var_systems.push_back(&system);

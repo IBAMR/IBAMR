@@ -1388,9 +1388,7 @@ IBFEMethod::initializeFEEquationSystems()
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Create FE data managers.
-        std::ostringstream manager_stream;
-        manager_stream << "IBFEMethod FEDataManager::" << part;
-        const std::string& manager_name = manager_stream.str();
+        const std::string manager_name = "IBFEMethod FEDataManager::" + std::to_string(part);
         d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec[part], d_spread_spec[part], d_workload_spec[part]);
 
         d_fe_data_managers[part]->setLoggingEnabled(d_do_log);
@@ -1415,33 +1413,25 @@ IBFEMethod::initializeFEEquationSystems()
             auto& X_system = equation_systems.add_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream os;
-                os << "X_" << d;
-                X_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                X_system.add_variable("X_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
 
             auto& dX_system = equation_systems.add_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream os;
-                os << "dX_" << d;
-                dX_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                dX_system.add_variable("dX_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
 
             auto& U_system = equation_systems.add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream os;
-                os << "U_" << d;
-                U_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                U_system.add_variable("U_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
 
             auto& F_system = equation_systems.add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream os;
-                os << "F_" << d;
-                F_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                F_system.add_variable("F_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
         }
 

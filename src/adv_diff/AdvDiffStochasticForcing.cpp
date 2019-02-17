@@ -121,9 +121,7 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(std::string object_name,
             TBOX_ASSERT(d_weights.back().size() == d_num_rand_vals);
 #endif
             ++k;
-            std::ostringstream stream;
-            stream << "weights_" << k;
-            key_name = stream.str();
+            key_name = "weights_" + std::to_string(k);
         }
         if (input_db->keyExists("dirichlet_bc_scaling"))
             d_dirichlet_bc_scaling = input_db->getDouble("dirichlet_bc_scaling");

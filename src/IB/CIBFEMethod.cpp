@@ -1224,21 +1224,17 @@ CIBFEMethod::putToDatabase(Pointer<Database> db)
     db->putInteger("CIBFE_METHOD_VERSION", CIBFE_METHOD_VERSION);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        std::ostringstream U, W, C, Q;
-        U << "U_" << part;
-        W << "W_" << part;
-        C << "C_" << part;
-        Q << "Q_" << part;
-
+        const std::string part_str = std::to_string(part);
+        
         double Q_coeffs[4] = { d_quaternion_current[part].w(),
                                d_quaternion_current[part].x(),
                                d_quaternion_current[part].y(),
                                d_quaternion_current[part].z() };
 
-        db->putDoubleArray(U.str(), &d_trans_vel_current[part][0], 3);
-        db->putDoubleArray(W.str(), &d_rot_vel_current[part][0], 3);
-        db->putDoubleArray(C.str(), &d_center_of_mass_current[part][0], 3);
-        db->putDoubleArray(Q.str(), &Q_coeffs[0], 4);
+        db->putDoubleArray("U_" + part_str, &d_trans_vel_current[part][0], 3);
+        db->putDoubleArray("W_" + part_str, &d_rot_vel_current[part][0], 3);
+        db->putDoubleArray("C_" + part_str, &d_center_of_mass_current[part][0], 3);
+        db->putDoubleArray("Q_" + part_str, &Q_coeffs[0], 4);
     }
 } // putToDatabase
 
@@ -1264,9 +1260,7 @@ CIBFEMethod::commonConstructor(Pointer<Database> input_db)
         auto& U_constraint_system = equation_systems.add_system<System>(CONSTRAINT_VELOCITY_SYSTEM_NAME);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            std::ostringstream os;
-            os << "U_constraint_" << d;
-            U_constraint_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+            U_constraint_system.add_variable("U_constraint_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
         }
     }
 } // commonConstructor
@@ -1303,17 +1297,13 @@ CIBFEMethod::getFromRestart()
 
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
-        std::ostringstream U, W, C, Q;
-        U << "U_" << part;
-        W << "W_" << part;
-        C << "C_" << part;
-        Q << "Q_" << part;
-
+        const std::string part_str = std::to_string(part);
+        
         double Q_coeffs[4];
-        db->getDoubleArray(U.str(), &d_trans_vel_current[part][0], 3);
-        db->getDoubleArray(W.str(), &d_rot_vel_current[part][0], 3);
-        db->getDoubleArray(C.str(), &d_center_of_mass_current[part][0], 3);
-        db->getDoubleArray(Q.str(), &Q_coeffs[0], 4);
+        db->getDoubleArray("U_" + part_str, &d_trans_vel_current[part][0], 3);
+        db->getDoubleArray("W_" + part_str, &d_rot_vel_current[part][0], 3);
+        db->getDoubleArray("C_" + part_str, &d_center_of_mass_current[part][0], 3);
+        db->getDoubleArray("Q_" + part_str, &Q_coeffs[0], 4);
 
         d_quaternion_current[part].w() = Q_coeffs[0];
         d_quaternion_current[part].x() = Q_coeffs[1];

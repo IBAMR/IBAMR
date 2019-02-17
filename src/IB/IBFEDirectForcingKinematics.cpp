@@ -443,22 +443,15 @@ IBFEDirectForcingKinematics::postprocessIntegrateData(double /*current_time*/, d
 void
 IBFEDirectForcingKinematics::putToDatabase(Pointer<Database> db)
 {
-    std::ostringstream U, W, C0, C, Q;
-    U << "U";
-    W << "W";
-    C0 << "C0";
-    C << "C";
-    Q << "Q";
-
     double Q_coeffs[4] = {
         d_quaternion_current.w(), d_quaternion_current.x(), d_quaternion_current.y(), d_quaternion_current.z()
     };
 
-    db->putDoubleArray(U.str(), &d_trans_vel_current[0], 3);
-    db->putDoubleArray(W.str(), &d_rot_vel_current[0], 3);
-    db->putDoubleArray(C0.str(), &d_center_of_mass_initial[0], 3);
-    db->putDoubleArray(C.str(), &d_center_of_mass_current[0], 3);
-    db->putDoubleArray(Q.str(), &Q_coeffs[0], 4);
+    db->putDoubleArray("U", &d_trans_vel_current[0], 3);
+    db->putDoubleArray("W", &d_rot_vel_current[0], 3);
+    db->putDoubleArray("C0", &d_center_of_mass_initial[0], 3);
+    db->putDoubleArray("C", &d_center_of_mass_current[0], 3);
+    db->putDoubleArray("Q", &Q_coeffs[0], 4);
 
     return;
 } // putToDatabase
@@ -507,19 +500,12 @@ IBFEDirectForcingKinematics::getFromRestart()
                    << d_object_name << " not found in restart file." << std::endl);
     }
 
-    std::ostringstream U, W, C0, C, Q;
-    U << "U";
-    W << "W";
-    C0 << "C0";
-    C << "C";
-    Q << "Q";
-
     double Q_coeffs[4];
-    db->getDoubleArray(U.str(), &d_trans_vel_current[0], 3);
-    db->getDoubleArray(W.str(), &d_rot_vel_current[0], 3);
-    db->getDoubleArray(C0.str(), &d_center_of_mass_initial[0], 3);
-    db->getDoubleArray(C.str(), &d_center_of_mass_current[0], 3);
-    db->getDoubleArray(Q.str(), &Q_coeffs[0], 4);
+    db->getDoubleArray("U", &d_trans_vel_current[0], 3);
+    db->getDoubleArray("W", &d_rot_vel_current[0], 3);
+    db->getDoubleArray("C0", &d_center_of_mass_initial[0], 3);
+    db->getDoubleArray("C", &d_center_of_mass_current[0], 3);
+    db->getDoubleArray("Q", &Q_coeffs[0], 4);
 
     d_quaternion_current.w() = Q_coeffs[0];
     d_quaternion_current.x() = Q_coeffs[1];

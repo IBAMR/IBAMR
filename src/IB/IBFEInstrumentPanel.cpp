@@ -307,16 +307,8 @@ IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Dat
     // set up file streams
     if (SAMRAI_MPI::getRank() == 0)
     {
-        std::ostringstream press_output;
-        std::ostringstream flux_output;
-        press_output << d_plot_directory_name << "/"
-                     << ""
-                     << "mean_pressure.dat";
-        d_mean_pressure_stream.open(press_output.str().c_str());
-        flux_output << d_plot_directory_name << "/"
-                    << ""
-                    << "flux.dat";
-        d_flux_stream.open(flux_output.str().c_str());
+        d_mean_pressure_stream.open(d_plot_directory_name + "/mean_pressure.dat");
+        d_flux_stream.open(d_plot_directory_name + "/flux.dat");
         d_mean_pressure_stream.precision(15);
         d_flux_stream.precision(15);
     }
@@ -442,9 +434,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
         d_meter_meshes.emplace_back(new SerialMesh(comm_in, NDIM));
-        std::ostringstream id;
-        id << d_nodeset_IDs_for_meters[jj];
-        d_meter_mesh_names.push_back("meter_mesh_" + id.str());
+        d_meter_mesh_names.push_back("meter_mesh_" + std::to_string(d_nodeset_IDs_for_meters[jj]));
         d_num_nodes[jj] = d_nodes[jj].size();
     }
 

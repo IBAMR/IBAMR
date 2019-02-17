@@ -191,47 +191,36 @@ IBHydrodynamicForceEvaluator::registerStructure(IBTK::Vector3d& box_X_lower,
                        << d_object_name << " not found in restart file.\n");
         }
 
-        std::ostringstream F, T, P, L, P_box, L_box, X_lo, X_hi, r_or, vol_curr;
-        F << "F_" << strct_id;
-        T << "T_" << strct_id;
-        P << "P_" << strct_id;
-        L << "L_" << strct_id;
-        P_box << "P_box_" << strct_id;
-        L_box << "L_box_" << strct_id;
-        X_lo << "X_lo_" << strct_id;
-        X_hi << "X_hi_" << strct_id;
-        r_or << "r_or_" << strct_id;
-        vol_curr << "vol_curr_" << strct_id;
-
-        db->getDoubleArray(F.str(), force_obj.F_current.data(), 3);
-        db->getDoubleArray(T.str(), force_obj.T_current.data(), 3);
-        db->getDoubleArray(P.str(), force_obj.P_current.data(), 3);
-        db->getDoubleArray(L.str(), force_obj.L_current.data(), 3);
-        db->getDoubleArray(P_box.str(), force_obj.P_box_current.data(), 3);
-        db->getDoubleArray(L_box.str(), force_obj.L_box_current.data(), 3);
-        db->getDoubleArray(X_lo.str(), force_obj.box_X_lower_current.data(), 3);
-        db->getDoubleArray(X_hi.str(), force_obj.box_X_upper_current.data(), 3);
-        db->getDoubleArray(r_or.str(), force_obj.r0.data(), 3);
-        force_obj.box_vol_current = db->getDouble(vol_curr.str());
+        const std::string strct_id_str = std::to_string(strct_id);
+        
+        db->getDoubleArray("F_" + strct_id_str, force_obj.F_current.data(), 3);
+        db->getDoubleArray("T_" + strct_id_str, force_obj.T_current.data(), 3);
+        db->getDoubleArray("P_" + strct_id_str, force_obj.P_current.data(), 3);
+        db->getDoubleArray("L_" + strct_id_str, force_obj.L_current.data(), 3);
+        db->getDoubleArray("P_box_" + strct_id_str, force_obj.P_box_current.data(), 3);
+        db->getDoubleArray("L_box_" + strct_id_str, force_obj.L_box_current.data(), 3);
+        db->getDoubleArray("X_lo_" + strct_id_str, force_obj.box_X_lower_current.data(), 3);
+        db->getDoubleArray("X_hi_" + strct_id_str, force_obj.box_X_upper_current.data(), 3);
+        db->getDoubleArray("r_or_" + strct_id_str, force_obj.r0.data(), 3);
+        force_obj.box_vol_current = db->getDouble("vol_curr_" + strct_id_str);
     }
 
     // Set up the streams for printing drag and torque
     if (SAMRAI_MPI::getRank() == 0)
     {
-        std::ostringstream drag, torque;
-        drag << "Drag_CV_strct_id_" << strct_id;
-        torque << "Torque_CV_strct_id_" << strct_id;
+        const std::string strct_id_str = std::to_string(strct_id);
+        
         if (from_restart)
         {
-            force_obj.drag_CV_stream = new std::ofstream(drag.str().c_str(), std::fstream::app);
-            force_obj.torque_CV_stream = new std::ofstream(torque.str().c_str(), std::fstream::app);
+            force_obj.drag_CV_stream = new std::ofstream("Drag_CV_strct_id_" + strct_id_str, std::fstream::app);
+            force_obj.torque_CV_stream = new std::ofstream("Torque_CV_strct_id_" + strct_id_str, std::fstream::app);
             (force_obj.drag_CV_stream)->precision(10);
             (force_obj.torque_CV_stream)->precision(10);
         }
         else
         {
-            force_obj.drag_CV_stream = new std::ofstream(drag.str().c_str(), std::fstream::out);
-            force_obj.torque_CV_stream = new std::ofstream(torque.str().c_str(), std::fstream::out);
+            force_obj.drag_CV_stream = new std::ofstream("Drag_CV_strct_id_" + strct_id_str, std::fstream::out);
+            force_obj.torque_CV_stream = new std::ofstream("Torque_CV_strct_id_" + strct_id_str, std::fstream::out);
             (force_obj.drag_CV_stream)->precision(10);
             (force_obj.torque_CV_stream)->precision(10);
         }
@@ -823,28 +812,18 @@ IBHydrodynamicForceEvaluator::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::
         int strct_id = hydro_obj.first;
         const IBHydrodynamicForceObject& force_obj = hydro_obj.second;
 
-        std::ostringstream F, T, P, L, P_box, L_box, X_lo, X_hi, r_or, vol_curr;
-        F << "F_" << strct_id;
-        T << "T_" << strct_id;
-        P << "P_" << strct_id;
-        L << "L_" << strct_id;
-        P_box << "P_box_" << strct_id;
-        L_box << "L_box_" << strct_id;
-        X_lo << "X_lo_" << strct_id;
-        X_hi << "X_hi_" << strct_id;
-        r_or << "r_or_" << strct_id;
-        vol_curr << "vol_curr_" << strct_id;
-
-        db->putDoubleArray(F.str(), force_obj.F_current.data(), 3);
-        db->putDoubleArray(T.str(), force_obj.T_current.data(), 3);
-        db->putDoubleArray(P.str(), force_obj.P_current.data(), 3);
-        db->putDoubleArray(L.str(), force_obj.L_current.data(), 3);
-        db->putDoubleArray(P_box.str(), force_obj.P_box_current.data(), 3);
-        db->putDoubleArray(L_box.str(), force_obj.L_box_current.data(), 3);
-        db->putDoubleArray(X_lo.str(), force_obj.box_X_lower_current.data(), 3);
-        db->putDoubleArray(X_hi.str(), force_obj.box_X_upper_current.data(), 3);
-        db->putDoubleArray(r_or.str(), force_obj.r0.data(), 3);
-        db->putDouble(vol_curr.str(), force_obj.box_vol_current);
+        const std::string strct_id_str = std::to_string(strct_id);
+        
+        db->putDoubleArray("F_" + strct_id_str, force_obj.F_current.data(), 3);
+        db->putDoubleArray("T_" + strct_id_str, force_obj.T_current.data(), 3);
+        db->putDoubleArray("P_" + strct_id_str, force_obj.P_current.data(), 3);
+        db->putDoubleArray("L_" + strct_id_str, force_obj.L_current.data(), 3);
+        db->putDoubleArray("P_box_" + strct_id_str, force_obj.P_box_current.data(), 3);
+        db->putDoubleArray("L_box_" + strct_id_str, force_obj.L_box_current.data(), 3);
+        db->putDoubleArray("X_lo_" + strct_id_str, force_obj.box_X_lower_current.data(), 3);
+        db->putDoubleArray("X_hi_" + strct_id_str, force_obj.box_X_upper_current.data(), 3);
+        db->putDoubleArray("r_or_" + strct_id_str, force_obj.r0.data(), 3);
+        db->putDouble("vol_curr_" + strct_id_str, force_obj.box_vol_current);
     }
 
     return;

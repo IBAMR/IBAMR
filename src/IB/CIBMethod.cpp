@@ -899,21 +899,17 @@ CIBMethod::putToDatabase(Pointer<Database> db)
 
     for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
     {
-        std::ostringstream U, W, C, Q;
-        U << "U_" << struct_no;
-        W << "W_" << struct_no;
-        C << "C_" << struct_no;
-        Q << "Q_" << struct_no;
-
+        const std::string struct_no_str = std::to_string(struct_no);
+        
         double Q_coeffs[4] = { d_quaternion_current[struct_no].w(),
                                d_quaternion_current[struct_no].x(),
                                d_quaternion_current[struct_no].y(),
                                d_quaternion_current[struct_no].z() };
 
-        db->putDoubleArray(U.str(), &d_trans_vel_current[struct_no][0], 3);
-        db->putDoubleArray(W.str(), &d_rot_vel_current[struct_no][0], 3);
-        db->putDoubleArray(C.str(), &d_center_of_mass_current[struct_no][0], 3);
-        db->putDoubleArray(Q.str(), &Q_coeffs[0], 4);
+        db->putDoubleArray("U_" + struct_no_str, &d_trans_vel_current[struct_no][0], 3);
+        db->putDoubleArray("W_" + struct_no_str, &d_rot_vel_current[struct_no][0], 3);
+        db->putDoubleArray("C_" + struct_no_str, &d_center_of_mass_current[struct_no][0], 3);
+        db->putDoubleArray("Q_" + struct_no_str, &Q_coeffs[0], 4);
     }
 
     return;
@@ -1713,17 +1709,13 @@ CIBMethod::getFromRestart()
 
     for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
     {
-        std::ostringstream U, W, C, Q;
-        U << "U_" << struct_no;
-        W << "W_" << struct_no;
-        C << "C_" << struct_no;
-        Q << "Q_" << struct_no;
-
+        const std::string struct_no_str = std::to_string(struct_no);
+        
         double Q_coeffs[4];
-        db->getDoubleArray(U.str(), &d_trans_vel_current[struct_no][0], 3);
-        db->getDoubleArray(W.str(), &d_rot_vel_current[struct_no][0], 3);
-        db->getDoubleArray(C.str(), &d_center_of_mass_current[struct_no][0], 3);
-        db->getDoubleArray(Q.str(), &Q_coeffs[0], 4);
+        db->getDoubleArray("U_" + struct_no_str, &d_trans_vel_current[struct_no][0], 3);
+        db->getDoubleArray("W_" + struct_no_str, &d_rot_vel_current[struct_no][0], 3);
+        db->getDoubleArray("C_" + struct_no_str, &d_center_of_mass_current[struct_no][0], 3);
+        db->getDoubleArray("Q_" + struct_no_str, &Q_coeffs[0], 4);
 
         d_quaternion_current[struct_no].w() = Q_coeffs[0];
         d_quaternion_current[struct_no].x() = Q_coeffs[1];
