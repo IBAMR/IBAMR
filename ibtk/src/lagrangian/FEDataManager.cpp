@@ -627,8 +627,6 @@ FEDataManager::spread(const int f_data_idx,
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
-    std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType F_fe_type = F_dof_map.variable_type(0);
     Order F_order = F_dof_map.variable_order(0);
     for (unsigned i = 0; i < n_vars; ++i)
@@ -808,10 +806,7 @@ FEDataManager::spread(const int f_data_idx,
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-                }
+                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type key = getQuadratureKey(spread_spec.quad_type,
                                                            spread_spec.quad_order,
@@ -835,15 +830,9 @@ FEDataManager::spread(const int f_data_idx,
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
-                for (unsigned int i = 0; i < n_vars; ++i)
-                {
-                    F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
-                }
+                const auto& F_dof_indices = F_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, F_dof_indices);
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-                }
+                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type &key = quad_keys[e_idx];
                 FEBase &X_fe = X_fe_cache[key];
@@ -983,8 +972,6 @@ FEDataManager::prolongData(const int f_data_idx,
     System& X_system = d_es->get_system(system_name);
     const DofMap& X_dof_map = X_system.get_dof_map();
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
-    std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType F_fe_type = F_dof_map.variable_type(0);
     for (unsigned i = 0; i < n_vars; ++i)
     {
@@ -1057,10 +1044,7 @@ FEDataManager::prolongData(const int f_data_idx,
         {
             Elem* const elem = patch_elems[e_idx];
             const unsigned int n_node = elem->n_nodes();
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-            }
+            const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
 
             // Cache the nodal and physical coordinates of the element,
             // determine the bounding box of the current configuration of the
@@ -1130,10 +1114,7 @@ FEDataManager::prolongData(const int f_data_idx,
 
             // Evaluate the Lagrangian quantity at the Eulerian grid point and
             // update the data on the grid.
-            for (unsigned int i = 0; i < n_vars; ++i)
-            {
-                F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
-            }
+            const auto& F_dof_indices = F_dof_map_cache.dof_indices(elem);
             get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, F_dof_indices);
             if (is_density) get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
             F_fe->reinit(elem, &intersection_ref_coords);
@@ -1214,8 +1195,6 @@ FEDataManager::interpWeighted(const int f_data_idx,
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
-    std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType F_fe_type = F_dof_map.variable_type(0);
     Order F_order = F_dof_map.variable_order(0);
     for (unsigned i = 0; i < n_vars; ++i)
@@ -1374,6 +1353,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
         boost::multi_array<double, 2> X_node;
         std::vector<double> F_qp, X_qp;
         int local_patch_num = 0;
+        std::vector<libMesh::dof_id_type> dof_id_scratch;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
             // The relevant collection of elements.
@@ -1396,10 +1376,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-                }
+                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type key = getQuadratureKey(interp_spec.quad_type,
                                                            interp_spec.quad_order,
@@ -1424,10 +1401,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-                }
+                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type &key = quad_keys[e_idx];
                 QBase &qrule = d_quadrature_cache[key];
@@ -1497,15 +1471,12 @@ FEDataManager::interpWeighted(const int f_data_idx,
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
+                const auto& F_dof_indices = F_dof_map_cache.dof_indices(elem);
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
-                    F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
                     F_rhs_e[i].resize(static_cast<int>(F_dof_indices[i].size()));
                 }
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-                }
+                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type &key = quad_keys[e_idx];
                 FEBase &F_fe = F_fe_cache[key];
@@ -1545,8 +1516,9 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 }
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
-                    F_dof_map.constrain_element_vector(F_rhs_e[i], F_dof_indices[i]);
-                    F_vec.add_vector(F_rhs_e[i], F_dof_indices[i]);
+                    dof_id_scratch = F_dof_indices[i];
+                    F_dof_map.constrain_element_vector(F_rhs_e[i], dof_id_scratch);
+                    F_vec.add_vector(F_rhs_e[i], dof_id_scratch);
                 }
                 qp_offset += n_qp;
             }
@@ -1635,8 +1607,6 @@ FEDataManager::restrictData(const int f_data_idx,
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
-    std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType F_fe_type = F_dof_map.variable_type(0);
     for (unsigned i = 0; i < n_vars; ++i)
     {
@@ -1705,14 +1675,12 @@ FEDataManager::restrictData(const int f_data_idx,
         interpolated_value_at_loc.fillAll(false);
 
         // Loop over the elements.
+        std::vector<libMesh::dof_id_type> dof_id_scratch;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             Elem* const elem = patch_elems[e_idx];
             const unsigned int n_node = elem->n_nodes();
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-            }
+            const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
 
             // Cache the nodal and physical coordinates of the element,
             // determine the bounding box of the current configuration of the
@@ -1783,9 +1751,9 @@ FEDataManager::restrictData(const int f_data_idx,
             // Evaluate the Eulerian value and rescale it by 1.0/det(dX/ds).
             F_fe->reinit(elem, &intersection_ref_coords);
             if (X_fe != F_fe) X_fe->reinit(elem, &intersection_ref_coords);
+            const auto& F_dof_indices = F_dof_map_cache.dof_indices(elem);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
-                F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
                 F_rhs_e[i].resize(static_cast<int>(F_dof_indices[i].size()));
             }
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
@@ -1804,8 +1772,9 @@ FEDataManager::restrictData(const int f_data_idx,
             }
             for (unsigned int i = 0; i < n_vars; ++i)
             {
-                F_dof_map.constrain_element_vector(F_rhs_e[i], F_dof_indices[i]);
-                F_rhs_vec->add_vector(F_rhs_e[i], F_dof_indices[i]);
+                dof_id_scratch = F_dof_indices[i];
+                F_dof_map.constrain_element_vector(F_rhs_e[i], dof_id_scratch);
+                F_rhs_vec->add_vector(F_rhs_e[i], dof_id_scratch);
             }
         }
     }
@@ -1842,7 +1811,6 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name)
         DofMap& dof_map = system.get_dof_map();
         SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
         dof_map.compute_sparsity(mesh);
-        std::vector<unsigned int> dof_indices;
         FEType fe_type = dof_map.variable_type(0);
         std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
         std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
@@ -1860,18 +1828,21 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name)
 
         // Loop over the mesh to construct the system matrix.
         DenseMatrix<double> M_e;
+        std::vector<libMesh::dof_id_type> dof_id_scratch;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
             fe->reinit(elem);
+
+            const auto& dof_indices = dof_map_cache.dof_indices(elem);
             for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
             {
-                dof_map_cache.dof_indices(elem, dof_indices, var_num);
-                const auto dof_indices_sz = static_cast<unsigned int>(dof_indices.size());
+                const auto& dof_indices_var = dof_indices[var_num];
+                const auto dof_indices_sz = static_cast<unsigned int>(dof_indices_var.size());
                 M_e.resize(dof_indices_sz, dof_indices_sz);
-                const size_t n_basis = dof_indices.size();
+                const size_t n_basis = dof_indices_var.size();
                 const unsigned int n_qp = qrule->n_points();
                 for (unsigned int i = 0; i < n_basis; ++i)
                 {
@@ -1883,8 +1854,9 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name)
                         }
                     }
                 }
-                dof_map.constrain_element_matrix(M_e, dof_indices);
-                M_mat->add_matrix(M_e, dof_indices);
+                dof_id_scratch = dof_indices_var;
+                dof_map.constrain_element_matrix(M_e, dof_id_scratch);
+                M_mat->add_matrix(M_e, dof_id_scratch);
             }
         }
 
@@ -1910,16 +1882,16 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name)
                     if (elem->is_node_on_side(n, side))
                     {
                         Node* node = elem->get_node(n);
+                        const auto& dof_indices = dof_map_cache.dof_indices(elem);
                         for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
                         {
-                            dof_map_cache.dof_indices(elem, dof_indices, var_num);
                             const unsigned int n_comp = node->n_comp(sys_num, var_num);
                             for (unsigned int comp = 0; comp < n_comp; ++comp)
                             {
                                 if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[comp])) continue;
                                 const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
                                 if (!dof_map.is_constrained_dof(node_dof_index)) continue;
-                                for (const auto& idx : dof_indices)
+                                for (const auto& idx : dof_indices[var_num])
                                 {
                                     M_mat->set(node_dof_index, idx, (node_dof_index == idx ? 1.0 : 0.0));
                                     M_mat->set(idx, node_dof_index, (node_dof_index == idx ? 1.0 : 0.0));
@@ -1968,7 +1940,6 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
         DofMap& dof_map = system.get_dof_map();
         SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
         dof_map.compute_sparsity(mesh);
-        std::vector<unsigned int> dof_indices;
         FEType fe_type = dof_map.variable_type(0);
         std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
         std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
@@ -1982,19 +1953,20 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
         // Loop over the mesh to construct the system matrix.
         DenseMatrix<double> M_e;
         DenseVector<double> M_e_vec;
+        std::vector<libMesh::dof_id_type> dof_id_scratch;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
             fe->reinit(elem);
+            const auto& dof_indices = dof_map_cache.dof_indices(elem);
             for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
             {
-                dof_map_cache.dof_indices(elem, dof_indices, var_num);
-                const auto dof_indices_sz = static_cast<unsigned int>(dof_indices.size());
+                const auto dof_indices_sz = static_cast<unsigned int>(dof_indices[var_num].size());
                 M_e.resize(dof_indices_sz, dof_indices_sz);
                 M_e_vec.resize(dof_indices_sz);
-                const size_t n_basis = dof_indices.size();
+                const size_t n_basis = dof_indices[var_num].size();
                 const unsigned int n_qp = qrule->n_points();
                 for (unsigned int i = 0; i < n_basis; ++i)
                 {
@@ -2015,8 +1987,9 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
                     M_e_vec(i) = vol * M_e(i, i) / tr_M;
                 }
 
-                dof_map.constrain_element_vector(M_e_vec, dof_indices);
-                M_vec->add_vector(M_e_vec, dof_indices);
+                dof_id_scratch = dof_indices[var_num];
+                dof_map.constrain_element_vector(M_e_vec, dof_id_scratch);
+                M_vec->add_vector(M_e_vec, dof_id_scratch);
             }
         }
 
@@ -2044,7 +2017,6 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
                         Node* node = elem->get_node(n);
                         for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
                         {
-                            dof_map_cache.dof_indices(elem, dof_indices, var_num);
                             const unsigned int n_comp = node->n_comp(sys_num, var_num);
                             for (unsigned int comp = 0; comp < n_comp; ++comp)
                             {
@@ -2288,7 +2260,6 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
         SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
-        std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
         FEType fe_type = X_dof_map.variable_type(0);
         for (unsigned d = 0; d < NDIM; ++d)
         {
@@ -2331,10 +2302,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-                }
+                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
 
                 const quad_key_type key = getQuadratureKey(d_default_interp_spec.quad_type,
@@ -2521,7 +2489,6 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
         SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
-        std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
         FEType fe_type = X_dof_map.variable_type(0);
         for (unsigned d = 0; d < NDIM; ++d)
         {
@@ -2560,10 +2527,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-                }
+                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
 
                 const quad_key_type key = getQuadratureKey(d_default_interp_spec.quad_type,
@@ -2728,7 +2692,6 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
     for (unsigned d = 0; d < NDIM; ++d)
     {
@@ -2835,10 +2798,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
             for (; el_it != el_end; ++el_it)
             {
                 Elem* const elem = *el_it;
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-                }
+                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
 
                 const quad_key_type key = getQuadratureKey(d_default_interp_spec.quad_type,

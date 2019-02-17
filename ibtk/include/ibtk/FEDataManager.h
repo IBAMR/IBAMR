@@ -146,18 +146,28 @@ public:
                     std::vector<unsigned int>& dof_indices,
                     const unsigned int var = 0)
         {
-            const libMesh::dof_id_type elem_id = elem->id();
-            std::vector<std::vector<unsigned int> >& elem_dof_indices = d_dof_cache[elem_id];
-            if (elem_dof_indices.size() <= var)
-            {
-                elem_dof_indices.resize(var + 1);
-            }
-            if (elem_dof_indices[var].empty())
-            {
-                d_dof_map.dof_indices(elem, elem_dof_indices[var], var);
-            }
-            dof_indices = elem_dof_indices[var];
+            dof_indices = this->dof_indices(elem)[var];
             return;
+        }
+
+        /*!
+         * Alternative indexing operation: retrieve all dof indices of all
+         * variables in the given system at once by reference.
+         */
+        inline
+        const std::vector<std::vector<libMesh::dof_id_type>>&
+        dof_indices(const libMesh::Elem* const elem)
+        {
+            std::vector<std::vector<libMesh::dof_id_type>>& elem_dof_indices = d_dof_cache[elem->id()];
+            if (elem_dof_indices.empty())
+            {
+                elem_dof_indices.resize(d_dof_map.n_variables());
+                for (unsigned int var_n = 0; var_n < d_dof_map.n_variables(); ++var_n)
+                {
+                    d_dof_map.dof_indices(elem, elem_dof_indices[var_n], var_n);
+                }
+            }
+            return elem_dof_indices;
         }
 
     private:

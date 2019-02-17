@@ -549,8 +549,6 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         const DofMap& X_dof_map = X_system.get_dof_map();
         FEDataManager::SystemDofMapCache& X_dof_map_cache =
             *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
-        std::vector<std::vector<unsigned int> > U_dof_indices(NDIM);
-        std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
         FEType U_fe_type = U_dof_map.variable_type(0);
         for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(U_dof_map.variable_type(d) == U_fe_type);
         FEType X_fe_type = X_dof_map.variable_type(0);
@@ -596,6 +594,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         VectorValue<double> U, U_n, U_t, N, n;
         std::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
 
+        std::vector<libMesh::dof_id_type> dof_id_scratch;
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
         int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -617,10 +616,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-                }
+                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
                 n_qp_patch += qrule->n_points();
@@ -636,10 +632,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-                }
+                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const bool qrule_changed =
                     FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
@@ -689,13 +682,13 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
+                const auto& U_dof_indices = U_dof_map_cache.dof_indices(elem);
+                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    U_dof_map_cache.dof_indices(elem, U_dof_indices[d], d);
                     U_rhs_e[d].resize(static_cast<int>(U_dof_indices[d].size()));
                     U_n_rhs_e[d].resize(static_cast<int>(U_dof_indices[d].size()));
                     U_t_rhs_e[d].resize(static_cast<int>(U_dof_indices[d].size()));
-                    X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X0_vec, X_dof_indices);
                 get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
@@ -739,12 +732,13 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                 }
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    U_dof_map.constrain_element_vector(U_rhs_e[d], U_dof_indices[d]);
-                    U_dof_map.constrain_element_vector(U_n_rhs_e[d], U_dof_indices[d]);
-                    U_dof_map.constrain_element_vector(U_t_rhs_e[d], U_dof_indices[d]);
-                    U_rhs_vec->add_vector(U_rhs_e[d], U_dof_indices[d]);
-                    U_n_rhs_vec->add_vector(U_n_rhs_e[d], U_dof_indices[d]);
-                    U_t_rhs_vec->add_vector(U_t_rhs_e[d], U_dof_indices[d]);
+                    dof_id_scratch = U_dof_indices[d];
+                    U_dof_map.constrain_element_vector(U_rhs_e[d], dof_id_scratch);
+                    U_dof_map.constrain_element_vector(U_n_rhs_e[d], dof_id_scratch);
+                    U_dof_map.constrain_element_vector(U_t_rhs_e[d], dof_id_scratch);
+                    U_rhs_vec->add_vector(U_rhs_e[d], dof_id_scratch);
+                    U_n_rhs_vec->add_vector(U_n_rhs_e[d], dof_id_scratch);
+                    U_t_rhs_vec->add_vector(U_t_rhs_e[d], dof_id_scratch);
                 }
                 qp_offset += n_qp;
             }
@@ -883,7 +877,6 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         {
             TBOX_ASSERT(F_dof_map.variable_type(d) == F_fe_type);
         }
-        std::vector<std::vector<unsigned int> > F_dof_indices(NDIM);
 
         System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
@@ -895,7 +888,6 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
             TBOX_ASSERT(X_dof_map.variable_type(d) == F_fe_type);
         }
-        std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
         NumericVector<double>& X0_vec = X_system.get_vector("INITIAL_COORDINATES");
 
         System* DP_system;
@@ -910,7 +902,6 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             TBOX_ASSERT(DP_fe_type == X_fe_type);
             TBOX_ASSERT(DP_fe_type == F_fe_type);
         }
-        std::vector<unsigned int> DP_dof_indices;
 
         FEType fe_type = F_fe_type;
 
@@ -943,20 +934,20 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         TensorValue<double> FF;
         VectorValue<double> F, F_b, F_s, F_qp, N, X, n, x;
         std::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
+        std::vector<libMesh::dof_id_type> dof_id_scratch;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
+            const auto& F_dof_indices = F_dof_map_cache.dof_indices(elem);
+            const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                F_dof_map_cache.dof_indices(elem, F_dof_indices[d], d);
-                X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 F_rhs_e[d].resize(static_cast<int>(F_dof_indices[d].size()));
             }
             if (d_use_jump_conditions)
             {
-                DP_dof_map_cache->dof_indices(elem, DP_dof_indices);
                 DP_rhs_e.resize(static_cast<int>(F_dof_indices[0].size()));
             }
             fe->reinit(elem);
@@ -1070,13 +1061,15 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             // and add the elemental contributions to the global vector.
             for (unsigned int i = 0; i < NDIM; ++i)
             {
-                F_dof_map.constrain_element_vector(F_rhs_e[i], F_dof_indices[i]);
-                F_rhs_vec->add_vector(F_rhs_e[i], F_dof_indices[i]);
+                dof_id_scratch = F_dof_indices[i];
+                F_dof_map.constrain_element_vector(F_rhs_e[i], dof_id_scratch);
+                F_rhs_vec->add_vector(F_rhs_e[i], dof_id_scratch);
             }
             if (d_use_jump_conditions)
             {
-                DP_dof_map->constrain_element_vector(DP_rhs_e, DP_dof_indices);
-                DP_rhs_vec->add_vector(DP_rhs_e, DP_dof_indices);
+                dof_id_scratch = DP_dof_map_cache->dof_indices(elem)[0];
+                DP_dof_map->constrain_element_vector(DP_rhs_e, dof_id_scratch);
+                DP_rhs_vec->add_vector(DP_rhs_e, dof_id_scratch);
             }
         }
 
@@ -1508,7 +1501,8 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     DofMap& X_dof_map = X_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    FEDataManager::SystemDofMapCache& X_dof_map_cache =
+      *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
     FEType X_fe_type = X_dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -1568,10 +1562,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
         {
             Elem* const elem = patch_elems[e_idx];
             DP_dof_map.dof_indices(elem, DP_dof_indices);
-            for (int d = 0; d < NDIM; ++d)
-            {
-                X_dof_map.dof_indices(elem, X_dof_indices[d], d);
-            }
+            const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
             get_values_for_interpolation(DP_node, DP_ghost_vec, DP_dof_indices);
             get_values_for_interpolation(x_node, X_ghost_vec, X_dof_indices);
 
