@@ -55,7 +55,6 @@ SetLSProperties::setLSPatchData(int ls_idx,
                                 const bool regrid_time)
 {
     // If at the regrid time, force reinitialization
-    pout << "Resetting level set data" << std::endl;
     d_ls_ops->setReinitializeLSData(regrid_time);
     d_ls_ops->initializeLSData(ls_idx, hier_math_ops, integrator_step, current_time, initial_time);
 
