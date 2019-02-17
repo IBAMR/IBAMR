@@ -68,8 +68,8 @@ namespace IBAMR
  * Therefore, the density variable must be registered and maintained by this class,
  * and not by any other integrator (such AdvDiffHierarchyIntegrator).
  * It is also assumed that this density variable is side-centered. In other words, given a density at the beginning
- * of the time step \f$rho^n\f$, an interpolated face density \f$rho^{n+\frac{1}{2}}\f$ is produced and used in the
- * momentum convection to obtain \f$N(\rho u)\f$ and mass advection to obtain \f$rho^{n+1}\f$. Hence, a consistent
+ * of the time step \f$\rho^n\f$, an interpolated face density \f$\rho^{n+\frac{1}{2}}\f$ is produced and used in the
+ * momentum convection to obtain \f$N(\rho u)\f$ and mass advection to obtain \f$\rho^{n+1}\f$. Hence, a consistent
  * momentum and mass transport is carried out, which leads to stable solutions for high-density ratio flows.
  *
  */

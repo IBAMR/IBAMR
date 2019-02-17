@@ -383,23 +383,13 @@ run_example(int argc, char* argv[])
 
                 if (wave_type == "FIRST_ORDER_STOKES")
                 {
-                    u_bc_coefs[d] =
-                        new StokesFirstOrderWaveBcCoef(bc_coefs_name,
-                                                       d,
-                                                       app_initializer->getComponentDatabase(bc_coefs_db_name),
-                                                       grid_geometry,
-                                                       adv_diff_integrator,
-                                                       phi_var_gas);
+                    u_bc_coefs[d] = new StokesFirstOrderWaveBcCoef(
+                        bc_coefs_name, d, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
                 }
                 else if (wave_type == "SECOND_ORDER_STOKES")
                 {
-                    u_bc_coefs[d] =
-                        new StokesSecondOrderWaveBcCoef(bc_coefs_name,
-                                                        d,
-                                                        app_initializer->getComponentDatabase(bc_coefs_db_name),
-                                                        grid_geometry,
-                                                        adv_diff_integrator,
-                                                        phi_var_gas);
+                    u_bc_coefs[d] = new StokesSecondOrderWaveBcCoef(
+                        bc_coefs_name, d, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
                 }
                 else
                 {

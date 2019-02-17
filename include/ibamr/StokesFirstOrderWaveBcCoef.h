@@ -100,9 +100,7 @@ public:
     StokesFirstOrderWaveBcCoef(const std::string& object_name,
                                const int comp_idx,
                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                               SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
-                               SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                               SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var);
+                               SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
 
     /*!
      * \brief Destructor.
@@ -175,7 +173,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    StokesFirstOrderWaveBcCoef();
+    StokesFirstOrderWaveBcCoef() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -184,7 +182,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StokesFirstOrderWaveBcCoef(const StokesFirstOrderWaveBcCoef& from);
+    StokesFirstOrderWaveBcCoef(const StokesFirstOrderWaveBcCoef& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -195,7 +193,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StokesFirstOrderWaveBcCoef& operator=(const StokesFirstOrderWaveBcCoef& that);
+    StokesFirstOrderWaveBcCoef& operator=(const StokesFirstOrderWaveBcCoef& that) = delete;
 
     /*!
      * Get wave parameters from input db.
@@ -224,17 +222,13 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
 
     /*!
-     * Pointer to advection-diffusion solver.
-     */
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
-
-    /*!
-     * Level set variable
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
-
-    /*!
-     * Wave parameters.
+     * \brief Wave parameters.
+     *
+     * \param d_wave_number  : Wave number of dominant wave component [$2\pi/m$]
+     * \param d_amplitude    : Amplitude of the dominant wave component [m]
+     * \param d_depth        : Depth of water, from sea bed to still water level [m]
+     * \param d_gravity      : Acceleration due to gravity [$m/s^2$]
+     * \param d_omega        : Angular frequency [$2 \pi/s$]
      */
     double d_depth, d_omega, d_wave_number, d_amplitude, d_gravity;
 

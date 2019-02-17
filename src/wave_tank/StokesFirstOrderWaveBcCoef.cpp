@@ -43,7 +43,6 @@
 #include "Patch.h"
 #include "ibamr/namespaces.h"
 #include "ibtk/muParserRobinBcCoefs.h"
-#include <ibamr/AdvDiffHierarchyIntegrator.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -61,22 +60,16 @@ static const int EXTENSIONS_FILLABLE = 128;
 StokesFirstOrderWaveBcCoef::StokesFirstOrderWaveBcCoef(const std::string& object_name,
                                                        const int comp_idx,
                                                        Pointer<Database> input_db,
-                                                       Pointer<CartesianGridGeometry<NDIM> > grid_geom,
-                                                       Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                                       Pointer<CellVariable<NDIM, double> > ls_var)
+                                                       Pointer<CartesianGridGeometry<NDIM> > grid_geom)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
-    TBOX_ASSERT(adv_diff_solver);
-    TBOX_ASSERT(ls_var);
     TBOX_ASSERT(input_db);
 #endif
 
     d_object_name = object_name;
     d_comp_idx = comp_idx;
     d_grid_geom = grid_geom;
-    d_adv_diff_solver = adv_diff_solver;
-    d_ls_var = ls_var;
 
     // Create muParser object for boundaries except wave inlet.
     d_muparser_bcs = new muParserRobinBcCoefs(object_name + "::muParser", input_db, grid_geom);
@@ -102,14 +95,6 @@ StokesFirstOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
                                        const BoundaryBox<NDIM>& bdry_box,
                                        double fill_time) const
 {
-    // Get level set patch data object.
-    // Note that we are using current context here, because the new context gives a different value of
-    // level set field with cycle number. Therefore, the boundary condition changes with cycle number for
-    // new context.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int ls_idx = var_db->mapVariableAndContextToIndex(d_ls_var, d_adv_diff_solver->getCurrentContext());
-    Pointer<CellData<NDIM, double> > ls_data = patch.getPatchData(ls_idx);
-
     // Get pgeom info.
     const Box<NDIM>& patch_box = patch.getBox();
     const Index<NDIM>& patch_lower = patch_box.lower();
@@ -150,7 +135,6 @@ StokesFirstOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
         for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
         {
             const Index<NDIM>& i = b();
-            // const double phi = (*ls_data)(i,0);
             if (acoef_data) (*acoef_data)(i, 0) = 1.0;
             if (bcoef_data) (*bcoef_data)(i, 0) = 0.0;
 
