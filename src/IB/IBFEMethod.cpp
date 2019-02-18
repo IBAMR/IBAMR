@@ -1233,7 +1233,6 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         FEDataManager::SystemDofMapCache& Q_dof_map_cache =
             *d_fe_data_managers[part]->getDofMapCache(SOURCE_SYSTEM_NAME);
         FEType Q_fe_type = Q_dof_map.variable_type(0);
-        std::vector<unsigned int> Q_dof_indices;
         auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
@@ -1270,12 +1269,13 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         TensorValue<double> FF, FF_inv_trans;
         VectorValue<double> x;
         double Q;
+        std::vector<libMesh::dof_id_type> dof_id_scratch;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
-            Q_dof_map_cache.dof_indices(elem, Q_dof_indices, 0);
+            const auto& Q_dof_indices = Q_dof_map_cache.dof_indices(elem)[0];
             Q_rhs_e.resize(static_cast<int>(Q_dof_indices.size()));
             fe.reinit(elem);
             fe.collectDataForInterpolation(elem);
@@ -1300,8 +1300,9 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
 
             // Apply constraints (e.g., enforce periodic boundary conditions)
             // and add the elemental contributions to the global vector.
-            Q_dof_map.constrain_element_vector(Q_rhs_e, Q_dof_indices);
-            Q_rhs_vec->add_vector(Q_rhs_e, Q_dof_indices);
+            dof_id_scratch = Q_dof_indices;
+            Q_dof_map.constrain_element_vector(Q_rhs_e, dof_id_scratch);
+            Q_rhs_vec->add_vector(Q_rhs_e, dof_id_scratch);
         }
 
         // Solve for Q.
@@ -1899,7 +1900,6 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     auto& Phi_system = equation_systems.get_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
     const DofMap& Phi_dof_map = Phi_system.get_dof_map();
     FEDataManager::SystemDofMapCache& Phi_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(PHI_SYSTEM_NAME);
-    std::vector<unsigned int> Phi_dof_indices;
     FEType Phi_fe_type = Phi_dof_map.variable_type(0);
     std::vector<int> Phi_vars(1, 0);
 
@@ -1952,6 +1952,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     // Set up boundary conditions for Phi.
     TensorValue<double> PP, FF, FF_trans, FF_inv_trans;
     VectorValue<double> F, F_s, F_qp, n, x;
+    std::vector<libMesh::dof_id_type> dof_id_scratch;
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -1969,9 +1970,9 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
             if (at_dirichlet_bdry) continue;
 
             fe.reinit(elem, side);
+            const auto& Phi_dof_indices = Phi_dof_map_cache.dof_indices(elem)[0];
             if (reinit_all_data)
             {
-                Phi_dof_map_cache.dof_indices(elem, Phi_dof_indices);
                 Phi_rhs_e.resize(static_cast<int>(Phi_dof_indices.size()));
                 fe.collectDataForInterpolation(elem);
                 reinit_all_data = false;
@@ -2080,8 +2081,9 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
 
             // Apply constraints (e.g., enforce periodic boundary conditions)
             // and add the elemental contributions to the global vector.
-            Phi_dof_map.constrain_element_vector(Phi_rhs_e, Phi_dof_indices);
-            Phi_rhs_vec->add_vector(Phi_rhs_e, Phi_dof_indices);
+            dof_id_scratch = Phi_dof_indices;
+            Phi_dof_map.constrain_element_vector(Phi_rhs_e, dof_id_scratch);
+            Phi_rhs_vec->add_vector(Phi_rhs_e, dof_id_scratch);
         }
     }
 
@@ -2110,6 +2112,7 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
     // Setup global and elemental right-hand-side vectors.
     auto& G_system = equation_systems.get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
     DenseVector<double> G_rhs_e[NDIM];
+    std::vector<libMesh::dof_id_type> dof_id_scratch;
 
     // First handle the stress contributions.  These are handled separately because
     // each stress function may use a different quadrature rule.
@@ -2127,7 +2130,6 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
         {
             TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
         }
-        std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
         auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
@@ -2181,9 +2183,9 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
+            const auto& G_dof_indices = G_dof_map_cache.dof_indices(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                G_dof_map_cache.dof_indices(elem, G_dof_indices[d], d);
                 G_rhs_e[d].resize(static_cast<int>(G_dof_indices[d].size()));
             }
             fe.reinit(elem);
@@ -2289,8 +2291,9 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
             // and add the elemental contributions to the global vector.
             for (unsigned int i = 0; i < NDIM; ++i)
             {
-                G_dof_map.constrain_element_vector(G_rhs_e[i], G_dof_indices[i]);
-                G_rhs_vec.add_vector(G_rhs_e[i], G_dof_indices[i]);
+                dof_id_scratch = G_dof_indices[i];
+                G_dof_map.constrain_element_vector(G_rhs_e[i], dof_id_scratch);
+                G_rhs_vec.add_vector(G_rhs_e[i], dof_id_scratch);
             }
         }
     }
@@ -2305,7 +2308,6 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
     {
         TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
     }
-    std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
     auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
     System* Phi_system = Phi_vec ? &equation_systems.get_system<ExplicitSystem>(PHI_SYSTEM_NAME) : nullptr;
     std::vector<int> vars(NDIM);
@@ -2366,9 +2368,9 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
         Elem* const elem = *el_it;
+        const auto& G_dof_indices = G_dof_map_cache.dof_indices(elem);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            G_dof_map_cache.dof_indices(elem, G_dof_indices[d], d);
             G_rhs_e[d].resize(static_cast<int>(G_dof_indices[d].size()));
         }
         fe.reinit(elem);
@@ -2530,8 +2532,9 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
         // and add the elemental contributions to the global vector.
         for (unsigned int i = 0; i < NDIM; ++i)
         {
-            G_dof_map.constrain_element_vector(G_rhs_e[i], G_dof_indices[i]);
-            G_rhs_vec.add_vector(G_rhs_e[i], G_dof_indices[i]);
+            dof_id_scratch = G_dof_indices[i];
+            G_dof_map.constrain_element_vector(G_rhs_e[i], dof_id_scratch);
+            G_rhs_vec.add_vector(G_rhs_e[i], dof_id_scratch);
         }
     }
     return;
@@ -2607,11 +2610,6 @@ IBFEMethod::resetOverlapNodalValues(const unsigned int part,
     }
 
     // Find the elements of part2 that contain nodes of part1.
-    std::array<std::vector<std::vector<unsigned int> >, 2> F_dof_indices;
-    for (int k = 0; k < 2; ++k)
-    {
-        F_dof_indices[k].resize(NDIM);
-    }
     VectorValue<double> F;
     std::array<boost::multi_array<double, 2>, 2> F_node;
     const unsigned int k_slave = 0;
@@ -2624,14 +2622,11 @@ IBFEMethod::resetOverlapNodalValues(const unsigned int part,
         const Elem* const other_elem = mesh[k_master]->elem_ptr(node_elem_pair.second);
 
         // Read the velocity from the master mesh.
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            F_dof_map_cache[k_master]->dof_indices(other_elem, F_dof_indices[k_master][d], d);
-        }
+        const auto& F_dof_indices = F_dof_map_cache[k_master]->dof_indices(other_elem);
         const libMesh::Point xi = FEInterface::inverse_map(other_elem->dim(), fe_type, other_elem, X);
         FEComputeData fe_data(*es[k_master], xi);
         FEInterface::compute_data(other_elem->dim(), fe_type, other_elem, fe_data);
-        get_values_for_interpolation(F_node[k_master], *F_master_vec, F_dof_indices[k_master]);
+        get_values_for_interpolation(F_node[k_master], *F_master_vec, F_dof_indices);
         F.zero();
         for (unsigned int l = 0; l < fe_data.shape.size(); ++l)
         {
@@ -2711,15 +2706,10 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
         }
 
         // Loop over the elements that overlap elements of the other part.
-        std::array<std::vector<std::vector<unsigned int> >, 2> F_dof_indices, X_dof_indices;
-        for (int k = 0; k < 2; ++k)
-        {
-            F_dof_indices[k].resize(NDIM);
-            X_dof_indices[k].resize(NDIM);
-        }
         std::array<std::array<DenseVector<double>, NDIM>, 2> F_rhs_e;
         std::array<boost::multi_array<double, 2>, 2> x_node;
         VectorValue<double> F, F_qp, other_x, x;
+        std::vector<libMesh::dof_id_type> dof_id_scratch;
         for (int k = 0; k < 2; ++k)
         {
             const int k_next = (k + 1) % 2;
@@ -2729,14 +2719,14 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
             for (const auto& elem_pair : elem_map[k])
             {
                 const Elem* const elem = mesh[k]->elem_ptr(elem_pair.first);
+                const auto& F_dof_indices = F_dof_map_cache[k]->dof_indices(elem);
+                const auto& X_dof_indices = X_dof_map_cache[k]->dof_indices(elem);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    F_dof_map_cache[k]->dof_indices(elem, F_dof_indices[k][d], d);
-                    X_dof_map_cache[k]->dof_indices(elem, X_dof_indices[k][d], d);
-                    F_rhs_e[k][d].resize(static_cast<int>(F_dof_indices[k][d].size()));
+                    F_rhs_e[k][d].resize(static_cast<int>(F_dof_indices[d].size()));
                 }
                 fe[k]->reinit(elem);
-                get_values_for_interpolation(x_node[k], *X_vec[part_idx[k]], X_dof_indices[k]);
+                get_values_for_interpolation(x_node[k], *X_vec[part_idx[k]], X_dof_indices);
                 const size_t n_basis = phi.size();
                 for (auto qp_it = elem_pair.second.begin(); qp_it != elem_pair.second.end(); ++qp_it)
                 {
@@ -2744,14 +2734,11 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
                     const libMesh::Point& X = q_point[qp];
                     interpolate(x, qp, x_node[k], phi);
                     const Elem* const other_elem = mesh[k_next]->elem_ptr(qp_it->second);
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        X_dof_map_cache[k_next]->dof_indices(other_elem, X_dof_indices[k_next][d], d);
-                    }
+                    const auto& X_dof_indices_next = X_dof_map_cache[k_next]->dof_indices(other_elem);
                     const libMesh::Point xi = FEInterface::inverse_map(other_elem->dim(), fe_type, other_elem, X);
                     FEComputeData fe_data(*es[k_next], xi);
                     FEInterface::compute_data(other_elem->dim(), fe_type, other_elem, fe_data);
-                    get_values_for_interpolation(x_node[k_next], *X_vec[part_idx[k_next]], X_dof_indices[k_next]);
+                    get_values_for_interpolation(x_node[k_next], *X_vec[part_idx[k_next]], X_dof_indices_next);
                     other_x.zero();
                     for (unsigned int l = 0; l < fe_data.shape.size(); ++l)
                     {
@@ -2780,8 +2767,9 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
                 // vector.
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    F_dof_map[k]->constrain_element_vector(F_rhs_e[k][d], F_dof_indices[k][d]);
-                    d_F_rhs_vecs[k]->add_vector(F_rhs_e[k][d], F_dof_indices[k][d]);
+                    dof_id_scratch = F_dof_indices[d];
+                    F_dof_map[k]->constrain_element_vector(F_rhs_e[k][d], dof_id_scratch);
+                    d_F_rhs_vecs[k]->add_vector(F_rhs_e[k][d], dof_id_scratch);
                 }
             }
         }
