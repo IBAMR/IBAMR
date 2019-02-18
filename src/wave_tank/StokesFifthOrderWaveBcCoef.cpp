@@ -78,7 +78,7 @@ StokesFifthOrderWaveBcCoef::StokesFifthOrderWaveBcCoef(const std::string& object
     getFromInput(input_db);
 
     // Initialize Stokes coefficients.
-    initStokesCoefficents();
+    initStokesCoefficients();
 
     return;
 } // StokesFifthOrderWaveBcCoef
@@ -202,7 +202,7 @@ StokesFifthOrderWaveBcCoef::getFromInput(Pointer<Database> input_db)
 } // getFromInput
 
 void
-StokesFifthOrderWaveBcCoef::initStokesCoefficents()
+StokesFifthOrderWaveBcCoef::initStokesCoefficients()
 {
     const double kd = d_wave_number * d_depth;
     const double ka = d_wave_number * d_amplitude;
@@ -302,7 +302,7 @@ StokesFifthOrderWaveBcCoef::initStokesCoefficents()
 
     return;
 
-} // initStokesCoefficents
+} // initStokesCoefficients
 
 double
 StokesFifthOrderWaveBcCoef::getSurfaceElevation(double x, double time) const

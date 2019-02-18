@@ -5,9 +5,9 @@ include $(top_srcdir)/config/Make-rules
 EXAMPLE_DRIVER = ex_main.cpp SetFluidProperties.cpp SetLSProperties.cpp LSLocateColumnInterface.cpp GravityForcing.cpp TagLSRefinementCells.cpp
 GTEST_DRIVER   = test_main.cpp SetFluidProperties.cpp SetLSProperties.cpp LSLocateColumnInterface.cpp GravityForcing.cpp TagLSRefinementCells.cpp
 EXTRA_DIST     = input2d input2d.test
-EXTRA_DIST    += input2d_CaseA input2d_CaseB input2d_CaseC
+EXTRA_DIST    += input2d_CaseA input2d_CaseB input2d_CaseC input2d_5thOrderStokes
 EXTRA_DIST    += input3d input3d.test
-EXTRA_DIST    += compareStokesFirstOrder.m compareStokesSecondOrder.m
+EXTRA_DIST    += compareStokesFirstOrder.m compareStokesSecondOrder.m compareStokesFifthOrder.m
 
 GTESTS   =
 EXAMPLES =
@@ -74,9 +74,10 @@ endif
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input[23]d ; \
-	  rm -f $(builddir)/input[23]d.test ; \
-	  rm -f $(builddir)/input[2]d_CaseA ; \
-	  rm -f $(builddir)/input[2]d_CaseB ; \
-	  rm -f $(builddir)/input[2]d_CaseC ; \
+	  rm -f $(builddir)/input[23]d               ; \
+	  rm -f $(builddir)/input[23]d.test          ; \
+	  rm -f $(builddir)/input[2]d_CaseA          ; \
+	  rm -f $(builddir)/input[2]d_CaseB          ; \
+	  rm -f $(builddir)/input[2]d_CaseC          ; \
+	  rm -f $(builddir)/input[2]d_5thOrderStokes ; \
 	fi ;

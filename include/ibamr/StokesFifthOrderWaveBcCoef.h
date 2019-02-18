@@ -208,7 +208,7 @@ private:
     /*!
      * Initialize Stokes coefficients.
      */
-    void initStokesCoefficents();
+    void initStokesCoefficients();
 
     /*!
      * Get surface elevation at a specified horizontal position and time.
@@ -261,7 +261,7 @@ private:
     bool d_deep_water_limit = false;
 
     /*!
-     * Fenton's coefficients.
+     * Stokes coefficients.
      */
     double d_A[6][6], d_B[6][6], d_C[5];
     double d_p[5], d_eta[5];
