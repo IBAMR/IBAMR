@@ -554,6 +554,16 @@ HierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_bala
     return;
 } // registerLoadBalancer
 
+int
+HierarchyIntegrator::getWorkloadDataIndex() const
+{
+    if (d_parent_integrator)
+    {
+        return d_parent_integrator->getWorkloadDataIndex();
+    }
+    return d_workload_idx;
+}
+
 void
 HierarchyIntegrator::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > visit_writer)
 {

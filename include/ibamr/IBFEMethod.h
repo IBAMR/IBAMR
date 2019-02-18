@@ -46,6 +46,7 @@
 #include "PatchHierarchy.h"
 #include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBStrategy.h"
+#include "ibamr/ibamr_enums.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/libmesh_utilities.h"
 #include "libmesh/enum_fe_family.h"
@@ -101,6 +102,47 @@ namespace IBAMR
  * \brief Class IBFEMethod is an implementation of the abstract base class
  * IBStrategy that provides functionality required by the IB method with finite
  * element elasticity.
+ *
+ * By default, the libMesh data is partitioned once at the beginning of the
+ * computation by libMesh's default partitioner.
+ *
+ * This class can repartition libMesh data in a way that matches SAMRAI's
+ * distribution of patches; put another way, if a certain region of space on
+ * the finest level is assigned to processor N, then all libMesh nodes and
+ * elements within that region will also be assigned to processor N. The
+ * actual partitioning here is done by the IBTK::BoxPartitioner class. See the
+ * discussion in HierarchyIntegrator and FEDataManager for descriptions on how
+ * this partitioning is performed.
+ *
+ * The choice of libMesh partitioner depends on the libmesh_partitioner_type
+ * parameter in the input database and whether or not workload estimates are
+ * available (it is assumed that if workload estimates are available then a
+ * load balancer is being used). More exactly:
+ * <ul>
+ *  <li>If <code>libmesh_partitioner_type</code> is <code>AUTOMATIC</code>
+ *      and workload estimates are available then this class will use the
+ *      IBTK::BoxPartitioner class to repartition libMesh data after the SAMRAI
+ *      data is regridded.</li>
+ *
+ *  <li>If <code>libmesh_partitioner_type</code> is <code>AUTOMATIC</code> and
+ *      workload estimates are not available then this class will never
+ *      repartition libMesh data.</li>
+ *
+ *  <li>If <code>libmesh_partitioner_type</code> is
+ *      <code>LIBMESH_DEFAULT</code> then this class will never repartition
+ *      libMesh data, since the default libMesh partitioner is already used at
+ *      the beginning of the computation and, since no degrees of freedom are
+ *      added or removed, any subsequent partitioning would have no
+ *      effect.</li>
+ *
+ *  <li>If <code>libmesh_partitioner_type</code> is <code>SAMRAI_BOX</code>
+ *      then this class will always repartition the libMesh data with
+ *      IBTK::BoxPartitioner every time the Eulerian data is regridded.</li>
+ * </ul>
+ * The default value for <code>libmesh_partitioner_type</code> is
+ * <code>AUTOMATIC</code>. The intent of these choices is to automatically use
+ * the fairest (that is, partitioning based on workload estimation)
+ * partitioner.
  */
 class IBFEMethod : public IBStrategy
 {
@@ -794,6 +836,12 @@ protected:
     std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs, d_Phi_rhs_vecs;
 
     bool d_fe_equation_systems_initialized = false, d_fe_data_initialized = false;
+
+    /*
+     * Type of partitioner to use. See the main documentation of this class
+     * for more information.
+     */
+    LibmeshPartitionerType d_libmesh_partitioner_type = AUTOMATIC;
 
     /*
      * Method paramters.

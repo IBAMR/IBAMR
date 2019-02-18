@@ -469,6 +469,11 @@ IBHierarchyIntegrator::regridHierarchy()
         LMarkerUtilities::pruneInvalidMarkers(d_mark_current_idx, d_hierarchy);
     }
 
+    if (d_enable_logging)
+    {
+        updateWorkloadEstimates();
+    }
+
     // Reset the regrid CFL estimate.
     d_regrid_cfl_estimate = 0.0;
     return;

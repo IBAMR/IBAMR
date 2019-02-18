@@ -272,12 +272,43 @@ public:
      * patches in a way that gives each processor a roughly equal amount of
      * work (instead of simply an equal number of cells).
      *
+     * If you want to visualize the workload then you will have to ensure that
+     * workload estimates are recomputed after regridding (by default they are
+     * not). This is because workload estimates are only used when moving data
+     * between processors: they are computed immediately before the domain is
+     * repartitioned and, therefore, their patch data is always invalid at
+     * points where output is written. The easiest way to get around this is
+     * to enable logging (which will result in workload estimates being
+     * updated after regridding) or to manually call updateWorkloadEstimates
+     * at points where output is written. The former is more efficient since
+     * most applications regrid less frequently than they write visualization
+     * files.
+     *
+     * Once the data is available, it can be attached to the visit data writer
+     * in the usual way. Here is one way to do set this up at the same time
+     * the visit data writer is registered:
+     * @code
+     * Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+     * if (uses_visit)
+     * {
+     *     time_integrator->registerVisItDataWriter(visit_data_writer);
+     *     // This is only valid if a load balancer has previously been attached
+     *     // to the time integrator or, should it exist, its parent integrator;
+     *     // otherwise no workload estimates are computed
+     *     visit_data_writer->registerPlotQuantity("workload", "SCALAR",
+     *                                             time_integrator->getWorkloadDataIndex());
+     * }
+     * @endcode
+     *
+     *
      * @note This function computes workloads by setting the estimated work
      * value on all cells to 1 and then calling addWorkloadEstimate on the
      * current object and on each child hierarchy integrator.
      *
      * @note The workload estimate itself is stored in the variable with index
      * HierarchyIntegrator::d_workload_idx.
+     *
+     * @seealso HierarchyIntegrator::getWorkloadDataIndex()
      */
     void updateWorkloadEstimates();
 
@@ -309,6 +340,19 @@ public:
      * estimates and will write their own data into these arrays.
      */
     virtual void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer);
+
+    /*!
+     * Return the workload variable's patch data index. If the workload
+     * variable has not yet been set up by this object (or, should it exist,
+     * this object's parent hierarchy integrator) then IBTK::invalid_index is
+     * returned instead.
+     *
+     * @note this is only implemented since this information is not readily
+     * available from the variable database and there is no other way to
+     * access this variable. The main use of this variable is for optionally
+     * adding the workload estimates to the VisIt data writer.
+     */
+    int getWorkloadDataIndex() const;
 
     /*!
      * Register a VisIt data writer so the integrator can output data files that
