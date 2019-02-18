@@ -1,7 +1,7 @@
-// Filename: StokesFirstOrderWaveBcCoef.h
-// Created on 1 Sep 2018 by Amneet Bhalla
+// Filename: StokesFifthOrderWaveBcCoef.h
+// Created on 16 Feb 2019 by Amneet Bhalla
 //
-// Copyright (c) 2002-2019, Amneet Bhalla and Nishant Nangia
+// Copyright (c) 2002-2019, Amneet Bhalla
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBAMR_StokesFirstOrderWaveBcCoef
-#define included_IBAMR_StokesFirstOrderWaveBcCoef
+#ifndef included_IBAMR_StokesFifthOrderWaveBcCoef
+#define included_IBAMR_StokesFifthOrderWaveBcCoef
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -86,18 +86,23 @@ class Database;
 namespace IBAMR
 {
 /*!
- * \brief Class StokesFirstOrderWaveBcCoef is an implementation of the strategy class
+ * \brief Class StokesFifthOrderWaveBcCoef is an implementation of the strategy class
  * SAMRAI::solv::RobinBcCoefStrategy that provides Dirichlet velocity boundary condition
- * based upon Stokes' lineary theory of water waves at the inlet of the wave tank. This
- * class is meant to be used with INSVCStaggeredHierarchyIntegrator.
+ * based upon Stokes' fifth-order theory of water waves at the inlet of the wave tank.
+ * The class is meant to be used with INSVCStaggeredHierarchyIntegrator.
+ *
+ * The class can calculate surface elevation and velocities in the water domain in both shallow
+ * water regime as well as deep-water regime as indicated through input database. The default
+ * regime is shallow water (finite depth).
+ *
  */
-class StokesFirstOrderWaveBcCoef : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
+class StokesFifthOrderWaveBcCoef : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
 {
 public:
     /*!
      * \brief Constructor.
      */
-    StokesFirstOrderWaveBcCoef(const std::string& object_name,
+    StokesFifthOrderWaveBcCoef(const std::string& object_name,
                                const int comp_idx,
                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
@@ -105,7 +110,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~StokesFirstOrderWaveBcCoef();
+    ~StokesFifthOrderWaveBcCoef();
 
     /*!
      * \name Implementation of SAMRAI::solv::RobinBcCoefStrategy interface.
@@ -173,7 +178,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    StokesFirstOrderWaveBcCoef() = delete;
+    StokesFifthOrderWaveBcCoef() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -182,7 +187,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StokesFirstOrderWaveBcCoef(const StokesFirstOrderWaveBcCoef& from) = delete;
+    StokesFifthOrderWaveBcCoef(const StokesFifthOrderWaveBcCoef& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -193,12 +198,27 @@ private:
      *
      * \return A reference to this object.
      */
-    StokesFirstOrderWaveBcCoef& operator=(const StokesFirstOrderWaveBcCoef& that) = delete;
+    StokesFifthOrderWaveBcCoef& operator=(const StokesFifthOrderWaveBcCoef& that) = delete;
 
     /*!
      * Get wave parameters from input db.
      */
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
+    /*!
+     * Initialize Stokes coefficients.
+     */
+    void initStokesCoefficents();
+
+    /*!
+     * Get surface elevation at a specified horizontal position and time.
+     */
+    double getSurfaceElevation(double x, double time) const;
+
+    /*!
+     * Get velocity at a specified position and time.
+     */
+    double getVelocity(double x, double z_plus_d, double time) const;
 
     /*!
      * Book-keeping.
@@ -228,12 +248,23 @@ private:
      * \param d_amplitude    : Amplitude of the dominant wave component [m]
      * \param d_depth        : Depth of water, from sea bed to still water level [m]
      * \param d_gravity      : Acceleration due to gravity [$m/s^2$]
-     * \param d_omega        : Angular frequency [$2 \pi/s$]
+     * \param d_omega        : Angular frequency [$2 \pi/s$] (optional)
      *
-     * \NOTE d_omega, d_wave_number, and d_depth obtained from the input file
-     * should satisfy the dispersion relation to get a consistent Stokes wave.
+     * \NOTE The class calculates a more accurate value of omega from the expansion coefficients
+     * and the provided value in not used.
      */
     double d_depth, d_omega, d_wave_number, d_amplitude, d_gravity;
+
+    /*!
+     * If we are calculating in deep water limit.
+     */
+    bool d_deep_water_limit = false;
+
+    /*!
+     * Fenton's coefficients.
+     */
+    double d_A[6][6], d_B[6][6], d_C[5];
+    double d_p[5], d_eta[5];
 
     /*!
      * Number of interface cells.
@@ -244,4 +275,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_StokesFirstOrderWaveBcCoef
+#endif //#ifndef included_IBAMR_StokesFifthOrderWaveBcCoef

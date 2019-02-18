@@ -48,6 +48,7 @@
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibamr/RelaxationLSMethod.h>
+#include <ibamr/StokesFifthOrderWaveBcCoef.h>
 #include <ibamr/StokesFirstOrderWaveBcCoef.h>
 #include <ibamr/StokesSecondOrderWaveBcCoef.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
@@ -300,6 +301,11 @@ run_example(int argc, char* argv[])
                 else if (wave_type == "SECOND_ORDER_STOKES")
                 {
                     u_bc_coefs[d] = new StokesSecondOrderWaveBcCoef(
+                        bc_coefs_name, d, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
+                }
+                else if (wave_type == "FIFTH_ORDER_STOKES")
+                {
+                    u_bc_coefs[d] = new StokesFifthOrderWaveBcCoef(
                         bc_coefs_name, d, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
                 }
                 else

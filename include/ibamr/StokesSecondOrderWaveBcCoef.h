@@ -229,6 +229,9 @@ private:
      * \param d_depth        : Depth of water, from sea bed to still water level [m]
      * \param d_gravity      : Acceleration due to gravity [$m/s^2$]
      * \param d_omega        : Angular frequency [$2 \pi/s$]
+     *
+     * \NOTE d_omega, d_wave_number, and d_depth obtained from the input file
+     * should satisfy the dispersion relation to get a consistent Stokes wave.
      */
     double d_depth, d_omega, d_wave_number, d_amplitude, d_gravity;
 
