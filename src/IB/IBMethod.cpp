@@ -1690,9 +1690,7 @@ IBMethod::putToDatabase(Pointer<Database> db)
     {
         for (int n = 0; n < d_n_src[ln]; ++n)
         {
-            std::ostringstream id_stream;
-            id_stream << ln << "_" << n;
-            const std::string id_string = id_stream.str();
+            const std::string id_string = std::to_string(ln) + "_" + std::to_string(n);
             db->putDoubleArray("d_X_src_" + id_string, &d_X_src[ln][n][0], NDIM);
             db->putDouble("d_r_src_" + id_string, d_r_src[ln][n]);
             db->putDouble("d_P_src_" + id_string, d_P_src[ln][n]);
@@ -2091,9 +2089,7 @@ IBMethod::getFromRestart()
         d_Q_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
         for (int n = 0; n < d_n_src[ln]; ++n)
         {
-            std::ostringstream id_stream;
-            id_stream << ln << "_" << n;
-            const std::string id_string = id_stream.str();
+            const std::string id_string = std::to_string(ln) + "_" + std::to_string(n);
             db->getDoubleArray("d_X_src_" + id_string, &d_X_src[ln][n][0], NDIM);
             d_r_src[ln][n] = db->getDouble("d_r_src_" + id_string);
             d_P_src[ln][n] = db->getDouble("d_P_src_" + id_string);

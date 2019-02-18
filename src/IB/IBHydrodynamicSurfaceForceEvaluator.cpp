@@ -162,17 +162,15 @@ IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
     // Set up the streams for printing drag and torque
     if (SAMRAI_MPI::getRank() == 0)
     {
-        std::ostringstream drag;
-        drag << "Hydro_Force_" << d_ls_solid_var->getName();
         bool from_restart = RestartManager::getManager()->isFromRestart();
         if (from_restart)
         {
-            d_hydro_force_stream = new std::ofstream(drag.str().c_str(), std::fstream::app);
+            d_hydro_force_stream = new std::ofstream("Hydro_Force_" + d_ls_solid_var->getName(), std::fstream::app);
             d_hydro_force_stream->precision(10);
         }
         else
         {
-            d_hydro_force_stream = new std::ofstream(drag.str().c_str(), std::fstream::out);
+            d_hydro_force_stream = new std::ofstream("Hydro_Force_" + d_ls_solid_var->getName(), std::fstream::out);
             d_hydro_force_stream->precision(10);
         }
     }

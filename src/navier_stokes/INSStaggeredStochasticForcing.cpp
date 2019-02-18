@@ -203,9 +203,7 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(std::string object_
             TBOX_ASSERT(d_weights.back().size() == d_num_rand_vals);
 #endif
             ++k;
-            std::ostringstream stream;
-            stream << "weights_" << k;
-            key_name = stream.str();
+            key_name = "weights_" + std::to_string(k);
         }
         if (input_db->keyExists("velocity_bc_scaling"))
             d_velocity_bc_scaling = input_db->getDouble("velocity_bc_scaling");

@@ -1764,9 +1764,7 @@ IBRedundantInitializer::getFromInput(Pointer<Database> db)
 
             for (int s = 0; s < num_strcts_on_ln; ++s)
             {
-                std::ostringstream strct_name_stream;
-                strct_name_stream << "body_" << s << "_ln_" << ln;
-                d_base_filename[ln][s] = strct_name_stream.str();
+                d_base_filename[ln][s] = "body_" + std::to_string(s) + "_ln_" + std::to_string(ln);
             }
         }
     }
@@ -1774,9 +1772,7 @@ IBRedundantInitializer::getFromInput(Pointer<Database> db)
     {
         for (int ln = 0; ln < d_max_levels; ++ln)
         {
-            std::ostringstream db_key_name_stream;
-            db_key_name_stream << "base_filenames_" << ln;
-            const std::string db_key_name = db_key_name_stream.str();
+            const std::string db_key_name = "base_filenames_" + std::to_string(ln);
             if (db->keyExists(db_key_name))
             {
                 const int num_files = db->getArraySize(db_key_name);

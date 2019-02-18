@@ -1163,9 +1163,7 @@ IBFESurfaceMethod::initializeFEEquationSystems()
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Create FE data managers.
-        std::ostringstream manager_stream;
-        manager_stream << "IBFESurfaceMethod FEDataManager::" << part;
-        const std::string& manager_name = manager_stream.str();
+        const std::string manager_name = "IBFESurfaceMethod FEDataManager::" + std::to_string(part);
         d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec[part], d_spread_spec[part]);
         d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
 
@@ -1188,50 +1186,38 @@ IBFESurfaceMethod::initializeFEEquationSystems()
             auto& X_system = equation_systems->add_system<System>(COORDS_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream os;
-                os << "X_" << d;
-                X_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                X_system.add_variable("X_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
             X_system.add_vector("INITIAL_COORDINATES", /*projections*/ true, GHOSTED);
 
             auto& dX_system = equation_systems->add_system<System>(COORD_MAPPING_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream os;
-                os << "dX_" << d;
-                dX_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                dX_system.add_variable("dX_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
 
             auto& U_system = equation_systems->add_system<System>(VELOCITY_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream os;
-                os << "U_" << d;
-                U_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                U_system.add_variable("U_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
 
             auto& U_n_system = equation_systems->add_system<System>(NORMAL_VELOCITY_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream os;
-                os << "U_n_" << d;
-                U_n_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                U_n_system.add_variable("U_n_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
 
             auto& U_t_system = equation_systems->add_system<System>(TANGENTIAL_VELOCITY_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream os;
-                os << "U_t_" << d;
-                U_t_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                U_t_system.add_variable("U_t_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
 
             auto& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream os;
-                os << "F_" << d;
-                F_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                F_system.add_variable("F_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
 
             if (d_use_jump_conditions)

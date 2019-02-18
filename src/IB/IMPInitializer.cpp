@@ -303,9 +303,7 @@ IMPInitializer::initializeStructureIndexingOnPatchLevel(
     int offset = 0;
     for (unsigned int j = 0; j < d_meshes[level_number].size(); ++j)
     {
-        std::ostringstream name_stream;
-        name_stream << "mesh_" << j;
-        strct_id_to_strct_name_map[j] = name_stream.str();
+        strct_id_to_strct_name_map[j] = "mesh_" + std::to_string(j);
         strct_id_to_lag_idx_range_map[j] = std::make_pair(offset, offset + d_num_vertex[level_number][j]);
         offset += d_num_vertex[level_number][j];
     }
@@ -514,9 +512,7 @@ IMPInitializer::initializeLSiloDataWriter(const int level_number)
         {
             if (d_num_vertex[level_number][j])
             {
-                std::ostringstream name_stream;
-                name_stream << "mesh_" << j;
-                const std::string vertices_name = name_stream.str() + "_vertices";
+                const std::string vertices_name = "mesh_" + std::to_string(j) + "_vertices";
                 d_silo_writer->registerMarkerCloud(
                     vertices_name, d_num_vertex[level_number][j], d_vertex_offset[level_number][j], level_number);
             }
