@@ -227,14 +227,14 @@ private:
     std::vector<std::vector<libMesh::dof_id_type> > d_node_dof_IDs;
 
     /*!
-     * \brief Equation systems for the meter meshes.
-     */
-    std::vector<std::unique_ptr<libMesh::EquationSystems> > d_meter_systems;
-
-    /*!
      * \brief vector of meter meshes.
      */
     std::vector<std::unique_ptr<libMesh::SerialMesh> > d_meter_meshes;
+
+    /*!
+     * \brief Equation systems for the meter meshes.
+     */
+    std::vector<std::unique_ptr<libMesh::EquationSystems> > d_meter_systems;
 
     /*!
      * \brief names for each meter mesh.
