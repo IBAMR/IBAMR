@@ -50,13 +50,19 @@ if test "$LIBMESH_ENABLED" = yes; then
 
   METHOD=$LIBMESH_METHOD
   CPPFLAGS_PREPEND($LIBMESH_CPPFLAGS)
+dnl
+dnl 1. Check headers:
+dnl
   AC_CHECK_HEADER([libmesh/libmesh.h],,AC_MSG_ERROR([libMesh enabled but could not find working libmesh.h]))
   AC_CHECK_HEADER([libmesh/libmesh_config.h],,AC_MSG_ERROR([libMesh enabled but could not find working libmesh_config.h]))
+dnl
+dnl 2. Check version numbers:
+dnl
   AC_MSG_CHECKING([for libMesh version 1.1.0 or newer])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <libmesh/libmesh_config.h>
 
-#if LIBMESH_MAJOR_VERSION >= 1 && LIBMESH_MINOR_VERSION >= 2
+#if LIBMESH_MAJOR_VERSION >= 1 && LIBMESH_MINOR_VERSION >= 1
 // OK
 #else
 #error
@@ -67,15 +73,32 @@ if test "$LIBMESH_ENABLED" = yes; then
     AC_MSG_ERROR([invalid libMesh version detected: please use libMesh 1.1.0 or newer])
   fi
   AC_MSG_NOTICE([obtaining libMesh configuration information from libmesh_common.h])
+dnl
+dnl 3. Check that libMesh was compiled with PETSc:
+dnl
+  AC_MSG_CHECKING([for libMesh with PETSc])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <libmesh/libmesh_config.h>
+
+#ifdef LIBMESH_HAVE_PETSC
+// OK
+#else
+#error
+#endif
+  ]])],[LIBMESH_HAVE_PETSC=yes],[LIBMESH_HAVE_PETSC=no])
+  AC_MSG_RESULT([${LIBMESH_HAVE_PETSC}])
+  if test "$LIBMESH_HAVE_PETSC" = no; then
+    AC_MSG_ERROR([invalid libMesh installation detected: please compile libMesh with PETSc])
+  fi
+dnl
+dnl 4. Make sure that libMesh's PETSc matches the one specified:
+dnl
   AC_RUN_IFELSE([AC_LANG_SOURCE([
 #include "libmesh/libmesh_config.h"
 #include <iostream>
-#define STRINGIFY(str) #str
-#define EXPAND_AND_STRINGIFY(str) STRINGIFY(str)
 int main()
 {
-   std::cout << EXPAND_AND_STRINGIFY(LIBMESH_CONFIGURE_INFO) << std::endl;
-   return 0;
+   std::cout << LIBMESH_CONFIGURE_INFO << std::endl;
 }
   ])],[
   LIBMESH_CONFIGURE_INFO=`./conftest$EXEEXT | sed -e 's/^"//' -e 's/"$//'`
@@ -114,10 +137,11 @@ int main()
   LIBMESH_FCFLAGS="`$LIBMESH_CONFIG --fflags`"
   LIBMESH_LIBS="`$LIBMESH_CONFIG --libs`"
 
-  # libMesh (for pre-C++11 compatibility) can implement libMesh::UniquePtr in
-  # several different ways. We are only compatible when libMesh::UniquePtr
-  # really is std::unique_ptr:
-
+dnl
+dnl 5. libMesh (for pre-C++11 compatibility) can implement libMesh::UniquePtr
+dnl    in several different ways. We are only compatible when libMesh::UniquePtr
+dnl    really is std::unique_ptr:
+dnl
   AC_MSG_CHECKING([for a usable libMesh UniquePtr/unique_ptr configuration])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <libmesh/auto_ptr.h>
@@ -131,7 +155,9 @@ static_assert(std::is_same<libMesh::UniquePtr<int>, std::unique_ptr<int>>::value
   if test "$LIBMESH_UNIQUE_PTR_OK" = no; then
     AC_MSG_ERROR([libMesh must be compiled with C++11 support and without --disable-unique-ptr.])
   fi
-
+dnl
+dnl 6. Check bundled libMesh components:
+dnl
   AC_LIB_HAVE_LINKFLAGS([netcdf])
   if test "$HAVE_LIBNETCDF" = yes ; then
     LIBMESH_LIBS="$LIBMESH_LIBS $LIBNETCDF"
