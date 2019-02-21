@@ -508,6 +508,24 @@ HierarchyIntegrator::stepsRemaining() const
             !MathUtilities<double>::equalEps(d_integrator_time, d_end_time));
 } // stepsRemaining
 
+void
+HierarchyIntegrator::updateWorkloadEstimates()
+{
+    if (d_workload_idx != IBTK::invalid_index)
+    {
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy);
+        hier_cc_data_ops.setToScalar(d_workload_idx, 1.0, /*interior_only*/ false);
+
+        addWorkloadEstimate(d_hierarchy, d_workload_idx);
+        for (HierarchyIntegrator* child : d_child_integrators)
+        {
+            child->addWorkloadEstimate(d_hierarchy, d_workload_idx);
+        }
+    }
+
+    return;
+} // updateWorkloadEstimates
+
 Pointer<PatchHierarchy<NDIM> >
 HierarchyIntegrator::getPatchHierarchy() const
 {
@@ -532,8 +550,19 @@ HierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_bala
         d_workload_var = new CellVariable<NDIM, double>(d_object_name + "::workload");
         registerVariable(d_workload_idx, d_workload_var, 0, getCurrentContext());
     }
+    d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx);
     return;
 } // registerLoadBalancer
+
+int
+HierarchyIntegrator::getWorkloadDataIndex() const
+{
+    if (d_parent_integrator)
+    {
+        return d_parent_integrator->getWorkloadDataIndex();
+    }
+    return d_workload_idx;
+}
 
 void
 HierarchyIntegrator::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > visit_writer)
@@ -1315,6 +1344,13 @@ void HierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> /*db*/)
     // intentionally blank
     return;
 } // putToDatabaseSpecialized
+
+void
+HierarchyIntegrator::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> >, const int)
+{
+    // intentionally blank
+    return;
+} // addWorkloadEstimate
 
 void
 HierarchyIntegrator::executePreprocessIntegrateHierarchyCallbackFcns(double current_time,

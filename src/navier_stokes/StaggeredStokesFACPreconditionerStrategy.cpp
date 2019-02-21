@@ -611,10 +611,11 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
     // Compute the residual, r = f - A*u.
     if (!d_level_math_ops[finest_level_num])
     {
-        std::ostringstream stream;
-        stream << d_object_name << "::level_math_ops_" << finest_level_num;
         d_level_math_ops[finest_level_num] =
-            new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
+            new HierarchyMathOps(d_object_name + "::level_math_ops_" + std::to_string(finest_level_num),
+                                 d_hierarchy,
+                                 coarsest_level_num,
+                                 finest_level_num);
     }
     d_level_math_ops[finest_level_num]->grad(U_res_idx,
                                              U_res_sc_var,

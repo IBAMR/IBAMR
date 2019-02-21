@@ -2371,12 +2371,10 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
         {
             for (unsigned int k = 0; k < NDIM; ++k)
             {
-                std::ostringstream stream;
-                stream << k;
-                d_nul_vecs[k] = d_sol_vec->cloneVector(d_object_name + "::nul_vec_U_" + stream.str());
+                d_nul_vecs[k] = d_sol_vec->cloneVector(d_object_name + "::nul_vec_U_" + std::to_string(k));
                 d_nul_vecs[k]->allocateVectorData(current_time);
                 d_nul_vecs[k]->setToScalar(0.0);
-                d_U_nul_vecs[k] = d_U_scratch_vec->cloneVector(d_object_name + "::U_nul_vec_U_" + stream.str());
+                d_U_nul_vecs[k] = d_U_scratch_vec->cloneVector(d_object_name + "::U_nul_vec_U_" + std::to_string(k));
                 d_U_nul_vecs[k]->allocateVectorData(current_time);
                 d_U_nul_vecs[k]->setToScalar(0.0);
                 for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

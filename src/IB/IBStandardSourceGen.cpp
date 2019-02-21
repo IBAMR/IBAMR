@@ -287,9 +287,7 @@ IBStandardSourceGen::putToDatabase(Pointer<Database> db)
     {
         for (int n = 0; n < s_num_sources[ln]; ++n)
         {
-            std::ostringstream id_stream;
-            id_stream << ln << "_" << n;
-            const std::string id_string = id_stream.str();
+            const std::string id_string = std::to_string(ln) + "_" + std::to_string(n);
             db->putString("s_source_names_" + id_string, s_source_names[ln][n]);
             db->putDouble("s_source_radii_" + id_string, s_source_radii[ln][n]);
         }
@@ -302,9 +300,7 @@ IBStandardSourceGen::putToDatabase(Pointer<Database> db)
     {
         for (int n = 0; n < d_n_src[ln]; ++n)
         {
-            std::ostringstream id_stream;
-            id_stream << ln << "_" << n;
-            const std::string id_string = id_stream.str();
+            const std::string id_string = std::to_string(ln) + "_" + std::to_string(n);
             db->putString("d_source_names_" + id_string, d_source_names[ln][n]);
             db->putDouble("d_r_src_" + id_string, d_r_src[ln][n]);
             db->putInteger("d_num_perimeter_nodes_" + id_string, d_num_perimeter_nodes[ln][n]);
@@ -346,9 +342,7 @@ IBStandardSourceGen::getFromRestart()
         s_source_radii[ln].resize(s_num_sources[ln]);
         for (int n = 0; n < s_num_sources[ln]; ++n)
         {
-            std::ostringstream id_stream;
-            id_stream << ln << "_" << n;
-            const std::string id_string = id_stream.str();
+            const std::string id_string = std::to_string(ln) + "_" + std::to_string(n);
             s_source_names[ln][n] = db->getString("s_source_names_" + id_string);
             s_source_radii[ln][n] = db->getDouble("s_source_radii_" + id_string);
         }
@@ -371,9 +365,7 @@ IBStandardSourceGen::getFromRestart()
         d_P_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
         for (int n = 0; n < d_n_src[ln]; ++n)
         {
-            std::ostringstream id_stream;
-            id_stream << ln << "_" << n;
-            const std::string id_string = id_stream.str();
+            const std::string id_string = std::to_string(ln) + "_" + std::to_string(n);
             d_source_names[ln][n] = db->getString("d_source_names_" + id_string);
             d_r_src[ln][n] = db->getDouble("d_r_src_" + id_string);
             d_num_perimeter_nodes[ln][n] = db->getInteger("d_num_perimeter_nodes_" + id_string);

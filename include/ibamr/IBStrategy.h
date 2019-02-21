@@ -336,17 +336,21 @@ public:
      * strategy object.
      *
      * An empty default implementation is provided.
+     *
+     * @deprecated This method is no longer necessary with the current
+     * workload estimation scheme.
      */
     virtual void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
                                       int workload_data_idx);
 
     /*!
-     * Update work load estimates on each level of the patch hierarchy.
+     * Add the estimated computational work from the current object per cell
+     * into the specified <code>workload_data_idx</code>.
      *
      * An empty default implementation is provided.
      */
-    virtual void updateWorkloadEstimates(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                         int workload_data_idx);
+    virtual void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                     const int workload_data_idx);
 
     /*!
      * Begin redistributing Lagrangian data prior to regridding the patch

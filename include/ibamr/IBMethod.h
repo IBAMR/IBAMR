@@ -366,15 +366,19 @@ public:
     /*!
      * Register a load balancer and work load patch data index with the IB
      * strategy object.
+     *
+     * @deprecated This method is no longer necessary with the current
+     * workload estimation scheme.
      */
     void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
                               int workload_data_idx) override;
 
     /*!
-     * Update work load estimates on each level of the patch hierarchy.
+     * Add the estimated computational work from the current object per cell
+     * into the specified <code>workload_data_idx</code>.
      */
-    void updateWorkloadEstimates(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                 int workload_data_idx) override;
+    void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                             const int workload_data_idx) override;
 
     /*!
      * Begin redistributing Lagrangian data prior to regridding the patch

@@ -514,9 +514,8 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(HyperbolicL
                 }
                 for (int d = 0; d < depth; ++d)
                 {
-                    std::ostringstream stream;
-                    stream << d;
-                    d_visit_writer->registerPlotQuantity(Q_var->getName() + "_" + stream.str(), "SCALAR", Q_idx, d);
+                    d_visit_writer->registerPlotQuantity(
+                        Q_var->getName() + "_" + std::to_string(d), "SCALAR", Q_idx, d);
                 }
             }
         }

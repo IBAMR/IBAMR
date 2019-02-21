@@ -883,6 +883,7 @@ LDataManager::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
 void
 LDataManager::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_idx)
 {
+    IBTK_DEPRECATED_MEMBER_FUNCTION1("LDataManager", "registerLoadBalancer");
 #if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
 #endif
@@ -1975,10 +1976,11 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
 } // endDataRedistribution
 
 void
-LDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int finest_ln_in)
+LDataManager::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                  const int workload_data_idx,
+                                  const int coarsest_ln_in,
+                                  const int finest_ln_in)
 {
-    if (!d_load_balancer) return;
-
     IBTK_TIMER_START(t_update_workload_estimates);
 
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
@@ -1990,12 +1992,12 @@ LDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int finest
 #endif
 
     updateNodeCountData(coarsest_ln, finest_ln);
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, coarsest_ln, finest_ln);
-    hier_cc_data_ops.axpy(d_workload_idx, d_beta_work, d_node_count_idx, d_workload_idx);
+    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
+    hier_cc_data_ops.axpy(workload_data_idx, d_beta_work, d_node_count_idx, workload_data_idx);
 
     IBTK_TIMER_STOP(t_update_workload_estimates);
     return;
-} // updateWorkloadEstimates
+} // addWorkloadEstimate
 
 void
 LDataManager::updateNodeCountData(const int coarsest_ln_in, const int finest_ln_in)

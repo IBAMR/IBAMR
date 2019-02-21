@@ -514,9 +514,7 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
         if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
         for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
         {
-            std::ostringstream width_stream;
-            width_stream << "width_" << location_index;
-            const std::string width_key = width_stream.str();
+            const std::string width_key = "width_" + std::to_string(location_index);
             if (input_db->keyExists(width_key))
             {
                 d_width[location_index] = input_db->getDouble(width_key);

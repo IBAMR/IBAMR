@@ -204,17 +204,15 @@ IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hie
     resetLocalOrNonlocalPETScIndices(
         d_beam_data[level_number].petsc_prev_node_idxs, global_node_offset, num_local_nodes, nonlocal_petsc_idxs);
 
-    std::ostringstream X_name_stream;
-    X_name_stream << "IBStandardForceGen::X_ghost_" << level_number;
-    d_X_ghost_data[level_number] = new LData(X_name_stream.str(), num_local_nodes, NDIM, nonlocal_petsc_idxs);
+    const std::string level_number_str = std::to_string(level_number);
 
-    std::ostringstream F_name_stream;
-    F_name_stream << "IBStandardForceGen::F_ghost_" << level_number;
-    d_F_ghost_data[level_number] = new LData(F_name_stream.str(), num_local_nodes, NDIM, nonlocal_petsc_idxs);
+    d_X_ghost_data[level_number] =
+        new LData("IBStandardForceGen::X_ghost_" + level_number_str, num_local_nodes, NDIM, nonlocal_petsc_idxs);
 
-    std::ostringstream dX_name_stream;
-    dX_name_stream << "IBStandardForceGen::dX_" << level_number;
-    d_dX_data[level_number] = new LData(dX_name_stream.str(), num_local_nodes, NDIM);
+    d_F_ghost_data[level_number] =
+        new LData("IBStandardForceGen::F_ghost_" + level_number_str, num_local_nodes, NDIM, nonlocal_petsc_idxs);
+
+    d_dX_data[level_number] = new LData("IBStandardForceGen::dX_" + level_number_str, num_local_nodes, NDIM);
 
     // Compute periodic displacements.
     boost::multi_array_ref<double, 2>& dX_array = *d_dX_data[level_number]->getLocalFormVecArray();

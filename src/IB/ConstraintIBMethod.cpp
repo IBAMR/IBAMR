@@ -275,52 +275,56 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
 
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
-            std::ostringstream trans_vel, rot_vel, drag_force, moment_inertia, torque, position_com, power_spent;
-
-            trans_vel << d_base_output_filename + "_Trans_vel" + "_struct_no_" << struct_no;
-            rot_vel << d_base_output_filename + "_Rot_vel" + "_struct_no_" << struct_no;
-            drag_force << d_base_output_filename + "_Drag_force" + "_struct_no_" << struct_no;
-            moment_inertia << d_base_output_filename + "_MOI" + "_struct_no_" << struct_no;
-            torque << d_base_output_filename + "_Torque" + "_struct_no_" << struct_no;
-            position_com << d_base_output_filename + "_COM_coordinates" + "_struct_no_" << struct_no;
-            power_spent << d_base_output_filename + "_Power_spent" + "_struct_no_" << struct_no;
+            const std::string struct_no_str = std::to_string(struct_no);
 
             if (from_restart)
-                d_trans_vel_stream[struct_no] = new std::ofstream(trans_vel.str().c_str(), std::fstream::app);
+                d_trans_vel_stream[struct_no] = new std::ofstream(
+                    d_base_output_filename + "_Trans_vel_struct_no_" + struct_no_str, std::fstream::app);
             else
-                d_trans_vel_stream[struct_no] = new std::ofstream(trans_vel.str().c_str(), std::fstream::out);
+                d_trans_vel_stream[struct_no] = new std::ofstream(
+                    d_base_output_filename + "_Trans_vel_struct_no_" + struct_no_str, std::fstream::out);
 
             if (from_restart)
-                d_rot_vel_stream[struct_no] = new std::ofstream(rot_vel.str().c_str(), std::fstream::app);
+                d_rot_vel_stream[struct_no] = new std::ofstream(
+                    d_base_output_filename + "_Rot_vel_struct_no_" + struct_no_str, std::fstream::app);
             else
-                d_rot_vel_stream[struct_no] = new std::ofstream(rot_vel.str().c_str(), std::fstream::out);
+                d_rot_vel_stream[struct_no] = new std::ofstream(
+                    d_base_output_filename + "_Rot_vel_struct_no_" + struct_no_str, std::fstream::out);
 
             if (from_restart)
-                d_drag_force_stream[struct_no] = new std::ofstream(drag_force.str().c_str(), std::fstream::app);
+                d_drag_force_stream[struct_no] = new std::ofstream(
+                    d_base_output_filename + "_Drag_force_struct_no_" + struct_no_str, std::fstream::app);
             else
-                d_drag_force_stream[struct_no] = new std::ofstream(drag_force.str().c_str(), std::fstream::out);
+                d_drag_force_stream[struct_no] = new std::ofstream(
+                    d_base_output_filename + "_Drag_force_struct_no_" + struct_no_str, std::fstream::out);
 
             if (from_restart)
                 d_moment_of_inertia_stream[struct_no] =
-                    new std::ofstream(moment_inertia.str().c_str(), std::fstream::app);
+                    new std::ofstream(d_base_output_filename + "_MOI_struct_no_" + struct_no_str, std::fstream::app);
             else
                 d_moment_of_inertia_stream[struct_no] =
-                    new std::ofstream(moment_inertia.str().c_str(), std::fstream::out);
+                    new std::ofstream(d_base_output_filename + "_MOI_struct_no_" + struct_no_str, std::fstream::out);
 
             if (from_restart)
-                d_torque_stream[struct_no] = new std::ofstream(torque.str().c_str(), std::fstream::app);
+                d_torque_stream[struct_no] =
+                    new std::ofstream(d_base_output_filename + "_Torque_struct_no_" + struct_no_str, std::fstream::app);
             else
-                d_torque_stream[struct_no] = new std::ofstream(torque.str().c_str(), std::fstream::out);
+                d_torque_stream[struct_no] =
+                    new std::ofstream(d_base_output_filename + "_Torque_struct_no_" + struct_no_str, std::fstream::out);
 
             if (from_restart)
-                d_position_COM_stream[struct_no] = new std::ofstream(position_com.str().c_str(), std::fstream::app);
+                d_position_COM_stream[struct_no] = new std::ofstream(
+                    d_base_output_filename + "_COM_coordinates_struct_no_" + struct_no_str, std::fstream::app);
             else
-                d_position_COM_stream[struct_no] = new std::ofstream(position_com.str().c_str(), std::fstream::out);
+                d_position_COM_stream[struct_no] = new std::ofstream(
+                    d_base_output_filename + "_COM_coordinates_struct_no_" + struct_no_str, std::fstream::out);
 
             if (from_restart)
-                d_power_spent_stream[struct_no] = new std::ofstream(power_spent.str().c_str(), std::fstream::app);
+                d_power_spent_stream[struct_no] = new std::ofstream(
+                    d_base_output_filename + "_Power_spent_struct_no_" + struct_no_str, std::fstream::app);
             else
-                d_power_spent_stream[struct_no] = new std::ofstream(power_spent.str().c_str(), std::fstream::out);
+                d_power_spent_stream[struct_no] = new std::ofstream(
+                    d_base_output_filename + "_Power_spent_struct_no_" + struct_no_str, std::fstream::out);
         }
 
         // Output Eulerian momentum.
@@ -665,33 +669,22 @@ ConstraintIBMethod::putToDatabase(Pointer<Database> db)
     // Put the following quantities to restart database.
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        std::ostringstream posidentifier;
-        posidentifier << "POSN_COM_STRUCT_" << struct_no;
-        db->putDoubleArray(posidentifier.str(), &d_center_of_mass_current[struct_no][0], 3);
+        const std::string struct_no_str = std::to_string(struct_no);
 
-        std::ostringstream defvelidentifier, defomegaidentifier;
-        defvelidentifier << "VEL_COM_DEF_STRUCT_" << struct_no;
-        defomegaidentifier << "OMEGA_COM_DEF_STRUCT_" << struct_no;
-        db->putDoubleArray(defvelidentifier.str(), &d_vel_com_def_current[struct_no][0], 3);
-        db->putDoubleArray(defomegaidentifier.str(), &d_omega_com_def_current[struct_no][0], 3);
+        db->putDoubleArray("POSN_COM_STRUCT_" + struct_no_str, &d_center_of_mass_current[struct_no][0], 3);
 
-        std::ostringstream volelementidentifier;
-        volelementidentifier << "VOL_ELEMENT_STRUCT_" << struct_no;
-        db->putDoubleArray(volelementidentifier.str(), &d_vol_element[0], d_no_structures);
+        db->putDoubleArray("VEL_COM_DEF_STRUCT_" + struct_no_str, &d_vel_com_def_current[struct_no][0], 3);
+        db->putDoubleArray("OMEGA_COM_DEF_STRUCT_" + struct_no_str, &d_omega_com_def_current[struct_no][0], 3);
 
-        std::ostringstream volstructureidentifier;
-        volstructureidentifier << "VOL_STRUCT_" << struct_no;
-        db->putDoubleArray(volstructureidentifier.str(), &d_structure_vol[0], d_no_structures);
+        db->putDoubleArray("VOL_ELEMENT_STRUCT_" + struct_no_str, &d_vol_element[0], d_no_structures);
 
-        std::ostringstream rigvelidentifier, rigomegaidentifier;
-        rigvelidentifier << "VEL_COM_RIG_STRUCT_" << struct_no;
-        rigomegaidentifier << "OMEGA_COM_RIG_STRUCT_" << struct_no;
-        db->putDoubleArray(rigvelidentifier.str(), &d_rigid_trans_vel_current[struct_no][0], 3);
-        db->putDoubleArray(rigomegaidentifier.str(), &d_rigid_rot_vel_current[struct_no][0], 3);
+        db->putDoubleArray("VOL_STRUCT_" + struct_no_str, &d_structure_vol[0], d_no_structures);
 
-        std::ostringstream incrementedangleidentifier;
-        incrementedangleidentifier << "DELTA_THETA_STRUCT_" << struct_no;
-        db->putDoubleArray(incrementedangleidentifier.str(), &d_incremented_angle_from_reference_axis[struct_no][0], 3);
+        db->putDoubleArray("VEL_COM_RIG_STRUCT_" + struct_no_str, &d_rigid_trans_vel_current[struct_no][0], 3);
+        db->putDoubleArray("OMEGA_COM_RIG_STRUCT_" + struct_no_str, &d_rigid_rot_vel_current[struct_no][0], 3);
+
+        db->putDoubleArray(
+            "DELTA_THETA_STRUCT_" + struct_no_str, &d_incremented_angle_from_reference_axis[struct_no][0], 3);
     }
     db->putDouble("TIMESTEP_COUNTER", d_timestep_counter);
     db->putDouble("FuRMoRP_CURRENT_TIME", d_FuRMoRP_new_time);
@@ -839,33 +832,22 @@ ConstraintIBMethod::getFromRestart()
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        std::ostringstream posidentifier;
-        posidentifier << "POSN_COM_STRUCT_" << struct_no;
-        db->getDoubleArray(posidentifier.str(), &d_center_of_mass_current[struct_no][0], 3);
+        const std::string struct_no_str = std::to_string(struct_no);
 
-        std::ostringstream defvelidentifier, defomegaidentifier;
-        defvelidentifier << "VEL_COM_DEF_STRUCT_" << struct_no;
-        defomegaidentifier << "OMEGA_COM_DEF_STRUCT_" << struct_no;
-        db->getDoubleArray(defvelidentifier.str(), &d_vel_com_def_current[struct_no][0], 3);
-        db->getDoubleArray(defomegaidentifier.str(), &d_omega_com_def_current[struct_no][0], 3);
+        db->getDoubleArray("POSN_COM_STRUCT_" + struct_no_str, &d_center_of_mass_current[struct_no][0], 3);
 
-        std::ostringstream volelementidentifier;
-        volelementidentifier << "VOL_ELEMENT_STRUCT_" << struct_no;
-        db->getDoubleArray(volelementidentifier.str(), &d_vol_element[0], d_no_structures);
+        db->getDoubleArray("VEL_COM_DEF_STRUCT_" + struct_no_str, &d_vel_com_def_current[struct_no][0], 3);
+        db->getDoubleArray("OMEGA_COM_DEF_STRUCT_" + struct_no_str, &d_omega_com_def_current[struct_no][0], 3);
 
-        std::ostringstream volstructureidentifier;
-        volstructureidentifier << "VOL_STRUCT_" << struct_no;
-        db->getDoubleArray(volstructureidentifier.str(), &d_structure_vol[0], d_no_structures);
+        db->getDoubleArray("VOL_ELEMENT_STRUCT_" + struct_no_str, &d_vol_element[0], d_no_structures);
 
-        std::ostringstream rigvelidentifier, rigomegaidentifier;
-        rigvelidentifier << "VEL_COM_RIG_STRUCT_" << struct_no;
-        rigomegaidentifier << "OMEGA_COM_RIG_STRUCT_" << struct_no;
-        db->getDoubleArray(rigvelidentifier.str(), &d_rigid_trans_vel_current[struct_no][0], 3);
-        db->getDoubleArray(rigomegaidentifier.str(), &d_rigid_rot_vel_current[struct_no][0], 3);
+        db->getDoubleArray("VOL_STRUCT_" + struct_no_str, &d_structure_vol[0], d_no_structures);
 
-        std::ostringstream incrementedangleidentifier;
-        incrementedangleidentifier << "DELTA_THETA_STRUCT_" << struct_no;
-        db->getDoubleArray(incrementedangleidentifier.str(), &d_incremented_angle_from_reference_axis[struct_no][0], 3);
+        db->getDoubleArray("VEL_COM_RIG_STRUCT_" + struct_no_str, &d_rigid_trans_vel_current[struct_no][0], 3);
+        db->getDoubleArray("OMEGA_COM_RIG_STRUCT_" + struct_no_str, &d_rigid_rot_vel_current[struct_no][0], 3);
+
+        db->getDoubleArray(
+            "DELTA_THETA_STRUCT_" + struct_no_str, &d_incremented_angle_from_reference_axis[struct_no][0], 3);
     }
     d_timestep_counter = db->getDouble("TIMESTEP_COUNTER");
     d_FuRMoRP_current_time = db->getDouble("FuRMoRP_CURRENT_TIME");

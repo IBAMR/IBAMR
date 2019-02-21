@@ -46,6 +46,7 @@
 #include "PatchHierarchy.h"
 #include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBStrategy.h"
+#include "ibamr/ibamr_enums.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/libmesh_utilities.h"
 #include "libmesh/enum_fe_family.h"
@@ -101,6 +102,47 @@ namespace IBAMR
  * \brief Class IBFEMethod is an implementation of the abstract base class
  * IBStrategy that provides functionality required by the IB method with finite
  * element elasticity.
+ *
+ * By default, the libMesh data is partitioned once at the beginning of the
+ * computation by libMesh's default partitioner.
+ *
+ * This class can repartition libMesh data in a way that matches SAMRAI's
+ * distribution of patches; put another way, if a certain region of space on
+ * the finest level is assigned to processor N, then all libMesh nodes and
+ * elements within that region will also be assigned to processor N. The
+ * actual partitioning here is done by the IBTK::BoxPartitioner class. See the
+ * discussion in HierarchyIntegrator and FEDataManager for descriptions on how
+ * this partitioning is performed.
+ *
+ * The choice of libMesh partitioner depends on the libmesh_partitioner_type
+ * parameter in the input database and whether or not workload estimates are
+ * available (it is assumed that if workload estimates are available then a
+ * load balancer is being used). More exactly:
+ * <ul>
+ *  <li>If <code>libmesh_partitioner_type</code> is <code>AUTOMATIC</code>
+ *      and workload estimates are available then this class will use the
+ *      IBTK::BoxPartitioner class to repartition libMesh data after the SAMRAI
+ *      data is regridded.</li>
+ *
+ *  <li>If <code>libmesh_partitioner_type</code> is <code>AUTOMATIC</code> and
+ *      workload estimates are not available then this class will never
+ *      repartition libMesh data.</li>
+ *
+ *  <li>If <code>libmesh_partitioner_type</code> is
+ *      <code>LIBMESH_DEFAULT</code> then this class will never repartition
+ *      libMesh data, since the default libMesh partitioner is already used at
+ *      the beginning of the computation and, since no degrees of freedom are
+ *      added or removed, any subsequent partitioning would have no
+ *      effect.</li>
+ *
+ *  <li>If <code>libmesh_partitioner_type</code> is <code>SAMRAI_BOX</code>
+ *      then this class will always repartition the libMesh data with
+ *      IBTK::BoxPartitioner every time the Eulerian data is regridded.</li>
+ * </ul>
+ * The default value for <code>libmesh_partitioner_type</code> is
+ * <code>AUTOMATIC</code>. The intent of these choices is to automatically use
+ * the fairest (that is, partitioning based on workload estimation)
+ * partitioner.
  */
 class IBFEMethod : public IBStrategy
 {
@@ -534,6 +576,11 @@ public:
     IBTK::FEDataManager::SpreadSpec getDefaultSpreadSpec() const;
 
     /*!
+     * Set the workload spec object used with a particular mesh part.
+     */
+    void setWorkloadSpec(const IBTK::FEDataManager::WorkloadSpec& workload_spec, unsigned int part = 0);
+
+    /*!
      * Set the interpolation spec object used with a particular mesh part.
      */
     void setInterpSpec(const IBTK::FEDataManager::InterpSpec& interp_spec, unsigned int part = 0);
@@ -554,6 +601,12 @@ public:
      * IBHierarchyIntegrator::initializePatchHierarchy().
      */
     void initializeFEData();
+
+    /*!
+     * Reinitialize FE data by calling `reinit` on each part's EquationSystem,
+     * reassembling the system matrices, and setting boundary conditions.
+     */
+    void reinitializeFEData();
 
     /*!
      * \brief Register Eulerian variables with the parent IBHierarchyIntegrator.
@@ -582,15 +635,20 @@ public:
     /*!
      * Register a load balancer and work load patch data index with the IB
      * strategy object.
+     *
+     * @deprecated This method is no longer necessary with the current
+     * workload estimation scheme.
      */
     void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
                               int workload_data_idx) override;
 
     /*!
-     * Update work load estimates on each level of the patch hierarchy.
+     * Add the estimated computational work from the current object (i.e., the
+     * work required by the owned Lagrangian objects) per cell into the
+     * specified <code>workload_data_idx</code>.
      */
-    void updateWorkloadEstimates(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                 int workload_data_idx) override;
+    void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                             const int workload_data_idx) override;
 
     /*!
      * Begin redistributing Lagrangian data prior to regridding the patch
@@ -662,15 +720,15 @@ protected:
                                     unsigned int part);
 
     /*!
-     * \brief Compute the interior elastic density, possibly splitting off the
-     * normal component of the transmission force along the physical boundary of
-     * the Lagrangian structure.
+     * \brief Assemble the RHS for the interior elastic density, possibly
+     * splitting off the normal component of the transmission force along the
+     * physical boundary of the Lagrangian structure.
      */
-    void computeInteriorForceDensity(libMesh::PetscVector<double>& G_vec,
-                                     libMesh::PetscVector<double>& X_vec,
-                                     libMesh::PetscVector<double>* Phi_vec,
-                                     double data_time,
-                                     unsigned int part);
+    void assembleInteriorForceDensityRHS(libMesh::PetscVector<double>& G_rhs_vec,
+                                         libMesh::PetscVector<double>& X_vec,
+                                         libMesh::PetscVector<double>* Phi_vec,
+                                         double data_time,
+                                         unsigned int part);
 
     /*!
      * \brief Reset positions in overlap regions.
@@ -780,10 +838,17 @@ protected:
     bool d_fe_equation_systems_initialized = false, d_fe_data_initialized = false;
 
     /*
+     * Type of partitioner to use. See the main documentation of this class
+     * for more information.
+     */
+    LibmeshPartitionerType d_libmesh_partitioner_type = AUTOMATIC;
+
+    /*
      * Method paramters.
      */
     IBTK::FEDataManager::InterpSpec d_default_interp_spec;
     IBTK::FEDataManager::SpreadSpec d_default_spread_spec;
+    std::vector<IBTK::FEDataManager::WorkloadSpec> d_workload_spec;
     std::vector<IBTK::FEDataManager::InterpSpec> d_interp_spec;
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
     bool d_split_normal_force = false, d_split_tangential_force = false;
@@ -935,6 +1000,15 @@ private:
      * members.
      */
     void getFromRestart();
+
+    /*!
+     * Do the actual work in reinitializeFEData and initializeFEData. if @p
+     * use_present_data is `true` then the current content of the solution
+     * vectors is used: more exactly, the coordinates and velocities (computed
+     * by initializeCoordinates and initializeVelocity) are considered as
+     * being up to date, as is the direct forcing kinematic data.
+     */
+    void doInitializeFEData(const bool use_present_data);
 };
 } // namespace IBAMR
 

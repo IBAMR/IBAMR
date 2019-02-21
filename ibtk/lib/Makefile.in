@@ -91,9 +91,12 @@ build_triplet = @build@
 host_triplet = @host@
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = libIBTK2d.a
 @SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBTK3d.a
-@LIBMESH_ENABLED_TRUE@am__append_3 = ../src/lagrangian/FEDataInterpolation.cpp \
+@LIBMESH_ENABLED_TRUE@am__append_3 =  \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/BoxPartitioner.cpp \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/FEDataInterpolation.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/FEDataManager.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libmesh_utilities.cpp \
+@LIBMESH_ENABLED_TRUE@	../include/lagrangian/BoxPartitioner.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/FEDataInterpolation.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/FEDataManager.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/libmesh_utilities.h
@@ -277,6 +280,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/utilities/ParallelEdgeMap.cpp \
 	../src/utilities/ParallelMap.cpp \
 	../src/utilities/ParallelSet.cpp \
+	../src/utilities/PartitioningBox.cpp \
 	../src/utilities/RefinePatchStrategySet.cpp \
 	../src/utilities/SideDataSynchronization.cpp \
 	../src/utilities/SideNoCornersFillPattern.cpp \
@@ -285,9 +289,11 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/utilities/Streamable.cpp \
 	../src/utilities/StreamableManager.cpp \
 	../src/utilities/muParserCartGridFunction.cpp \
+	../src/lagrangian/BoxPartitioner.cpp \
 	../src/lagrangian/FEDataInterpolation.cpp \
 	../src/lagrangian/FEDataManager.cpp \
 	../src/utilities/libmesh_utilities.cpp \
+	../include/lagrangian/BoxPartitioner.h \
 	../include/ibtk/FEDataInterpolation.h \
 	../include/ibtk/FEDataManager.h \
 	../include/ibtk/libmesh_utilities.h \
@@ -311,7 +317,8 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
-@LIBMESH_ENABLED_TRUE@am__objects_1 = ../src/lagrangian/libIBTK2d_a-FEDataInterpolation.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@am__objects_1 = ../src/lagrangian/libIBTK2d_a-BoxPartitioner.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-FEDataInterpolation.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-FEDataManager.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK2d_a-libmesh_utilities.$(OBJEXT)
 am__objects_2 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
@@ -424,6 +431,7 @@ am__objects_2 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK2d_a-ParallelEdgeMap.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-ParallelMap.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-ParallelSet.$(OBJEXT) \
+	../src/utilities/libIBTK2d_a-PartitioningBox.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-RefinePatchStrategySet.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-SideDataSynchronization.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-SideNoCornersFillPattern.$(OBJEXT) \
@@ -563,6 +571,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/utilities/ParallelEdgeMap.cpp \
 	../src/utilities/ParallelMap.cpp \
 	../src/utilities/ParallelSet.cpp \
+	../src/utilities/PartitioningBox.cpp \
 	../src/utilities/RefinePatchStrategySet.cpp \
 	../src/utilities/SideDataSynchronization.cpp \
 	../src/utilities/SideNoCornersFillPattern.cpp \
@@ -571,9 +580,11 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/utilities/Streamable.cpp \
 	../src/utilities/StreamableManager.cpp \
 	../src/utilities/muParserCartGridFunction.cpp \
+	../src/lagrangian/BoxPartitioner.cpp \
 	../src/lagrangian/FEDataInterpolation.cpp \
 	../src/lagrangian/FEDataManager.cpp \
 	../src/utilities/libmesh_utilities.cpp \
+	../include/lagrangian/BoxPartitioner.h \
 	../include/ibtk/FEDataInterpolation.h \
 	../include/ibtk/FEDataManager.h \
 	../include/ibtk/libmesh_utilities.h \
@@ -597,7 +608,8 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f
-@LIBMESH_ENABLED_TRUE@am__objects_3 = ../src/lagrangian/libIBTK3d_a-FEDataInterpolation.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@am__objects_3 = ../src/lagrangian/libIBTK3d_a-BoxPartitioner.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-FEDataInterpolation.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-FEDataManager.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK3d_a-libmesh_utilities.$(OBJEXT)
 am__objects_4 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
@@ -710,6 +722,7 @@ am__objects_4 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK3d_a-ParallelEdgeMap.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-ParallelMap.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-ParallelSet.$(OBJEXT) \
+	../src/utilities/libIBTK3d_a-PartitioningBox.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-RefinePatchStrategySet.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-SideDataSynchronization.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-SideNoCornersFillPattern.$(OBJEXT) \
@@ -788,6 +801,7 @@ am__depfiles_remade = ../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellIn
 	../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleCubicCoarsen.Po \
 	../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Po \
 	../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Po \
+	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataInterpolation.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataManager.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LData.Po \
@@ -808,6 +822,7 @@ am__depfiles_remade = ../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellIn
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LSetVariable.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LSiloDataWriter.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LTransaction.Po \
+	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-BoxPartitioner.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataInterpolation.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataManager.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LData.Po \
@@ -958,6 +973,7 @@ am__depfiles_remade = ../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellIn
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelMap.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po \
+	../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-SideDataSynchronization.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-SideNoCornersFillPattern.Po \
@@ -989,6 +1005,7 @@ am__depfiles_remade = ../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellIn
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelMap.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po \
+	../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-SideNoCornersFillPattern.Po \
@@ -1499,6 +1516,7 @@ pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
 	../include/ibtk/PETScVecUtilities.h \
 	../include/ibtk/ParallelEdgeMap.h \
 	../include/ibtk/ParallelMap.h ../include/ibtk/ParallelSet.h \
+	../include/ibtk/PartitioningBox.h \
 	../include/ibtk/PatchMathOps.h \
 	../include/ibtk/PhysicalBoundaryUtilities.h \
 	../include/ibtk/PoissonFACPreconditioner.h \
@@ -1645,6 +1663,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	../src/utilities/ParallelEdgeMap.cpp \
 	../src/utilities/ParallelMap.cpp \
 	../src/utilities/ParallelSet.cpp \
+	../src/utilities/PartitioningBox.cpp \
 	../src/utilities/RefinePatchStrategySet.cpp \
 	../src/utilities/SideDataSynchronization.cpp \
 	../src/utilities/SideNoCornersFillPattern.cpp \
@@ -2174,6 +2193,9 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/utilities/libIBTK2d_a-ParallelSet.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK2d_a-PartitioningBox.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-RefinePatchStrategySet.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -2198,6 +2220,9 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/utilities/libIBTK2d_a-muParserCartGridFunction.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/lagrangian/libIBTK2d_a-BoxPartitioner.$(OBJEXT):  \
+	../src/lagrangian/$(am__dirstamp) \
+	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
 ../src/lagrangian/libIBTK2d_a-FEDataInterpolation.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
@@ -2635,6 +2660,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/utilities/libIBTK3d_a-ParallelSet.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK3d_a-PartitioningBox.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-RefinePatchStrategySet.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -2659,6 +2687,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/utilities/libIBTK3d_a-muParserCartGridFunction.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/lagrangian/libIBTK3d_a-BoxPartitioner.$(OBJEXT):  \
+	../src/lagrangian/$(am__dirstamp) \
+	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
 ../src/lagrangian/libIBTK3d_a-FEDataInterpolation.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
@@ -2787,6 +2818,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleCubicCoarsen.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataInterpolation.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataManager.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LData.Po@am__quote@ # am--include-marker
@@ -2807,6 +2839,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LSetVariable.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LSiloDataWriter.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LTransaction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-BoxPartitioner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataInterpolation.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataManager.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LData.Po@am__quote@ # am--include-marker
@@ -2957,6 +2990,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelMap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-SideDataSynchronization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-SideNoCornersFillPattern.Po@am__quote@ # am--include-marker
@@ -2988,6 +3022,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelMap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-SideNoCornersFillPattern.Po@am__quote@ # am--include-marker
@@ -4568,6 +4603,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-ParallelSet.obj `if test -f '../src/utilities/ParallelSet.cpp'; then $(CYGPATH_W) '../src/utilities/ParallelSet.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ParallelSet.cpp'; fi`
 
+../src/utilities/libIBTK2d_a-PartitioningBox.o: ../src/utilities/PartitioningBox.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-PartitioningBox.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Tpo -c -o ../src/utilities/libIBTK2d_a-PartitioningBox.o `test -f '../src/utilities/PartitioningBox.cpp' || echo '$(srcdir)/'`../src/utilities/PartitioningBox.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/PartitioningBox.cpp' object='../src/utilities/libIBTK2d_a-PartitioningBox.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-PartitioningBox.o `test -f '../src/utilities/PartitioningBox.cpp' || echo '$(srcdir)/'`../src/utilities/PartitioningBox.cpp
+
+../src/utilities/libIBTK2d_a-PartitioningBox.obj: ../src/utilities/PartitioningBox.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-PartitioningBox.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Tpo -c -o ../src/utilities/libIBTK2d_a-PartitioningBox.obj `if test -f '../src/utilities/PartitioningBox.cpp'; then $(CYGPATH_W) '../src/utilities/PartitioningBox.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/PartitioningBox.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/PartitioningBox.cpp' object='../src/utilities/libIBTK2d_a-PartitioningBox.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-PartitioningBox.obj `if test -f '../src/utilities/PartitioningBox.cpp'; then $(CYGPATH_W) '../src/utilities/PartitioningBox.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/PartitioningBox.cpp'; fi`
+
 ../src/utilities/libIBTK2d_a-RefinePatchStrategySet.o: ../src/utilities/RefinePatchStrategySet.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-RefinePatchStrategySet.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Tpo -c -o ../src/utilities/libIBTK2d_a-RefinePatchStrategySet.o `test -f '../src/utilities/RefinePatchStrategySet.cpp' || echo '$(srcdir)/'`../src/utilities/RefinePatchStrategySet.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Po
@@ -4679,6 +4728,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/muParserCartGridFunction.cpp' object='../src/utilities/libIBTK2d_a-muParserCartGridFunction.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-muParserCartGridFunction.obj `if test -f '../src/utilities/muParserCartGridFunction.cpp'; then $(CYGPATH_W) '../src/utilities/muParserCartGridFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/muParserCartGridFunction.cpp'; fi`
+
+../src/lagrangian/libIBTK2d_a-BoxPartitioner.o: ../src/lagrangian/BoxPartitioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-BoxPartitioner.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Tpo -c -o ../src/lagrangian/libIBTK2d_a-BoxPartitioner.o `test -f '../src/lagrangian/BoxPartitioner.cpp' || echo '$(srcdir)/'`../src/lagrangian/BoxPartitioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/BoxPartitioner.cpp' object='../src/lagrangian/libIBTK2d_a-BoxPartitioner.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-BoxPartitioner.o `test -f '../src/lagrangian/BoxPartitioner.cpp' || echo '$(srcdir)/'`../src/lagrangian/BoxPartitioner.cpp
+
+../src/lagrangian/libIBTK2d_a-BoxPartitioner.obj: ../src/lagrangian/BoxPartitioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-BoxPartitioner.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Tpo -c -o ../src/lagrangian/libIBTK2d_a-BoxPartitioner.obj `if test -f '../src/lagrangian/BoxPartitioner.cpp'; then $(CYGPATH_W) '../src/lagrangian/BoxPartitioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/BoxPartitioner.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/BoxPartitioner.cpp' object='../src/lagrangian/libIBTK2d_a-BoxPartitioner.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-BoxPartitioner.obj `if test -f '../src/lagrangian/BoxPartitioner.cpp'; then $(CYGPATH_W) '../src/lagrangian/BoxPartitioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/BoxPartitioner.cpp'; fi`
 
 ../src/lagrangian/libIBTK2d_a-FEDataInterpolation.o: ../src/lagrangian/FEDataInterpolation.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-FEDataInterpolation.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataInterpolation.Tpo -c -o ../src/lagrangian/libIBTK2d_a-FEDataInterpolation.o `test -f '../src/lagrangian/FEDataInterpolation.cpp' || echo '$(srcdir)/'`../src/lagrangian/FEDataInterpolation.cpp
@@ -6262,6 +6325,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-ParallelSet.obj `if test -f '../src/utilities/ParallelSet.cpp'; then $(CYGPATH_W) '../src/utilities/ParallelSet.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ParallelSet.cpp'; fi`
 
+../src/utilities/libIBTK3d_a-PartitioningBox.o: ../src/utilities/PartitioningBox.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-PartitioningBox.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Tpo -c -o ../src/utilities/libIBTK3d_a-PartitioningBox.o `test -f '../src/utilities/PartitioningBox.cpp' || echo '$(srcdir)/'`../src/utilities/PartitioningBox.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/PartitioningBox.cpp' object='../src/utilities/libIBTK3d_a-PartitioningBox.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-PartitioningBox.o `test -f '../src/utilities/PartitioningBox.cpp' || echo '$(srcdir)/'`../src/utilities/PartitioningBox.cpp
+
+../src/utilities/libIBTK3d_a-PartitioningBox.obj: ../src/utilities/PartitioningBox.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-PartitioningBox.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Tpo -c -o ../src/utilities/libIBTK3d_a-PartitioningBox.obj `if test -f '../src/utilities/PartitioningBox.cpp'; then $(CYGPATH_W) '../src/utilities/PartitioningBox.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/PartitioningBox.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/PartitioningBox.cpp' object='../src/utilities/libIBTK3d_a-PartitioningBox.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-PartitioningBox.obj `if test -f '../src/utilities/PartitioningBox.cpp'; then $(CYGPATH_W) '../src/utilities/PartitioningBox.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/PartitioningBox.cpp'; fi`
+
 ../src/utilities/libIBTK3d_a-RefinePatchStrategySet.o: ../src/utilities/RefinePatchStrategySet.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-RefinePatchStrategySet.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Tpo -c -o ../src/utilities/libIBTK3d_a-RefinePatchStrategySet.o `test -f '../src/utilities/RefinePatchStrategySet.cpp' || echo '$(srcdir)/'`../src/utilities/RefinePatchStrategySet.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Po
@@ -6373,6 +6450,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/muParserCartGridFunction.cpp' object='../src/utilities/libIBTK3d_a-muParserCartGridFunction.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-muParserCartGridFunction.obj `if test -f '../src/utilities/muParserCartGridFunction.cpp'; then $(CYGPATH_W) '../src/utilities/muParserCartGridFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/muParserCartGridFunction.cpp'; fi`
+
+../src/lagrangian/libIBTK3d_a-BoxPartitioner.o: ../src/lagrangian/BoxPartitioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-BoxPartitioner.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-BoxPartitioner.Tpo -c -o ../src/lagrangian/libIBTK3d_a-BoxPartitioner.o `test -f '../src/lagrangian/BoxPartitioner.cpp' || echo '$(srcdir)/'`../src/lagrangian/BoxPartitioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-BoxPartitioner.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-BoxPartitioner.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/BoxPartitioner.cpp' object='../src/lagrangian/libIBTK3d_a-BoxPartitioner.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-BoxPartitioner.o `test -f '../src/lagrangian/BoxPartitioner.cpp' || echo '$(srcdir)/'`../src/lagrangian/BoxPartitioner.cpp
+
+../src/lagrangian/libIBTK3d_a-BoxPartitioner.obj: ../src/lagrangian/BoxPartitioner.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-BoxPartitioner.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-BoxPartitioner.Tpo -c -o ../src/lagrangian/libIBTK3d_a-BoxPartitioner.obj `if test -f '../src/lagrangian/BoxPartitioner.cpp'; then $(CYGPATH_W) '../src/lagrangian/BoxPartitioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/BoxPartitioner.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-BoxPartitioner.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-BoxPartitioner.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/BoxPartitioner.cpp' object='../src/lagrangian/libIBTK3d_a-BoxPartitioner.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-BoxPartitioner.obj `if test -f '../src/lagrangian/BoxPartitioner.cpp'; then $(CYGPATH_W) '../src/lagrangian/BoxPartitioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/BoxPartitioner.cpp'; fi`
 
 ../src/lagrangian/libIBTK3d_a-FEDataInterpolation.o: ../src/lagrangian/FEDataInterpolation.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-FEDataInterpolation.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataInterpolation.Tpo -c -o ../src/lagrangian/libIBTK3d_a-FEDataInterpolation.o `test -f '../src/lagrangian/FEDataInterpolation.cpp' || echo '$(srcdir)/'`../src/lagrangian/FEDataInterpolation.cpp
@@ -6649,6 +6740,7 @@ distclean: distclean-am
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleCubicCoarsen.Po
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Po
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Po
+	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataInterpolation.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataManager.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LData.Po
@@ -6669,6 +6761,7 @@ distclean: distclean-am
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LSetVariable.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LSiloDataWriter.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LTransaction.Po
+	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-BoxPartitioner.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataInterpolation.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataManager.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LData.Po
@@ -6819,6 +6912,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SideDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SideNoCornersFillPattern.Po
@@ -6850,6 +6944,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SideNoCornersFillPattern.Po
@@ -6936,6 +7031,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleCubicCoarsen.Po
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Po
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Po
+	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataInterpolation.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataManager.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LData.Po
@@ -6956,6 +7052,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LSetVariable.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LSiloDataWriter.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LTransaction.Po
+	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-BoxPartitioner.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataInterpolation.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataManager.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LData.Po
@@ -7106,6 +7203,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SideDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SideNoCornersFillPattern.Po
@@ -7137,6 +7235,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SideNoCornersFillPattern.Po

@@ -52,6 +52,7 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "boost/multi_array.hpp"
+#include "ibtk/QuadratureCache.h"
 #include "ibtk/ibtk_utilities.h"
 #include "libmesh/dof_map.h"
 #include "libmesh/elem.h"
@@ -99,6 +100,18 @@ namespace IBTK
  * \brief Class FEDataManager coordinates data required for Lagrangian-Eulerian
  * interaction between a Lagrangian finite element (FE) mesh.
  *
+ * <h3>Parameters effecting workload estimate calculations</h3>
+ * FEDataManager can estimate the amount of work done in IBFE calculations
+ * (such as FEDataManager::spread). Since most calculations use a variable
+ * number of quadrature points on each libMesh element this estimate can vary
+ * quite a bit over different Eulerian cells corresponding to a single
+ * mesh. The current implementation estimates the workload on each cell of the
+ * background Eulerian grid by applying a background value representing the
+ * work on the Eulerian cell itself and a weight times the number of
+ * quadrature points on that cell. These values are set at the time of object
+ * construction through the FEDataManager::WorkloadSpec object, which contains
+ * reasonable defaults.
+ *
  * \note Multiple FEDataManager objects may be instantiated simultaneously.
  */
 class FEDataManager : public SAMRAI::tbox::Serializable, public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
@@ -106,6 +119,11 @@ class FEDataManager : public SAMRAI::tbox::Serializable, public SAMRAI::mesh::St
 public:
     /*!
      * Class which enables fast lookup of dofs on a given libMesh <code>elem</code>.
+     *
+     * @note The contents of this cache are invalidated when we regrid and the
+     * caches should be reset at that point. Copies of this class should
+     * always be retrieved via FEDataManager::getDofCache() to avoid this
+     * problem.
      */
     class SystemDofMapCache
     {
@@ -128,18 +146,26 @@ public:
                     std::vector<unsigned int>& dof_indices,
                     const unsigned int var = 0)
         {
-            const libMesh::dof_id_type elem_id = elem->id();
-            std::vector<std::vector<unsigned int> >& elem_dof_indices = d_dof_cache[elem_id];
-            if (elem_dof_indices.size() <= var)
-            {
-                elem_dof_indices.resize(var + 1);
-            }
-            if (elem_dof_indices[var].empty())
-            {
-                d_dof_map.dof_indices(elem, elem_dof_indices[var], var);
-            }
-            dof_indices = elem_dof_indices[var];
+            dof_indices = this->dof_indices(elem)[var];
             return;
+        }
+
+        /*!
+         * Alternative indexing operation: retrieve all dof indices of all
+         * variables in the given system at once by reference.
+         */
+        inline const std::vector<std::vector<libMesh::dof_id_type> >& dof_indices(const libMesh::Elem* const elem)
+        {
+            std::vector<std::vector<libMesh::dof_id_type> >& elem_dof_indices = d_dof_cache[elem->id()];
+            if (elem_dof_indices.empty())
+            {
+                elem_dof_indices.resize(d_dof_map.n_variables());
+                for (unsigned int var_n = 0; var_n < d_dof_map.n_variables(); ++var_n)
+                {
+                    d_dof_map.dof_indices(elem, elem_dof_indices[var_n], var_n);
+                }
+            }
+            return elem_dof_indices;
         }
 
     private:
@@ -215,6 +241,17 @@ public:
     };
 
     /*!
+     * \brief Struct WorkloadSpec encapsulates the parameters used to
+     * calculate workload estimates (i.e., the input to the load balancing
+     * algorithm).
+     */
+    struct WorkloadSpec
+    {
+        /// The multiplier applied to each quadrature point.
+        double q_point_weight = 2.0;
+    };
+
+    /*!
      * \brief The name of the equation system which stores the spatial position
      * data.
      *
@@ -251,8 +288,35 @@ public:
     getManager(const std::string& name,
                const InterpSpec& default_interp_spec,
                const SpreadSpec& default_spread_spec,
+               const WorkloadSpec& default_workload_spec,
                const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
                bool register_for_restart = true);
+
+    /*!
+     * Same as the last function, but uses a default workload specification
+     * for compatibility.
+     *
+     * \return A pointer to the data manager instance.
+     */
+    static FEDataManager*
+    getManager(const std::string& name,
+               const InterpSpec& default_interp_spec,
+               const SpreadSpec& default_spread_spec,
+               const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
+               bool register_for_restart = true);
+
+    /*!
+     * \brief Enable or disable logging.
+     *
+     * @note This is usually set by the IBFEMethod which owns the current
+     * FEDataManager, which reads the relevant boolean from the database.
+     */
+    void setLoggingEnabled(bool enable_logging = true);
+
+    /*!
+     * \brief Determine whether logging is enabled or disabled.
+     */
+    bool getLoggingEnabled() const;
 
     /*!
      * Deallocate all of the FEDataManager instances.
@@ -264,6 +328,9 @@ public:
 
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
+     *
+     * @deprecated Since the correct workload index is passed in via
+     * addWorkloadEstimate this function is no longer necessary.
      */
     void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
                               int workload_data_idx);
@@ -574,9 +641,14 @@ public:
                                            double dx_min);
 
     /*!
-     * \brief Update the cell workload estimate.
+     * \brief Update the cell workload estimate by adding a value (see the
+     * main documentation of this class for information on how this is
+     * computed) to the <code>d_workload_idx</code> cell variable.
      */
-    void updateWorkloadEstimates(int coarsest_ln = -1, int finest_ln = -1);
+    void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                             const int workload_data_idx,
+                             const int coarsest_ln = -1,
+                             const int finest_ln = -1);
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -670,6 +742,7 @@ protected:
     FEDataManager(std::string object_name,
                   InterpSpec default_interp_spec,
                   SpreadSpec default_spread_spec,
+                  WorkloadSpec default_workload_spec,
                   SAMRAI::hier::IntVector<NDIM> ghost_width,
                   bool register_for_restart = true);
 
@@ -778,7 +851,20 @@ private:
     bool d_registered_for_restart;
 
     /*
+     * Whether or not to log data to the screen: see
+     * FEDataManager::setLoggingEnabled() and
+     * FEDataManager::getLoggingEnabled().
+     *
+     * @note This is usually set by IBFEMethod, which reads the relevant
+     * boolean from the database.
+     */
+    bool d_enable_logging = false;
+
+    /*
      * We cache a pointer to the load balancer.
+     *
+     * @deprecated This pointer is never used and will be removed in the
+     * future.
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
 
@@ -811,9 +897,18 @@ private:
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
      * cell variable used to determine the workload for nonuniform load
      * balancing.
+     *
+     * @deprecated d_workload_var and d_workload_idx will not be stored in a
+     * future release since the correct workload index will be provided as an
+     * argument to addWorkloadEstimate.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
     int d_workload_idx = IBTK::invalid_index;
+
+    /*
+     * The default parameters used during workload calculations.
+     */
+    const WorkloadSpec d_default_workload_spec;
 
     /*
      * The default kernel functions and quadrature rule used to mediate
@@ -842,6 +937,12 @@ private:
     std::vector<std::vector<libMesh::Node*> > d_active_patch_node_map;
     std::map<std::string, std::vector<unsigned int> > d_active_patch_ghost_dofs;
     std::vector<std::pair<Point, Point> > d_active_elem_bboxes;
+
+    /*
+     * Cache of libMesh quadrature objects. Defaults to being an NDIM cache
+     * but is overwritten once a libMesh::EquationSystems object is attached.
+     */
+    QuadratureCache d_quadrature_cache;
 
     /*
      * Ghost vectors for the various equation systems.

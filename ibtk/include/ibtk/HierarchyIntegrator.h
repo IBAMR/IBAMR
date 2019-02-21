@@ -264,6 +264,55 @@ public:
     bool stepsRemaining() const;
 
     /*!
+     * Update workload estimates on each level of the patch hierarchy. Does
+     * nothing unless a load balancer has previously been attached via
+     * HierarchyIntegrator::register_load_balancer. This function is usually
+     * called immediately before regridding so that, should a load balancer be
+     * registered with the current class, that load balancer can distribute
+     * patches in a way that gives each processor a roughly equal amount of
+     * work (instead of simply an equal number of cells).
+     *
+     * If you want to visualize the workload then you will have to ensure that
+     * workload estimates are recomputed after regridding (by default they are
+     * not). This is because workload estimates are only used when moving data
+     * between processors: they are computed immediately before the domain is
+     * repartitioned and, therefore, their patch data is always invalid at
+     * points where output is written. The easiest way to get around this is
+     * to enable logging (which will result in workload estimates being
+     * updated after regridding) or to manually call updateWorkloadEstimates
+     * at points where output is written. The former is more efficient since
+     * most applications regrid less frequently than they write visualization
+     * files.
+     *
+     * Once the data is available, it can be attached to the visit data writer
+     * in the usual way. Here is one way to do set this up at the same time
+     * the visit data writer is registered:
+     * @code
+     * Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+     * if (uses_visit)
+     * {
+     *     time_integrator->registerVisItDataWriter(visit_data_writer);
+     *     // This is only valid if a load balancer has previously been attached
+     *     // to the time integrator or, should it exist, its parent integrator;
+     *     // otherwise no workload estimates are computed
+     *     visit_data_writer->registerPlotQuantity("workload", "SCALAR",
+     *                                             time_integrator->getWorkloadDataIndex());
+     * }
+     * @endcode
+     *
+     *
+     * @note This function computes workloads by setting the estimated work
+     * value on all cells to 1 and then calling addWorkloadEstimate on the
+     * current object and on each child hierarchy integrator.
+     *
+     * @note The workload estimate itself is stored in the variable with index
+     * HierarchyIntegrator::d_workload_idx.
+     *
+     * @seealso HierarchyIntegrator::getWorkloadDataIndex()
+     */
+    void updateWorkloadEstimates();
+
+    /*!
      * Return a pointer to the patch hierarchy managed by the integrator.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPatchHierarchy() const;
@@ -278,9 +327,32 @@ public:
      *
      * @note inheriting classes may reimplement this method in such a way that
      * @p load_balancer is registered with another object; e.g.,
-     * IBHierarchyIntegrator passes @p load_balancer to its IBStrategy object.
+     * IBHierarchyIntegrator passes @p load_balancer to its IBStrategy
+     * object. It will still usually be necessary to call
+     * HierarchyIntegrator::registerLoadBalancer at the beginning top of such
+     * overloaded functions.
+     *
+     * @note If it does not already exist, calling this function will also
+     * register a cell variable for containing workload estimates (and
+     * subsequently register that variable with the load balancer): The
+     * variable index is <code>d_workload_idx</code>. All inheriting classes
+     * assume that this is the cell variable associated with workload
+     * estimates and will write their own data into these arrays.
      */
     virtual void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer);
+
+    /*!
+     * Return the workload variable's patch data index. If the workload
+     * variable has not yet been set up by this object (or, should it exist,
+     * this object's parent hierarchy integrator) then IBTK::invalid_index is
+     * returned instead.
+     *
+     * @note this is only implemented since this information is not readily
+     * available from the variable database and there is no other way to
+     * access this variable. The main use of this variable is for optionally
+     * adding the workload estimates to the VisIt data writer.
+     */
+    int getWorkloadDataIndex() const;
 
     /*!
      * Register a VisIt data writer so the integrator can output data files that
@@ -723,6 +795,20 @@ protected:
     virtual void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*!
+     * Virtual method to provide implementation-specific workload estimate
+     * calculations. This method will be called on each registered child
+     * integrator. The intent of this function is that any HierarchyIntegrator
+     * object that manages data whose work varies from SAMRAI cell to SAMRAI
+     * cell will represent its additional workload by summing estimates into
+     * the <code>workload_data_idx</code> variable.
+     *
+     * @note The default version of this function, i.e.,
+     * HierarchyIntegrator::addWorkloadEstimate(), does nothing.
+     */
+    virtual void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                     const int workload_data_idx);
+
+    /*!
      * Execute any user-specified preprocessIntegrateHierarchy callback
      * functions.
      */
@@ -881,6 +967,19 @@ protected:
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
+
+    /*!
+     * The index of the workload estimate variable. If the current integrator
+     * is a child integrator then this variable index may not be set to the
+     * correct variable index since the parent is assumed to manage the
+     * variable, and the correct index is always provided when calling
+     * HierarchyIntegrator::addWorkloadEstimate() from parent integrators.
+     *
+     * If necessary, this variable can be retrieved from the variable database
+     * under the name <code>object_name + "::workload"</code>, where
+     * <code>object_name</code> is the name of the parent hierarchy
+     * integrator.
+     */
     int d_workload_idx = IBTK::invalid_index;
 
     /*

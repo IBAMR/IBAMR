@@ -43,6 +43,8 @@
 #include <utility>
 #include <vector>
 
+#include <unistd.h>
+
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
 #include "Box.h"
@@ -68,6 +70,7 @@
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/BoxPartitioner.h"
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -835,24 +838,24 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
 
         // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
         // U^{n+1/2} and U^{n+1} to equal U^{n}.
-        copy_and_synch(*d_X_systems[part]->solution, *d_X_current_vecs[part]);
+        *d_X_current_vecs[part] = *d_X_systems[part]->solution;
         *d_X_new_vecs[part] = *d_X_current_vecs[part];
         *d_X_half_vecs[part] = *d_X_current_vecs[part];
 
-        copy_and_synch(*d_U_systems[part]->solution, *d_U_current_vecs[part]);
+        *d_U_current_vecs[part] = *d_U_systems[part]->solution;
         *d_U_new_vecs[part] = *d_U_current_vecs[part];
         *d_U_half_vecs[part] = *d_U_current_vecs[part];
 
-        copy_and_synch(*d_F_systems[part]->solution, *d_F_half_vecs[part]);
+        *d_F_half_vecs[part] = *d_F_systems[part]->solution;
 
         if (d_lag_body_source_part[part])
         {
-            copy_and_synch(*d_Q_systems[part]->solution, *d_Q_half_vecs[part]);
+            *d_Q_half_vecs[part] = *d_Q_systems[part]->solution;
         }
 
         if (d_is_stress_normalization_part[part])
         {
-            copy_and_synch(*d_Phi_systems[part]->solution, *d_Phi_half_vecs[part]);
+            *d_Phi_half_vecs[part] = *d_Phi_systems[part]->solution;
         }
 
         if (d_direct_forcing_kinematics_data[part])
@@ -869,27 +872,29 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
 void
 IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
+    batch_vec_ghost_update(
+        { d_X_new_vecs, d_U_new_vecs, d_F_half_vecs, d_Q_half_vecs, d_Phi_half_vecs }, INSERT_VALUES, SCATTER_FORWARD);
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         // Reset time-dependent Lagrangian data.
-        copy_and_synch(*d_X_new_vecs[part], *d_X_systems[part]->solution);
+        *d_X_systems[part]->solution = *d_X_new_vecs[part];
         *d_X_systems[part]->current_local_solution = *d_X_new_vecs[part];
 
-        copy_and_synch(*d_U_new_vecs[part], *d_U_systems[part]->solution);
+        *d_U_systems[part]->solution = *d_U_new_vecs[part];
         *d_U_systems[part]->current_local_solution = *d_U_new_vecs[part];
 
-        copy_and_synch(*d_F_half_vecs[part], *d_F_systems[part]->solution);
+        *d_F_systems[part]->solution = *d_F_half_vecs[part];
         *d_F_systems[part]->current_local_solution = *d_F_half_vecs[part];
 
         if (d_lag_body_source_part[part])
         {
-            copy_and_synch(*d_Q_half_vecs[part], *d_Q_systems[part]->solution);
+            *d_Q_systems[part]->solution = *d_Q_half_vecs[part];
             *d_Q_systems[part]->current_local_solution = *d_Q_half_vecs[part];
         }
 
         if (d_is_stress_normalization_part[part])
         {
-            copy_and_synch(*d_Phi_half_vecs[part], *d_Phi_systems[part]->solution);
+            *d_Phi_systems[part]->solution = *d_Phi_half_vecs[part];
             *d_Phi_systems[part]->current_local_solution = *d_Phi_half_vecs[part];
         }
 
@@ -943,7 +948,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                 const double data_time)
 {
-    std::vector<NumericVector<double>*> U_vecs(d_num_parts), X_vecs(d_num_parts);
+    std::vector<PetscVector<double>*> U_vecs(d_num_parts), X_vecs(d_num_parts);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         if (MathUtilities<double>::equalEps(data_time, d_current_time))
@@ -970,10 +975,8 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     }
     std::vector<Pointer<RefineSchedule<NDIM> > > no_fill(u_ghost_fill_scheds.size(), nullptr);
 
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        copy_and_synch(*X_vecs[part], *d_X_IB_ghost_vecs[part], /*close_v_in*/ false);
-    }
+    batch_vec_copy(X_vecs, d_X_IB_ghost_vecs);
+    batch_vec_ghost_update(d_X_IB_ghost_vecs, INSERT_VALUES, SCATTER_FORWARD);
 
     // Build the right-hand-sides to compute the interpolated data.
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -987,28 +990,19 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                                  /*close_F*/ false,
                                                  /*close_X*/ false);
     }
-
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        int ierr = VecAssemblyBegin(d_U_rhs_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-    }
-
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        int ierr = VecAssemblyEnd(d_U_rhs_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-    }
+    batch_vec_assembly(d_U_rhs_vecs);
 
     // Solve for the interpolated data.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        d_fe_data_managers[part]->computeL2Projection(*U_vecs[part],
+        *d_U_systems[part]->solution = *U_vecs[part]; // TODO: Commenting out this line changes the solution slightly.
+        d_fe_data_managers[part]->computeL2Projection(*d_U_systems[part]->solution,
                                                       *d_U_rhs_vecs[part],
                                                       VELOCITY_SYSTEM_NAME,
                                                       d_interp_spec[part].use_consistent_mass_matrix,
-                                                      /*close_U*/ true,
+                                                      /*close_U*/ false,
                                                       /*close_F*/ false);
+        *U_vecs[part] = *d_U_systems[part]->solution;
     }
 
     // Account for any velocity constraints.
@@ -1031,9 +1025,6 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
-        d_X_new_vecs[part]->close();
-        d_X_half_vecs[part]->close();
-
         if (d_direct_forcing_kinematics_data[part])
         {
             d_direct_forcing_kinematics_data[part]->forwardEulerStep(
@@ -1062,8 +1053,6 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
-        d_X_new_vecs[part]->close();
-        d_X_half_vecs[part]->close();
         if (d_direct_forcing_kinematics_data[part])
         {
             d_direct_forcing_kinematics_data[part]->midpointStep(
@@ -1095,8 +1084,6 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
-        d_X_new_vecs[part]->close();
-        d_X_half_vecs[part]->close();
         if (d_direct_forcing_kinematics_data[part])
         {
             d_direct_forcing_kinematics_data[part]->trapezoidalStep(
@@ -1117,14 +1104,29 @@ void
 IBFEMethod::computeLagrangianForce(const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    batch_vec_ghost_update(d_X_half_vecs, INSERT_VALUES, SCATTER_FORWARD);
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         if (d_is_stress_normalization_part[part])
         {
             computeStressNormalization(*d_Phi_half_vecs[part], *d_X_half_vecs[part], data_time, part);
         }
-        d_F_half_vecs[part]->zero();
-        computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
+        d_F_rhs_vecs[part]->zero();
+        assembleInteriorForceDensityRHS(
+            *d_F_rhs_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
+    }
+    batch_vec_assembly(d_F_rhs_vecs);
+    for (unsigned part = 0; part < d_num_parts; ++part)
+    {
+        d_F_systems[part]->solution->zero(); // TODO: Commenting out this line changes the solution slightly but
+                                             // probably speeds up this solve slightly too.
+        d_fe_data_managers[part]->computeL2Projection(*d_F_systems[part]->solution,
+                                                      *d_F_rhs_vecs[part],
+                                                      FORCE_SYSTEM_NAME,
+                                                      d_use_consistent_mass_matrix,
+                                                      /*close_U*/ false,
+                                                      /*close_F*/ false);
+        *d_F_half_vecs[part] = *d_F_systems[part]->solution;
         if (d_direct_forcing_kinematics_data[part])
         {
             d_F_tmp_vecs[part]->zero();
@@ -1147,7 +1149,8 @@ IBFEMethod::computeLagrangianForce(const double data_time)
                 X_half_ghost_vecs[k] = std::unique_ptr<libMesh::PetscVector<double>>(
                     new libMesh::PetscVector<double>(
                     X_half_vec->comm(), X_half_vec->size(), X_half_vec->local_size(), ghost_idxs));
-                copy_and_synch(*X_half_vec, *X_half_ghost_vecs[k], /*close_v_in*/ false);
+                *X_half_ghost_vecs[k] = *X_half_vec;
+                X_half_ghost_vecs[k]->close();
             }
         }
         std::vector<libMesh::PetscVector<double>*> vec_pointers;
@@ -1169,15 +1172,8 @@ IBFEMethod::spreadForce(const int f_data_idx,
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 
     // Communicate ghost data.
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        PetscVector<double>* X_vec = d_X_half_vecs[part];
-        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        PetscVector<double>* F_vec = d_F_half_vecs[part];
-        PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
-        copy_and_synch(*X_vec, *X_ghost_vec, /*close_v_in*/ false);
-        copy_and_synch(*F_vec, *F_ghost_vec, /*close_v_in*/ false);
-    }
+    batch_vec_copy({ d_X_half_vecs, d_F_half_vecs }, { d_X_IB_ghost_vecs, d_F_IB_ghost_vecs });
+    batch_vec_ghost_update({ d_X_IB_ghost_vecs, d_F_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
     // Spread interior force density values.
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -1238,7 +1234,6 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         FEDataManager::SystemDofMapCache& Q_dof_map_cache =
             *d_fe_data_managers[part]->getDofMapCache(SOURCE_SYSTEM_NAME);
         FEType Q_fe_type = Q_dof_map.variable_type(0);
-        std::vector<unsigned int> Q_dof_indices;
         auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
@@ -1275,12 +1270,13 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         TensorValue<double> FF, FF_inv_trans;
         VectorValue<double> x;
         double Q;
+        std::vector<libMesh::dof_id_type> dof_id_scratch;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
-            Q_dof_map_cache.dof_indices(elem, Q_dof_indices, 0);
+            const auto& Q_dof_indices = Q_dof_map_cache.dof_indices(elem)[0];
             Q_rhs_e.resize(static_cast<int>(Q_dof_indices.size()));
             fe.reinit(elem);
             fe.collectDataForInterpolation(elem);
@@ -1305,8 +1301,9 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
 
             // Apply constraints (e.g., enforce periodic boundary conditions)
             // and add the elemental contributions to the global vector.
-            Q_dof_map.constrain_element_vector(Q_rhs_e, Q_dof_indices);
-            Q_rhs_vec->add_vector(Q_rhs_e, Q_dof_indices);
+            dof_id_scratch = Q_dof_indices;
+            Q_dof_map.constrain_element_vector(Q_rhs_e, dof_id_scratch);
+            Q_rhs_vec->add_vector(Q_rhs_e, dof_id_scratch);
         }
 
         // Solve for Q.
@@ -1323,18 +1320,14 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
                               const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    batch_vec_copy({ d_X_half_vecs, d_Q_half_vecs }, { d_X_IB_ghost_vecs, d_Q_IB_ghost_vecs });
+    batch_vec_ghost_update({ d_X_IB_ghost_vecs, d_Q_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         if (!d_lag_body_source_part[part]) continue;
-        PetscVector<double>* X_vec = d_X_half_vecs[part];
-        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        PetscVector<double>* Q_vec = d_Q_half_vecs[part];
-        PetscVector<double>* Q_ghost_vec = d_Q_IB_ghost_vecs[part];
-        copy_and_synch(*X_vec, *X_ghost_vec, /*close_v_in*/ false);
-        copy_and_synch(*Q_vec, *Q_ghost_vec, /*close_v_in*/ false);
         d_fe_data_managers[part]->spread(q_data_idx,
-                                         *Q_ghost_vec,
-                                         *X_ghost_vec,
+                                         *d_Q_IB_ghost_vecs[part],
+                                         *d_X_IB_ghost_vecs[part],
                                          SOURCE_SYSTEM_NAME,
                                          q_phys_bdry_op,
                                          data_time,
@@ -1375,6 +1368,15 @@ IBFEMethod::setSpreadSpec(const FEDataManager::SpreadSpec& spread_spec, const un
 }
 
 void
+IBFEMethod::setWorkloadSpec(const FEDataManager::WorkloadSpec& workload_spec, const unsigned int part)
+{
+    TBOX_ASSERT(!d_fe_equation_systems_initialized);
+    TBOX_ASSERT(part < d_num_parts);
+    d_workload_spec[part] = workload_spec;
+    return;
+}
+
+void
 IBFEMethod::initializeFEEquationSystems()
 {
     if (d_fe_equation_systems_initialized) return;
@@ -1388,10 +1390,11 @@ IBFEMethod::initializeFEEquationSystems()
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Create FE data managers.
-        std::ostringstream manager_stream;
-        manager_stream << "IBFEMethod FEDataManager::" << part;
-        const std::string& manager_name = manager_stream.str();
-        d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec[part], d_spread_spec[part]);
+        const std::string manager_name = "IBFEMethod FEDataManager::" + std::to_string(part);
+        d_fe_data_managers[part] =
+            FEDataManager::getManager(manager_name, d_interp_spec[part], d_spread_spec[part], d_workload_spec[part]);
+
+        d_fe_data_managers[part]->setLoggingEnabled(d_do_log);
         d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
 
         // Create FE equation systems objects and corresponding variables.
@@ -1411,40 +1414,91 @@ IBFEMethod::initializeFEEquationSystems()
         else
         {
             auto& X_system = equation_systems.add_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
-            X_system.add_vector("new", /*projections*/ true, /*type*/ GHOSTED);
-            X_system.add_vector("half", /*projections*/ true, /*type*/ GHOSTED);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream os;
-                os << "X_" << d;
-                X_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                X_system.add_variable("X_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
 
             auto& dX_system = equation_systems.add_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream os;
-                os << "dX_" << d;
-                dX_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                dX_system.add_variable("dX_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
 
             auto& U_system = equation_systems.add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
-            U_system.add_vector("new", /*projections*/ true, /*type*/ GHOSTED);
-            U_system.add_vector("half", /*projections*/ true, /*type*/ GHOSTED);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream os;
-                os << "U_" << d;
-                U_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                U_system.add_variable("U_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
 
             auto& F_system = equation_systems.add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
-            X_system.add_vector("tmp", /*projections*/ false, /*type*/ PARALLEL);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream os;
-                os << "F_" << d;
-                F_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                F_system.add_variable("F_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
+            }
+        }
+
+        // Setup cached system vectors.
+        //
+        // NOTE: libMesh does not appear to preserve the type of the vector
+        // after restart (GHOSTED vectors are now PARALLEL), and so we
+        // manually reset these vectors here.
+        auto insert_parallel_into_ghosted = [](const PetscVector<Number>& parallel_vector,
+                                               PetscVector<Number>& ghosted_vector) {
+            TBOX_ASSERT(parallel_vector.size() == ghosted_vector.size());
+            TBOX_ASSERT(parallel_vector.local_size() == ghosted_vector.local_size());
+            ghosted_vector = parallel_vector;
+            ghosted_vector.close();
+        };
+
+        const std::array<std::string, 2> system_names{ { COORDS_SYSTEM_NAME, VELOCITY_SYSTEM_NAME } };
+        const std::array<std::string, 2> vector_names{ { "new", "half" } };
+        for (const std::string& system_name : system_names)
+        {
+            auto& system = equation_systems.get_system<ExplicitSystem>(system_name);
+            for (const std::string& vector_name : vector_names)
+            {
+                std::unique_ptr<NumericVector<double> > clone_vector;
+                if (from_restart)
+                {
+                    NumericVector<double>* current = system.request_vector(vector_name);
+                    if (current != nullptr)
+                    {
+                        clone_vector = current->clone();
+                    }
+                }
+                system.remove_vector(vector_name);
+                system.add_vector(vector_name, /*projections*/ true, /*type*/ GHOSTED);
+
+                if (clone_vector != nullptr)
+                {
+                    const auto& parallel_vector = dynamic_cast<const PetscVector<Number>&>(*clone_vector);
+                    auto& ghosted_vector = dynamic_cast<PetscVector<Number>&>(system.get_vector(vector_name));
+                    insert_parallel_into_ghosted(parallel_vector, ghosted_vector);
+                }
+            }
+        }
+
+        {
+            auto& system = equation_systems.get_system(FORCE_SYSTEM_NAME);
+            const std::string vector_name = "tmp";
+            std::unique_ptr<NumericVector<double> > clone_vector;
+            if (from_restart)
+            {
+                NumericVector<double>* current = system.request_vector(vector_name);
+                if (current != nullptr)
+                {
+                    clone_vector = current->clone();
+                }
+            }
+            system.remove_vector(vector_name);
+            system.add_vector(vector_name, /*projections*/ false, /*type*/ PARALLEL);
+
+            if (clone_vector != nullptr)
+            {
+                const auto& parallel_vector = dynamic_cast<const PetscVector<Number>&>(*clone_vector);
+                auto& ghosted_vector = dynamic_cast<PetscVector<Number>&>(system.get_vector(vector_name));
+                insert_parallel_into_ghosted(parallel_vector, ghosted_vector);
             }
         }
     }
@@ -1456,13 +1510,29 @@ void
 IBFEMethod::initializeFEData()
 {
     if (d_fe_data_initialized) return;
+
     initializeFEEquationSystems();
-    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    doInitializeFEData(RestartManager::getManager()->isFromRestart());
+    d_fe_data_initialized = true;
+    return;
+} // initializeFEData
+
+void
+IBFEMethod::reinitializeFEData()
+{
+    TBOX_ASSERT(d_fe_data_initialized);
+    doInitializeFEData(true);
+    return;
+} // reinitializeFEData
+
+void
+IBFEMethod::doInitializeFEData(const bool use_present_data)
+{
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Initialize FE equation systems.
         EquationSystems& equation_systems = *d_equation_systems[part];
-        if (from_restart)
+        if (use_present_data)
         {
             equation_systems.reinit();
         }
@@ -1499,16 +1569,16 @@ IBFEMethod::initializeFEData()
             Phi_system.assemble();
         }
 
-        bool initial_time = !from_restart;
         if (d_direct_forcing_kinematics_data[part])
         {
-            d_direct_forcing_kinematics_data[part]->initializeKinematicsData(initial_time);
+            d_direct_forcing_kinematics_data[part]->initializeKinematicsData(!use_present_data);
         }
 
         // Set up boundary conditions.  Specifically, add appropriate boundary
         // IDs to the BoundaryInfo object associated with the mesh, and add DOF
         // constraints for the nodal forces and velocities.
         const MeshBase& mesh = equation_systems.get_mesh();
+
         DofMap& F_dof_map = F_system.get_dof_map();
         DofMap& U_dof_map = U_system.get_dof_map();
         const unsigned int F_sys_num = F_system.number();
@@ -1558,9 +1628,8 @@ IBFEMethod::initializeFEData()
             }
         }
     }
-    d_fe_data_initialized = true;
     return;
-} // initializeFEData
+} // doInitializeFEData
 
 void
 IBFEMethod::registerEulerianVariables()
@@ -1604,26 +1673,83 @@ IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
 void
 IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
 {
+    IBAMR_DEPRECATED_MEMBER_FUNCTION1("IBFEMethod", "registerLoadBalancer");
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
     d_workload_idx = workload_data_idx;
-
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        d_fe_data_managers[part]->registerLoadBalancer(load_balancer, workload_data_idx);
-    }
     return;
 } // registerLoadBalancer
 
 void
-IBFEMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
+IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        d_fe_data_managers[part]->updateWorkloadEstimates();
+        d_fe_data_managers[part]->addWorkloadEstimate(hierarchy, workload_data_idx);
     }
+
+    if (d_do_log)
+    {
+        const int n_processes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+        const int current_rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
+
+        std::vector<int> pids(n_processes);
+        pids[current_rank] = getpid();
+        int ierr = MPI_Allreduce(
+            MPI_IN_PLACE, pids.data(), pids.size(), MPI_INT, MPI_SUM, SAMRAI::tbox::SAMRAI_MPI::commWorld);
+        TBOX_ASSERT(ierr == 0);
+
+        std::vector<double> workload_per_processor(n_processes);
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy);
+        workload_per_processor[current_rank] = hier_cc_data_ops.L1Norm(d_workload_idx, -1, true);
+
+        const auto right_padding = std::size_t(std::log10(n_processes)) + 1;
+
+        ierr = MPI_Allreduce(MPI_IN_PLACE,
+                             workload_per_processor.data(),
+                             workload_per_processor.size(),
+                             MPI_DOUBLE,
+                             MPI_SUM,
+                             SAMRAI::tbox::SAMRAI_MPI::commWorld);
+        TBOX_ASSERT(ierr == 0);
+        if (current_rank == 0)
+        {
+            for (int rank = 0; rank < n_processes; ++rank)
+            {
+                SAMRAI::tbox::plog << "workload estimate on processor " << std::setw(right_padding) << std::left << rank
+                                   << " = " << long(workload_per_processor[rank]) << " (pid is " << pids[rank] << ")\n";
+            }
+        }
+
+        std::vector<std::size_t> dofs_per_processor(n_processes);
+        for (unsigned int part = 0; part < d_num_parts; ++part)
+        {
+            auto& equation_systems = *d_fe_data_managers[part]->getEquationSystems();
+            for (unsigned int system_n = 0; system_n < equation_systems.n_systems(); ++system_n)
+            {
+                dofs_per_processor[current_rank] += equation_systems.get_system(system_n).n_local_dofs();
+            }
+        }
+
+        ierr = MPI_Allreduce(MPI_IN_PLACE,
+                             dofs_per_processor.data(),
+                             dofs_per_processor.size(),
+                             MPI_UNSIGNED_LONG,
+                             MPI_SUM,
+                             SAMRAI::tbox::SAMRAI_MPI::commWorld);
+        TBOX_ASSERT(ierr == 0);
+        if (current_rank == 0)
+        {
+            for (int rank = 0; rank < n_processes; ++rank)
+            {
+                SAMRAI::tbox::plog << "local active DoFs on processor " << std::setw(right_padding) << std::left << rank
+                                   << " = " << dofs_per_processor[rank] << " (pid is " << pids[rank] << ")\n";
+            }
+        }
+    }
+
     return;
-} // updateWorkloadEstimates
+} // addWorkloadEstimate
 
 void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                          Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
@@ -1635,8 +1761,29 @@ void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierar
 void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                        Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
+    // if we are not initialized then there is nothing to do
     if (d_is_initialized)
     {
+        // Checking the workload index like this breaks incapsulation, but
+        // since this is inside the library and not user code its not so bad
+        const bool workload_is_setup = d_ib_solver ? d_ib_solver->getWorkloadDataIndex() != IBTK::invalid_index : false;
+        // At this point in the code SAMRAI has already redistributed the
+        // patches (usually by taking into account the number of IB points on
+        // each patch). Here is the other half: we inform libMesh of the
+        // updated partitioning so that libMesh Elems and Nodes are on the
+        // same processor as the relevant SAMRAI patch.
+        if (d_libmesh_partitioner_type == SAMRAI_BOX || (d_libmesh_partitioner_type == AUTOMATIC && workload_is_setup))
+        {
+            for (unsigned int part = 0; part < d_num_parts; ++part)
+            {
+                EquationSystems& equation_systems = *d_fe_data_managers[part]->getEquationSystems();
+                MeshBase& mesh = equation_systems.get_mesh();
+                BoxPartitioner partitioner(*d_hierarchy, equation_systems.get_system(COORDS_SYSTEM_NAME));
+                partitioner.repartition(mesh);
+            }
+        }
+
+        reinitializeFEData();
         for (unsigned int part = 0; part < d_num_parts; ++part)
         {
             d_fe_data_managers[part]->reinitElementMappings();
@@ -1661,11 +1808,6 @@ IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
         d_fe_data_managers[part]->setPatchLevels(0, finest_hier_level);
         d_fe_data_managers[part]->initializeLevelData(
             hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
-        if (d_load_balancer && level_number == d_fe_data_managers[part]->getLevelNumber())
-        {
-            d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);
-            d_fe_data_managers[part]->updateWorkloadEstimates(level_number, level_number);
-        }
     }
     return;
 } // initializeLevelData
@@ -1715,6 +1857,7 @@ IBFEMethod::putToDatabase(Pointer<Database> db)
     db->putBool("d_split_tangential_force", d_split_tangential_force);
     db->putBool("d_use_jump_conditions", d_use_jump_conditions);
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
+    db->putString("d_libmesh_partitioner_type", enum_to_string<LibmeshPartitionerType>(d_libmesh_partitioner_type));
     return;
 } // putToDatabase
 
@@ -1752,7 +1895,6 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     auto& Phi_system = equation_systems.get_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
     const DofMap& Phi_dof_map = Phi_system.get_dof_map();
     FEDataManager::SystemDofMapCache& Phi_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(PHI_SYSTEM_NAME);
-    std::vector<unsigned int> Phi_dof_indices;
     FEType Phi_fe_type = Phi_dof_map.variable_type(0);
     std::vector<int> Phi_vars(1, 0);
 
@@ -1805,6 +1947,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     // Set up boundary conditions for Phi.
     TensorValue<double> PP, FF, FF_trans, FF_inv_trans;
     VectorValue<double> F, F_s, F_qp, n, x;
+    std::vector<libMesh::dof_id_type> dof_id_scratch;
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -1822,9 +1965,9 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
             if (at_dirichlet_bdry) continue;
 
             fe.reinit(elem, side);
+            const auto& Phi_dof_indices = Phi_dof_map_cache.dof_indices(elem)[0];
             if (reinit_all_data)
             {
-                Phi_dof_map_cache.dof_indices(elem, Phi_dof_indices);
                 Phi_rhs_e.resize(static_cast<int>(Phi_dof_indices.size()));
                 fe.collectDataForInterpolation(elem);
                 reinit_all_data = false;
@@ -1933,25 +2076,27 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
 
             // Apply constraints (e.g., enforce periodic boundary conditions)
             // and add the elemental contributions to the global vector.
-            Phi_dof_map.constrain_element_vector(Phi_rhs_e, Phi_dof_indices);
-            Phi_rhs_vec->add_vector(Phi_rhs_e, Phi_dof_indices);
+            dof_id_scratch = Phi_dof_indices;
+            Phi_dof_map.constrain_element_vector(Phi_rhs_e, dof_id_scratch);
+            Phi_rhs_vec->add_vector(Phi_rhs_e, dof_id_scratch);
         }
     }
 
     // Solve for Phi.
     Phi_rhs_vec->close();
     Phi_system.solve();
-    Phi_dof_map.enforce_constraints_exactly(Phi_system, &Phi_vec);
-    copy_and_synch(*Phi_system.solution, Phi_vec, /*close_v_in*/ false);
+    Phi_dof_map.enforce_constraints_exactly(Phi_system, Phi_system.solution.get());
+    Phi_vec = *Phi_system.solution;
+    Phi_vec.close();
     return;
 }
 
 void
-IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
-                                        PetscVector<double>& X_vec,
-                                        PetscVector<double>* Phi_vec,
-                                        const double data_time,
-                                        const unsigned int part)
+IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
+                                            PetscVector<double>& X_vec,
+                                            PetscVector<double>* Phi_vec,
+                                            const double data_time,
+                                            const unsigned int part)
 {
     // Extract the mesh.
     EquationSystems& equation_systems = *d_fe_data_managers[part]->getEquationSystems();
@@ -1961,9 +2106,8 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
     // Setup global and elemental right-hand-side vectors.
     auto& G_system = equation_systems.get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
-    NumericVector<double>* G_rhs_vec = G_system.rhs;
-    G_rhs_vec->zero();
     DenseVector<double> G_rhs_e[NDIM];
+    std::vector<libMesh::dof_id_type> dof_id_scratch;
 
     // First handle the stress contributions.  These are handled separately because
     // each stress function may use a different quadrature rule.
@@ -1981,7 +2125,6 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         {
             TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
         }
-        std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
         auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
@@ -2035,9 +2178,9 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
+            const auto& G_dof_indices = G_dof_map_cache.dof_indices(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                G_dof_map_cache.dof_indices(elem, G_dof_indices[d], d);
                 G_rhs_e[d].resize(static_cast<int>(G_dof_indices[d].size()));
             }
             fe.reinit(elem);
@@ -2143,8 +2286,9 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
             // and add the elemental contributions to the global vector.
             for (unsigned int i = 0; i < NDIM; ++i)
             {
-                G_dof_map.constrain_element_vector(G_rhs_e[i], G_dof_indices[i]);
-                G_rhs_vec->add_vector(G_rhs_e[i], G_dof_indices[i]);
+                dof_id_scratch = G_dof_indices[i];
+                G_dof_map.constrain_element_vector(G_rhs_e[i], dof_id_scratch);
+                G_rhs_vec.add_vector(G_rhs_e[i], dof_id_scratch);
             }
         }
     }
@@ -2159,7 +2303,6 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     {
         TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
     }
-    std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
     auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
     System* Phi_system = Phi_vec ? &equation_systems.get_system<ExplicitSystem>(PHI_SYSTEM_NAME) : nullptr;
     std::vector<int> vars(NDIM);
@@ -2220,9 +2363,9 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
         Elem* const elem = *el_it;
+        const auto& G_dof_indices = G_dof_map_cache.dof_indices(elem);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            G_dof_map_cache.dof_indices(elem, G_dof_indices[d], d);
             G_rhs_e[d].resize(static_cast<int>(G_dof_indices[d].size()));
         }
         fe.reinit(elem);
@@ -2384,15 +2527,13 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         // and add the elemental contributions to the global vector.
         for (unsigned int i = 0; i < NDIM; ++i)
         {
-            G_dof_map.constrain_element_vector(G_rhs_e[i], G_dof_indices[i]);
-            G_rhs_vec->add_vector(G_rhs_e[i], G_dof_indices[i]);
+            dof_id_scratch = G_dof_indices[i];
+            G_dof_map.constrain_element_vector(G_rhs_e[i], dof_id_scratch);
+            G_rhs_vec.add_vector(G_rhs_e[i], dof_id_scratch);
         }
     }
-
-    // Solve for G.
-    d_fe_data_managers[part]->computeL2Projection(G_vec, *G_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
     return;
-} // computeInteriorForceDensity
+} // assembleInteriorForceDensityRHS
 
 void
 IBFEMethod::resetOverlapNodalValues(const std::string& system_name, const std::vector<NumericVector<double>*>& F_vecs)
@@ -2464,11 +2605,6 @@ IBFEMethod::resetOverlapNodalValues(const unsigned int part,
     }
 
     // Find the elements of part2 that contain nodes of part1.
-    std::array<std::vector<std::vector<unsigned int> >, 2> F_dof_indices;
-    for (int k = 0; k < 2; ++k)
-    {
-        F_dof_indices[k].resize(NDIM);
-    }
     VectorValue<double> F;
     std::array<boost::multi_array<double, 2>, 2> F_node;
     const unsigned int k_slave = 0;
@@ -2481,14 +2617,11 @@ IBFEMethod::resetOverlapNodalValues(const unsigned int part,
         const Elem* const other_elem = mesh[k_master]->elem_ptr(node_elem_pair.second);
 
         // Read the velocity from the master mesh.
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            F_dof_map_cache[k_master]->dof_indices(other_elem, F_dof_indices[k_master][d], d);
-        }
+        const auto& F_dof_indices = F_dof_map_cache[k_master]->dof_indices(other_elem);
         const libMesh::Point xi = FEInterface::inverse_map(other_elem->dim(), fe_type, other_elem, X);
         FEComputeData fe_data(*es[k_master], xi);
         FEInterface::compute_data(other_elem->dim(), fe_type, other_elem, fe_data);
-        get_values_for_interpolation(F_node[k_master], *F_master_vec, F_dof_indices[k_master]);
+        get_values_for_interpolation(F_node[k_master], *F_master_vec, F_dof_indices);
         F.zero();
         for (unsigned int l = 0; l < fe_data.shape.size(); ++l)
         {
@@ -2568,15 +2701,10 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
         }
 
         // Loop over the elements that overlap elements of the other part.
-        std::array<std::vector<std::vector<unsigned int> >, 2> F_dof_indices, X_dof_indices;
-        for (int k = 0; k < 2; ++k)
-        {
-            F_dof_indices[k].resize(NDIM);
-            X_dof_indices[k].resize(NDIM);
-        }
         std::array<std::array<DenseVector<double>, NDIM>, 2> F_rhs_e;
         std::array<boost::multi_array<double, 2>, 2> x_node;
         VectorValue<double> F, F_qp, other_x, x;
+        std::vector<libMesh::dof_id_type> dof_id_scratch;
         for (int k = 0; k < 2; ++k)
         {
             const int k_next = (k + 1) % 2;
@@ -2586,14 +2714,14 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
             for (const auto& elem_pair : elem_map[k])
             {
                 const Elem* const elem = mesh[k]->elem_ptr(elem_pair.first);
+                const auto& F_dof_indices = F_dof_map_cache[k]->dof_indices(elem);
+                const auto& X_dof_indices = X_dof_map_cache[k]->dof_indices(elem);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    F_dof_map_cache[k]->dof_indices(elem, F_dof_indices[k][d], d);
-                    X_dof_map_cache[k]->dof_indices(elem, X_dof_indices[k][d], d);
-                    F_rhs_e[k][d].resize(static_cast<int>(F_dof_indices[k][d].size()));
+                    F_rhs_e[k][d].resize(static_cast<int>(F_dof_indices[d].size()));
                 }
                 fe[k]->reinit(elem);
-                get_values_for_interpolation(x_node[k], *X_vec[part_idx[k]], X_dof_indices[k]);
+                get_values_for_interpolation(x_node[k], *X_vec[part_idx[k]], X_dof_indices);
                 const size_t n_basis = phi.size();
                 for (auto qp_it = elem_pair.second.begin(); qp_it != elem_pair.second.end(); ++qp_it)
                 {
@@ -2601,14 +2729,11 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
                     const libMesh::Point& X = q_point[qp];
                     interpolate(x, qp, x_node[k], phi);
                     const Elem* const other_elem = mesh[k_next]->elem_ptr(qp_it->second);
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        X_dof_map_cache[k_next]->dof_indices(other_elem, X_dof_indices[k_next][d], d);
-                    }
+                    const auto& X_dof_indices_next = X_dof_map_cache[k_next]->dof_indices(other_elem);
                     const libMesh::Point xi = FEInterface::inverse_map(other_elem->dim(), fe_type, other_elem, X);
                     FEComputeData fe_data(*es[k_next], xi);
                     FEInterface::compute_data(other_elem->dim(), fe_type, other_elem, fe_data);
-                    get_values_for_interpolation(x_node[k_next], *X_vec[part_idx[k_next]], X_dof_indices[k_next]);
+                    get_values_for_interpolation(x_node[k_next], *X_vec[part_idx[k_next]], X_dof_indices_next);
                     other_x.zero();
                     for (unsigned int l = 0; l < fe_data.shape.size(); ++l)
                     {
@@ -2637,8 +2762,9 @@ IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>
                 // vector.
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    F_dof_map[k]->constrain_element_vector(F_rhs_e[k][d], F_dof_indices[k][d]);
-                    d_F_rhs_vecs[k]->add_vector(F_rhs_e[k][d], F_dof_indices[k][d]);
+                    dof_id_scratch = F_dof_indices[d];
+                    F_dof_map[k]->constrain_element_vector(F_rhs_e[k][d], dof_id_scratch);
+                    d_F_rhs_vecs[k]->add_vector(F_rhs_e[k][d], dof_id_scratch);
                 }
             }
         }
@@ -3530,6 +3656,7 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     // Set up the interaction spec objects.
     d_interp_spec.resize(d_num_parts, d_default_interp_spec);
     d_spread_spec.resize(d_num_parts, d_default_spread_spec);
+    d_workload_spec.resize(d_num_parts);
 
     return;
 } // commonConstructor
@@ -3651,6 +3778,11 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_do_log = db->getBool("enable_logging");
 
     if (db->isDouble("epsilon")) d_epsilon = db->getDouble("epsilon");
+
+    if (db->keyExists("libmesh_partitioner_type"))
+    {
+        d_libmesh_partitioner_type = string_to_enum<LibmeshPartitionerType>(db->getString("libmesh_partitioner_type"));
+    }
     return;
 } // getFromInput
 
