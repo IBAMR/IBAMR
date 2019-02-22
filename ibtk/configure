@@ -24078,7 +24078,7 @@ $as_echo_n "checking for libMesh version 1.1.0 or newer... " >&6; }
 
 #include <libmesh/libmesh_config.h>
 
-#if LIBMESH_MAJOR_VERSION >= 1 && LIBMESH_MINOR_VERSION >= 2
+#if LIBMESH_MAJOR_VERSION >= 1 && LIBMESH_MINOR_VERSION >= 1
 // OK
 #else
 #error
@@ -24113,6 +24113,46 @@ $as_echo "${LIBMESH_VERSION_VALID}" >&6; }
   fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: obtaining libMesh configuration information from libmesh_common.h" >&5
 $as_echo "$as_me: obtaining libMesh configuration information from libmesh_common.h" >&6;}
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libMesh with PETSc" >&5
+$as_echo_n "checking for libMesh with PETSc... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <libmesh/libmesh_config.h>
+
+#ifdef LIBMESH_HAVE_PETSC
+// OK
+#else
+#error
+#endif
+
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
+#endif
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+  LIBMESH_HAVE_PETSC=yes
+else
+  LIBMESH_HAVE_PETSC=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${LIBMESH_HAVE_PETSC}" >&5
+$as_echo "${LIBMESH_HAVE_PETSC}" >&6; }
+  if test "$LIBMESH_HAVE_PETSC" = no; then
+    as_fn_error $? "invalid libMesh installation detected: please compile libMesh with PETSc" "$LINENO" 5
+  fi
   if test "$cross_compiling" = yes; then :
   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
@@ -24124,12 +24164,9 @@ else
 
 #include "libmesh/libmesh_config.h"
 #include <iostream>
-#define STRINGIFY(str) #str
-#define EXPAND_AND_STRINGIFY(str) STRINGIFY(str)
 int main()
 {
-   std::cout << EXPAND_AND_STRINGIFY(LIBMESH_CONFIGURE_INFO) << std::endl;
-   return 0;
+   std::cout << LIBMESH_CONFIGURE_INFO << std::endl;
 }
 
 _ACEOF
@@ -24219,10 +24256,6 @@ fi
   LIBMESH_FCFLAGS="`$LIBMESH_CONFIG --fflags`"
   LIBMESH_LIBS="`$LIBMESH_CONFIG --libs`"
 
-  # libMesh (for pre-C++11 compatibility) can implement libMesh::UniquePtr in
-  # several different ways. We are only compatible when libMesh::UniquePtr
-  # really is std::unique_ptr:
-
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for a usable libMesh UniquePtr/unique_ptr configuration" >&5
 $as_echo_n "checking for a usable libMesh UniquePtr/unique_ptr configuration... " >&6; }
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -24262,7 +24295,6 @@ $as_echo "${LIBMESH_UNIQUE_PTR_OK}" >&6; }
   if test "$LIBMESH_UNIQUE_PTR_OK" = no; then
     as_fn_error $? "libMesh must be compiled with C++11 support and without --disable-unique-ptr." "$LINENO" 5
   fi
-
 
 
 
