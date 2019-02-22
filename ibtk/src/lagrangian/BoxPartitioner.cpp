@@ -147,8 +147,11 @@ BoxPartitioner::writePartitioning(const std::string& file_name) const
 void
 BoxPartitioner::_do_partition(MeshBase& mesh, const unsigned int n)
 {
-    // We assume every cell is on every processor
+    // We assume every cell is on every processor: this function is only in
+    // libMesh 1.2.0 and newer
+#if 1 < LIBMESH_MINOR_VERSION
     TBOX_ASSERT(mesh.is_replicated());
+#endif
     // only implemented when we use SAMRAI's partitioning
     TBOX_ASSERT(n == static_cast<unsigned int>(SAMRAI_MPI::getNodes()));
 
