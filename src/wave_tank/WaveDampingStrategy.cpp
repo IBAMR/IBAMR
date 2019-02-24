@@ -43,6 +43,12 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+double MassConservationFunctor::s_newton_guess = 0.0;
+double MassConservationFunctor::s_newton_min = 0.0;
+double MassConservationFunctor::s_newton_max = 3.0;
+
+/////////////////////////////// PUBLIC ///////////////////////////////////////
+
 void
 callRelaxationZoneCallbackFunction(double /*current_time*/,
                                    double /*new_time*/,
@@ -204,6 +210,8 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
         TBOX_ERROR(
             "WaveDampingStrategy::callConservedWaveAbsorbingCallbackFunction: Level set variable must be cell "
             "centered!");
+    int phi_current_idx = var_db->mapVariableAndContextToIndex(
+        phi_cc_var, ptr_wave_damper->d_adv_diff_hier_integrator->getCurrentContext());
     int phi_new_idx =
         var_db->mapVariableAndContextToIndex(phi_cc_var, ptr_wave_damper->d_adv_diff_hier_integrator->getNewContext());
 
@@ -233,10 +241,22 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
     hier_bdry_fill->initializeOperatorState(phi_transaction, patch_hierarchy);
     hier_bdry_fill->fillData(new_time);
 
+
+    // Create the functor and set its options
+    MassConservationFunctor mass_eval_functor;
+    mass_eval_functor.d_dt = new_time - current_time;
+    mass_eval_functor.d_patch_hierarchy = patch_hierarchy;
+    mass_eval_functor.d_u_idx = u_new_idx;
+    mass_eval_functor.d_phi_new_idx = phi_scratch_idx;
+    mass_eval_functor.d_phi_current_idx = phi_current_idx;
+    mass_eval_functor.d_I_idx = I_idx;
+    mass_eval_functor.d_dI_idx = dI_idx;
+    mass_eval_functor.d_ptr_wave_damper = ptr_wave_damper;
+
     // Set up Newton itertion
-    double guess = 0.0;
-    double min = 0.0;
-    double max = 10.0;
+    const double guess = MassConservationFunctor::s_newton_guess;
+    const double min = MassConservationFunctor::s_newton_min;
+    const double max = MassConservationFunctor::s_newton_max;
 
     // Accuracy doubles at each step, so stop when just over half of the digits are
     // correct, and rely on that step to polish off the remainder:
@@ -244,17 +264,9 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
     const boost::uintmax_t maxit = 50;
     boost::uintmax_t it = maxit;
 
-    // Create the functor and set its options
-    MassConservationFunctor mass_eval_functor;
-    mass_eval_functor.d_dt = new_time - current_time;
-    mass_eval_functor.d_patch_hierarchy = patch_hierarchy;
-    mass_eval_functor.d_u_idx = u_new_idx;
-    mass_eval_functor.d_phi_scratch_idx = phi_scratch_idx;
-    mass_eval_functor.d_I_idx = I_idx;
-    mass_eval_functor.d_dI_idx = dI_idx;
-    mass_eval_functor.d_ptr_wave_damper = ptr_wave_damper;
     double alpha = boost::math::tools::newton_raphson_iterate(mass_eval_functor, guess, min, max, get_digits, it);
-    pout << "alpha = " << alpha << std::endl;
+    if (alpha > max - 0.1 || alpha < 0.0) alpha = 0.0;
+    plog << "alpha relaxation dynamic = " << alpha << std::endl;
 
     // Carry out the damping
     static const int dir = NDIM == 2 ? 1 : 2;
@@ -378,7 +390,8 @@ MassConservationFunctor::operator()(const double& alpha)
             const IntVector<NDIM>& patch_lower = patch_box.lower();
 
             Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(d_u_idx);
-            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(d_phi_scratch_idx);
+            Pointer<CellData<NDIM, double> > phi_new_data = patch->getPatchData(d_phi_new_idx);
+            Pointer<CellData<NDIM, double> > phi_current_data = patch->getPatchData(d_phi_current_idx);
             Pointer<CellData<NDIM, double> > I_data = patch->getPatchData(d_I_idx);
             Pointer<CellData<NDIM, double> > dI_data = patch->getPatchData(d_dI_idx);
 
@@ -394,9 +407,10 @@ MassConservationFunctor::operator()(const double& alpha)
                 const SideIndex<NDIM> su(ci, /*axis*/ 0, SideIndex<NDIM>::Upper);
 
                 // Note: assumes (0,0) in bottom left corner, and water phase denoted by negative level set
-                const double phi = (*phi_data)(ci);
-                const double phi_sc_lower = 0.5 * (phi + (*phi_data)(cl));
-                const double phi_sc_upper = 0.5 * (phi + (*phi_data)(cu));
+                const double phi_new = (*phi_new_data)(ci);
+                const double phi_current = (*phi_current_data)(ci);
+                const double phi_new_sc_lower = 0.5 * (phi_new + (*phi_new_data)(cl));
+                const double phi_new_sc_upper = 0.5 * (phi_new + (*phi_new_data)(cu));
                 const double u_sc_lower = (*u_data)(sl);
                 const double u_sc_upper = (*u_data)(su);
 
@@ -417,49 +431,52 @@ MassConservationFunctor::operator()(const double& alpha)
                 else
                 {
                     // 1 - Heaviside
-                    double theta_sc_lower, theta_sc_upper;
+                    double theta_new_sc_lower, theta_new_sc_upper;
                     double vol_cell = 1.0;
                     for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
                     double beta = 1.0 * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
-                    if (phi_sc_lower < -beta)
+                    if (phi_new_sc_lower < -beta)
                     {
-                        theta_sc_lower = 1.0;
+                        theta_new_sc_lower = 1.0;
                     }
-                    else if (std::abs(phi_sc_lower) <= beta)
+                    else if (std::abs(phi_new_sc_lower) <= beta)
                     {
-                        theta_sc_lower = 1.0 - (0.5 + 0.5 * phi_sc_lower / beta +
-                                                1.0 / (2.0 * M_PI) * std::sin(M_PI * phi_sc_lower / beta));
-                    }
-                    else
-                    {
-                        theta_sc_lower = 0.0;
-                    }
-                    if (phi_sc_upper < -beta)
-                    {
-                        theta_sc_upper = 1.0;
-                    }
-                    else if (std::abs(phi_sc_upper) <= beta)
-                    {
-                        theta_sc_upper = 1.0 - (0.5 + 0.5 * phi_sc_upper / beta +
-                                                1.0 / (2.0 * M_PI) * std::sin(M_PI * phi_sc_upper / beta));
+                        theta_new_sc_lower = 1.0 - (0.5 + 0.5 * phi_new_sc_lower / beta +
+                                                    1.0 / (2.0 * M_PI) * std::sin(M_PI * phi_new_sc_lower / beta));
                     }
                     else
                     {
-                        theta_sc_upper = 0.0;
+                        theta_new_sc_lower = 0.0;
+                    }
+                    if (phi_new_sc_upper < -beta)
+                    {
+                        theta_new_sc_upper = 1.0;
+                    }
+                    else if (std::abs(phi_new_sc_upper) <= beta)
+                    {
+                        theta_new_sc_upper = 1.0 - (0.5 + 0.5 * phi_new_sc_upper / beta +
+                                                    1.0 / (2.0 * M_PI) * std::sin(M_PI * phi_new_sc_upper / beta));
+                    }
+                    else
+                    {
+                        theta_new_sc_upper = 0.0;
                     }
 
                     // NDIM - 1 area
                     double area = 1.0;
                     for (int d = 1; d < NDIM; ++d) area *= (grid_X_upper[d] - grid_X_lower[d]);
 
+                    const double fac = 5;
                     const double xtilde = (x_posn - x_zone_start) / (x_zone_end - x_zone_start);
                     const double xalph = std::pow(1.0 - xtilde, alpha);
-                    const double gamma = 1.0 - exp(-5.0 * xalph);
-                    const double eta = -phi + (z_posn - depth);
-                    const double dtu_dx = (theta_sc_upper * u_sc_upper - theta_sc_lower * u_sc_lower) / patch_dx[0];
-                    const double dgamma_dalpha = 5.0 * exp(-5.0 * xalph) * xalph * log(1.0 - xtilde);
-                    (*I_data)(ci) = d_dt * gamma * dtu_dx + (gamma * eta - eta) / area;
-                    (*dI_data)(ci) = dgamma_dalpha * (d_dt * dtu_dx + eta / area);
+                    const double gamma = 1.0 - exp(-fac * xalph);
+                    const double eta_new = -phi_new + (z_posn - depth);
+                    const double eta_current = -phi_current + (z_posn - depth);
+                    const double dtu_dx =
+                        (theta_new_sc_upper * u_sc_upper - theta_new_sc_lower * u_sc_lower) / patch_dx[0];
+                    const double dgamma_dalpha = fac * exp(-fac * xalph) * xalph * log(1.0 - xtilde);
+                    (*I_data)(ci) = d_dt * gamma * dtu_dx + (gamma * eta_new - eta_current) / area;
+                    (*dI_data)(ci) = dgamma_dalpha * (d_dt * dtu_dx + eta_new / area);
                 }
             }
         }

@@ -5,13 +5,13 @@ clc;
 
 DEPTH       =  2.35;
 
-AMPLITUDE   =  0.05875;
+AMPLITUDE   =  0.0791044;
 
-WAVELENGTH  =  6.13329;               
+WAVELENGTH  =  2.93483;               
 
 WAVENUMBER  =  2*pi/WAVELENGTH;
 
-TIME_PERIOD_STOKES = 1.99813;
+TIME_PERIOD_STOKES = 1.3711;
 
 OMEGA_STOKES = 2*pi/TIME_PERIOD_STOKES;
 
@@ -19,7 +19,9 @@ GRAVITY     = 9.81;
 
 TIME = linspace(0,40,1000);
 
-x     = 17.6025;
+WAVE_SPACE = [DEPTH, 2*AMPLITUDE]/(GRAVITY * TIME_PERIOD_STOKES^2) 
+
+x     = 7.34375;
 
 D = importdata('probe_0');
 A = D.data;
@@ -50,7 +52,9 @@ y_2nd = H/2*cos(WAVENUMBER*x - OMEGA_STOKES*TIME) + ...
 % where h is the uniform grid spacing
 t = A(:,1);
 eta = -A(:,2) + A(1,2);
-plot(TIME,y_5th,'k-',TIME,y_2nd,'g--', t, eta,'r-');
+figure;
+plot(TIME,y_5th,'k-', t, eta,'r-');
+
 
 % Legend
 alpha = 2.0;

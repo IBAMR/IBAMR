@@ -103,10 +103,12 @@ struct MassConservationFunctor
     double d_dt;
     SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > d_patch_hierarchy;
     int d_u_idx;
-    int d_phi_scratch_idx;
+    int d_phi_new_idx;
+    int d_phi_current_idx;
     int d_I_idx;
     int d_dI_idx;
     WaveDampingStrategy* d_ptr_wave_damper;
+    static double s_newton_guess, s_newton_min, s_newton_max;
 };
 } // namespace IBAMR
 
