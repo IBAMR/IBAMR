@@ -1906,9 +1906,7 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
         {
             ghost_nodes[k] = &(*d_local_and_ghost_nodes[level_number])[num_local_nodes + k];
         }
-        std::ostringstream name_stream;
-        name_stream << d_object_name << "::mesh::level_" << level_number;
-        d_lag_mesh[level_number] = new LMesh(name_stream.str(), local_nodes, ghost_nodes);
+        d_lag_mesh[level_number] = new LMesh(d_object_name + "::mesh::level_" + std::to_string(level_number), local_nodes, ghost_nodes);
     }
 
     // End scattering data, reset LData objects, and destroy the VecScatter
@@ -2328,9 +2326,7 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hiera
                        << "\n");
         }
 
-        std::ostringstream name_stream;
-        name_stream << d_object_name << "::mesh::level_" << level_number;
-        d_lag_mesh[level_number] = new LMesh(name_stream.str(),
+        d_lag_mesh[level_number] = new LMesh(d_object_name + "::mesh::level_" + std::to_string(level_number),
                                              std::vector<LNode*>(local_nodes.begin(), local_nodes.end()),
                                              std::vector<LNode*>(ghost_nodes.begin(), ghost_nodes.end()));
 
@@ -2537,9 +2533,7 @@ LDataManager::putToDatabase(Pointer<Database> db)
     // Write out data that is stored on a level-by-level basis.
     for (int level_number = d_coarsest_ln; level_number <= d_finest_ln; ++level_number)
     {
-        std::ostringstream stream;
-        stream << "level_" << level_number;
-        const std::string level_db_name = stream.str();
+        const std::string level_db_name = "level_" + std::to_string(level_number);
         Pointer<Database> level_db = db->putDatabase(level_db_name);
 
         level_db->putBool("d_level_contains_lag_data", d_level_contains_lag_data[level_number]);
@@ -3151,9 +3145,7 @@ LDataManager::getFromRestart()
     // Read in data that is stored on a level-by-level basis.
     for (int level_number = d_coarsest_ln; level_number <= d_finest_ln; ++level_number)
     {
-        std::ostringstream stream;
-        stream << "level_" << level_number;
-        const std::string level_db_name = stream.str();
+        const std::string level_db_name = "level_" + std::to_string(level_number);
         Pointer<Database> level_db = db->getDatabase(level_db_name);
 
         d_level_contains_lag_data[level_number] = level_db->getBool("d_level_contains_lag_data");

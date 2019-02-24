@@ -434,10 +434,8 @@ CCPoissonLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
     // Compute the residual, r = f - A*u.
     if (!d_level_math_ops[finest_level_num])
     {
-        std::ostringstream stream;
-        stream << d_object_name << "::hier_math_ops_" << finest_level_num;
         d_level_math_ops[finest_level_num] =
-            new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
+            new HierarchyMathOps(d_object_name + "::hier_math_ops_" + std::to_string(finest_level_num), d_hierarchy, coarsest_level_num, finest_level_num);
     }
     d_level_math_ops[finest_level_num]->laplace(
         res_idx, res_var, d_poisson_spec, sol_idx, sol_var, nullptr, d_solution_time);
@@ -494,10 +492,8 @@ CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
         Pointer<PoissonSolver>& level_solver = d_level_solvers[ln];
         if (!level_solver)
         {
-            std::ostringstream level_solver_stream;
-            level_solver_stream << d_level_solver_default_options_prefix << ln << "_";
             level_solver = CCPoissonSolverManager::getManager()->allocateSolver(
-                d_level_solver_type, d_object_name + "::level_solver", d_level_solver_db, level_solver_stream.str());
+                d_level_solver_type, d_object_name + "::level_solver", d_level_solver_db, d_level_solver_default_options_prefix + std::to_string(ln) + "_");
         }
 
         level_solver->setSolutionTime(d_solution_time);
