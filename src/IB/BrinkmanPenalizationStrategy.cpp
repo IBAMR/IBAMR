@@ -43,13 +43,11 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
 BrinkmanPenalizationStrategy::BrinkmanPenalizationStrategy(std::string object_name, bool register_for_restart)
-    : d_object_name(std::move(object_name))
+    : d_object_name(std::move(object_name)), d_registered_for_restart(register_for_restart)
 {
-    d_registered_for_restart = false;
-    if (register_for_restart)
+    if (d_registered_for_restart)
     {
         RestartManager::getManager()->registerRestartItem(d_object_name, this);
-        d_registered_for_restart = true;
     }
     return;
 } // BrinkmanPenalizationStrategy

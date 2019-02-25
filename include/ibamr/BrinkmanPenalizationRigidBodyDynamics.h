@@ -265,15 +265,15 @@ protected:
     double d_mass = 0.0;
     Eigen::Matrix3d d_inertia_tensor_initial = Eigen::Matrix3d::Zero();
 
-    // Hydrodynamic force evaluator.
-    SAMRAI::tbox::Pointer<IBAMR::IBHydrodynamicSurfaceForceEvaluator> d_hydro_force_eval;
-
     // Pointers to solvers.
     SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
     SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredHierarchyIntegrator> d_fluid_solver;
 
     // Level set variable defining the solid.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_solid_var;
+
+    // Hydrodynamic force evaluator.
+    SAMRAI::tbox::Pointer<IBAMR::IBHydrodynamicSurfaceForceEvaluator> d_hydro_force_eval;
 
     // Forces and torques on the body.
     Eigen::Vector3d d_hydro_force_pressure, d_hydro_force_viscous, d_hydro_torque_pressure, d_hydro_torque_viscous,

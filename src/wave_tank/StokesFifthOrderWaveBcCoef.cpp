@@ -57,23 +57,19 @@ static const int EXTENSIONS_FILLABLE = 128;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-StokesFifthOrderWaveBcCoef::StokesFifthOrderWaveBcCoef(const std::string& object_name,
+StokesFifthOrderWaveBcCoef::StokesFifthOrderWaveBcCoef(std::string object_name,
                                                        const int comp_idx,
                                                        Pointer<Database> input_db,
                                                        Pointer<CartesianGridGeometry<NDIM> > grid_geom)
+    : d_object_name(std::move(object_name)),
+      d_comp_idx(comp_idx),
+      d_muparser_bcs(new muParserRobinBcCoefs(d_object_name + "::muParser", input_db, grid_geom)),
+      d_grid_geom(grid_geom)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!d_object_name.empty());
     TBOX_ASSERT(input_db);
 #endif
-
-    d_object_name = object_name;
-    d_comp_idx = comp_idx;
-    d_grid_geom = grid_geom;
-
-    // Create muParser object for boundaries except wave inlet.
-    d_muparser_bcs = new muParserRobinBcCoefs(object_name + "::muParser", input_db, grid_geom);
-
     // Get wave parameters.
     getFromInput(input_db);
 
@@ -100,7 +96,7 @@ StokesFifthOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
 {
     // Get pgeom info.
     const Box<NDIM>& patch_box = patch.getBox();
-    const Index<NDIM>& patch_lower = patch_box.lower();
+    const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
@@ -108,7 +104,7 @@ StokesFifthOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
     // Compute a representative grid spacing
     double vol_cell = 1.0;
     for (int d = 0; d < NDIM; ++d) vol_cell *= dx[d];
-    double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+    auto alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
     // Get physical domain box extents on patch box level.
     const SAMRAI::hier::Box<NDIM> domain_box =
@@ -136,7 +132,7 @@ StokesFifthOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
         double dof_posn[NDIM];
         for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
         {
-            const Index<NDIM>& i = b();
+            const SAMRAI::hier::Index<NDIM>& i = b();
             if (acoef_data) (*acoef_data)(i, 0) = 1.0;
             if (bcoef_data) (*bcoef_data)(i, 0) = 0.0;
 

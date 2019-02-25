@@ -40,6 +40,7 @@
 
 #include "IntVector.h"
 #include "RobinBcCoefStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 namespace IBAMR
@@ -102,7 +103,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    StokesFifthOrderWaveBcCoef(const std::string& object_name,
+    StokesFifthOrderWaveBcCoef(std::string object_name,
                                const int comp_idx,
                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
@@ -151,7 +152,7 @@ public:
                     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
                     const SAMRAI::hier::Patch<NDIM>& patch,
                     const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-                    double fill_time = 0.0) const;
+                    double fill_time = 0.0) const override;
 
     /*
      * \brief Return how many cells past the edge or corner of the patch the
@@ -168,7 +169,7 @@ public:
      * The boundary box that setBcCoefs() is required to fill should not extend
      * past the limits returned by this function.
      */
-    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const;
+    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const override;
 
     //\}
 
@@ -228,7 +229,7 @@ private:
     /*!
      * Velocity component index.
      */
-    int d_comp_idx;
+    int d_comp_idx = IBTK::invalid_index;
 
     /*!
      * muparser object for filling boundary conditions other than wave inlet.

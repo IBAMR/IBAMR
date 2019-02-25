@@ -133,14 +133,15 @@ BrinkmanPenalizationRigidBodyDynamics::BrinkmanPenalizationRigidBodyDynamics(
     Pointer<INSVCStaggeredHierarchyIntegrator> fluid_solver,
     Pointer<Database> input_db,
     bool register_for_restart)
-    : BrinkmanPenalizationStrategy(object_name, register_for_restart)
+    : BrinkmanPenalizationStrategy(std::move(object_name), register_for_restart),
+      d_adv_diff_solver(adv_diff_solver),
+      d_fluid_solver(fluid_solver),
+      d_ls_solid_var(ls_solid_var),
+      d_hydro_force_eval(new IBHydrodynamicSurfaceForceEvaluator(d_object_name + "::hydro_force",
+                                                                 d_ls_solid_var,
+                                                                 d_adv_diff_solver,
+                                                                 d_fluid_solver))
 {
-    d_ls_solid_var = ls_solid_var;
-    d_adv_diff_solver = adv_diff_solver;
-    d_fluid_solver = fluid_solver;
-
-    d_hydro_force_eval = new IBHydrodynamicSurfaceForceEvaluator(
-        d_object_name + "::hydro_force", ls_solid_var, adv_diff_solver, fluid_solver);
     d_hydro_force_eval->setSurfaceContourLevel(0.0);
     d_hydro_force_eval->writeToFile(false);
 
@@ -465,26 +466,19 @@ BrinkmanPenalizationRigidBodyDynamics::postprocessComputeBrinkmanPenalization(do
 void
 BrinkmanPenalizationRigidBodyDynamics::putToDatabase(Pointer<Database> db)
 {
-    std::ostringstream U, W, C0, C, J0, Q, M;
-    U << "U";
-    W << "W";
-    C0 << "C0";
-    C << "C";
-    J0 << "J0";
-    Q << "Q";
-    M << "M";
+    std::string U = "U", W = "W", C0 = "C0", C = "C", J0 = "J0", Q = "Q", M = "M";
 
     double Q_coeffs[4] = {
         d_quaternion_current.w(), d_quaternion_current.x(), d_quaternion_current.y(), d_quaternion_current.z()
     };
 
-    db->putDoubleArray(U.str(), &d_trans_vel_current[0], 3);
-    db->putDoubleArray(W.str(), &d_rot_vel_current[0], 3);
-    db->putDoubleArray(C0.str(), &d_center_of_mass_initial[0], 3);
-    db->putDoubleArray(C.str(), &d_center_of_mass_current[0], 3);
-    db->putDoubleArray(J0.str(), &d_inertia_tensor_initial(0, 0), 9);
-    db->putDoubleArray(Q.str(), &Q_coeffs[0], 4);
-    db->putDouble(M.str(), d_mass);
+    db->putDoubleArray(U, &d_trans_vel_current[0], 3);
+    db->putDoubleArray(W, &d_rot_vel_current[0], 3);
+    db->putDoubleArray(C0, &d_center_of_mass_initial[0], 3);
+    db->putDoubleArray(C, &d_center_of_mass_current[0], 3);
+    db->putDoubleArray(J0, &d_inertia_tensor_initial(0, 0), 9);
+    db->putDoubleArray(Q, &Q_coeffs[0], 4);
+    db->putDouble(M, d_mass);
 
     return;
 } // postprocessComputeBrinkmanVelocity
@@ -530,23 +524,16 @@ BrinkmanPenalizationRigidBodyDynamics::getFromRestart()
                    << d_object_name << " not found in restart file." << std::endl);
     }
 
-    std::ostringstream U, W, C0, C, J0, Q, M;
-    U << "U";
-    W << "W";
-    C0 << "C0";
-    C << "C";
-    J0 << "J0";
-    Q << "Q";
-    M << "M";
+    std::string U = "U", W = "W", C0 = "C0", C = "C", J0 = "J0", Q = "Q", M = "M";
 
     double Q_coeffs[4];
-    db->getDoubleArray(U.str(), &d_trans_vel_current[0], 3);
-    db->getDoubleArray(W.str(), &d_rot_vel_current[0], 3);
-    db->getDoubleArray(C0.str(), &d_center_of_mass_initial[0], 3);
-    db->getDoubleArray(C.str(), &d_center_of_mass_current[0], 3);
-    db->getDoubleArray(J0.str(), &d_inertia_tensor_initial(0, 0), 9);
-    db->getDoubleArray(Q.str(), &Q_coeffs[0], 4);
-    d_mass = db->getDouble(M.str());
+    db->getDoubleArray(U, &d_trans_vel_current[0], 3);
+    db->getDoubleArray(W, &d_rot_vel_current[0], 3);
+    db->getDoubleArray(C0, &d_center_of_mass_initial[0], 3);
+    db->getDoubleArray(C, &d_center_of_mass_current[0], 3);
+    db->getDoubleArray(J0, &d_inertia_tensor_initial(0, 0), 9);
+    db->getDoubleArray(Q, &Q_coeffs[0], 4);
+    d_mass = db->getDouble(M);
 
     d_quaternion_current.w() = Q_coeffs[0];
     d_quaternion_current.x() = Q_coeffs[1];

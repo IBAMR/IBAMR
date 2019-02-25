@@ -142,19 +142,18 @@ set_rotation_matrix(const std::vector<Eigen::Vector3d>& rot_vel,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBInterpolantMethod::IBInterpolantMethod(const std::string& object_name,
+IBInterpolantMethod::IBInterpolantMethod(std::string object_name,
                                          Pointer<Database> input_db,
                                          int no_structures,
                                          bool register_for_restart)
-    : d_num_rigid_parts(no_structures)
+    : d_num_rigid_parts(no_structures),
+      d_object_name(std::move(object_name)),
+      d_registered_for_restart(register_for_restart)
 {
-    // Set the object name and register it with the restart manager.
-    d_object_name = object_name;
-    d_registered_for_restart = false;
-    if (register_for_restart)
+    // Register object with the restart manager.
+    if (d_registered_for_restart)
     {
         RestartManager::getManager()->registerRestartItem(d_object_name, this);
-        d_registered_for_restart = true;
     }
 
     // Set some default values.
@@ -165,17 +164,9 @@ IBInterpolantMethod::IBInterpolantMethod(const std::string& object_name,
     d_center_of_mass_current.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
     d_center_of_mass_new.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
 
-    // Ensure all pointers to helper objects are NULL.
-    d_l_initializer = NULL;
-    d_silo_writer = NULL;
-
     // Set some default values.
-    d_interp_kernel_fcn = "IB_4";
-    d_spread_kernel_fcn = "IB_4";
-    d_error_if_points_leave_domain = false;
     d_ghosts = std::max(LEInteractor::getMinimumGhostWidth(d_interp_kernel_fcn),
                         LEInteractor::getMinimumGhostWidth(d_spread_kernel_fcn));
-    d_do_log = false;
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -199,11 +190,6 @@ IBInterpolantMethod::IBInterpolantMethod(const std::string& object_name,
                                                 d_registered_for_restart);
     d_ghosts = d_l_data_manager->getGhostCellWidth();
 
-    // Reset the current time step interval.
-    d_current_time = std::numeric_limits<double>::quiet_NaN();
-    d_new_time = std::numeric_limits<double>::quiet_NaN();
-    d_half_time = std::numeric_limits<double>::quiet_NaN();
-
     return;
 } // IBInterpolantMethod
 
@@ -221,12 +207,11 @@ void
 IBInterpolantMethod::registerEulerianVariables()
 {
     const IntVector<NDIM> ib_ghosts = getMinimumGhostCellWidth();
-    for (std::map<std::string, int>::iterator it = d_q_interp_idx.begin(); it != d_q_interp_idx.end(); ++it)
+    for (auto& q_pair : d_q_interp_idx)
     {
-        const std::string& var_name = it->first;
-        d_q_interp_idx[var_name] = -1;
-        registerVariable(
-            d_q_interp_idx[var_name], d_q_var[var_name], ib_ghosts, NULL /*d_ib_solver->getScratchContext()*/);
+        const std::string& var_name = q_pair.first;
+        q_pair.second = -1;
+        registerVariable(q_pair.second, d_q_var[var_name], ib_ghosts, NULL /*d_ib_solver->getScratchContext()*/);
     }
 
     return;
@@ -238,10 +223,9 @@ IBInterpolantMethod::registerEulerianCommunicationAlgorithms()
     Pointer<RefineAlgorithm<NDIM> > ghost_fill_alg = new RefineAlgorithm<NDIM>();
     Pointer<RefineOperator<NDIM> > refine_op = NULL;
 
-    for (std::map<std::string, int>::iterator it = d_q_interp_idx.begin(); it != d_q_interp_idx.end(); ++it)
+    for (const auto& q_pair : d_q_interp_idx)
     {
-        const std::string& var_name = it->first;
-        const int q_interp_idx = d_q_interp_idx[var_name];
+        const int q_interp_idx = q_pair.second;
         ghost_fill_alg->registerRefine(q_interp_idx, q_interp_idx, q_interp_idx, refine_op);
     }
     registerGhostfillRefineAlgorithm(d_object_name + "::ghost_fill_alg", ghost_fill_alg);
@@ -368,11 +352,10 @@ IBInterpolantMethod::preprocessIntegrateData(double current_time, double new_tim
     // Look-up or allocate Lagangian data.
     d_X_current_data.resize(finest_ln + 1);
     d_X_new_data.resize(finest_ln + 1);
-    typedef std::map<std::string, std::vector<Pointer<LData> > >::iterator map_it;
-    for (map_it it = d_Q_current_data.begin(); it != d_Q_current_data.end(); ++it)
+    for (auto& Q_pair : d_Q_current_data)
     {
-        const std::string& name = it->first;
-        d_Q_current_data[name].resize(finest_ln + 1);
+        const std::string& name = Q_pair.first;
+        Q_pair.second.resize(finest_ln + 1);
         d_Q_new_data[name].resize(finest_ln + 1);
     }
 
@@ -382,20 +365,20 @@ IBInterpolantMethod::preprocessIntegrateData(double current_time, double new_tim
         d_X_current_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
         d_X_new_data[ln] = d_l_data_manager->createLData("X_new", ln, NDIM);
 
-        for (map_it it = d_Q_current_data.begin(); it != d_Q_current_data.end(); ++it)
+        for (auto& Q_pair : d_Q_current_data)
         {
-            const std::string& name = it->first;
-            d_Q_current_data[name][ln] = d_l_data_manager->getLData(name, ln);
+            const std::string& name = Q_pair.first;
+            Q_pair.second[ln] = d_l_data_manager->getLData(name, ln);
             d_Q_new_data[name][ln] = d_l_data_manager->createLData(name + "_new", ln, d_q_depth[name]);
         }
 
         // Initialize X^{n+1} to equal X^{n}, and initialize Q^{n+1} to equal Q^{n}.
         ierr = VecCopy(d_X_current_data[ln]->getVec(), d_X_new_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
-        for (map_it it = d_Q_current_data.begin(); it != d_Q_current_data.end(); ++it)
+        for (auto& Q_pair : d_Q_current_data)
         {
-            const std::string& name = it->first;
-            ierr = VecCopy(d_Q_current_data[name][ln]->getVec(), d_Q_new_data[name][ln]->getVec());
+            const std::string& name = Q_pair.first;
+            ierr = VecCopy(Q_pair.second[ln]->getVec(), d_Q_new_data[name][ln]->getVec());
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -411,16 +394,15 @@ IBInterpolantMethod::postprocessIntegrateData(double /*current_time*/, double /*
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Reset time-dependent Lagrangian data.
-    typedef std::map<std::string, std::vector<Pointer<LData> > >::iterator map_it;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         ierr = VecSwap(d_X_current_data[ln]->getVec(), d_X_new_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
-        for (map_it it = d_Q_current_data.begin(); it != d_Q_current_data.end(); ++it)
+        for (auto& Q_pair : d_Q_current_data)
         {
-            const std::string& name = it->first;
-            ierr = VecSwap(d_Q_current_data[name][ln]->getVec(), d_Q_new_data[name][ln]->getVec());
+            const std::string& name = Q_pair.first;
+            ierr = VecSwap(Q_pair.second[ln]->getVec(), d_Q_new_data[name][ln]->getVec());
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -428,10 +410,10 @@ IBInterpolantMethod::postprocessIntegrateData(double /*current_time*/, double /*
     // Deallocate Lagrangian scratch data.
     d_X_current_data.clear();
     d_X_new_data.clear();
-    for (map_it it = d_Q_current_data.begin(); it != d_Q_current_data.end(); ++it)
+    for (auto& Q_pair : d_Q_current_data)
     {
-        const std::string& name = it->first;
-        d_Q_current_data[name].clear();
+        const std::string& name = Q_pair.first;
+        Q_pair.second.clear();
         d_Q_new_data[name].clear();
     }
 
@@ -464,10 +446,9 @@ IBInterpolantMethod::interpolateQ(const double data_time)
     getPositionData(&X_data, data_time);
     std::vector<Pointer<LData> >* Q_data;
 
-    typedef std::map<std::string, std::vector<Pointer<LData> > >::iterator map_it;
-    for (map_it it = d_Q_current_data.begin(); it != d_Q_current_data.end(); ++it)
+    for (auto& Q_pair : d_Q_current_data)
     {
-        const std::string& name = it->first;
+        const std::string& name = Q_pair.first;
         int q_data_idx = d_q_interp_idx[name];
         copyEulerianDataFromIntegrator(name, q_data_idx, data_time);
         getQData(name, &Q_data, data_time);
@@ -552,9 +533,8 @@ IBInterpolantMethod::updateMeshPosition(double current_time,
         TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
 
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (const auto& node_idx : local_nodes)
         {
-            const LNode* const node_idx = *cit;
             const int lag_idx = node_idx->getLagrangianIndex();
             const int local_idx = node_idx->getLocalPETScIndex();
             double* const X_new = &X_new_array[local_idx][0];
@@ -630,10 +610,9 @@ IBInterpolantMethod::spreadQ(double data_time)
     getPositionData(&X_data, data_time);
     std::vector<Pointer<LData> >* Q_data;
 
-    typedef std::map<std::string, std::vector<Pointer<LData> > >::iterator map_it;
-    for (map_it it = d_Q_current_data.begin(); it != d_Q_current_data.end(); ++it)
+    for (auto& Q_pair : d_Q_current_data)
     {
-        const std::string& name = it->first;
+        const std::string& name = Q_pair.first;
         int q_data_idx = d_q_interp_idx[name];
         zeroOutEulerianData(name, q_data_idx);
 
@@ -650,10 +629,9 @@ IBInterpolantMethod::spreadQ(double data_time)
 void
 IBInterpolantMethod::copyEulerianDataToIntegrator(double data_time)
 {
-    typedef std::map<std::string, std::vector<Pointer<LData> > >::iterator map_it;
-    for (map_it it = d_Q_current_data.begin(); it != d_Q_current_data.end(); ++it)
+    for (auto& Q_pair : d_Q_current_data)
     {
-        const std::string& name = it->first;
+        const std::string& name = Q_pair.first;
         int q_data_idx = d_q_interp_idx[name];
         copyEulerianDataToIntegrator(name, q_data_idx, data_time);
     }
@@ -679,7 +657,7 @@ IBInterpolantMethod::initializePatchHierarchy(
     const int struct_ln = getStructuresLevelNumber();
     std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(struct_ln);
     std::sort(structIDs.begin(), structIDs.end());
-    const unsigned structs_on_this_ln = static_cast<unsigned>(structIDs.size());
+    const auto structs_on_this_ln = static_cast<unsigned>(structIDs.size());
 
     for (unsigned struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
     {
@@ -751,10 +729,9 @@ IBInterpolantMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hier
         hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
-        typedef std::map<std::string, std::vector<Pointer<LData> > >::iterator map_it;
-        for (map_it it = d_Q_current_data.begin(); it != d_Q_current_data.end(); ++it)
+        for (const auto& Q_pair : d_Q_current_data)
         {
-            const std::string& Q_name = it->first;
+            const std::string& Q_name = Q_pair.first;
             const int Q_depth = d_q_depth[Q_name];
             Pointer<LData> Q_data = d_l_data_manager->createLData(Q_name, level_number, Q_depth, /*manage_data*/ true);
         }
@@ -1001,9 +978,8 @@ IBInterpolantMethod::computeCenterOfMass(std::vector<Eigen::Vector3d>& center_of
         TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
 
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (const auto& node_idx : local_nodes)
         {
-            const LNode* const node_idx = *cit;
             const int lag_idx = node_idx->getLagrangianIndex();
             const int local_idx = node_idx->getLocalPETScIndex();
             const double* const X = &X_data_array[local_idx][0];

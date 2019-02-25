@@ -1208,10 +1208,10 @@ INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
     preprocessOperatorsAndSolvers(current_time, new_time);
 
     // Preprocess Brinkman penalization objects.
-    for (unsigned k = 0; k < d_brinkman_force.size(); ++k)
+    for (auto& brinkman_force : d_brinkman_force)
     {
-        d_brinkman_force[k]->setTimeInterval(current_time, new_time);
-        d_brinkman_force[k]->preprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
+        brinkman_force->setTimeInterval(current_time, new_time);
+        brinkman_force->preprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
     }
 
     // Keep track of the time-lagged velocity
@@ -1320,9 +1320,9 @@ INSVCStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double cu
     }
 
     // Postprocess Brinkman penalization objects.
-    for (unsigned k = 0; k < d_brinkman_force.size(); ++k)
+    for (auto& brinkman_force : d_brinkman_force)
     {
-        d_brinkman_force[k]->postprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
+        brinkman_force->postprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
     }
 
     // Execute any registered callbacks.

@@ -405,30 +405,30 @@ IBHydrodynamicSurfaceForceEvaluator::writeToFile(bool write_to_file)
     // Set up the streams for printing force and torque
     if (d_write_to_file && SAMRAI_MPI::getRank() == 0)
     {
-        std::ostringstream force;
-        force << "Hydro_Force_" << d_ls_solid_var->getName();
+        std::string force;
+        force = "Hydro_Force_" + d_ls_solid_var->getName();
         bool from_restart = RestartManager::getManager()->isFromRestart();
         if (from_restart)
         {
-            d_hydro_force_stream = new std::ofstream(force.str().c_str(), std::fstream::app);
+            d_hydro_force_stream = new std::ofstream(force.c_str(), std::fstream::app);
             d_hydro_force_stream->precision(10);
         }
         else
         {
-            d_hydro_force_stream = new std::ofstream(force.str().c_str(), std::fstream::out);
+            d_hydro_force_stream = new std::ofstream(force.c_str(), std::fstream::out);
             d_hydro_force_stream->precision(10);
         }
 
-        std::ostringstream torque;
-        torque << "Hydro_Torque_" << d_ls_solid_var->getName();
+        std::string torque;
+        torque = "Hydro_Torque_" + d_ls_solid_var->getName();
         if (from_restart)
         {
-            d_hydro_torque_stream = new std::ofstream(torque.str().c_str(), std::fstream::app);
+            d_hydro_torque_stream = new std::ofstream(torque.c_str(), std::fstream::app);
             d_hydro_torque_stream->precision(10);
         }
         else
         {
-            d_hydro_torque_stream = new std::ofstream(torque.str().c_str(), std::fstream::out);
+            d_hydro_torque_stream = new std::ofstream(torque.c_str(), std::fstream::out);
             d_hydro_torque_stream->precision(10);
         }
     }

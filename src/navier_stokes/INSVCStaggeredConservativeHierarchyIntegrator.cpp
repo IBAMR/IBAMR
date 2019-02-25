@@ -695,9 +695,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
 
     // Compute the Brinkman contribution to the velocity operator.
     d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
-    for (unsigned k = 0; k < d_brinkman_force.size(); ++k)
+    for (auto& brinkman_force : d_brinkman_force)
     {
-        d_brinkman_force[k]->demarcateBrinkmanZone(d_velocity_L_idx, new_time, cycle_num);
+        brinkman_force->demarcateBrinkmanZone(d_velocity_L_idx, new_time, cycle_num);
     }
 
     // Synchronize Brinkman coefficients.
@@ -712,9 +712,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
 
     // Compute the Brinkman velocity for the RHS vector.
     d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
-    for (unsigned k = 0; k < d_brinkman_force.size(); ++k)
+    for (auto& brinkman_force : d_brinkman_force)
     {
-        d_brinkman_force[k]->computeBrinkmanVelocity(d_velocity_L_idx, new_time, cycle_num);
+        brinkman_force->computeBrinkmanVelocity(d_velocity_L_idx, new_time, cycle_num);
     }
     d_side_synch_op->resetTransactionComponent(L_synch_transaction);
     d_side_synch_op->synchronizeData(d_integrator_time);

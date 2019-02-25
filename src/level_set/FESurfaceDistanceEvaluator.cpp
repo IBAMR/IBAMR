@@ -94,19 +94,19 @@ line_equation(const IBTK::Vector3d& coord, const libMesh::Point& n0, const libMe
 const double FESurfaceDistanceEvaluator::s_large_distance = 1234567.0;
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
-FESurfaceDistanceEvaluator::FESurfaceDistanceEvaluator(const std::string& object_name,
+FESurfaceDistanceEvaluator::FESurfaceDistanceEvaluator(std::string object_name,
                                                        Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                                                        Pointer<IBFEMethod> ibfe_method,
-                                                       const libMesh::Mesh& mesh,
-                                                       const BoundaryMesh& bdry_mesh,
+                                                       libMesh::Mesh mesh,
+                                                       BoundaryMesh bdry_mesh,
                                                        const int part,
                                                        const int gcw,
                                                        bool use_extracted_bdry_mesh)
-    : d_object_name(object_name),
+    : d_object_name(std::move(object_name)),
       d_patch_hierarchy(patch_hierarchy),
       d_ibfe_method(ibfe_method),
-      d_mesh(mesh),
-      d_bdry_mesh(bdry_mesh),
+      d_mesh(std::move(mesh)),
+      d_bdry_mesh(std::move(bdry_mesh)),
       d_part(part),
       d_gcw(gcw),
       d_use_vol_extracted_bdry_mesh(use_extracted_bdry_mesh)
@@ -279,10 +279,9 @@ FESurfaceDistanceEvaluator::mapIntersections()
 #endif
 
             // Loop over elements in the patch
-            for (std::vector<Elem*>::const_iterator eit = patch_elems.begin(); eit != patch_elems.end(); ++eit)
+            for (const auto& elem : patch_elems)
             {
                 // Get the coordinates of the nodes
-                Elem* const elem = *eit;
                 const libMesh::Point& n0 = elem->point(0);
                 const libMesh::Point& n1 = elem->point(1);
 
@@ -1002,10 +1001,8 @@ FESurfaceDistanceEvaluator::computeSignedDistanceVolExtractedBdryMesh(int n_idx,
 
                 // Create a pair to take care of normals for cells equidistant to multiple elements.
                 std::vector<std::pair<libMesh::Elem*, IBTK::VectorNd> > vec_equidistant_pair;
-                for (std::set<Elem*>::const_iterator it = elem_set.begin(); it != elem_set.end(); ++it)
+                for (auto& elem : elem_set)
                 {
-                    Elem* elem = *it;
-
                     // Loop over the sides of the element. If it has no neighbors on a side,
                     // then it MUST live on the boundary of the mesh
                     for (unsigned int s = 0; s < elem->n_sides(); ++s)
@@ -1075,11 +1072,10 @@ FESurfaceDistanceEvaluator::computeSignedDistanceVolExtractedBdryMesh(int n_idx,
                 IBTK::VectorNd avg_unit_normal, avg_proj;
                 avg_unit_normal.setZero();
                 avg_proj.setZero();
-                std::vector<std::pair<Elem*, IBTK::VectorNd> >::const_iterator it;
-                for (it = vec_equidistant_pair.begin(); it != vec_equidistant_pair.end(); ++it)
+                for (auto& elem_vec_pair : vec_equidistant_pair)
                 {
-                    Elem* elem = (*it).first;
-                    IBTK::VectorNd proj = (*it).second;
+                    Elem* elem = elem_vec_pair.first;
+                    IBTK::VectorNd proj = elem_vec_pair.second;
                     avg_proj += proj;
 
                     // Loop over the sides of the element. If it has no neighbors on a side,
@@ -1178,10 +1174,8 @@ FESurfaceDistanceEvaluator::computeSignedDistanceSurfaceMesh(int n_idx, int d_id
 
                 // Create a pair to take care of normals for cells equidistant to multiple elements.
                 std::vector<std::pair<libMesh::Elem*, IBTK::VectorNd> > vec_equidistant_pair;
-                for (std::set<Elem*>::const_iterator it = elem_set.begin(); it != elem_set.end(); ++it)
+                for (const auto& elem : elem_set)
                 {
-                    Elem* elem = *it;
-
                     IBTK::VectorNd v, w, proj;
                     double dist = std::numeric_limits<double>::max();
 
@@ -1244,13 +1238,12 @@ FESurfaceDistanceEvaluator::computeSignedDistanceSurfaceMesh(int n_idx, int d_id
                 IBTK::VectorNd avg_unit_normal, avg_proj;
                 avg_unit_normal.setZero();
                 avg_proj.setZero();
-                std::vector<std::pair<Elem*, IBTK::VectorNd> >::const_iterator it;
-                for (it = vec_equidistant_pair.begin(); it != vec_equidistant_pair.end(); ++it)
+                for (auto& elem_vec_pair : vec_equidistant_pair)
                 {
-                    Elem* elem = (*it).first;
+                    Elem* elem = elem_vec_pair.first;
                     fe_surface->reinit(elem);
 
-                    IBTK::VectorNd proj = (*it).second;
+                    IBTK::VectorNd proj = elem_vec_pair.second;
                     avg_proj += proj;
 
                     // Get the nodes

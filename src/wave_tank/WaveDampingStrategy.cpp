@@ -56,7 +56,7 @@ callRelaxationZoneCallbackFunction(double /*current_time*/,
                                    int /*num_cycles*/,
                                    void* ctx)
 {
-    WaveDampingStrategy* ptr_wave_damper = static_cast<WaveDampingStrategy*>(ctx);
+    auto ptr_wave_damper = static_cast<WaveDampingStrategy*>(ctx);
     const double x_zone_start = ptr_wave_damper->d_x_zone_start;
     const double x_zone_end = ptr_wave_damper->d_x_zone_end;
     const double depth = ptr_wave_damper->d_depth;
@@ -96,7 +96,7 @@ callRelaxationZoneCallbackFunction(double /*current_time*/,
             {
                 for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
                 {
-                    Index<NDIM> i = it();
+                    SAMRAI::hier::Index<NDIM> i = it();
                     SideIndex<NDIM> i_side(i, axis, SideIndex<NDIM>::Lower);
                     double x_posn = patch_x_lower[0] + patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)));
                     const double shift_x = (axis == 0 ? 0.0 : 0.5);
@@ -139,12 +139,11 @@ callRelaxationZoneCallbackFunction(double /*current_time*/,
             Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_new_idx);
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
-                Index<NDIM> i = it();
+                SAMRAI::hier::Index<NDIM> i = it();
 
-                const double x_posn =
-                    patch_x_lower[0] + patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)) + 0.5);
+                const auto x_posn = patch_x_lower[0] + patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)) + 0.5);
 
-                const double dir_posn =
+                const auto dir_posn =
                     patch_x_lower[dir] + patch_dx[dir] * (static_cast<double>(i(dir) - patch_lower(dir)) + 0.5);
 
                 const double dir_surface = dir_posn - depth;
@@ -172,7 +171,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
                                            void* ctx)
 {
     // Reference: Hu Zhe, et al., "Numerical Wave Tank Based on A Conserved Wave-Absorbing Method"
-    WaveDampingStrategy* ptr_wave_damper = static_cast<WaveDampingStrategy*>(ctx);
+    auto ptr_wave_damper = static_cast<WaveDampingStrategy*>(ctx);
     const double x_zone_start = ptr_wave_damper->d_x_zone_start;
     const double x_zone_end = ptr_wave_damper->d_x_zone_end;
     const double depth = ptr_wave_damper->d_depth;
@@ -228,7 +227,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
     // Fill ghost cells for level set
     RobinBcCoefStrategy<NDIM>* phi_bc_coef =
         ptr_wave_damper->d_adv_diff_hier_integrator->getPhysicalBcCoefs(phi_cc_var).front();
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent phi_transaction(phi_scratch_idx,
                                                       phi_new_idx,
                                                       "CONSERVATIVE_LINEAR_REFINE",
@@ -240,7 +239,6 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
     Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_bdry_fill->initializeOperatorState(phi_transaction, patch_hierarchy);
     hier_bdry_fill->fillData(new_time);
-
 
     // Create the functor and set its options
     MassConservationFunctor mass_eval_functor;
@@ -260,7 +258,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
 
     // Accuracy doubles at each step, so stop when just over half of the digits are
     // correct, and rely on that step to polish off the remainder:
-    int get_digits = static_cast<int>(std::numeric_limits<double>::digits * 0.6);
+    auto get_digits = static_cast<int>(std::numeric_limits<double>::digits * 0.6);
     const boost::uintmax_t maxit = 50;
     boost::uintmax_t it = maxit;
 
@@ -288,7 +286,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
             {
                 for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
                 {
-                    Index<NDIM> i = it();
+                    SAMRAI::hier::Index<NDIM> i = it();
                     SideIndex<NDIM> i_side(i, axis, SideIndex<NDIM>::Lower);
                     double x_posn = patch_x_lower[0] + patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)));
                     const double shift_x = (axis == 0 ? 0.0 : 0.5);
@@ -325,12 +323,11 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
             Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_new_idx);
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
-                Index<NDIM> i = it();
+                SAMRAI::hier::Index<NDIM> i = it();
 
-                const double x_posn =
-                    patch_x_lower[0] + patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)) + 0.5);
+                const auto x_posn = patch_x_lower[0] + patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)) + 0.5);
 
-                const double dir_posn =
+                const auto dir_posn =
                     patch_x_lower[dir] + patch_dx[dir] * (static_cast<double>(i(dir) - patch_lower(dir)) + 0.5);
                 const double dir_surface = dir_posn - depth;
 
@@ -397,7 +394,7 @@ MassConservationFunctor::operator()(const double& alpha)
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
-                Index<NDIM> i = it();
+                SAMRAI::hier::Index<NDIM> i = it();
                 CellIndex<NDIM> ci(it());
                 CellIndex<NDIM> cl = ci;
                 CellIndex<NDIM> cu = ci;
@@ -414,10 +411,9 @@ MassConservationFunctor::operator()(const double& alpha)
                 const double u_sc_lower = (*u_data)(sl);
                 const double u_sc_upper = (*u_data)(su);
 
-                const double x_posn =
-                    patch_x_lower[0] + patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)) + 0.5);
+                const auto x_posn = patch_x_lower[0] + patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)) + 0.5);
 
-                const double z_posn =
+                const auto z_posn =
                     patch_x_lower[dir] + patch_dx[dir] * (static_cast<double>(i(dir) - patch_lower(dir)) + 0.5);
 
                 // Indicator for absorption region
@@ -434,7 +430,7 @@ MassConservationFunctor::operator()(const double& alpha)
                     double theta_new_sc_lower, theta_new_sc_upper;
                     double vol_cell = 1.0;
                     for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-                    double beta = 1.0 * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+                    auto beta = 1.0 * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
                     if (phi_new_sc_lower < -beta)
                     {
                         theta_new_sc_lower = 1.0;

@@ -2822,7 +2822,7 @@ ConstraintIBMethod::computePostProcessLagrangianQuantities()
         X_data[ln] = d_l_data_X_half_Euler[ln];
     }
     copyDensityVariable(d_rho_ins_idx, d_rho_scratch_idx);
-    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
     InterpolationTransactionComponent component(d_rho_scratch_idx,
                                                 DATA_REFINE_TYPE,
@@ -2840,7 +2840,7 @@ ConstraintIBMethod::computePostProcessLagrangianQuantities()
     hier_bdry_fill->fillData(d_FuRMoRP_new_time);
 
     // Synchronize the density patch data
-    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent rho_synch_transaction =
         SynchronizationTransactionComponent(d_rho_scratch_idx, "CONSERVATIVE_COARSEN");
     Pointer<SideDataSynchronization> side_synch_op = new SideDataSynchronization();
