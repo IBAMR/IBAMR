@@ -1707,7 +1707,7 @@ IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const 
 
         std::vector<double> workload_per_processor(n_processes);
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy);
-        workload_per_processor[current_rank] = hier_cc_data_ops.L1Norm(d_workload_idx, -1, true);
+        workload_per_processor[current_rank] = hier_cc_data_ops.L1Norm(workload_data_idx, IBTK::invalid_index, true);
 
         const auto right_padding = std::size_t(std::log10(n_processes)) + 1;
 
@@ -1870,6 +1870,7 @@ IBFEMethod::putToDatabase(Pointer<Database> db)
     db->putBool("d_use_jump_conditions", d_use_jump_conditions);
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
     db->putString("d_libmesh_partitioner_type", enum_to_string<LibmeshPartitionerType>(d_libmesh_partitioner_type));
+    db->putDouble("workload_quad_point_weight", d_default_workload_spec.q_point_weight);
     return;
 } // putToDatabase
 
@@ -3668,7 +3669,7 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     // Set up the interaction spec objects.
     d_interp_spec.resize(d_num_parts, d_default_interp_spec);
     d_spread_spec.resize(d_num_parts, d_default_spread_spec);
-    d_workload_spec.resize(d_num_parts);
+    d_workload_spec.resize(d_num_parts, d_default_workload_spec);
 
     return;
 } // commonConstructor
@@ -3795,6 +3796,10 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     {
         d_libmesh_partitioner_type = string_to_enum<LibmeshPartitionerType>(
             db->getString("libmesh_partitioner_type"));
+    }
+    if (db->keyExists("workload_quad_point_weight"))
+    {
+        d_default_workload_spec.q_point_weight = db->getDouble("workload_quad_point_weight");
     }
     return;
 } // getFromInput
