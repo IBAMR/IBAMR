@@ -15,7 +15,7 @@
  * Core IBAMR functionality relies upon several high-quality open-source
  * libraries, including:
  *
- * - <a href="https://computation-rnd.llnl.gov/SAMRAI">SAMRAI</a>, the
+ * - <a href="https://computation.llnl.gov/projects/samrai">SAMRAI</a>, the
  *    Structured Adaptive Mesh Refinement Application Infrastructure
  * - <a href="http://www.mcs.anl.gov/petsc">PETSc</a>, the Portable, Extensible
  *    Toolkit for Scientific Computation
