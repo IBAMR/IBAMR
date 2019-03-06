@@ -65,8 +65,8 @@ public:
     FESurfaceDistanceEvaluator(std::string object_name,
                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
                                SAMRAI::tbox::Pointer<IBAMR::IBFEMethod> ibfe_method,
-                               libMesh::Mesh mesh,
-                               libMesh::BoundaryMesh bdry_mesh,
+                               const libMesh::Mesh& mesh,
+                               const libMesh::BoundaryMesh& bdry_mesh,
                                const int part,
                                const int gcw = 1,
                                bool use_extracted_bdry_mesh = true);

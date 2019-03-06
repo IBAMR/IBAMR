@@ -67,7 +67,7 @@ StokesFirstOrderWaveBcCoef::StokesFirstOrderWaveBcCoef(std::string object_name,
       d_grid_geom(grid_geom)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!d_object_name.empty());
     TBOX_ASSERT(input_db);
 #endif
     // Get wave parameters.
