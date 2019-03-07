@@ -253,23 +253,6 @@ public:
         return d_structure_rotational_mom;
     }
 
-    /*!
-     * \brief Get LData associated with the interpolated fluid density field.
-     */
-    inline const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& getInterpolatedLagrangianDensity()
-    {
-        return d_l_data_rho_interp;
-    }
-
-    /*!
-     * \brief Get LData associated with the fully formed, interpolated Lagrange multiplier field lambda = rho_interp/dt
-     * * (U_new[d] - U[d]).
-     */
-    inline const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& getFullLagrangeMultiplierForce()
-    {
-        return d_l_data_lambda;
-    }
-
 private:
     /*!
      * \brief Default constructor.
@@ -439,12 +422,6 @@ private:
      * \brief Calculate the total rotational momentum of all Lagrangian structures with respect to their COM
      */
     void calculateStructureRotationalMomentum();
-
-    /*!
-     * \brief Compute the Lagrangian postprocessing quantities, which could be useful for cases where the solid density
-     * does not need to be set (i.e. fully constrained motion).
-     */
-    void computePostProcessLagrangianQuantities();
 
     /*!
      * No of immersed structures.
@@ -638,19 +615,6 @@ private:
 
     // Velocity boundary operator.
     IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op = nullptr;
-
-    /*!
-     * Interpolated Lagrangian density field. This could be useful for post-processing cases where the solid
-     * density does not need to be set (i.e. computing drag for fully prescribed motion).
-     */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_l_data_rho_interp;
-
-    /*!
-     * Fully formed, interpolated Lagrange multiplier field lambda = rho_interp/dt * (U_new[d] - U[d]). This could
-     * be useful for post-processing cases where the solid density does not need to be set (i.e. computing drag
-     * for fully prescribed motion).
-     */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_l_data_lambda;
 };
 } // namespace IBAMR
 

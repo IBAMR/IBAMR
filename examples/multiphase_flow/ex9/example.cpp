@@ -519,21 +519,6 @@ run_example(int argc, char* argv[])
                 umax_file.open("Umax_fluid.txt", std::fstream::out);
         }
 
-        // Files to write force data
-        ofstream lag_force_file, grav_force_file;
-        if (!SAMRAI_MPI::getRank())
-        {
-            if (is_from_restart)
-                lag_force_file.open("lag_force.txt", std::fstream::app);
-            else
-                lag_force_file.open("lag_force.txt", std::fstream::out);
-
-            if (is_from_restart)
-                grav_force_file.open("grav_force.txt", std::fstream::app);
-            else
-                grav_force_file.open("grav_force.txt", std::fstream::out);
-        }
-
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -592,53 +577,6 @@ run_example(int argc, char* argv[])
                 umax_file << std::setprecision(13) << loop_time << '\t' << umax_fluid << std::endl;
             }
 
-            // Get the values of the Lagrange multiplier to compute forces
-            const int struct_id = 0;
-            const double dV = (ib_method_ops->getVolumeElement())[struct_id];
-            IBTK::Vector3d lm_force = IBTK::Vector3d::Zero();
-            IBTK::Vector3d g_force = IBTK::Vector3d::Zero();
-            std::vector<Pointer<LData> > lag_force = ib_method_ops->getFullLagrangeMultiplierForce();
-            std::vector<Pointer<LData> > lag_rho = ib_method_ops->getInterpolatedLagrangianDensity();
-            LDataManager* l_data_manager = ib_method_ops->getLDataManager();
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                if (!l_data_manager->levelContainsLagrangianData(ln)) continue;
-                boost::multi_array_ref<double, 2>& F_data = *lag_force[ln]->getLocalFormVecArray();
-                boost::multi_array_ref<double, 2>& R_data = *lag_rho[ln]->getLocalFormVecArray();
-                const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
-                const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-                const std::vector<int> structIDs = l_data_manager->getLagrangianStructureIDs(ln);
-
-                // Dealing specifically with a single structure
-                std::pair<int, int> lag_idx_range =
-                    l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_id], ln);
-                for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
-                {
-                    const LNode* const node_idx = *cit;
-                    const int lag_idx = node_idx->getLagrangianIndex();
-                    if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
-                    {
-                        const int local_idx = node_idx->getLocalPETScIndex();
-                        const double* const F = &F_data[local_idx][0];
-                        const double* const R = &R_data[local_idx][0];
-
-                        for (int d = 0; d < NDIM; ++d) lm_force[d] += F[d] * dV;
-                        for (int d = 0; d < NDIM; ++d) g_force[d] += grav_const[d] * R[d] * dV;
-                    }
-                }
-                lag_force[ln]->restoreArrays();
-            }
-            SAMRAI_MPI::sumReduction(lm_force.data(), 3);
-            SAMRAI_MPI::sumReduction(g_force.data(), 3);
-            if (!SAMRAI_MPI::getRank())
-            {
-                lag_force_file << std::setprecision(8) << loop_time << '\t' << lm_force(0) << '\t' << lm_force(1)
-                               << '\t' << lm_force(2) << std::endl;
-
-                grav_force_file << std::setprecision(8) << loop_time << '\t' << g_force(0) << '\t' << g_force(1) << '\t'
-                                << g_force(2) << std::endl;
-            }
-
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
             // processing.
@@ -674,8 +612,6 @@ run_example(int argc, char* argv[])
 
         // Close files
         if (!SAMRAI_MPI::getRank()) mass_file.close();
-        if (!SAMRAI_MPI::getRank()) lag_force_file.close();
-        if (!SAMRAI_MPI::getRank()) grav_force_file.close();
         if (!SAMRAI_MPI::getRank()) umax_file.close();
 
         // Cleanup Eulerian boundary condition specification objects (when
