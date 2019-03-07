@@ -61,8 +61,8 @@ LSLocateStructureInterface::setLevelSetPatchData(int D_idx,
 void
 LSLocateStructureInterface::setLevelSetPatchDataByGeometry(int D_idx,
                                                            Pointer<HierarchyMathOps> hier_math_ops,
-                                                           double time,
-                                                           bool initial_time)
+                                                           double /*time*/,
+                                                           bool /*initial_time*/)
 {
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
@@ -166,7 +166,10 @@ LSLocateStructureInterface::getExtremeCoords(std::vector<IBTK::Vector>& corners,
     double xmax = -std::numeric_limits<double>::max();
     double ymin = std::numeric_limits<double>::max();
     double ymax = -std::numeric_limits<double>::max();
-    double y_xmin, y_xmax, x_ymin, x_ymax;
+    double y_xmin = std::numeric_limits<double>::quiet_NaN();
+    double y_xmax = std::numeric_limits<double>::quiet_NaN();
+    double x_ymin = std::numeric_limits<double>::quiet_NaN();
+    double x_ymax = std::numeric_limits<double>::quiet_NaN();
 
     IBTK::Vector c_xmin, c_xmax, c_ymin, c_ymax;
 

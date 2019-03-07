@@ -223,9 +223,9 @@ BrinkmanPenalizationRigidBodyDynamics::registerExternalForceTorqueFunction(const
 } // registerExternalForceTorqueFunction
 
 void
-BrinkmanPenalizationRigidBodyDynamics::preprocessComputeBrinkmanPenalization(double current_time,
-                                                                             double new_time,
-                                                                             int num_cycles)
+BrinkmanPenalizationRigidBodyDynamics::preprocessComputeBrinkmanPenalization(double /*current_time*/,
+                                                                             double /*new_time*/,
+                                                                             int /*num_cycles*/)
 {
     d_trans_vel_new = d_trans_vel_current;
     d_rot_vel_new = d_rot_vel_current;

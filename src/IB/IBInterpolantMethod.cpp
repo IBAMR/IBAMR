@@ -434,7 +434,7 @@ IBInterpolantMethod::interpolateVelocity(const int u_data_idx,
                                          const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                          const double data_time)
 {
-    pout << "IBInterpolantMethod::interpolateVelocity(). This method is not implemented." << std::endl;
+    TBOX_ERROR("IBInterpolantMethod::interpolateVelocity(). This method is not implemented." << std::endl);
     return;
 } // interpolateVelocity
 
@@ -475,28 +475,28 @@ IBInterpolantMethod::interpolateQ()
 void
 IBInterpolantMethod::forwardEulerStep(const double /*current_time*/, const double /*new_time*/)
 {
-    pout << "IBInterpolantMethod::forwardEulerStep(). This method is not implemented." << std::endl;
+    TBOX_ERROR("IBInterpolantMethod::forwardEulerStep(). This method is not implemented." << std::endl);
     return;
 } // forwardEulerStep
 
 void
 IBInterpolantMethod::backwardEulerStep(const double /*current_time*/, const double /*new_time*/)
 {
-    pout << "IBInterpolantMethod::backwardEulerStep(). This method is not implemented." << std::endl;
+    TBOX_ERROR("IBInterpolantMethod::backwardEulerStep(). This method is not implemented." << std::endl);
     return;
 } // backwardEulerStep
 
 void
 IBInterpolantMethod::midpointStep(const double /*current_time*/, const double /*new_time*/)
 {
-    pout << "IBInterpolantMethod::midpointStep(). This method is not implemented." << std::endl;
+    TBOX_ERROR("IBInterpolantMethod::midpointStep(). This method is not implemented." << std::endl);
     return;
 } // midpointStep
 
 void
 IBInterpolantMethod::trapezoidalStep(const double /*current_time*/, const double /*new_time*/)
 {
-    pout << "IBInterpolantMethod::trapezoidalStep(). This method is not implemented." << std::endl;
+    TBOX_ERROR("IBInterpolantMethod::trapezoidalStep(). This method is not implemented." << std::endl);
     return;
 } // trapezoidalStep
 
@@ -576,7 +576,7 @@ IBInterpolantMethod::updateMeshPosition(double current_time,
 void
 IBInterpolantMethod::computeLagrangianForce(double /*data_time*/)
 {
-    pout << "IBInterpolantMethod::computeLagrangianForce(). This method is not implemented." << std::endl;
+    TBOX_ERROR("IBInterpolantMethod::computeLagrangianForce(). This method is not implemented." << std::endl);
     return;
 } // computeLagrangianForce
 
@@ -586,7 +586,7 @@ IBInterpolantMethod::spreadForce(const int /*f_data_idx*/,
                                  const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
                                  const double /*data_time*/)
 {
-    pout << "IBInterpolantMethod::spreadForce(). This method is not implemented." << std::endl;
+    TBOX_ERROR("IBInterpolantMethod::spreadForce(). This method is not implemented." << std::endl);
     return;
 } // spreadForce
 
@@ -679,18 +679,6 @@ IBInterpolantMethod::initializePatchHierarchy(
 
     return;
 } // initializePatchHierarchy
-
-void
-IBInterpolantMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(load_balancer);
-#endif
-    d_load_balancer = load_balancer;
-    d_workload_idx = workload_data_idx;
-    d_l_data_manager->registerLoadBalancer(load_balancer, workload_data_idx);
-    return;
-} // registerLoadBalancer
 
 void
 IBInterpolantMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)

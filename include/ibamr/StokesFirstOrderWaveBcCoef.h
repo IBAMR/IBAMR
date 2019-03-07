@@ -41,16 +41,13 @@
 #include "IntVector.h"
 #include "RobinBcCoefStrategy.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/muParserRobinBcCoefs.h"
 #include "tbox/Pointer.h"
 
 namespace IBAMR
 {
 class AdvDiffHierarchyIntegrator;
 } // namespace IBAMR
-namespace IBTK
-{
-class muParserRobinBcCoefs;
-} // namespace IBTK
 namespace SAMRAI
 {
 namespace geom
@@ -214,7 +211,7 @@ private:
     /*!
      * muparser object for filling boundary conditions other than wave inlet.
      */
-    IBTK::muParserRobinBcCoefs* d_muparser_bcs;
+    IBTK::muParserRobinBcCoefs d_muparser_bcs;
 
     /*!
      * The Cartesian grid geometry object provides the extents of the

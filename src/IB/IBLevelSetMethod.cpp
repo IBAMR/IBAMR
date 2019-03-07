@@ -307,14 +307,6 @@ IBLevelSetMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierar
 } // initializePatchHierarchy
 
 void
-IBLevelSetMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
-{
-    if (d_ib_method_ops) d_ib_method_ops->registerLoadBalancer(load_balancer, workload_data_idx);
-    if (d_ibfe_method_ops) d_ibfe_method_ops->registerLoadBalancer(load_balancer, workload_data_idx);
-    return;
-} // registerLoadBalancer
-
-void
 IBLevelSetMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
 {
     if (d_ib_method_ops) d_ib_method_ops->addWorkloadEstimate(hierarchy, workload_data_idx);

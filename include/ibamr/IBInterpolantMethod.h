@@ -308,13 +308,6 @@ public:
         bool initial_time) override;
 
     /*!
-     * Register a load balancer and work load patch data index with the IB
-     * strategy object.
-     */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
-                              int workload_data_idx) override;
-
-    /*!
      * Add the estimated computational work from the current object per cell
      * into the specified <code>workload_data_idx</code>.
      */
@@ -475,12 +468,6 @@ protected:
      * Visualization data writers.
      */
     SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> d_silo_writer;
-
-    /*
-     * Nonuniform load balancing data structures.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
-    int d_workload_idx;
 
     /*
      * The object name is used as a handle to databases stored in restart files

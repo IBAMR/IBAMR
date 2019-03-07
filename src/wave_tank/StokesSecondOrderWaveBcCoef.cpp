@@ -42,7 +42,6 @@
 #include "IntVector.h"
 #include "Patch.h"
 #include "ibamr/namespaces.h"
-#include "ibtk/muParserRobinBcCoefs.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -63,7 +62,7 @@ StokesSecondOrderWaveBcCoef::StokesSecondOrderWaveBcCoef(std::string object_name
                                                          Pointer<CartesianGridGeometry<NDIM> > grid_geom)
     : d_object_name(std::move(object_name)),
       d_comp_idx(comp_idx),
-      d_muparser_bcs(new muParserRobinBcCoefs(d_object_name + "::muParser", input_db, grid_geom)),
+      d_muparser_bcs(d_object_name + "::muParser", input_db, grid_geom),
       d_grid_geom(grid_geom)
 {
 #if !defined(NDEBUG)
@@ -78,7 +77,7 @@ StokesSecondOrderWaveBcCoef::StokesSecondOrderWaveBcCoef(std::string object_name
 
 StokesSecondOrderWaveBcCoef::~StokesSecondOrderWaveBcCoef()
 {
-    delete d_muparser_bcs;
+    // intentionally left-blank.
     return;
 } // ~StokesSecondOrderWaveBcCoef
 
@@ -112,7 +111,7 @@ StokesSecondOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef
     const unsigned int location_index = bdry_box.getLocationIndex();
     if (location_index != 0)
     {
-        d_muparser_bcs->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
+        d_muparser_bcs.setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
     }
     else
     {
