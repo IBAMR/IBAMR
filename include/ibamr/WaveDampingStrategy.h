@@ -59,6 +59,8 @@ namespace IBAMR
  * \param ctx is the pointer to WaveDampingStrategy struct.
  */
 
+namespace WaveDampingFunctions
+{
 void callRelaxationZoneCallbackFunction(double current_time,
                                         double new_time,
                                         bool skip_synchronize_new_state_data,
@@ -70,6 +72,7 @@ void callConservedWaveAbsorbingCallbackFunction(double current_time,
                                                 bool skip_synchronize_new_state_data,
                                                 int num_cycles,
                                                 void* ctx);
+} // namespace WaveDampingFunctions
 
 /*!
  * A struct holding the required information used by the wave damping function.

@@ -49,6 +49,8 @@ double MassConservationFunctor::s_newton_max = 3.0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+namespace WaveDampingFunctions
+{
 void
 callRelaxationZoneCallbackFunction(double /*current_time*/,
                                    double /*new_time*/,
@@ -357,6 +359,8 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
     return;
 
 } // callConservedWaveAbsorbingCallbackFunction
+
+} // namespace WaveDampingFunctions
 
 // Functor returning the value and 1st derviative.
 std::pair<double, double>

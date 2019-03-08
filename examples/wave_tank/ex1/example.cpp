@@ -415,8 +415,8 @@ run_example(int argc, char* argv[])
         wave_damper.d_ins_hier_integrator = navier_stokes_integrator;
         wave_damper.d_adv_diff_hier_integrator = adv_diff_integrator;
         wave_damper.d_phi_var = phi_var_gas;
-        time_integrator->registerPostprocessIntegrateHierarchyCallback(&callRelaxationZoneCallbackFunction,
-                                                                       static_cast<void*>(&wave_damper));
+        time_integrator->registerPostprocessIntegrateHierarchyCallback(
+            &WaveDampingFunctions::callRelaxationZoneCallbackFunction, static_cast<void*>(&wave_damper));
 
         RobinBcCoefStrategy<NDIM>* rho_bc_coef = NULL;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("DensityBcCoefs"))
