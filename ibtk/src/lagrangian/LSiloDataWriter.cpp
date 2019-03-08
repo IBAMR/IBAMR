@@ -356,9 +356,7 @@ build_local_curv_block(DBfile* dbfile,
         std::vector<char*> compnames(varplotdepth);
         for (int d = 0; d < varplotdepth; ++d)
         {
-            std::ostringstream stream;
-            stream << "_" << d;
-            const std::string compname = varnames[v] + stream.str();
+            const std::string compname = varnames[v] + "_" + std::to_string(d);
             compnames[d] = strdup(compname.c_str());
         }
 
@@ -580,9 +578,7 @@ build_local_ucd_mesh(DBfile* dbfile,
         std::vector<char*> compnames(varplotdepth);
         for (int d = 0; d < varplotdepth; ++d)
         {
-            std::ostringstream stream;
-            stream << "_" << d;
-            const std::string compname = varnames[v] + stream.str();
+            const std::string compname = varnames[v] + "_" + std::to_string(d);
             compnames[d] = strdup(compname.c_str());
         }
 
@@ -1355,9 +1351,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
             {
                 const int nmarks = d_cloud_nmarks[ln][cloud];
 
-                std::ostringstream stream;
-                stream << "level_" << ln << "_cloud_" << cloud;
-                std::string dirname = stream.str();
+                std::string dirname = "level_" + std::to_string(ln) + "_cloud_" + std::to_string(cloud);
 
                 if (DBMkDir(dbfile, dirname.c_str()) == -1)
                 {
@@ -1397,9 +1391,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                 const IntVector<NDIM>& periodic = d_block_periodic[ln][block];
                 const int ntot = nelem.getProduct();
 
-                std::ostringstream stream;
-                stream << "level_" << ln << "_block_" << block;
-                std::string dirname = stream.str();
+                std::string dirname = "level_" + std::to_string(ln) + "_block_" + std::to_string(block);
 
                 if (DBMkDir(dbfile, dirname.c_str()) == -1)
                 {
@@ -1446,9 +1438,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                     const IntVector<NDIM>& periodic = d_mb_periodic[ln][mb][block];
                     const int ntot = nelem.getProduct();
 
-                    std::ostringstream stream;
-                    stream << "level_" << ln << "_mb_" << mb << "_block_" << block;
-                    std::string dirname = stream.str();
+                    std::string dirname = "level_" + std::to_string(ln) + "_mb_" + std::to_string(mb) + "_block_" + std::to_string(block);
 
                     if (DBMkDir(dbfile, dirname.c_str()) == -1)
                     {
@@ -1492,9 +1482,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                 const std::multimap<int, std::pair<int, int> >& edge_map = d_ucd_mesh_edge_maps[ln][mesh];
                 const size_t ntot = vertices.size();
 
-                std::ostringstream stream;
-                stream << "level_" << ln << "_mesh_" << mesh;
-                std::string dirname = stream.str();
+                std::string dirname = "level_" + std::to_string(ln) + "_mesh_" + std::to_string(mesh);
 
                 if (DBMkDir(dbfile, dirname.c_str()) == -1)
                 {
@@ -1840,9 +1828,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                     current_file_name += temp_buf;
                     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
-                    std::ostringstream stream;
-                    stream << current_file_name << ":level_" << ln << "_cloud_" << cloud << "/mesh";
-                    std::string meshname = stream.str();
+                    std::string meshname = current_file_name + ":level_" + std::to_string(ln) + "_cloud_" + std::to_string(cloud) + "/mesh";
                     auto meshname_ptr = const_cast<char*>(meshname.c_str());
                     int meshtype = DB_POINTMESH;
 
@@ -1866,9 +1852,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                     current_file_name += temp_buf;
                     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
-                    std::ostringstream stream;
-                    stream << current_file_name << ":level_" << ln << "_block_" << block << "/mesh";
-                    std::string meshname = stream.str();
+                    std::string meshname = current_file_name + ":level_" + std::to_string(ln) + "_block_" + std::to_string(block) + "/mesh";
                     auto meshname_ptr = const_cast<char*>(meshname.c_str());
                     int meshtype = meshtypes_per_proc[ln][proc][block];
 
@@ -1897,9 +1881,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
 
                     for (int block = 0; block < nblocks; ++block)
                     {
-                        std::ostringstream stream;
-                        stream << current_file_name << ":level_" << ln << "_mb_" << mb << "_block_" << block << "/mesh";
-                        meshnames[block] = strdup(stream.str().c_str());
+                        meshnames[block] = strdup((current_file_name + ":level_" + std::to_string(ln) + "_mb_" + std::to_string(mb) + "_block_" + std::to_string(block) + "/mesh").c_str());
                     }
 
                     std::string& mb_name = mb_names_per_proc[ln][proc][mb];
@@ -1933,9 +1915,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                     current_file_name += temp_buf;
                     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
-                    std::ostringstream stream;
-                    stream << current_file_name << ":level_" << ln << "_mesh_" << mesh << "/mesh";
-                    std::string meshname = stream.str();
+                    std::string meshname = current_file_name + ":level_" + std::to_string(ln) + "_mesh_" + std::to_string(mesh) + "/mesh";
                     auto meshname_ptr = const_cast<char*>(meshname.c_str());
                     int meshtype = DB_UCDMESH;
 
@@ -1961,18 +1941,13 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                         current_file_name += temp_buf;
                         current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
-                        std::ostringstream varname_stream;
-                        varname_stream << current_file_name << ":level_" << ln << "_cloud_" << cloud << "/"
-                                       << d_var_names[ln][v];
-                        std::string varname = varname_stream.str();
+                        std::string varname = current_file_name + ":level_" + std::to_string(ln) + "_cloud_" + std::to_string(cloud) + "/" + d_var_names[ln][v];
                         auto varname_ptr = const_cast<char*>(varname.c_str());
                         int vartype = DB_POINTVAR;
 
                         std::string& cloud_name = cloud_names_per_proc[ln][proc][cloud];
 
-                        std::ostringstream stream;
-                        stream << cloud_name << "/" << d_var_names[ln][v];
-                        std::string var_name = stream.str();
+                        std::string var_name = cloud_name + "/" + d_var_names[ln][v];
 
                         DBPutMultivar(dbfile, var_name.c_str(), 1, &varname_ptr, &vartype, optlist);
                     }
@@ -1984,18 +1959,13 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                         current_file_name += temp_buf;
                         current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
-                        std::ostringstream varname_stream;
-                        varname_stream << current_file_name << ":level_" << ln << "_block_" << block << "/"
-                                       << d_var_names[ln][v];
-                        std::string varname = varname_stream.str();
+                        std::string varname = current_file_name + ":level_" + std::to_string(ln) + "_block_" + std::to_string(block) + "/" + d_var_names[ln][v];
                         auto varname_ptr = const_cast<char*>(varname.c_str());
                         int vartype = vartypes_per_proc[ln][proc][block];
 
                         std::string& block_name = block_names_per_proc[ln][proc][block];
 
-                        std::ostringstream stream;
-                        stream << block_name << "/" << d_var_names[ln][v];
-                        std::string var_name = stream.str();
+                        std::string var_name = block_name + "/" + d_var_names[ln][v];
 
                         DBPutMultivar(dbfile, var_name.c_str(), 1, &varname_ptr, &vartype, optlist);
                     }
@@ -2012,17 +1982,12 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
 
                         for (int block = 0; block < nblocks; ++block)
                         {
-                            std::ostringstream varname_stream;
-                            varname_stream << current_file_name << ":level_" << ln << "_mb_" << mb << "_block_" << block
-                                           << d_var_names[ln][v];
-                            varnames[block] = strdup(varname_stream.str().c_str());
+                            varnames[block] = strdup((current_file_name + ":level_" + std::to_string(ln) + "_mb_" + std::to_string(mb) + "_block_" + std::to_string(block) + d_var_names[ln][v]).c_str());
                         }
 
                         std::string& mb_name = mb_names_per_proc[ln][proc][mb];
 
-                        std::ostringstream stream;
-                        stream << mb_name << "/" << d_var_names[ln][v];
-                        std::string var_name = stream.str();
+                        std::string var_name = mb_name + "/" + d_var_names[ln][v];
 
                         DBPutMultivar(dbfile,
                                       var_name.c_str(),
@@ -2045,18 +2010,13 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                         current_file_name += temp_buf;
                         current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
-                        std::ostringstream varname_stream;
-                        varname_stream << current_file_name << ":level_" << ln << "_mesh_" << mesh << "/"
-                                       << d_var_names[ln][v];
-                        std::string varname = varname_stream.str();
+                        std::string varname = current_file_name + ":level_" + std::to_string(ln) + "_mesh_" + std::to_string(mesh) + "/" + d_var_names[ln][v];
                         auto varname_ptr = const_cast<char*>(varname.c_str());
                         int vartype = DB_UCDVAR;
 
                         std::string& mesh_name = ucd_mesh_names_per_proc[ln][proc][mesh];
 
-                        std::ostringstream stream;
-                        stream << mesh_name << "/" << d_var_names[ln][v];
-                        std::string var_name = stream.str();
+                        std::string var_name = mesh_name + "/" + d_var_names[ln][v];
 
                         DBPutMultivar(dbfile, var_name.c_str(), 1, &varname_ptr, &vartype, optlist);
                     }
@@ -2107,9 +2067,7 @@ LSiloDataWriter::putToDatabase(Pointer<Database> db)
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        std::ostringstream ln_stream;
-        ln_stream << "_" << ln;
-        const std::string ln_string = ln_stream.str();
+        const std::string ln_string = "_" + std::to_string(ln);
 
         db->putInteger("d_nclouds" + ln_string, d_nclouds[ln]);
         if (d_nclouds[ln] > 0)
@@ -2161,9 +2119,7 @@ LSiloDataWriter::putToDatabase(Pointer<Database> db)
 
             for (int mb = 0; mb < d_nmbs[ln]; ++mb)
             {
-                std::ostringstream mb_stream;
-                mb_stream << "_" << mb;
-                const std::string mb_string = mb_stream.str();
+                const std::string mb_string = "_" + std::to_string(mb);
 
                 db->putInteger("d_mb_nblocks" + ln_string + mb_string, d_mb_nblocks[ln][mb]);
                 if (d_mb_nblocks[ln][mb] > 0)
@@ -2204,9 +2160,7 @@ LSiloDataWriter::putToDatabase(Pointer<Database> db)
 
             for (int mesh = 0; mesh < d_nucd_meshes[ln]; ++mesh)
             {
-                std::ostringstream mesh_stream;
-                mesh_stream << "_" << mesh;
-                const std::string mesh_string = mesh_stream.str();
+                const std::string mesh_string = "_" + std::to_string(mesh);
 
                 std::vector<int> ucd_mesh_vertices_vector;
                 ucd_mesh_vertices_vector.reserve(d_ucd_mesh_vertices[ln][mesh].size());
@@ -2394,9 +2348,7 @@ LSiloDataWriter::getFromRestart()
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        std::ostringstream ln_stream;
-        ln_stream << "_" << ln;
-        const std::string ln_string = ln_stream.str();
+        const std::string ln_string = "_" + std::to_string(ln);
 
         d_nclouds[ln] = db->getInteger("d_nclouds" + ln_string);
         if (d_nclouds[ln] > 0)
@@ -2468,9 +2420,7 @@ LSiloDataWriter::getFromRestart()
             d_mb_first_lag_idx.resize(d_nmbs[ln]);
             for (int mb = 0; mb < d_nmbs[ln]; ++mb)
             {
-                std::ostringstream mb_stream;
-                mb_stream << "_" << mb;
-                const std::string mb_string = mb_stream.str();
+                const std::string mb_string = "_" + std::to_string(mb);
 
                 d_mb_nblocks[ln][mb] = db->getInteger("d_mb_nblocks" + ln_string + mb_string);
                 if (d_mb_nblocks[ln][mb] > 0)
@@ -2523,9 +2473,7 @@ LSiloDataWriter::getFromRestart()
             d_ucd_mesh_edge_maps[ln].resize(d_nucd_meshes[ln]);
             for (int mesh = 0; mesh < d_nucd_meshes[ln]; ++mesh)
             {
-                std::ostringstream mesh_stream;
-                mesh_stream << "_" << mesh;
-                const std::string mesh_string = mesh_stream.str();
+                const std::string mesh_string = "_" + std::to_string(mesh);
 
                 const int ucd_mesh_vertices_vector_size =
                     db->getInteger("ucd_mesh_vertices_vector.size()" + ln_string + mesh_string);

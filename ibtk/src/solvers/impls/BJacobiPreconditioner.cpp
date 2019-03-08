@@ -126,14 +126,11 @@ BJacobiPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVect
     {
         // Setup a SAMRAIVectorReal to correspond to the individual vector
         // component.
-        std::ostringstream str;
-        str << comp;
-
-        SAMRAIVectorReal<NDIM, double> x_comp(x_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
+        SAMRAIVectorReal<NDIM, double> x_comp(x_name + "_component_" + std::to_string(comp), hierarchy, coarsest_ln, finest_ln);
         x_comp.addComponent(
             x.getComponentVariable(comp), x.getComponentDescriptorIndex(comp), x.getControlVolumeIndex(comp));
 
-        SAMRAIVectorReal<NDIM, double> b_comp(b_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
+        SAMRAIVectorReal<NDIM, double> b_comp(b_name + "_component_" + std::to_string(comp), hierarchy, coarsest_ln, finest_ln);
         b_comp.addComponent(
             b.getComponentVariable(comp), b.getComponentDescriptorIndex(comp), b.getControlVolumeIndex(comp));
 

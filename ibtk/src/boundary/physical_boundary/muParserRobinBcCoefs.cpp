@@ -112,9 +112,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
     for (int d = 0; d < 2 * NDIM; ++d)
     {
         std::string key_name;
-        std::ostringstream stream;
-        stream << "_function_" << d;
-        const std::string postfix = stream.str();
+        const std::string postfix = "_function_" + std::to_string(d);
 
         key_name = "acoef" + postfix;
         if (input_db->isString(key_name))
@@ -246,9 +244,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         // The extents of the domain.
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            std::ostringstream stream;
-            stream << d;
-            const std::string postfix = stream.str();
+            const std::string postfix = std::to_string(d);
 
             parser->DefineConst("X_LOWER" + postfix, xLower[d]);
             parser->DefineConst("X_lower" + postfix, xLower[d]);
@@ -314,9 +310,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         parser->DefineVar("t", &d_parser_time);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            std::ostringstream stream;
-            stream << d;
-            const std::string postfix = stream.str();
+            const std::string postfix = std::to_string(d);
             parser->DefineVar("X" + postfix, d_parser_posn.data() + d);
             parser->DefineVar("x" + postfix, d_parser_posn.data() + d);
             parser->DefineVar("X_" + postfix, d_parser_posn.data() + d);
