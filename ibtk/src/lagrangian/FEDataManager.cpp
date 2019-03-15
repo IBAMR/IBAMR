@@ -781,7 +781,7 @@ FEDataManager::spread(const int f_data_idx,
         // Loop over the patches to interpolate nodal values on the FE mesh to
         // the element quadrature points, then spread those values onto the
         // Eulerian grid.
-        boost::multi_array<double, 2> F_node, X_node;
+        boost::multi_array<double, 2> F_node;
         std::vector<double> F_JxW_qp, X_qp;
         int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -800,6 +800,9 @@ FEDataManager::spread(const int f_data_idx,
             // processor is surprisingly expensive, so cache the keys:
             std::vector<quad_key_type> quad_keys(num_active_patch_elems);
 
+            // Cache interpolated positions too:
+            std::vector<boost::multi_array<double, 2> > X_nodes(num_active_patch_elems);
+
             // Setup vectors to store the values of F_JxW and X at the
             // quadrature points.
             unsigned int n_qp_patch = 0;
@@ -807,13 +810,13 @@ FEDataManager::spread(const int f_data_idx,
             {
                 Elem* const elem = patch_elems[e_idx];
                 const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
-                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+                get_values_for_interpolation(X_nodes[e_idx], *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type key = getQuadratureKey(spread_spec.quad_type,
                                                            spread_spec.quad_order,
                                                            spread_spec.use_adaptive_quadrature,
                                                            spread_spec.point_density,
                                                            elem,
-                                                           X_node,
+                                                           X_nodes[e_idx],
                                                            patch_dx_min);
                 quad_keys[e_idx] = key;
                 QBase &qrule = d_quadrature_cache[key];
@@ -833,7 +836,6 @@ FEDataManager::spread(const int f_data_idx,
                 const auto& F_dof_indices = F_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, F_dof_indices);
                 const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
-                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type &key = quad_keys[e_idx];
                 FEBase &X_fe = X_fe_cache[key];
                 FEBase &F_fe = F_fe_cache[key];
@@ -881,7 +883,7 @@ FEDataManager::spread(const int f_data_idx,
                     {
                         for (unsigned int i = 0; i < NDIM; ++i)
                         {
-                            X_qp[NDIM * (qp_offset + qp) + i] += X_node[k][i] * phi_X[k][qp];
+                            X_qp[NDIM * (qp_offset + qp) + i] += X_nodes[e_idx][k][i] * phi_X[k][qp];
                         }
                     }
                 }
@@ -1350,7 +1352,6 @@ FEDataManager::interpWeighted(const int f_data_idx,
         // of the interpolated velocity field onto the FE basis functions.
         F_vec.zero();
         std::vector<DenseVector<double> > F_rhs_e(n_vars);
-        boost::multi_array<double, 2> X_node;
         std::vector<double> F_qp, X_qp;
         int local_patch_num = 0;
         std::vector<libMesh::dof_id_type> dof_id_scratch;
@@ -1370,6 +1371,9 @@ FEDataManager::interpWeighted(const int f_data_idx,
             // processor is surprisingly expensive, so cache the keys:
             std::vector<quad_key_type> quad_keys(num_active_patch_elems);
 
+            // Cache interpolated positions too:
+            std::vector<boost::multi_array<double, 2> > X_nodes(num_active_patch_elems);
+
             // Setup vectors to store the values of F and X at the quadrature
             // points.
             unsigned int n_qp_patch = 0;
@@ -1377,13 +1381,13 @@ FEDataManager::interpWeighted(const int f_data_idx,
             {
                 Elem* const elem = patch_elems[e_idx];
                 const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
-                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+                get_values_for_interpolation(X_nodes[e_idx], *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type key = getQuadratureKey(interp_spec.quad_type,
                                                            interp_spec.quad_order,
                                                            interp_spec.use_adaptive_quadrature,
                                                            interp_spec.point_density,
                                                            elem,
-                                                           X_node,
+                                                           X_nodes[e_idx],
                                                            patch_dx_min);
                 QBase &qrule = d_quadrature_cache[key];
                 n_qp_patch += qrule.n_points();
@@ -1401,8 +1405,6 @@ FEDataManager::interpWeighted(const int f_data_idx,
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
-                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
-                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type &key = quad_keys[e_idx];
                 QBase &qrule = d_quadrature_cache[key];
                 FEBase &X_fe = X_fe_cache[key];
@@ -1438,7 +1440,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                         const double& p_X = phi_X[k][qp];
                         for (unsigned int i = 0; i < NDIM; ++i)
                         {
-                            X_qp[NDIM * (qp_offset + qp) + i] += X_node[k][i] * p_X;
+                            X_qp[NDIM * (qp_offset + qp) + i] += X_nodes[e_idx][k][i] * p_X;
                         }
                     }
                 }
@@ -1476,8 +1478,6 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 {
                     F_rhs_e[i].resize(static_cast<int>(F_dof_indices[i].size()));
                 }
-                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
-                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const quad_key_type &key = quad_keys[e_idx];
                 FEBase &F_fe = F_fe_cache[key];
                 FEMap &fe_map = fe_map_cache[key];
