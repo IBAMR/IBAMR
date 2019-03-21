@@ -975,6 +975,104 @@ get_nodal_dof_indices(const libMesh::DofMap &dof_map,
 #endif
 }
 
+
+/**
+ * Return the maximum edge length of a given element with mapped nodes.
+ *
+ * @p elem The given libMesh element.
+ * @p X_node Mapped coordinates of the nodes.
+ */
+template <class MultiArray>
+inline double
+get_max_edge_length(const libMesh::Elem* const elem, const MultiArray& X_node)
+{
+#ifndef NDEBUG
+    TBOX_ASSERT(elem->n_nodes() == X_node.shape()[0]);
+    TBOX_ASSERT(elem->dim() == X_node.shape()[1]);
+#endif
+    const libMesh::ElemType elem_type = elem->type();
+
+    double max_edge_length_2 = 0.0;
+    // TODO: implement additional element-specific versions as needed.
+    switch (elem_type)
+    {
+    case libMesh::TET4:
+    {
+        // all nodes are connected to all other nodes
+        constexpr unsigned int edge_pairs[6][2] = { { 0, 1 }, { 0, 2 }, { 0, 3 }, { 1, 2 }, { 1, 3 }, { 2, 3 } };
+        for (const unsigned int(&pair)[2] : edge_pairs)
+        {
+            const unsigned int n1 = pair[0];
+            const unsigned int n2 = pair[1];
+            double diff_sq = 0.0;
+            for (unsigned int d = 0; d < 3; ++d) // TET4 implies 3D
+                diff_sq += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
+            max_edge_length_2 = std::max(max_edge_length_2, diff_sq);
+        }
+        break;
+    }
+    case libMesh::HEX8:
+    {
+        // see the connectivity diagram in cell_hex8.h to see why these are the edges
+        constexpr unsigned int edge_pairs[12][2] = { { 0, 1 }, { 0, 3 }, { 0, 4 }, { 1, 2 }, { 1, 5 }, { 2, 3 },
+                                                     { 2, 6 }, { 3, 7 }, { 4, 5 }, { 4, 7 }, { 5, 6 }, { 6, 7 } };
+        for (const unsigned int(&pair)[2] : edge_pairs)
+        {
+            const unsigned int n1 = pair[0];
+            const unsigned int n2 = pair[1];
+            double diff_sq = 0.0;
+            for (unsigned int d = 0; d < 3; ++d) // HEX8 implies 3D
+                diff_sq += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
+            max_edge_length_2 = std::max(max_edge_length_2, diff_sq);
+        }
+        break;
+    }
+    default:
+        // Use the old algorithm in all other cases
+        {
+            const unsigned int n_vertices = elem->n_vertices();
+            if (elem->dim() == 1)
+            {
+                for (unsigned int n1 = 0; n1 < n_vertices; ++n1)
+                {
+                    for (unsigned int n2 = n1 + 1; n2 < n_vertices; ++n2)
+                    {
+                        double diff_sq = 0.0;
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            diff_sq += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
+                        }
+                        max_edge_length_2 = std::max(max_edge_length_2, diff_sq);
+                    }
+                }
+            }
+            else
+            {
+                const unsigned int n_edges = elem->n_edges();
+                for (unsigned int e = 0; e < n_edges; ++e)
+                {
+                    for (unsigned int n1 = 0; n1 < n_vertices; ++n1)
+                    {
+                        if (!elem->is_node_on_edge(n1, e)) continue;
+                        for (unsigned int n2 = n1 + 1; n2 < n_vertices; ++n2)
+                        {
+                            if (!elem->is_node_on_edge(n2, e)) continue;
+                            double diff_sq = 0.0;
+                            for (unsigned int d = 0; d < NDIM; ++d)
+                            {
+                                diff_sq += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
+                            }
+                            max_edge_length_2 = std::max(max_edge_length_2, diff_sq);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return std::sqrt(max_edge_length_2);
+}
+
 /*!
  * Save, in a plain text file, the libMesh partitioning, with the format
  *
