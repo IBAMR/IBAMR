@@ -1,0 +1,6 @@
+New: It is now possible to distribute computational workload in such a way that
+the number of interaction points, rather than the number of Eulerian cells,
+determines the per-processor allocation of cells. This can be done with the new
+class IBTK::BoxPartitioner and is demonstrated in IBFE/explicit/ex4.
+<br>
+(David Wells, 2019/02/19)

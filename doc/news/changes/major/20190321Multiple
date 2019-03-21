@@ -1,0 +1,5 @@
+Improved: Large amounts of code within IBAMR (both implementations and internal
+interfaces) have been cleaned up with C++11 features such as <code>auto</code>,
+<code>std::unique_ptr</code>, and <code>std::vector::data()</code>.
+<br>
+(Aaron Barrett, Jordan Brown, Fuhui Fang, David Wells, 2018/10/04 - 2019/03/21)
