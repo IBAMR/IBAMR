@@ -1,0 +1,5 @@
+Improved: Several parts of the library, like FEDataManager::interpWeighted now
+do a better job caching libMesh data when looping over elements. This makes
+IBAMR codes that use large libMesh meshes much more efficient.
+<br>
+(David Wells, 2019/01/25)
