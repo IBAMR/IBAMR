@@ -187,7 +187,11 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     {
         viz_writers_key_name = "viz_writers";
     }
-    viz_writers_arr = main_db->getStringArray(viz_writers_key_name);
+
+    if (!viz_writers_key_name.empty())
+    {
+        viz_writers_arr = main_db->getStringArray(viz_writers_key_name);
+    }
     if (viz_writers_arr.size() > 0)
     {
         d_viz_writers = std::vector<std::string>(viz_writers_arr.getPointer(),
