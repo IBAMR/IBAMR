@@ -234,13 +234,20 @@ getQuadratureKey(const QuadratureType quad_type,
                  const double dx_min)
 {
     const ElemType elem_type = elem->type();
+#ifndef NDEBUG
     TBOX_ASSERT(elem->p_level() == 0); // higher levels are not implemented
+#endif
     if (use_adaptive_quadrature)
     {
         const double hmax = get_max_edge_length(elem, X_node);
-        const int min_pts = elem->default_order() == FIRST ? 2 : 3;
-        const int npts = std::max(min_pts,
-                                  int(std::ceil(point_density * hmax / dx_min)));
+        int npts = int(std::ceil(point_density * hmax / dx_min));
+        if (npts < 3)
+        {
+            if (elem->default_order() == FIRST)
+                npts = 2;
+            else
+                npts = 3;
+        }
         switch (quad_type)
         {
         case QGAUSS:
