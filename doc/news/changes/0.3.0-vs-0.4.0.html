@@ -1,0 +1,155 @@
+<h2>Incompatibilities</h2>
+<ol>
+  <li>
+    Changed: <code>boost::array</code> has been replaced with the C++11
+    <code>std::array</code>. This change breaks protected member variables in
+    <ul>
+      <li>SCPoissonPointRelaxationFACOperator,</li>
+      <li>IBFEMethod,</li>
+      <li>IBRedundantInitializer,</li>
+    </ul>
+    <br>
+    a constructor of IBRodForceSpec, the IBRedundantInitializer::RodSpec type,
+    and some functions in <code>ibtk_utilities</code>.
+    <br>
+    (David Wells, 2018/09/27)
+    <br>
+  </li>
+
+  <li>
+    Changed: Classes in IBFE (CIBFEMethod, IBFEMethod, IBFESurfaceMethod) now
+    consistently take pointers to <code>libMesh::MeshBase</code> instead of
+    <code>libMesh::Mesh</code>. This supports usage of
+    <code>libMesh::ReplicatedMesh</code>.
+    <br>
+    (David Wells, 2018/10/19)
+  </li>
+
+  <li>
+    Changed: IBAMR now requires that libMesh be built in such a way that
+    <code>libMesh::UniquePtr</code> is the same class as
+    <code>std::unique_ptr</code>.
+    <br>
+    (David Wells, 2018/11/29)
+  </li>
+
+  <li>
+    Changed: IBAMR now requires libMesh version 1.1.0 or newer since parts of
+    IBFE now require the new, as of 1.1.0, class <code>ReplicatedMesh</code>.
+    <br>
+    (David Wells, 2018/12/20)
+  </li>
+
+  <li>
+    Changed: The way that workload estimation is handled in IBAMR has been
+    completely rewritten and is largely incompatible with the previous
+    system. Unfortunately, there was no way to consistently allow multiple objects
+    to contribute workload estimations under the old scheme, so the changes were
+    incompatible. The newer version permits all hierarchy integrators owned by the
+    parent object to add workload contributions (i.e., estimates of work per cell
+    that they do beyond what must already happen on one cell of the Eulerian
+    discretization).
+
+    Classes inheriting from HierarchyIntegrator that need to do work with anything
+    but non-SAMRAI data (e.g., finite element meshes owned by FEDataManager) should
+    override the new HierarchyIntegrator::addWorkloadEstimate method to add their
+    workload estimate on each cell into the same workload array owned by the parent
+    integrator. The parent integrator assumes that the sum of all such workload
+    estimates are a reasonable approximation of the computational work required per
+    cell.
+
+    Many non-hierarchy classes, such as LDataManager, were also modified in this
+    step to use addWorkloadEstimate instead of the previous and ambiguous
+    updateWorkloadEstimates function.
+    <br>
+    (David Wells, 2019/02/13)
+  </li>
+</ol>
+
+<h2>Major Changes</h2>
+<ol>
+  <li>
+    Improved: A large amount of unnecessary parallel communication has been
+    removed by cleaning up the synchronization and localization calls to PETSc
+    vectors. In addition, PETSc communications in the IBFE subsystem are now
+    batched in a much more efficient way which significantly improves
+    performance with multiple parts.
+    <br>
+    (Boyce Griffith, 2018/10/12)
+  </li>
+
+  <li>
+    Improved: Several parts of the library, like FEDataManager::interpWeighted
+    now do a better job caching libMesh data when looping over elements. This
+    makes IBAMR codes that use large libMesh meshes much more efficient.
+    <br>
+    (David Wells, 2019/01/25)
+  </li>
+
+  <li>
+    New: It is now possible to distribute computational workload in such a way
+    that the number of interaction points, rather than the number of Eulerian
+    cells, determines the per-processor allocation of cells. This can be done
+    with the new class IBTK::BoxPartitioner and is demonstrated in
+    IBFE/explicit/ex4.
+    <br>
+    (David Wells, 2019/02/19)
+  </li>
+
+  <li>
+    Improved: Large amounts of code within IBAMR (both implementations and
+    internal interfaces) have been cleaned up with C++11 features such
+    as <code>auto</code>, <code>std::unique_ptr</code>,
+    and <code>std::vector::data()</code>.
+    <br>
+    (Aaron Barrett, Jordan Brown, Fuhui Fang, David Wells, 2018/10/04 - 2019/03/21)
+  </li>
+</ol>
+
+<h2>Minor Changes</h2>
+<ol>
+  <li>
+    Improved: Replaced the use of <code>NumericVector<T>::localize()</code> with
+    a new helper function, <code>copy_and_synch</code>, that is optimized only
+    to communicate ghost data.  Changes have been made in:
+    <ul>
+      <li><code>IBFEMethod</code>,</li>
+      <li><code>FEDataManager</code>,</li>
+      <li><code>FEDataInterpolator</code>
+    </ul>
+    <br>
+    (Boyce Griffith, 2018/10/12)
+  </li>
+
+  <li>
+    Fixed: The <code>clean</code> accidentally deleted a source file. This is
+    now fixed.
+    <br>
+    (Aaron Barrett and David Wells, 2018/10/24)
+  </li>
+
+  <li>
+    New: <code>IBAMR_config.h</code> now defines preprocessor constants
+    <code>IBAMR_VERSION_MINOR</code>, <code>IBAMR_VERSION_MAJOR</code>, and
+    <code>IBAMR_VERSION_SUBMINOR</code>, as well as the version check macro
+    <code>IBAMR_VERSION_GTE</code>.
+    <br>
+    (David Wells, 2018/10/31)
+  </li>
+
+  <li>
+    New: IBTK gained two new functions, IBTK::write_elem_partitioning() and
+    IBTK::write_node_partitioning(), that save the subdomain ids of a libMesh
+    system to a file for visualization.
+    <br>
+    (David Wells, 2018/12/14)
+  </li>
+
+  <li>
+    New: The configuration script now checks to see if libMesh was compiled with
+    PETSc or not. While the configure script correctly failed if this was not
+    the case, the error message it generated was not helpful.
+    <br>
+    (David Wells, 2019/02/21)
+  </li>
+</ol>

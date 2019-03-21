@@ -1,7 +1,0 @@
-Improved: Replaced the use of <code>NumericVector<T>::localize()</code> with a new helper function, <code>copy_and_synch</code>, that is optimized only to communicate ghost data.  Changes have been made in:
-<ul>
-  <li><code>IBFEMethod</code>,</li>
-  <li><code>FEDataManager</code>,</li>
-  <li><code>FEDataInterpolator</code>
-</ul>
-(Boyce Griffith, 2018/10/12)
