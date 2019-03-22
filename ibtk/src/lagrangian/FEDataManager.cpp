@@ -1869,19 +1869,20 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name)
             Elem* const elem = *el_it;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                if (elem->neighbor(side)) continue;
-                const short int dirichlet_bdry_ids =
-                    get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
+                if (elem->neighbor_ptr(side)) continue;
                 static const boundary_id_type dirichlet_bdry_id_set[3] = { ZERO_DISPLACEMENT_X_BDRY_ID,
                                                                            ZERO_DISPLACEMENT_Y_BDRY_ID,
                                                                            ZERO_DISPLACEMENT_Z_BDRY_ID };
+                std::vector<boundary_id_type> bdry_ids;
+                mesh.boundary_info->boundary_ids(elem, side, bdry_ids);
+                const boundary_id_type dirichlet_bdry_ids = get_dirichlet_bdry_ids(bdry_ids);
                 if (!dirichlet_bdry_ids) continue;
                 fe->reinit(elem);
                 for (unsigned int n = 0; n < elem->n_nodes(); ++n)
                 {
                     if (elem->is_node_on_side(n, side))
                     {
-                        Node* node = elem->get_node(n);
+                        const Node* const node = elem->node_ptr(n);
                         const auto& dof_indices = dof_map_cache.dof_indices(elem);
                         for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
                         {
@@ -2002,19 +2003,20 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
             Elem* const elem = *el_it;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                if (elem->neighbor(side)) continue;
-                const short int dirichlet_bdry_ids =
-                    get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
+                if (elem->neighbor_ptr(side)) continue;
                 static const boundary_id_type dirichlet_bdry_id_set[3] = { ZERO_DISPLACEMENT_X_BDRY_ID,
                                                                            ZERO_DISPLACEMENT_Y_BDRY_ID,
                                                                            ZERO_DISPLACEMENT_Z_BDRY_ID };
+                std::vector<boundary_id_type> bdry_ids;
+                mesh.boundary_info->boundary_ids(elem, side, bdry_ids);
+                const boundary_id_type dirichlet_bdry_ids = get_dirichlet_bdry_ids(bdry_ids);
                 if (!dirichlet_bdry_ids) continue;
                 fe->reinit(elem);
                 for (unsigned int n = 0; n < elem->n_nodes(); ++n)
                 {
                     if (elem->is_node_on_side(n, side))
                     {
-                        Node* node = elem->get_node(n);
+                        const Node* const node = elem->node_ptr(n);
                         for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
                         {
                             const unsigned int n_comp = node->n_comp(sys_num, var_num);
@@ -2636,7 +2638,7 @@ FEDataManager::computeActiveElementBoundingBoxes()
         dof_indices.clear();
         for (unsigned int k = 0; k < n_nodes; ++k)
         {
-            Node* node = elem->get_node(k);
+            const Node* const node = elem->node_ptr(k);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 TBOX_ASSERT(node->n_dofs(X_sys_num, d) == 1);
@@ -2855,7 +2857,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
             {
                 for (unsigned int n = 0; n < elem->n_neighbors(); ++n)
                 {
-                    Elem* const nghbr_elem = elem->neighbor(n);
+                    Elem* const nghbr_elem = elem->neighbor_ptr(n);
                     if (nghbr_elem)
                     {
                         const bool is_local_elem = local_elems.find(nghbr_elem) != local_elems.end();
@@ -2969,7 +2971,7 @@ FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
         // DOFs associated with the nodes of the element.
         for (unsigned int k = 0; k < elem->n_nodes(); ++k)
         {
-            Node* node = elem->get_node(k);
+            const Node* const node = elem->node_ptr(k);
             for (unsigned int var_num = 0; var_num < node->n_vars(sys_num); ++var_num)
             {
                 if (node->n_dofs(sys_num, var_num) > 0)
