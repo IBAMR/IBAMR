@@ -146,10 +146,10 @@ namespace
 // Version of IBFEMethod restart file data.
 static const int IBFE_METHOD_VERSION = 1;
 
-inline short int
-get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
+inline boundary_id_type
+get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
 {
-    short int dirichlet_bdry_ids = 0;
+    boundary_id_type dirichlet_bdry_ids = 0;
     for (const auto& bdry_id : bdry_ids)
     {
         if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID ||
@@ -172,8 +172,9 @@ is_physical_bdry(const Elem* elem,
                  const BoundaryInfo& boundary_info,
                  const DofMap& dof_map)
 {
-    const std::vector<short int>& bdry_ids = boundary_info.boundary_ids(elem, side);
-    bool at_physical_bdry = !elem->neighbor(side);
+    std::vector<boundary_id_type> bdry_ids;
+    boundary_info.boundary_ids(elem, side, bdry_ids);
+    bool at_physical_bdry = !elem->neighbor_ptr(side);
     for (const auto& bdry_id : bdry_ids)
     {
         if (dof_map.is_periodic_boundary(bdry_id)) at_physical_bdry = false;
@@ -188,7 +189,8 @@ is_dirichlet_bdry(const Elem* elem,
                   const DofMap& dof_map)
 {
     if (!is_physical_bdry(elem, side, boundary_info, dof_map)) return false;
-    const std::vector<short int>& bdry_ids = boundary_info.boundary_ids(elem, side);
+    std::vector<boundary_id_type> bdry_ids;
+    boundary_info.boundary_ids(elem, side, bdry_ids);
     return get_dirichlet_bdry_ids(bdry_ids) != 0;
 }
 
@@ -1594,21 +1596,22 @@ IBFEMethod::doInitializeFEData(const bool use_present_data)
             Elem* const elem = *el_it;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                const bool at_mesh_bdry = !elem->neighbor(side);
+                const bool at_mesh_bdry = !elem->neighbor_ptr(side);
                 if (!at_mesh_bdry) continue;
 
-                static const short int dirichlet_bdry_id_set[3] = { FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID,
-                                                                    FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID,
-                                                                    FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID };
-                const short int dirichlet_bdry_ids =
-                    get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
+                static const boundary_id_type dirichlet_bdry_id_set[3] = { FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID,
+                                                                           FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID,
+                                                                           FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID };
+                std::vector<boundary_id_type> bdry_ids;
+                mesh.boundary_info->boundary_ids(elem, side, bdry_ids);
+                const boundary_id_type dirichlet_bdry_ids = get_dirichlet_bdry_ids(bdry_ids);
                 if (!dirichlet_bdry_ids) continue;
 
                 for (unsigned int n = 0; n < elem->n_nodes(); ++n)
                 {
                     if (!elem->is_node_on_side(n, side)) continue;
 
-                    Node* node = elem->get_node(n);
+                    const Node* const node = elem->node_ptr(n);
                     mesh.boundary_info->add_node(node, dirichlet_bdry_ids);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -2941,7 +2944,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                 if (is_dirichlet_bdry(elem, side, boundary_info, G_dof_map)) continue;
 
                 // Construct a side element.
-                std::unique_ptr<Elem> side_elem = elem->build_side(side, /*proxy*/ false);
+                std::unique_ptr<Elem> side_elem = elem->build_side_ptr(side, /*proxy*/ false);
                 const bool qrule_changed = d_fe_data_managers[part]->updateSpreadQuadratureRule(
                     qrule_face, d_spread_spec[part], side_elem.get(), X_node, patch_dx_min);
                 if (qrule_changed)
@@ -3208,7 +3211,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 if (is_dirichlet_bdry(elem, side, boundary_info, G_dof_map)) continue;
 
                 // Construct a side element.
-                std::unique_ptr<Elem> side_elem = elem->build_side(side, /*proxy*/ false);
+                std::unique_ptr<Elem> side_elem = elem->build_side_ptr(side, /*proxy*/ false);
                 const unsigned int n_node_side = side_elem->n_nodes();
                 for (int d = 0; d < NDIM; ++d)
                 {
