@@ -243,6 +243,18 @@ public:
         return d_rot_vel_new;
     } // getNewCOMRotVelocity
 
+    void getHydrodynamicForceTorque(Eigen::Vector3d& hydro_force_pressure,
+                                    Eigen::Vector3d& hydro_force_viscous,
+                                    Eigen::Vector3d& hydro_torque_pressure,
+                                    Eigen::Vector3d& hydro_torque_viscous) const
+    {
+        hydro_force_pressure = d_hydro_force_pressure;
+        hydro_force_viscous = d_hydro_force_viscous;
+        hydro_torque_pressure = d_hydro_torque_pressure;
+        hydro_torque_viscous = d_hydro_torque_viscous;
+        return;
+    } // getHydrodynamicForceTorque
+
     /////////////////////////////// PROTECTED ////////////////////////////////////
 
 protected:

@@ -904,6 +904,7 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         int phi_solid_idx =
             var_db->mapVariableAndContextToIndex(phi_var_solid, adv_diff_integrator->getCurrentContext());
         hier_cc_data_ops.copyData(phi_solid_idx, d_idx);
+        navier_stokes_integrator->regridProjection();
 
         if (dump_viz_data)
         {

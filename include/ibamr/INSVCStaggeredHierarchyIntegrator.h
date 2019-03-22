@@ -217,6 +217,11 @@ public:
                                           SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
+     * Pure virtual method to project the velocity field following a regridding operation.
+     */
+    virtual void regridProjection() = 0;
+
+    /*!
      * Virtual method to prepare to advance the data from current_time to new_time.
      */
     virtual void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
@@ -463,11 +468,6 @@ protected:
      * Virtual method to prepare variables for plotting.
      */
     virtual void setupPlotDataSpecialized() override;
-
-    /*!
-     * Pure virtual method to project the velocity field following a regridding operation.
-     */
-    virtual void regridProjection() = 0;
 
     /*!
      * Copy data from a side-centered variable to a face-centered variable.
