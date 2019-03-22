@@ -197,10 +197,10 @@ collect_unique_elems(std::vector<Elem*>& elems, const ContainerOfContainers& ele
     return;
 } // collect_unique_elems
 
-inline short int
-get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
+inline boundary_id_type
+get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
 {
-    short int dirichlet_bdry_ids = 0;
+    boundary_id_type dirichlet_bdry_ids = 0;
     for (const auto& bdry_id : bdry_ids)
     {
         if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID ||
@@ -304,13 +304,13 @@ getQuadratureKey(const QuadratureType quad_type,
 }
 }
 
-const short int FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID = 0x100;
-const short int FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID = 0x200;
-const short int FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID = 0x400;
-const short int FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID = 0x100 | 0x200;
-const short int FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID = 0x100 | 0x400;
-const short int FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID = 0x200 | 0x400;
-const short int FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID = 0x100 | 0x200 | 0x400;
+const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID = 0x100;
+const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID = 0x200;
+const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID = 0x400;
+const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID = 0x100 | 0x200;
+const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID = 0x100 | 0x400;
+const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID = 0x200 | 0x400;
+const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID = 0x100 | 0x200 | 0x400;
 std::map<std::string, FEDataManager*> FEDataManager::s_data_manager_instances;
 bool FEDataManager::s_registered_callback = false;
 unsigned char FEDataManager::s_shutdown_priority = 200;
@@ -1870,11 +1870,11 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name)
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 if (elem->neighbor(side)) continue;
-                static const short int dirichlet_bdry_id_set[3] = { ZERO_DISPLACEMENT_X_BDRY_ID,
-                                                                    ZERO_DISPLACEMENT_Y_BDRY_ID,
-                                                                    ZERO_DISPLACEMENT_Z_BDRY_ID };
                 const short int dirichlet_bdry_ids =
                     get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
+                static const boundary_id_type dirichlet_bdry_id_set[3] = { ZERO_DISPLACEMENT_X_BDRY_ID,
+                                                                           ZERO_DISPLACEMENT_Y_BDRY_ID,
+                                                                           ZERO_DISPLACEMENT_Z_BDRY_ID };
                 if (!dirichlet_bdry_ids) continue;
                 fe->reinit(elem);
                 for (unsigned int n = 0; n < elem->n_nodes(); ++n)
@@ -2003,11 +2003,11 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 if (elem->neighbor(side)) continue;
-                static const short int dirichlet_bdry_id_set[3] = { ZERO_DISPLACEMENT_X_BDRY_ID,
-                                                                    ZERO_DISPLACEMENT_Y_BDRY_ID,
-                                                                    ZERO_DISPLACEMENT_Z_BDRY_ID };
                 const short int dirichlet_bdry_ids =
                     get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
+                static const boundary_id_type dirichlet_bdry_id_set[3] = { ZERO_DISPLACEMENT_X_BDRY_ID,
+                                                                           ZERO_DISPLACEMENT_Y_BDRY_ID,
+                                                                           ZERO_DISPLACEMENT_Z_BDRY_ID };
                 if (!dirichlet_bdry_ids) continue;
                 fe->reinit(elem);
                 for (unsigned int n = 0; n < elem->n_nodes(); ++n)
