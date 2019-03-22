@@ -302,12 +302,12 @@ BoxPartitioner::_do_partition(MeshBase& mesh, const unsigned int n)
     for (const dof_id_type id : local_elem_ids)
     {
         TBOX_ASSERT(id < elem_ids.size());
-        TBOX_ASSERT(elem_ids[id] == current_rank + 1);
+        TBOX_ASSERT(elem_ids[id] == dof_id_type(current_rank + 1));
     }
     for (const dof_id_type id : local_node_ids)
     {
         TBOX_ASSERT(id < node_ids.size());
-        TBOX_ASSERT(node_ids[id] == current_rank + 1);
+        TBOX_ASSERT(node_ids[id] == dof_id_type(current_rank + 1));
     }
 
     TBOX_ASSERT(std::find(elem_ids.begin(), elem_ids.end(), 0) == elem_ids.end());
