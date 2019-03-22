@@ -338,7 +338,17 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     std::vector<std::set<dof_id_type> > temp_node_dof_ID_sets;
     std::vector<std::vector<libMesh::Point> > temp_nodes;
     std::vector<libMesh::Point> meter_centroids;
+    // new API in 1.4.0
+#if 1 <= LIBMESH_MAJOR_VERSION && 4 <= LIBMESH_MINOR_VERSION
+    const std::vector<std::tuple<dof_id_type, boundary_id_type> > node_list = boundary_info.build_node_list();
+    for (const std::tuple<dof_id_type, boundary_id_type>& pair : node_list)
+    {
+        nodes.push_back(std::get<0>(pair));
+        bcs.push_back(std::get<1>(pair));
+    }
+#else
     boundary_info.build_node_list(nodes, bcs);
+#endif
 
     // check to make sure there are node sets to work with
     if (nodes.size() == 0 || bcs.size() == 0 || (nodes.size() != bcs.size()))

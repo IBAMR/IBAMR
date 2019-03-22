@@ -189,7 +189,7 @@ public:
         libMesh::VectorValue<double> f0;
         for (unsigned int d = 0; d < NDIM; ++d) f0(d) = (*system_var_data[0])[d];
         const libMesh::VectorValue<double> f = FF * f0;
-        lambda = f.size() / f0.size();
+        lambda = f.norm() / f0.norm();
         return;
     } // material_axis_stretch_fcn
 

@@ -635,8 +635,8 @@ intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals
         //
         //    a = 0.5*(-p0+p1)
         //    b = 0.5*(p0+p1) - r
-        const libMesh::Point& p0 = *elem->get_node(0);
-        const libMesh::Point& p1 = *elem->get_node(1);
+        const libMesh::Point& p0 = *elem->node_ptr(0);
+        const libMesh::Point& p1 = *elem->node_ptr(1);
         double a, b;
         if (q(0) != 0.0)
         {
@@ -688,9 +688,9 @@ intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals
         //    a = (0.5*p0+0.5*p1-p2)
         //    b = 0.5*(p1-p0)
         //    c = p2-r
-        const libMesh::Point& p0 = *elem->get_node(0);
-        const libMesh::Point& p1 = *elem->get_node(1);
-        const libMesh::Point& p2 = *elem->get_node(2);
+        const libMesh::Point& p0 = *elem->node_ptr(0);
+        const libMesh::Point& p1 = *elem->node_ptr(1);
+        const libMesh::Point& p2 = *elem->node_ptr(2);
         double a, b, c;
         if (q(0) != 0.0)
         {
@@ -775,9 +775,9 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
         //
         // https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
         // http://www.lighthouse3d.com/tutorials/maths/ray-triangle-intersection/
-        const libMesh::Point& p0 = *elem->get_node(0);
-        const libMesh::Point& p1 = *elem->get_node(1);
-        const libMesh::Point& p2 = *elem->get_node(2);
+        const libMesh::Point& p0 = *elem->node_ptr(0);
+        const libMesh::Point& p1 = *elem->node_ptr(1);
+        const libMesh::Point& p2 = *elem->node_ptr(2);
 
         const libMesh::VectorValue<double> e1 = p1 - p0;
         const libMesh::VectorValue<double> e2 = p2 - p0;
@@ -803,10 +803,10 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
     }
     case libMesh::QUAD4:
     {
-        const libMesh::Point& p00 = *elem->get_node(0);
-        const libMesh::Point& p10 = *elem->get_node(1);
-        const libMesh::Point& p11 = *elem->get_node(2);
-        const libMesh::Point& p01 = *elem->get_node(3);
+        const libMesh::Point& p00 = *elem->node_ptr(0);
+        const libMesh::Point& p10 = *elem->node_ptr(1);
+        const libMesh::Point& p11 = *elem->node_ptr(2);
+        const libMesh::Point& p01 = *elem->node_ptr(3);
 
         const libMesh::Point a = p11 - p10 - p01 + p00;
         const libMesh::Point b = p10 - p00;
