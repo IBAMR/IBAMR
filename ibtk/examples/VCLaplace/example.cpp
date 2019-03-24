@@ -129,25 +129,19 @@ run_example(int argc, char* argv[])
         visit_data_writer->registerPlotQuantity(u_cell_var->getName(), "VECTOR", u_cell_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            ostringstream stream;
-            stream << d;
-            visit_data_writer->registerPlotQuantity(u_cell_var->getName() + stream.str(), "SCALAR", u_cell_idx, d);
+            visit_data_writer->registerPlotQuantity(u_cell_var->getName() + std::to_string(d), "SCALAR", u_cell_idx, d);
         }
 
         visit_data_writer->registerPlotQuantity(f_cell_var->getName(), "VECTOR", f_cell_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            ostringstream stream;
-            stream << d;
-            visit_data_writer->registerPlotQuantity(f_cell_var->getName() + stream.str(), "SCALAR", f_cell_idx, d);
+            visit_data_writer->registerPlotQuantity(f_cell_var->getName() + std::to_string(d), "SCALAR", f_cell_idx, d);
         }
 
         visit_data_writer->registerPlotQuantity(e_cell_var->getName(), "VECTOR", e_cell_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            ostringstream stream;
-            stream << d;
-            visit_data_writer->registerPlotQuantity(e_cell_var->getName() + stream.str(), "SCALAR", e_cell_idx, d);
+            visit_data_writer->registerPlotQuantity(e_cell_var->getName() + std::to_string(d), "SCALAR", e_cell_idx, d);
         }
 
 #if (NDIM == 2)

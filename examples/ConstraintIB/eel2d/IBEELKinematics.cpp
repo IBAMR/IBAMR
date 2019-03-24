@@ -94,9 +94,7 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
     std::vector<std::string> deformationvel_function_strings;
     for (int d = 0; d < NDIM; ++d)
     {
-        std::ostringstream stream;
-        stream << "_function_" << d;
-        const std::string postfix = stream.str();
+        const std::string postfix = "_function_" + std::to_string(d);
         std::string key_name = "deformation_velocity" + postfix;
 
         if (input_db->isString(key_name))
@@ -147,9 +145,7 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
         (*cit)->DefineVar("t", &d_parser_time);
         for (int d = 0; d < NDIM; ++d)
         {
-            std::ostringstream stream;
-            stream << d;
-            const std::string postfix = stream.str();
+            const std::string postfix = std::to_string(d);
             (*cit)->DefineVar("X" + postfix, d_parser_posn.data() + d);
             (*cit)->DefineVar("x" + postfix, d_parser_posn.data() + d);
             (*cit)->DefineVar("X_" + postfix, d_parser_posn.data() + d);
@@ -166,9 +162,7 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
     d_food_location.resizeArray(NDIM);
     for (int dim = 0; dim < NDIM; ++dim)
     {
-        std::ostringstream stream;
-        stream << "food_location_in_domain_" << dim;
-        d_food_location[dim] = input_db->getDouble(stream.str());
+        d_food_location[dim] = input_db->getDouble("food_location_in_domain_" + std::to_string(dim));
     }
 
     // set how the immersed body is layout in reference frame.

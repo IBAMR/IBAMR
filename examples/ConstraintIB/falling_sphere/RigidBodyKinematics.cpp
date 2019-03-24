@@ -65,9 +65,7 @@ RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
     // Read-in kinematics velocity functions
     for (int d = 0; d < NDIM; ++d)
     {
-        std::ostringstream stream;
-        stream << "_function_" << d;
-        const std::string postfix = stream.str();
+        const std::string postfix = "_function_" + std::to_string(d);
         std::string key_name = "kinematics_velocity" + postfix;
 
         if (input_db->isString(key_name))
@@ -100,9 +98,7 @@ RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
         (*cit)->DefineVar("t", &d_parser_time);
         for (int d = 0; d < NDIM; ++d)
         {
-            std::ostringstream stream;
-            stream << d;
-            const std::string postfix = stream.str();
+            const std::string postfix = std::to_string(d);
             (*cit)->DefineVar("X" + postfix, d_parser_posn.data() + d);
             (*cit)->DefineVar("x" + postfix, d_parser_posn.data() + d);
             (*cit)->DefineVar("X_" + postfix, d_parser_posn.data() + d);
