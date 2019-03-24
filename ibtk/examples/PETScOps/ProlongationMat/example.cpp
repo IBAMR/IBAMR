@@ -125,25 +125,19 @@ run_example(int argc, char* argv[])
         visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "VECTOR", u_cc_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            ostringstream stream;
-            stream << d;
-            visit_data_writer->registerPlotQuantity(u_cc_var->getName() + stream.str(), "SCALAR", u_cc_idx, d);
+            visit_data_writer->registerPlotQuantity(u_cc_var->getName() + std::to_string(d), "SCALAR", u_cc_idx, d);
         }
 
         visit_data_writer->registerPlotQuantity(f_cc_var->getName(), "VECTOR", f_cc_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            ostringstream stream;
-            stream << d;
-            visit_data_writer->registerPlotQuantity(f_cc_var->getName() + stream.str(), "SCALAR", f_cc_idx, d);
+            visit_data_writer->registerPlotQuantity(f_cc_var->getName() + std::to_string(d), "SCALAR", f_cc_idx, d);
         }
 
         visit_data_writer->registerPlotQuantity(e_cc_var->getName(), "VECTOR", e_cc_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            ostringstream stream;
-            stream << d;
-            visit_data_writer->registerPlotQuantity(e_cc_var->getName() + stream.str(), "SCALAR", e_cc_idx, d);
+            visit_data_writer->registerPlotQuantity(e_cc_var->getName() + std::to_string(d), "SCALAR", e_cc_idx, d);
         }
 
         // Initialize the AMR patch hierarchy.
