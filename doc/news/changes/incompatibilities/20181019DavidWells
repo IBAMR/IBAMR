@@ -1,5 +1,0 @@
-Changed: Classes in IBFE (CIBFEMethod, IBFEMethod, IBFESurfaceMethod) now
-consistently take pointers to <code>libMesh::MeshBase</code> instead of
-<code>libMesh::Mesh</code>. This supports usage of
-<code>libMesh::ReplicatedMesh</code>.
-(David Wells, 2018/10/19)

@@ -1,5 +1,0 @@
-New: The configuration script now checks to see if libMesh was compiled with
-PETSc or not. While the configure script correctly failed if this was not the
-case, the error message it generated was not helpful.
-<br>
-(David Wells, 2019/02/21)

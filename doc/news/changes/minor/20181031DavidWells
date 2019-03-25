@@ -1,6 +1,0 @@
-New: <code>IBAMR_config.h</code> now defines preprocessor constants
-<code>IBAMR_VERSION_MINOR</code>, <code>IBAMR_VERSION_MAJOR</code>, and
-<code>IBAMR_VERSION_SUBMINOR</code>, as well as the version check macro
-<code>IBAMR_VERSION_GTE</code>.
-<br>
-(David Wells, 2018/10/31)

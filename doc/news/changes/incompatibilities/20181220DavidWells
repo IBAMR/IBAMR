@@ -1,3 +1,0 @@
-Changed: IBAMR now requires libMesh version 1.1.0 or newer since parts of IBFE
-now require the new, as of 1.1.0, class <code>ReplicatedMesh</code>.
-(David Wells, 2018/12/20)
