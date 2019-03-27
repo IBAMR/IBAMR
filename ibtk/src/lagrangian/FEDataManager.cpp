@@ -508,8 +508,11 @@ FEDataManager::buildGhostedSolutionVector(const std::string& system_name, const 
     TBOX_ASSERT(sol_vec);
     if (!d_system_ghost_vec.count(system_name))
     {
-        plog << "FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: "
-             << system_name << "\n";
+        if (d_enable_logging)
+        {
+            plog << "FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: "
+                 << system_name << "\n";
+        }
         TBOX_ASSERT(d_active_patch_ghost_dofs.count(system_name));
         std::unique_ptr<NumericVector<double> > sol_ghost_vec = NumericVector<double>::build(sol_vec->comm());
         sol_ghost_vec->init(
@@ -1783,9 +1786,11 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name)
 
     if (!d_L2_proj_solver.count(system_name) || !d_L2_proj_matrix.count(system_name))
     {
-        plog << "FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for "
-                "system: "
-             << system_name << "\n";
+        if (d_enable_logging)
+        {
+            plog << "FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for system: "
+                 << system_name << "\n";
+        }
 
         // Extract the mesh.
         const MeshBase& mesh = d_es->get_mesh();
@@ -1913,10 +1918,11 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
 
     if (!d_L2_proj_matrix_diag.count(system_name))
     {
-        plog << "FEDataManager::buildDiagonalL2MassMatrix(): building diagonal L2 mass matrix "
-                "for "
-                "system: "
-             << system_name << "\n";
+        if (d_enable_logging)
+        {
+            plog << "FEDataManager::buildDiagonalL2MassMatrix(): building diagonal L2 mass matrix for system: "
+                 << system_name << "\n";
+        }
 
         // Extract the mesh.
         const MeshBase& mesh = d_es->get_mesh();

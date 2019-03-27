@@ -1,0 +1,5 @@
+Changed: FEDataManger no longer unconditionally logs some statements: all
+logging is controlled by the same boolean toggled by
+FEDataManager::setLoggingEnabled.
+<br>
+(David Wells, 2019/03/27)
