@@ -430,15 +430,14 @@ bool run_example(int argc, char** argv)
                 const System& position_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
                 time_integrator->setupPlotData();
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+                if (NDIM < 3)
                 {
-                    IBTK::BoxPartitioner partitioner(*patch_hierarchy,
-                                                     position_system);
+                    IBTK::BoxPartitioner partitioner(*patch_hierarchy, position_system);
                     partitioner.writePartitioning("patch-part-" + std::to_string(iteration_num) + ".txt");
+                    // Write partitioning data from libMesh.
+                    IBTK::write_node_partitioning("node-part-" + std::to_string(iteration_num) + ".txt",
+                                                  position_system);
                 }
-
-                // Write partitioning data from libMesh.
-                IBTK::write_node_partitioning("node-part-" + std::to_string(iteration_num) + ".txt",
-                                              position_system);
             }
             if (uses_exodus)
             {
@@ -491,15 +490,13 @@ bool run_example(int argc, char** argv)
                     const System& position_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
                     time_integrator->setupPlotData();
                     visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+                    if (NDIM < 3)
                     {
-                        IBTK::BoxPartitioner partitioner(*patch_hierarchy,
-                                                         position_system);
+                        IBTK::BoxPartitioner partitioner(*patch_hierarchy, position_system);
                         partitioner.writePartitioning("patch-part-" + std::to_string(iteration_num) + ".txt");
+                        IBTK::write_node_partitioning("node-part-" + std::to_string(iteration_num) + ".txt",
+                                                      position_system);
                     }
-
-                    // Write partitioning data from libMesh.
-                    IBTK::write_node_partitioning("node-part-" + std::to_string(iteration_num) + ".txt",
-                                                  position_system);
                 }
                 if (uses_exodus)
                 {
