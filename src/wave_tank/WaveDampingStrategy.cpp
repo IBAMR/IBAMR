@@ -63,6 +63,7 @@ callRelaxationZoneCallbackFunction(double /*current_time*/,
     const double x_zone_end = ptr_wave_damper->d_x_zone_end;
     const double depth = ptr_wave_damper->d_depth;
     const double alpha = ptr_wave_damper->d_alpha;
+    const double sign_gas = ptr_wave_damper->d_sign_gas_phase;
 
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = ptr_wave_damper->d_ins_hier_integrator->getPatchHierarchy();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -108,15 +109,10 @@ callRelaxationZoneCallbackFunction(double /*current_time*/,
                     {
                         double xtilde = (x_posn - x_zone_start) / (x_zone_end - x_zone_start);
                         double gamma = 1.0 - (exp(std::pow(xtilde, alpha)) - 1.0) / (exp(1.0) - 1.0);
+                        const double target = 0.0;
 
-                        if (axis == 0)
+                        if (axis == 0 || axis == dir)
                         {
-                            const double target = 0.0;
-                            (*u_data)(i_side, 0) = gamma * (*u_data)(i_side, 0) + (1.0 - gamma) * target;
-                        }
-                        if (axis == NDIM - 1)
-                        {
-                            const double target = 0.0;
                             (*u_data)(i_side, 0) = gamma * (*u_data)(i_side, 0) + (1.0 - gamma) * target;
                         }
                     }
@@ -148,7 +144,7 @@ callRelaxationZoneCallbackFunction(double /*current_time*/,
                 const auto dir_posn =
                     patch_x_lower[dir] + patch_dx[dir] * (static_cast<double>(i(dir) - patch_lower(dir)) + 0.5);
 
-                const double dir_surface = dir_posn - depth;
+                const double dir_surface = sign_gas*(dir_posn - depth);
 
                 if (x_posn >= x_zone_start && x_posn <= x_zone_end)
                 {
@@ -177,7 +173,8 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
     const double x_zone_start = ptr_wave_damper->d_x_zone_start;
     const double x_zone_end = ptr_wave_damper->d_x_zone_end;
     const double depth = ptr_wave_damper->d_depth;
-
+    const double sign_gas = ptr_wave_damper->d_sign_gas_phase;
+    
     // Initialize the required variables
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const std::string var_name = "callConservedWaveAbsorbingCallbackFunction::I_var";
@@ -331,7 +328,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
 
                 const auto dir_posn =
                     patch_x_lower[dir] + patch_dx[dir] * (static_cast<double>(i(dir) - patch_lower(dir)) + 0.5);
-                const double dir_surface = dir_posn - depth;
+                const double dir_surface = sign_gas*(dir_posn - depth);
 
                 if (x_posn >= x_zone_start && x_posn <= x_zone_end)
                 {

@@ -95,6 +95,7 @@ struct WaveDampingStrategy
      */
     double d_x_zone_start, d_x_zone_end, d_depth;
     double d_alpha;
+    int d_sign_gas_phase = 1;
 };
 
 /*!
