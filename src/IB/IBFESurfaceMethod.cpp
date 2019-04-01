@@ -765,7 +765,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(U_dof_map.variable_type(d) == U_fe_type);
         FEType X_fe_type = X_dof_map.variable_type(0);
         for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
-        TBOX_ASSERT(U_fe_type == X_fe_type);
+      //  TBOX_ASSERT(U_fe_type == X_fe_type);
         boost::array<System*, NDIM> DU_j_system;
         boost::array<const DofMap*, NDIM> DU_j_dof_map;
         boost::array<FEDataManager::SystemDofMapCache*, NDIM> DU_j_dof_map_cache;
@@ -1556,7 +1556,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
-            TBOX_ASSERT(X_dof_map.variable_type(d) == F_fe_type);
+          //  TBOX_ASSERT(X_dof_map.variable_type(d) == F_fe_type);
         }
         std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
         NumericVector<double>& X0_vec = X_system.get_vector("INITIAL_COORDINATES");
@@ -1985,6 +1985,11 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                 std::ostringstream os;
                 os << "X_" << d;
                 X_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                
+                //~ if (d_use_l2_lagrange_family)
+					//~ X_system.add_variable(os.str(), d_fe_order[part], MONOMIAL);
+                //~ else
+					//~ X_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
             X_system.add_vector("INITIAL_COORDINATES", /*projections*/ true, GHOSTED);
 
@@ -1993,6 +1998,11 @@ IBFESurfaceMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "dX_" << d;
+                 //~ if (d_use_l2_lagrange_family)
+					//~ dX_system.add_variable(os.str(), d_fe_order[part], MONOMIAL);
+                //~ else
+					//~ dX_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+					
                 dX_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
@@ -2001,7 +2011,10 @@ IBFESurfaceMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "U_" << d;
-                U_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                if (d_use_l2_lagrange_family)
+					U_system.add_variable(os.str(), d_fe_order[part], L2_LAGRANGE);
+                else
+					U_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
             System& U_n_system = equation_systems->add_system<System>(NORMAL_VELOCITY_SYSTEM_NAME);
@@ -2009,7 +2022,10 @@ IBFESurfaceMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "U_n_" << d;
-                U_n_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                if (d_use_l2_lagrange_family)
+					U_n_system.add_variable(os.str(), d_fe_order[part],  L2_LAGRANGE);
+                else
+					U_n_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
             System& U_t_system = equation_systems->add_system<System>(TANGENTIAL_VELOCITY_SYSTEM_NAME);
@@ -2017,7 +2033,10 @@ IBFESurfaceMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "U_t_" << d;
-                U_t_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                if (d_use_l2_lagrange_family)
+					U_t_system.add_variable(os.str(), d_fe_order[part],  L2_LAGRANGE);
+                else
+					U_t_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
             System& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
@@ -2025,14 +2044,17 @@ IBFESurfaceMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "F_" << d;
-                F_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                if (d_use_l2_lagrange_family)
+					F_system.add_variable(os.str(), d_fe_order[part],  L2_LAGRANGE);
+                else
+					F_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
             if (d_use_pressure_jump_conditions)
             {
                 System& P_j_system = equation_systems->add_system<System>(PRESSURE_JUMP_SYSTEM_NAME);
                 if (d_use_l2_lagrange_family)
-					P_j_system.add_variable("P_j_", d_fe_order[part], L2_LAGRANGE);
+					P_j_system.add_variable("P_j_", d_fe_order[part],  L2_LAGRANGE);
                 else
 					P_j_system.add_variable("P_j_", d_fe_order[part], d_fe_family[part]);
 
@@ -2056,7 +2078,7 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                         std::ostringstream os;
                         os << "DU_j_" << d << "_" << i;
                         if (d_use_l2_lagrange_family)
-							DU_j_system[d]->add_variable(os.str(), d_fe_order[part], L2_LAGRANGE);
+							DU_j_system[d]->add_variable(os.str(), d_fe_order[part],  L2_LAGRANGE);
 						else
 							DU_j_system[d]->add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
                     }
@@ -3958,7 +3980,7 @@ IBFESurfaceMethod::imposePointWiseJumpConditions(const int f_data_idx,
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
-            TBOX_ASSERT(X_dof_map.variable_type(d) == F_fe_type);
+         //   TBOX_ASSERT(X_dof_map.variable_type(d) == F_fe_type);
         }
         std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
       //  NumericVector<double>& X0_vec = X_system.get_vector("INITIAL_COORDINATES");
@@ -4766,6 +4788,7 @@ IBFESurfaceMethod::initializeCoordinates(const unsigned int part)
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>& X_coords = *X_system.solution;
     const bool identity_mapping = !d_coordinate_mapping_fcn_data[part].fcn;
+   
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;
@@ -4786,9 +4809,12 @@ IBFESurfaceMethod::initializeCoordinates(const unsigned int part)
         }
     }
     X_coords.close();
+   
     X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
     X_coords.localize(*X_system.current_local_solution);
     X_coords.localize(X_system.get_vector("INITIAL_COORDINATES"));
+ 
+
     return;
 } // initializeCoordinates
 
@@ -4803,6 +4829,7 @@ IBFESurfaceMethod::updateCoordinateMapping(const unsigned int part)
     System& dX_system = equation_systems->get_system(COORD_MAPPING_SYSTEM_NAME);
     const unsigned int dX_sys_num = dX_system.number();
     NumericVector<double>& dX_coords = *dX_system.solution;
+
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;
