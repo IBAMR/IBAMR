@@ -1985,11 +1985,7 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                 std::ostringstream os;
                 os << "X_" << d;
                 X_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
-                
-                //~ if (d_use_l2_lagrange_family)
-					//~ X_system.add_variable(os.str(), d_fe_order[part], MONOMIAL);
-                //~ else
-					//~ X_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+
             }
             X_system.add_vector("INITIAL_COORDINATES", /*projections*/ true, GHOSTED);
 
@@ -1998,11 +1994,6 @@ IBFESurfaceMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "dX_" << d;
-                 //~ if (d_use_l2_lagrange_family)
-					//~ dX_system.add_variable(os.str(), d_fe_order[part], MONOMIAL);
-                //~ else
-					//~ dX_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
-					
                 dX_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
@@ -2011,8 +2002,12 @@ IBFESurfaceMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "U_" << d;
-                if (d_use_l2_lagrange_family)
+                if (d_use_l2_lagrange_family && d_use_direct_forcing)
 					U_system.add_variable(os.str(), d_fe_order[part], L2_LAGRANGE);
+                else if (d_use_l2_lagrange_family && !d_use_direct_forcing)
+                    TBOX_ERROR(d_object_name << "::IBFESurfaceMethod():\n"
+                                         << " currently l2_Lagrange is only supported in combo with direct forcing"
+                                         << std::endl);
                 else
 					U_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
@@ -2022,7 +2017,7 @@ IBFESurfaceMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "U_n_" << d;
-                if (d_use_l2_lagrange_family)
+                if (d_use_l2_lagrange_family && d_use_direct_forcing)
 					U_n_system.add_variable(os.str(), d_fe_order[part],  L2_LAGRANGE);
                 else
 					U_n_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
@@ -2033,7 +2028,7 @@ IBFESurfaceMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "U_t_" << d;
-                if (d_use_l2_lagrange_family)
+                if (d_use_l2_lagrange_family && d_use_direct_forcing)
 					U_t_system.add_variable(os.str(), d_fe_order[part],  L2_LAGRANGE);
                 else
 					U_t_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
