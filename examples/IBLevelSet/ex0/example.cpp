@@ -376,6 +376,10 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
         const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
+        if (dump_restart_data && (restart_dump_interval > 0) && !restart_dump_dirname.empty())
+        {
+            Utilities::recursiveMkdir(restart_dump_dirname);
+        }
 
         const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
         const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
@@ -534,7 +538,10 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
                            &mesh,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+                           /*register_for_restart*/ true,
+                           restart_dump_dirname,
+                           /*restore_number*/ 0);
         Pointer<IBInterpolantMethod> ib_interpolant_method_ops = new IBInterpolantMethod(
             "IBInterpolantMethod", app_initializer->getComponentDatabase("IBInterpolantMethod"));
         Pointer<IBLevelSetMethod> ib_level_set_method_ops =
@@ -922,7 +929,12 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
             }
         }
 
-        // Deactivate IBFEMethod as we don't need it anymore.
+        // Deactivate IBFEMethod as we don't need it anymore, but get it to
+        // write a restart file first.
+        if (dump_restart_data)
+        {
+            ibfe_method_ops->writeFEDataToRestartFile(restart_dump_dirname, 0);
+        }
         ib_level_set_method_ops->deactivateIBFEMethod();
         ibfe_method_ops.setNull();
 
