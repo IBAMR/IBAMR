@@ -59,6 +59,8 @@
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/system.h"
+#include "libmesh/equation_systems.h"
+#include "libmesh/petsc_vector.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
@@ -173,6 +175,182 @@ public:
     private:
         libMesh::DofMap& d_dof_map;
         std::unordered_map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > > d_dof_cache;
+    };
+
+    class FEPatchData
+    {
+    public:
+        class SystemPatchDataView
+        {
+            // only permit construction from FEPatchData
+        protected:
+            SystemPatchDataView(const FEPatchData &patch_data, const libMesh::System &system)
+                :
+                n_vars(system.n_vars()),
+                d_globally_numbered_elem_dofs(patch_data.d_globally_numbered_elem_dofs.at(system.name())),
+                d_locally_numbered_elem_dofs(patch_data.d_locally_numbered_elem_dofs.at(system.name())),
+                d_elem_dof_start_indices(patch_data.d_elem_dof_start_indices.at(system.name())),
+                d_dofs_per_element(patch_data.d_dofs_per_element.at(system.name()))
+            {}
+
+            /// Actual implementation of the array reference function.
+            boost::const_multi_array_ref<libMesh::dof_id_type, 2>
+            get_ref(const unsigned int e_idx,
+                    const std::vector<libMesh::dof_id_type> &indices) const
+            {
+                std::array<unsigned int, 2> extents;
+                extents[0] = n_vars;
+                extents[1] = d_dofs_per_element[e_idx]/n_vars;
+                boost::const_multi_array_ref<libMesh::dof_id_type, 2> view
+                    (indices.data() + d_elem_dof_start_indices[e_idx], extents);
+                return view;
+            }
+
+        public:
+            /// Return a view into the degrees of freedom, using the global
+            /// ordering, on the current element.
+            boost::const_multi_array_ref<libMesh::dof_id_type, 2> global_elem_dofs(const unsigned int e_idx) const
+            {
+                return get_ref(e_idx, d_globally_numbered_elem_dofs);
+            }
+
+            /// Return a view into the degrees of freedom, using the local
+            /// ordering, on the current element.
+            boost::const_multi_array_ref<libMesh::dof_id_type, 2> local_elem_dofs(const unsigned int e_idx) const
+            {
+                return get_ref(e_idx, d_locally_numbered_elem_dofs);
+            }
+
+        protected:
+            const unsigned int n_vars;
+
+            // References to the relevant arrays.
+            const std::vector<libMesh::dof_id_type> &d_globally_numbered_elem_dofs;
+            const std::vector<libMesh::dof_id_type> &d_locally_numbered_elem_dofs;
+            const std::vector<unsigned int> &d_elem_dof_start_indices;
+            const std::vector<std::uint8_t> &d_dofs_per_element;
+
+            /// Let FEPatchData call the constructor.
+            friend class FEPatchData;
+        };
+
+        /// Constructor.
+        inline
+        FEPatchData(const libMesh::EquationSystems &equation_systems,
+                    std::vector<libMesh::Elem *> active_patch_elems)
+            : d_equation_systems(equation_systems),
+              d_active_patch_elems(std::move(active_patch_elems))
+        {
+            for (unsigned int system_n = 0; system_n < d_equation_systems.n_systems(); ++system_n)
+            {
+                const libMesh::System &system = d_equation_systems.get_system(system_n);
+                const std::string system_name = system.name();
+                const unsigned int n_vars = system.n_vars();
+
+                std::vector<unsigned int> &elem_dof_start_indices = d_elem_dof_start_indices[system_name];
+                std::vector<libMesh::dof_id_type> &globally_numbered_elem_dofs = d_globally_numbered_elem_dofs[system_name];
+                std::vector<libMesh::dof_id_type> &locally_numbered_elem_dofs = d_locally_numbered_elem_dofs[system_name];
+                std::vector<std::uint8_t> &dofs_per_element = d_dofs_per_element[system_name];
+
+                unsigned int elem_dof_start_index = 0;
+
+                const libMesh::DofMap &dof_map = system.get_dof_map();
+                std::vector<libMesh::dof_id_type> elem_dofs;
+
+                // 1. Extract the globally numbered dofs:
+                for (const libMesh::Elem *elem : d_active_patch_elems)
+                {
+                    // TODO: write a better indexing scheme that does not
+                    // require all variables to have the same number of dofs
+                    // per element
+#ifndef NDEBUG
+                    {
+                        dof_map.dof_indices(elem, elem_dofs, 0);
+                        const std::size_t dofs_per_var = elem_dofs.size();
+                        for (unsigned int var_n = 1; var_n < n_vars; ++var_n)
+                        {
+                            dof_map.dof_indices(elem, elem_dofs, var_n);
+                            TBOX_ASSERT(dofs_per_var == elem_dofs.size());
+                        }
+                    }
+#endif
+                    dof_map.dof_indices(elem, elem_dofs);
+                    const std::size_t n_dofs = elem_dofs.size();
+                    TBOX_ASSERT(n_dofs <= std::size_t(std::numeric_limits<std::uint8_t>::max()));
+                    dofs_per_element.push_back(static_cast<std::uint8_t>(n_dofs));
+                    globally_numbered_elem_dofs.insert(globally_numbered_elem_dofs.end(),
+                                                       elem_dofs.begin(), elem_dofs.end());
+                    elem_dof_start_indices.push_back(elem_dof_start_index);
+                    elem_dof_start_index += n_dofs;
+                }
+
+                // 2. Set up the locally numbered dofs (i.e., that will allow
+                // direct indexing into a ghosted vector):
+                const libMesh::dof_id_type first_dof = dof_map.first_dof();
+                const libMesh::dof_id_type end_dof = dof_map.end_dof();
+                std::vector<libMesh::dof_id_type> ib_ghost_dofs;
+                for (const libMesh::dof_id_type dof : globally_numbered_elem_dofs)
+                    if (dof < first_dof || end_dof <= dof)
+                        ib_ghost_dofs.push_back(dof);
+                // TODO: verify that this partitioning is the same as the one
+                // generated elsewhere
+                libMesh::PetscVector<double> ib_ghosted_vector(system.comm(), dof_map.n_dofs(), dof_map.n_local_dofs(),
+                                                               ib_ghost_dofs, libMesh::GHOSTED);
+                locally_numbered_elem_dofs.resize(globally_numbered_elem_dofs.size());
+                std::transform(globally_numbered_elem_dofs.begin(), globally_numbered_elem_dofs.end(),
+                               locally_numbered_elem_dofs.begin(),
+                               [&](const libMesh::dof_id_type dof)
+                               {return ib_ghosted_vector.map_global_to_local_index(dof);});
+            }
+        }
+
+        /// Return the number of elements on the current patch.
+        inline
+        std::size_t n_elems() const
+        {
+            return d_active_patch_elems.size();
+        }
+
+        /// Return the nth element on the current patch.
+        inline
+        libMesh::Elem * elem(const std::size_t index)
+        {
+            return d_active_patch_elems[index];
+        }
+
+        /// Return a 'view' that contains pointers to the relevant arrays for
+        /// the given system.
+        SystemPatchDataView operator[](const std::string &system_name)
+        {
+            return SystemPatchDataView(*this, d_equation_systems.get_system(system_name));
+        }
+
+    protected:
+        /// Reference to relevant equation systems object.
+        const libMesh::EquationSystems &d_equation_systems;
+
+        /// libMesh elements on the current patch.
+        std::vector<libMesh::Elem *> d_active_patch_elems;
+
+        /// Since not all elements necessarily have the same number of
+        /// dofs we store the starting index here.
+        std::map<std::string, std::vector<unsigned int> > d_elem_dof_start_indices;
+
+        // Degrees of freedom, using the global numbering, on a given element
+        // associated with a certain system. These are stored in a contiguous
+        // array and are indexed into array views by SystemPatchDataView.
+        std::map<std::string, std::vector<libMesh::dof_id_type> > d_globally_numbered_elem_dofs;
+
+        // Degrees of freedom, using the local numbering, on a given element
+        // associated with a certain system. These are stored in a contiguous
+        // array and are indexed into array views by SystemPatchDataView.
+        std::map<std::string, std::vector<libMesh::dof_id_type> > d_locally_numbered_elem_dofs;
+
+        /// Degrees of freedom per element per system.
+        std::map<std::string, std::vector<std::uint8_t> > d_dofs_per_element;
+
+        /// Permit access to protected members from system views.
+        friend class SystemPatchDataView;
     };
 
     /*!
