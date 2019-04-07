@@ -135,6 +135,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/utilities/FaceSynchCopyFillPattern.cpp \
 ../src/utilities/FixedSizedStream.cpp \
 ../src/utilities/HierarchyIntegrator.cpp \
+../src/utilities/IBTK_MPI.cpp \
 ../src/utilities/IndexUtilities.cpp \
 ../src/utilities/LMarkerUtilities.cpp \
 ../src/utilities/NodeDataSynchronization.cpp \
@@ -207,6 +208,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/HierarchyGhostCellInterpolation.h \
 ../include/ibtk/HierarchyIntegrator.h \
 ../include/ibtk/HierarchyMathOps.h \
+../include/ibtk/IBTK_MPI.h \
 ../include/ibtk/IndexUtilities.h \
 ../include/ibtk/JacobianOperator.h \
 ../include/ibtk/KrylovLinearSolver.h \

@@ -1,0 +1,6 @@
+New: Added a static MPI utility class to make certain frequent MPI calls
+simpler. The default MPI communicator is MPI_COMM_WORLD but can be changed by a
+function call.
+<br>
+(Aaron Barrett, 2019/04/15)
+ 
