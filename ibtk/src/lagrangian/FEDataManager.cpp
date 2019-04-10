@@ -495,6 +495,7 @@ FEDataManager::reinitElementMappings()
     d_active_patch_ghost_dofs.clear();
     d_active_elem_bboxes.clear();
     d_system_ghost_vec.clear();
+    d_system_ib_ghost_vec.clear();
 
     // also clear any stored matrices:
     d_L2_proj_solver.clear();
@@ -506,6 +507,26 @@ FEDataManager::reinitElementMappings()
     // and use it.
     collectActivePatchElements(d_active_patch_elem_map, d_level_number, d_ghost_width);
     collectActivePatchNodes(d_active_patch_node_map, d_active_patch_elem_map);
+
+    // Reset the sets of dofs corresponding to IB ghost data. This is usually
+    // a superset of the standard (i.e., all dofs on unowned cells adjacent to
+    // locally owned cells) ghost data.
+    std::vector<Elem*> active_elems;
+    collect_unique_elems(active_elems, d_active_patch_elem_map);
+    for (unsigned int system_n = 0; system_n < d_es->n_systems(); ++system_n)
+    {
+        const System& system = d_es->get_system(system_n);
+        std::vector<libMesh::dof_id_type> ib_ghost_dofs;
+        collectGhostDOFIndices(ib_ghost_dofs, active_elems, system.name());
+
+        // Match the expected vector sizes by using the solution for non-ghost
+        // sizes:
+        const NumericVector<double>& solution = *system.solution;
+        std::unique_ptr<PetscVector<double> > exemplar_ib_vector(new PetscVector<double>(
+            system.comm(), solution.size(), solution.local_size(), ib_ghost_dofs, libMesh::GHOSTED));
+        d_active_patch_ghost_dofs[system.name()] = std::move(ib_ghost_dofs);
+        d_system_ib_ghost_vec[system.name()] = std::move(exemplar_ib_vector);
+    }
 
     IBTK_TIMER_STOP(t_reinit_element_mappings);
     return;
@@ -523,19 +544,12 @@ FEDataManager::buildGhostedSolutionVector(const std::string& system_name, const 
     IBTK_TIMER_START(t_build_ghosted_solution_vector);
 
     NumericVector<double>* sol_vec = getSolutionVector(system_name);
+    TBOX_ASSERT(sol_vec);
     if (!d_system_ghost_vec.count(system_name))
     {
         plog << "FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: "
              << system_name << "\n";
-        if (!d_active_patch_ghost_dofs.count(system_name))
-        {
-            plog << "FEDataManager::buildGhostedSolutionVector(): constructing ghost DOF index "
-                    "list for system: "
-                 << system_name << "\n";
-            std::vector<Elem*> active_elems;
-            collect_unique_elems(active_elems, d_active_patch_elem_map);
-            collectGhostDOFIndices(d_active_patch_ghost_dofs[system_name], active_elems, system_name);
-        }
+        TBOX_ASSERT(d_active_patch_ghost_dofs.count(system_name));
         std::unique_ptr<NumericVector<double> > sol_ghost_vec = NumericVector<double>::build(sol_vec->comm());
         sol_ghost_vec->init(
             sol_vec->size(), sol_vec->local_size(), d_active_patch_ghost_dofs[system_name], true, GHOSTED);
@@ -547,6 +561,18 @@ FEDataManager::buildGhostedSolutionVector(const std::string& system_name, const 
     IBTK_TIMER_STOP(t_build_ghosted_solution_vector);
     return sol_ghost_vec;
 } // buildGhostedSolutionVector
+
+std::unique_ptr<PetscVector<double> >
+FEDataManager::buildIBGhostedVector(const std::string& system_name) const
+{
+    TBOX_ASSERT(d_system_ib_ghost_vec.find(system_name) != d_system_ib_ghost_vec.end());
+    const std::unique_ptr<PetscVector<double> >& exemplar_ib_vector = d_system_ib_ghost_vec.at(system_name);
+    TBOX_ASSERT(exemplar_ib_vector);
+    std::unique_ptr<NumericVector<double> > clone = exemplar_ib_vector->zero_clone();
+    PetscVector<double>* ptr = dynamic_cast<PetscVector<double>*>(clone.release());
+    TBOX_ASSERT(ptr);
+    return std::unique_ptr<PetscVector<double> >(ptr);
+}
 
 NumericVector<double>*
 FEDataManager::getCoordsVector() const
