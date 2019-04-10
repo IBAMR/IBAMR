@@ -1,6 +1,0 @@
-Improved: A large amount of unnecessary parallel communication has been removed
-by cleaning up the synchronization and localization calls to PETSc vectors. In
-addition, PETSc communications in the IBFE subsystem are now batched in a much
-more efficient way which significantly improves performance with multiple parts.
-<br>
-(Boyce Griffith, 2018/10/12)
