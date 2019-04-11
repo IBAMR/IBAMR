@@ -550,6 +550,141 @@ FEDataManager::buildGhostedCoordsVector(const bool localize_data)
     return buildGhostedSolutionVector(COORDINATES_SYSTEM_NAME, localize_data);
 } // buildGhostedCoordsVector
 
+/**
+ * @brief Compute the product of the finite element representation of the
+ * force and (optionally) a set of weights (e.g., JxW values) at all
+ * quadrature points on an element. See integrate_elem_rhs for details on the
+ * first two template arguments.
+ *
+ * @tparam weights_are_unity Assume that all values in @p weights are 1. This
+ * value should be true when we are only interpolating values at quadrature
+ * points and otherwise false.
+ *
+ * @param[in] qp_offset Offset used to calculate an index into @p F_w_qp. The
+ * relevant part of the array is assumed to start at <code>n_vars *
+ * qp_offset</code>.
+ *
+ * @param[in] phi_F Values of test functions evaluated at quadrature points,
+ * indexed by test function number and then quadrature point number.
+ *
+ * @param[in] weights Vector containing weights at quadrature points: in the
+ * case of force spreading this is the standard JxW array. If
+ * <code>weights_are_unity</code> is true then its values are assumed to be 1.
+ *
+ * @param[in] F_node Values of the finite element solution (i.e., the
+ * multipliers on each trial function) on the current element.
+ *
+ * @param[out] F_w_qp Globally indexed array containing the product of the
+ * finite element representation of the force and weights at the quadrature
+ * points on the current element. The array is indexed by quadrature point and
+ * then by variable: i.e., if @p n_vars is greater than one then variables of
+ * the vector-valued force being evaluated at a certain quadrature point are
+ * contiguous.
+ */
+template <int n_vars, int n_basis, bool weights_are_unity = false>
+void
+sum_weighted_elem_solution_n_vars_n_basis(const unsigned int qp_offset,
+                                          const std::vector<std::vector<double> >& phi_F,
+                                          const std::vector<double>& weights,
+                                          const boost::multi_array<double, 2>& F_node,
+                                          std::vector<double>& F_w_qp)
+{
+    const unsigned int n_qp = phi_F[0].size();
+    if (n_vars == -1 || n_basis == -1)
+    {
+        const unsigned int n_basis_ = phi_F.size();
+        const unsigned int n_vars_ = F_node.shape()[0];
+        for (unsigned int qp = 0; qp < n_qp; ++qp)
+        {
+            const unsigned int idx = n_vars_ * (qp_offset + qp);
+            for (unsigned int k = 0; k < n_basis_; ++k)
+                for (unsigned int i = 0; i < n_vars_; ++i) F_w_qp[idx + i] += F_node[k][i] * phi_F[k][qp];
+            if (!weights_are_unity)
+                for (unsigned int i = 0; i < n_vars_; ++i) F_w_qp[idx + i] *= weights[qp];
+        }
+    }
+    else
+    {
+        for (unsigned int qp = 0; qp < n_qp; ++qp)
+        {
+            const unsigned int idx = n_vars * (qp_offset + qp);
+            for (unsigned int k = 0; k < n_basis; ++k)
+                for (unsigned int i = 0; i < n_vars; ++i) F_w_qp[idx + i] += F_node[k][i] * phi_F[k][qp];
+            if (!weights_are_unity)
+                for (unsigned int i = 0; i < n_vars; ++i) F_w_qp[idx + i] *= weights[qp];
+        }
+    }
+}
+
+// Dispatch to the above function based on the number of variables and number
+// of basis functions.
+template <int n_vars, bool weights_are_unity = false>
+void
+sum_weighted_elem_solution_n_vars(const unsigned int n_basis,
+                                  const unsigned int qp_offset,
+                                  const std::vector<std::vector<double> >& phi_F,
+                                  const std::vector<double>& weights,
+                                  const boost::multi_array<double, 2>& F_node,
+                                  std::vector<double>& F_w_qp)
+{
+    switch (n_basis)
+    {
+#define SWITCH_CASE(k)                                                                                                 \
+    case k:                                                                                                            \
+    {                                                                                                                  \
+        sum_weighted_elem_solution_n_vars_n_basis<n_vars, k, weights_are_unity>(                                       \
+            qp_offset, phi_F, weights, F_node, F_w_qp);                                                                \
+        return;                                                                                                        \
+    }
+        SWITCH_CASE(1)
+        SWITCH_CASE(2)
+        SWITCH_CASE(3)
+        SWITCH_CASE(4)
+        SWITCH_CASE(5)
+        SWITCH_CASE(6)
+        SWITCH_CASE(8)
+        SWITCH_CASE(10)
+        SWITCH_CASE(27)
+#undef SWITCH_CASE
+    default:
+        sum_weighted_elem_solution_n_vars_n_basis<n_vars, -1, weights_are_unity>(
+            qp_offset, phi_F, weights, F_node, F_w_qp);
+        return;
+    }
+    return;
+}
+
+// Dispatch to the above function based on the number of variables.
+template <bool weights_are_unity = false>
+void
+sum_weighted_elem_solution(const unsigned int n_vars,
+                           const unsigned int n_basis,
+                           const unsigned int qp_offset,
+                           const std::vector<std::vector<double> >& phi_F,
+                           const std::vector<double>& weights,
+                           const boost::multi_array<double, 2>& F_node,
+                           std::vector<double>& F_w_qp)
+{
+    switch (n_vars)
+    {
+#define SWITCH_CASE(k)                                                                                                 \
+    case k:                                                                                                            \
+    {                                                                                                                  \
+        sum_weighted_elem_solution_n_vars<k, weights_are_unity>(n_basis, qp_offset, phi_F, weights, F_node, F_w_qp);   \
+        return;                                                                                                        \
+    }
+        SWITCH_CASE(1)
+        SWITCH_CASE(2)
+        SWITCH_CASE(3)
+        SWITCH_CASE(4)
+        SWITCH_CASE(5)
+#undef SWITCH_CASE
+    default:
+        sum_weighted_elem_solution_n_vars<-1, weights_are_unity>(n_basis, qp_offset, phi_F, weights, F_node, F_w_qp);
+    }
+    return;
+}
+
 void
 FEDataManager::spread(const int f_data_idx,
                       NumericVector<double>& F_vec,
@@ -825,7 +960,6 @@ FEDataManager::spread(const int f_data_idx,
                 Elem* const elem = patch_elems[e_idx];
                 const auto& F_dof_indices = F_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, F_dof_indices);
-                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                 const quad_key_type &key = quad_keys[e_idx];
                 FEBase &X_fe = X_fe_cache[key];
                 FEBase &F_fe = F_fe_cache[key];
@@ -857,28 +991,9 @@ FEDataManager::spread(const int f_data_idx,
                 double* X_begin = &X_qp[NDIM * qp_offset];
                 std::fill(F_begin, F_begin + n_vars * n_qp, 0.0);
                 std::fill(X_begin, X_begin + NDIM * n_qp, 0.0);
-                for (unsigned int k = 0; k < F_dof_indices[0].size(); ++k)
-                {
-                    for (unsigned int qp = 0; qp < n_qp; ++qp)
-                    {
-                        const int idx = n_vars * (qp_offset + qp);
-                        const double p_JxW_F = phi_F[k][qp] * JxW_F[qp];
-                        if (n_vars == NDIM)
-                            for (unsigned int i = 0; i < NDIM; ++i) F_JxW_qp[idx + i] += F_node[k][i] * p_JxW_F;
-                        else
-                            for (unsigned int i = 0; i < n_vars; ++i) F_JxW_qp[idx + i] += F_node[k][i] * p_JxW_F;
-                    }
-                }
-                for (unsigned int k = 0; k < X_dof_indices[0].size(); ++k)
-                {
-                    for (unsigned int qp = 0; qp < n_qp; ++qp)
-                    {
-                        for (unsigned int i = 0; i < NDIM; ++i)
-                        {
-                            X_qp[NDIM * (qp_offset + qp) + i] += X_nodes[e_idx][k][i] * phi_X[k][qp];
-                        }
-                    }
-                }
+
+                sum_weighted_elem_solution</*weights_are_unity*/ false>(n_vars, F_dof_indices[0].size(), qp_offset, phi_F, JxW_F, F_node, F_JxW_qp);
+                sum_weighted_elem_solution</*weights_are_unity*/ true>(NDIM, phi_X.size(), qp_offset, phi_X, {}, X_nodes[e_idx], X_qp);
                 qp_offset += n_qp;
             }
 
@@ -1137,6 +1252,8 @@ FEDataManager::prolongData(const int f_data_idx,
 } // prolongData
 
 /**
+ * @brief Assemble the element contribution to a load vector.
+ *
  * The three functions below allow compile-time selection of the number of
  * basis functions and number of variables. Fixing the loop bounds via
  * templates and switch statements makes most IBFE codes a few percent faster.
