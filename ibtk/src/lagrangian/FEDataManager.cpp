@@ -217,50 +217,6 @@ get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
     return dirichlet_bdry_ids;
 } // get_dirichlet_bdry_ids
 
-inline double
-get_elem_hmax(const Elem* const elem, const boost::multi_array<double, 2>& X_node)
-{
-    double hmax_squared = 0.0;
-    const unsigned int n_vertices = elem->n_vertices();
-    if (elem->dim() == 1)
-    {
-        for (unsigned int n1 = 0; n1 < n_vertices; ++n1)
-        {
-            for (unsigned int n2 = n1 + 1; n2 < n_vertices; ++n2)
-            {
-                double diff_sq = 0.0;
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    diff_sq += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
-                }
-                hmax_squared = std::max(hmax_squared, diff_sq);
-            }
-        }
-    }
-    else
-    {
-        const unsigned int n_edges = elem->n_edges();
-        for (unsigned int e = 0; e < n_edges; ++e)
-        {
-            for (unsigned int n1 = 0; n1 < n_vertices; ++n1)
-            {
-                if (!elem->is_node_on_edge(n1, e)) continue;
-                for (unsigned int n2 = n1 + 1; n2 < n_vertices; ++n2)
-                {
-                    if (!elem->is_node_on_edge(n2, e)) continue;
-                    double diff_sq = 0.0;
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        diff_sq += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
-                    }
-                    hmax_squared = std::max(hmax_squared, diff_sq);
-                }
-            }
-        }
-    }
-    return std::sqrt(hmax_squared);
-} // get_elem_hmax
-
 /**
  * Return the quadrature key description (see QuadratureCache, FECache, and
  * FEMapCache) of a quadrature rule.
@@ -278,13 +234,20 @@ getQuadratureKey(const QuadratureType quad_type,
                  const double dx_min)
 {
     const ElemType elem_type = elem->type();
+#ifndef NDEBUG
     TBOX_ASSERT(elem->p_level() == 0); // higher levels are not implemented
+#endif
     if (use_adaptive_quadrature)
     {
-        const double hmax = get_elem_hmax(elem, X_node);
-        const int min_pts = elem->default_order() == FIRST ? 2 : 3;
-        const int npts = std::max(min_pts,
-                                  int(std::ceil(point_density * hmax / dx_min)));
+        const double hmax = get_max_edge_length(elem, X_node);
+        int npts = int(std::ceil(point_density * hmax / dx_min));
+        if (npts < 3)
+        {
+            if (elem->default_order() == FIRST)
+                npts = 2;
+            else
+                npts = 3;
+        }
         switch (quad_type)
         {
         case QGAUSS:
