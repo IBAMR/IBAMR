@@ -26,6 +26,7 @@ attest.conf:
 
 tests: lib attest.conf
 	ln -L -f -s $(top_srcdir)/attest $(abs_builddir)
+	@cd $@ && $(MAKE) $(AM_MAKEFLAGS) $@
 .PHONY: tests
 
 install-exec-local:
