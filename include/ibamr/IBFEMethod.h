@@ -835,6 +835,15 @@ protected:
     std::vector<libMesh::PetscVector<double>*> d_Q_half_vecs, d_Q_rhs_vecs, d_Q_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs, d_Phi_rhs_vecs;
 
+    /**
+     * Vectors containing entries for relevant IB ghost data: see
+     * FEDataManager::buildIBGhostedVector.
+     */
+    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_F_IB_solution_vecs;
+    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_Q_IB_solution_vecs;
+    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_U_IB_rhs_vecs;
+    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_X_IB_solution_vecs;
+
     bool d_fe_equation_systems_initialized = false, d_fe_data_initialized = false;
 
     /*
@@ -1010,6 +1019,11 @@ private:
      * being up to date, as is the direct forcing kinematic data.
      */
     void doInitializeFEData(const bool use_present_data);
+
+    /*!
+     * Update the caches of IB-ghosted vectors.
+     */
+    void updateCachedIBGhostedVectors();
 };
 } // namespace IBAMR
 
