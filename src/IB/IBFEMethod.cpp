@@ -43,8 +43,6 @@
 #include <utility>
 #include <vector>
 
-#include <unistd.h>
-
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
 #include "Box.h"
@@ -1697,21 +1695,13 @@ IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const 
         const int n_processes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
         const int current_rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
 
-        std::vector<int> pids(n_processes);
-        pids[current_rank] = getpid();
-        int ierr = MPI_Allreduce(
-            MPI_IN_PLACE, pids.data(),
-            pids.size(), MPI_INT,
-            MPI_SUM, SAMRAI::tbox::SAMRAI_MPI::commWorld);
-        TBOX_ASSERT(ierr == 0);
-
         std::vector<double> workload_per_processor(n_processes);
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy);
         workload_per_processor[current_rank] = hier_cc_data_ops.L1Norm(workload_data_idx, IBTK::invalid_index, true);
 
         const auto right_padding = std::size_t(std::log10(n_processes)) + 1;
 
-        ierr = MPI_Allreduce(
+        int ierr = MPI_Allreduce(
             MPI_IN_PLACE, workload_per_processor.data(),
             workload_per_processor.size(), MPI_DOUBLE,
             MPI_SUM, SAMRAI::tbox::SAMRAI_MPI::commWorld);
@@ -1724,8 +1714,7 @@ IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const 
                                    << std::setw(right_padding) << std::left << rank
                                    << " = "
                                    << long(workload_per_processor[rank])
-                                   << " (pid is " << pids[rank] << ")\n";
-
+                                   << '\n';
             }
         }
 
@@ -1752,7 +1741,7 @@ IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const 
                                    << std::setw(right_padding) << std::left << rank
                                    << " = "
                                    << dofs_per_processor[rank]
-                                   << " (pid is " << pids[rank] << ")\n";
+                                   << '\n';
             }
         }
     }
