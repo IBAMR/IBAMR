@@ -1,0 +1,4 @@
+New: IBAMR now includes attest, a parallel test runner, as well as a small test
+suite. See doc/testrunner.html for more information.
+<br>
+(David Wells, 2019/04/11)
