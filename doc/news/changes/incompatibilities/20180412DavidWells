@@ -1,0 +1,4 @@
+Changed: FEDataManager and IBFEMethod no longer log the PID of the current
+process.
+<br>
+(David Wells, 2019/04/12)
