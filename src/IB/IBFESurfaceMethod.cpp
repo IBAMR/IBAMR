@@ -1071,14 +1071,9 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 
                 }
                 if (local_indices.empty()) continue;
-                Index<NDIM> ic_lower, ic_upper, ic_center;
+                Index<NDIM> ic_center;
+                boost::array<Index<NDIM>, 2> ic_side;   // Lower = 0 , Upper = 1
                 boost::array<boost::array<double, 2>, NDIM> w, wr;
-#if (NDIM == 2)
-                boost::array<double, NDIM> LL, LU, UL, UU;
-#endif
-#if (NDIM == 3)
-                boost::array<double, NDIM> LLL, LUL, ULL, LUU, UUU, ULU, UUL, LLU;
-#endif
                 std::vector<double> U_axis(n_qpoints_patch, 0.0);
                 std::vector<double> U_axis_o(n_qpoints_patch, 0.0);
                 Box<NDIM> side_boxes[NDIM];
@@ -1125,13 +1120,13 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                             x_cell[d] = x_lower_axis[d] + ((ic_center[d] - ilower[d]) + 0.5) * dx[d];
                             if (x[d] <= x_cell[d])
                             {
-                                ic_lower[d] = ic_center[d] - 1;
-                                ic_upper[d] = ic_center[d];
+                                ic_side[d][0] = ic_center[d] - 1;
+                                ic_side[d][1] = ic_center[d];
                             }
                             else
                             {
-                                ic_lower[d] = ic_center[d];
-                                ic_upper[d] = ic_center[d] + 1;
+                                ic_side[d][0] = ic_center[d];
+                                ic_side[d][1] = ic_center[d] + 1;
                             }
 
                             if (x[d] <= x_cell[d])
@@ -1147,128 +1142,84 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                             wr[d][1] = -w[d][1];
                         }
                         boost::multi_array<double, NDIM + 1> Ujump(
-                            boost::extents[range(ic_lower[0], ic_upper[0] + 1)][range(ic_lower[1], ic_upper[1] + 1)]
+                            boost::extents[range(ic_side[0][0], ic_side[0][1] + 1)][range(ic_side[1][0], ic_side[1][1] + 1)]
 #if (NDIM == 3)
-                                          [range(ic_lower[2], ic_upper[2] + 1)]
+                                          [range(ic_side[2][0], ic_side[2][1] + 1)]
 #endif
                                           [range(0, NDIM)]);
-
-#if (NDIM == 2)
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            LL[d] = (n_qp[s * NDIM] * wr[0][1] + n_qp[s * NDIM + 1] * wr[1][1]) * n_qp[s * NDIM + d];
-                            LU[d] = (n_qp[s * NDIM] * wr[0][1] + n_qp[s * NDIM + 1] * wr[1][0]) * n_qp[s * NDIM + d];
-                            UU[d] = (n_qp[s * NDIM] * wr[0][0] + n_qp[s * NDIM + 1] * wr[1][0]) * n_qp[s * NDIM + d];
-                            UL[d] = (n_qp[s * NDIM] * wr[0][0] + n_qp[s * NDIM + 1] * wr[1][1]) * n_qp[s * NDIM + d];
-                        }
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            Ujump[ic_lower[0]][ic_lower[1]][d] =
-                                dx[0] * w[0][0] * w[1][0] *
-                                (LL[0] * DU_j_qp[d][s * NDIM] + LL[1] * DU_j_qp[d][1 + s * NDIM]);
-                            Ujump[ic_upper[0]][ic_lower[1]][d] =
-                                dx[0] * w[0][1] * w[1][0] *
-                                (UL[0] * DU_j_qp[d][s * NDIM] + UL[1] * DU_j_qp[d][1 + s * NDIM]);
-                            Ujump[ic_upper[0]][ic_upper[1]][d] =
-                                dx[0] * w[0][1] * w[1][1] *
-                                (UU[0] * DU_j_qp[d][s * NDIM] + UU[1] * DU_j_qp[d][1 + s * NDIM]);
-                            Ujump[ic_lower[0]][ic_upper[1]][d] =
-                                dx[0] * w[0][0] * w[1][1] *
-                                (LU[0] * DU_j_qp[d][s * NDIM] + LU[1] * DU_j_qp[d][1 + s * NDIM]);
-                        }
-#endif
+                                          
+                        boost::multi_array<double, NDIM + 1> interpCoeff(
+                            boost::extents[range(ic_side[0][0], ic_side[0][1] + 1)][range(ic_side[1][0], ic_side[1][1] + 1)]
 #if (NDIM == 3)
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            LLL[d] = (n_qp[s * NDIM] * wr[0][1] + n_qp[s * NDIM + 1] * wr[1][1] +
-                                      n_qp[s * NDIM + 2] * wr[2][1]) *
-                                     n_qp[s * NDIM + d];
-                            LLU[d] = (n_qp[s * NDIM] * wr[0][1] + n_qp[s * NDIM + 1] * wr[1][1] +
-                                      n_qp[s * NDIM + 2] * wr[2][0]) *
-                                     n_qp[s * NDIM + d];
-                            LUL[d] = (n_qp[s * NDIM] * wr[0][1] + n_qp[s * NDIM + 1] * wr[1][0] +
-                                      n_qp[s * NDIM + 2] * wr[2][1]) *
-                                     n_qp[s * NDIM + d];
-                            ULL[d] = (n_qp[s * NDIM] * wr[0][0] + n_qp[s * NDIM + 1] * wr[1][1] +
-                                      n_qp[s * NDIM + 2] * wr[2][1]) *
-                                     n_qp[s * NDIM + d];
-                            UUL[d] = (n_qp[s * NDIM] * wr[0][0] + n_qp[s * NDIM + 1] * wr[1][0] +
-                                      n_qp[s * NDIM + 2] * wr[2][1]) *
-                                     n_qp[s * NDIM + d];
-                            ULU[d] = (n_qp[s * NDIM] * wr[0][0] + n_qp[s * NDIM + 1] * wr[1][1] +
-                                      n_qp[s * NDIM + 2] * wr[2][0]) *
-                                     n_qp[s * NDIM + d];
-                            UUU[d] = (n_qp[s * NDIM] * wr[0][0] + n_qp[s * NDIM + 1] * wr[1][0] +
-                                      n_qp[s * NDIM + 2] * wr[2][0]) *
-                                     n_qp[s * NDIM + d];
-                            LUU[d] = (n_qp[s * NDIM] * wr[0][1] + n_qp[s * NDIM + 1] * wr[1][0] +
-                                      n_qp[s * NDIM + 2] * wr[2][0]) *
-                                     n_qp[s * NDIM + d];
-                        }
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            Ujump[ic_lower[0]][ic_lower[1]][ic_lower[2]][d] =
-                                dx[0] * w[0][0] * w[1][0] * w[2][0] *
-                                (LLL[0] * DU_j_qp[d][s * NDIM] + LLL[1] * DU_j_qp[d][1 + s * NDIM] +
-                                 LLL[2] * DU_j_qp[d][2 + s * NDIM]);
-
-                            Ujump[ic_upper[0]][ic_lower[1]][ic_lower[2]][d] =
-                                dx[0] * w[0][1] * w[1][0] * w[2][0] *
-                                (ULL[0] * DU_j_qp[d][s * NDIM] + ULL[1] * DU_j_qp[d][1 + s * NDIM] +
-                                 ULL[2] * DU_j_qp[d][2 + s * NDIM]);
-
-                            Ujump[ic_upper[0]][ic_lower[1]][ic_upper[2]][d] =
-                                dx[0] * w[0][1] * w[1][0] * w[2][1] *
-                                (ULU[0] * DU_j_qp[d][s * NDIM] + ULU[1] * DU_j_qp[d][1 + s * NDIM] +
-                                 ULU[2] * DU_j_qp[d][2 + s * NDIM]);
-
-                            Ujump[ic_upper[0]][ic_upper[1]][ic_lower[2]][d] =
-                                dx[0] * w[0][1] * w[1][1] * w[2][0] *
-                                (UUL[0] * DU_j_qp[d][s * NDIM] + UUL[1] * DU_j_qp[d][1 + s * NDIM] +
-                                 UUL[2] * DU_j_qp[d][2 + s * NDIM]);
-
-                            Ujump[ic_lower[0]][ic_upper[1]][ic_lower[2]][d] =
-                                dx[0] * w[0][0] * w[1][1] * w[2][0] *
-                                (LUL[0] * DU_j_qp[d][s * NDIM] + LUL[1] * DU_j_qp[d][1 + s * NDIM] +
-                                 LUL[2] * DU_j_qp[d][2 + s * NDIM]);
-
-                            Ujump[ic_lower[0]][ic_upper[1]][ic_upper[2]][d] =
-                                dx[0] * w[0][0] * w[1][1] * w[2][1] *
-                                (LUU[0] * DU_j_qp[d][s * NDIM] + LUU[1] * DU_j_qp[d][1 + s * NDIM] +
-                                 LUU[2] * DU_j_qp[d][2 + s * NDIM]);
-
-                            Ujump[ic_lower[0]][ic_lower[1]][ic_upper[2]][d] =
-                                dx[0] * w[0][0] * w[1][0] * w[2][1] *
-                                (LLU[0] * DU_j_qp[d][s * NDIM] + LLU[1] * DU_j_qp[d][1 + s * NDIM] +
-                                 LLU[2] * DU_j_qp[d][2 + s * NDIM]);
-
-                            Ujump[ic_upper[0]][ic_upper[1]][ic_upper[2]][d] =
-                                dx[0] * w[0][1] * w[1][1] * w[2][1] *
-                                (UUU[0] * DU_j_qp[d][s * NDIM] + UUU[1] * DU_j_qp[d][1 + s * NDIM] +
-                                 UUU[2] * DU_j_qp[d][2 + s * NDIM]);
-                        }
+                                          [range(ic_side[2][0], ic_side[2][1] + 1)]
 #endif
+                                          [range(0, NDIM)]);
+                                          
+                                                                 
+                        VectorValue<double> norm_vec, du_jump, wrc;
+						// Loop over indices to calculate the interp coefficients (Lower=0, Upper=1)
+
+						Box<NDIM> stencil_box(ic_side[0], ic_side[1]);
+
+
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+							for (BoxIterator<NDIM> b(stencil_box); b; b++)
+							{
+								const Index<NDIM>& ic = b();
+#if (NDIM == 2)
+			                    wrc(0) = wr[0][ic_side[0][1] - ic[0]];
+			                    wrc(1) = wr[1][ic_side[1][1] - ic[1]];
+                                interpCoeff[ic[0]][ic[1]][d] = (norm_vec * wrc) * norm_vec(d);
+#endif
+	
+#if (NDIM == 3)
+			                    wrc(2) = wr[2][ic_side[0][2] - ic[2]];
+								interpCoeff[ic[0]][ic[1]][ic[2]][d] = (norm_vec * wrc) * norm_vec(d);
+#endif	
+							}
+                        }
+                                                
+                        
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+							for (BoxIterator<NDIM> b(stencil_box); b; b++)
+							{
+								const Index<NDIM>& ic = b();
+#if (NDIM == 2)
+								norm_vec = VectorValue<double>(n_qp[s * NDIM], n_qp[s * NDIM + 1]);
+								du_jump = VectorValue<double>(DU_j_qp[d][s * NDIM], DU_j_qp[d][s * NDIM + 1]);
+                                Ujump[ic[0]][ic[1]][d] = dx[0] * w[0][ic[0]] * w[1][ic[1]] * (norm_vec * du_jump) * norm_vec(d);
+#endif
+	
+#if (NDIM == 3)
+								norm_vec = VectorValue<double>(n_qp[s * NDIM], n_qp[s * NDIM + 1], n_qp[s * NDIM + 2]);
+								du_jump = VectorValue<double>(DU_j_qp[d][s * NDIM], DU_j_qp[d][s * NDIM + 1], DU_j_qp[d][s * NDIM + 2]);
+								Ujump[ic[0]][ic[1]][ic[2]][d] = dx[0] * w[0][ic[0]] * w[1][ic[1]] * w[2][ic[2]] * (norm_vec * du_jump) * norm_vec(d);
+#endif	
+							}
+                        }
                         // Accumulate the value of U at the current location.
                         U_axis[s] = 0.0;
-                        Box<NDIM> stencil_box(ic_lower, ic_upper);
+                        
                         for (BoxIterator<NDIM> b(stencil_box); b; b++)
                         {
                             const Index<NDIM>& ic = b();
 #if (NDIM == 2)
 
                             U_axis[s] +=
-                                w[0][ic[0] - ic_lower[0]] * w[1][ic[1] - ic_lower[1]] * u_sc_data_array[ic[0]][ic[1]];
-                            const double nproj = n_qp[s * NDIM + 0] * wr[0][ic_upper[0] - ic[0]] +
-                                                 n_qp[s * NDIM + 1] * wr[1][ic_upper[1] - ic[1]];
+                                w[0][ic[0] - ic_side[0][0]] * w[1][ic[1] - ic_side[1][0]] * u_sc_data_array[ic[0]][ic[1]];
+                            const double nproj = n_qp[s * NDIM + 0] * wr[0][ic_side[0][1] - ic[0]] +
+                                                 n_qp[s * NDIM + 1] * wr[1][ic_side[1][1] - ic[1]];
                             const double CC = (nproj > 0.0) ? Ujump[ic[0]][ic[1]][axis] : 0.0;
                             U_axis[s] -= CC / d_mu;
 #endif
 #if (NDIM == 3)
-                            U_axis[s] += w[0][ic[0] - ic_lower[0]] * w[1][ic[1] - ic_lower[1]] *
-                                         w[2][ic[2] - ic_lower[2]] * u_sc_data_array[ic[0]][ic[1]][ic[2]];
-                            const double nproj = n_qp[s * NDIM + 0] * wr[0][ic_upper[0] - ic[0]] +
-                                                 n_qp[s * NDIM + 1] * wr[1][ic_upper[1] - ic[1]] +
-                                                 n_qp[s * NDIM + 2] * wr[2][ic_upper[2] - ic[2]];
+                            U_axis[s] += w[0][ic[0] - ic_side[0][0]] * w[1][ic[1] - ic_side[1][0]] *
+                                         w[2][ic[2] - ic_side[2][0]] * u_sc_data_array[ic[0]][ic[1]][ic[2]];
+                            const double nproj = n_qp[s * NDIM + 0] * wr[0][ic_side[0][1] - ic[0]] +
+                                                 n_qp[s * NDIM + 1] * wr[1][ic_side[1][1] - ic[1]] +
+                                                 n_qp[s * NDIM + 2] * wr[2][ic_side[2][1] - ic[2]];
                             const double CC = (nproj > 0.0) ? Ujump[ic[0]][ic[1]][ic[2]][axis] : 0.0;
                             U_axis[s] -= CC / d_mu;
 #endif
