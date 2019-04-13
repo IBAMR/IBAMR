@@ -1,6 +1,6 @@
 // Filename: IBFESurfaceMethod.cpp
 // Created on 19 May 2018 by Boyce Griffith
-//
+// Modified on 13  April 2019 by Amin Kolahdouz 
 // Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
@@ -157,14 +157,15 @@ libmesh_restart_file_name(const std::string& restart_dump_dirname,
 const std::string IBFESurfaceMethod::COORDS_SYSTEM_NAME = "IB coordinates system";
 const std::string IBFESurfaceMethod::COORD_MAPPING_SYSTEM_NAME = "IB coordinate mapping system";
 const std::string IBFESurfaceMethod::FORCE_SYSTEM_NAME = "IB force system";
+const std::string IBFESurfaceMethod::VELOCITY_SYSTEM_NAME = "IB velocity system";
 const std::string IBFESurfaceMethod::NORMAL_VELOCITY_SYSTEM_NAME = "IB normal velocity system";
+const std::string IBFESurfaceMethod::TANGENTIAL_VELOCITY_SYSTEM_NAME = "IB tangential velocity system";
 const std::string IBFESurfaceMethod::PRESSURE_JUMP_SYSTEM_NAME = "IB [[p]] system";
 const std::string IBFESurfaceMethod::WSS_O_SYSTEM_NAME = "One sided exterior shear stress system";
 const std::string IBFESurfaceMethod::WSS_I_SYSTEM_NAME = "One sided interior shear stress system";
 const std::string IBFESurfaceMethod::P_O_SYSTEM_NAME = "One sided exterior pressure system";
 const std::string IBFESurfaceMethod::P_I_SYSTEM_NAME = "One sided interior pressure system";
 const std::string IBFESurfaceMethod::TAU_SYSTEM_NAME = "traction system";
-const std::string IBFESurfaceMethod::TANGENTIAL_VELOCITY_SYSTEM_NAME = "IB tangential velocity system";
 const boost::array<std::string, NDIM> IBFESurfaceMethod::VELOCITY_JUMP_SYSTEM_NAME = {
     { "IB velocity [[du]] jump system",
       "IB velocity [[dv]] jump system"
@@ -174,7 +175,6 @@ const boost::array<std::string, NDIM> IBFESurfaceMethod::VELOCITY_JUMP_SYSTEM_NA
 #endif
     }
 };
-const std::string IBFESurfaceMethod::VELOCITY_SYSTEM_NAME = "IB velocity system";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

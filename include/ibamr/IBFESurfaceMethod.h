@@ -1,6 +1,6 @@
 // Filename: IBFESurfaceMethod.h
 // Created on 19 May 2018 by Boyce Griffith
-//
+// Modified on 13  April 2019 by Amin Kolahdouz 
 // Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
@@ -100,6 +100,16 @@ namespace IBAMR
  * \brief Class IBFESurfaceMethod is an implementation of the abstract base
  * class IBStrategy that provides functionality required by the IB method with
  * a finite element representation of a surface mesh.
+ * Additionally an immersed interface method (IIM) has been implemented with calculations
+ * of shear stress, pressure and total fluid traction.
+ * 
+ * References:
+ * Kolahdouz et al., <A HREF="https://arxiv.org/abs/1812.06840"> An Immersed Interface
+ * Method for Faceted Surfaces
+ * 
+ * \note To achieve best accuracy with IIM, using a tight relative convergence threshold 
+ * of 1.0e-10 is recommended for both the Krylov solver of 
+ * the $L^2$ projection steps as well as the subdomain Stokes solve of the NS solver.  
  */
 class IBFESurfaceMethod : public IBStrategy
 {
@@ -301,6 +311,7 @@ public:
     /*!
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval.
+     * \note WSS is computed if the jump(s) in the fluid shear stress is applied.
      */
     void interpolateVelocity(
         int u_data_idx,
@@ -308,13 +319,13 @@ public:
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
         double data_time);
     /*!
-     * Compute the exterior fluid traction for when using the
-     * jump conditions
+     * Compute the exterior fluid traction if all
+     * jump conditions are applied
      */
     void computeFluidTraction(double current_time, unsigned int part = 0);
     /*!
      * Compute the exterior pressure used in the calculation
-     * of the fluid traction
+     * of the fluid traction (pressure jump condition needs to be applied)
      */
     void interpolatePressureForTraction(int p_data_idx, double data_time, unsigned int part = 0);
 
@@ -537,6 +548,18 @@ protected:
 
     /*
      * FE data associated with this object.
+     * d_X_systems: IB coordinates system
+     * d_F_systems: IB force system
+     * d_U_systems: IB velocity system
+     * d_U_n_systems: IB normal velocity system
+     * d_U_t_sytems: IB tangential velocity system
+     * d_P_j_systems: IB pressure jump system [[p]]
+     * d_DU_j_systems:
+     * d_WSS_o_systems: one sided exterior shear stress system
+     * d_WSS_i_systems: one sided interior shear stress system
+     * d_P_o_systems: one sided exterior pressure system
+     * d_P_i_systems: one sided interior pressure system
+     * d_TAU_systems: fluid traction system
      */
     std::vector<libMesh::Mesh*> d_meshes;
     int d_max_level_number;
@@ -554,6 +577,8 @@ protected:
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
+    
+    
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_P_j_half_vecs, d_P_j_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_P_o_half_vecs, d_P_o_IB_ghost_vecs;
