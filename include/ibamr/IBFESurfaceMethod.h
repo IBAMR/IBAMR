@@ -118,8 +118,6 @@ public:
     static const std::string P_I_SYSTEM_NAME;
     static const std::string TAU_SYSTEM_NAME;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > mask_var;
-    int mask_current_idx, mask_new_idx, mask_scratch_idx;
 
     /*!
      * \brief Constructor.
@@ -389,7 +387,7 @@ public:
     /*!
      * \brief Register Eulerian variables with the parent IBHierarchyIntegrator.
      */
-    void registerEulerianVariables();
+    void registerAuxiliaryEulerianVariables();
 
     /*!
      * Initialize Lagrangian data corresponding to the given AMR patch hierarchy
@@ -637,6 +635,10 @@ protected:
     std::string d_libmesh_restart_file_extension;
 
 private:
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > p_aux_var;
+    int p_aux_current_idx, p_aux_new_idx, p_aux_scratch_idx;
+
     /*!
      * \brief Default constructor.
      *

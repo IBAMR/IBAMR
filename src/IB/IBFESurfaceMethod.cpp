@@ -466,52 +466,43 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
 
         // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
         // U^{n+1/2} and U^{n+1} to equal U^{n}.
-        d_X_systems[part]->solution->close();
-        d_X_systems[part]->solution->localize(*d_X_current_vecs[part]);
-        d_X_systems[part]->solution->localize(*d_X_new_vecs[part]);
-        d_X_systems[part]->solution->localize(*d_X_half_vecs[part]);
+        *d_X_current_vecs[part] = *d_X_systems[part]->solution;
+        *d_X_new_vecs[part] = *d_X_current_vecs[part];
+        *d_X_half_vecs[part] = *d_X_current_vecs[part];
 
-        d_U_systems[part]->solution->close();
-        d_U_systems[part]->solution->localize(*d_U_current_vecs[part]);
-        d_U_systems[part]->solution->localize(*d_U_new_vecs[part]);
-        d_U_systems[part]->solution->localize(*d_U_half_vecs[part]);
+        *d_U_current_vecs[part] = *d_U_systems[part]->solution;
+        *d_U_new_vecs[part] = *d_U_current_vecs[part];
+        *d_U_half_vecs[part] = *d_U_current_vecs[part];
 
-        d_U_n_systems[part]->solution->close();
-        d_U_n_systems[part]->solution->localize(*d_U_n_current_vecs[part]);
-        d_U_n_systems[part]->solution->localize(*d_U_n_new_vecs[part]);
-        d_U_n_systems[part]->solution->localize(*d_U_n_half_vecs[part]);
+        *d_U_n_current_vecs[part] = *d_U_n_systems[part]->solution;
+        *d_U_n_new_vecs[part] = *d_U_n_current_vecs[part];
+        *d_U_n_half_vecs[part] = *d_U_n_current_vecs[part];
+        
+        *d_U_t_current_vecs[part] = *d_U_t_systems[part]->solution;
+        *d_U_t_new_vecs[part] = *d_U_t_current_vecs[part];
+        *d_U_t_half_vecs[part] = *d_U_t_current_vecs[part];
 
-        d_U_t_systems[part]->solution->close();
-        d_U_t_systems[part]->solution->localize(*d_U_t_current_vecs[part]);
-        d_U_t_systems[part]->solution->localize(*d_U_t_new_vecs[part]);
-        d_U_t_systems[part]->solution->localize(*d_U_t_half_vecs[part]);
-
-        d_F_systems[part]->solution->close();
-        d_F_systems[part]->solution->localize(*d_F_half_vecs[part]);
+		*d_F_half_vecs[part] = *d_F_systems[part]->solution;
 
         if (d_use_pressure_jump_conditions)
         {
-            d_P_j_systems[part]->solution->close();
-            d_P_j_systems[part]->solution->localize(*d_P_j_half_vecs[part]);
+			*d_P_j_half_vecs[part] = *d_P_j_systems[part]->solution;
         }
 
         if (d_use_velocity_jump_conditions)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                d_DU_j_systems[part][d]->solution->close();
-                d_DU_j_systems[part][d]->solution->localize(*d_DU_j_half_vecs[part][d]);
+				*d_DU_j_half_vecs[part][d] = *d_DU_j_systems[part][d]->solution;
             }
-            d_WSS_o_systems[part]->solution->close();
-            d_WSS_o_systems[part]->solution->localize(*d_WSS_o_half_vecs[part]);
+            
+			*d_WSS_o_half_vecs[part] = *d_WSS_o_systems[part]->solution;
+			*d_WSS_i_half_vecs[part] = *d_WSS_i_systems[part]->solution;
 
-            d_WSS_i_systems[part]->solution->close();
-            d_WSS_i_systems[part]->solution->localize(*d_WSS_i_half_vecs[part]);
         }
         if (d_use_velocity_jump_conditions && d_use_pressure_jump_conditions)
         {
-            d_TAU_systems[part]->solution->close();
-            d_TAU_systems[part]->solution->localize(*d_TAU_half_vecs[part]);
+			*d_TAU_half_vecs[part] = *d_TAU_systems[part]->solution;
         }
     }
     return;
@@ -538,19 +529,19 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 const Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-                if (!level->checkAllocated(mask_scratch_idx)) level->allocatePatchData(mask_scratch_idx);
+                if (!level->checkAllocated(p_aux_scratch_idx)) level->allocatePatchData(p_aux_scratch_idx);
             }
 
             HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, coarsest_ln, finest_ln);
-            hier_cc_data_ops.copyData(mask_scratch_idx, p_data_idx, /*interior only*/ false);
+            hier_cc_data_ops.copyData(p_aux_scratch_idx, p_data_idx, /*interior only*/ false);
 
             RefineAlgorithm<NDIM> ghost_fill_alg_p;
-            ghost_fill_alg_p.registerRefine(mask_scratch_idx, mask_scratch_idx, mask_scratch_idx, NULL);
+            ghost_fill_alg_p.registerRefine(p_aux_scratch_idx, p_aux_scratch_idx, p_aux_scratch_idx, NULL);
             Pointer<RefineSchedule<NDIM> > ghost_fill_schd_p =
                 ghost_fill_alg_p.createSchedule(d_hierarchy->getPatchLevel(finest_ln));
             ghost_fill_schd_p->fillData(d_half_time);
 			
-            interpolatePressureForTraction(mask_scratch_idx, d_half_time, part);
+            interpolatePressureForTraction(p_aux_scratch_idx, d_half_time, part);
             
             if (d_compute_fluid_traction && d_traction_activation_time <= d_current_time)
             {
@@ -2204,15 +2195,16 @@ IBFESurfaceMethod::initializeFEData()
 } // initializeFEData
 
 void
-IBFESurfaceMethod::registerEulerianVariables()
+IBFESurfaceMethod::registerAuxiliaryEulerianVariables()
 {
 
-
-    mask_var = new CellVariable<NDIM, double>(d_object_name + "::mask");
-    registerVariable(mask_current_idx,
-                     mask_new_idx,
-                     mask_scratch_idx,
-                     mask_var,
+    // This auxiliary variable is used to fill in ghost data
+    // for the pressure calculation between multiple patches 
+    p_aux_var = new CellVariable<NDIM, double>(d_object_name + "::mask");
+    registerVariable(p_aux_current_idx,
+                     p_aux_new_idx,
+                     p_aux_scratch_idx,
+                     p_aux_var,
                      d_ghosts,
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
