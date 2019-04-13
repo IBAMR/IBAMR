@@ -296,7 +296,7 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     }
 #elif (NDIM == 3)
     Eigen::Vector3d T0_rigid = solve_3x3_system((R.transpose()) * T_rigid, d_inertia_tensor_initial);
-    d_rot_vel_new = R * (d_rot_vel_current + dt * T0_rigid);
+    d_rot_vel_new = d_rot_vel_current + dt * R * T0_rigid;
     for (unsigned s = NDIM; s < s_max_free_dofs; ++s)
     {
         if (!d_solve_rigid_vel(s))

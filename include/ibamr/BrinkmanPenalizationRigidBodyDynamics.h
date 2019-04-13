@@ -243,6 +243,16 @@ public:
         return d_rot_vel_new;
     } // getNewCOMRotVelocity
 
+    const Eigen::Quaterniond& getCurrentQuaternion() const
+    {
+        return d_quaternion_current;
+    } // getCurrentQuaternion
+
+    const Eigen::Quaterniond& getNewQuaternion() const
+    {
+        return d_quaternion_new;
+    } // getNewQuaternion
+
     void getHydrodynamicForceTorque(Eigen::Vector3d& hydro_force_pressure,
                                     Eigen::Vector3d& hydro_force_viscous,
                                     Eigen::Vector3d& hydro_torque_pressure,
