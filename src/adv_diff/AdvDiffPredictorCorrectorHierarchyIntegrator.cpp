@@ -594,7 +594,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
         // Solve for Q(n+1).
         helmholtz_solver->solveSystem(*d_sol_vecs[l], *d_rhs_vecs[l]);
         d_hier_cc_data_ops->copyData(Q_new_idx, Q_scratch_idx);
-        if (d_enable_logging)
+        if (d_enable_logging && d_enable_logging_solver_iterations)
             plog << d_object_name << "::integrateHierarchy(): linear solve number of iterations = "
                  << helmholtz_solver->getNumIterations() << "\n";
         if (d_enable_logging)
