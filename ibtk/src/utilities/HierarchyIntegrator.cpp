@@ -418,8 +418,21 @@ HierarchyIntegrator::regridHierarchy()
 {
     const int coarsest_ln = 0;
 
+    if (d_parent_integrator != nullptr)
+    {
+        TBOX_WARNING(d_object_name << "::regridHierarchy():\n"
+                                   << "  Calling regridHierarchy() on integrators with parent integrators is\n"
+                                   << "  deprecated and will not be permitted in a future version of IBAMR.");
+    }
+
     bool check_volume_change = !d_parent_integrator && d_hierarchy_is_initialized;
     const double old_volume = check_volume_change ? d_hier_math_ops->getVolumeOfPhysicalDomain() : 0.0;
+
+    regridHierarchyBeginSpecialized();
+    for (const auto& child_integrator : d_child_integrators)
+    {
+        child_integrator->regridHierarchyBeginSpecialized();
+    }
 
     // Regrid the hierarchy.
     switch (d_regrid_mode)
@@ -449,6 +462,12 @@ HierarchyIntegrator::regridHierarchy()
                           << "    old volume = " << old_volume << "\n"
                           << "    new volume = " << new_volume << "\n"
                           << "  this may indicate overlapping patches in the AMR grid hierarchy.");
+    }
+
+    regridHierarchyEndSpecialized();
+    for (const auto& child_integrator : d_child_integrators)
+    {
+        child_integrator->regridHierarchyEndSpecialized();
     }
 
     // Reinitialize composite grid data.
@@ -1165,6 +1184,16 @@ HierarchyIntegrator::putToDatabase(Pointer<Database> db)
 } // putToDatabase
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+HierarchyIntegrator::regridHierarchyBeginSpecialized()
+{
+} // regridHierarchyBeginSpecialized
+
+void
+HierarchyIntegrator::regridHierarchyEndSpecialized()
+{
+} // regridHierarchyEndSpecialized
 
 double
 HierarchyIntegrator::getMinimumTimeStepSizeSpecialized()
