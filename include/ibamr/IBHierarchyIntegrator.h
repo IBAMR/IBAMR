@@ -187,12 +187,18 @@ public:
     void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                   SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
-    /*!
-     * Regrid the hierarchy.
-     */
-    void regridHierarchy() override;
-
 protected:
+    /*!
+     * Perform necessary data movement, workload estimation, and logging prior
+     * to regridding.
+     */
+    void regridHierarchyBeginSpecialized() override;
+
+    /*!
+     * Perform necessary data movement and logging after regridding.
+     */
+    void regridHierarchyEndSpecialized() override;
+
     /*!
      * The constructor for class IBHierarchyIntegrator sets some default values,
      * reads in configuration information from input and restart databases, and
