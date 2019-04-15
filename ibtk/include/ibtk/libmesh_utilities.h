@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/IBTK_CHKERRQ.h"
 #include "libmesh/dof_map.h"
 #include "libmesh/dof_object.h"
 #include "libmesh/edge.h"
@@ -47,7 +48,6 @@
 #include "libmesh/type_tensor.h"
 #include "libmesh/type_vector.h"
 #include "libmesh/vector_value.h"
-#include "ibtk/IBTK_CHKERRQ.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
