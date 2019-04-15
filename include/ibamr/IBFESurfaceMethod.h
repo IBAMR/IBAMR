@@ -126,9 +126,10 @@ public:
     static const std::string P_SYSTEM_NAME;
     static const std::string TAU_SYSTEM_NAME;
 
+
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > mask_var;
     int mask_current_idx, mask_new_idx, mask_scratch_idx;
-
+    
     /*!
      * \brief Constructor.
      */
@@ -318,7 +319,7 @@ public:
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
         double data_time);
-
+        
     /*!
      * Compute the exterior fluid traction if all
      * jump conditions are applied
@@ -498,26 +499,26 @@ protected:
      * Impose weak jump conditions.
      */
     void imposeWeakJumpConditions(const int f_data_idx,
-                                  libMesh::PetscVector<double>& P_jump_ghost_vec,
-                                  boost::array<libMesh::PetscVector<double>*, NDIM>& DU_jump_ghost_vec,
-                                  libMesh::PetscVector<double>& X_ghost_vec,
-                                  const double data_time,
-                                  const unsigned int part);
+                              libMesh::PetscVector<double>& P_jump_ghost_vec,
+                              boost::array<libMesh::PetscVector<double>*, NDIM>& DU_jump_ghost_vec,
+                              libMesh::PetscVector<double>& X_ghost_vec,
+                              const double data_time,
+                              const unsigned int part);
     /*!
      * \brief Helper function for checking possible double-counting
      *  intesection points
      */
-    void checkDoubleCountingIntersection(int axis,
-                                         const double* dx,
-                                         libMesh::VectorValue<double> n,
-                                         const libMesh::Point x,                  // = r + intersections[k].first * q;
-                                         const libMesh::Point& xi,                // = intersections[k].second;
-                                         const SAMRAI::pdat::SideIndex<NDIM> i_s, //(i_c, axis, 0);
-                                         const SAMRAI::pdat::SideIndex<NDIM> i_s_prime, //(i_c, axis, 0);
-                                         const std::vector<libMesh::Point> candidate_coords,
-                                         const std::vector<libMesh::Point> candidate_ref_coords,
-                                         const std::vector<libMesh::VectorValue<double> > candidate_normals,
-                                         bool found_same_intersection_point);
+	void checkDoubleCountingIntersection(int axis,
+										const double* dx,
+										libMesh::VectorValue<double> n,
+										const libMesh::Point x, // = r + intersections[k].first * q;
+										const libMesh::Point& xi,  // = intersections[k].second;
+										const SAMRAI::pdat::SideIndex<NDIM> i_s,  //(i_c, axis, 0);
+										const SAMRAI::pdat::SideIndex<NDIM> i_s_prime,  //(i_c, axis, 0);
+										const std::vector<libMesh::Point> candidate_coords,
+										const std::vector<libMesh::Point> candidate_ref_coords,
+										const std::vector<libMesh::VectorValue<double> > candidate_normals,
+										bool found_same_intersection_point);
     /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
      * mapping function.  If no function is provided, the initial coordinates
@@ -575,8 +576,8 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_P_jump_systems,
-        d_WSS_systems;
+    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems,
+        d_P_jump_systems, d_WSS_systems;
     std::vector<libMesh::System*> d_P_systems, d_TAU_systems;
     std::vector<boost::array<libMesh::System*, NDIM> > d_DU_jump_systems;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
@@ -617,7 +618,8 @@ protected:
     double d_wss_calc_width, d_p_calc_width;
     double d_traction_activation_time;
     bool d_use_l2_lagrange_family;
-
+    
+   
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
      */
