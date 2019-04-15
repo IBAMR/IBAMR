@@ -142,11 +142,6 @@ public:
                                        int num_cycles = 1) override;
 
     /*!
-     * Regrid the patch hierarchy.
-     */
-    void regridHierarchy() override;
-
-    /*!
      * Explicitly remove nullspace components from a solution vector.
      */
     void removeNullSpace(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec);

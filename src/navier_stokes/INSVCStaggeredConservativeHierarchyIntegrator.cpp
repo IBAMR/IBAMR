@@ -836,13 +836,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::postprocessIntegrateHierarchy(con
 } // postprocessIntegrateHierarchy
 
 void
-INSVCStaggeredConservativeHierarchyIntegrator::regridHierarchy()
-{
-    INSVCStaggeredHierarchyIntegrator::regridHierarchy();
-    return;
-} // regridHierarchy
-
-void
 INSVCStaggeredConservativeHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec)
 {
     INSVCStaggeredHierarchyIntegrator::removeNullSpace(sol_vec);
