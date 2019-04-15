@@ -122,12 +122,12 @@ public:
     static const std::string TANGENTIAL_VELOCITY_SYSTEM_NAME;
     static const boost::array<std::string, NDIM> VELOCITY_JUMP_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
-    static const std::string WSS_O_SYSTEM_NAME;
-    static const std::string WSS_I_SYSTEM_NAME;
-    static const std::string P_O_SYSTEM_NAME;
-    static const std::string P_I_SYSTEM_NAME;
+    static const std::string WSS_SYSTEM_NAME;
+    static const std::string P_SYSTEM_NAME;
     static const std::string TAU_SYSTEM_NAME;
 
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > mask_var;
+    int mask_current_idx, mask_new_idx, mask_scratch_idx;
 
     /*!
      * \brief Constructor.
@@ -318,6 +318,7 @@ public:
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
         double data_time);
+
     /*!
      * Compute the exterior fluid traction if all
      * jump conditions are applied
@@ -398,7 +399,7 @@ public:
     /*!
      * \brief Register Eulerian variables with the parent IBHierarchyIntegrator.
      */
-    void registerAuxiliaryEulerianVariables();
+    void registerEulerianVariables();
 
     /*!
      * Initialize Lagrangian data corresponding to the given AMR patch hierarchy
@@ -497,18 +498,26 @@ protected:
      * Impose weak jump conditions.
      */
     void imposeWeakJumpConditions(const int f_data_idx,
-                              libMesh::PetscVector<double>& P_j_ghost_vec,
-                              boost::array<libMesh::PetscVector<double>*, NDIM>& DU_j_ghost_vec,
-                              libMesh::PetscVector<double>& X_ghost_vec,
-                              const double data_time,
-                              const unsigned int part);
-                                  /*!
-     * Impose pointwise jump conditions.
+                                  libMesh::PetscVector<double>& P_jump_ghost_vec,
+                                  boost::array<libMesh::PetscVector<double>*, NDIM>& DU_jump_ghost_vec,
+                                  libMesh::PetscVector<double>& X_ghost_vec,
+                                  const double data_time,
+                                  const unsigned int part);
+    /*!
+     * \brief Helper function for checking possible double-counting
+     *  intesection points
      */
-    void imposePointWiseJumpConditions(const int f_data_idx,
-                              const double data_time,
-                              const unsigned int part);
-
+    void checkDoubleCountingIntersection(int axis,
+                                         const double* dx,
+                                         libMesh::VectorValue<double> n,
+                                         const libMesh::Point x,                  // = r + intersections[k].first * q;
+                                         const libMesh::Point& xi,                // = intersections[k].second;
+                                         const SAMRAI::pdat::SideIndex<NDIM> i_s, //(i_c, axis, 0);
+                                         const SAMRAI::pdat::SideIndex<NDIM> i_s_prime, //(i_c, axis, 0);
+                                         const std::vector<libMesh::Point> candidate_coords,
+                                         const std::vector<libMesh::Point> candidate_ref_coords,
+                                         const std::vector<libMesh::VectorValue<double> > candidate_normals,
+                                         bool found_same_intersection_point);
     /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
      * mapping function.  If no function is provided, the initial coordinates
@@ -553,12 +562,10 @@ protected:
      * d_U_systems: IB velocity system
      * d_U_n_systems: IB normal velocity system
      * d_U_t_sytems: IB tangential velocity system
-     * d_P_j_systems: IB pressure jump system [[p]]
-     * d_DU_j_systems:
-     * d_WSS_o_systems: one sided exterior shear stress system
-     * d_WSS_i_systems: one sided interior shear stress system
-     * d_P_o_systems: one sided exterior pressure system
-     * d_P_i_systems: one sided interior pressure system
+     * d_P_jump_systems: IB pressure jump system [[p]]
+     * d_DU_jump_systems:
+     * d_WSS_systems: one sided interior/exterior shear stress system
+     * d_P_systems: one sided interior/exterior pressure system
      * d_TAU_systems: fluid traction system
      */
     std::vector<libMesh::Mesh*> d_meshes;
@@ -568,10 +575,10 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_WSS_o_systems,
-        d_P_j_systems, d_WSS_i_systems;
-    std::vector<libMesh::System*> d_P_o_systems, d_P_i_systems, d_TAU_systems;
-    std::vector<boost::array<libMesh::System*, NDIM> > d_DU_j_systems;
+    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_P_jump_systems,
+        d_WSS_systems;
+    std::vector<libMesh::System*> d_P_systems, d_TAU_systems;
+    std::vector<boost::array<libMesh::System*, NDIM> > d_DU_jump_systems;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
         d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
@@ -580,12 +587,10 @@ protected:
     
     
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_P_j_half_vecs, d_P_j_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_P_o_half_vecs, d_P_o_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_P_i_half_vecs, d_P_i_IB_ghost_vecs;
-    std::vector<boost::array<libMesh::PetscVector<double>*, NDIM> > d_DU_j_half_vecs, d_DU_j_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_WSS_o_half_vecs, d_WSS_o_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_WSS_i_half_vecs, d_WSS_i_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_P_jump_half_vecs, d_P_jump_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_P_half_vecs, d_P_IB_ghost_vecs;
+    std::vector<boost::array<libMesh::PetscVector<double>*, NDIM> > d_DU_jump_half_vecs, d_DU_jump_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_WSS_half_vecs, d_WSS_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_TAU_half_vecs, d_TAU_IB_ghost_vecs;
 
     bool d_fe_equation_systems_initialized, d_fe_data_initialized;
@@ -599,7 +604,7 @@ protected:
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
     bool d_use_pressure_jump_conditions, d_use_velocity_jump_conditions;
     bool d_compute_fluid_traction;
-    bool d_use_pointwise_jump_imposition;
+    bool d_calculate_interior_side;
     bool d_perturb_fe_mesh_nodes;
     bool d_normalize_pressure_jump;
     std::vector<libMesh::FEFamily> d_fe_family;
@@ -660,9 +665,6 @@ protected:
     std::string d_libmesh_restart_file_extension;
 
 private:
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > p_aux_var;
-    int p_aux_current_idx, p_aux_new_idx, p_aux_scratch_idx;
 
     /*!
      * \brief Default constructor.
