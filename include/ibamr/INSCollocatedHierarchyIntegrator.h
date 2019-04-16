@@ -183,12 +183,14 @@ public:
                                        bool skip_synchronize_new_state_data,
                                        int num_cycles = 1) override;
 
-    /*!
-     * Regrid the patch hierarchy.
-     */
-    void regridHierarchy() override;
-
 protected:
+    /*
+     * Since (unlike the staggered case) there is no local divergence-preserving
+     * interpolation scheme for collocated velocity fields, the velocity must
+     * always be projected onto the grid after regridding. Do that here.
+     */
+    void regridHierarchyEndSpecialized() override;
+
     /*!
      * Determine the largest stable timestep on an individual patch.
      */

@@ -1,0 +1,9 @@
+Fixed: The four Navier-Stokes integrators (INSCollocatedHierarchyIntegrator,
+INSStaggeredHierarchyIntegrator, INSVCStaggeredConservativeHierarchyIntegrator,
+and INSVCStaggeredNonConservativeHierarchyIntegrator) no longer reimplement the
+regridHierarchy function: instead, they use the new
+regridHierarchyBeginSpecialized and regridHierarchyEndSpecialized functions to
+do the same work. This fixes a bug where regridProjection would not necessarily
+be called when an NSE integrator was a child integrator.
+<br>
+(David Wells, 2019/04/16)

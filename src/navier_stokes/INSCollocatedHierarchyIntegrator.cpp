@@ -1534,40 +1534,14 @@ INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
     return;
 } // postprocessIntegrateHierarchy
 
-void
-INSCollocatedHierarchyIntegrator::regridHierarchy()
-{
-    const int coarsest_ln = 0;
-
-    // Regrid the hierarchy.
-    switch (d_regrid_mode)
-    {
-    case STANDARD:
-        d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
-        break;
-    case AGGRESSIVE:
-        for (int k = 0; k < d_gridding_alg->getMaxLevels(); ++k)
-        {
-            d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
-        }
-        break;
-    default:
-        TBOX_ERROR(d_object_name << "::regridHierarchy():\n"
-                                 << "  unrecognized regrid mode: "
-                                 << IBTK::enum_to_string<RegridMode>(d_regrid_mode)
-                                 << "."
-                                 << std::endl);
-    }
-
-    // Project the interpolated velocity.
-    regridProjection();
-
-    // Synchronize the state data on the patch hierarchy.
-    synchronizeHierarchyData(CURRENT_DATA);
-    return;
-} // regridHierarchy
-
 /////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+INSCollocatedHierarchyIntegrator::regridHierarchyEndSpecialized()
+{
+    regridProjection();
+    return;
+} // regridHierarchyEndSpecialized
 
 void
 INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
