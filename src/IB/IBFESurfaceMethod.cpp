@@ -1060,7 +1060,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 #endif
                                           [range(0, NDIM)]);
 
-                        VectorValue<double> norm_vec, du_jump, wrc;
+                        VectorValue<double> norm_vec, du_jump, coeff_vec, wrc;
                         // Loop over indices to calculate the interp coefficients (Lower=0, Upper=1)
 
                         for (int d = 0; d < NDIM; ++d) norm_vec(d) = n_qp[s * NDIM + d];
@@ -1072,14 +1072,12 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                             for (BoxIterator<NDIM> b(stencil_box); b; b++)
                             {
                                 const Index<NDIM>& ic = b();
+                                for (int j = 0; j < NDIM; ++j)                               
+									wrc(j) = wr[j][ic_upper[j] - ic[j]];
 #if (NDIM == 2)
-                                wrc(0) = wr[0][ic_upper[0] - ic[0]];
-                                wrc(1) = wr[1][ic_upper[1] - ic[1]];
                                 interpCoeff[ic[0]][ic[1]][d] = (norm_vec * wrc) * norm_vec(d);
 #endif
-
 #if (NDIM == 3)
-                                wrc(2) = wr[2][ic_upper[2] - ic[2]];
                                 interpCoeff[ic[0]][ic[1]][ic[2]][d] = (norm_vec * wrc) * norm_vec(d);
 #endif
                             }
@@ -1090,17 +1088,20 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                             for (BoxIterator<NDIM> b(stencil_box); b; b++)
                             {
                                 const Index<NDIM>& ic = b();
+                                for (int j = 0; j < NDIM; ++j)                               
+									du_jump(j) = DU_jump_qp[d][s * NDIM + j];
 #if (NDIM == 2)
-                                du_jump = VectorValue<double>(DU_jump_qp[d][s * NDIM], DU_jump_qp[d][s * NDIM + 1]);
-                                Ujump[ic[0]][ic[1]][d] =
-                                    dx[0] * w[0][ic[0]] * w[1][ic[1]] * (norm_vec * du_jump) * norm_vec(d);
+								coeff_vec = VectorValue<double>(interpCoeff[ic[0]][ic[1]][0], interpCoeff[ic[0]][ic[1]][1]);
+                                Ujump[ic[0]][ic[1]][d] = dx[0] * w[0][ic[0] - ic_lower[0]] * w[1][ic[1] - ic_lower[1]] *
+									(coeff_vec * du_jump);
 #endif
 
+
 #if (NDIM == 3)
-                                du_jump = VectorValue<double>(
-                                    DU_jump_qp[d][s * NDIM], DU_jump_qp[d][s * NDIM + 1], DU_jump_qp[d][s * NDIM + 2]);
-                                Ujump[ic[0]][ic[1]][ic[2]][d] = dx[0] * w[0][ic[0]] * w[1][ic[1]] * w[2][ic[2]] *
-                                                                (norm_vec * du_jump) * norm_vec(d);
+								coeff_vec = VectorValue<double>(interpCoeff[ic[0]][ic[1]][ic[2]][0], 
+									interpCoeff[ic[0]][ic[1]][ic[2]][1], interpCoeff[ic[0]][ic[1]][ic[2]][2]);
+                                Ujump[ic[0]][ic[1]][ic[2]][d] = dx[0] * w[0][ic[0] - ic_lower[0]] * w[1][ic[1] - ic_lower[1]] * 
+									w[2][ic[2] - ic_lower[2]] * (norm_vec * du_jump) * norm_vec(d);
 #endif
                             }
                         }
@@ -3004,7 +3005,6 @@ IBFESurfaceMethod::imposeWeakJumpConditions(const int f_data_idx,
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-	pout << " Using weak jump " <<"\n\n";
     // Extract the FE systems and DOF maps, and setup the FE object
         System* P_jump_system;
         const DofMap* P_jump_dof_map;
