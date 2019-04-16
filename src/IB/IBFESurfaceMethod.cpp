@@ -890,14 +890,14 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         }
         NumericVector<double>& X0_vec = X_system.get_vector("INITIAL_COORDINATES");
 
-        System* DP_system;
-        const DofMap* DP_dof_map;
-        FEDataManager::SystemDofMapCache* DP_dof_map_cache;
+        // silence some warnings by giving DP_dof_map_cache a bogus, but
+        // valid, value if we don't use jump conditions
+        FEDataManager::SystemDofMapCache* DP_dof_map_cache =
+            d_use_jump_conditions ? d_fe_data_managers[part]->getDofMapCache(PRESSURE_JUMP_SYSTEM_NAME) : nullptr;
+        const System* DP_system = d_use_jump_conditions ? &equation_systems->get_system(PRESSURE_JUMP_SYSTEM_NAME) : nullptr;
+        const DofMap* DP_dof_map = d_use_jump_conditions ? &DP_system->get_dof_map() : nullptr;
         if (d_use_jump_conditions)
         {
-            DP_system = &equation_systems->get_system(PRESSURE_JUMP_SYSTEM_NAME);
-            DP_dof_map = &DP_system->get_dof_map();
-            DP_dof_map_cache = d_fe_data_managers[part]->getDofMapCache(PRESSURE_JUMP_SYSTEM_NAME);
             FEType DP_fe_type = DP_dof_map->variable_type(0);
             TBOX_ASSERT(DP_fe_type == X_fe_type);
             TBOX_ASSERT(DP_fe_type == F_fe_type);
