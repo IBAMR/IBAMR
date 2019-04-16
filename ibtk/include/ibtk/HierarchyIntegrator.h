@@ -1044,6 +1044,19 @@ protected:
     bool d_enable_logging = false;
 
     /*
+     * Indicates whether the integrator should, if
+     * <code>d_enable_logging</code> is <code>true</code>, also log the number
+     * of solver iterations required for convergence. This value is separate
+     * since the number of solver iterations is, in general, subject to small
+     * changes (usually plus or minus one) even when the same program is run.
+     *
+     * If <code>enable_logging_solver_iterations</code> is not provided in the
+     * input database then the value assigned to <code>d_enable_logging</code>
+     * is also assigned to <code>d_enable_logging_solver_iterations</code>.
+     */
+    bool d_enable_logging_solver_iterations = false;
+
+    /*
      * The type of extrapolation to use at physical boundaries when prolonging
      * data during regridding.
      */

@@ -1,0 +1,9 @@
+New: IBTK::HierarchyIntegrator can now log everything except the number of
+linear solver iterations by passing <code>enable_logging = TRUE</code> and
+<code>enable_logging_solver_iterations = FALSE</code> in the input
+database. Since the number of solver iterations may change by a small amount
+(usually plus or minus one) when the same code is run multiple times, disabling
+this allows log files to be identical (up to roundoff) across runs.
+
+<br>
+(David Wells, 2019/04/13)

@@ -1276,7 +1276,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
 
     // Solve for u(n+1), p(n+1/2).
     d_stokes_solver->solveSystem(*d_sol_vec, *d_rhs_vec);
-    if (d_enable_logging)
+    if (d_enable_logging && d_enable_logging_solver_iterations)
         plog << d_object_name
              << "::integrateHierarchy(): stokes solve number of iterations = " << d_stokes_solver->getNumIterations()
              << "\n";
@@ -2185,7 +2185,7 @@ INSStaggeredHierarchyIntegrator::regridProjection()
 
     // Solve the projection pressure-Poisson problem.
     regrid_projection_solver->solveSystem(sol_vec, rhs_vec);
-    if (d_enable_logging)
+    if (d_enable_logging && d_enable_logging_solver_iterations)
         plog << d_object_name << "::regridProjection(): regrid projection solve number of iterations = "
              << regrid_projection_solver->getNumIterations() << "\n";
     if (d_enable_logging)

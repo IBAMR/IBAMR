@@ -1252,7 +1252,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
     // Solve for U(*) and compute u_ADV(*).
     d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
     d_velocity_solver->solveSystem(*d_U_scratch_vec, *d_U_rhs_vec);
-    if (d_enable_logging)
+    if (d_enable_logging && d_enable_logging_solver_iterations)
         plog << d_object_name << "::integrateHierarchy(): velocity solve number of iterations = "
              << d_velocity_solver->getNumIterations() << "\n";
     if (d_enable_logging)
@@ -1297,7 +1297,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
         d_hier_cc_data_ops->setToScalar(d_Phi_idx, 0.0);
     }
     d_pressure_solver->solveSystem(*d_Phi_vec, *d_Phi_rhs_vec);
-    if (d_enable_logging)
+    if (d_enable_logging && d_enable_logging_solver_iterations)
         plog << d_object_name << "::integrateHierarchy(): pressure solve number of iterations = "
              << d_pressure_solver->getNumIterations() << "\n";
     if (d_enable_logging)
@@ -1949,7 +1949,7 @@ INSCollocatedHierarchyIntegrator::regridProjection()
 
     // Solve the projection pressure-Poisson problem.
     regrid_projection_solver->solveSystem(sol_vec, rhs_vec);
-    if (d_enable_logging)
+    if (d_enable_logging && d_enable_logging_solver_iterations)
         plog << d_object_name << "::regridProjection(): projection solve number of iterations = "
              << regrid_projection_solver->getNumIterations() << "\n";
     if (d_enable_logging)
