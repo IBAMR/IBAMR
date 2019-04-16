@@ -535,15 +535,24 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
         // Reset time-dependent Lagrangian data.
         *d_X_systems[part]->solution = *d_X_new_vecs[part];
         *d_X_systems[part]->current_local_solution = *d_X_new_vecs[part];
+        delete d_X_new_vecs[part];
+        delete d_X_half_vecs[part];
 
         *d_U_systems[part]->solution = *d_U_new_vecs[part];
         *d_U_systems[part]->current_local_solution = *d_U_new_vecs[part];
+        delete d_U_new_vecs[part];
+        delete d_U_half_vecs[part];
 
         *d_U_n_systems[part]->solution = *d_U_n_new_vecs[part];
         *d_U_n_systems[part]->current_local_solution = *d_U_n_new_vecs[part];
+        delete d_U_n_new_vecs[part];
+        delete d_U_n_half_vecs[part];
 
         *d_U_t_systems[part]->solution = *d_U_t_new_vecs[part];
         *d_U_t_systems[part]->current_local_solution = *d_U_t_new_vecs[part];
+        delete d_U_t_new_vecs[part];
+        delete d_U_t_half_vecs[part];
+
 
         *d_F_systems[part]->solution = *d_F_half_vecs[part];
         *d_F_systems[part]->current_local_solution = *d_F_half_vecs[part];
