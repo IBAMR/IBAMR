@@ -357,6 +357,11 @@ public:
 
 protected:
     /*!
+     * Pure virtual method to project the velocity field following a regridding operation.
+     */
+    virtual void regridProjection() = 0;
+
+    /*!
      * The constructor for class INSHierarchyIntegrator sets some default
      * values, reads in configuration information from input and restart
      * databases, and registers the integrator object with the restart manager

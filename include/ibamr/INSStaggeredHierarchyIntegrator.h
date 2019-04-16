@@ -273,6 +273,11 @@ protected:
      */
     void setupPlotDataSpecialized() override;
 
+    /*!
+     * Project the velocity field following a regridding operation.
+     */
+    void regridProjection() override;
+
 private:
     /*!
      * \brief Default constructor.
@@ -311,11 +316,6 @@ private:
      * Reinitialize the operators and solvers used by the hierarchy integrator.
      */
     void reinitializeOperatorsAndSolvers(double current_time, double new_time);
-
-    /*!
-     * Project the velocity field following a regridding operation.
-     */
-    void regridProjection();
 
     /*!
      * Determine the convective time stepping type for the current time step and

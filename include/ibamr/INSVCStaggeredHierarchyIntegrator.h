@@ -440,11 +440,6 @@ protected:
     virtual void setupPlotDataSpecialized() override;
 
     /*!
-     * Pure virtual method to project the velocity field following a regridding operation.
-     */
-    virtual void regridProjection() = 0;
-
-    /*!
      * Copy data from a side-centered variable to a face-centered variable.
      */
     void copySideToFace(const int U_fc_idx,
