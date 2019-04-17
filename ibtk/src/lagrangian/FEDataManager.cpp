@@ -550,6 +550,141 @@ FEDataManager::buildGhostedCoordsVector(const bool localize_data)
     return buildGhostedSolutionVector(COORDINATES_SYSTEM_NAME, localize_data);
 } // buildGhostedCoordsVector
 
+/**
+ * @brief Compute the product of the finite element representation of the
+ * force and (optionally) a set of weights (e.g., JxW values) at all
+ * quadrature points on an element. See integrate_elem_rhs for details on the
+ * first two template arguments.
+ *
+ * @tparam weights_are_unity Assume that all values in @p weights are 1. This
+ * value should be true when we are only interpolating values at quadrature
+ * points and otherwise false.
+ *
+ * @param[in] qp_offset Offset used to calculate an index into @p F_w_qp. The
+ * relevant part of the array is assumed to start at <code>n_vars *
+ * qp_offset</code>.
+ *
+ * @param[in] phi_F Values of test functions evaluated at quadrature points,
+ * indexed by test function number and then quadrature point number.
+ *
+ * @param[in] weights Vector containing weights at quadrature points: in the
+ * case of force spreading this is the standard JxW array. If
+ * <code>weights_are_unity</code> is true then its values are assumed to be 1.
+ *
+ * @param[in] F_node Values of the finite element solution (i.e., the
+ * multipliers on each trial function) on the current element.
+ *
+ * @param[out] F_w_qp Globally indexed array containing the product of the
+ * finite element representation of the force and weights at the quadrature
+ * points on the current element. The array is indexed by quadrature point and
+ * then by variable: i.e., if @p n_vars is greater than one then variables of
+ * the vector-valued force being evaluated at a certain quadrature point are
+ * contiguous.
+ */
+template <int n_vars, int n_basis, bool weights_are_unity = false>
+void
+sum_weighted_elem_solution_n_vars_n_basis(const unsigned int qp_offset,
+                                          const std::vector<std::vector<double> >& phi_F,
+                                          const std::vector<double>& weights,
+                                          const boost::multi_array<double, 2>& F_node,
+                                          std::vector<double>& F_w_qp)
+{
+    const unsigned int n_qp = phi_F[0].size();
+    if (n_vars == -1 || n_basis == -1)
+    {
+        const unsigned int n_basis_ = phi_F.size();
+        const unsigned int n_vars_ = F_node.shape()[0];
+        for (unsigned int qp = 0; qp < n_qp; ++qp)
+        {
+            const unsigned int idx = n_vars_ * (qp_offset + qp);
+            for (unsigned int k = 0; k < n_basis_; ++k)
+                for (unsigned int i = 0; i < n_vars_; ++i) F_w_qp[idx + i] += F_node[k][i] * phi_F[k][qp];
+            if (!weights_are_unity)
+                for (unsigned int i = 0; i < n_vars_; ++i) F_w_qp[idx + i] *= weights[qp];
+        }
+    }
+    else
+    {
+        for (unsigned int qp = 0; qp < n_qp; ++qp)
+        {
+            const unsigned int idx = n_vars * (qp_offset + qp);
+            for (unsigned int k = 0; k < n_basis; ++k)
+                for (unsigned int i = 0; i < n_vars; ++i) F_w_qp[idx + i] += F_node[k][i] * phi_F[k][qp];
+            if (!weights_are_unity)
+                for (unsigned int i = 0; i < n_vars; ++i) F_w_qp[idx + i] *= weights[qp];
+        }
+    }
+}
+
+// Dispatch to the above function based on the number of variables and number
+// of basis functions.
+template <int n_vars, bool weights_are_unity = false>
+void
+sum_weighted_elem_solution_n_vars(const unsigned int n_basis,
+                                  const unsigned int qp_offset,
+                                  const std::vector<std::vector<double> >& phi_F,
+                                  const std::vector<double>& weights,
+                                  const boost::multi_array<double, 2>& F_node,
+                                  std::vector<double>& F_w_qp)
+{
+    switch (n_basis)
+    {
+#define SWITCH_CASE(k)                                                                                                 \
+    case k:                                                                                                            \
+    {                                                                                                                  \
+        sum_weighted_elem_solution_n_vars_n_basis<n_vars, k, weights_are_unity>(                                       \
+            qp_offset, phi_F, weights, F_node, F_w_qp);                                                                \
+        return;                                                                                                        \
+    }
+        SWITCH_CASE(1)
+        SWITCH_CASE(2)
+        SWITCH_CASE(3)
+        SWITCH_CASE(4)
+        SWITCH_CASE(5)
+        SWITCH_CASE(6)
+        SWITCH_CASE(8)
+        SWITCH_CASE(10)
+        SWITCH_CASE(27)
+#undef SWITCH_CASE
+    default:
+        sum_weighted_elem_solution_n_vars_n_basis<n_vars, -1, weights_are_unity>(
+            qp_offset, phi_F, weights, F_node, F_w_qp);
+        return;
+    }
+    return;
+}
+
+// Dispatch to the above function based on the number of variables.
+template <bool weights_are_unity = false>
+void
+sum_weighted_elem_solution(const unsigned int n_vars,
+                           const unsigned int n_basis,
+                           const unsigned int qp_offset,
+                           const std::vector<std::vector<double> >& phi_F,
+                           const std::vector<double>& weights,
+                           const boost::multi_array<double, 2>& F_node,
+                           std::vector<double>& F_w_qp)
+{
+    switch (n_vars)
+    {
+#define SWITCH_CASE(k)                                                                                                 \
+    case k:                                                                                                            \
+    {                                                                                                                  \
+        sum_weighted_elem_solution_n_vars<k, weights_are_unity>(n_basis, qp_offset, phi_F, weights, F_node, F_w_qp);   \
+        return;                                                                                                        \
+    }
+        SWITCH_CASE(1)
+        SWITCH_CASE(2)
+        SWITCH_CASE(3)
+        SWITCH_CASE(4)
+        SWITCH_CASE(5)
+#undef SWITCH_CASE
+    default:
+        sum_weighted_elem_solution_n_vars<-1, weights_are_unity>(n_basis, qp_offset, phi_F, weights, F_node, F_w_qp);
+    }
+    return;
+}
+
 void
 FEDataManager::spread(const int f_data_idx,
                       NumericVector<double>& F_vec,
@@ -825,7 +960,6 @@ FEDataManager::spread(const int f_data_idx,
                 Elem* const elem = patch_elems[e_idx];
                 const auto& F_dof_indices = F_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, F_dof_indices);
-                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                 const quad_key_type &key = quad_keys[e_idx];
                 FEBase &X_fe = X_fe_cache[key];
                 FEBase &F_fe = F_fe_cache[key];
@@ -857,26 +991,9 @@ FEDataManager::spread(const int f_data_idx,
                 double* X_begin = &X_qp[NDIM * qp_offset];
                 std::fill(F_begin, F_begin + n_vars * n_qp, 0.0);
                 std::fill(X_begin, X_begin + NDIM * n_qp, 0.0);
-                for (unsigned int k = 0; k < F_dof_indices[0].size(); ++k)
-                {
-                    for (unsigned int qp = 0; qp < n_qp; ++qp)
-                    {
-                        for (unsigned int i = 0; i < n_vars; ++i)
-                        {
-                            F_JxW_qp[n_vars * (qp_offset + qp) + i] += F_node[k][i] * phi_F[k][qp] * JxW_F[qp];
-                        }
-                    }
-                }
-                for (unsigned int k = 0; k < X_dof_indices[0].size(); ++k)
-                {
-                    for (unsigned int qp = 0; qp < n_qp; ++qp)
-                    {
-                        for (unsigned int i = 0; i < NDIM; ++i)
-                        {
-                            X_qp[NDIM * (qp_offset + qp) + i] += X_nodes[e_idx][k][i] * phi_X[k][qp];
-                        }
-                    }
-                }
+
+                sum_weighted_elem_solution</*weights_are_unity*/ false>(n_vars, F_dof_indices[0].size(), qp_offset, phi_F, JxW_F, F_node, F_JxW_qp);
+                sum_weighted_elem_solution</*weights_are_unity*/ true>(NDIM, phi_X.size(), qp_offset, phi_X, {}, X_nodes[e_idx], X_qp);
                 qp_offset += n_qp;
             }
 
@@ -1134,6 +1251,145 @@ FEDataManager::prolongData(const int f_data_idx,
     return;
 } // prolongData
 
+/**
+ * @brief Assemble the element contribution to a load vector.
+ *
+ * The three functions below allow compile-time selection of the number of
+ * basis functions and number of variables. Fixing the loop bounds via
+ * templates and switch statements makes most IBFE codes a few percent faster.
+ *
+ * This function (the last of the three) takes the number of variables and
+ * number of basis functions as template argument which allows the compiler to
+ * unroll the two inner loops when appropriate. Setting either value to -1
+ * results in run-time selection of loop bounds (which is considerably
+ * slower).
+ *
+ * @param[in] qp_offset Offset used to calculate an index into @p F_qp. The
+ * relevant part of the array is assumed to start at <code>n_vars *
+ * qp_offset</code>.
+ *
+ * @param[in] phi_F Values of test functions evaluated at quadrature points,
+ * indexed by test function number and then quadrature point number.
+ *
+ * @param[in] JxW_F Products of Jacobian and quadrature weight at each
+ * quadrature point.
+ *
+ * @param[in] F_qp Globally indexed array containing function values at
+ * quadrature points. The array is indexed by quadrature point and then by
+ * variable: i.e., if @p n_vars is greater than one then components of the
+ * vector-valued function being projected at a certain quadrature point are
+ * contiguous.
+ *
+ * @param[out] F_rhs_concatenated Vector containing element integrals of
+ * products of test functions and values of the interpolated function. Unlike
+ * @p F_qp, the values in this vector are first indexed by variable and then
+ * by quadrature point.
+ */
+template <int n_vars, int n_basis>
+void
+integrate_elem_rhs_n_vars_n_basis(const unsigned int qp_offset,
+                                  const std::vector<std::vector<double> >& phi_F,
+                                  const std::vector<double>& JxW_F,
+                                  const std::vector<double>& F_qp,
+                                  std::vector<double>& F_rhs_concatenated)
+{
+    const unsigned int n_qp = phi_F[0].size();
+    if (n_vars == -1 || n_basis == -1)
+    {
+        const unsigned int n_basis_ = phi_F.size();
+        const unsigned int n_vars_ = F_rhs_concatenated.size() / n_basis_;
+        for (unsigned int qp = 0; qp < n_qp; ++qp)
+        {
+            const int idx = n_vars_ * (qp_offset + qp);
+            for (unsigned int k = 0; k < n_basis_; ++k)
+            {
+                const double p_JxW_F = phi_F[k][qp] * JxW_F[qp];
+                for (unsigned int i = 0; i < n_vars_; ++i)
+                    F_rhs_concatenated[n_basis_ * i + k] += F_qp[idx + i] * p_JxW_F;
+            }
+        }
+    }
+    else
+    {
+        for (unsigned int qp = 0; qp < n_qp; ++qp)
+        {
+            const int idx = n_vars * (qp_offset + qp);
+            for (unsigned int k = 0; k < n_basis; ++k)
+            {
+                const double p_JxW_F = phi_F[k][qp] * JxW_F[qp];
+                for (unsigned int i = 0; i < n_vars; ++i)
+                    F_rhs_concatenated[n_basis * i + k] += F_qp[idx + i] * p_JxW_F;
+            }
+        }
+    }
+}
+
+// Dispatch to the above function based on the number of variables and number
+// of basis functions.
+template <int n_vars>
+void
+integrate_elem_rhs_n_vars(const unsigned int n_basis,
+                          const unsigned int qp_offset,
+                          const std::vector<std::vector<double> >& phi_F,
+                          const std::vector<double>& JxW_F,
+                          const std::vector<double>& F_qp,
+                          std::vector<double>& F_rhs_concatenated)
+{
+    switch (n_basis)
+    {
+#define SWITCH_CASE(k)                                                                                                 \
+    case k:                                                                                                            \
+    {                                                                                                                  \
+        integrate_elem_rhs_n_vars_n_basis<n_vars, k>(qp_offset, phi_F, JxW_F, F_qp, F_rhs_concatenated);               \
+        return;                                                                                                        \
+    }
+        SWITCH_CASE(1)
+        SWITCH_CASE(2)
+        SWITCH_CASE(3)
+        SWITCH_CASE(4)
+        SWITCH_CASE(5)
+        SWITCH_CASE(6)
+        SWITCH_CASE(8)
+        SWITCH_CASE(10)
+        SWITCH_CASE(27)
+#undef SWITCH_CASE
+    default:
+        integrate_elem_rhs_n_vars_n_basis<n_vars, -1>(qp_offset, phi_F, JxW_F, F_qp, F_rhs_concatenated);
+        return;
+    }
+    return;
+}
+
+// Dispatch to the above function based on the number of variables.
+void
+integrate_elem_rhs(const unsigned int n_vars,
+                   const unsigned int n_basis,
+                   const unsigned int qp_offset,
+                   const std::vector<std::vector<double> >& phi_F,
+                   const std::vector<double>& JxW_F,
+                   const std::vector<double>& F_qp,
+                   std::vector<double>& F_rhs_concatenated)
+{
+    switch (n_vars)
+    {
+#define SWITCH_CASE(k)                                                                                                 \
+    case k:                                                                                                            \
+    {                                                                                                                  \
+        integrate_elem_rhs_n_vars<k>(n_basis, qp_offset, phi_F, JxW_F, F_qp, F_rhs_concatenated);                      \
+        return;                                                                                                        \
+    }
+        SWITCH_CASE(1)
+        SWITCH_CASE(2)
+        SWITCH_CASE(3)
+        SWITCH_CASE(4)
+        SWITCH_CASE(5)
+#undef SWITCH_CASE
+    default:
+        integrate_elem_rhs_n_vars<-1>(n_basis, qp_offset, phi_F, JxW_F, F_qp, F_rhs_concatenated);
+    }
+    return;
+}
+
 void
 FEDataManager::interpWeighted(const int f_data_idx,
                               NumericVector<double>& F_vec,
@@ -1341,7 +1597,9 @@ FEDataManager::interpWeighted(const int f_data_idx,
         // points from the grid, then use these values to compute the projection
         // of the interpolated velocity field onto the FE basis functions.
         F_vec.zero();
-        std::vector<DenseVector<double> > F_rhs_e(n_vars);
+        DenseVector<double> F_rhs;
+        // Assemble F_rhs_e's vectors in an interleaved format (see the implementation):
+        std::vector<double> F_rhs_concatenated;
         std::vector<double> F_qp, X_qp;
         int local_patch_num = 0;
         std::vector<libMesh::dof_id_type> dof_id_scratch;
@@ -1464,14 +1722,20 @@ FEDataManager::interpWeighted(const int f_data_idx,
             {
                 Elem* const elem = patch_elems[e_idx];
                 const auto& F_dof_indices = F_dof_map_cache.dof_indices(elem);
+                F_rhs.resize(static_cast<unsigned int>(F_dof_indices[0].size()));
+                // check the concatenation assumption
+#ifndef NDEBUG
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
-                    F_rhs_e[i].resize(static_cast<int>(F_dof_indices[i].size()));
+                    TBOX_ASSERT(F_dof_indices[i].size() == F_dof_indices[0].size());
                 }
-                const quad_key_type &key = quad_keys[e_idx];
-                FEBase &F_fe = F_fe_cache[key];
-                FEMap &fe_map = fe_map_cache[key];
-                QBase &qrule = d_quadrature_cache[key];
+#endif
+                F_rhs_concatenated.resize(n_vars * F_dof_indices[0].size());
+                std::fill(F_rhs_concatenated.begin(), F_rhs_concatenated.end(), 0.0);
+                const quad_key_type& key = quad_keys[e_idx];
+                FEBase& F_fe = F_fe_cache[key];
+                FEMap& fe_map = fe_map_cache[key];
+                QBase& qrule = d_quadrature_cache[key];
 
                 // Like above: conditionally initialize the FE object if it is
                 // new
@@ -1484,31 +1748,25 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 }
 
                 // JxW depends on the element
-                fe_map.compute_map(dim, qrule.get_weights(), elem, /*second derivatives*/false);
-                const std::vector<double> &JxW_F = fe_map.get_JxW();
+                fe_map.compute_map(dim, qrule.get_weights(), elem, /*second derivatives*/ false);
+                const std::vector<double>& JxW_F = fe_map.get_JxW();
                 const std::vector<std::vector<double> >& phi_F = F_fe.get_phi();
 
                 const unsigned int n_qp = qrule.n_points();
                 TBOX_ASSERT(n_qp == phi_F[0].size());
                 TBOX_ASSERT(n_qp == JxW_F.size());
                 const size_t n_basis = F_dof_indices[0].size();
-                for (unsigned int qp = 0; qp < n_qp; ++qp)
-                {
-                    const int idx = n_vars * (qp_offset + qp);
-                    for (unsigned int k = 0; k < n_basis; ++k)
-                    {
-                        const double p_JxW_F = phi_F[k][qp] * JxW_F[qp];
-                        for (unsigned int i = 0; i < n_vars; ++i)
-                        {
-                            F_rhs_e[i](k) += F_qp[idx + i] * p_JxW_F;
-                        }
-                    }
-                }
+                integrate_elem_rhs(n_vars, n_basis, qp_offset, phi_F, JxW_F, F_qp, F_rhs_concatenated);
+
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
+                    std::copy(F_rhs_concatenated.begin() + i * n_basis,
+                              F_rhs_concatenated.begin() + (i + 1) * n_basis,
+                              F_rhs.get_values().begin());
+
                     dof_id_scratch = F_dof_indices[i];
-                    F_dof_map.constrain_element_vector(F_rhs_e[i], dof_id_scratch);
-                    F_vec.add_vector(F_rhs_e[i], dof_id_scratch);
+                    F_dof_map.constrain_element_vector(F_rhs, dof_id_scratch);
+                    F_vec.add_vector(F_rhs, dof_id_scratch);
                 }
                 qp_offset += n_qp;
             }
