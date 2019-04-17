@@ -8,7 +8,9 @@ ibtk/contrib/autotools/share
 ### Generated project files
 #
 # To regenerate: intercept-build --override-compiler make CC=intercept-cc CXX=intercept-c++
-compile_commands.json
+*compile_commands*.json
+*.sublime-project
+*.sublime-workspace
 
 # Created by https://www.gitignore.io/api/linux,osx,c,c++,fortran
 
