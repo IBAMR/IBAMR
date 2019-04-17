@@ -82,5 +82,5 @@ fi
 
 # Use the IBAMR compile_commands.json for now.
 #
-# Should we merge all of them together?
-ln -s ibamr_compile_commands.json $IBAMR_PROJECT_ROOT/compile_commands.json
+# TODO: Should we merge the compile_commands.json files for all libraries together?
+ln -s $PWD/ibamr-compile_commands.json $IBAMR_PROJECT_ROOT/compile_commands.json
