@@ -735,7 +735,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             }
         }
         FEType fe_type = U_fe_type;
-        UniquePtr<FEBase> fe = FEBase::build(dim, fe_type);
+        UniquePtr<FEBase> fe_U = FEBase::build(dim, U_fe_type);
         const std::vector<double>& JxW = fe->get_JxW();
         const std::vector<std::vector<double> >& phi = fe->get_phi();
         boost::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
