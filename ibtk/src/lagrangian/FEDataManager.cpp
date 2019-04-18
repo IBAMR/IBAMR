@@ -583,35 +583,35 @@ FEDataManager::buildGhostedCoordsVector(const bool localize_data)
  */
 template <int n_vars, int n_basis, bool weights_are_unity = false>
 void
-sum_weighted_elem_solution_n_vars_n_basis(const unsigned int qp_offset,
+sum_weighted_elem_solution_n_vars_n_basis(const int qp_offset,
                                           const std::vector<std::vector<double> >& phi_F,
                                           const std::vector<double>& weights,
                                           const boost::multi_array<double, 2>& F_node,
                                           std::vector<double>& F_w_qp)
 {
-    const unsigned int n_qp = phi_F[0].size();
+    const int n_qp = phi_F[0].size();
     if (n_vars == -1 || n_basis == -1)
     {
-        const unsigned int n_basis_ = phi_F.size();
-        const unsigned int n_vars_ = F_node.shape()[0];
-        for (unsigned int qp = 0; qp < n_qp; ++qp)
+        const int n_basis_ = phi_F.size();
+        const int n_vars_ = F_node.shape()[0];
+        for (int qp = 0; qp < n_qp; ++qp)
         {
-            const unsigned int idx = n_vars_ * (qp_offset + qp);
-            for (unsigned int k = 0; k < n_basis_; ++k)
-                for (unsigned int i = 0; i < n_vars_; ++i) F_w_qp[idx + i] += F_node[k][i] * phi_F[k][qp];
+            const int idx = n_vars_ * (qp_offset + qp);
+            for (int k = 0; k < n_basis_; ++k)
+                for (int i = 0; i < n_vars_; ++i) F_w_qp[idx + i] += F_node[k][i] * phi_F[k][qp];
             if (!weights_are_unity)
-                for (unsigned int i = 0; i < n_vars_; ++i) F_w_qp[idx + i] *= weights[qp];
+                for (int i = 0; i < n_vars_; ++i) F_w_qp[idx + i] *= weights[qp];
         }
     }
     else
     {
-        for (unsigned int qp = 0; qp < n_qp; ++qp)
+        for (int qp = 0; qp < n_qp; ++qp)
         {
-            const unsigned int idx = n_vars * (qp_offset + qp);
-            for (unsigned int k = 0; k < n_basis; ++k)
-                for (unsigned int i = 0; i < n_vars; ++i) F_w_qp[idx + i] += F_node[k][i] * phi_F[k][qp];
+            const int idx = n_vars * (qp_offset + qp);
+            for (int k = 0; k < n_basis; ++k)
+                for (int i = 0; i < n_vars; ++i) F_w_qp[idx + i] += F_node[k][i] * phi_F[k][qp];
             if (!weights_are_unity)
-                for (unsigned int i = 0; i < n_vars; ++i) F_w_qp[idx + i] *= weights[qp];
+                for (int i = 0; i < n_vars; ++i) F_w_qp[idx + i] *= weights[qp];
         }
     }
 }
@@ -620,8 +620,8 @@ sum_weighted_elem_solution_n_vars_n_basis(const unsigned int qp_offset,
 // of basis functions.
 template <int n_vars, bool weights_are_unity = false>
 void
-sum_weighted_elem_solution_n_vars(const unsigned int n_basis,
-                                  const unsigned int qp_offset,
+sum_weighted_elem_solution_n_vars(const int n_basis,
+                                  const int qp_offset,
                                   const std::vector<std::vector<double> >& phi_F,
                                   const std::vector<double>& weights,
                                   const boost::multi_array<double, 2>& F_node,
@@ -657,9 +657,9 @@ sum_weighted_elem_solution_n_vars(const unsigned int n_basis,
 // Dispatch to the above function based on the number of variables.
 template <bool weights_are_unity = false>
 void
-sum_weighted_elem_solution(const unsigned int n_vars,
-                           const unsigned int n_basis,
-                           const unsigned int qp_offset,
+sum_weighted_elem_solution(const int n_vars,
+                           const int n_basis,
+                           const int qp_offset,
                            const std::vector<std::vector<double> >& phi_F,
                            const std::vector<double>& weights,
                            const boost::multi_array<double, 2>& F_node,
@@ -953,7 +953,7 @@ FEDataManager::spread(const int f_data_idx,
 
             // Loop over the elements and compute the values to be spread and
             // the positions of the quadrature points.
-            unsigned int qp_offset = 0;
+            int qp_offset = 0;
             std::set<quad_key_type> used_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
@@ -1287,38 +1287,36 @@ FEDataManager::prolongData(const int f_data_idx,
  */
 template <int n_vars, int n_basis>
 void
-integrate_elem_rhs_n_vars_n_basis(const unsigned int qp_offset,
+integrate_elem_rhs_n_vars_n_basis(const int qp_offset,
                                   const std::vector<std::vector<double> >& phi_F,
                                   const std::vector<double>& JxW_F,
                                   const std::vector<double>& F_qp,
                                   std::vector<double>& F_rhs_concatenated)
 {
-    const unsigned int n_qp = phi_F[0].size();
+    const int n_qp = phi_F[0].size();
     if (n_vars == -1 || n_basis == -1)
     {
-        const unsigned int n_basis_ = phi_F.size();
-        const unsigned int n_vars_ = F_rhs_concatenated.size() / n_basis_;
-        for (unsigned int qp = 0; qp < n_qp; ++qp)
+        const int n_basis_ = phi_F.size();
+        const int n_vars_ = F_rhs_concatenated.size() / n_basis_;
+        for (int qp = 0; qp < n_qp; ++qp)
         {
             const int idx = n_vars_ * (qp_offset + qp);
-            for (unsigned int k = 0; k < n_basis_; ++k)
+            for (int k = 0; k < n_basis_; ++k)
             {
                 const double p_JxW_F = phi_F[k][qp] * JxW_F[qp];
-                for (unsigned int i = 0; i < n_vars_; ++i)
-                    F_rhs_concatenated[n_basis_ * i + k] += F_qp[idx + i] * p_JxW_F;
+                for (int i = 0; i < n_vars_; ++i) F_rhs_concatenated[n_basis_ * i + k] += F_qp[idx + i] * p_JxW_F;
             }
         }
     }
     else
     {
-        for (unsigned int qp = 0; qp < n_qp; ++qp)
+        for (int qp = 0; qp < n_qp; ++qp)
         {
             const int idx = n_vars * (qp_offset + qp);
-            for (unsigned int k = 0; k < n_basis; ++k)
+            for (int k = 0; k < n_basis; ++k)
             {
                 const double p_JxW_F = phi_F[k][qp] * JxW_F[qp];
-                for (unsigned int i = 0; i < n_vars; ++i)
-                    F_rhs_concatenated[n_basis * i + k] += F_qp[idx + i] * p_JxW_F;
+                for (int i = 0; i < n_vars; ++i) F_rhs_concatenated[n_basis * i + k] += F_qp[idx + i] * p_JxW_F;
             }
         }
     }
@@ -1328,8 +1326,8 @@ integrate_elem_rhs_n_vars_n_basis(const unsigned int qp_offset,
 // of basis functions.
 template <int n_vars>
 void
-integrate_elem_rhs_n_vars(const unsigned int n_basis,
-                          const unsigned int qp_offset,
+integrate_elem_rhs_n_vars(const int n_basis,
+                          const int qp_offset,
                           const std::vector<std::vector<double> >& phi_F,
                           const std::vector<double>& JxW_F,
                           const std::vector<double>& F_qp,
@@ -1362,9 +1360,9 @@ integrate_elem_rhs_n_vars(const unsigned int n_basis,
 
 // Dispatch to the above function based on the number of variables.
 void
-integrate_elem_rhs(const unsigned int n_vars,
-                   const unsigned int n_basis,
-                   const unsigned int qp_offset,
+integrate_elem_rhs(const int n_vars,
+                   const int n_basis,
+                   const int qp_offset,
                    const std::vector<std::vector<double> >& phi_F,
                    const std::vector<double>& JxW_F,
                    const std::vector<double>& F_qp,
@@ -1648,7 +1646,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
 
             // Loop over the elements and compute the positions of the
             // quadrature points.
-            unsigned int qp_offset = 0;
+            int qp_offset = 0;
             std::set<quad_key_type> used_X_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
