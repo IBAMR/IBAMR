@@ -497,7 +497,7 @@ protected:
     /*!
      * Impose weak jump conditions.
      */
-    void imposeWeakJumpConditions(const int f_data_idx,
+    void imposeJumpConditions(const int f_data_idx,
                                   libMesh::PetscVector<double>& P_jump_ghost_vec,
                                   boost::array<libMesh::PetscVector<double>*, NDIM>& DU_jump_ghost_vec,
                                   libMesh::PetscVector<double>& X_ghost_vec,
