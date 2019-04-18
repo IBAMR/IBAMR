@@ -1,6 +1,5 @@
 // Filename: IBFESurfaceMethod.h
 // Created on 19 May 2018 by Boyce Griffith
-// Modified on 13  April 2019 by Amin Kolahdouz 
 // Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
@@ -323,12 +322,12 @@ public:
      * Compute the exterior fluid traction if all
      * jump conditions are applied
      */
-    void computeFluidTraction(double current_time, unsigned int part = 0);
+    void computeFluidTraction(double current_time, unsigned int part = 0, bool calculate_interior_side = false);
     /*!
      * Compute the exterior pressure used in the calculation
      * of the fluid traction (pressure jump condition needs to be applied)
      */
-    void interpolatePressureForTraction(int p_data_idx, double data_time, unsigned int part = 0);
+    void interpolatePressureForTraction(int p_data_idx, double data_time, unsigned int part = 0, bool calculate_interior_side = false);
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
@@ -495,7 +494,7 @@ public:
 
 protected:
     /*!
-     * Impose weak jump conditions.
+     * Impose the jump conditions.
      */
     void imposeJumpConditions(const int f_data_idx,
                                   libMesh::PetscVector<double>& P_jump_ghost_vec,
@@ -510,10 +509,10 @@ protected:
     void checkDoubleCountingIntersection(int axis,
                                          const double* dx,
                                          libMesh::VectorValue<double> n,
-                                         const libMesh::Point x,                  // = r + intersections[k].first * q;
-                                         const libMesh::Point& xi,                // = intersections[k].second;
-                                         const SAMRAI::pdat::SideIndex<NDIM> i_s, //(i_c, axis, 0);
-                                         const SAMRAI::pdat::SideIndex<NDIM> i_s_prime, //(i_c, axis, 0);
+                                         const libMesh::Point x,                  
+                                         const libMesh::Point& xi,                
+                                         const SAMRAI::pdat::SideIndex<NDIM> i_s, 
+                                         const SAMRAI::pdat::SideIndex<NDIM> i_s_prime, 
                                          const std::vector<libMesh::Point> candidate_coords,
                                          const std::vector<libMesh::Point> candidate_ref_coords,
                                          const std::vector<libMesh::VectorValue<double> > candidate_normals,
@@ -604,7 +603,7 @@ protected:
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
     bool d_use_pressure_jump_conditions, d_use_velocity_jump_conditions;
     bool d_compute_fluid_traction;
-    bool d_calculate_interior_side;
+    //~ bool d_calculate_interior_side;
     bool d_perturb_fe_mesh_nodes;
     bool d_normalize_pressure_jump;
     std::vector<libMesh::FEFamily> d_fe_family;
@@ -616,7 +615,6 @@ protected:
     double d_mu;
     double d_wss_calc_width, d_p_calc_width;
     double d_traction_activation_time;
-    bool d_use_l2_lagrange_family;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
