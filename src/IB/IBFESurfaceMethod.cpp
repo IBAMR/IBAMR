@@ -721,7 +721,6 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                 {
                     TBOX_ASSERT(DU_jump_dof_map[i]->variable_type(d) == DU_jump_fe_type);
                 }
-                // TBOX_ASSERT(U_fe_type == DU_jump_fe_type);
                 DU_jump_dof_indices[i].resize(NDIM);
             }
 
