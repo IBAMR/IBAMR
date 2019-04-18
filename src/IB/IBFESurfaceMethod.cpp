@@ -1,6 +1,5 @@
 // Filename: IBFESurfaceMethod.cpp
 // Created on 19 May 2018 by Boyce Griffith
-// Modified on 13  April 2019 by Amin Kolahdouz 
 // Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
