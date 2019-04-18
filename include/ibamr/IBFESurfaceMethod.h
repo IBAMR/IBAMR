@@ -665,7 +665,6 @@ protected:
     std::string d_libmesh_restart_file_extension;
 
 private:
-
     /*!
      * \brief Default constructor.
      *
