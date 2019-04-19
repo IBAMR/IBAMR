@@ -101,14 +101,14 @@ namespace IBAMR
  * a finite element representation of a surface mesh.
  * Additionally an immersed interface method (IIM) has been implemented with calculations
  * of shear stress, pressure and total fluid traction.
- * 
+ *
  * References:
  * Kolahdouz et al., <A HREF="https://arxiv.org/abs/1812.06840"> An Immersed Interface
  * Method for Faceted Surfaces
- * 
- * \note To achieve best accuracy with IIM, using a tight relative convergence threshold 
- * of 1.0e-10 is recommended for both the Krylov solver of 
- * the $L^2$ projection steps as well as the subdomain Stokes solve of the NS solver.  
+ *
+ * \note To achieve best accuracy with IIM, using a tight relative convergence threshold
+ * of 1.0e-10 is recommended for both the Krylov solver of
+ * the $L^2$ projection steps as well as the subdomain Stokes solve of the NS solver.
  */
 class IBFESurfaceMethod : public IBStrategy
 {
@@ -327,7 +327,10 @@ public:
      * Compute the exterior pressure used in the calculation
      * of the fluid traction (pressure jump condition needs to be applied)
      */
-    void interpolatePressureForTraction(int p_data_idx, double data_time, unsigned int part = 0, bool calculate_interior_side = false);
+    void interpolatePressureForTraction(int p_data_idx,
+                                        double data_time,
+                                        unsigned int part = 0,
+                                        bool calculate_interior_side = false);
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
@@ -497,11 +500,11 @@ protected:
      * Impose the jump conditions.
      */
     void imposeJumpConditions(const int f_data_idx,
-                                  libMesh::PetscVector<double>& P_jump_ghost_vec,
-                                  boost::array<libMesh::PetscVector<double>*, NDIM>& DU_jump_ghost_vec,
-                                  libMesh::PetscVector<double>& X_ghost_vec,
-                                  const double data_time,
-                                  const unsigned int part);
+                              libMesh::PetscVector<double>& P_jump_ghost_vec,
+                              boost::array<libMesh::PetscVector<double>*, NDIM>& DU_jump_ghost_vec,
+                              libMesh::PetscVector<double>& X_ghost_vec,
+                              const double data_time,
+                              const unsigned int part);
     /*!
      * \brief Helper function for checking possible double-counting
      *  intesection points
@@ -509,10 +512,10 @@ protected:
     void checkDoubleCountingIntersection(int axis,
                                          const double* dx,
                                          libMesh::VectorValue<double> n,
-                                         const libMesh::Point x,                  
-                                         const libMesh::Point& xi,                
-                                         const SAMRAI::pdat::SideIndex<NDIM> i_s, 
-                                         const SAMRAI::pdat::SideIndex<NDIM> i_s_prime, 
+                                         const libMesh::Point x,
+                                         const libMesh::Point& xi,
+                                         const SAMRAI::pdat::SideIndex<NDIM> i_s,
+                                         const SAMRAI::pdat::SideIndex<NDIM> i_s_prime,
                                          const std::vector<libMesh::Point> candidate_coords,
                                          const std::vector<libMesh::Point> candidate_ref_coords,
                                          const std::vector<libMesh::VectorValue<double> > candidate_normals,
@@ -583,8 +586,7 @@ protected:
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
-    
-    
+
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_P_jump_half_vecs, d_P_jump_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_P_half_vecs, d_P_IB_ghost_vecs;
