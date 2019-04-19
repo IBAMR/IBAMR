@@ -201,11 +201,6 @@ public:
                                        int num_cycles = 1) override;
 
     /*!
-     * Regrid the patch hierarchy.
-     */
-    void regridHierarchy() override;
-
-    /*!
      * Setup solution and RHS vectors using state data maintained by the
      * integrator.
      */
@@ -232,6 +227,34 @@ public:
     void removeNullSpace(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec);
 
 protected:
+    /*!
+     * L1 norm of the fluid velocity before regridding.
+     */
+    double d_div_U_norm_1_pre = 0.0;
+
+    /*!
+     * L2 norm of the fluid velocity before regridding.
+     */
+    double d_div_U_norm_2_pre = 0.0;
+
+    /*!
+     * L-infinity norm of the fluid velocity before regridding.
+     */
+    double d_div_U_norm_oo_pre = 0.0;
+
+    /*!
+     * Prepare the current hierarchy for regridding. Here we calculate the divergence.
+     */
+    void regridHierarchyBeginSpecialized() override;
+
+    /*!
+     * Update the current hierarchy data after regridding. Here we recalculate
+     * the divergence and, if it has grown by a factor more than
+     * d_regrid_max_div_growth_factor, we then project the velocity field onto
+     * a divergence-free set of grid functions.
+     */
+    void regridHierarchyEndSpecialized() override;
+
     /*!
      * Determine the largest stable timestep on an individual patch.
      */
@@ -273,6 +296,11 @@ protected:
      */
     void setupPlotDataSpecialized() override;
 
+    /*!
+     * Project the velocity field following a regridding operation.
+     */
+    void regridProjection() override;
+
 private:
     /*!
      * \brief Default constructor.
@@ -311,11 +339,6 @@ private:
      * Reinitialize the operators and solvers used by the hierarchy integrator.
      */
     void reinitializeOperatorsAndSolvers(double current_time, double new_time);
-
-    /*!
-     * Project the velocity field following a regridding operation.
-     */
-    void regridProjection();
 
     /*!
      * Determine the convective time stepping type for the current time step and

@@ -220,6 +220,22 @@ public:
      * GriddingAlgorithm::regidAllFinerLevels() to regrid the patch hierarchy.
      * Subclasses can control the method used to regrid the patch hierarchy by
      * overriding this public virtual member function.
+     *
+     * Before regridding, this method calls regridHierarchyBeginSpecialized()
+     * on the current integrator and all child integrators.
+     *
+     * After regridding and (optionally) checking the new grid volume, this
+     * method calls regridHierarchyEndSpecialized() on the current integrator
+     * and all child integrators. It then calls the following methods (and,
+     * therefore, the specialized methods on the current and all child
+     * integrators) in the following order:
+     *
+     * 1. initializeCompositeHierarchyData
+     * 2. synchronizeHierarchyData
+     *
+     * @warning This class assumes, but does not enforce, that this method is
+     * only called on the parent integrator. A future release of IBAMR will
+     * enforce this assumption.
      */
     virtual void regridHierarchy();
 
@@ -672,6 +688,20 @@ public:
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
+    /*!
+     * Perform any necessary work relevant to data owned by the current
+     * integrator prior to regridding (e.g., calculating divergences). An
+     * empty default implementation is provided.
+     */
+    virtual void regridHierarchyBeginSpecialized();
+
+    /*!
+     * Perform any necessary work relevant to data owned by the current
+     * integrator after regridding (e.g., calculating divergences). An empty
+     * default implementation is provided.
+     */
+    virtual void regridHierarchyEndSpecialized();
+
     /*!
      * Virtual method to compute an implementation-specific minimum stable time
      * step size.

@@ -1,0 +1,6 @@
+New: IBTK::HierarchyIntegrator gained two new functions:
+regridHierarchyBeginSpecialized and regridHierarchyEndSpecialized. These two
+functions perform class-specific tasks (such as communicating non-SAMRAI data or
+projecting a velocity onto a divergence-free solution space).
+<br>
+(David Wells, Nishant Nangia, Boyce Griffith, Amneet Bhalla, 2019/04/15)

@@ -183,12 +183,14 @@ public:
                                        bool skip_synchronize_new_state_data,
                                        int num_cycles = 1) override;
 
-    /*!
-     * Regrid the patch hierarchy.
-     */
-    void regridHierarchy() override;
-
 protected:
+    /*
+     * Since (unlike the staggered case) there is no local divergence-preserving
+     * interpolation scheme for collocated velocity fields, the velocity must
+     * always be projected onto the grid after regridding. Do that here.
+     */
+    void regridHierarchyEndSpecialized() override;
+
     /*!
      * Determine the largest stable timestep on an individual patch.
      */
@@ -230,6 +232,11 @@ protected:
      */
     void setupPlotDataSpecialized() override;
 
+    /*!
+     * Project the velocity field following a regridding operation.
+     */
+    void regridProjection() override;
+
 private:
     /*!
      * \brief Default constructor.
@@ -268,11 +275,6 @@ private:
      * Reinitialize the operators and solvers used by the hierarchy integrator.
      */
     void reinitializeOperatorsAndSolvers(double current_time, double new_time);
-
-    /*!
-     * Project the velocity field following a regridding operation.
-     */
-    void regridProjection();
 
     /*!
      * Value determining the type of projection method to use.

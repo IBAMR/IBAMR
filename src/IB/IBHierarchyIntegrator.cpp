@@ -437,8 +437,10 @@ IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > h
     return;
 } // initializePatchHierarchy
 
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
 void
-IBHierarchyIntegrator::regridHierarchy()
+IBHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
     // This must be done here since (if a load balancer is used) it effects
     // the distribution of patches.
@@ -453,11 +455,13 @@ IBHierarchyIntegrator::regridHierarchy()
     // Before regridding, begin Lagrangian data movement.
     if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement\n";
     d_ib_method_ops->beginDataRedistribution(d_hierarchy, d_gridding_alg);
-
-    // Use the INSHierarchyIntegrator to handle Eulerian data management.
     if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): regridding the patch hierarchy\n";
-    HierarchyIntegrator::regridHierarchy();
+    return;
+} // regridHierarchyBeginSpecialized
 
+void
+IBHierarchyIntegrator::regridHierarchyEndSpecialized()
+{
     // After regridding, finish Lagrangian data movement.
     if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement\n";
     d_ib_method_ops->endDataRedistribution(d_hierarchy, d_gridding_alg);
@@ -477,9 +481,7 @@ IBHierarchyIntegrator::regridHierarchy()
     // Reset the regrid CFL estimate.
     d_regrid_cfl_estimate = 0.0;
     return;
-} // regridHierarchy
-
-/////////////////////////////// PROTECTED ////////////////////////////////////
+} // regridHierarchyEndSpecialized
 
 IBHierarchyIntegrator::IBHierarchyIntegrator(const std::string& object_name,
                                              Pointer<Database> input_db,
