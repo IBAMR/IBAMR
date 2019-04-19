@@ -215,6 +215,20 @@ get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
     return dirichlet_bdry_ids;
 } // get_dirichlet_bdry_ids
 
+template <typename U, typename T>
+inline bool
+can_convert_to(T* t)
+{
+    return dynamic_cast<U*>(t) != nullptr;
+}
+
+template <typename U, typename T>
+inline bool
+can_convert_to(const SAMRAI::tbox::Pointer<T>& t)
+{
+    return dynamic_cast<U*>(t.getPointer()) != nullptr;
+}
+
 /**
  * Return the quadrature key description (see QuadratureCache, FECache, and
  * FEMapCache) of a quadrature rule.
@@ -715,23 +729,19 @@ FEDataManager::spread(const int f_data_idx,
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
-    // Determine the type of data centering.
     Pointer<hier::Variable<NDIM> > f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    hier::Variable<NDIM>& f_var_ref = *f_var;
-    std::type_index f_type_id = typeid(f_var_ref);
 
     // Make a copy of the Eulerian data.
     int depth = -1, ghost_width = -1;
-    if (f_type_id == typeid(CellVariable<NDIM, double>))
+    if (can_convert_to<CellVariable<NDIM, double> >(f_var))
     {
         Pointer<CellDataFactory<NDIM, double> > f_cc_fac = f_var->getPatchDataFactory();
         depth = f_cc_fac->getDefaultDepth();
         ghost_width = f_cc_fac->getGhostCellWidth().max();
         TBOX_ASSERT(ghost_width == f_cc_fac->getGhostCellWidth().min());
     }
-    else if (f_type_id == typeid(SideVariable<NDIM, double>))
+    else if (can_convert_to<SideVariable<NDIM, double> >(f_var))
     {
         Pointer<SideDataFactory<NDIM, double> > f_sc_fac = f_var->getPatchDataFactory();
         depth = f_sc_fac->getDefaultDepth();
@@ -740,8 +750,10 @@ FEDataManager::spread(const int f_data_idx,
     }
     else
     {
-        TBOX_ERROR("unsupported data alignment for FEDataManager::spread(): " << f_type_id.name() << "\n");
+        TBOX_ERROR("unsupported data alignment for FEDataManager::spread(): " << typeid(f_var).name() << "\n");
     }
+    hier::Variable<NDIM>& f_var_ref = *f_var;
+    std::type_index f_type_id = typeid(f_var_ref);
     const f_data_idx_map_key_type f_key{ f_type_id, depth, ghost_width };
     int f_copy_data_idx = invalid_index;
     auto it = d_f_data_idx_map.find(f_key);
@@ -896,13 +908,13 @@ FEDataManager::spread(const int f_data_idx,
             const Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), d_ghost_width);
             Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-            if (f_type_id == typeid(CellVariable<NDIM, double>))
+            if (can_convert_to<CellVariable<NDIM, double> >(f_var))
             {
                 Pointer<CellData<NDIM, double> > f_cc_data = f_data;
                 LEInteractor::spread(
                     f_cc_data, F_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_spec.kernel_fcn);
             }
-            else if (f_type_id == typeid(SideVariable<NDIM, double>))
+            else if (can_convert_to<SideVariable<NDIM, double> >(f_var))
             {
                 Pointer<SideData<NDIM, double> > f_sc_data = f_data;
                 LEInteractor::spread(
@@ -910,7 +922,7 @@ FEDataManager::spread(const int f_data_idx,
             }
             else
             {
-                TBOX_ERROR("unsupported data alignment for FEDataManager::spread(): " << f_type_id.name() << "\n");
+                TBOX_ERROR("unsupported data alignment for FEDataManager::spread(): " << typeid(f_var).name() << "\n");
             }
 
             if (f_phys_bdry_op)
@@ -1037,13 +1049,13 @@ FEDataManager::spread(const int f_data_idx,
             // are within the ghost cell width of the patch interior.
             const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), d_ghost_width);
             Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-            if (f_type_id == typeid(CellVariable<NDIM, double>))
+            if (can_convert_to<CellVariable<NDIM, double> >(f_var))
             {
                 Pointer<CellData<NDIM, double> > f_cc_data = f_data;
                 LEInteractor::spread(
                     f_cc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
             }
-            else if (f_type_id == typeid(SideVariable<NDIM, double>))
+            else if (can_convert_to<SideVariable<NDIM, double> >(f_var))
             {
                 Pointer<SideData<NDIM, double> > f_sc_data = f_data;
                 LEInteractor::spread(
@@ -1051,7 +1063,7 @@ FEDataManager::spread(const int f_data_idx,
             }
             else
             {
-                TBOX_ERROR("unsupported data alignment for FEDataManager::spread(): " << f_type_id.name() << "\n");
+                TBOX_ERROR("unsupported data alignment for FEDataManager::spread(): " << typeid(f_var).name() << "\n");
             }
 
             if (f_phys_bdry_op)
@@ -1450,15 +1462,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
     IBTK_TIMER_START(t_interp_weighted);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
-    // Determine the type of data centering.
     Pointer<hier::Variable<NDIM> > f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    Pointer<CellVariable<NDIM, double> > f_cc_var = f_var;
-    Pointer<SideVariable<NDIM, double> > f_sc_var = f_var;
-    const bool cc_data = f_cc_var;
-    const bool sc_data = f_sc_var;
-    TBOX_ASSERT(cc_data || sc_data);
 
     // We interpolate directly from the finest level of the patch hierarchy.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
@@ -1593,17 +1598,22 @@ FEDataManager::interpWeighted(const int f_data_idx,
             // inadvertently exclude the selected points.
             const Box<NDIM>& interp_box = Box<NDIM>::grow(patch->getBox(), IntVector<NDIM>(1));
             Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-            if (cc_data)
+            if (can_convert_to<CellVariable<NDIM, double> >(f_var))
             {
                 Pointer<CellData<NDIM, double> > f_cc_data = f_data;
                 LEInteractor::interpolate(
                     F_node, n_vars, X_node, NDIM, f_cc_data, patch, interp_box, interp_spec.kernel_fcn);
             }
-            if (sc_data)
+            else if (can_convert_to<SideVariable<NDIM, double> >(f_var))
             {
                 Pointer<SideData<NDIM, double> > f_sc_data = f_data;
                 LEInteractor::interpolate(
                     F_node, n_vars, X_node, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
+            }
+            else
+            {
+                TBOX_ERROR("unsupported data alignment for FEDataManager::interpWeighted(): " << typeid(f_var).name()
+                                                                                              << "\n");
             }
 
             // Insesrt the values of F at the nodes.
@@ -1734,17 +1744,22 @@ FEDataManager::interpWeighted(const int f_data_idx,
             // that are within the patch interior.
             const Box<NDIM>& interp_box = patch->getBox();
             Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-            if (cc_data)
+            if (can_convert_to<CellVariable<NDIM, double> >(f_var))
             {
                 Pointer<CellData<NDIM, double> > f_cc_data = f_data;
                 LEInteractor::interpolate(
                     F_qp, n_vars, X_qp, NDIM, f_cc_data, patch, interp_box, interp_spec.kernel_fcn);
             }
-            if (sc_data)
+            else if (can_convert_to<SideVariable<NDIM, double> >(f_var))
             {
                 Pointer<SideData<NDIM, double> > f_sc_data = f_data;
                 LEInteractor::interpolate(
                     F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
+            }
+            else
+            {
+                TBOX_ERROR("unsupported data alignment for FEDataManager::interpWeighted(): " << typeid(f_var).name()
+                                                                                              << "\n");
             }
 
             // Loop over the elements and accumulate the right-hand-side values.
