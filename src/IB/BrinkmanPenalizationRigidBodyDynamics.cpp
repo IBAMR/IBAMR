@@ -142,13 +142,14 @@ BrinkmanPenalizationRigidBodyDynamics::BrinkmanPenalizationRigidBodyDynamics(
                                                                  d_adv_diff_solver,
                                                                  d_fluid_solver))
 {
-    d_hydro_force_eval->setSurfaceContourLevel(0.0);
     d_hydro_force_eval->writeToFile(false);
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
+    
+    d_hydro_force_eval->setSurfaceContourLevel(d_contour_level);
 
     return;
 } // BrinkmanPenalizationRigidBodyDynamics
@@ -290,13 +291,11 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     Eigen::Vector3d T_rigid = d_hydro_torque_pressure + d_hydro_torque_viscous + d_ext_torque;
     d_rot_vel_new.setZero();
 #if (NDIM == 2)
-    if (d_solve_rigid_vel(2))
-    {
-        d_rot_vel_new(2) = d_rot_vel_current(2) + (dt * T_rigid(2)) / d_inertia_tensor_initial(2, 2);
-    }
+    d_rot_vel_new(2) = d_rot_vel_current(2) + (dt * T_rigid(2)) / d_inertia_tensor_initial(2, 2);
 #elif (NDIM == 3)
     Eigen::Vector3d T0_rigid = solve_3x3_system((R.transpose()) * T_rigid, d_inertia_tensor_initial);
     d_rot_vel_new = d_rot_vel_current + dt * R * T0_rigid;
+#endif
     for (unsigned s = NDIM; s < s_max_free_dofs; ++s)
     {
         if (!d_solve_rigid_vel(s))
@@ -304,7 +303,6 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
             d_rot_vel_new(s) = W_imposed(s);
         }
     }
-#endif
 
     // Get the interpolated density variable
     const int rho_ins_idx = d_fluid_solver->getLinearOperatorRhoPatchDataIndex();
@@ -506,6 +504,12 @@ BrinkmanPenalizationRigidBodyDynamics::getFromInput(Pointer<Database> input_db, 
     {
         d_chi = input_db->getDouble("chi");
     }
+    
+    if (input_db->keyExists("contour_level"))
+    {
+        d_contour_level = input_db->getDouble("contour_level");
+    }
+
     return;
 } // getFromInput
 
