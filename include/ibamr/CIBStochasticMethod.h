@@ -144,7 +144,7 @@ public:
     void getConfiguration(const unsigned int part, Eigen::Vector3d& C, Eigen::Quaterniond& Q);
 
     /*!
-     * \brief initial configuration getter
+     * \brief Lookup the initial center of mass C for the requested part.
      */
     void getInitialCOM(const unsigned int part, Eigen::Vector3d& C);
 
