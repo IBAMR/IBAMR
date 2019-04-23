@@ -74,7 +74,7 @@ class CIBStochasticMethod;
 namespace IBAMR
 {
 /*!
- * \brief Class CIBStaggeredStokesSolver is an extension of
+ * \brief Class CIBStochasticStokesSolver is an extension of
  * IBAMR::StaggeredStokesSolver class that solves for the Langrange multiplier
  * field \f$ \vec{\lambda} \f$ which imposes the rigidity constraint and solves
  * for rigid body velocity (if it is freely-moving) along with the fluid
