@@ -209,7 +209,7 @@ CIBStochasticStokesSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, do
 
     // Create the composite vectors.
     Vec mv_x, mv_b;
-    std::vector<Vec> vx(3), vb(3);
+    std::array<Vec,3> vx, vb;
     vx[0] = u_p;
     vx[1] = L;
     vx[2] = U;
