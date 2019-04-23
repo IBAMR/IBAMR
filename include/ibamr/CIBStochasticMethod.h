@@ -62,7 +62,7 @@ class CIBStaggeredStokesOperator;
 namespace IBAMR
 {
 /*!
- * \brief Class CIBFEMethod is a concrete CIBStrategy and IBMethod
+ * \brief Class CIBStochasticMethod is a concrete CIBStrategy and CIBMethod
  * class which implements the motion of rigid bodies using the constraint
  * formulation. The immersed structure is discretized using standard IB
  * markers.
