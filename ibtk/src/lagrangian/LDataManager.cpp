@@ -236,6 +236,7 @@ LDataManager::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
     // Reset the hierarchy.
     d_hierarchy = hierarchy;
     d_grid_geom = hierarchy->getGridGeometry();
+    d_cached_eulerian_data.setPatchHierarchy(hierarchy);
     return;
 } // setPatchHierarchy
 
@@ -275,6 +276,7 @@ LDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
     // Reset the level numbers.
     d_coarsest_ln = coarsest_ln;
     d_finest_ln = finest_ln;
+    d_cached_eulerian_data.resetLevels(coarsest_ln, finest_ln);
 
     // Resize some arrays.
     d_level_contains_lag_data.resize(d_finest_ln + 1);
@@ -583,9 +585,9 @@ LDataManager::spread(const int f_data_idx,
 
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Determine the type of data centering.
+    auto var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
     Pointer<CellVariable<NDIM, double> > f_cc_var = f_var;
@@ -599,12 +601,7 @@ LDataManager::spread(const int f_data_idx,
     TBOX_ASSERT(cc_data || ec_data || nc_data || sc_data);
 
     // Make a copy of the Eulerian data.
-    const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(f_copy_data_idx);
-    }
+    const int f_copy_data_idx = d_cached_eulerian_data.getCachedPatchDataIndex(f_data_idx);
     Pointer<HierarchyDataOpsReal<NDIM, double> > f_data_ops =
         HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
@@ -678,12 +675,7 @@ LDataManager::spread(const int f_data_idx,
     // Accumulate data.
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(f_copy_data_idx);
-    }
-    var_db->removePatchDataIndex(f_copy_data_idx);
+    d_cached_eulerian_data.restoreCachedPatchDataIndex(f_copy_data_idx);
 
     IBTK_TIMER_STOP(t_spread);
     return;
