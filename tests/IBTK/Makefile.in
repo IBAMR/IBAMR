@@ -87,7 +87,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = elem_hmax_01$(EXEEXT) elem_hmax_02$(EXEEXT)
+EXTRA_PROGRAMS = elem_hmax_01$(EXEEXT) elem_hmax_02$(EXEEXT) \
+	mpi_type_wrappers$(EXEEXT)
 subdir = tests/IBTK
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
@@ -135,6 +136,14 @@ elem_hmax_02_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 elem_hmax_02_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(elem_hmax_02_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_mpi_type_wrappers_OBJECTS =  \
+	mpi_type_wrappers-mpi_type_wrappers.$(OBJEXT)
+mpi_type_wrappers_OBJECTS = $(am_mpi_type_wrappers_OBJECTS)
+mpi_type_wrappers_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+mpi_type_wrappers_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(mpi_type_wrappers_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -151,7 +160,8 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po \
-	./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
+	./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po \
+	./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -171,8 +181,10 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(elem_hmax_01_SOURCES) $(elem_hmax_02_SOURCES)
-DIST_SOURCES = $(elem_hmax_01_SOURCES) $(elem_hmax_02_SOURCES)
+SOURCES = $(elem_hmax_01_SOURCES) $(elem_hmax_02_SOURCES) \
+	$(mpi_type_wrappers_SOURCES)
+DIST_SOURCES = $(elem_hmax_01_SOURCES) $(elem_hmax_02_SOURCES) \
+	$(mpi_type_wrappers_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -505,6 +517,9 @@ elem_hmax_01_SOURCES = elem_hmax_01.cpp
 elem_hmax_02_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 elem_hmax_02_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 elem_hmax_02_SOURCES = elem_hmax_02.cpp
+mpi_type_wrappers_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+mpi_type_wrappers_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+mpi_type_wrappers_SOURCES = mpi_type_wrappers.cpp
 all: all-am
 
 .SUFFIXES:
@@ -548,6 +563,10 @@ elem_hmax_02$(EXEEXT): $(elem_hmax_02_OBJECTS) $(elem_hmax_02_DEPENDENCIES) $(EX
 	@rm -f elem_hmax_02$(EXEEXT)
 	$(AM_V_CXXLD)$(elem_hmax_02_LINK) $(elem_hmax_02_OBJECTS) $(elem_hmax_02_LDADD) $(LIBS)
 
+mpi_type_wrappers$(EXEEXT): $(mpi_type_wrappers_OBJECTS) $(mpi_type_wrappers_DEPENDENCIES) $(EXTRA_mpi_type_wrappers_DEPENDENCIES) 
+	@rm -f mpi_type_wrappers$(EXEEXT)
+	$(AM_V_CXXLD)$(mpi_type_wrappers_LINK) $(mpi_type_wrappers_OBJECTS) $(mpi_type_wrappers_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -556,6 +575,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -614,6 +634,20 @@ elem_hmax_02-elem_hmax_02.obj: elem_hmax_02.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='elem_hmax_02.cpp' object='elem_hmax_02-elem_hmax_02.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(elem_hmax_02_CXXFLAGS) $(CXXFLAGS) -c -o elem_hmax_02-elem_hmax_02.obj `if test -f 'elem_hmax_02.cpp'; then $(CYGPATH_W) 'elem_hmax_02.cpp'; else $(CYGPATH_W) '$(srcdir)/elem_hmax_02.cpp'; fi`
+
+mpi_type_wrappers-mpi_type_wrappers.o: mpi_type_wrappers.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mpi_type_wrappers_CXXFLAGS) $(CXXFLAGS) -MT mpi_type_wrappers-mpi_type_wrappers.o -MD -MP -MF $(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Tpo -c -o mpi_type_wrappers-mpi_type_wrappers.o `test -f 'mpi_type_wrappers.cpp' || echo '$(srcdir)/'`mpi_type_wrappers.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Tpo $(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='mpi_type_wrappers.cpp' object='mpi_type_wrappers-mpi_type_wrappers.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mpi_type_wrappers_CXXFLAGS) $(CXXFLAGS) -c -o mpi_type_wrappers-mpi_type_wrappers.o `test -f 'mpi_type_wrappers.cpp' || echo '$(srcdir)/'`mpi_type_wrappers.cpp
+
+mpi_type_wrappers-mpi_type_wrappers.obj: mpi_type_wrappers.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mpi_type_wrappers_CXXFLAGS) $(CXXFLAGS) -MT mpi_type_wrappers-mpi_type_wrappers.obj -MD -MP -MF $(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Tpo -c -o mpi_type_wrappers-mpi_type_wrappers.obj `if test -f 'mpi_type_wrappers.cpp'; then $(CYGPATH_W) 'mpi_type_wrappers.cpp'; else $(CYGPATH_W) '$(srcdir)/mpi_type_wrappers.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Tpo $(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='mpi_type_wrappers.cpp' object='mpi_type_wrappers-mpi_type_wrappers.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mpi_type_wrappers_CXXFLAGS) $(CXXFLAGS) -c -o mpi_type_wrappers-mpi_type_wrappers.obj `if test -f 'mpi_type_wrappers.cpp'; then $(CYGPATH_W) 'mpi_type_wrappers.cpp'; else $(CYGPATH_W) '$(srcdir)/mpi_type_wrappers.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -748,6 +782,7 @@ clean-am: clean-generic clean-libtool mostlyclean-am
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
+	-rm -f ./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -795,6 +830,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
+	-rm -f ./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
