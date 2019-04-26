@@ -1,5 +1,5 @@
 // Filename: CIBStochasticStaggeredStokesSolver.h
-// Created on 10 Nov 2014 by Amneet Bhalla
+// Created on 26 Sept 2017 by Brennan Sprinkle
 //
 // Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
@@ -78,7 +78,9 @@ namespace IBAMR
  * IBAMR::StaggeredStokesSolver class that solves for the Langrange multiplier
  * field \f$ \vec{\lambda} \f$ which imposes the rigidity constraint and solves
  * for rigid body velocity (if it is freely-moving) along with the fluid
- * velocity and pressure.
+ * velocity and pressure. This class implements the SEM time integrator introduced
+ * in: Brownian dynamics of fully confined suspensions of rigid particles without Green’s functions, 
+ * J. Chem. Phys., 150, 16, 2019. doi 10.1063/1.5090114 
  */
 class CIBStochasticStokesSolver : public StaggeredStokesSolver
 {
@@ -160,12 +162,16 @@ public:
     virtual void setTimeInterval(double current_time, double new_time);
 
     /*!
-     * \brief compute vectors for the RFD.
+     * \brief compute vectors for the RFD. U_rfd is a random, rigid velocity to displace the particles 
+     * by and F_rfd is a random force/torque which is correlated to U_rfd
      */
     void computeFUforRFD(Vec F_rfd, Vec U_rfd);
 
     /*!
-     * \brief compute the RFDs and modify RHS for solver
+     * \brief compute the necissary RFDs and modify RHS for solver, according to Step 6 of the 
+     * SEM scheme in:
+     * Brownian dynamics of fully confined suspensions of rigid particles without Green’s functions, 
+     * J. Chem. Phys., 150, 16, 2019. doi 10.1063/1.5090114 
      */
     void ComputeRFD_RHS(Vec b, Vec y);
 

@@ -1,5 +1,5 @@
 // Filename: CIBStochasticMethod.h
-// Created on 21 Apr 2015 by Amneet Bhalla
+// Created on 26 Sept 2017 by Brennan Sprinkle
 //
 // Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith.
 // All rights reserved.
@@ -65,7 +65,7 @@ namespace IBAMR
  * \brief Class CIBStochasticMethod is a concrete CIBStrategy and CIBMethod
  * class which implements the motion of rigid bodies using the constraint
  * formulation. The immersed structure is discretized using standard IB
- * markers.
+ * markers. Adds some functionality for stocastic simulations. 
  */
 
 class CIBStochasticMethod : public IBAMR::CIBMethod
@@ -124,17 +124,12 @@ public:
     void moveLagrangianData(double delta);
 
     /*!
-     * \brief helper function for RFD
-     */
-    void computeRFDforcesAndDisplacements();
-
-    /*!
      * \brief sets rigid body velocity of structures at the half-time positions
      */
     void setHalfTimeVelocity(Vec U);
 
     /*!
-     * \brief resetsets rigid body velocity of structures at the half-time positions to those at current time
+     * \brief resets rigid body velocity of structures at the half-time positions to those at current time
      */
     void resetRFDVelocity();
 

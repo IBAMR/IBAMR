@@ -1,5 +1,5 @@
 // Filename: CIBStaggeredStokesSolver.cpp
-// Created on 10 Nov 2014 by Amneet Bhalla
+// Created on 26 Sept 2017 by Brennan Sprinkle
 //
 // Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
@@ -513,8 +513,8 @@ CIBStochasticStokesSolver::ComputeRFD_RHS(Vec b, Vec y)
     Pointer<CIBStochasticMethod> sib_method_ops = d_cib_strategy;
 
     // Get some constants
-    static const double gamma = d_sp_solver->getSpreadScale();
-    static const double beta = d_sp_solver->getInterpScale();
+    const double gamma = d_sp_solver->getSpreadScale();
+    const double beta = d_sp_solver->getInterpScale();
     const double half_time = 0.5 * (d_new_time + d_current_time);
 
     int total_comps, free_comps = 0;

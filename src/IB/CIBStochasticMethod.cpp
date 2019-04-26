@@ -323,54 +323,6 @@ CIBStochasticMethod::moveLagrangianData(double delta)
 } // moveLagrangianData
 
 void
-CIBStochasticMethod::computeRFDforcesAndDisplacements()
-{
-    Vec F_rfd, U_rfd;
-    double Vel_scale = (1.0 / d_kT);
-    getNetExternalForceTorque(&F_rfd, d_current_time);
-    VecDuplicate(F_rfd, &U_rfd);
-    VecCopy(F_rfd, U_rfd);
-    VecScale(U_rfd, Vel_scale);
-
-    Vec U_all;
-    VecScatter ctx;
-    VecScatterCreateToAll(U_rfd, &ctx, &U_all);
-    VecScatterBegin(ctx, U_rfd, U_all, INSERT_VALUES, SCATTER_FORWARD);
-    VecScatterEnd(ctx, U_rfd, U_all, INSERT_VALUES, SCATTER_FORWARD);
-    const PetscScalar* U_array;
-    VecGetArrayRead(U_all, &U_array);
-
-    int part_free_dofs_begin = 0;
-    for (unsigned part = 0; part < d_num_rigid_parts; ++part)
-    {
-        int num_free_dofs;
-        const FreeRigidDOFVector& solve_dofs = getSolveRigidBodyVelocity(part, num_free_dofs);
-        if (!num_free_dofs) continue;
-
-        RDV UW;
-        eigenToRDV(d_trans_vel_current[part], d_rot_vel_current[part], UW);
-        const PetscScalar* a = &U_array[part_free_dofs_begin];
-        for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
-        {
-            if (solve_dofs[k])
-            {
-                UW[k] = a[p];
-                ++p;
-            }
-        }
-        rdvToEigen(UW, d_trans_vel_current[part], d_rot_vel_current[part]);
-        d_trans_vel_current[part] *= (d_L_scale * d_L_scale);
-        part_free_dofs_begin += num_free_dofs;
-    }
-    VecDestroy(&U_rfd);
-    VecRestoreArrayRead(U_all, &U_array);
-    VecScatterDestroy(&ctx);
-    VecDestroy(&U_all);
-
-    return;
-} // computeRFDforcesAndDisplacements
-
-void
 CIBStochasticMethod::setHalfTimeVelocity(Vec U)
 {
     // Get rigid DOFs on all processors.
