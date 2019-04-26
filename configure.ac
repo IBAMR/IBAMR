@@ -112,6 +112,9 @@ CONFIGURE_GTEST
 PACKAGE_SETUP_ENVIRONMENT
 LIBS="$LIBS $PACKAGE_CONTRIB_LIBS"
 
+AC_SUBST(MPIEXEC)
+AC_SUBST(NUMDIFF)
+
 ###########################################################################
 # Output files.
 ###########################################################################
@@ -212,12 +215,8 @@ AC_CONFIG_FILES([
   src/utilities/Makefile
   src/tools/Makefile
   tests/Makefile
-  tests/Stokes/Makefile
-  tests/Stokes/test0/Makefile
-  tests/Stokes-IB/Makefile
-  tests/Stokes-IB/test0/Makefile
-  tests/Stokes-IB/test1/Makefile
-  tests/Stokes-IB/test2/Makefile
+  tests/IBFE/Makefile
+  tests/IBTK/Makefile
 ])
 AC_CONFIG_SUBDIRS([ibtk])
 AC_OUTPUT

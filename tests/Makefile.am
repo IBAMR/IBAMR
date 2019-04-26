@@ -1,13 +1,8 @@
-## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = Stokes Stokes-IB
+TEST_DIRECTORIES = IBTK IBFE
 
-all:
-	if test "$(CONFIGURATION_BUILD_DIR)" != ""; then \
-	  $(MAKE) tests ; \
-	fi ;
+tests: $(TEST_DIRECTORIES)
 
-## Standard make targets.
-tests:
-	@(cd Stokes           && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd Stokes-IB        && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+$(TEST_DIRECTORIES):
+	cd $@ && $(MAKE) $(AM_MAKEFLAGS) tests
+.PHONY: tests $(TEST_DIRECTORIES)
