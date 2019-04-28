@@ -154,8 +154,18 @@ public:
     static const std::string SOURCE_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
 
+    // strings specifying the stress normalization solver.
+    static const std::string IPDG_PHI_SOLVER_NAME;
+    static const std::string CG_PHI_SOLVER_NAME;
+    static const std::string CG_DIFFUSION_PHI_SOLVER_NAME;
+
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > mask_var;
     int mask_current_idx, mask_new_idx, mask_scratch_idx;
+
+    // information for representing (interpolating) the stress normalization
+    // variable phi on the cell-centered Cartesian grid
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > phi_var;
+    int phi_current_idx, phi_new_idx, phi_scratch_idx;
 
     /*!
      * \brief Constructor.
@@ -762,6 +772,7 @@ protected:
      * of the Lagrangian structure.
      */
     void spreadTransmissionForceDensity(int f_data_idx,
+                                        libMesh::PetscVector<double>* Phi_vec,
                                         libMesh::PetscVector<double>& X_ghost_vec,
                                         IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                                         double data_time,
@@ -866,13 +877,14 @@ protected:
     std::vector<libMesh::PetscVector<double>*> d_Q_half_vecs, d_Q_rhs_vecs, d_Q_IB_ghost_vecs;
 
     /// Vector of pointers to body stress normalization vectors (both solutions and RHS).
-    std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs, d_Phi_rhs_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs, d_Phi_rhs_vecs, d_Phi_IB_ghost_vecs;
 
     /**
      * Vectors containing entries for relevant IB ghost data: see
      * FEDataManager::buildIBGhostedVector.
      */
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_F_IB_solution_vecs;
+    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_Phi_IB_solution_vecs;
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_Q_IB_solution_vecs;
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_U_IB_rhs_vecs;
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_X_IB_solution_vecs;
@@ -916,9 +928,19 @@ protected:
     /*
      * Data related to handling stress normalization.
      */
-    double d_epsilon = 0.0;
+    double d_phi_epsilon = 0.0;
+    double d_ipdg_jump0_penalty = 2.0;
+    double d_ipdg_jump1_penalty = 0.0;
+    double d_ipdg_beta0 = 1.0;
+    double d_ipdg_beta1 = 1.0;
+    libMesh::Order d_phi_fe_order = libMesh::FIRST;
+    double d_cg_penalty = 1.0e10;
+    double d_phi_diffusion = 1.0;
+    std::string d_phi_solver = CG_PHI_SOLVER_NAME;
+    bool d_phi_current_config = true;
     bool d_has_stress_normalization_parts = false;
     std::vector<bool> d_is_stress_normalization_part;
+    double d_dt_previous = std::numeric_limits<double>::quiet_NaN();
 
     /*
      * Data related to constraining overlaps between pairs of parts.
