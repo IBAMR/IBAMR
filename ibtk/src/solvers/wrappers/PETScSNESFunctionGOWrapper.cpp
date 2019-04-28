@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <string>
 
 #include "IntVector.h"
@@ -58,18 +57,14 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScSNESFunctionGOWrapper::PETScSNESFunctionGOWrapper(
-    const std::string& object_name,
-    const SNES& petsc_snes,
+    std::string object_name,
+    SNES petsc_snes,
     PetscErrorCode (*const petsc_snes_form_func)(SNES, Vec, Vec, void*),
     void* const petsc_snes_func_ctx)
-    : GeneralOperator(object_name),
-      d_petsc_snes(petsc_snes),
+    : GeneralOperator(std::move(object_name)),
+      d_petsc_snes(std::move(petsc_snes)),
       d_petsc_snes_form_func(petsc_snes_form_func),
-      d_petsc_snes_func_ctx(petsc_snes_func_ctx),
-      d_x(NULL),
-      d_y(NULL),
-      d_petsc_x(NULL),
-      d_petsc_y(NULL)
+      d_petsc_snes_func_ctx(petsc_snes_func_ctx)
 {
     // intentionally blank
     return;

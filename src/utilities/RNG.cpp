@@ -1,8 +1,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cmath>
+#include <ctime>
 #include <iosfwd>
 #include <iostream>
 #include <map>
@@ -133,7 +132,7 @@ RNG::genrand(double* rn)
     y ^= TEMPERING_SHIFT_T(y) & TEMPERING_MASK_C;
     y ^= TEMPERING_SHIFT_L(y);
 
-    *rn = ((double)y * 2.3283064365386963e-10); /* reals: [0,1)-interval */
+    *rn = (static_cast<double>(y) * 2.3283064365386963e-10); /* reals: [0,1)-interval */
     return;
 } // genrand
 
@@ -191,7 +190,7 @@ InvNormDist(double p)
         /*
         ** Rational approximation for lower region.
         */
-        double q = sqrt(-2 * log(p));
+        double q = std::sqrt(-2 * std::log(p));
 
         x = (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
             ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
@@ -201,7 +200,7 @@ InvNormDist(double p)
         /*
         ** Rational approximation for upper region.
         */
-        double q = sqrt(-2 * log(1 - p));
+        double q = std::sqrt(-2 * std::log(1 - p));
 
         x = -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
             ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
@@ -257,7 +256,7 @@ RNG::parallel_seed(int global_seed)
     {
         if (seed == 0)
         {
-            seed = static_cast<int>(time(0));
+            seed = static_cast<int>(std::time(nullptr));
         }
         std::cout << "\nGlobal seed = " << seed << "\n\n";
     }
@@ -281,7 +280,7 @@ RNG::parallel_seed(int global_seed)
 
             // Insert the unique seeds into the seed vector.
             unsigned i = 0;
-            for (std::set<int>::const_iterator cit = seed_set.begin(); cit != seed_set.end(); ++cit, ++i)
+            for (auto cit = seed_set.begin(); cit != seed_set.end(); ++cit, ++i)
             {
                 seeds[i] = *cit;
             }

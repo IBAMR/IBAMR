@@ -25,6 +25,9 @@
    __builtin_prefetch keyword */
 #undef HAVE_BUILTIN_PREFETCH
 
+/* define if the compiler supports basic C++11 syntax */
+#undef HAVE_CXX11
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
@@ -206,3 +209,15 @@
 
 /* Version number of package */
 #undef VERSION
+
+/* Major version of IBAMR. */
+#undef VERSION_MAJOR
+
+/* Minor version of IBAMR. */
+#undef VERSION_MINOR
+
+/* Subminor version of IBAMR. */
+#undef VERSION_SUBMINOR
+
+/* Version check macro. */
+#define VERSION_GTE(major, minor, subminor) ((IBAMR_VERSION_MAJOR*10000 + IBAMR_VERSION_MINOR*100 + IBAMR_VERSION_SUBMINOR) >= (major)*10000 + (minor)*100 + (subminor))

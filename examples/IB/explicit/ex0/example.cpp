@@ -58,6 +58,8 @@
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
 
+#include <array>
+
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
@@ -67,7 +69,7 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const string& data_dump_dirname);
 
 int finest_ln;
-boost::array<int, NDIM> N;
+std::array<int, NDIM> N;
 SAMRAI::tbox::Array<std::string> struct_list;
 SAMRAI::tbox::Array<int> num_node;
 SAMRAI::tbox::Array<double> ds;
@@ -378,13 +380,9 @@ bool run_example(int argc, char* argv[],  std::vector<double>& u_err,  std::vect
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "u_bc_coefs_" << d;
-                const string bc_coefs_name = bc_coefs_name_stream.str();
+                const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
 
-                ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
-                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+                const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
 
                 u_bc_coefs[d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);

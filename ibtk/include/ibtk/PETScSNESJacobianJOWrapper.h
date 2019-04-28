@@ -63,8 +63,8 @@ public:
      * Construct a Jacobian operator wrapper corresponding to the provided PETSc
      * SNES Jacobian object.
      */
-    PETScSNESJacobianJOWrapper(const std::string& object_name,
-                               const SNES& petsc_snes,
+    PETScSNESJacobianJOWrapper(std::string object_name,
+                               SNES petsc_snes,
                                PetscErrorCode (*petsc_snes_form_jac)(SNES, Vec, Mat, Mat, void*),
                                void* petsc_snes_jac_ctx);
 
@@ -107,12 +107,12 @@ public:
      *
      * \param x value where the Jacobian is to be evaluated
      */
-    void formJacobian(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x);
+    void formJacobian(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x) override;
 
     /*!
      * \brief Return the vector where the Jacobian is evaluated.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getBaseVector() const;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getBaseVector() const override;
 
     //\}
 
@@ -143,7 +143,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
     /*!
      * \brief Compute z=Ax+y.
@@ -170,7 +170,7 @@ public:
      */
     void applyAdd(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& z);
+                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& z) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
@@ -203,7 +203,7 @@ public:
      * \param out output vector
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -215,7 +215,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void deallocateOperatorState();
+    void deallocateOperatorState() override;
 
     //\}
 
@@ -225,7 +225,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PETScSNESJacobianJOWrapper();
+    PETScSNESJacobianJOWrapper() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -234,7 +234,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScSNESJacobianJOWrapper(const PETScSNESJacobianJOWrapper& from);
+    PETScSNESJacobianJOWrapper(const PETScSNESJacobianJOWrapper& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -245,14 +245,14 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScSNESJacobianJOWrapper& operator=(const PETScSNESJacobianJOWrapper& that);
+    PETScSNESJacobianJOWrapper& operator=(const PETScSNESJacobianJOWrapper& that) = delete;
 
     const SNES d_petsc_snes;
-    Mat d_petsc_snes_jac;
+    Mat d_petsc_snes_jac = nullptr;
     PetscErrorCode (*const d_petsc_snes_form_jac)(SNES, Vec, Mat, Mat, void*);
     void* const d_petsc_snes_jac_ctx;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_y, d_z;
-    Vec d_petsc_x, d_petsc_y, d_petsc_z;
+    Vec d_petsc_x = nullptr, d_petsc_y = nullptr, d_petsc_z = nullptr;
 };
 } // namespace IBTK
 

@@ -42,7 +42,7 @@
 
 namespace IBTK
 {
-typedef LIndexSetVariable<LNode> LNodeSetVariable;
+using LNodeSetVariable = LIndexSetVariable<LNode>;
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

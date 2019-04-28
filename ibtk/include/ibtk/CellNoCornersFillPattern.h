@@ -40,6 +40,7 @@
 #include "Box.h"
 #include "IntVector.h"
 #include "VariableFillPattern.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -82,7 +83,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~CellNoCornersFillPattern();
+    ~CellNoCornersFillPattern() = default;
 
     /*!
      * Calculate overlaps between the destination and source geometries according
@@ -110,7 +111,7 @@ public:
                      const SAMRAI::hier::Box<NDIM>& dst_patch_box,
                      const SAMRAI::hier::Box<NDIM>& src_mask,
                      bool overwrite_interior,
-                     const SAMRAI::hier::IntVector<NDIM>& src_offset) const;
+                     const SAMRAI::hier::IntVector<NDIM>& src_offset) const override;
 
     /*!
      * Calculate overlaps between the destination and source geometries according
@@ -144,22 +145,22 @@ public:
                             bool overwrite_interior,
                             const SAMRAI::hier::IntVector<NDIM>& src_offset,
                             int dst_level_num,
-                            int src_level_num) const;
+                            int src_level_num) const override;
 
     /*!
      * Set the target patch level number for the variable fill pattern.
      */
-    void setTargetPatchLevelNumber(int level_num);
+    void setTargetPatchLevelNumber(int level_num) override;
 
     /*!
      * Returns the stencil width.
      */
-    SAMRAI::hier::IntVector<NDIM>& getStencilWidth();
+    SAMRAI::hier::IntVector<NDIM>& getStencilWidth() override;
 
     /*!
      * Returns a string name identifier "CELL_NO_CORNERS_FILL_PATTERN".
      */
-    const std::string& getPatternName() const;
+    const std::string& getPatternName() const override;
 
 private:
     /*!
@@ -167,7 +168,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CellNoCornersFillPattern();
+    CellNoCornersFillPattern() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -176,7 +177,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CellNoCornersFillPattern(const CellNoCornersFillPattern& from);
+    CellNoCornersFillPattern(const CellNoCornersFillPattern& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -187,13 +188,13 @@ private:
      *
      * \return A reference to this object.
      */
-    CellNoCornersFillPattern& operator=(const CellNoCornersFillPattern& that);
+    CellNoCornersFillPattern& operator=(const CellNoCornersFillPattern& that) = delete;
 
     SAMRAI::hier::IntVector<NDIM> d_stencil_width;
     const bool d_include_dst_patch_box;
     const bool d_include_edges_on_dst_level;
     const bool d_include_edges_on_src_level;
-    int d_target_level_num;
+    int d_target_level_num = IBTK::invalid_level_number;
 };
 } // namespace IBTK
 

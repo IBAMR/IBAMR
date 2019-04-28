@@ -103,39 +103,19 @@ set_rotation_matrix(const Eigen::Vector3d& rot_vel,
 } // namespace
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBFEDirectForcingKinematics::IBFEDirectForcingKinematics(const std::string& object_name,
+IBFEDirectForcingKinematics::IBFEDirectForcingKinematics(std::string object_name,
                                                          Pointer<Database> input_db,
                                                          Pointer<IBFEMethod> ibfe_method_ops,
                                                          int part,
                                                          bool register_for_restart)
+    : d_ibfe_method_ops(ibfe_method_ops), d_part(part), d_object_name(std::move(object_name))
 {
-    // Set the object name and register it with the restart manager.
-    d_object_name = object_name;
-    d_ibfe_method_ops = ibfe_method_ops;
-    d_part = part;
-
     d_registered_for_restart = false;
     if (register_for_restart)
     {
         RestartManager::getManager()->registerRestartItem(d_object_name, this);
         d_registered_for_restart = true;
     }
-
-    // Set some default values.
-    d_quaternion_current = Eigen::Quaterniond::Identity();
-    d_quaternion_half = Eigen::Quaterniond::Identity();
-    d_quaternion_new = Eigen::Quaterniond::Identity();
-    d_trans_vel_current = Eigen::Vector3d::Zero();
-    d_trans_vel_half = Eigen::Vector3d::Zero();
-    d_trans_vel_new = Eigen::Vector3d::Zero();
-    d_rot_vel_current = Eigen::Vector3d::Zero();
-    d_rot_vel_half = Eigen::Vector3d::Zero();
-    d_rot_vel_new = Eigen::Vector3d::Zero();
-    d_center_of_mass_initial = Eigen::Vector3d::Zero();
-    d_center_of_mass_current = Eigen::Vector3d::Zero();
-    d_center_of_mass_half = Eigen::Vector3d::Zero();
-    d_center_of_mass_new = Eigen::Vector3d::Zero();
-    d_inertia_tensor_initial = Eigen::Matrix3d::Zero();
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -463,22 +443,15 @@ IBFEDirectForcingKinematics::postprocessIntegrateData(double /*current_time*/, d
 void
 IBFEDirectForcingKinematics::putToDatabase(Pointer<Database> db)
 {
-    std::ostringstream U, W, C0, C, Q;
-    U << "U";
-    W << "W";
-    C0 << "C0";
-    C << "C";
-    Q << "Q";
-
     double Q_coeffs[4] = {
         d_quaternion_current.w(), d_quaternion_current.x(), d_quaternion_current.y(), d_quaternion_current.z()
     };
 
-    db->putDoubleArray(U.str(), &d_trans_vel_current[0], 3);
-    db->putDoubleArray(W.str(), &d_rot_vel_current[0], 3);
-    db->putDoubleArray(C0.str(), &d_center_of_mass_initial[0], 3);
-    db->putDoubleArray(C.str(), &d_center_of_mass_current[0], 3);
-    db->putDoubleArray(Q.str(), &Q_coeffs[0], 4);
+    db->putDoubleArray("U", &d_trans_vel_current[0], 3);
+    db->putDoubleArray("W", &d_rot_vel_current[0], 3);
+    db->putDoubleArray("C0", &d_center_of_mass_initial[0], 3);
+    db->putDoubleArray("C", &d_center_of_mass_current[0], 3);
+    db->putDoubleArray("Q", &Q_coeffs[0], 4);
 
     return;
 } // putToDatabase
@@ -527,19 +500,12 @@ IBFEDirectForcingKinematics::getFromRestart()
                    << d_object_name << " not found in restart file." << std::endl);
     }
 
-    std::ostringstream U, W, C0, C, Q;
-    U << "U";
-    W << "W";
-    C0 << "C0";
-    C << "C";
-    Q << "Q";
-
     double Q_coeffs[4];
-    db->getDoubleArray(U.str(), &d_trans_vel_current[0], 3);
-    db->getDoubleArray(W.str(), &d_rot_vel_current[0], 3);
-    db->getDoubleArray(C0.str(), &d_center_of_mass_initial[0], 3);
-    db->getDoubleArray(C.str(), &d_center_of_mass_current[0], 3);
-    db->getDoubleArray(Q.str(), &Q_coeffs[0], 4);
+    db->getDoubleArray("U", &d_trans_vel_current[0], 3);
+    db->getDoubleArray("W", &d_rot_vel_current[0], 3);
+    db->getDoubleArray("C0", &d_center_of_mass_initial[0], 3);
+    db->getDoubleArray("C", &d_center_of_mass_current[0], 3);
+    db->getDoubleArray("Q", &Q_coeffs[0], 4);
 
     d_quaternion_current.w() = Q_coeffs[0];
     d_quaternion_current.x() = Q_coeffs[1];
@@ -564,15 +530,15 @@ IBFEDirectForcingKinematics::computeCOMOfStructure(Eigen::Vector3d& X0)
     DofMap& X_dof_map = X_system.get_dof_map();
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
-    UniquePtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+    std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
 
-    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<double> >& phi = fe->get_phi();
 
     // Extract the nodal coordinates.
-    PetscVector<double>& X_petsc = dynamic_cast<PetscVector<double>&>(*X_system.current_local_solution.get());
+    auto& X_petsc = dynamic_cast<PetscVector<double>&>(*X_system.current_local_solution.get());
     X_petsc.close();
     Vec X_global_vec = X_petsc.vec();
     Vec X_local_ghost_vec;
@@ -632,16 +598,16 @@ IBFEDirectForcingKinematics::computeMOIOfStructure(Eigen::Matrix3d& I, const Eig
     DofMap& X_dof_map = X_system.get_dof_map();
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
-    UniquePtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+    std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
 
-    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<double> >& phi = fe->get_phi();
 
     // Extract the nodal coordinates.
     int ierr;
-    PetscVector<double>& X_petsc = dynamic_cast<PetscVector<double>&>(*X_system.current_local_solution.get());
+    auto& X_petsc = dynamic_cast<PetscVector<double>&>(*X_system.current_local_solution.get());
     X_petsc.close();
     Vec X_global_vec = X_petsc.vec();
     Vec X_local_ghost_vec;
@@ -810,8 +776,8 @@ IBFEDirectForcingKinematics::computeMixedLagrangianForceDensity(PetscVector<doub
     std::vector<std::vector<unsigned int> > U_dof_indices(NDIM);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = U_dof_map.variable_type(0);
-    UniquePtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
-    UniquePtr<FEBase> fe_autoptr(FEBase::build(dim, fe_type));
+    std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+    std::unique_ptr<FEBase> fe_autoptr(FEBase::build(dim, fe_type));
     FEBase* fe = fe_autoptr.get();
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();

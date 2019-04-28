@@ -63,7 +63,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    LinearOperator(const std::string& object_name, bool homogeneous_bc = false);
+    LinearOperator(std::string object_name, bool homogeneous_bc = false);
 
     /*!
      * \brief Empty destructor.
@@ -89,7 +89,7 @@ public:
      *
      * \note A default implementation evaluates y := y - A*0.
      */
-    void modifyRhsForBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void modifyRhsForBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
     //\}
 
@@ -99,7 +99,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LinearOperator();
+    LinearOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -108,7 +108,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LinearOperator(const LinearOperator& from);
+    LinearOperator(const LinearOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -119,7 +119,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LinearOperator& operator=(const LinearOperator& that);
+    LinearOperator& operator=(const LinearOperator& that) = delete;
 };
 } // namespace IBTK
 

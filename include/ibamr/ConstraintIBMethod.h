@@ -51,6 +51,7 @@
 #include "ibtk/FACPreconditioner.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/PETScKrylovPoissonSolver.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 namespace IBAMR
@@ -69,7 +70,7 @@ public:
     /*!
      * \brief Constructor
      */
-    ConstraintIBMethod(const std::string& object_name,
+    ConstraintIBMethod(std::string object_name,
                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                        const int no_structures,
                        bool register_for_restart = true);
@@ -87,17 +88,17 @@ public:
     /*!
      * \brief Register Eulerian variables with base IBStrategy class.
      */
-    virtual void registerEulerianVariables();
+    virtual void registerEulerianVariables() override;
 
     /*!
      *  \brief Create Lagrangian workspace.
      */
-    virtual void preprocessIntegrateData(double current_time, double new_time, int num_cycles);
+    virtual void preprocessIntegrateData(double current_time, double new_time, int num_cycles) override;
 
     /*!
      *  \brief Destroy Lagrangian workspace.
      */
-    virtual void postprocessIntegrateData(double current_time, double new_time, int num_cycles);
+    virtual void postprocessIntegrateData(double current_time, double new_time, int num_cycles) override;
 
     /*!
      * \brief Register kinematics of the immersed structure(s) with this class.
@@ -120,7 +121,7 @@ public:
     /*!
      * \brief Calculate any body forces for INS solver over here.
      */
-    virtual void preprocessSolveFluidEquations(double current_time, double new_time, int cycle_num);
+    virtual void preprocessSolveFluidEquations(double current_time, double new_time, int cycle_num) override;
 
     /*!
      * \brief Register any postprocess fluid solve callback functions.
@@ -137,22 +138,22 @@ public:
     /*!
      * \brief Apply the FuRMoRP algorithm in the postprocessSolveFluidEquations method.
      */
-    virtual void postprocessSolveFluidEquations(double current_time, double new_time, int cycle_num);
+    virtual void postprocessSolveFluidEquations(double current_time, double new_time, int cycle_num) override;
 
     /*!
      * \brief Override the forwardEulerStep method of the base IBMethod class.
      */
-    virtual void forwardEulerStep(double current_time, double new_time);
+    virtual void forwardEulerStep(double current_time, double new_time) override;
 
     /*!
      * \brief Override the midpointStep method of the base IBMethod class.
      */
-    virtual void midpointStep(double current_time, double new_time);
+    virtual void midpointStep(double current_time, double new_time) override;
 
     /*!
      * \brief Override the putToDatabase method of the base Serializable class.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*!
      * \brief Get the volume element associated with material points
@@ -258,21 +259,21 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    ConstraintIBMethod();
+    ConstraintIBMethod() = delete;
 
     /*!
      * \brief Default copy constructor.
      *
      * \note This copy constructor is not implemented and should not be used.
      */
-    ConstraintIBMethod(const ConstraintIBMethod& from);
+    ConstraintIBMethod(const ConstraintIBMethod& from) = delete;
 
     /*!
      * \brief Default assignment operator.
      *
      * \note This assignment operator is not implemented and should not be used.
      */
-    ConstraintIBMethod& operator=(const ConstraintIBMethod& that);
+    ConstraintIBMethod& operator=(const ConstraintIBMethod& that) = delete;
 
     /*!
      * \brief Get values from input file.
@@ -435,7 +436,7 @@ private:
     /*!
      * FuRMoRP apply time.
      */
-    double d_FuRMoRP_current_time, d_FuRMoRP_new_time;
+    double d_FuRMoRP_current_time = 0.0, d_FuRMoRP_new_time = 0.0;
 
     /*!
      * Volume element associated with material points.
@@ -465,7 +466,7 @@ private:
     /*!
      * If divergence free projection is needed after FuRMoRP algorithm?
      */
-    bool d_needs_div_free_projection;
+    bool d_needs_div_free_projection = false;
 
     /*!
      * Rigid translational velocity of the structures.
@@ -500,7 +501,7 @@ private:
     /*!
      * Moment of inertia of the structures.
      */
-    std::vector<Eigen::Matrix3d> d_moment_of_inertia_current, d_moment_of_inertia_new;
+    IBTK::EigenAlignedVector<Eigen::Matrix3d> d_moment_of_inertia_current, d_moment_of_inertia_new;
 
     /*!
      * Tag a Lagrangian point (generally eye of the fish) of the immersed structures.
@@ -520,33 +521,34 @@ private:
     /*!
      * Density of the fluid in constant coefficient case.
      */
-    double d_rho_fluid;
+    double d_rho_fluid = std::numeric_limits<double>::quiet_NaN();
 
     /*!
      * Whether or not the density from the integrator is constant
      */
-    bool d_rho_is_const;
+    bool d_rho_is_const = true;
 
     /*!
      * Bools for computing linear and rotational momentums of the body
      */
-    bool d_calculate_structure_linear_mom, d_calculate_structure_rotational_mom;
+    bool d_calculate_structure_linear_mom = false, d_calculate_structure_rotational_mom = false;
 
     /*!
      * Iteration_counter for printing stuff.
      */
-    int d_timestep_counter, d_output_interval;
+    int d_timestep_counter = 0, d_output_interval = 1;
 
     /*!
      * Bools for outputing stuff which is calculated on the fly.
      */
-    bool d_print_output, d_output_drag, d_output_torque, d_output_power, d_output_trans_vel, d_output_rot_vel,
-        d_output_COM_coordinates, d_output_MOI, d_output_eul_mom;
+    bool d_print_output = false, d_output_drag = false, d_output_torque = false, d_output_power = false,
+         d_output_trans_vel = false, d_output_rot_vel = false, d_output_COM_coordinates = false, d_output_MOI = false,
+         d_output_eul_mom = false;
 
     /*!
      * output file name string.
      */
-    std::string d_dir_name, d_base_output_filename;
+    std::string d_dir_name = "./ConstraintIBMethodDump", d_base_output_filename = "ImmersedStructure";
 
     /*!
      * Store LData for only those levels which contain immersed structures.
@@ -578,7 +580,7 @@ private:
      * Variables associated with the spatially varying density field, which is maintained by an integrator.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_var;
-    int d_rho_ins_idx, d_rho_scratch_idx;
+    int d_rho_ins_idx = IBTK::invalid_index, d_rho_scratch_idx = IBTK::invalid_index;
 
     /*!
      * The following variables are needed to solve cell centered poison equation for \f$ \phi \f$ ,which is
@@ -612,7 +614,7 @@ private:
     std::vector<void *> d_prefluidsolve_callback_fns_ctx, d_postfluidsolve_callback_fns_ctx;
 
     // Velocity boundary operator.
-    IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op;
+    IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op = nullptr;
 };
 } // namespace IBAMR
 

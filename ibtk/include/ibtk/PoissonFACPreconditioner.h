@@ -80,18 +80,18 @@ public:
     PoissonFACPreconditioner(const std::string& object_name,
                              SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_strategy,
                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                             const std::string& default_options_prefix);
+                             std::string default_options_prefix);
 
     /*!
      * Destructor.
      */
-    ~PoissonFACPreconditioner();
+    ~PoissonFACPreconditioner() = default;
 
     /*!
      * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
      * the coefficients for the scalar-valued or vector-valued Laplace operator.
      */
-    void setPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& poisson_spec);
+    void setPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& poisson_spec) override;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
@@ -103,7 +103,7 @@ public:
      * \param bc_coef  Pointer to an object that can set the Robin boundary condition
      *coefficients
      */
-    void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
+    void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef) override;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -116,7 +116,7 @@ public:
      * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition
      *coefficients
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs) override;
 
 private:
     /*!
@@ -124,7 +124,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PoissonFACPreconditioner();
+    PoissonFACPreconditioner() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -133,7 +133,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PoissonFACPreconditioner(const PoissonFACPreconditioner& from);
+    PoissonFACPreconditioner(const PoissonFACPreconditioner& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -144,7 +144,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PoissonFACPreconditioner& operator=(const PoissonFACPreconditioner& that);
+    PoissonFACPreconditioner& operator=(const PoissonFACPreconditioner& that) = delete;
 };
 } // namespace IBTK
 

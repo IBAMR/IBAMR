@@ -35,13 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <array>
 #include <string>
 
 #include "CartesianGridGeometry.h"
 #include "IntVector.h"
 #include "PatchLevel.h"
-#include "boost/array.hpp"
 #include "ibtk/CartGridFunction.h"
 #include "tbox/Pointer.h"
 
@@ -87,7 +86,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~StaggeredStokesOpenBoundaryStabilizer();
+    ~StaggeredStokesOpenBoundaryStabilizer() = default;
 
     /*!
      * \name Methods to set the data.
@@ -97,7 +96,7 @@ public:
     /*!
      * \note This concrete IBTK::CartGridFunction is time-dependent.
      */
-    bool isTimeDependent() const;
+    bool isTimeDependent() const override;
 
     /*!
      * Set the data on the patch interior.
@@ -108,7 +107,7 @@ public:
                         double data_time,
                         bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
 
     //\}
 
@@ -118,7 +117,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    StaggeredStokesOpenBoundaryStabilizer();
+    StaggeredStokesOpenBoundaryStabilizer() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -127,7 +126,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesOpenBoundaryStabilizer(const StaggeredStokesOpenBoundaryStabilizer& from);
+    StaggeredStokesOpenBoundaryStabilizer(const StaggeredStokesOpenBoundaryStabilizer& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -138,10 +137,10 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesOpenBoundaryStabilizer& operator=(const StaggeredStokesOpenBoundaryStabilizer& that);
+    StaggeredStokesOpenBoundaryStabilizer& operator=(const StaggeredStokesOpenBoundaryStabilizer& that) = delete;
 
-    boost::array<bool, 2 * NDIM> d_open_bdry, d_inflow_bdry, d_outflow_bdry;
-    boost::array<double, 2 * NDIM> d_width;
+    std::array<bool, 2 * NDIM> d_open_bdry, d_inflow_bdry, d_outflow_bdry;
+    std::array<double, 2 * NDIM> d_width;
     const INSHierarchyIntegrator* const d_fluid_solver;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
 };

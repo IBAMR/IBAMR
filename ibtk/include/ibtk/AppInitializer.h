@@ -65,7 +65,7 @@ public:
      * Destructor for class AppInitializer frees the SAMRAI manager objects
      * used to set up input and restart databases.
      */
-    ~AppInitializer();
+    virtual ~AppInitializer();
 
     /*!
      * Return a pointer to the input database.
@@ -208,7 +208,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AppInitializer(const AppInitializer& from);
+    AppInitializer(const AppInitializer& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -219,7 +219,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AppInitializer& operator=(const AppInitializer& that);
+    AppInitializer& operator=(const AppInitializer& that) = delete;
 
     /*!
      * The input database.
@@ -230,35 +230,35 @@ private:
      * Restart settings.
      */
     std::string d_restart_read_dirname;
-    int d_restart_restore_num;
-    bool d_is_from_restart;
+    int d_restart_restore_num = 0;
+    bool d_is_from_restart = false;
 
     /*!
      * Visualization options.
      */
-    int d_viz_dump_interval;
+    int d_viz_dump_interval = 0;
     std::string d_viz_dump_dirname;
     std::vector<std::string> d_viz_writers;
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_data_writer;
     SAMRAI::tbox::Pointer<LSiloDataWriter> d_silo_data_writer;
-    std::string d_exodus_filename, d_gmv_filename;
+    std::string d_exodus_filename = "output.ex2", d_gmv_filename = "output.gmv";
 
     /*!
      * Restart options.
      */
-    int d_restart_dump_interval;
+    int d_restart_dump_interval = 0;
     std::string d_restart_dump_dirname;
 
     /*!
      * Post-processing options.
      */
-    int d_data_dump_interval;
+    int d_data_dump_interval = 0;
     std::string d_data_dump_dirname;
 
     /*!
      * Timer options.
      */
-    int d_timer_dump_interval;
+    int d_timer_dump_interval = 0;
 };
 } // namespace IBTK
 

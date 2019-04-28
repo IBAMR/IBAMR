@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -89,21 +88,11 @@ static Timer* t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CCLaplaceOperator::CCLaplaceOperator(const std::string& object_name, const bool homogeneous_bc)
-    : LaplaceOperator(object_name, homogeneous_bc),
-      d_ncomp(0),
-      d_fill_pattern(NULL),
-      d_transaction_comps(),
-      d_hier_bdry_fill(NULL),
-      d_no_fill(NULL),
-      d_x(NULL),
-      d_b(NULL),
-      d_hierarchy(),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1)
+CCLaplaceOperator::CCLaplaceOperator(std::string object_name, const bool homogeneous_bc)
+    : LaplaceOperator(std::move(object_name), homogeneous_bc)
 {
     // Setup the operator to use default scalar-valued boundary conditions.
-    setPhysicalBcCoef(NULL);
+    setPhysicalBcCoef(nullptr);
 
     // Setup Timers.
     IBTK_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::apply()");
@@ -158,7 +147,7 @@ CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
 #endif
 
     // Simultaneously fill ghost cell values for all components.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
@@ -195,7 +184,7 @@ CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
                                      0.0,
                                      0.0,
                                      -1,
-                                     Pointer<CellVariable<NDIM, double> >(NULL),
+                                     Pointer<CellVariable<NDIM, double> >(nullptr),
                                      l,
                                      l);
         }
@@ -245,12 +234,12 @@ CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
     }
 
     // Setup the interpolation transaction information.
-    d_fill_pattern = NULL;
+    d_fill_pattern = nullptr;
     if (d_poisson_spec.dIsConstant())
     {
         d_fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     }
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)
     {

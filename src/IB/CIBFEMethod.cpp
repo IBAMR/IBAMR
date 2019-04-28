@@ -57,22 +57,22 @@ const std::string CIBFEMethod::CONSTRAINT_VELOCITY_SYSTEM_NAME = "IB constrained
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CIBFEMethod::CIBFEMethod(const std::string& object_name,
+CIBFEMethod::CIBFEMethod(std::string object_name,
                          Pointer<Database> input_db,
-                         Mesh* mesh,
+                         MeshBase* mesh,
                          int max_level_number,
                          bool register_for_restart)
-    : IBFEMethod(object_name, input_db, mesh, max_level_number, register_for_restart), CIBStrategy(1)
+    : IBFEMethod(std::move(object_name), input_db, mesh, max_level_number, register_for_restart), CIBStrategy(1)
 {
     commonConstructor(input_db);
 } // CIBFEMethod
 
-CIBFEMethod::CIBFEMethod(const std::string& object_name,
+CIBFEMethod::CIBFEMethod(std::string object_name,
                          Pointer<Database> input_db,
-                         const std::vector<Mesh*>& meshes,
+                         const std::vector<MeshBase*>& meshes,
                          int max_level_number,
                          bool register_for_restart)
-    : IBFEMethod(object_name, input_db, meshes, max_level_number, register_for_restart),
+    : IBFEMethod(std::move(object_name), input_db, meshes, max_level_number, register_for_restart),
       CIBStrategy(static_cast<unsigned>(meshes.size()))
 {
     commonConstructor(input_db);
@@ -137,8 +137,8 @@ CIBFEMethod::preprocessIntegrateData(double current_time, double new_time, int n
     d_U_constrained_half_vecs.resize(d_num_rigid_parts);
 
     // PETSc wrappers.
-    d_vL_current.resize(d_num_rigid_parts, NULL);
-    d_vL_new.resize(d_num_rigid_parts, NULL);
+    d_vL_current.resize(d_num_rigid_parts, nullptr);
+    d_vL_new.resize(d_num_rigid_parts, nullptr);
 
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
@@ -161,8 +161,8 @@ CIBFEMethod::preprocessIntegrateData(double current_time, double new_time, int n
     }
 
     // Create data structures for Lagrange multiplier
-    VecCreateNest(PETSC_COMM_WORLD, d_num_rigid_parts, NULL, &d_vL_current[0], &d_mv_L_current);
-    VecCreateNest(PETSC_COMM_WORLD, d_num_rigid_parts, NULL, &d_vL_new[0], &d_mv_L_new);
+    VecCreateNest(PETSC_COMM_WORLD, d_num_rigid_parts, nullptr, &d_vL_current[0], &d_mv_L_current);
+    VecCreateNest(PETSC_COMM_WORLD, d_num_rigid_parts, nullptr, &d_vL_new[0], &d_mv_L_new);
 
     // Get data for free and prescribed bodies.
     int free_dofs_counter = 0;
@@ -369,7 +369,7 @@ CIBFEMethod::eulerStep(const double current_time, const double new_time)
     const double dt = MathUtilities<double>::equalEps(d_rho, 0.0) ? 0.0 : (new_time - current_time);
 
     // Fill the rotation matrix of structures with rotation angle 0.5*(W^n)*dt.
-    std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
+    IBTK::EigenAlignedVector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
     setRotationMatrix(d_rot_vel_current, d_quaternion_current, d_quaternion_half, rotation_mat, 0.5 * dt);
 
     // Rotate the body with current rotational velocity about center of mass
@@ -378,8 +378,8 @@ CIBFEMethod::eulerStep(const double current_time, const double new_time)
     Eigen::Vector3d Rxdr = Eigen::Vector3d::Zero();
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
-        EquationSystems* equation_systems = d_equation_systems[part];
-        MeshBase& mesh = equation_systems->get_mesh();
+        EquationSystems& equation_systems = *d_equation_systems[part];
+        MeshBase& mesh = equation_systems.get_mesh();
         const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
         System& X_system = *d_X_systems[part];
         const unsigned int X_sys_num = X_system.number();
@@ -445,7 +445,7 @@ CIBFEMethod::midpointStep(const double current_time, const double new_time)
     const double dt = new_time - current_time;
 
     // Fill the rotation matrix of structures with rotation angle (W^n+1)*dt.
-    std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
+    IBTK::EigenAlignedVector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
     setRotationMatrix(d_rot_vel_half, d_quaternion_current, d_quaternion_new, rotation_mat, dt);
 
     // Rotate the body with current rotational velocity about origin
@@ -454,8 +454,8 @@ CIBFEMethod::midpointStep(const double current_time, const double new_time)
     Eigen::Vector3d Rxdr = Eigen::Vector3d::Zero();
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
-        EquationSystems* equation_systems = d_equation_systems[part];
-        MeshBase& mesh = equation_systems->get_mesh();
+        EquationSystems& equation_systems = *d_equation_systems[part];
+        MeshBase& mesh = equation_systems.get_mesh();
         const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
         System& X_system = *d_X_systems[part];
         const unsigned int X_sys_num = X_system.number();
@@ -557,7 +557,7 @@ CIBFEMethod::setConstraintForce(Vec L, const double data_time, const double scal
 #endif
     // Unpack the Lambda vector.
     Vec* vL;
-    VecNestGetSubVecs(L, NULL, &vL);
+    VecNestGetSubVecs(L, nullptr, &vL);
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
         PetscVector<double>* F_vec = d_F_half_vecs[part];
@@ -611,7 +611,7 @@ CIBFEMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double sca
 {
     // Unpack the Lambda vector.
     Vec* vL;
-    VecNestGetSubVecs(L, NULL, &vL);
+    VecNestGetSubVecs(L, nullptr, &vL);
     double F[NDIM] = { 0.0 };
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
@@ -627,17 +627,17 @@ CIBFEMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double sca
         VecGetArray(L_local_ghost_vec, &L_local_ghost_soln);
 
         // Build quadrature rule.
-        EquationSystems* equation_systems = d_equation_systems[part];
-        MeshBase& mesh = equation_systems->get_mesh();
+        EquationSystems& equation_systems = *d_equation_systems[part];
+        MeshBase& mesh = equation_systems.get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
-        UniquePtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
+        std::unique_ptr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
 
         // Extract the FE system and DOF map, and setup the FE object.
         System& L_system = *d_F_systems[part];
         DofMap& L_dof_map = L_system.get_dof_map();
         std::vector<std::vector<unsigned int> > L_dof_indices(NDIM);
         FEType L_fe_type = L_dof_map.variable_type(0);
-        UniquePtr<FEBase> L_fe_autoptr(FEBase::build(dim, L_fe_type));
+        std::unique_ptr<FEBase> L_fe_autoptr(FEBase::build(dim, L_fe_type));
         FEBase* L_fe = L_fe_autoptr.get();
         L_fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = L_fe->get_JxW();
@@ -715,7 +715,7 @@ CIBFEMethod::getInterpolatedVelocity(Vec V, const double data_time, const double
 #endif
     // Unpack the velocity vector.
     Vec* vV;
-    VecNestGetSubVecs(V, NULL, &vV);
+    VecNestGetSubVecs(V, nullptr, &vV);
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
         PetscVector<double>* U_vec = d_U_half_vecs[part];
@@ -730,8 +730,8 @@ CIBFEMethod::computeMobilityRegularization(Vec D, Vec L, const double scale)
     if (!d_compute_L2_projection)
     {
         Vec *vL, *vD;
-        VecNestGetSubVecs(L, NULL, &vL);
-        VecNestGetSubVecs(D, NULL, &vD);
+        VecNestGetSubVecs(L, nullptr, &vL);
+        VecNestGetSubVecs(D, nullptr, &vD);
         for (unsigned part = 0; part < d_num_rigid_parts; ++part)
         {
             std::pair<LinearSolver<double>*, SparseMatrix<double>*> filter =
@@ -759,13 +759,13 @@ CIBFEMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rig
 {
     // Unpack the Lambda vector.
     Vec* vL;
-    VecNestGetSubVecs(L, NULL, &vL);
+    VecNestGetSubVecs(L, nullptr, &vL);
 
     // Get mesh.
-    EquationSystems* equation_systems = d_equation_systems[part];
-    MeshBase& mesh = equation_systems->get_mesh();
+    EquationSystems& equation_systems = *d_equation_systems[part];
+    MeshBase& mesh = equation_systems.get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    UniquePtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
+    std::unique_ptr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
 
     // Extract the FE system and DOF map, and setup the FE object.
     System& L_system = *d_F_systems[part];
@@ -776,10 +776,10 @@ CIBFEMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rig
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType L_fe_type = L_dof_map.variable_type(0);
     FEType X_fe_type = X_dof_map.variable_type(0);
-    UniquePtr<FEBase> L_fe_autoptr(FEBase::build(dim, L_fe_type)), X_fe_autoptr;
+    std::unique_ptr<FEBase> L_fe_autoptr(FEBase::build(dim, L_fe_type)), X_fe_autoptr;
     if (L_fe_type != X_fe_type)
     {
-        X_fe_autoptr = UniquePtr<FEBase>(FEBase::build(dim, X_fe_type));
+        X_fe_autoptr = std::unique_ptr<FEBase>(FEBase::build(dim, X_fe_type));
     }
     FEBase* L_fe = L_fe_autoptr.get();
     FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : L_fe_autoptr.get();
@@ -860,9 +860,9 @@ CIBFEMethod::copyVecToArray(Vec b,
 
     // Wrap the raw data in a PETSc Vec.
     PetscInt total_nodes = 0;
-    for (unsigned k = 0; k < struct_ids.size(); ++k)
+    for (unsigned int struct_id : struct_ids)
     {
-        total_nodes += getNumberOfNodes(struct_ids[k]);
+        total_nodes += getNumberOfNodes(struct_id);
     }
     PetscInt size = total_nodes * data_depth;
     int rank = SAMRAI_MPI::getRank();
@@ -873,13 +873,12 @@ CIBFEMethod::copyVecToArray(Vec b,
 
     // Get the components of the VecNest.
     Vec* vb;
-    VecNestGetSubVecs(b, NULL, &vb);
+    VecNestGetSubVecs(b, nullptr, &vb);
 
     // Scatter values
     PetscInt offset = 0;
-    for (unsigned k = 0; k < struct_ids.size(); ++k)
+    for (unsigned int struct_id : struct_ids)
     {
-        const unsigned struct_id = struct_ids[k];
         PetscInt nodes = getNumberOfNodes(struct_id);
         PetscInt size_vec = nodes * data_depth;
 
@@ -918,9 +917,9 @@ CIBFEMethod::copyArrayToVec(Vec b,
 
     // Wrap the raw data in a PETSc Vec.
     PetscInt total_nodes = 0;
-    for (unsigned k = 0; k < struct_ids.size(); ++k)
+    for (unsigned int struct_id : struct_ids)
     {
-        total_nodes += getNumberOfNodes(struct_ids[k]);
+        total_nodes += getNumberOfNodes(struct_id);
     }
     PetscInt size = total_nodes * data_depth;
     int rank = SAMRAI_MPI::getRank();
@@ -931,13 +930,12 @@ CIBFEMethod::copyArrayToVec(Vec b,
 
     // Get the components of the VecNest.
     Vec* vb;
-    VecNestGetSubVecs(b, NULL, &vb);
+    VecNestGetSubVecs(b, nullptr, &vb);
 
     // Scatter values
     PetscInt offset = 0;
-    for (unsigned k = 0; k < struct_ids.size(); ++k)
+    for (unsigned int struct_id : struct_ids)
     {
-        const unsigned struct_id = struct_ids[k];
         PetscInt nodes = getNumberOfNodes(struct_id);
         PetscInt size_vec = nodes * data_depth;
 
@@ -971,20 +969,20 @@ CIBFEMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector&
     PetscVector<double>& U_k = *d_U_constrained_half_vecs[part];
     PetscVector<double>& X_half = *d_X_half_vecs[part];
     const Eigen::Vector3d& X_com = d_center_of_mass_half[part];
-    EquationSystems* equation_systems = d_equation_systems[part];
+    EquationSystems& equation_systems = *d_equation_systems[part];
 
     if (d_constrained_velocity_fcns_data[part].nodalvelfcn)
     {
         d_constrained_velocity_fcns_data[part].nodalvelfcn(
-            U_k, U, X_half, X_com, equation_systems, d_new_time, d_constrained_velocity_fcns_data[part].ctx);
+            U_k, U, X_half, X_com, &equation_systems, d_new_time, d_constrained_velocity_fcns_data[part].ctx);
         if (!U_k.closed()) U_k.close();
     }
     else
     {
-        MeshBase& mesh = equation_systems->get_mesh();
+        MeshBase& mesh = equation_systems.get_mesh();
         const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
-        System& X_system = equation_systems->get_system<System>(CIBFEMethod::COORDS_SYSTEM_NAME);
-        System& U_system = equation_systems->get_system<System>(CIBFEMethod::CONSTRAINT_VELOCITY_SYSTEM_NAME);
+        auto& X_system = equation_systems.get_system<System>(CIBFEMethod::COORDS_SYSTEM_NAME);
+        auto& U_system = equation_systems.get_system<System>(CIBFEMethod::CONSTRAINT_VELOCITY_SYSTEM_NAME);
         const unsigned int X_sys_num = X_system.number();
         const unsigned int U_sys_num = U_system.number();
 
@@ -1052,7 +1050,7 @@ CIBFEMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector&
     // We filter the rigid body velocity using the basis function of the
     // deformational field, in the case when L2-projection is not performed.
     Vec* vV;
-    VecNestGetSubVecs(V, NULL, &vV);
+    VecNestGetSubVecs(V, nullptr, &vV);
     if (!d_compute_L2_projection)
     {
         std::pair<LinearSolver<double>*, SparseMatrix<double>*> filter =
@@ -1077,20 +1075,20 @@ CIBFEMethod::initializeFEData()
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Get mesh info.
-        EquationSystems* equation_systems = d_equation_systems[part];
-        const MeshBase& mesh = equation_systems->get_mesh();
+        EquationSystems& equation_systems = *d_equation_systems[part];
+        const MeshBase& mesh = equation_systems.get_mesh();
         d_num_nodes[part] = mesh.n_nodes();
 
         // Assemble additional systems.
-        System& U_constraint_system = equation_systems->get_system<System>(CONSTRAINT_VELOCITY_SYSTEM_NAME);
+        auto& U_constraint_system = equation_systems.get_system<System>(CONSTRAINT_VELOCITY_SYSTEM_NAME);
         U_constraint_system.assemble_before_solve = false;
         U_constraint_system.assemble();
     }
 
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
-        EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-        computeCOMOfStructure(d_center_of_mass_initial[part], equation_systems);
+        EquationSystems& equation_systems = *d_fe_data_managers[part]->getEquationSystems();
+        computeCOMOfStructure(d_center_of_mass_initial[part], &equation_systems);
     }
 
     d_initial_com_initialized = true;
@@ -1226,21 +1224,17 @@ CIBFEMethod::putToDatabase(Pointer<Database> db)
     db->putInteger("CIBFE_METHOD_VERSION", CIBFE_METHOD_VERSION);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        std::ostringstream U, W, C, Q;
-        U << "U_" << part;
-        W << "W_" << part;
-        C << "C_" << part;
-        Q << "Q_" << part;
-
+        const std::string part_str = std::to_string(part);
+        
         double Q_coeffs[4] = { d_quaternion_current[part].w(),
                                d_quaternion_current[part].x(),
                                d_quaternion_current[part].y(),
                                d_quaternion_current[part].z() };
 
-        db->putDoubleArray(U.str(), &d_trans_vel_current[part][0], 3);
-        db->putDoubleArray(W.str(), &d_rot_vel_current[part][0], 3);
-        db->putDoubleArray(C.str(), &d_center_of_mass_current[part][0], 3);
-        db->putDoubleArray(Q.str(), &Q_coeffs[0], 4);
+        db->putDoubleArray("U_" + part_str, &d_trans_vel_current[part][0], 3);
+        db->putDoubleArray("W_" + part_str, &d_rot_vel_current[part][0], 3);
+        db->putDoubleArray("C_" + part_str, &d_center_of_mass_current[part][0], 3);
+        db->putDoubleArray("Q_" + part_str, &Q_coeffs[0], 4);
     }
 } // putToDatabase
 
@@ -1254,10 +1248,6 @@ CIBFEMethod::commonConstructor(Pointer<Database> input_db)
     d_constrained_velocity_fcns_data.resize(d_num_rigid_parts);
     d_ext_force_torque_fcn_data.resize(d_num_rigid_parts);
 
-    // Set some default values.
-    d_compute_L2_projection = false;
-    d_output_eul_lambda = false;
-
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
@@ -1266,22 +1256,13 @@ CIBFEMethod::commonConstructor(Pointer<Database> input_db)
     // Add additional variable corresponding to constraint velocity.
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
-        EquationSystems* equation_systems = d_equation_systems[part];
-        System& U_constraint_system = equation_systems->add_system<System>(CONSTRAINT_VELOCITY_SYSTEM_NAME);
+        EquationSystems& equation_systems = *d_equation_systems[part];
+        auto& U_constraint_system = equation_systems.add_system<System>(CONSTRAINT_VELOCITY_SYSTEM_NAME);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            std::ostringstream os;
-            os << "U_constraint_" << d;
-            U_constraint_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+            U_constraint_system.add_variable("U_constraint_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
         }
     }
-
-    // Keep track of the initialization state.
-    d_fe_data_initialized = false;
-    d_is_initialized = false;
-    d_constraint_force_is_initialized = false;
-    d_lag_velvec_is_initialized = false;
-    d_initial_com_initialized = false;
 } // commonConstructor
 
 void
@@ -1316,17 +1297,13 @@ CIBFEMethod::getFromRestart()
 
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
-        std::ostringstream U, W, C, Q;
-        U << "U_" << part;
-        W << "W_" << part;
-        C << "C_" << part;
-        Q << "Q_" << part;
-
+        const std::string part_str = std::to_string(part);
+        
         double Q_coeffs[4];
-        db->getDoubleArray(U.str(), &d_trans_vel_current[part][0], 3);
-        db->getDoubleArray(W.str(), &d_rot_vel_current[part][0], 3);
-        db->getDoubleArray(C.str(), &d_center_of_mass_current[part][0], 3);
-        db->getDoubleArray(Q.str(), &Q_coeffs[0], 4);
+        db->getDoubleArray("U_" + part_str, &d_trans_vel_current[part][0], 3);
+        db->getDoubleArray("W_" + part_str, &d_rot_vel_current[part][0], 3);
+        db->getDoubleArray("C_" + part_str, &d_center_of_mass_current[part][0], 3);
+        db->getDoubleArray("Q_" + part_str, &Q_coeffs[0], 4);
 
         d_quaternion_current[part].w() = Q_coeffs[0];
         d_quaternion_current[part].x() = Q_coeffs[1];
@@ -1343,7 +1320,7 @@ CIBFEMethod::computeCOMOfStructure(Eigen::Vector3d& center_of_mass, EquationSyst
     const int part = 0; // XXXX
     MeshBase& mesh = equation_systems->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    UniquePtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
+    std::unique_ptr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
 
     // Extract the FE system and DOF map, and setup the FE object.
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
@@ -1352,13 +1329,13 @@ CIBFEMethod::computeCOMOfStructure(Eigen::Vector3d& center_of_mass, EquationSyst
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
 
-    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<double> >& phi = fe->get_phi();
 
     // Extract the nodal coordinates.
-    PetscVector<double>& X_petsc = dynamic_cast<PetscVector<double>&>(*X_system.current_local_solution.get());
+    auto& X_petsc = dynamic_cast<PetscVector<double>&>(*X_system.current_local_solution.get());
     /*if (!X_petsc.closed())*/ X_petsc.close();
     Vec X_global_vec = X_petsc.vec();
     Vec X_local_ghost_vec;

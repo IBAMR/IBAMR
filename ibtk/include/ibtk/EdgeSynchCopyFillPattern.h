@@ -81,7 +81,7 @@ public:
     /*!
      * \brief Destructor
      */
-    ~EdgeSynchCopyFillPattern();
+    ~EdgeSynchCopyFillPattern() = default;
 
     /*!
      * Calculate overlaps between the destination and source geometries according
@@ -109,17 +109,17 @@ public:
                      const SAMRAI::hier::Box<NDIM>& dst_patch_box,
                      const SAMRAI::hier::Box<NDIM>& src_mask,
                      bool overwrite_interior,
-                     const SAMRAI::hier::IntVector<NDIM>& src_offset) const;
+                     const SAMRAI::hier::IntVector<NDIM>& src_offset) const override;
 
     /*!
      * Returns the stencil width.
      */
-    SAMRAI::hier::IntVector<NDIM>& getStencilWidth();
+    SAMRAI::hier::IntVector<NDIM>& getStencilWidth() override;
 
     /*!
      * Returns a string name identifier "EDGE_SYNCH_COPY_FILL_PATTERN".
      */
-    const std::string& getPatternName() const;
+    const std::string& getPatternName() const override;
 
 private:
     /*!
@@ -127,7 +127,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    EdgeSynchCopyFillPattern();
+    EdgeSynchCopyFillPattern() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -136,7 +136,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    EdgeSynchCopyFillPattern(const EdgeSynchCopyFillPattern& from);
+    EdgeSynchCopyFillPattern(const EdgeSynchCopyFillPattern& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -147,9 +147,9 @@ private:
      *
      * \return A reference to this object.
      */
-    EdgeSynchCopyFillPattern& operator=(const EdgeSynchCopyFillPattern& that);
+    EdgeSynchCopyFillPattern& operator=(const EdgeSynchCopyFillPattern& that) = delete;
 
-    SAMRAI::hier::IntVector<NDIM> d_stencil_width;
+    SAMRAI::hier::IntVector<NDIM> d_stencil_width = 1;
     const unsigned int d_axis;
 };
 } // namespace IBTK

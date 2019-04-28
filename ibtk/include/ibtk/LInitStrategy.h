@@ -78,12 +78,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    LInitStrategy();
+    LInitStrategy() = default;
 
     /*!
      * \brief Destructor.
      */
-    virtual ~LInitStrategy();
+    virtual ~LInitStrategy() = default;
 
     /*!
      * \return A boolean value indicating whether Lagrangian data is associated
@@ -218,7 +218,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LInitStrategy(const LInitStrategy& from);
+    LInitStrategy(const LInitStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -229,7 +229,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LInitStrategy& operator=(const LInitStrategy& that);
+    LInitStrategy& operator=(const LInitStrategy& that) = delete;
 };
 } // namespace IBTK
 

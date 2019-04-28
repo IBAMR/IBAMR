@@ -292,22 +292,18 @@ bool run_example(int argc, char** argv)
         EquationSystems* bndry_equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Setup solid systems.
-        libMesh::UniquePtr<EquationSystems> solid_equation_systems(new EquationSystems(solid_mesh));
+        std::unique_ptr<EquationSystems> solid_equation_systems(new EquationSystems(solid_mesh));
         x_solid_system = &solid_equation_systems->add_system<ExplicitSystem>("position");
         u_solid_system = &solid_equation_systems->add_system<ExplicitSystem>("velocity");
         Order order = SECOND;
         FEFamily family = LAGRANGE;
         for (int d = 0; d < NDIM; ++d)
         {
-            std::ostringstream os;
-            os << "X_" << d;
-            x_solid_system->add_variable(os.str(), order, family);
+            x_solid_system->add_variable("X_" + std::to_string(d), order, family);
         }
         for (int d = 0; d < NDIM; ++d)
         {
-            std::ostringstream os;
-            os << "U_" << d;
-            u_solid_system->add_variable(os.str(), order, family);
+            u_solid_system->add_variable("U_" + std::to_string(d), order, family);
         }
         solid_equation_systems->init();
 
@@ -374,13 +370,9 @@ bool run_example(int argc, char** argv)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "u_bc_coefs_" << d;
-                const string bc_coefs_name = bc_coefs_name_stream.str();
+                const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
 
-                ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
-                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+                const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
 
                 u_bc_coefs[d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
@@ -402,8 +394,8 @@ bool run_example(int argc, char** argv)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        libMesh::UniquePtr<ExodusII_IO> exodus_solid_io(uses_exodus ? new ExodusII_IO(solid_mesh) : NULL);
-        libMesh::UniquePtr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(bndry_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_solid_io(uses_exodus ? new ExodusII_IO(solid_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(bndry_mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();

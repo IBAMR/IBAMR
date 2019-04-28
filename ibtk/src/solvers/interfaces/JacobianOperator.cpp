@@ -43,18 +43,12 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-JacobianOperator::JacobianOperator(const std::string& object_name)
-    : LinearOperator(object_name, /*homogeneous_bc*/ true)
+JacobianOperator::JacobianOperator(std::string object_name)
+    : LinearOperator(std::move(object_name), /*homogeneous_bc*/ true)
 {
     // intentionally blank
     return;
 } // JacobianOperator()
-
-JacobianOperator::~JacobianOperator()
-{
-    // intentionally blank
-    return;
-} // ~JacobianOperator()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

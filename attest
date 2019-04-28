@@ -1,0 +1,399 @@
+#!/usr/bin/env python3
+"""Test runner for autotools-based tests.
+"""
+import argparse
+import ast
+import concurrent.futures as cf
+import configparser
+import enum
+import os
+import re
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+
+# We rely on subprocess.run, which is new in 3.5
+assert sys.version_info >= (3, 5)
+
+
+def interrupt_handler(sig, frame):
+    print("SIGINT caught. Exiting.")
+    sys.exit(1)
+signal.signal(signal.SIGINT, interrupt_handler)
+
+
+class Parameters:
+    """Class containing all input parameters to attest.
+
+    Parameters read from input arguments or the input file:
+
+    test_directory: relative path to the directory containing tests. Defaults to
+                    "/tests/".
+
+    mpiexec: program used to launch MPI applications. Defaults to "mpiexec".
+
+    numdiff: program used for comparing output files. Defaults to "numdiff".
+
+    n_processors: number of processors to use at once. Defaults to 4.
+
+    keep_work_directories: whether or not work directories (usually in /tmp/)
+    should be deleted after the test is run. Defaults to False.
+    """
+    def __init__(self, input_arguments):
+        ip = input_arguments
+        # TODO: finish implementing verbose mode
+        self.keep_work_directories = ip.keep_work_directories
+        self.mpiexec = ip.mpiexec
+        self.numdiff = ip.numdiff
+        self.n_processors = ip.n_processors
+        self.show_only = ip.show_only
+        self.test_directory = os.getcwd() + ip.test_directory
+        self.test_regex = ip.test_regex
+        self.verbose = False
+
+        # These are the only two required inputs:
+        if self.mpiexec == "":
+            raise ValueError("attest requires that MPIEXEC be provided either"
+                             " to configure, stored in attest.conf, or explicitly"
+                             " provided as a command-line argument to attest"
+                             " itself.")
+        elif not os.path.isfile(self.mpiexec):
+            raise ValueError("The given path to mpiexec <" + self.mpiexec + ">"
+                             " is not valid.")
+
+        if self.numdiff == "":
+            raise ValueError("attest requires that NUMDIFF be provided either"
+                             "to configure, stored in attest.conf, or explicitly"
+                             " provided as a command-line argument to attest"
+                             " itself.")
+        elif not os.path.isfile(self.numdiff):
+            raise ValueError("The given path to numdiff <" + self.numdiff + ">"
+                             " is not valid.")
+
+
+def n_mpi_processes(input_file):
+    """Determine the number of MPI processes to use when running a test by
+    inspecting the input file.
+    """
+    mpirun_index = input_file.find("mpirun")
+    if mpirun_index != -1:
+        next_equals_index = input_file.find('=', mpirun_index)
+        next_dot_index = input_file.find('.', mpirun_index)
+        assert next_equals_index < next_dot_index
+        return int(input_file[next_equals_index + 1:next_dot_index])
+
+    return 1
+
+
+@enum.unique
+class TestResult(enum.Enum):
+    """Enumeration describing the status of a test run: it can either pass, the run
+    can fail (e.g., with a segmentation fault) or the diff can fail.
+    """
+    passed = 0
+    run_failed = 1
+    diff_failed = 2
+
+
+class TestOutput:
+    """Class storing all output (and input) for a test.
+    """
+    def __init__(self, input_file, test_result, error_message, parameters):
+        assert isinstance(test_result, TestResult)
+        self.test_result = test_result
+        self.input_file = input_file
+        self.error_message = error_message
+        self._parameters = parameters
+
+        self._n_mpi_processes = n_mpi_processes(os.path.split(self.input_file)[-1])
+        self._name = os.path.split(self.input_file)[-1][:-len(".input")]
+        path_length = len(self._parameters.test_directory) - 1
+        self._name = self.input_file[path_length + 1:]
+
+    def n_mpi_processes(self):
+        """Return the number of MPI processes used by the test.
+        """
+        return self._n_mpi_processes
+
+    def name(self):
+        """Return the name of the test.
+        """
+        return self._name
+
+    def print(self):
+        """Print the name and status of the test, padded with hyphens.
+        """
+        relative_file_name = self.name()
+        if self.test_result == TestResult.passed:
+            status_string = "PASSED"
+        elif self.test_result == TestResult.run_failed:
+            status_string = "RUN FAILED"
+        elif self.test_result == TestResult.diff_failed:
+            status_string = "DIFF FAILED"
+        else:
+            status_string = "FAILED"
+
+        hyphen_length = 70 - len(relative_file_name) - len(status_string)
+        print(relative_file_name + " " + "-" * hyphen_length + " " + status_string)
+
+
+class Test:
+    """Class encapsulating a single test: is responsible for running the test in a
+    subprocess and reporting results.
+    """
+    def __init__(self, executable, input_file, output_file, parameters):
+        self.executable = executable
+        self.input_file = input_file
+        self._n_mpi_processes = n_mpi_processes(os.path.split(self.input_file)[-1])
+        self.output_file = output_file
+        self._parameters = parameters
+
+        # check that we were provided with actual files
+        assert os.path.isfile(self.executable)
+        assert os.path.isfile(self.input_file)
+        assert os.path.isfile(self.output_file)
+
+        # check that the input file matches the output file
+        assert (os.path.splitext(self.input_file)[0] ==
+                os.path.splitext(self.output_file)[0])
+
+
+    def name(self):
+        """Name of the test. Determined by the input file.
+        """
+        path_length = len(self._parameters.test_directory) - 1
+        return self.input_file[path_length + 1:]
+
+
+    def n_mpi_processes(self):
+        """Number of MPI processes required for the test. Returns an integer.
+        """
+        return self._n_mpi_processes
+
+
+    def run(self):
+        """Actually execute the test and compare the output results. Returns a
+        TestOutput object describing what happened.
+        """
+        output_root = os.path.split(self.output_file)[1]
+        temporary_directory = tempfile.mkdtemp(prefix="att-" + output_root)
+        run_succeeded = False
+        try:
+            n_processors = self.n_mpi_processes()
+            run_args = [self.executable, self.input_file]
+            if 1 < n_processors:
+                run_args = [self._parameters.mpiexec, "-np", str(n_processors)] + run_args
+
+            run_result = subprocess.run(run_args,
+                                        stderr=subprocess.PIPE,
+                                        stdout=subprocess.PIPE,
+                                        cwd=temporary_directory)
+            run_succeeded = run_result.returncode == 0
+            if run_succeeded:
+                # Nearly the same as deal.II: Configure numdiff with
+                #   - relative differences of 1e-6
+                #   - absolute differences of 1e-10 (i.e., ignore values near zero)
+                #   - [space][tab][newline]=,:;<>[](){}^ as separators between numbers
+                numdiff_flags = ["-r", "1e-6", "-a", "1e-10",  "-s",
+                                 "' \\t\\n=,:;<>[](){}^'"]
+                diff_result = subprocess.run(
+                    [self._parameters.numdiff] + numdiff_flags +
+                    [self.output_file, temporary_directory + os.sep + "output"],
+                    stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+                diff_succeeded = diff_result.returncode == 0
+            else:
+                diff_succeeded = False
+        finally:
+            if not self._parameters.keep_work_directories:
+                shutil.rmtree(temporary_directory)
+
+        test_result = TestResult.passed
+        error_message = ""
+        if not run_succeeded:
+            test_result = TestResult.run_failed
+            error_message = run_result.stderr.decode('utf-8')
+        elif not diff_succeeded:
+            test_result = TestResult.diff_failed
+            error_message = diff_result.stderr.decode('utf-8')
+
+        return TestOutput(self.input_file, test_result, error_message,
+                          self._parameters)
+
+
+def get_input_files(test_directory):
+    """Get the input files from the specified directory.
+    """
+    def generator():
+        for root, _, file_names in os.walk(test_directory):
+            for file_name in file_names:
+                if file_name.endswith("input"):
+                    yield os.path.join(root, file_name)
+    return generator()
+
+
+def main():
+    """Run the tests and print the results.
+    """
+    # 0. Set up environment and input settings:
+    os.environ['OMPI_MCA_rmaps_base_oversubscribe'] = "1"
+    config_file = configparser.ConfigParser()
+    config_file['attest'] = {'jobs': '1',
+                             'keep_work_directories': 'True',
+                             'mpiexec': 'mpiexec',
+                             'numdiff': 'numdiff',
+                             'show_only': 'False',
+                             'test_directory': '/tests/',
+                             'test_regex': '.*'}
+    config_file.read('attest.conf')
+    conf = config_file['attest'] # shorthand
+
+    # argparse doesn't support writing -j8 (i.e., with no space), so manually
+    # pull that out:
+    for entry in sys.argv:
+        if 2 < len(entry) and entry[0:2] == '-j':
+            conf['jobs'] = entry[2:]
+            sys.argv.remove(entry)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-j,--jobs', metavar='N', type=int,
+                        default=conf['jobs'], dest='n_processors',
+                        help=("Total number of processors to use across all " +
+                              "concurrent MPI jobs."))
+    parser.add_argument('--keep-work-directories',
+                        default=bool(conf['keep_work_directories']),
+                        dest='keep_work_directories',
+                        action='store_true',
+                        help=("Whether or not to keep temporary work " +
+                              "directories. This is useful for debugging."))
+    parser.add_argument('--mpi-executable', type=str,
+                        default=conf['mpiexec'], dest='mpiexec',
+                        help="Path to mpiexec.")
+    parser.add_argument('--numdiff-executable', type=str,
+                        default=conf['numdiff'],
+                        dest='numdiff', help="Numdiff executable.")
+    parser.add_argument('-N,--show-only',
+                        default=ast.literal_eval(conf['show_only']),
+                        action='store_true', dest='show_only',
+                        help="Disable actual execution of tests.")
+    parser.add_argument('--test-directory', metavar='D', type=str,
+                        default=conf['test_directory'],
+                        dest='test_directory',
+                        help=("Directory in which all test files " +
+                              "(executables, input files, and output files) " +
+                              "are located."))
+    parser.add_argument('-R,--tests-regex', type=str, default=conf['test_regex'],
+                        dest='test_regex',
+                        help="Regex for filtering test names.")
+    input_arguments = parser.parse_args()
+    parameters = Parameters(input_arguments)
+    test_pattern = re.compile(parameters.test_regex)
+
+    # 1. set up input file list:
+    unstarted_tests = []
+    for input_file in get_input_files(parameters.test_directory):
+        path_length = len(os.path.split(input_file)[0])
+        input_file_name = input_file[path_length + 1:]
+        if re.search(test_pattern, input_file_name):
+            output_file = os.path.splitext(input_file)[0] + ".output"
+            base_name = input_file_name[:input_file_name.find('.')]
+            executable = os.path.split(input_file)[0] + os.sep + base_name
+            # only test things with valid input:
+            if all((os.path.isfile(f) for f in [executable, input_file, output_file])):
+                unstarted_tests.append(Test(executable, input_file, output_file,
+                                            parameters=parameters))
+            else:
+                print("Warning: The test with input file \n\n    " + input_file_name +
+                      "\n\n cannot be run since either the input file, output "
+                      "file, or executable is\nmissing. This usually means that "
+                      "either\n the test's executable failed to\ncompile or the "
+                      "input file is a broken link.")
+
+    unstarted_tests.sort(key=lambda u: u.n_mpi_processes())
+
+    if parameters.show_only:
+        for test in unstarted_tests:
+            print(test.name())
+        sys.exit(0)
+
+    # 2. Run the tests!
+    processors_in_use = 0
+    n_tests = len(unstarted_tests)
+    n_passed_tests = 0
+    n_finished_tests = 0
+    failed_test_outputs = list()
+    test_width = len(str(n_tests))
+    fraction_template = (("{: >" + str(test_width) + "}")
+                         + "/"
+                         + ("{: <" + str(test_width) + "}").format(n_tests))
+
+    result_update_lock = threading.Lock()
+    def deal_with_result(future):
+        """Unpack a Future object provided by a finished test execution thread: use it
+        to update the relevant counters and print the status to the screen.
+        """
+        with result_update_lock:
+            nonlocal n_passed_tests
+            nonlocal processors_in_use
+            nonlocal failed_test_outputs
+            nonlocal n_finished_tests
+            test_output = future.result()
+            # pad the test result output
+            print(' ' * (1 + len(fraction_template.format(0))), end='')
+            test_output.print()
+            test_passed = test_output.test_result == TestResult.passed
+            if test_passed:
+                n_passed_tests += 1
+            else:
+                failed_test_outputs.append(test_output)
+            processors_in_use -= test_output.n_mpi_processes()
+            n_finished_tests += 1
+
+    # allow some wiggle room for finished tests that are waiting for
+    # result_update_lock by using lots of threads:
+    n_processors = parameters.n_processors
+    with cf.ThreadPoolExecutor(2*n_processors) as executor:
+        while len(unstarted_tests) != 0 or n_finished_tests < n_tests:
+            # 2a. Start new tests:
+            index = len(unstarted_tests) - 1
+            while processors_in_use <= n_processors and len(unstarted_tests) != 0 and index != -1:
+                test = unstarted_tests[index]
+                # Its possible that some tests require more processors than
+                # we have available, so special case for that. Since we sort
+                # tests we will do all of those tests first:
+                if (test.n_mpi_processes() + processors_in_use <= n_processors or
+                        (processors_in_use == 0 and n_processors <= test.n_mpi_processes())):
+                    test = unstarted_tests.pop(index)
+                    test_n = n_tests - len(unstarted_tests)
+                    print(fraction_template.format(test_n),
+                          "starting test", test.name())
+                    future = executor.submit(test.run)
+                    future.add_done_callback(deal_with_result)
+                    processors_in_use += test.n_mpi_processes()
+                index -= 1
+
+            # try not to monopolize the processor if all cores are taken. This
+            # also prevents us from spinning on the while condition above.
+            if n_processors <= processors_in_use:
+                time.sleep(0.5)
+            else:
+                time.sleep(0.05)
+
+    if 0 < n_tests:
+        print("\n{}/{} ({}%) tests passed\n".format(
+            n_passed_tests, n_tests, round(100*float(n_passed_tests)/n_tests, 2)))
+    else:
+        print("\n0/0 (100%) tests passed\n")
+
+    if failed_test_outputs:
+        print("The following tests FAILED:\n")
+
+    for failed_test_result in failed_test_outputs:
+        print("   ", failed_test_result.name())
+
+
+if __name__ == '__main__':
+    main()

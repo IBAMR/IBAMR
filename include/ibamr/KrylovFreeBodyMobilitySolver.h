@@ -74,16 +74,16 @@ public:
      * \brief Constructor for \f$ [T M^{-1} T^{*}]^{-1} \f$ solver that employs the
      * PETSc KSP solver framework.
      */
-    KrylovFreeBodyMobilitySolver(const std::string& object_name,
+    KrylovFreeBodyMobilitySolver(std::string object_name,
                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                 const std::string& default_options_prefix,
+                                 std::string default_options_prefix,
                                  SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
                                  MPI_Comm petsc_comm = PETSC_COMM_WORLD);
 
     /*!
      * \brief Destructor.
      */
-    ~KrylovFreeBodyMobilitySolver();
+    virtual ~KrylovFreeBodyMobilitySolver();
 
     /*!
      * \brief Set the mobility solver for this class.
@@ -175,7 +175,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovFreeBodyMobilitySolver(const KrylovFreeBodyMobilitySolver& from);
+    KrylovFreeBodyMobilitySolver(const KrylovFreeBodyMobilitySolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -186,7 +186,7 @@ private:
      *
      * \return A reference to this object.
      */
-    KrylovFreeBodyMobilitySolver& operator=(const KrylovFreeBodyMobilitySolver& that);
+    KrylovFreeBodyMobilitySolver& operator=(const KrylovFreeBodyMobilitySolver& that) = delete;
 
     /*!
      * \brief Report the KSPConvergedReason.
@@ -243,34 +243,37 @@ private:
     //\}
 
     // Solver stuff
-    std::string d_object_name, d_ksp_type, d_pc_type;
-    bool d_is_initialized;
-    bool d_reinitializing_solver;
-    Vec d_petsc_b, d_petsc_temp_v, d_petsc_temp_f;
+    std::string d_object_name, d_ksp_type = KSPGMRES, d_pc_type = "shell";
+    bool d_is_initialized = false;
+    bool d_reinitializing_solver = false;
+    Vec d_petsc_b = nullptr, d_petsc_temp_v = nullptr, d_petsc_temp_f = nullptr;
     std::string d_options_prefix;
     MPI_Comm d_petsc_comm;
-    KSP d_petsc_ksp;
-    Mat d_petsc_mat;
+    KSP d_petsc_ksp = nullptr;
+    Mat d_petsc_mat = nullptr;
 
-    int d_max_iterations, d_current_iterations;
-    double d_abs_residual_tol, d_rel_residual_tol;
+    int d_max_iterations = 10000, d_current_iterations;
+    double d_abs_residual_tol = 1.0e-50, d_rel_residual_tol = 1.0e-5;
     double d_current_residual_norm;
-    bool d_initial_guess_nonzero;
-    bool d_enable_logging;
+    bool d_initial_guess_nonzero = true;
+    bool d_enable_logging = false;
 
     // Pointers
     SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
     SAMRAI::tbox::Pointer<IBAMR::CIBMobilitySolver> d_mobility_solver;
 
     // The current, new, solution and time-interval of integration.
-    double d_current_time, d_new_time, d_solution_time, d_dt;
+    double d_current_time = std::numeric_limits<double>::signaling_NaN(),
+           d_new_time = std::numeric_limits<double>::signaling_NaN(),
+           d_solution_time = std::numeric_limits<double>::signaling_NaN(),
+           d_dt = std::numeric_limits<double>::signaling_NaN();
 
     // Interp and spread scale.
     double d_interp_scale, d_spread_scale;
 
     // System physical parameters.
-    double d_mu;
-    double d_rho;
+    double d_mu = 1.0;
+    double d_rho = 1.0;
 };
 } // namespace IBAMR
 

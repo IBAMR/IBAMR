@@ -37,7 +37,6 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/boundary/cf_interface/CartCellDoubleLinearCFInterpolation.cpp \
 ../src/boundary/cf_interface/CartCellDoubleQuadraticCFInterpolation.cpp \
 ../src/boundary/cf_interface/CartSideDoubleQuadraticCFInterpolation.cpp \
-../src/boundary/cf_interface/CoarseFineBoundaryRefinePatchStrategy.cpp \
 ../src/boundary/physical_boundary/CartCellRobinPhysBdryOp.cpp \
 ../src/boundary/physical_boundary/CartExtrapPhysBdryOp.cpp \
 ../src/boundary/physical_boundary/CartSideRobinPhysBdryOp.cpp \
@@ -136,6 +135,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/utilities/FaceSynchCopyFillPattern.cpp \
 ../src/utilities/FixedSizedStream.cpp \
 ../src/utilities/HierarchyIntegrator.cpp \
+../src/utilities/IBTK_MPI.cpp \
 ../src/utilities/IndexUtilities.cpp \
 ../src/utilities/LMarkerUtilities.cpp \
 ../src/utilities/NodeDataSynchronization.cpp \
@@ -144,20 +144,22 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/utilities/ParallelEdgeMap.cpp \
 ../src/utilities/ParallelMap.cpp \
 ../src/utilities/ParallelSet.cpp \
+../src/utilities/PartitioningBox.cpp \
 ../src/utilities/RefinePatchStrategySet.cpp \
 ../src/utilities/SideDataSynchronization.cpp \
 ../src/utilities/SideNoCornersFillPattern.cpp \
 ../src/utilities/SideSynchCopyFillPattern.cpp \
 ../src/utilities/StandardTagAndInitStrategySet.cpp \
 ../src/utilities/Streamable.cpp \
-../src/utilities/StreamableFactory.cpp \
 ../src/utilities/StreamableManager.cpp \
 ../src/utilities/muParserCartGridFunction.cpp
 
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
+../src/lagrangian/BoxPartitioner.cpp \
 ../src/lagrangian/FEDataInterpolation.cpp \
-../src/lagrangian/FEDataManager.cpp
+../src/lagrangian/FEDataManager.cpp \
+../src/utilities/libmesh_utilities.cpp
 endif
 
 pkg_include_HEADERS += \
@@ -206,6 +208,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/HierarchyGhostCellInterpolation.h \
 ../include/ibtk/HierarchyIntegrator.h \
 ../include/ibtk/HierarchyMathOps.h \
+../include/ibtk/IBTK_MPI.h \
 ../include/ibtk/IndexUtilities.h \
 ../include/ibtk/JacobianOperator.h \
 ../include/ibtk/KrylovLinearSolver.h \
@@ -273,6 +276,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/ParallelEdgeMap.h \
 ../include/ibtk/ParallelMap.h \
 ../include/ibtk/ParallelSet.h \
+../include/ibtk/PartitioningBox.h \
 ../include/ibtk/PatchMathOps.h \
 ../include/ibtk/PhysicalBoundaryUtilities.h \
 ../include/ibtk/PoissonFACPreconditioner.h \
@@ -316,6 +320,7 @@ pkg_include_HEADERS += \
 
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
+../include/lagrangian/BoxPartitioner.h \
 ../include/ibtk/FEDataInterpolation.h \
 ../include/ibtk/FEDataManager.h \
 ../include/ibtk/libmesh_utilities.h

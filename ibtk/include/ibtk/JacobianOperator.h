@@ -64,12 +64,12 @@ public:
     /*!
      * \brief Constructor.
      */
-    JacobianOperator(const std::string& object_name);
+    JacobianOperator(std::string object_name);
 
     /*!
      * \brief Empty destructor.
      */
-    ~JacobianOperator();
+    ~JacobianOperator() = default;
 
     /*!
      * \name General Jacobian functionality.
@@ -100,7 +100,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    JacobianOperator();
+    JacobianOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -109,7 +109,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    JacobianOperator(const JacobianOperator& from);
+    JacobianOperator(const JacobianOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -120,7 +120,7 @@ private:
      *
      * \return A reference to this object.
      */
-    JacobianOperator& operator=(const JacobianOperator& that);
+    JacobianOperator& operator=(const JacobianOperator& that) = delete;
 };
 } // namespace IBTK
 

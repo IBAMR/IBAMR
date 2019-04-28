@@ -38,7 +38,6 @@
 #include <limits>
 #include <map>
 #include <ostream>
-#include <stddef.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -170,13 +169,13 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 static const int ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION = 3;
 
 // Function to reset variables registered by this integrator
-typedef void (*ResetPropertiesFcnPtr)(int property_idx,
-                                      Pointer<HierarchyMathOps> hier_math_ops,
-                                      int integrator_step,
-                                      double time,
-                                      bool initial_time,
-                                      bool regrid_time,
-                                      void* ctx);
+using ResetPropertiesFcnPtr = void (*)(int property_idx,
+                                       Pointer<HierarchyMathOps> hier_math_ops,
+                                       int integrator_step,
+                                       double time,
+                                       bool initial_time,
+                                       bool regrid_time,
+                                       void* ctx);
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -226,7 +225,7 @@ AdvDiffHierarchyIntegrator::registerAdvectionVelocity(Pointer<FaceVariable<NDIM,
 
     // Set default values.
     d_u_is_div_free[u_var] = true;
-    d_u_fcn[u_var] = NULL;
+    d_u_fcn[u_var] = nullptr;
     return;
 } // registerAdvectionVelocity
 
@@ -280,7 +279,7 @@ AdvDiffHierarchyIntegrator::registerSourceTerm(Pointer<CellVariable<NDIM, double
     d_F_var.push_back(F_var);
 
     // Set default values.
-    d_F_fcn[F_var] = NULL;
+    d_F_fcn[F_var] = nullptr;
     return;
 } // registerSourceTerm
 
@@ -338,19 +337,19 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDI
         new CellVariable<NDIM, double>(Q_var->getName() + "::Q_rhs", Q_depth);
 
     // Set default values.
-    d_Q_u_map[Q_var] = NULL;
-    d_Q_F_map[Q_var] = NULL;
+    d_Q_u_map[Q_var] = nullptr;
+    d_Q_F_map[Q_var] = nullptr;
     d_Q_rhs_var.push_back(Q_rhs_var);
     d_Q_Q_rhs_map[Q_var] = Q_rhs_var;
     d_Q_diffusion_time_stepping_type[Q_var] = d_default_diffusion_time_stepping_type;
     d_Q_difference_form[Q_var] = d_default_convective_difference_form;
     d_Q_diffusion_coef[Q_var] = 0.0;
-    d_Q_diffusion_coef_variable[Q_var] = NULL;
+    d_Q_diffusion_coef_variable[Q_var] = nullptr;
     d_Q_is_diffusion_coef_variable[Q_var] = false;
     d_Q_damping_coef[Q_var] = 0.0;
-    d_Q_init[Q_var] = NULL;
+    d_Q_init[Q_var] = nullptr;
     d_Q_bc_coef[Q_var] =
-        std::vector<RobinBcCoefStrategy<NDIM>*>(Q_depth, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
+        std::vector<RobinBcCoefStrategy<NDIM>*>(Q_depth, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr));
     d_Q_reset_priority.push_back(std::numeric_limits<int>::max());
     return;
 } // registerTransportedQuantity
@@ -463,7 +462,7 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficient(Pointer<CellVariable<NDIM, d
         d_diffusion_coef_fcn.erase(D_var);
         d_diffusion_coef_rhs_map.erase(D_var);
         // set a null entry in the map for variable diffusion coefficients.
-        d_Q_diffusion_coef_variable[Q_var] = NULL;
+        d_Q_diffusion_coef_variable[Q_var] = nullptr;
     }
     return;
 } // setDiffusionCoefficient
@@ -492,7 +491,7 @@ AdvDiffHierarchyIntegrator::registerDiffusionCoefficientVariable(Pointer<SideVar
         new SideVariable<NDIM, double>(D_var->getName() + "::D_rhs", D_depth);
 
     // Set default values.
-    d_diffusion_coef_fcn[D_var] = NULL;
+    d_diffusion_coef_fcn[D_var] = nullptr;
     d_diffusion_coef_rhs_map[D_var] = D_rhs_var;
     // Also register D_rhs_var
     d_diffusion_coef_rhs_var.push_back(D_rhs_var);
@@ -677,18 +676,15 @@ AdvDiffHierarchyIntegrator::getHelmholtzSolver(Pointer<CellVariable<NDIM, double
     if (!d_helmholtz_solvers[l])
     {
         const std::string& name = Q_var->getName();
-        std::ostringstream solver_prefix, precond_prefix;
-        solver_prefix << "adv_diff_" << l << "_";
-        precond_prefix << "adv_diff_pc_" << l << "_";
         d_helmholtz_solvers[l] =
             CCPoissonSolverManager::getManager()->allocateSolver(d_helmholtz_solver_type,
                                                                  d_object_name + "::helmholtz_solver::" + name,
                                                                  d_helmholtz_solver_db,
-                                                                 solver_prefix.str(),
+                                                                 "adv_diff_" + std::to_string(l) + "_",
                                                                  d_helmholtz_precond_type,
                                                                  d_object_name + "::helmholtz_precond::" + name,
                                                                  d_helmholtz_precond_db,
-                                                                 precond_prefix.str());
+                                                                 "adv_diff_pc_" + std::to_string(l) + "_");
         d_helmholtz_solvers_need_init[l] = true;
     }
     return d_helmholtz_solvers[l];
@@ -697,9 +693,9 @@ AdvDiffHierarchyIntegrator::getHelmholtzSolver(Pointer<CellVariable<NDIM, double
 void
 AdvDiffHierarchyIntegrator::setHelmholtzSolversNeedInit()
 {
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::iterator it = d_Q_var.begin(); it != d_Q_var.end(); ++it)
+    for (const auto& Q_var : d_Q_var)
     {
-        setHelmholtzSolverNeedsInit(*it);
+        setHelmholtzSolverNeedsInit(Q_var);
     }
     return;
 }
@@ -755,9 +751,9 @@ AdvDiffHierarchyIntegrator::getHelmholtzRHSOperator(Pointer<CellVariable<NDIM, d
 void
 AdvDiffHierarchyIntegrator::setHelmholtzRHSOperatorsNeedInit()
 {
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::iterator it = d_Q_var.begin(); it != d_Q_var.end(); ++it)
+    for (const auto& Q_var : d_Q_var)
     {
-        setHelmholtzRHSOperatorNeedsInit(*it);
+        setHelmholtzRHSOperatorNeedsInit(Q_var);
     }
     return;
 }
@@ -793,10 +789,8 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
     // Setup coarsening communications algorithms, used in synchronizing refined
     // regions of coarse data with the underlying fine data.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
-         ++cit)
+    for (const auto& Q_var : d_Q_var)
     {
-        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
         Pointer<CoarsenOperator<NDIM> > coarsen_operator =
@@ -826,19 +820,15 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
     }
     d_helmholtz_solvers.resize(d_Q_var.size());
     d_helmholtz_solvers_need_init.resize(d_Q_var.size());
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
-         ++cit)
+    for (const auto& Q_var : d_Q_var)
     {
-        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         const size_t l = distance(d_Q_var.begin(), std::find(d_Q_var.begin(), d_Q_var.end(), Q_var));
         d_helmholtz_solvers[l] = getHelmholtzSolver(Q_var);
     }
     d_helmholtz_rhs_ops.resize(d_Q_var.size());
     d_helmholtz_rhs_ops_need_init.resize(d_Q_var.size());
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
-         ++cit)
+    for (const auto& Q_var : d_Q_var)
     {
-        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         const size_t l = distance(d_Q_var.begin(), std::find(d_Q_var.begin(), d_Q_var.end(), Q_var));
         d_helmholtz_rhs_ops[l] = getHelmholtzRHSOperator(Q_var);
     }
@@ -859,8 +849,7 @@ AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(double current_time, do
     // Build the priority mapping, which determines which variables are reset first
     std::multimap<int, Pointer<CellVariable<NDIM, double> > > priority_Q_map;
     unsigned int l = 0;
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
-         ++cit, ++l)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         const int priority = d_Q_reset_priority[l];
@@ -936,45 +925,8 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(const std::string& object
                                                        Pointer<Database> input_db,
                                                        bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart),
-      d_integrator_is_initialized(false),
-      d_cfl_max(0.5),
-      d_default_diffusion_time_stepping_type(TRAPEZOIDAL_RULE),
-      d_default_convective_difference_form(CONSERVATIVE),
-      d_u_var(),
-      d_u_is_div_free(),
-      d_u_fcn(),
-      d_F_var(),
-      d_F_fcn(),
-      d_diffusion_coef_var(),
-      d_diffusion_coef_rhs_var(),
-      d_diffusion_coef_fcn(),
-      d_diffusion_coef_rhs_map(),
-      d_Q_var(),
-      d_Q_rhs_var(),
-      d_Q_u_map(),
-      d_Q_F_map(),
-      d_Q_Q_rhs_map(),
-      d_Q_difference_form(),
-      d_Q_diffusion_coef(),
-      d_Q_diffusion_coef_variable(),
-      d_Q_is_diffusion_coef_variable(),
-      d_Q_damping_coef(),
-      d_Q_init(),
-      d_Q_bc_coef(),
-      d_hier_cc_data_ops(NULL),
-      d_hier_sc_data_ops(NULL),
-      d_sol_vecs(),
-      d_rhs_vecs(),
       d_helmholtz_solver_type(CCPoissonSolverManager::UNDEFINED),
-      d_helmholtz_precond_type(CCPoissonSolverManager::UNDEFINED),
-      d_helmholtz_solver_db(),
-      d_helmholtz_precond_db(),
-      d_helmholtz_solvers(),
-      d_helmholtz_rhs_ops(),
-      d_helmholtz_solvers_need_init(),
-      d_helmholtz_rhs_ops_need_init(),
-      d_coarsest_reset_ln(-1),
-      d_finest_reset_ln(-1)
+      d_helmholtz_precond_type(CCPoissonSolverManager::UNDEFINED)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
@@ -1002,11 +954,8 @@ AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
             const Index<NDIM>& iupper = patch_box.upper();
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
-            for (std::vector<Pointer<FaceVariable<NDIM, double> > >::const_iterator cit = d_u_var.begin();
-                 cit != d_u_var.end();
-                 ++cit)
+            for (const auto& u_var : d_u_var)
             {
-                Pointer<FaceVariable<NDIM, double> > u_var = *cit;
                 Pointer<FaceData<NDIM, double> > u_data = patch->getPatchData(u_var, getCurrentContext());
                 const IntVector<NDIM>& u_ghost_cells = u_data->getGhostCellWidth();
                 double stable_dt = std::numeric_limits<double>::max();
@@ -1053,8 +1002,7 @@ AdvDiffHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double i
     // Build the priority mapping, which determines which variables are reset first
     std::multimap<int, Pointer<CellVariable<NDIM, double> > > priority_Q_map;
     unsigned int l = 0;
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
-         ++cit, ++l)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         const int priority = d_Q_reset_priority[l];
@@ -1062,11 +1010,9 @@ AdvDiffHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double i
     }
 
     // Reset the desired transported quantities.
-    for (std::multimap<int, Pointer<CellVariable<NDIM, double> > >::iterator it = priority_Q_map.begin();
-         it != priority_Q_map.end();
-         ++it)
+    for (const auto& var_pair : priority_Q_map)
     {
-        Pointer<CellVariable<NDIM, double> > Q_var = it->second;
+        Pointer<CellVariable<NDIM, double> > Q_var = var_pair.second;
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         for (unsigned k = 0; k < d_Q_reset_fcns[Q_var].size(); ++k)
         {
@@ -1111,14 +1057,13 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_hier_bdry_fill_ops.resize(d_Q_var.size());
     unsigned int l = 0;
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
-         ++cit, ++l)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
 
         // Setup the interpolation transaction information.
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         InterpolationTransactionComponent transaction_comp(Q_scratch_idx,
                                                            DATA_REFINE_TYPE,
                                                            USE_CF_INTERPOLATION,
@@ -1137,8 +1082,7 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_rhs_vecs.resize(d_Q_var.size());
     l = 0;
     const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
-         ++cit, ++l)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         const std::string& name = Q_var->getName();
@@ -1183,10 +1127,8 @@ AdvDiffHierarchyIntegrator::registerVariables()
 {
     const IntVector<NDIM> cell_ghosts = CELLG;
     const IntVector<NDIM> face_ghosts = FACEG;
-    for (std::vector<Pointer<FaceVariable<NDIM, double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end();
-         ++cit)
+    for (const auto& u_var : d_u_var)
     {
-        Pointer<FaceVariable<NDIM, double> > u_var = *cit;
         int u_current_idx, u_new_idx, u_scratch_idx;
         registerVariable(u_current_idx,
                          u_new_idx,
@@ -1197,10 +1139,8 @@ AdvDiffHierarchyIntegrator::registerVariables()
                          "CONSERVATIVE_LINEAR_REFINE",
                          d_u_fcn[u_var]);
     }
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
-         ++cit)
+    for (const auto& Q_var : d_Q_var)
     {
-        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         int Q_current_idx, Q_new_idx, Q_scratch_idx;
         registerVariable(Q_current_idx,
                          Q_new_idx,
@@ -1215,10 +1155,8 @@ AdvDiffHierarchyIntegrator::registerVariables()
         if (d_visit_writer)
             d_visit_writer->registerPlotQuantity(Q_var->getName(), Q_depth == 1 ? "SCALAR" : "VECTOR", Q_current_idx);
     }
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end();
-         ++cit)
+    for (const auto& F_var : d_F_var)
     {
-        Pointer<CellVariable<NDIM, double> > F_var = *cit;
         int F_current_idx, F_new_idx, F_scratch_idx;
         registerVariable(F_current_idx,
                          F_new_idx,
@@ -1233,11 +1171,8 @@ AdvDiffHierarchyIntegrator::registerVariables()
         if (d_visit_writer)
             d_visit_writer->registerPlotQuantity(F_var->getName(), F_depth == 1 ? "SCALAR" : "VECTOR", F_current_idx);
     }
-    for (std::vector<Pointer<SideVariable<NDIM, double> > >::const_iterator cit = d_diffusion_coef_var.begin();
-         cit != d_diffusion_coef_var.end();
-         ++cit)
+    for (const auto& D_var : d_diffusion_coef_var)
     {
-        Pointer<SideVariable<NDIM, double> > D_var = *cit;
         int D_current_idx, D_new_idx, D_scratch_idx;
         registerVariable(D_current_idx,
                          D_new_idx,
@@ -1248,19 +1183,13 @@ AdvDiffHierarchyIntegrator::registerVariables()
                          "CONSERVATIVE_LINEAR_REFINE",
                          d_diffusion_coef_fcn[D_var]);
     }
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_rhs_var.begin();
-         cit != d_Q_rhs_var.end();
-         ++cit)
+    for (const auto& Q_rhs_var : d_Q_rhs_var)
     {
-        Pointer<CellVariable<NDIM, double> > Q_rhs_var = *cit;
         int Q_rhs_scratch_idx;
         registerVariable(Q_rhs_scratch_idx, Q_rhs_var, cell_ghosts, getScratchContext());
     }
-    for (std::vector<Pointer<SideVariable<NDIM, double> > >::const_iterator cit = d_diffusion_coef_rhs_var.begin();
-         cit != d_diffusion_coef_rhs_var.end();
-         ++cit)
+    for (const auto& D_rhs_var : d_diffusion_coef_rhs_var)
     {
-        Pointer<SideVariable<NDIM, double> > D_rhs_var = *cit;
         int D_rhs_scratch_idx;
         registerVariable(D_rhs_scratch_idx, D_rhs_var, cell_ghosts, getScratchContext());
     }

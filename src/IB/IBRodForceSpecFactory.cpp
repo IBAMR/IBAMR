@@ -35,7 +35,6 @@
 #include <vector>
 
 #include "ibamr/IBRodForceSpec.h"
-#include "boost/array.hpp"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
@@ -62,12 +61,6 @@ IBRodForceSpec::Factory::Factory()
     setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
 } // Factory
-
-IBRodForceSpec::Factory::~Factory()
-{
-    // intentionally blank
-    return;
-} // ~Factory
 
 int
 IBRodForceSpec::Factory::getStreamableClassID() const

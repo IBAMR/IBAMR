@@ -39,6 +39,7 @@
 #include <vector>
 
 #include "Box.h"
+#include "CartesianCellDoubleLinearRefine.h"
 #include "ComponentSelector.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
@@ -76,7 +77,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    CartCellDoubleQuadraticCFInterpolation();
+    CartCellDoubleQuadraticCFInterpolation() = default;
 
     /*!
      * \brief Destructor.
@@ -105,14 +106,14 @@ public:
      */
     void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
                                        double fill_time,
-                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const;
+    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const override;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -136,7 +137,7 @@ public:
     void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
                           const SAMRAI::hier::Patch<NDIM>& coarse,
                           const SAMRAI::hier::Box<NDIM>& fine_box,
-                          const SAMRAI::hier::IntVector<NDIM>& ratio);
+                          const SAMRAI::hier::IntVector<NDIM>& ratio) override;
 
     /*!
      * Function to perform user-defined postprocess data refine operations.
@@ -158,7 +159,7 @@ public:
     void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
                            const SAMRAI::hier::Patch<NDIM>& coarse,
                            const SAMRAI::hier::Box<NDIM>& fine_box,
-                           const SAMRAI::hier::IntVector<NDIM>& ratio);
+                           const SAMRAI::hier::IntVector<NDIM>& ratio) override;
 
     //\}
 
@@ -172,41 +173,41 @@ public:
      * Whether or not to employ a consistent interpolation scheme at "Type 2"
      * coarse-fine interface ghost cells.
      */
-    void setConsistentInterpolationScheme(bool consistent_type_2_bdry);
+    void setConsistentInterpolationScheme(bool consistent_type_2_bdry) override;
 
     /*!
      * \brief Reset the patch data index operated upon by this class.
      */
-    void setPatchDataIndex(int patch_data_index);
+    void setPatchDataIndex(int patch_data_index) override;
 
     /*!
      * \brief Reset the patch data indices operated upon by this class.
      */
-    void setPatchDataIndices(const std::set<int>& patch_data_indices);
+    void setPatchDataIndices(const std::set<int>& patch_data_indices) override;
 
     /*!
      * \brief Reset the patch data indices operated upon by this class.
      */
-    void setPatchDataIndices(const SAMRAI::hier::ComponentSelector& patch_data_indices);
+    void setPatchDataIndices(const SAMRAI::hier::ComponentSelector& patch_data_indices) override;
 
     /*!
      * Set the patch hierarchy used in constructing coarse-fine interface
      * boundary boxes.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy) override;
 
     /*!
      * Clear the patch hierarchy used in constructing coarse-fine interface
      * boundary boxes.
      */
-    void clearPatchHierarchy();
+    void clearPatchHierarchy() override;
 
     /*!
      * Compute the normal extension of fine data at coarse-fine interfaces.
      */
     void computeNormalExtension(SAMRAI::hier::Patch<NDIM>& patch,
                                 const SAMRAI::hier::IntVector<NDIM>& ratio,
-                                const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+                                const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
 
     //\}
 
@@ -219,7 +220,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartCellDoubleQuadraticCFInterpolation(const CartCellDoubleQuadraticCFInterpolation& from);
+    CartCellDoubleQuadraticCFInterpolation(const CartCellDoubleQuadraticCFInterpolation& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -230,7 +231,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartCellDoubleQuadraticCFInterpolation& operator=(const CartCellDoubleQuadraticCFInterpolation& that);
+    CartCellDoubleQuadraticCFInterpolation& operator=(const CartCellDoubleQuadraticCFInterpolation& that) = delete;
 
     /*!
      * \brief Implementations of postprocessRefine().
@@ -262,12 +263,13 @@ private:
      * Boolean value indicating whether we are enforcing a consistent
      * interpolation scheme at "Type 2" coarse-fine interface ghost cells.
      */
-    bool d_consistent_type_2_bdry;
+    bool d_consistent_type_2_bdry = false;
 
     /*!
      * Refine operator employed to fill coarse grid ghost cell values.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op =
+        new SAMRAI::geom::CartesianCellDoubleLinearRefine<NDIM>();
 
     /*!
      * Cached hierarchy-related information.

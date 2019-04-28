@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <iosfwd>
+#include <limits>
 #include <string>
 #include <utility>
 
@@ -67,7 +68,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    GeneralOperator(const std::string& object_name, bool homogeneous_bc = false);
+    GeneralOperator(std::string object_name, bool homogeneous_bc = false);
 
     /*!
      * \brief Empty virtual destructor.
@@ -302,18 +303,20 @@ protected:
 
     // Boolean value to indicate whether the preconditioner is presently
     // initialized.
-    bool d_is_initialized;
+    bool d_is_initialized = false;
 
     // Operator configuration.
     bool d_homogeneous_bc;
-    double d_solution_time, d_current_time, d_new_time;
+    double d_solution_time = std::numeric_limits<double>::quiet_NaN(),
+           d_current_time = std::numeric_limits<double>::quiet_NaN(),
+           d_new_time = std::numeric_limits<double>::quiet_NaN();
 
     // Mathematical operators.
     SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
-    bool d_hier_math_ops_external;
+    bool d_hier_math_ops_external = false;
 
     // Logging configuration.
-    bool d_enable_logging;
+    bool d_enable_logging = false;
 
 private:
     /*!
@@ -321,7 +324,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    GeneralOperator();
+    GeneralOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -330,7 +333,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    GeneralOperator(const GeneralOperator& from);
+    GeneralOperator(const GeneralOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -341,7 +344,7 @@ private:
      *
      * \return A reference to this object.
      */
-    GeneralOperator& operator=(const GeneralOperator& that);
+    GeneralOperator& operator=(const GeneralOperator& that) = delete;
 };
 } // namespace IBTK
 

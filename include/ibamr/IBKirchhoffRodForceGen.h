@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <array>
 #include <unistd.h>
 #include <vector>
 
@@ -59,12 +59,6 @@ class PatchHierarchy;
 } // namespace hier
 } // namespace SAMRAI
 
-namespace boost
-{
-template <class T, size_t N>
-class array;
-} // namespace boost
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -87,7 +81,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~IBKirchhoffRodForceGen();
+    virtual ~IBKirchhoffRodForceGen();
 
     /*!
      * \brief Setup the data needed to compute the beam forces on the specified
@@ -123,7 +117,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBKirchhoffRodForceGen(const IBKirchhoffRodForceGen& from);
+    IBKirchhoffRodForceGen(const IBKirchhoffRodForceGen& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -134,7 +128,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBKirchhoffRodForceGen& operator=(const IBKirchhoffRodForceGen& that);
+    IBKirchhoffRodForceGen& operator=(const IBKirchhoffRodForceGen& that) = delete;
 
     /*!
      * \brief Read input values, indicated above, from given database.
@@ -149,7 +143,7 @@ private:
     //\{
     std::vector<Mat> d_D_next_mats, d_X_next_mats;
     std::vector<std::vector<int> > d_petsc_curr_node_idxs, d_petsc_next_node_idxs;
-    std::vector<std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_material_params;
+    std::vector<std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_material_params;
     std::vector<bool> d_is_initialized;
     //\}
 };

@@ -273,20 +273,20 @@ public:
      * integration process (e.g. time-dependent, flux, etc.).  This routine also
      * registers variables for plotting with the VisIt writer.
      */
-    virtual void registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>* integrator);
+    virtual void registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>* integrator) override;
 
     /*!
      * \brief Set the data on the patch interior to some initial values via the
      * concrete IBTK::CartGridFunction objects registered with the patch strategy when
      * provided.  Otherwise, initialize data to zero.
      */
-    virtual void initializeDataOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double data_time, bool initial_time);
+    virtual void initializeDataOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double data_time, bool initial_time) override;
 
     /*!
      * \brief Compute a stable time increment for patch using an explicit CFL
      * condition and return the computed dt.
      */
-    virtual double computeStableDtOnPatch(SAMRAI::hier::Patch<NDIM>& patch, bool initial_time, double dt_time);
+    virtual double computeStableDtOnPatch(SAMRAI::hier::Patch<NDIM>& patch, bool initial_time, double dt_time) override;
 
     /*!
      * \brief Compute the time integral of the fluxes to be used in conservative
@@ -295,14 +295,14 @@ public:
      * The conservative difference used to update the integrated quantities is
      * implemented in conservativeDifferenceOnPatch().
      */
-    virtual void computeFluxesOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time, double dt);
+    virtual void computeFluxesOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time, double dt) override;
 
     /*!
      * \brief Update solution variables by performing a conservative difference
      * using the fluxes calculated by computeFluxesOnPatch().
      */
     virtual void
-    conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time, double dt, bool at_synchronization);
+    conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time, double dt, bool at_synchronization) override;
 
     /*!
      * \brief Compute the values of any time-dependent source terms for use by
@@ -321,7 +321,7 @@ public:
                                              double dt,
                                              bool first_step,
                                              bool last_step,
-                                             bool regrid_advance);
+                                             bool regrid_advance) override;
 
     /*!
      * \brief Add source terms to the updated solution.
@@ -340,7 +340,7 @@ public:
                                               double dt,
                                               bool first_step,
                                               bool last_step,
-                                              bool regrid_advance);
+                                              bool regrid_advance) override;
 
     /*!
      * \brief Tag cells for refinement using a gradient detector.
@@ -349,7 +349,7 @@ public:
                                           double regrid_time,
                                           bool initial_error,
                                           int tag_indexindx,
-                                          bool uses_richardson_extrapolation_too);
+                                          bool uses_richardson_extrapolation_too) override;
 
     /*!
      * \brief Set the data in ghost cells corresponding to physical boundary
@@ -357,7 +357,7 @@ public:
      */
     virtual void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
                                                double fill_time,
-                                               const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+                                               const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
 
     /*!
      * \brief Write state of AdvectorPredictorCorrectorHyperbolicPatchOps object to the given
@@ -366,7 +366,7 @@ public:
      * This routine is a concrete implementation of the function declared in the
      * SAMRAI::tbox::Serializable abstract base class.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     /*!
@@ -400,7 +400,7 @@ protected:
      * The SAMRAI::algs::HyperbolicLevelIntegrator that is using the patch
      * strategy.
      */
-    SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>* d_integrator;
+    SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>* d_integrator = nullptr;
 
     /*
      * The AdvectorExplicitPredictorPatchOps being used to advect the cell-centered quantities
@@ -414,30 +414,36 @@ protected:
     std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_u_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >, bool> d_u_is_div_free;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_u_fcn;
-    bool d_compute_init_velocity, d_compute_half_velocity, d_compute_final_velocity;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_u_fcn;
+    bool d_compute_init_velocity = true, d_compute_half_velocity = true, d_compute_final_velocity = true;
 
     /*
      * Source term data.
      */
     std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_F_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_F_fcn;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_F_fcn;
 
     /*
      * Transported quantities.
      */
     std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_Q_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_Q_u_map;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > >
+        d_Q_u_map;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_Q_F_map;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > >
+        d_Q_F_map;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, ConvectiveDifferencingType>
         d_Q_difference_form;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_Q_init;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_Q_init;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coef;
+             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> >
+        d_Q_bc_coef;
 
     /*
      * When conservative differencing is employed for a quantity Q, we maintain
@@ -463,7 +469,7 @@ protected:
      * Boolean indicating whether or not to overwrite tag data (default is
      * true).
      */
-    bool d_overwrite_tags;
+    bool d_overwrite_tags = true;
 
 private:
     /*!
@@ -471,7 +477,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvectorPredictorCorrectorHyperbolicPatchOps();
+    AdvectorPredictorCorrectorHyperbolicPatchOps() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -480,7 +486,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvectorPredictorCorrectorHyperbolicPatchOps(const AdvectorPredictorCorrectorHyperbolicPatchOps& from);
+    AdvectorPredictorCorrectorHyperbolicPatchOps(const AdvectorPredictorCorrectorHyperbolicPatchOps& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -491,7 +497,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvectorPredictorCorrectorHyperbolicPatchOps& operator=(const AdvectorPredictorCorrectorHyperbolicPatchOps& that);
+    AdvectorPredictorCorrectorHyperbolicPatchOps& operator=(const AdvectorPredictorCorrectorHyperbolicPatchOps& that) = delete;
 
     /*
      * Set physical boundary conditions at inflow boundaries for predicted
@@ -543,7 +549,7 @@ private:
      */
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
     SAMRAI::hier::IntVector<NDIM> d_flux_ghosts;
-    std::string d_extrap_type;
+    std::string d_extrap_type = "CONSTANT";
 
     /*
      * Refinement criteria parameters for gradient detection.

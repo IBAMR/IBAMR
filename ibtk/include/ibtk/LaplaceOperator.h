@@ -64,7 +64,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    LaplaceOperator(const std::string& object_name, bool homogeneous_bc = false);
+    LaplaceOperator(std::string object_name, bool homogeneous_bc = false);
 
     /*!
      * \brief Destructor.
@@ -126,7 +126,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LaplaceOperator();
+    LaplaceOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -135,7 +135,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LaplaceOperator(const LaplaceOperator& from);
+    LaplaceOperator(const LaplaceOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -146,7 +146,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LaplaceOperator& operator=(const LaplaceOperator& that);
+    LaplaceOperator& operator=(const LaplaceOperator& that) = delete;
 };
 } // namespace IBTK
 

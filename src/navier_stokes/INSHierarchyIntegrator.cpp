@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <deque>
 #include <limits>
@@ -91,10 +90,10 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         delete d_U_star_bc_coefs[d];
-        d_U_star_bc_coefs[d] = NULL;
+        d_U_star_bc_coefs[d] = nullptr;
     }
     delete d_Phi_bc_coef;
-    d_Phi_bc_coef = NULL;
+    d_Phi_bc_coef = nullptr;
     return;
 } // ~INSHierarchyIntegrator
 
@@ -412,59 +411,23 @@ INSHierarchyIntegrator::getNumberOfCycles() const
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
+INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
                                                Pointer<Database> input_db,
                                                Pointer<Variable<NDIM> > U_var,
                                                Pointer<Variable<NDIM> > P_var,
                                                Pointer<Variable<NDIM> > F_var,
                                                Pointer<Variable<NDIM> > Q_var,
                                                bool register_for_restart)
-    : HierarchyIntegrator(object_name, input_db, register_for_restart),
+    : HierarchyIntegrator(std::move(object_name), input_db, register_for_restart),
       d_U_var(U_var),
       d_P_var(P_var),
       d_F_var(F_var),
       d_Q_var(Q_var),
-      d_U_init(NULL),
-      d_P_init(NULL),
-      d_default_bc_coefs(d_object_name + "::default_bc_coefs", Pointer<Database>(NULL)),
-      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
-      d_traction_bc_type(TRACTION),
-      d_F_fcn(NULL),
-      d_Q_fcn(NULL)
+      d_default_bc_coefs(d_object_name + "::default_bc_coefs", Pointer<Database>(nullptr)),
+      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr))
 {
     // Set some default values.
-    d_integrator_is_initialized = false;
-    d_viscous_time_stepping_type = TRAPEZOIDAL_RULE;
-    d_convective_time_stepping_type = ADAMS_BASHFORTH;
-    d_init_convective_time_stepping_type = MIDPOINT_RULE;
-    d_num_cycles = 1;
-    d_cfl_max = 1.0;
-    d_using_vorticity_tagging = false;
-    d_Omega_max = 0.0;
-    d_normalize_pressure = false;
-    d_normalize_velocity = false;
-    d_convective_op_type = "DEFAULT";
-    d_convective_difference_form = ADVECTIVE;
     d_convective_op_input_db = new MemoryDatabase(d_object_name + "::convective_op_input_db");
-    d_creeping_flow = false;
-    d_regrid_max_div_growth_factor = 1.1;
-    d_U_scale = 1.0;
-    d_P_scale = 1.0;
-    d_F_scale = 1.0;
-    d_Q_scale = 1.0;
-    d_Omega_scale = 1.0;
-    d_Div_U_scale = 1.0;
-    d_EE_scale = 1.0;
-    d_output_U = true;
-    d_output_P = true;
-    d_output_F = false;
-    d_output_Q = false;
-    d_output_Omega = true;
-    d_output_Div_U = true;
-    d_output_EE = false;
-    d_use_div_sink_drag_term = false;
-    d_velocity_solver = NULL;
-    d_pressure_solver = NULL;
 
     // Setup default boundary condition objects that specify homogeneous
     // Dirichlet (solid-wall) boundary conditions for the velocity.

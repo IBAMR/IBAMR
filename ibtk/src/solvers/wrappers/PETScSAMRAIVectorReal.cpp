@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 #include <ostream>
 
@@ -132,10 +132,7 @@ static Timer* t_vec_dot_norm2;
 PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(Pointer<SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vector,
                                              bool vector_created_via_duplicate,
                                              MPI_Comm comm)
-    : d_samrai_vector(samrai_vector),
-      d_vector_created_via_duplicate(vector_created_via_duplicate),
-      d_vector_checked_out_read_write(false),
-      d_vector_checked_out_read(false)
+    : d_samrai_vector(samrai_vector), d_vector_created_via_duplicate(vector_created_via_duplicate)
 {
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -236,7 +233,7 @@ PETScSAMRAIVectorReal::~PETScSAMRAIVectorReal()
 {
     if (!d_vector_created_via_duplicate)
     {
-        d_petsc_vector->ops->destroy = 0;
+        d_petsc_vector->ops->destroy = nullptr;
         int ierr = VecDestroy(&d_petsc_vector);
         IBTK_CHKERRQ(ierr);
     }

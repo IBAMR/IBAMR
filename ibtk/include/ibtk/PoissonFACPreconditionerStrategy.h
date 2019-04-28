@@ -52,6 +52,7 @@
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK
@@ -116,7 +117,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    PoissonFACPreconditionerStrategy(const std::string& object_name,
+    PoissonFACPreconditionerStrategy(std::string object_name,
                                      SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > scratch_var,
                                      int ghost_cell_width,
                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
@@ -246,7 +247,7 @@ public:
     /*!
      * \brief Zero the supplied vector.
      */
-    void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num);
+    void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num) override;
 
     /*!
      * \brief Restrict the residual quantity to the specified level from the
@@ -258,7 +259,7 @@ public:
      */
     void restrictResidual(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
                           SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
-                          int dst_ln);
+                          int dst_ln) override;
 
     /*!
      * \brief Prolong the error quantity to the specified level from the next
@@ -270,7 +271,7 @@ public:
      */
     void prolongError(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
-                      int dst_ln);
+                      int dst_ln) override;
 
     /*!
      * \brief Prolong the error quantity to the specified level from the next
@@ -282,7 +283,7 @@ public:
      */
     void prolongErrorAndCorrect(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
                                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
-                                int dst_ln);
+                                int dst_ln) override;
 
     /*!
      * \brief Compute hierarchy-dependent data.
@@ -299,7 +300,7 @@ public:
      * \param rhs right hand side vector f
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs) override;
 
     /*!
      * \brief Remove all hierarchy-dependent data.
@@ -308,7 +309,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void deallocateOperatorState();
+    void deallocateOperatorState() override;
 
     //\}
 
@@ -386,7 +387,7 @@ protected:
      * lists.  We use it to enforce working on one hierarchy at a time.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     /*
      * HierarchyDataOpsReal objects restricted to a single level of the patch
@@ -403,8 +404,8 @@ protected:
     /*
      * Range of levels to be reset the next time the operator is initialized.
      */
-    bool d_in_initialize_operator_state;
-    int d_coarsest_reset_ln, d_finest_reset_ln;
+    bool d_in_initialize_operator_state = false;
+    int d_coarsest_reset_ln = IBTK::invalid_level_number, d_finest_reset_ln = IBTK::invalid_level_number;
 
     //\}
 
@@ -416,27 +417,27 @@ protected:
     /*
      * The kind of smoothing to perform.
      */
-    std::string d_smoother_type;
+    std::string d_smoother_type = "DEFAULT";
 
     /*
      * The names of the refinement operators used to prolong the coarse grid
      * correction.
      */
-    std::string d_prolongation_method;
+    std::string d_prolongation_method = "DEFAULT";
 
     /*
      * The names of the coarsening operators used to restrict the fine grid
      * error or residual.
      */
-    std::string d_restriction_method;
+    std::string d_restriction_method = "DEFAULT";
 
     /*
      * Coarse level solver parameters.
      */
-    std::string d_coarse_solver_type, d_coarse_solver_default_options_prefix;
-    double d_coarse_solver_rel_residual_tol;
-    double d_coarse_solver_abs_residual_tol;
-    int d_coarse_solver_max_iterations;
+    std::string d_coarse_solver_type = "DEFAULT", d_coarse_solver_default_options_prefix;
+    double d_coarse_solver_rel_residual_tol = 1.0e-5;
+    double d_coarse_solver_abs_residual_tol = 1.0e-50;
+    int d_coarse_solver_max_iterations = 10;
 
     //\}
 
@@ -453,7 +454,7 @@ protected:
     /*
      * Patch descriptor index for scratch data.
      */
-    int d_scratch_idx;
+    int d_scratch_idx = IBTK::invalid_index;
 
     //\}
 
@@ -485,7 +486,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PoissonFACPreconditionerStrategy();
+    PoissonFACPreconditionerStrategy() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -494,7 +495,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PoissonFACPreconditionerStrategy(const PoissonFACPreconditionerStrategy& from);
+    PoissonFACPreconditionerStrategy(const PoissonFACPreconditionerStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -505,7 +506,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PoissonFACPreconditionerStrategy& operator=(const PoissonFACPreconditionerStrategy& that);
+    PoissonFACPreconditionerStrategy& operator=(const PoissonFACPreconditionerStrategy& that) = delete;
 
     /*!
      * \name Various refine and coarsen objects.

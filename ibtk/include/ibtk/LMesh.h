@@ -58,14 +58,12 @@ public:
     /*!
      * \brief Constructor.
      */
-    LMesh(const std::string& object_name,
-          const std::vector<LNode*>& local_nodes,
-          const std::vector<LNode*>& ghost_nodes);
+    LMesh(std::string object_name, std::vector<LNode*> local_nodes, std::vector<LNode*> ghost_nodes);
 
     /*!
      * \brief Destructor.
      */
-    ~LMesh();
+    virtual ~LMesh() = default;
 
     /*!
      * \brief Return a const reference to the set of local LNode objects.
@@ -85,7 +83,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LMesh(const LMesh& from);
+    LMesh(const LMesh& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -96,7 +94,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LMesh& operator=(const LMesh& that);
+    LMesh& operator=(const LMesh& that) = delete;
 
     const std::string& d_object_name;
     const std::vector<LNode*> d_local_nodes;

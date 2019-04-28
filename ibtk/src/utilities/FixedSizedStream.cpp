@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string.h>
+#include <cstring>
 #include <vector>
 
 #include "ibtk/FixedSizedStream.h"
@@ -46,25 +46,18 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FixedSizedStream::FixedSizedStream(const int bytes)
-    : d_buffer_size(bytes), d_current_size(0), d_buffer_index(0), d_buffer(d_buffer_size)
+FixedSizedStream::FixedSizedStream(const int bytes) : d_buffer_size(bytes), d_buffer(d_buffer_size)
 {
     // intentionally blank
     return;
 } // FixedSizedStream
 
 FixedSizedStream::FixedSizedStream(const void* const buffer, const int bytes)
-    : d_buffer_size(bytes), d_current_size(0), d_buffer_index(0), d_buffer(d_buffer_size)
+    : d_buffer_size(bytes), d_buffer(d_buffer_size)
 {
-    memcpy(static_cast<void*>(&d_buffer[0]), buffer, bytes);
+    std::memcpy(static_cast<void*>(&d_buffer[0]), buffer, bytes);
     return;
 } // FixedSizedStream
-
-FixedSizedStream::~FixedSizedStream()
-{
-    // intentionally blank
-    return;
-} // ~FixedSizedStream
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

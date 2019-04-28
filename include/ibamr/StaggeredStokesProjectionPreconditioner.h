@@ -41,6 +41,7 @@
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -99,7 +100,7 @@ public:
     /*!
      * \brief Compute the action of the preconditioner.
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -119,7 +120,7 @@ public:
      * \note A default implementation is provided which does nothing.
      */
     void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -132,7 +133,7 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void deallocateSolverState();
+    void deallocateSolverState() override;
 
     //\}
 
@@ -144,12 +145,12 @@ public:
     /*!
      * \brief Set whether the initial guess is non-zero.
      */
-    void setInitialGuessNonzero(bool initial_guess_nonzero = true);
+    void setInitialGuessNonzero(bool initial_guess_nonzero = true) override;
 
     /*!
      * \brief Set the maximum number of iterations to use per solve.
      */
-    void setMaxIterations(int max_iterations);
+    void setMaxIterations(int max_iterations) override;
 
     //\}
 
@@ -159,7 +160,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    StaggeredStokesProjectionPreconditioner();
+    StaggeredStokesProjectionPreconditioner() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -168,7 +169,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesProjectionPreconditioner(const StaggeredStokesProjectionPreconditioner& from);
+    StaggeredStokesProjectionPreconditioner(const StaggeredStokesProjectionPreconditioner& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -179,14 +180,14 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesProjectionPreconditioner& operator=(const StaggeredStokesProjectionPreconditioner& that);
+    StaggeredStokesProjectionPreconditioner& operator=(const StaggeredStokesProjectionPreconditioner& that) = delete;
 
     // Boundary condition objects.
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Phi_var, d_F_Phi_var;
-    int d_Phi_scratch_idx, d_F_Phi_idx;
+    int d_Phi_scratch_idx = IBTK::invalid_index, d_F_Phi_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR
 

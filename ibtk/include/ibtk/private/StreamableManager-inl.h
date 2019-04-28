@@ -56,9 +56,9 @@ inline size_t
 StreamableManager::getDataStreamSize(const std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items) const
 {
     size_t size = SAMRAI::tbox::AbstractStream::sizeofInt();
-    for (unsigned int k = 0; k < data_items.size(); ++k)
+    for (const auto& data_item : data_items)
     {
-        size += getDataStreamSize(data_items[k]);
+        size += getDataStreamSize(data_item);
     }
     return size;
 } // getDataStreamSize
@@ -81,9 +81,9 @@ StreamableManager::packStream(SAMRAI::tbox::AbstractStream& stream,
 {
     const int num_data = static_cast<int>(data_items.size());
     stream.pack(&num_data, 1);
-    for (unsigned int k = 0; k < data_items.size(); ++k)
+    for (auto& data_item : data_items)
     {
-        packStream(stream, data_items[k]);
+        packStream(stream, data_item);
     }
     return;
 } // packStream
@@ -107,9 +107,9 @@ StreamableManager::unpackStream(SAMRAI::tbox::AbstractStream& stream,
     int num_data;
     stream.unpack(&num_data, 1);
     data_items.resize(num_data);
-    for (unsigned int k = 0; k < data_items.size(); ++k)
+    for (auto& data_item : data_items)
     {
-        data_items[k] = unpackStream(stream, offset);
+        data_item = unpackStream(stream, offset);
     }
     std::vector<SAMRAI::tbox::Pointer<Streamable> >(data_items).swap(data_items); // trim-to-fit
     return;

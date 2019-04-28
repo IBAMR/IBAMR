@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <ostream>
 #include <string>
@@ -50,7 +49,6 @@
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
 #include "IntVector.h"
-#include "LoadBalancer.h"
 #include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
@@ -106,12 +104,6 @@ static const int IB_HIERARCHY_INTEGRATOR_VERSION = 2;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBHierarchyIntegrator::~IBHierarchyIntegrator()
-{
-    // intentionally blank
-    return;
-} // ~IBHierarchyIntegrator
-
 Pointer<IBStrategy>
 IBHierarchyIntegrator::getIBStrategy() const
 {
@@ -150,16 +142,7 @@ IBHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> f_fcn
 void
 IBHierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer)
 {
-#if !defined(NDEBUG)
-    TBOX_ASSERT(load_balancer);
-#endif
-    d_load_balancer = load_balancer;
-    if (d_workload_idx == -1)
-    {
-        d_workload_var = new CellVariable<NDIM, double>(d_object_name + "::workload");
-        registerVariable(d_workload_idx, d_workload_var, 0, getCurrentContext());
-    }
-    d_ib_method_ops->registerLoadBalancer(load_balancer, d_workload_idx);
+    HierarchyIntegrator::registerLoadBalancer(load_balancer);
     return;
 } // registerLoadBalancer
 
@@ -266,7 +249,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     }
     else
     {
-        d_q_var = NULL;
+        d_q_var = nullptr;
         d_q_idx = -1;
     }
 
@@ -319,7 +302,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     }
 
     d_u_ghostfill_alg = new RefineAlgorithm<NDIM>();
-    d_u_ghostfill_op = NULL;
+    d_u_ghostfill_op = nullptr;
     d_u_ghostfill_alg->registerRefine(d_u_idx, d_u_idx, d_u_idx, d_u_ghostfill_op);
     registerGhostfillRefineAlgorithm(d_object_name + "::u", d_u_ghostfill_alg, d_u_phys_bdry_op);
 
@@ -350,7 +333,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
         }
 
         d_p_ghostfill_alg = new RefineAlgorithm<NDIM>();
-        d_p_ghostfill_op = NULL;
+        d_p_ghostfill_op = nullptr;
         d_p_ghostfill_alg->registerRefine(d_p_idx, d_p_idx, d_p_idx, d_p_ghostfill_op);
         registerGhostfillRefineAlgorithm(d_object_name + "::p", d_p_ghostfill_alg, d_p_phys_bdry_op);
 
@@ -454,16 +437,14 @@ IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > h
     return;
 } // initializePatchHierarchy
 
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
 void
-IBHierarchyIntegrator::regridHierarchy()
+IBHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
-    // Update the workload pre-regridding.
-    if (d_load_balancer)
-    {
-        if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): updating workload estimates\n";
-        d_hier_cc_data_ops->setToScalar(d_workload_idx, 1.0);
-        d_ib_method_ops->updateWorkloadEstimates(d_hierarchy, d_workload_idx);
-    }
+    // This must be done here since (if a load balancer is used) it effects
+    // the distribution of patches.
+    updateWorkloadEstimates();
 
     // Collect the marker particles to level 0 of the patch hierarchy.
     if (d_mark_var)
@@ -474,11 +455,13 @@ IBHierarchyIntegrator::regridHierarchy()
     // Before regridding, begin Lagrangian data movement.
     if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement\n";
     d_ib_method_ops->beginDataRedistribution(d_hierarchy, d_gridding_alg);
-
-    // Use the INSHierarchyIntegrator to handle Eulerian data management.
     if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): regridding the patch hierarchy\n";
-    HierarchyIntegrator::regridHierarchy();
+    return;
+} // regridHierarchyBeginSpecialized
 
+void
+IBHierarchyIntegrator::regridHierarchyEndSpecialized()
+{
     // After regridding, finish Lagrangian data movement.
     if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement\n";
     d_ib_method_ops->endDataRedistribution(d_hierarchy, d_gridding_alg);
@@ -490,19 +473,24 @@ IBHierarchyIntegrator::regridHierarchy()
         LMarkerUtilities::pruneInvalidMarkers(d_mark_current_idx, d_hierarchy);
     }
 
+    if (d_enable_logging)
+    {
+        updateWorkloadEstimates();
+    }
+
     // Reset the regrid CFL estimate.
     d_regrid_cfl_estimate = 0.0;
     return;
-} // regridHierarchy
-
-/////////////////////////////// PROTECTED ////////////////////////////////////
+} // regridHierarchyEndSpecialized
 
 IBHierarchyIntegrator::IBHierarchyIntegrator(const std::string& object_name,
                                              Pointer<Database> input_db,
                                              Pointer<IBStrategy> ib_method_ops,
                                              Pointer<INSHierarchyIntegrator> ins_hier_integrator,
                                              bool register_for_restart)
-    : HierarchyIntegrator(object_name, input_db, register_for_restart)
+    : HierarchyIntegrator(object_name, input_db, register_for_restart),
+      d_ins_hier_integrator(ins_hier_integrator),
+      d_ib_method_ops(ib_method_ops)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(ib_method_ops);
@@ -510,12 +498,10 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(const std::string& object_name,
 #endif
 
     // Set the IB method operations objects.
-    d_ib_method_ops = ib_method_ops;
     d_ib_method_ops->registerIBHierarchyIntegrator(this);
 
     // Register the fluid solver as a child integrator of this integrator object
     // and reuse the variables and variable contexts of the INS solver.
-    d_ins_hier_integrator = ins_hier_integrator;
     registerChildHierarchyIntegrator(d_ins_hier_integrator);
     d_u_var = d_ins_hier_integrator->getVelocityVariable();
     d_p_var = d_ins_hier_integrator->getPressureVariable();
@@ -526,18 +512,6 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(const std::string& object_name,
     d_new_context = d_ins_hier_integrator->getNewContext();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_ib_context = var_db->getContext(d_object_name + "::IB");
-
-    // Set some default values.
-    d_integrator_is_initialized = false;
-    d_time_stepping_type = MIDPOINT_RULE;
-    d_regrid_cfl_interval = 0.0;
-    d_regrid_cfl_estimate = 0.0;
-    d_error_on_dt_change = true;
-    d_warn_on_dt_change = false;
-
-    // Do not allocate a workload variable by default.
-    d_workload_var.setNull();
-    d_workload_idx = -1;
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -597,14 +571,6 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHie
     }
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
-
-    // Initialize workload data.
-    if (d_workload_idx != -1)
-    {
-        HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops(hierarchy, level_number, level_number);
-        level_cc_data_ops.setToScalar(d_workload_idx, 1.0);
-        d_load_balancer->setUniformWorkload(level_number);
-    }
 
     // Initialize marker data
     if (d_mark_var)
@@ -672,6 +638,13 @@ IBHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putDouble("d_regrid_cfl_estimate", d_regrid_cfl_estimate);
     return;
 } // putToDatabaseSpecialized
+
+void
+IBHierarchyIntegrator::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM>> hierarchy, const int workload_data_idx)
+{
+    d_ib_method_ops->addWorkloadEstimate(hierarchy, workload_data_idx);
+    return;
+} // addWorkloadEstimate
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -44,6 +44,7 @@
 #include "VariableFillPattern.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/LaplaceOperator.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -63,7 +64,7 @@ public:
      * \brief Constructor for class CCLaplaceOperator initializes the operator
      * coefficients and boundary conditions to default values.
      */
-    CCLaplaceOperator(const std::string& object_name, bool homogeneous_bc = true);
+    CCLaplaceOperator(std::string object_name, bool homogeneous_bc = true);
 
     /*!
      * \brief Destructor.
@@ -101,7 +102,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
     /*!
      * \brief Compute hierarchy-dependent data required for computing y=Ax (and
@@ -113,7 +114,7 @@ public:
      * \see KrylovLinearSolver::initializeSolverState
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
 
     /*!
      * \brief Remove all hierarchy-dependent data computed by
@@ -126,7 +127,7 @@ public:
      * \see initializeOperatorState
      * \see KrylovLinearSolver::deallocateSolverState
      */
-    void deallocateOperatorState();
+    void deallocateOperatorState() override;
 
     //\}
 
@@ -136,7 +137,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CCLaplaceOperator();
+    CCLaplaceOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -145,7 +146,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CCLaplaceOperator(const CCLaplaceOperator& from);
+    CCLaplaceOperator(const CCLaplaceOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -156,10 +157,10 @@ private:
      *
      * \return A reference to this object.
      */
-    CCLaplaceOperator& operator=(const CCLaplaceOperator& that);
+    CCLaplaceOperator& operator=(const CCLaplaceOperator& that) = delete;
 
     // Operator parameters.
-    int d_ncomp;
+    int d_ncomp = 0;
 
     // Cached communications operators.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
@@ -171,7 +172,7 @@ private:
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 };
 } // namespace IBTK
 

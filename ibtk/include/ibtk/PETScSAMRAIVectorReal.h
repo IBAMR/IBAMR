@@ -171,7 +171,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PETScSAMRAIVectorReal();
+    PETScSAMRAIVectorReal() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -180,7 +180,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScSAMRAIVectorReal(const PETScSAMRAIVectorReal& from);
+    PETScSAMRAIVectorReal(const PETScSAMRAIVectorReal& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -191,7 +191,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScSAMRAIVectorReal& operator=(const PETScSAMRAIVectorReal& that);
+    PETScSAMRAIVectorReal& operator=(const PETScSAMRAIVectorReal& that) = delete;
 
     static PetscErrorCode VecDuplicate_SAMRAI(Vec v, Vec* newv);
 
@@ -269,7 +269,7 @@ private:
      * PETSc vector object corresponding to this PETScAbstractVectorReal object.
      */
     Vec d_petsc_vector;
-    bool d_vector_created_via_duplicate, d_vector_checked_out_read_write, d_vector_checked_out_read;
+    bool d_vector_created_via_duplicate, d_vector_checked_out_read_write = false, d_vector_checked_out_read = false;
 };
 } // namespace IBTK
 

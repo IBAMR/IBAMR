@@ -141,31 +141,31 @@ LData::restoreArrays()
     {
         ierr = VecRestoreArray(d_ghosted_local_vec, &d_ghosted_local_array);
         IBTK_CHKERRQ(ierr);
-        d_ghosted_local_array = NULL;
+        d_ghosted_local_array = nullptr;
         delete d_boost_ghosted_local_array;
         delete d_boost_vec_ghosted_local_array;
-        d_boost_ghosted_local_array = NULL;
-        d_boost_vec_ghosted_local_array = NULL;
+        d_boost_ghosted_local_array = nullptr;
+        d_boost_vec_ghosted_local_array = nullptr;
     }
     if (d_ghosted_local_vec)
     {
         ierr = VecGhostRestoreLocalForm(d_global_vec, &d_ghosted_local_vec);
         IBTK_CHKERRQ(ierr);
-        d_ghosted_local_vec = NULL;
+        d_ghosted_local_vec = nullptr;
     }
     if (d_array)
     {
         ierr = VecRestoreArray(d_global_vec, &d_array);
         IBTK_CHKERRQ(ierr);
-        d_array = NULL;
+        d_array = nullptr;
         delete d_boost_array;
         delete d_boost_local_array;
         delete d_boost_vec_array;
         delete d_boost_local_vec_array;
-        d_boost_array = NULL;
-        d_boost_local_array = NULL;
-        d_boost_vec_array = NULL;
-        d_boost_local_vec_array = NULL;
+        d_boost_array = nullptr;
+        d_boost_local_array = nullptr;
+        d_boost_vec_array = nullptr;
+        d_boost_local_vec_array = nullptr;
     }
     return;
 } // restoreArray
@@ -198,15 +198,15 @@ LData::getArrayCommon()
         int ilower, iupper;
         ierr = VecGetOwnershipRange(d_global_vec, &ilower, &iupper);
         IBTK_CHKERRQ(ierr);
-        typedef boost::multi_array_types::extent_range range;
+        using range = boost::multi_array_types::extent_range;
         if (d_depth == 1)
         {
-            typedef boost::multi_array<double, 1> array_type;
+            using array_type = boost::multi_array<double, 1>;
             array_type::extent_gen extents;
             d_boost_array = new boost::multi_array_ref<double, 1>(d_array, extents[range(ilower, iupper)]);
             d_boost_local_array = new boost::multi_array_ref<double, 1>(d_array, extents[iupper - ilower]);
         }
-        typedef boost::multi_array<double, 2> array_type;
+        using array_type = boost::multi_array<double, 2>;
         array_type::extent_gen extents;
         d_boost_vec_array =
             new boost::multi_array_ref<double, 2>(d_array, extents[range(ilower / d_depth, iupper / d_depth)][d_depth]);

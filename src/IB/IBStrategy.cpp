@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <ostream>
 #include <string>
@@ -90,18 +89,6 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-
-IBStrategy::IBStrategy() : d_ib_solver(NULL), d_use_fixed_coupling_ops(false)
-{
-    // intentionally blank
-    return;
-} // IBStrategy
-
-IBStrategy::~IBStrategy()
-{
-    // intentionally blank
-    return;
-} // ~IBStrategy
 
 void
 IBStrategy::registerIBHierarchyIntegrator(IBHierarchyIntegrator* ib_solver)
@@ -245,16 +232,17 @@ IBStrategy::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > /*hierarchy*
 void
 IBStrategy::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > /*load_balancer*/, int /*workload_data_idx*/)
 {
+    IBAMR_DEPRECATED_MEMBER_FUNCTION1("IBStrategy", "registerLoadBalancer");
     // intentionally blank
     return;
 } // registerLoadBalancer
 
 void
-IBStrategy::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
+IBStrategy::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, const int /*workload_data_idx*/)
 {
     // intentionally blank
     return;
-} // updateWorkloadEstimates
+} // addWorkloadEstimate
 
 void IBStrategy::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                          Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)

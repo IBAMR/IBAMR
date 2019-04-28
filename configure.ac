@@ -11,6 +11,13 @@ AM_INIT_AUTOMAKE([1.12 -Wall -Werror dist-bzip2 foreign -Wno-extra-portability s
 AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])
 AC_LANG(C++)
+dnl libMesh will automatically detect and use C++14 features if they are
+dnl available by default (e.g., with GCC 6.0 and newer). Ensure that we have the
+dnl same version flag by using exactly the same macro setup as libMesh:
+dnl
+dnl (this variable is set up by libMesh)
+enablecxx11=yes
+AX_CXX_COMPILE_STDCXX_11([],[mandatory])
 
 ###########################################################################
 # Checks for programs.
@@ -50,6 +57,36 @@ CHECK_BUILTIN_EXPECT
 CHECK_BUILTIN_PREFETCH
 
 ###########################################################################
+# Version information (requires sed).
+###########################################################################
+dnl Since this is an M4 script we must use the quadrigraphs @<:@ and @:>@ for
+dnl brackets, i.e., for [ and ]
+ibamr_version_major=$($SED "s/^\(@<:@0-9@:>@\+\)\..*/\1/" "$srcdir/VERSION")
+ibamr_version_minor=$($SED "s/^@<:@^.@:>@\+\.\(@<:@0-9@:>@\+\)\.@<:@0-9@:>@\+.*/\1/" "$srcdir/VERSION")
+ibamr_version_subminor=$($SED "s/^@<:@^.@:>@\+\.@<:@^.@:>@\+\.\(@<:@0-9@:>@\+\).*/\1/" "$srcdir/VERSION")
+AC_DEFINE_UNQUOTED(VERSION_MAJOR, $ibamr_version_major, [Major version of IBAMR.])
+AC_DEFINE_UNQUOTED(VERSION_MINOR, $ibamr_version_minor, [Minor version of IBAMR.])
+AC_DEFINE_UNQUOTED(VERSION_SUBMINOR, $ibamr_version_subminor, [Subminor version of IBAMR.])
+
+dnl We have to use a funny name for the key to guarantee that it comes after
+dnl IBAMR_VERSION_SUBMINOR.
+dnl
+dnl TODO: Our code ignores backslashes when placing ifdef/endif guards around
+dnl individual macros: i.e., autoheader writes
+dnl     #define IBAMR_VERSION_GTE(...) ... \
+dnl     #endif
+dnl     ..... \
+dnl     .....
+dnl
+dnl which doesn't make any sense. Get around this by just putting everything on
+dnl one line. It is probably possible to fix this by editing
+dnl m4/ax_prefix_config_h.m4, circa line 173.
+AH_VERBATIM(VERSION_T_CHECK, [/* Version check macro. */
+#define VERSION_GTE(major, minor, subminor) ((IBAMR_VERSION_MAJOR*10000 + IBAMR_VERSION_MINOR*100 + IBAMR_VERSION_SUBMINOR) >= (major)*10000 + (minor)*100 + (subminor))])
+
+
+
+###########################################################################
 # Checks for optional and required third-party libraries.
 ###########################################################################
 PACKAGE_INITIALIZE_ENVIRONMENT
@@ -74,6 +111,9 @@ CONFIGURE_GSL
 CONFIGURE_GTEST
 PACKAGE_SETUP_ENVIRONMENT
 LIBS="$LIBS $PACKAGE_CONTRIB_LIBS"
+
+AC_SUBST(MPIEXEC)
+AC_SUBST(NUMDIFF)
 
 ###########################################################################
 # Output files.
@@ -175,12 +215,8 @@ AC_CONFIG_FILES([
   src/utilities/Makefile
   src/tools/Makefile
   tests/Makefile
-  tests/Stokes/Makefile
-  tests/Stokes/test0/Makefile
-  tests/Stokes-IB/Makefile
-  tests/Stokes-IB/test0/Makefile
-  tests/Stokes-IB/test1/Makefile
-  tests/Stokes-IB/test2/Makefile
+  tests/IBFE/Makefile
+  tests/IBTK/Makefile
 ])
 AC_CONFIG_SUBDIRS([ibtk])
 AC_OUTPUT

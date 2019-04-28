@@ -33,6 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
+#include <array>
 #include <map>
 #include <numeric>
 #include <ostream>
@@ -56,7 +57,6 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "boost/array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/PETScMatUtilities.h"
@@ -226,9 +226,9 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        n_local ? &d_nnz[0] : NULL,
+                        n_local ? &d_nnz[0] : nullptr,
                         0,
-                        n_local ? &o_nnz[0] : NULL,
+                        n_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -376,9 +376,9 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        n_local ? &d_nnz[0] : NULL,
+                        n_local ? &d_nnz[0] : nullptr,
                         0,
-                        n_local ? &o_nnz[0] : NULL,
+                        n_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -597,13 +597,13 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        n_local ? &d_nnz[0] : NULL,
+                        n_local ? &d_nnz[0] : nullptr,
                         0,
-                        n_local ? &o_nnz[0] : NULL,
+                        n_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
-    typedef std::map<Index<NDIM>, int, IndexFortranOrder> StencilMapType;
+    using StencilMapType = std::map<Index<NDIM>, int, IndexFortranOrder>;
     static std::vector< StencilMapType > stencil_map_vec;
     static const int stencil_sz = (2 * NDIM + 1) + 4 * (NDIM - 1);
     static const Index<NDIM> ORIGIN(0);
@@ -952,9 +952,9 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        m_local ? &d_nnz[0] : NULL,
+                        m_local ? &d_nnz[0] : nullptr,
                         0,
-                        m_local ? &o_nnz[0] : NULL,
+                        m_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -972,7 +972,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
 
         // Construct the interpolation weights for this IB point.
         std::vector<double> w[NDIM];
-        for (int d = 0; d < NDIM; ++d) w[d].resize(interp_stencil);
+        for (auto& vec : w) vec.resize(interp_stencil);
         int stencil_box_nvals = 1;
         for (unsigned int d = 0; d < NDIM; ++d) stencil_box_nvals *= interp_stencil;
         std::vector<double> stencil_box_vals(stencil_box_nvals);
@@ -1148,7 +1148,7 @@ PETScMatUtilities::constructRestrictionScalingOp(Mat& P, Vec& L)
         ierr = VecDestroy(&L);
         IBTK_CHKERRQ(ierr);
     }
-    ierr = MatCreateVecs(P, &L, NULL);
+    ierr = MatCreateVecs(P, &L, nullptr);
     IBTK_CHKERRQ(ierr);
     PetscInt ilower, iupper, num_elems;
     ierr = VecGetOwnershipRange(L, &ilower, &iupper);
@@ -1186,15 +1186,15 @@ PETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<IS>& is_overlap,
                                                     Pointer<CoarseFineBoundary<NDIM> > cf_boundary)
 {
     int ierr;
-    for (unsigned int k = 0; k < is_overlap.size(); ++k)
+    for (auto& is : is_overlap)
     {
-        ierr = ISDestroy(&is_overlap[k]);
+        ierr = ISDestroy(&is);
         IBTK_CHKERRQ(ierr);
     }
     is_overlap.clear();
-    for (unsigned int k = 0; k < is_nonoverlap.size(); ++k)
+    for (auto& is : is_nonoverlap)
     {
-        ierr = ISDestroy(&is_nonoverlap[k]);
+        ierr = ISDestroy(&is);
         IBTK_CHKERRQ(ierr);
     }
     is_nonoverlap.clear();
@@ -1337,9 +1337,9 @@ PETScMatUtilities::constructConservativeProlongationOp_cell(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        m_local ? &d_nnz[0] : NULL,
+                        m_local ? &d_nnz[0] : nullptr,
                         0,
-                        m_local ? &o_nnz[0] : NULL,
+                        m_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -1414,7 +1414,7 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
     }
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = coarse_patch_level->getGridGeometry();
     IntVector<NDIM> coarse_periodic_shift = grid_geom->getPeriodicShift(coarse_patch_level->getRatio());
-    boost::array<Index<NDIM>, NDIM> coarse_num_cells;
+    std::array<Index<NDIM>, NDIM> coarse_num_cells;
     for (unsigned d = 0; d < NDIM; ++d)
     {
         Index<NDIM> offset = 1;
@@ -1560,9 +1560,9 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        m_local ? &d_nnz[0] : NULL,
+                        m_local ? &d_nnz[0] : nullptr,
                         0,
-                        m_local ? &o_nnz[0] : NULL,
+                        m_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -1697,7 +1697,7 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
     }
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = coarse_patch_level->getGridGeometry();
     IntVector<NDIM> coarse_periodic_shift = grid_geom->getPeriodicShift(coarse_patch_level->getRatio());
-    boost::array<Index<NDIM>, NDIM> coarse_num_cells;
+    std::array<Index<NDIM>, NDIM> coarse_num_cells;
     for (unsigned d = 0; d < NDIM; ++d)
     {
         Index<NDIM> offset = 1;
@@ -1933,9 +1933,9 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        m_local ? &d_nnz[0] : NULL,
+                        m_local ? &d_nnz[0] : nullptr,
                         0,
-                        m_local ? &o_nnz[0] : NULL,
+                        m_local ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 

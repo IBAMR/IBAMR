@@ -159,7 +159,7 @@ evaluate_polynomial_basis_fcns(Eigen::VectorXd& P,
 IBFEPatchRecoveryPostProcessor::IBFEPatchRecoveryPostProcessor(MeshBase* mesh, FEDataManager* fe_data_manager)
     : d_mesh(mesh),
       d_fe_data_manager(fe_data_manager),
-      d_periodic_boundaries(NULL),
+      d_periodic_boundaries(nullptr),
       d_interp_order(INVALID_ORDER),
       d_quad_order(INVALID_ORDER)
 {
@@ -218,7 +218,7 @@ IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const
     //
     // Unlike the standard Z-Z patch recovery algorithm, we use "tight" element
     // patches for non-vertex nodes.
-    UniquePtr<PointLocatorBase> point_locator = PointLocatorBase::build(TREE, *d_mesh);
+    std::unique_ptr<PointLocatorBase> point_locator = PointLocatorBase::build(TREE, *d_mesh);
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
@@ -323,7 +323,7 @@ IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const
     d_elem_n_qp.resize(n_elem, 0);
     d_elem_qp_global_offset.resize(n_elem, 0);
     d_elem_qp_local_offset.resize(n_elem, 0);
-    UniquePtr<QBase> qrule;
+    std::unique_ptr<QBase> qrule;
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
@@ -366,7 +366,7 @@ IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const
     const unsigned int num_basis_fcns = num_polynomial_basis_fcns(dim, d_interp_order);
     Eigen::MatrixXd M(num_basis_fcns, num_basis_fcns);
     Eigen::VectorXd P(num_basis_fcns);
-    UniquePtr<FEBase> fe(FEBase::build(dim, FEType(d_interp_order, LAGRANGE)));
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, FEType(d_interp_order, LAGRANGE)));
     const std::vector<libMesh::Point>& q_point = fe->get_xyz();
     qrule = QBase::build(QGAUSS, dim, d_quad_order);
     fe->attach_quadrature_rule(qrule.get());
@@ -414,9 +414,11 @@ IBFEPatchRecoveryPostProcessor::initializeCauchyStressSystem()
     {
         for (unsigned int j = i; j < NDIM; ++j)
         {
-            std::ostringstream os;
-            os << "sigma_" << (i == 0 ? "x" : i == 1 ? "y" : "z") << (j == 0 ? "x" : j == 1 ? "y" : "z");
-            sigma_system->add_variable(os.str(), d_interp_order, LAGRANGE);
+            std::string var_name = "sigma_";
+            var_name += (i == 0 ? 'x') : i == 1 ? 'y' : 'z');
+            var_name += (j == 0 ? 'x') : j == 1 ? 'y' : 'z');
+            
+            sigma_system->add_variable(var_name), d_interp_order, LAGRANGE);
         }
     }
     return sigma_system;
@@ -508,9 +510,9 @@ IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_system)
     const unsigned int dim = d_mesh->mesh_dimension();
     const unsigned int num_basis_fcns = num_polynomial_basis_fcns(dim, d_interp_order);
     Eigen::VectorXd P(num_basis_fcns), a(num_basis_fcns), f(num_basis_fcns);
-    UniquePtr<FEBase> fe(FEBase::build(dim, FEType(d_interp_order, LAGRANGE)));
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, FEType(d_interp_order, LAGRANGE)));
     const std::vector<libMesh::Point>& q_point = fe->get_xyz();
-    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, d_quad_order);
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, d_quad_order);
     fe->attach_quadrature_rule(qrule.get());
     unsigned int k = 0;
     for (std::map<dof_id_type, ElemPatch>::const_iterator it = d_local_elem_patches.begin();
@@ -576,9 +578,9 @@ IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
     const unsigned int dim = d_mesh->mesh_dimension();
     const unsigned int num_basis_fcns = num_polynomial_basis_fcns(dim, d_interp_order);
     Eigen::VectorXd P(num_basis_fcns), a(num_basis_fcns), f(num_basis_fcns);
-    UniquePtr<FEBase> fe(FEBase::build(dim, FEType(d_interp_order, LAGRANGE)));
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, FEType(d_interp_order, LAGRANGE)));
     const std::vector<libMesh::Point>& q_point = fe->get_xyz();
-    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, d_quad_order);
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, d_quad_order);
     fe->attach_quadrature_rule(qrule.get());
     unsigned int k = 0;
     for (std::map<dof_id_type, ElemPatch>::const_iterator it = d_local_elem_patches.begin();

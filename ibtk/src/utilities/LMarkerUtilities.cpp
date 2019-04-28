@@ -32,8 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stddef.h>
+#include <cmath>
 #include <algorithm>
 #include <ios>
 #include <iosfwd>
@@ -505,7 +504,7 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<Pat
         coarser_level->allocatePatchData(mark_scratch_idx);
 
         // Coarsen fine data onto coarser level.
-        CoarsenPatchStrategy<NDIM>* mark_coarsen_op = NULL;
+        CoarsenPatchStrategy<NDIM>* mark_coarsen_op = nullptr;
         mark_coarsen_alg->createSchedule(coarser_level, level, mark_coarsen_op)->coarsenData();
 
         // Merge the coarsened fine data with the coarse data.
@@ -570,11 +569,11 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<Pat
     // patch hierarchy.  Otherwise, markers that have left a fine level through
     // the coarse-fine interface would be discarded by this procedure.
     Pointer<RefineAlgorithm<NDIM> > mark_level_fill_alg = new RefineAlgorithm<NDIM>();
-    mark_level_fill_alg->registerRefine(mark_idx, mark_idx, mark_idx, NULL);
+    mark_level_fill_alg->registerRefine(mark_idx, mark_idx, mark_idx, nullptr);
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(coarsest_ln);
     const IntVector<NDIM>& ratio = level->getRatio();
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
-    mark_level_fill_alg->createSchedule(level, NULL)->fillData(0.0);
+    mark_level_fill_alg->createSchedule(level, nullptr)->fillData(0.0);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -698,21 +697,21 @@ LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
         if (old_level && level_number == 0)
         {
             Pointer<RefineAlgorithm<NDIM> > copy_mark_alg = new RefineAlgorithm<NDIM>();
-            copy_mark_alg->registerRefine(mark_idx, mark_idx, mark_idx, NULL);
+            copy_mark_alg->registerRefine(mark_idx, mark_idx, mark_idx, nullptr);
             Pointer<PatchLevel<NDIM> > dst_level = level;
             Pointer<PatchLevel<NDIM> > src_level = old_level;
-            RefinePatchStrategy<NDIM>* refine_mark_op = NULL;
+            RefinePatchStrategy<NDIM>* refine_mark_op = nullptr;
             copy_mark_alg->createSchedule(dst_level, src_level, refine_mark_op)->fillData(0.0);
         }
         else if (level_number > 0)
         {
             Pointer<RefineAlgorithm<NDIM> > refine_mark_alg = new RefineAlgorithm<NDIM>();
             refine_mark_alg->registerRefine(mark_idx, mark_idx, mark_idx, new LMarkerRefine());
-            RefinePatchStrategy<NDIM>* refine_mark_op = NULL;
+            RefinePatchStrategy<NDIM>* refine_mark_op = nullptr;
             for (int ln = 1; ln <= level_number; ++ln)
             {
                 Pointer<PatchLevel<NDIM> > dst_level = hierarchy->getPatchLevel(ln);
-                refine_mark_alg->createSchedule(dst_level, NULL, ln - 1, hierarchy, refine_mark_op)->fillData(0.0);
+                refine_mark_alg->createSchedule(dst_level, nullptr, ln - 1, hierarchy, refine_mark_op)->fillData(0.0);
             }
         }
     }
@@ -870,7 +869,7 @@ LMarkerUtilities::preventMarkerEscape(std::vector<double>& X_mark, Pointer<Carte
 {
     const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
     if (periodic_shift.min() > 0) return;
-    static const double edge_tol = sqrt(std::numeric_limits<double>::epsilon());
+    static const double edge_tol = std::sqrt(std::numeric_limits<double>::epsilon());
     const double* const x_lower = grid_geom->getXLower();
     const double* const x_upper = grid_geom->getXUpper();
     for (unsigned int k = 0; k < X_mark.size() / NDIM; ++k)

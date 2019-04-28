@@ -32,8 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
+#include <array>
+#include <cstring>
 #include <functional>
 #include <map>
 #include <ostream>
@@ -68,7 +69,6 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "boost/array.hpp"
 #include "ibtk/CCPoissonBoxRelaxationFACOperator.h"
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartCellDoubleCubicCoarsen.h"
@@ -130,7 +130,7 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 // interface ghost cells; used only to evaluate composite grid residuals.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
-struct IndexComp : std::binary_function<Index<NDIM>, Index<NDIM>, bool>
+struct IndexComp
 {
     inline bool operator()(const Index<NDIM>& lhs, const Index<NDIM>& rhs) const
     {
@@ -182,30 +182,19 @@ do_local_data_update(SmootherType smoother_type)
 
 CCPoissonBoxRelaxationFACOperator::CCPoissonBoxRelaxationFACOperator(const std::string& object_name,
                                                                      const Pointer<Database> input_db,
-                                                                     const std::string& default_options_prefix)
+                                                                     std::string default_options_prefix)
     : PoissonFACPreconditionerStrategy(
           object_name,
           new CellVariable<NDIM, double>(object_name + "::cell_scratch", DEFAULT_DATA_DEPTH),
           CELLG,
           input_db,
-          default_options_prefix),
-      d_coarse_solver(NULL),
-      d_coarse_solver_db(),
-      d_petsc_options_prefix("cc_poisson_fac_"),
-      d_patch_vec_e(),
-      d_patch_vec_f(),
-      d_patch_mat(),
-      d_patch_ksp(),
-      d_patch_bc_box_overlap(),
-      d_patch_neighbor_overlap()
+          std::move(default_options_prefix))
 {
     // Set some default values.
     d_smoother_type = "PATCH_GAUSS_SEIDEL";
     d_prolongation_method = "LINEAR_REFINE";
     d_restriction_method = "CONSERVATIVE_COARSEN";
     d_coarse_solver_type = CCPoissonSolverManager::HYPRE_LEVEL_SOLVER;
-    d_coarse_solver_rel_residual_tol = 1.0e-5;
-    d_coarse_solver_abs_residual_tol = 1.0e-50;
     d_coarse_solver_max_iterations = 1;
     d_coarse_solver_db = new MemoryDatabase(object_name + "::coarse_solver_db");
     d_coarse_solver_db->putString("solver_type", "PFMG");
@@ -412,12 +401,10 @@ CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& e
             if (update_local_data)
             {
                 const std::map<int, Box<NDIM> > neighbor_overlap = d_patch_neighbor_overlap[level_num][patch_counter];
-                for (std::map<int, Box<NDIM> >::const_iterator cit = neighbor_overlap.begin();
-                     cit != neighbor_overlap.end();
-                     ++cit)
+                for (const auto& pair : neighbor_overlap)
                 {
-                    const int src_patch_num = cit->first;
-                    const Box<NDIM>& overlap = cit->second;
+                    const int src_patch_num = pair.first;
+                    const Box<NDIM>& overlap = pair.second;
                     Pointer<Patch<NDIM> > src_patch = level->getPatch(src_patch_num);
                     Pointer<CellData<NDIM, double> > src_error_data = error.getComponentPatchData(0, *src_patch);
                     error_data->getArrayData().copy(src_error_data->getArrayData(), overlap, IntVector<NDIM>(0));
@@ -481,7 +468,7 @@ CCPoissonBoxRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, dou
         d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
         d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
         d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
-        LinearSolver* p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
+        auto p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
         if (p_coarse_solver) p_coarse_solver->setInitialGuessNonzero(true);
         d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln),
                                      *getLevelSAMRAIVectorReal(residual, d_coarsest_ln));
@@ -515,7 +502,7 @@ CCPoissonBoxRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double
     const Pointer<CellVariable<NDIM, double> > rhs_var = rhs.getComponentVariable(0);
 
     // Fill ghost-cell values.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     Pointer<CellNoCornersFillPattern> fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     InterpolationTransactionComponent transaction_comp(sol_idx,
                                                        DATA_REFINE_TYPE,
@@ -550,13 +537,11 @@ CCPoissonBoxRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double
     // Compute the residual, r = f - A*u.
     if (!d_level_math_ops[finest_level_num])
     {
-        std::ostringstream stream;
-        stream << d_object_name << "::hier_math_ops_" << finest_level_num;
         d_level_math_ops[finest_level_num] =
-            new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
+            new HierarchyMathOps(d_object_name + "::hier_math_ops_" + std::to_string(finest_level_num), d_hierarchy, coarsest_level_num, finest_level_num);
     }
     d_level_math_ops[finest_level_num]->laplace(
-        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_solution_time);
+        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, nullptr, d_solution_time);
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     hier_cc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
 
@@ -635,7 +620,7 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
     }
     else
     {
-        d_op_stencil_fill_pattern = NULL;
+        d_op_stencil_fill_pattern = nullptr;
     }
 
     // Initialize PETSc solver data.
@@ -662,9 +647,9 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
             Vec& e = d_patch_vec_e[ln][patch_counter];
             Vec& f = d_patch_vec_f[ln][patch_counter];
             const int bs = 1;
-            ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, bs, size, NULL, &e);
+            ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, bs, size, nullptr, &e);
             IBTK_CHKERRQ(ierr);
-            ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, bs, size, NULL, &f);
+            ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, bs, size, nullptr, &f);
             IBTK_CHKERRQ(ierr);
             Mat& A = d_patch_mat[ln][patch_counter];
             buildPatchLaplaceOperator(A, d_poisson_spec, patch, d_gcw);
@@ -682,7 +667,7 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
             KSPType ksp_type;
             ierr = KSPGetType(ksp, &ksp_type);
             IBTK_CHKERRQ(ierr);
-            if (!strcmp(ksp_type, KSPPREONLY))
+            if (!std::strcmp(ksp_type, KSPPREONLY))
             {
                 ierr = KSPSetInitialGuessNonzero(ksp, PETSC_TRUE);
                 IBTK_CHKERRQ(ierr);
@@ -748,30 +733,26 @@ CCPoissonBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(const int 
     int ierr;
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
-        for (std::vector<Vec>::iterator it = d_patch_vec_e[ln].begin(); it != d_patch_vec_e[ln].end(); ++it)
+        for (auto& e : d_patch_vec_e[ln])
         {
-            Vec& e = *it;
             ierr = VecDestroy(&e);
             IBTK_CHKERRQ(ierr);
         }
         d_patch_vec_e[ln].clear();
-        for (std::vector<Vec>::iterator it = d_patch_vec_f[ln].begin(); it != d_patch_vec_f[ln].end(); ++it)
+        for (auto& f : d_patch_vec_f[ln])
         {
-            Vec& f = *it;
             ierr = VecDestroy(&f);
             IBTK_CHKERRQ(ierr);
         }
         d_patch_vec_f[ln].clear();
-        for (std::vector<Mat>::iterator it = d_patch_mat[ln].begin(); it != d_patch_mat[ln].end(); ++it)
+        for (auto& A : d_patch_mat[ln])
         {
-            Mat& A = *it;
             ierr = MatDestroy(&A);
             IBTK_CHKERRQ(ierr);
         }
         d_patch_mat[ln].clear();
-        for (std::vector<KSP>::iterator it = d_patch_ksp[ln].begin(); it != d_patch_ksp[ln].end(); ++it)
+        for (auto& ksp : d_patch_ksp[ln])
         {
-            KSP& ksp = *it;
             ierr = KSPDestroy(&ksp);
             IBTK_CHKERRQ(ierr);
         }
@@ -897,7 +878,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
             nnz[ghost_box.offset(b())] = 1;
         }
     }
-    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, 0, size ? &nnz[0] : NULL, &A);
+    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, 0, size ? &nnz[0] : nullptr, &A);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.
@@ -910,7 +891,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
 
     // Setup the finite difference stencil.  The stencil order is chosen to
     // optimize performance when setting the matrix coefficients.
-    boost::array<int, NDIM> num_cells;
+    std::array<int, NDIM> num_cells;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = ghost_box.numberCells(d);
@@ -1025,7 +1006,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
             nnz[ghost_box.offset(b())] = 1;
         }
     }
-    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, 0, size ? &nnz[0] : NULL, &A);
+    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, 0, size ? &nnz[0] : nullptr, &A);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.
@@ -1037,7 +1018,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
 #endif
 
     // Setup the finite difference stencil.
-    boost::array<int, NDIM> num_cells;
+    std::array<int, NDIM> num_cells;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = ghost_box.numberCells(d);

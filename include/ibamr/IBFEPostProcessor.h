@@ -116,7 +116,7 @@ public:
         void* ctx)
     {
         TBOX_ASSERT(ctx);
-        IBFEMethod::PK1StressFcnData* PK1_stress_fcn_data = static_cast<IBFEMethod::PK1StressFcnData*>(ctx);
+        auto PK1_stress_fcn_data = static_cast<IBFEMethod::PK1StressFcnData*>(ctx);
         TBOX_ASSERT(PK1_stress_fcn_data);
         IBTK::TensorMeshFcnPtr PK1_stress_fcn = PK1_stress_fcn_data->fcn;
         void* PK1_stress_fcn_ctx = PK1_stress_fcn_data->ctx;
@@ -189,19 +189,19 @@ public:
         libMesh::VectorValue<double> f0;
         for (unsigned int d = 0; d < NDIM; ++d) f0(d) = (*system_var_data[0])[d];
         const libMesh::VectorValue<double> f = FF * f0;
-        lambda = f.size() / f0.size();
+        lambda = f.norm() / f0.norm();
         return;
     } // material_axis_stretch_fcn
 
     /*!
      * Constructor.
      */
-    IBFEPostProcessor(const std::string& name, IBTK::FEDataManager* fe_data_manager);
+    IBFEPostProcessor(std::string name, IBTK::FEDataManager* fe_data_manager);
 
     /*!
      * Virtual destructor.
      */
-    virtual ~IBFEPostProcessor();
+    virtual ~IBFEPostProcessor() = default;
 
     /*!
      * Register a scalar-valued variable for reconstruction.
@@ -212,7 +212,7 @@ public:
                            libMesh::Order fe_order,
                            IBTK::ScalarMeshFcnPtr fcn,
                            const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                           void* var_fcn_ctx = NULL);
+                           void* var_fcn_ctx = nullptr);
 
     /*!
      * Register a vector-valued variable for reconstruction.
@@ -223,7 +223,7 @@ public:
                            libMesh::Order var_fe_order,
                            IBTK::VectorMeshFcnPtr var_fcn,
                            const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                           void* var_fcn_ctx = NULL,
+                           void* var_fcn_ctx = nullptr,
                            unsigned int var_dim = NDIM);
 
     /*!
@@ -235,7 +235,7 @@ public:
                            libMesh::Order var_fe_order,
                            IBTK::TensorMeshFcnPtr var_fcn,
                            const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                           void* var_fcn_ctx = NULL,
+                           void* var_fcn_ctx = nullptr,
                            unsigned int var_dim = NDIM);
 
     /*!
@@ -295,7 +295,7 @@ protected:
      */
     libMesh::MeshBase* d_mesh;
     IBTK::FEDataManager* d_fe_data_manager;
-    bool d_fe_data_initialized;
+    bool d_fe_data_initialized = false;
 
     /*!
      * Scalar-valued reconstruction data.
@@ -345,7 +345,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBFEPostProcessor();
+    IBFEPostProcessor() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -354,7 +354,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBFEPostProcessor(const IBFEPostProcessor& from);
+    IBFEPostProcessor(const IBFEPostProcessor& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -365,7 +365,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBFEPostProcessor& operator=(const IBFEPostProcessor& that);
+    IBFEPostProcessor& operator=(const IBFEPostProcessor& that) = delete;
 };
 } // namespace IBAMR
 

@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <ostream>
 #include <string>
 
@@ -59,10 +58,9 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PETScPCLSWrapper::PETScPCLSWrapper(const std::string& object_name, const PC& petsc_pc)
-    : d_petsc_pc(petsc_pc), d_x(NULL), d_b(NULL), d_petsc_x(NULL), d_petsc_b(NULL)
+PETScPCLSWrapper::PETScPCLSWrapper(std::string object_name, PC petsc_pc) : d_petsc_pc(std::move(petsc_pc))
 {
-    GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
+    GeneralSolver::init(std::move(object_name), /*homogeneous_bc*/ true);
     return;
 } // PETScPCLSWrapper()
 

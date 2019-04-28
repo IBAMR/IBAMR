@@ -35,11 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <vector>
 
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -123,11 +123,6 @@ public:
                       const std::vector<std::vector<double> >& parameters);
 
     /*!
-     * \brief Destructor.
-     */
-    ~IBSpringForceSpec();
-
-    /*!
      * \return The number of springs attached to the master node.
      */
     unsigned int getNumberOfSprings() const;
@@ -189,18 +184,18 @@ public:
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
      * extract Streamable objects from data streams.
      */
-    int getStreamableClassID() const;
+    int getStreamableClassID() const override;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    size_t getDataStreamSize() const;
+    size_t getDataStreamSize() const override;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    void packStream(SAMRAI::tbox::AbstractStream& stream);
+    void packStream(SAMRAI::tbox::AbstractStream& stream) override;
 
 private:
     /*!
@@ -210,7 +205,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBSpringForceSpec(const IBSpringForceSpec& from);
+    IBSpringForceSpec(const IBSpringForceSpec& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -221,12 +216,12 @@ private:
      *
      * \return A reference to this object.
      */
-    IBSpringForceSpec& operator=(const IBSpringForceSpec& that);
+    IBSpringForceSpec& operator=(const IBSpringForceSpec& that) = delete;
 
     /*!
      * Data required to define the spring forces.
      */
-    int d_master_idx;
+    int d_master_idx = IBTK::invalid_index;
     std::vector<int> d_slave_idxs, d_force_fcn_idxs;
     std::vector<std::vector<double> > d_parameters;
 
@@ -240,28 +235,28 @@ private:
         /*!
          * \brief Destructor.
          */
-        ~Factory();
+        ~Factory() = default;
 
         /*!
          * \brief Return the unique identifier used to specify the
          * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
          * extract IBSpringForceSpec objects from data streams.
          */
-        int getStreamableClassID() const;
+        int getStreamableClassID() const override;
 
         /*!
          * \brief Set the unique identifier used to specify the
          * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
          * extract IBSpringForceSpec objects from data streams.
          */
-        void setStreamableClassID(int class_id);
+        void setStreamableClassID(int class_id) override;
 
         /*!
          * \brief Build an IBSpringForceSpec object by unpacking data from the
          * data stream.
          */
         SAMRAI::tbox::Pointer<IBTK::Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                                                             const SAMRAI::hier::IntVector<NDIM>& offset);
+                                                             const SAMRAI::hier::IntVector<NDIM>& offset) override;
 
     private:
         /*!
@@ -276,7 +271,7 @@ private:
          *
          * \param from The value to copy to this object.
          */
-        Factory(const Factory& from);
+        Factory(const Factory& from) = delete;
 
         /*!
          * \brief Assignment operator.
@@ -287,11 +282,11 @@ private:
          *
          * \return A reference to this object.
          */
-        Factory& operator=(const Factory& that);
+        Factory& operator=(const Factory& that) = delete;
 
         friend class IBSpringForceSpec;
     };
-    typedef IBSpringForceSpec::Factory IBSpringForceSpecFactory;
+    using IBSpringForceSpecFactory = IBSpringForceSpec::Factory;
 };
 } // namespace IBAMR
 

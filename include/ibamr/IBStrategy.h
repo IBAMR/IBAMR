@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -124,12 +123,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBStrategy();
-
-    /*!
-     * \brief Virtual destructor.
-     */
-    virtual ~IBStrategy();
+    IBStrategy() = default;
 
     /*!
      * Register the IBHierarchyIntegrator object that is using this strategy
@@ -342,17 +336,22 @@ public:
      * strategy object.
      *
      * An empty default implementation is provided.
+     *
+     * @deprecated This method is no longer necessary with the current
+     * workload estimation scheme.
      */
     virtual void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
                                       int workload_data_idx);
 
     /*!
-     * Update work load estimates on each level of the patch hierarchy.
+     * Add the estimated computational work from the current object per cell
+     * into the specified <code>workload_data_idx</code>.
      *
      * An empty default implementation is provided.
      */
-    virtual void updateWorkloadEstimates(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                         int workload_data_idx);
+    virtual void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                     const int workload_data_idx);
+
 
     /*!
      * Begin redistributing Lagrangian data prior to regridding the patch
@@ -386,7 +385,7 @@ public:
                              bool can_be_refined,
                              bool initial_time,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-                             bool allocate_data);
+                             bool allocate_data) override;
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -397,7 +396,7 @@ public:
      */
     void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                      int coarsest_level,
-                                     int finest_level);
+                                     int finest_level) override;
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -412,14 +411,14 @@ public:
                                double error_data_time,
                                int tag_index,
                                bool initial_time,
-                               bool uses_richardson_extrapolation_too);
+                               bool uses_richardson_extrapolation_too) override;
 
     /*!
      * Write out object state to the given database.
      *
      * An empty default implementation is provided.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     /*!
@@ -541,12 +540,12 @@ protected:
     /*!
      * The IBHierarchyIntegrator object that is using this strategy class.
      */
-    IBHierarchyIntegrator* d_ib_solver;
+    IBHierarchyIntegrator* d_ib_solver = nullptr;
 
     /*!
      * Whether to use "fixed" Lagrangian-Eulerian coupling operators.
      */
-    bool d_use_fixed_coupling_ops;
+    bool d_use_fixed_coupling_ops = false;
 
 private:
     /*!
@@ -556,7 +555,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBStrategy(const IBStrategy& from);
+    IBStrategy(const IBStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -567,7 +566,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBStrategy& operator=(const IBStrategy& that);
+    IBStrategy& operator=(const IBStrategy& that) = delete;
 };
 } // namespace IBAMR
 

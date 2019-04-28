@@ -49,18 +49,6 @@
 #include <tbox/Utilities.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
-namespace patch
-{
-template <typename T>
-std::string
-to_string(const T& n)
-{
-    std::ostringstream stm;
-    stm << n;
-    return stm.str();
-}
-}
-
 using namespace SAMRAI::geom;
 using namespace SAMRAI::hier;
 using namespace SAMRAI::pdat;
@@ -124,7 +112,7 @@ HydroForceEval::HydroForceEval(const std::string& object_name,
         Utilities::recursiveMkdir(d_dir_name);
 
         const int nodes = SAMRAI_MPI::getNodes();
-        for (int n = 0; n < nodes; ++n) Utilities::recursiveMkdir(d_dir_name + "/node" + patch::to_string(n));
+        for (int n = 0; n < nodes; ++n) Utilities::recursiveMkdir(d_dir_name + "/node" + std::to_string(n));
     }
 
     if (!SAMRAI_MPI::getRank())
@@ -132,12 +120,10 @@ HydroForceEval::HydroForceEval(const std::string& object_name,
         d_force_stream.resize(d_num_structs);
         for (int struct_no = 0; struct_no < d_num_structs; ++struct_no)
         {
-            std::ostringstream force_stream;
-            force_stream << d_dir_name + '/' + d_struct_names[struct_no] + "_HF.txt";
             if (from_restart)
-                d_force_stream[struct_no] = new std::ofstream(force_stream.str().c_str(), std::fstream::app);
+                d_force_stream[struct_no] = new std::ofstream(d_dir_name + '/' + d_struct_names[struct_no] + "_HF.txt", std::fstream::app);
             else
-                d_force_stream[struct_no] = new std::ofstream(force_stream.str().c_str(), std::fstream::out);
+                d_force_stream[struct_no] = new std::ofstream(d_dir_name + '/' + d_struct_names[struct_no] + "_HF.txt", std::fstream::out);
         }
     }
 
@@ -703,8 +689,8 @@ HydroForceEval::printData(const std::vector<std::set<Elem, elem_cmp> > elem_set,
     for (int struct_no = 0; struct_no < d_num_structs; ++struct_no)
     {
         if (!elem_set[struct_no].size()) continue;
-        hf_stream.open((d_dir_name + "/node" + patch::to_string(rank) + "/" + d_struct_names[struct_no] + "_" +
-                        patch::to_string(iteration_num))
+        hf_stream.open((d_dir_name + "/node" + std::to_string(rank) + "/" + d_struct_names[struct_no] + "_" +
+                        std::to_string(iteration_num))
                            .c_str(),
                        std::fstream::out);
         hf_stream << time << '\n';

@@ -68,12 +68,12 @@ public:
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual ~NewtonKrylovSolver();
+    virtual ~NewtonKrylovSolver() = default;
 
     /*!
      * \brief Set the HierarchyMathOps object used by the solver.
      */
-    void setHierarchyMathOps(SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
+    void setHierarchyMathOps(SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops) override;
 
     /*!
      * \name General-purpose solver functionality.
@@ -83,17 +83,17 @@ public:
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
      */
-    void setHomogeneousBc(bool homogeneous_bc);
+    void setHomogeneousBc(bool homogeneous_bc) override;
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
      */
-    void setSolutionTime(double solution_time);
+    void setSolutionTime(double solution_time) override;
 
     /*!
      * \brief Set the current time interval.
      */
-    void setTimeInterval(double current_time, double new_time);
+    void setTimeInterval(double current_time, double new_time) override;
 
     //\}
 
@@ -203,9 +203,9 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b, d_r;
 
     // Solver parameters.
-    int d_max_evaluations;
-    double d_solution_tol;
-    int d_current_linear_iterations;
+    int d_max_evaluations = 10000;
+    double d_solution_tol = 1.0e-8;
+    int d_current_linear_iterations = 0;
 
 private:
     /*!
@@ -215,7 +215,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    NewtonKrylovSolver(const NewtonKrylovSolver& from);
+    NewtonKrylovSolver(const NewtonKrylovSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -226,7 +226,7 @@ private:
      *
      * \return A reference to this object.
      */
-    NewtonKrylovSolver& operator=(const NewtonKrylovSolver& that);
+    NewtonKrylovSolver& operator=(const NewtonKrylovSolver& that) = delete;
 };
 } // namespace IBTK
 

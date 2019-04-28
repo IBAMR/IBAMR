@@ -84,7 +84,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    LSInitStrategy(const std::string& object_name, bool register_for_restart = true);
+    LSInitStrategy(std::string object_name, bool register_for_restart = true);
 
     /*!
      * \brief Virtual destructor.
@@ -99,11 +99,11 @@ public:
     /*!
      * \brief Function specifying distance function near an interface.
      */
-    typedef void (*LocateInterfaceNeighborhoodFcnPtr)(int D_idx,
-                                                      SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                                      double time,
-                                                      bool initial_time,
-                                                      void* ctx);
+    using LocateInterfaceNeighborhoodFcnPtr = void (*)(int D_idx,
+                                                       SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                       double time,
+                                                       bool initial_time,
+                                                       void* ctx);
 
     /*!
      * \brief Register interface neighborhood locating functions.
@@ -129,7 +129,7 @@ public:
      *
      * An empty default implementation is provided.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     // Book-keeping.
@@ -137,14 +137,14 @@ protected:
     bool d_registered_for_restart;
 
     // Level set order.
-    LevelSetOrder d_ls_order;
+    LevelSetOrder d_ls_order = FIRST_ORDER_LS;
 
     // Algorithm parameters.
-    double d_abs_tol;
-    int d_max_its;
-    bool d_enable_logging;
-    bool d_reinitialize_ls;
-    int d_reinit_interval;
+    double d_abs_tol = 1.0e-5;
+    int d_max_its = 100;
+    bool d_enable_logging = false;
+    bool d_reinitialize_ls = false;
+    int d_reinit_interval = 0;
 
     // Boundary condition object for level set.
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_bc_coef;
@@ -161,7 +161,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LSInitStrategy(const LSInitStrategy& from);
+    LSInitStrategy(const LSInitStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -172,7 +172,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LSInitStrategy& operator=(const LSInitStrategy& that);
+    LSInitStrategy& operator=(const LSInitStrategy& that) = delete;
 };
 } // namespace IBAMR
 

@@ -108,18 +108,18 @@ public:
      * unregisters the integrator object with the restart manager when the
      * object is so registered.
      */
-    ~IBImplicitStaggeredHierarchyIntegrator();
+    ~IBImplicitStaggeredHierarchyIntegrator() = default;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
      */
-    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
 
     /*!
      * Synchronously advance each level in the hierarchy over the given time
      * increment.
      */
-    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0);
+    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0) override;
 
     /*!
      * Clean up data following call(s) to integrateHierarchy().
@@ -127,7 +127,7 @@ public:
     void postprocessIntegrateHierarchy(double current_time,
                                        double new_time,
                                        bool skip_synchronize_new_state_data,
-                                       int num_cycles = 1);
+                                       int num_cycles = 1) override;
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -139,18 +139,18 @@ public:
      * to calling initializePatchHierarchy().
      */
     void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Returns the number of cycles to perform for the present time step.
      */
-    int getNumberOfCycles() const;
+    int getNumberOfCycles() const override;
 
 protected:
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     SAMRAI::tbox::Pointer<IBImplicitStrategy> d_ib_implicit_ops;
 
@@ -190,7 +190,7 @@ private:
 
         // \{ Implementation of IBAMR::StaggeredStokesSolver class.
 
-        void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs)
+        void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs) override
         {
             StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
             d_stokes_op->setVelocityPoissonSpecifications(U_problem_coefs);
@@ -199,7 +199,7 @@ private:
         }
 
         void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef)
+                                SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef) override
         {
             StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
             d_stokes_op->setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
@@ -207,7 +207,7 @@ private:
             return;
         }
 
-        void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+        void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override
         {
             StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
             d_stokes_op->setPhysicalBoundaryHelper(bc_helper);
@@ -215,7 +215,7 @@ private:
             return;
         }
 
-        void setComponentsHaveNullspace(const bool has_velocity_nullspace, const bool has_pressure_nullspace)
+        void setComponentsHaveNullspace(const bool has_velocity_nullspace, const bool has_pressure_nullspace) override
         {
             StaggeredStokesSolver::setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
             d_stokes_fac_pc->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
@@ -227,7 +227,7 @@ private:
         // \{ Implementation of IBTK::GeneralSolver class.
 
         bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& /*x*/,
-                         SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& /*b*/)
+                         SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& /*b*/) override
         {
             TBOX_ERROR("StaggeredStokesIBSolver::solveSystem(): unimplemented.\n");
             return false;
@@ -246,9 +246,9 @@ private:
         }
 
     private:
-        IBImplicitStaggeredStokesSolver();
-        IBImplicitStaggeredStokesSolver(const IBImplicitStaggeredStokesSolver& from);
-        IBImplicitStaggeredStokesSolver& operator=(const IBImplicitStaggeredStokesSolver& that);
+        IBImplicitStaggeredStokesSolver() = delete;
+        IBImplicitStaggeredStokesSolver(const IBImplicitStaggeredStokesSolver& from) = delete;
+        IBImplicitStaggeredStokesSolver& operator=(const IBImplicitStaggeredStokesSolver& that) = delete;
 
         // Operators and solvers maintained by this class.
         SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
@@ -262,7 +262,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBImplicitStaggeredHierarchyIntegrator(const IBImplicitStaggeredHierarchyIntegrator& from);
+    IBImplicitStaggeredHierarchyIntegrator(const IBImplicitStaggeredHierarchyIntegrator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -273,7 +273,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBImplicitStaggeredHierarchyIntegrator& operator=(const IBImplicitStaggeredHierarchyIntegrator& that);
+    IBImplicitStaggeredHierarchyIntegrator& operator=(const IBImplicitStaggeredHierarchyIntegrator& that) = delete;
 
     /*!
      * Read object state from the restart file and initialize class data
@@ -368,8 +368,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_p_dof_index_var;
 
     // Solvers and associated vectors.
-    bool d_solve_for_position;
-    std::string d_jac_delta_fcn;
+    bool d_solve_for_position = false;
+    std::string d_jac_delta_fcn = "IB_4";
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
     KSP d_schur_solver;

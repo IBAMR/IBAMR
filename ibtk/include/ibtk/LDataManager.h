@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <map>
 #include <ostream>
 #include <string>
@@ -502,6 +501,10 @@ public:
 
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
+     *
+     * @deprecated This method is deprecated since the current strategy for
+     * handling non-uniform load balancing does not require that this object
+     * store a pointer to the load balancer.
      */
     void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
                               int workload_data_idx);
@@ -578,6 +581,10 @@ public:
 
     /*!
      * \brief Get the patch data descriptor index for the workload cell data.
+     *
+     * @deprecated This method is deprecated since, in future versions of
+     * IBAMR, this value will no longer be stored and will only be available
+     * via the parent hierarchy integrator.
      */
     int getWorkloadPatchDescriptorIndex() const;
 
@@ -802,7 +809,8 @@ public:
      *
      * in which alpha and beta are parameters that each default to the value 1.
      */
-    void updateWorkloadEstimates(int coarsest_ln = -1, int finest_ln = -1);
+    void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                             const int workload_data_idx, const int coarsest_ln = -1, const int finest_ln = -1);
 
     /*!
      * \brief Update the count of nodes per cell.
@@ -846,7 +854,7 @@ public:
                              bool initial_time,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
-                             bool allocate_data = true);
+                             bool allocate_data = true) override;
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
@@ -865,7 +873,7 @@ public:
      */
     void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                      int coarsest_ln,
-                                     int finest_ln);
+                                     int finest_ln) override;
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -890,14 +898,14 @@ public:
                                double error_data_time,
                                int tag_index,
                                bool initial_time,
-                               bool uses_richardson_extrapolation_too);
+                               bool uses_richardson_extrapolation_too) override;
 
     /*!
      * Write out object state to the given database.
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*!
      * Register user defined Lagrangian data to be maintained
@@ -910,11 +918,11 @@ protected:
     /*!
      * \brief Constructor.
      */
-    LDataManager(const std::string& object_name,
-                 const std::string& default_interp_kernel_fcn,
-                 const std::string& default_spread_kernel_fcn,
+    LDataManager(std::string object_name,
+                 std::string default_interp_kernel_fcn,
+                 std::string default_spread_kernel_fcn,
                  bool error_if_points_leave_domain,
-                 const SAMRAI::hier::IntVector<NDIM>& ghost_width,
+                 SAMRAI::hier::IntVector<NDIM> ghost_width,
                  bool register_for_restart = true);
 
     /*!
@@ -938,7 +946,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LDataManager(const LDataManager& from);
+    LDataManager(const LDataManager& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -949,7 +957,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LDataManager& operator=(const LDataManager& that);
+    LDataManager& operator=(const LDataManager& that) = delete;
 
     /*!
      * \brief Common implementation of scatterPETScToLagrangian() and
@@ -1048,7 +1056,7 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     /*
      * We cache a pointer to the visualization data writers to register plot
@@ -1059,6 +1067,8 @@ private:
 
     /*
      * We cache a pointer to the load balancer.
+     *
+     * @deprecated This will be removed in a future release since it is no longer necessary.
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
 
@@ -1074,18 +1084,22 @@ private:
      * LNodeData used to define the data distribution.
      */
     SAMRAI::tbox::Pointer<LNodeSetVariable> d_lag_node_index_var;
-    int d_lag_node_index_current_idx, d_lag_node_index_scratch_idx;
+    int d_lag_node_index_current_idx = IBTK::invalid_index, d_lag_node_index_scratch_idx = IBTK::invalid_index;
     std::vector<SAMRAI::tbox::Pointer<std::vector<LNode> > > d_local_and_ghost_nodes;
 
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
      * cell variable used to determine the workload for nonuniform load
      * balancing.
+     *
+     * @deprecated d_workload_var and d_workload_idx will not be stored in a
+     * future release since the correct workload index will be provided as an
+     * argument to addWorkloadEstimate.
      */
-    double d_beta_work;
+    double d_beta_work = 1.0;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
-    int d_workload_idx;
-    bool d_output_workload;
+    int d_workload_idx = IBTK::invalid_index;
+    bool d_output_workload = false;
 
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
@@ -1093,8 +1107,8 @@ private:
      * for visualization and tagging purposes.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_node_count_var;
-    int d_node_count_idx;
-    bool d_output_node_count;
+    int d_node_count_idx = IBTK::invalid_index;
+    bool d_output_node_count = false;
 
     /*
      * The kernel functions used to mediate Lagrangian-Eulerian interaction.

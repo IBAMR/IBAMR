@@ -50,19 +50,12 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-LSetData<T>::LSetData(const Box<NDIM>& box, const IntVector<NDIM>& ghosts)
-    : IndexData<NDIM, LSet<T>, CellGeometry<NDIM> >(box, ghosts)
+LSetData<T>::LSetData(Box<NDIM> box, IntVector<NDIM> ghosts)
+    : IndexData<NDIM, LSet<T>, CellGeometry<NDIM> >(std::move(box), std::move(ghosts))
 {
     // intentionally blank
     return;
 } // LSetData
-
-template <class T>
-LSetData<T>::~LSetData()
-{
-    // intentionally blank
-    return;
-} // ~LSetData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

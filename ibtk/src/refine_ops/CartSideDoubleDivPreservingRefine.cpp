@@ -121,12 +121,6 @@ CartSideDoubleDivPreservingRefine::CartSideDoubleDivPreservingRefine(const int u
     return;
 } // CartSideDoubleDivPreservingRefine
 
-CartSideDoubleDivPreservingRefine::~CartSideDoubleDivPreservingRefine()
-{
-    // intentionally blank
-    return;
-} // ~CartSideDoubleDivPreservingRefine
-
 void
 CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
                                                                  const double fill_time,

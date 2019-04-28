@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <vector>
 
 #include "IntVector.h"
@@ -74,47 +73,47 @@ public:
     /*!
      * \brief The container class.
      */
-    typedef std::vector<SAMRAI::tbox::Pointer<T> > DataSet;
+    using DataSet = std::vector<SAMRAI::tbox::Pointer<T> >;
 
     /*!
      * \brief The type of object, T, stored in the collection.
      */
-    typedef typename DataSet::value_type value_type;
+    using value_type = typename DataSet::value_type;
 
     /*!
      * \brief Pointer to T.
      */
-    typedef typename DataSet::pointer pointer;
+    using pointer = typename DataSet::pointer;
 
     /*!
      * \brief Reference to T.
      */
-    typedef typename DataSet::reference reference;
+    using reference = typename DataSet::reference;
 
     /*!
      * \brief Const reference to T.
      */
-    typedef typename DataSet::const_reference const_reference;
+    using const_reference = typename DataSet::const_reference;
 
     /*!
      * \brief An unsigned integral type.
      */
-    typedef typename DataSet::size_type size_type;
+    using size_type = typename DataSet::size_type;
 
     /*!
      * \brief A signed integral type.
      */
-    typedef typename DataSet::difference_type difference_type;
+    using difference_type = typename DataSet::difference_type;
 
     /*!
      * \brief Iterator used to iterate through the set.
      */
-    typedef typename DataSet::iterator iterator;
+    using iterator = typename DataSet::iterator;
 
     /*!
      * \brief Const iterator used to iterate through the collection.
      */
-    typedef typename DataSet::const_iterator const_iterator;
+    using const_iterator = typename DataSet::const_iterator;
 
     /*!
      * \brief Default constructor.
@@ -131,7 +130,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~LSet();
+    virtual ~LSet();
 
     /*!
      * \brief Assignment operator.

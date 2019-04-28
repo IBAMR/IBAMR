@@ -82,49 +82,19 @@ static Timer* t_deallocate_solver_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
+CIBSaddlePointSolver::CIBSaddlePointSolver(std::string object_name,
                                            Pointer<Database> input_db,
                                            Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
                                            Pointer<CIBStrategy> cib_strategy,
-                                           const std::string& default_options_prefix,
+                                           std::string default_options_prefix,
                                            MPI_Comm petsc_comm)
-    : d_num_rigid_parts(cib_strategy->getNumberOfRigidStructures())
+    : d_object_name(std::move(object_name)),
+      d_options_prefix(std::move(default_options_prefix)),
+      d_petsc_comm(petsc_comm),
+      d_ins_integrator(navier_stokes_integrator),
+      d_cib_strategy(cib_strategy),
+      d_num_rigid_parts(cib_strategy->getNumberOfRigidStructures())
 {
-    d_object_name = object_name;
-    d_petsc_comm = petsc_comm;
-    d_cib_strategy = cib_strategy;
-    d_ins_integrator = navier_stokes_integrator;
-
-    d_A = NULL;
-    d_LInv = NULL;
-    d_velocity_solver = NULL;
-    d_pressure_solver = NULL;
-
-    d_mob_solver = NULL;
-    d_scale_interp = 1.0;
-    d_scale_spread = 1.0;
-    d_reg_mob_factor = 0.0;
-    d_normalize_spread_force = false;
-    d_normalize_pressure = false;
-    d_normalize_velocity = false;
-    d_current_time = std::numeric_limits<double>::signaling_NaN();
-    d_new_time = std::numeric_limits<double>::signaling_NaN();
-
-    d_petsc_ksp = NULL;
-    d_petsc_mat = NULL;
-    d_ksp_type = KSPGMRES;
-    d_pc_type = "none";
-    d_is_initialized = false;
-    d_reinitializing_solver = false;
-    d_petsc_x = NULL;
-    d_petsc_b = NULL;
-    d_options_prefix = default_options_prefix;
-    d_max_iterations = 10000;
-    d_abs_residual_tol = 1.0e-50;
-    d_rel_residual_tol = 1.0e-5;
-    d_initial_guess_nonzero = true; // Initial guess doesn't have to be zero in the outer solver.
-    d_enable_logging = false;
-
     // Get values from the input database.
     if (input_db) getFromInput(input_db);
 
@@ -152,7 +122,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
     if (LInv_db->keyExists("normalize_velocity")) d_normalize_velocity = LInv_db->getBool("normalize_velocity");
 
     std::string stokes_solver_type = StaggeredStokesSolverManager::PETSC_KRYLOV_SOLVER;
-    Pointer<Database> stokes_solver_db = NULL;
+    Pointer<Database> stokes_solver_db = nullptr;
     if (LInv_db->keyExists("stokes_solver_type"))
     {
         stokes_solver_type = LInv_db->getString("stokes_solver_type");
@@ -165,7 +135,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
     }
 
     std::string stokes_precond_type = StaggeredStokesSolverManager::DEFAULT_BLOCK_PRECONDITIONER;
-    Pointer<Database> stokes_precond_db = NULL;
+    Pointer<Database> stokes_precond_db = nullptr;
     if (LInv_db->keyExists("stokes_precond_type"))
     {
         stokes_precond_type = LInv_db->getString("stokes_precond_type");
@@ -178,7 +148,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
     }
 
     std::string velocity_solver_type = IBTK::SCPoissonSolverManager::PETSC_KRYLOV_SOLVER;
-    Pointer<Database> velocity_solver_db = NULL;
+    Pointer<Database> velocity_solver_db = nullptr;
     if (LInv_db->keyExists("velocity_solver_type"))
     {
         velocity_solver_type = LInv_db->getString("velocity_solver_type");
@@ -193,7 +163,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
     }
 
     std::string velocity_precond_type = IBTK::SCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
-    Pointer<Database> velocity_precond_db = NULL;
+    Pointer<Database> velocity_precond_db = nullptr;
     if (LInv_db->keyExists("velocity_precond_type"))
     {
         velocity_precond_type = LInv_db->getString("velocity_precond_type");
@@ -207,7 +177,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
     }
 
     std::string pressure_solver_type = IBTK::CCPoissonSolverManager::PETSC_KRYLOV_SOLVER;
-    Pointer<Database> pressure_solver_db = NULL;
+    Pointer<Database> pressure_solver_db = nullptr;
     if (LInv_db->keyExists("pressure_solver_type"))
     {
         pressure_solver_type = LInv_db->getString("pressure_solver_type");
@@ -222,7 +192,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
     }
 
     std::string pressure_precond_type = IBTK::CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
-    Pointer<Database> pressure_precond_db = NULL;
+    Pointer<Database> pressure_precond_db = nullptr;
     if (LInv_db->keyExists("pressure_precond_type"))
     {
         pressure_precond_type = LInv_db->getString("pressure_precond_type");
@@ -318,12 +288,12 @@ CIBSaddlePointSolver::~CIBSaddlePointSolver()
     if (d_petsc_mat)
     {
         MatDestroy(&d_petsc_mat);
-        d_petsc_mat = NULL;
+        d_petsc_mat = nullptr;
     }
     if (d_petsc_ksp)
     {
         KSPDestroy(&d_petsc_ksp);
-        d_petsc_ksp = NULL;
+        d_petsc_ksp = nullptr;
     }
     return;
 } // ~CIBSaddlePointSolver
@@ -459,7 +429,7 @@ CIBSaddlePointSolver::solveSystem(Vec x, Vec b)
     if (d_enable_logging) reportKSPConvergedReason(reason, plog);
 
     // Invalidate d_petsc_x Vec.
-    d_petsc_x = NULL;
+    d_petsc_x = nullptr;
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -485,8 +455,8 @@ CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
 
     // Get components of x and b.
     Vec *vx, *vb;
-    VecNestGetSubVecs(x, NULL, &vx);
-    VecNestGetSubVecs(b, NULL, &vb);
+    VecNestGetSubVecs(x, nullptr, &vx);
+    VecNestGetSubVecs(b, nullptr, &vb);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > vx0, vb0;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
@@ -511,8 +481,8 @@ CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
     initializeKSP();
 
     // Setup the interpolation transaction information.
-    d_fill_pattern = NULL;
-    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    d_fill_pattern = nullptr;
+    using InterpolationTransactionComponent = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent component(u_data_idx,
                                                 DATA_REFINE_TYPE,
                                                 USE_CF_INTERPOLATION,
@@ -554,8 +524,8 @@ CIBSaddlePointSolver::deallocateSolverState()
 
     // Delete the solution and RHS vectors.
     VecDestroy(&d_petsc_b);
-    d_petsc_x = NULL;
-    d_petsc_b = NULL;
+    d_petsc_x = nullptr;
+    d_petsc_b = nullptr;
 
     // Destroy the KSP solver.
     destroyKSP();
@@ -621,7 +591,7 @@ CIBSaddlePointSolver::initializeKSP()
     PetscBool initial_guess_nonzero;
     KSPGetInitialGuessNonzero(d_petsc_ksp, &initial_guess_nonzero);
     d_initial_guess_nonzero = (initial_guess_nonzero == PETSC_TRUE);
-    KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
+    KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, nullptr, &d_max_iterations);
 
     return;
 } // initializeKSP
@@ -639,16 +609,16 @@ CIBSaddlePointSolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
     const bool has_velocity_nullspace = d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0);
     const bool has_pressure_nullspace = d_normalize_pressure;
 
-    for (unsigned int k = 0; k < d_nul_vecs.size(); ++k)
+    for (const auto& nul_vec : d_nul_vecs)
     {
-        if (d_nul_vecs[k]) d_nul_vecs[k]->freeVectorComponents();
+        if (nul_vec) nul_vec->freeVectorComponents();
     }
     const int n_nul_vecs = (has_pressure_nullspace ? 1 : 0) + (has_velocity_nullspace ? NDIM : 0);
     d_nul_vecs.resize(n_nul_vecs);
 
-    for (unsigned int k = 0; k < d_U_nul_vecs.size(); ++k)
+    for (const auto& U_nul_vec : d_U_nul_vecs)
     {
-        if (d_U_nul_vecs[k]) d_U_nul_vecs[k]->freeVectorComponents();
+        if (U_nul_vec) U_nul_vec->freeVectorComponents();
     }
     const int n_U_nul_vecs = (has_velocity_nullspace ? NDIM : 0);
     d_U_nul_vecs.resize(n_U_nul_vecs);
@@ -657,14 +627,12 @@ CIBSaddlePointSolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
     {
         for (unsigned int k = 0; k < NDIM; ++k)
         {
-            std::ostringstream stream;
-            stream << k;
-            d_nul_vecs[k] = sol_vec.cloneVector(d_object_name + "::nul_vec_U_" + stream.str());
+            d_nul_vecs[k] = sol_vec.cloneVector(d_object_name + "::nul_vec_U_" + std::to_string(k));
             d_nul_vecs[k]->allocateVectorData(d_current_time);
             d_nul_vecs[k]->setToScalar(0.0);
 
             SAMRAIVectorReal<NDIM, double> svr_u(
-                d_object_name + "::U_nul_vec_U_" + stream.str(), patch_hier, coarsest_ln, finest_ln);
+                d_object_name + "::U_nul_vec_U_" + std::to_string(k), patch_hier, coarsest_ln, finest_ln);
             svr_u.addComponent(sol_vec.getComponentVariable(0),
                                sol_vec.getComponentDescriptorIndex(0),
                                sol_vec.getControlVolumeIndex(0));
@@ -721,14 +689,14 @@ CIBSaddlePointSolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
     x_p_vec.addComponent(x_p_cc_var, x_p_idx, sol_vec.getControlVolumeIndex(1));
     b_p_vec.addComponent(b_p_cc_var, b_p_idx, rhs_vec.getControlVolumeIndex(1));
 
-    IBTK::LinearSolver* p_velocity_solver = dynamic_cast<IBTK::LinearSolver*>(d_velocity_solver.getPointer());
+    auto p_velocity_solver = dynamic_cast<IBTK::LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver)
     {
         p_velocity_solver->setInitialGuessNonzero(false);
         if (has_velocity_nullspace) p_velocity_solver->setNullspace(false, d_U_nul_vecs);
     }
 
-    IBTK::LinearSolver* p_pressure_solver = dynamic_cast<IBTK::LinearSolver*>(d_pressure_solver.getPointer());
+    auto p_pressure_solver = dynamic_cast<IBTK::LinearSolver*>(d_pressure_solver.getPointer());
     if (p_pressure_solver)
     {
         p_pressure_solver->setInitialGuessNonzero(false);
@@ -739,10 +707,10 @@ CIBSaddlePointSolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
     d_pressure_solver->initializeSolverState(x_p_vec, b_p_vec);
 
     // Initialize LInv (Stokes solver for the preconditioner).
-    IBTK::LinearSolver* p_stokes_linear_solver = dynamic_cast<IBTK::LinearSolver*>(d_LInv.getPointer());
+    auto p_stokes_linear_solver = dynamic_cast<IBTK::LinearSolver*>(d_LInv.getPointer());
     if (!p_stokes_linear_solver)
     {
-        IBTK::NewtonKrylovSolver* p_stokes_newton_solver = dynamic_cast<IBTK::NewtonKrylovSolver*>(d_LInv.getPointer());
+        auto p_stokes_newton_solver = dynamic_cast<IBTK::NewtonKrylovSolver*>(d_LInv.getPointer());
         if (p_stokes_newton_solver)
         {
             p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver().getPointer();
@@ -750,12 +718,10 @@ CIBSaddlePointSolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
     }
     if (p_stokes_linear_solver)
     {
-        StaggeredStokesBlockPreconditioner* p_stokes_block_pc =
-            dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_linear_solver);
+        auto p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_linear_solver);
         if (!p_stokes_block_pc)
         {
-            IBTK::KrylovLinearSolver* p_stokes_krylov_solver =
-                dynamic_cast<IBTK::KrylovLinearSolver*>(p_stokes_linear_solver);
+            auto p_stokes_krylov_solver = dynamic_cast<IBTK::KrylovLinearSolver*>(p_stokes_linear_solver);
             if (p_stokes_krylov_solver)
             {
                 p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(
@@ -781,7 +747,7 @@ CIBSaddlePointSolver::destroyKSP()
 {
     int ierr = KSPDestroy(&d_petsc_ksp);
     IBTK_CHKERRQ(ierr);
-    d_petsc_ksp = NULL;
+    d_petsc_ksp = nullptr;
     return;
 } // destroyKSP
 
@@ -864,8 +830,8 @@ CIBSaddlePointSolver::resetKSPOptions()
         KSPMonitorSet(
             d_petsc_ksp,
             reinterpret_cast<PetscErrorCode (*)(KSP, PetscInt, PetscReal, void*)>(CIBSaddlePointSolver::monitorKSP),
-            NULL,
-            NULL);
+            nullptr,
+            nullptr);
     }
     return;
 } // resetKSPOptions
@@ -877,7 +843,7 @@ CIBSaddlePointSolver::resetKSPOperators()
     if (d_petsc_mat)
     {
         MatDestroy(&d_petsc_mat);
-        d_petsc_mat = NULL;
+        d_petsc_mat = nullptr;
     }
     if (!d_petsc_mat)
     {
@@ -906,7 +872,7 @@ CIBSaddlePointSolver::resetKSPPC()
     static const size_t len = 255;
     char pc_type_str[len];
     PetscBool flg;
-    PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+    PetscOptionsGetString(nullptr, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
     std::string pc_type = d_pc_type;
     if (flg)
     {
@@ -946,7 +912,7 @@ CIBSaddlePointSolver::MatVecMult_SaddlePoint(Mat A, Vec x, Vec y)
 {
     void* p_ctx;
     MatShellGetContext(A, &p_ctx);
-    CIBSaddlePointSolver* solver = static_cast<CIBSaddlePointSolver*>(p_ctx);
+    auto solver = static_cast<CIBSaddlePointSolver*>(p_ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
     TBOX_ASSERT(solver->d_A);
@@ -963,7 +929,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     // in which P is the preconditioner.
     void* ctx;
     PCShellGetContext(pc, &ctx);
-    CIBSaddlePointSolver* solver = static_cast<CIBSaddlePointSolver*>(ctx);
+    auto solver = static_cast<CIBSaddlePointSolver*>(ctx);
     Pointer<IBStrategy> ib_method_ops = solver->d_cib_strategy;
 
 #if !defined(NDEBUG)
@@ -980,7 +946,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
 
     int total_comps, free_comps = 0;
     Vec *vx, *vy;
-    VecNestGetSubVecs(x, NULL, &vx);
+    VecNestGetSubVecs(x, nullptr, &vx);
     VecNestGetSubVecs(y, &total_comps, &vy);
     VecGetSize(vx[2], &free_comps);
 
@@ -1010,7 +976,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
 
     // 2a) Fill ghost cells of u
     int u_data_idx = u_p->getComponentDescriptorIndex(0);
-    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
     InterpolationTransactionComponent u_component(u_data_idx,
                                                   DATA_REFINE_TYPE,
@@ -1073,7 +1039,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     // 5) (u,p)   = L^-1(S[lambda]+g, h)
     const int g_data_idx = g_h->getComponentDescriptorIndex(0);
     solver->d_cib_strategy->setConstraintForce(Lambda, half_time, gamma);
-    ib_method_ops->spreadForce(g_data_idx, NULL, std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
+    ib_method_ops->spreadForce(g_data_idx, nullptr, std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
     if (solver->d_normalize_spread_force)
     {
         solver->d_cib_strategy->subtractMeanConstraintForce(Lambda, g_data_idx, gamma);
@@ -1119,7 +1085,7 @@ CIBSaddlePointSolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void* /*mctx*
     char print_normtype[256];
     KSPNormType ksp_normtype;
 
-    KSPBuildResidual(ksp, NULL, NULL, &resid);
+    KSPBuildResidual(ksp, nullptr, nullptr, &resid);
     VecNorm(resid, NORM_2, &truenorm);
     VecDestroy(&resid);
     KSPGetRhs(ksp, &rhs);
@@ -1134,8 +1100,8 @@ CIBSaddlePointSolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void* /*mctx*
     }
 
     std::streamsize old_precision = tbox::plog.precision(16);
-    tbox::plog << std::scientific << it << " SP_KSP " << print_normtype << " resid norm " << (double)rnorm
-               << " true resid norm " << (double)truenorm << " ||r(i)||/||b|| " << (double)(truenorm / bnorm)
+    tbox::plog << std::scientific << it << " SP_KSP " << print_normtype << " resid norm " << rnorm
+               << " true resid norm " << truenorm << " ||r(i)||/||b|| " << truenorm / bnorm
                << std::endl;
     tbox::plog.precision(old_precision);
 

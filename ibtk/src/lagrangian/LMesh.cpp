@@ -32,6 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <utility>
+
 #include "ibtk/LMesh.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
@@ -48,20 +50,14 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LMesh::LMesh(const std::string& object_name,
-             const std::vector<LNode*>& local_nodes,
-             const std::vector<LNode*>& ghost_nodes)
-    : d_object_name(object_name), d_local_nodes(local_nodes), d_ghost_nodes(ghost_nodes)
+LMesh::LMesh(std::string object_name, std::vector<LNode*> local_nodes, std::vector<LNode*> ghost_nodes)
+    : d_object_name(std::move(object_name)),
+      d_local_nodes(std::move(local_nodes)),
+      d_ghost_nodes(std::move(ghost_nodes))
 {
     // intentionally blank
     return;
 } // LMesh
-
-LMesh::~LMesh()
-{
-    // intentionally blank
-    return;
-} // ~LMesh
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

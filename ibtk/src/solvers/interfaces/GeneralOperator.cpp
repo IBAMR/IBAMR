@@ -32,8 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <limits>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -53,16 +51,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-GeneralOperator::GeneralOperator(const std::string& object_name, bool homogeneous_bc)
-    : d_object_name(object_name),
-      d_is_initialized(false),
-      d_homogeneous_bc(homogeneous_bc),
-      d_solution_time(std::numeric_limits<double>::quiet_NaN()),
-      d_current_time(std::numeric_limits<double>::quiet_NaN()),
-      d_new_time(std::numeric_limits<double>::quiet_NaN()),
-      d_hier_math_ops(NULL),
-      d_hier_math_ops_external(false),
-      d_enable_logging(false)
+GeneralOperator::GeneralOperator(std::string object_name, bool homogeneous_bc)
+    : d_object_name(std::move(object_name)), d_homogeneous_bc(homogeneous_bc)
 {
     // intentionally blank
     return;

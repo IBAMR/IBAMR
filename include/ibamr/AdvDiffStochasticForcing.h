@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -45,6 +44,7 @@
 #include "SideVariable.h"
 #include "VariableContext.h"
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_utilities.h"
 #include "muParser.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
@@ -85,7 +85,7 @@ public:
      * \brief This constructor creates Variable and VariableContext objects for
      * storing the stochastic fluxes at the faces of the Cartesian grid.
      */
-    AdvDiffStochasticForcing(const std::string& object_name,
+    AdvDiffStochasticForcing(std::string object_name,
                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > C_var,
                              const AdvDiffSemiImplicitHierarchyIntegrator* adv_diff_solver);
@@ -93,7 +93,7 @@ public:
     /*!
      * \brief Empty destructor.
      */
-    ~AdvDiffStochasticForcing();
+    ~AdvDiffStochasticForcing() = default;
 
     /*!
      * \name Methods to set patch data.
@@ -104,7 +104,7 @@ public:
      * \brief Indicates whether the concrete AdvDiffStochasticForcing object is
      * time-dependent.
      */
-    bool isTimeDependent() const;
+    bool isTimeDependent() const override;
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
@@ -116,7 +116,7 @@ public:
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
-                                 const int finest_ln = -1);
+                                 const int finest_ln = -1) override;
 
     /*!
      * \brief Evaluate the function on the patch interior.
@@ -127,7 +127,7 @@ public:
                         const double data_time,
                         const bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
 
     //\}
 
@@ -143,7 +143,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvDiffStochasticForcing();
+    AdvDiffStochasticForcing() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -152,7 +152,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffStochasticForcing(const AdvDiffStochasticForcing& from);
+    AdvDiffStochasticForcing(const AdvDiffStochasticForcing& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -163,7 +163,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffStochasticForcing& operator=(const AdvDiffStochasticForcing& that);
+    AdvDiffStochasticForcing& operator=(const AdvDiffStochasticForcing& that) = delete;
 
     /*!
      * Pointer to the concentration variable associated with this source term
@@ -185,14 +185,14 @@ private:
     /*!
      * Weighting data.
      */
-    double d_std;
-    int d_num_rand_vals;
+    double d_std = std::numeric_limits<double>::quiet_NaN();
+    int d_num_rand_vals = 0;
     std::vector<SAMRAI::tbox::Array<double> > d_weights;
 
     /*!
      * Boundary condition scalings.
      */
-    double d_dirichlet_bc_scaling, d_neumann_bc_scaling;
+    double d_dirichlet_bc_scaling = std::sqrt(2.0), d_neumann_bc_scaling = 0.0;
 
     /*!
      * VariableContext and Variable objects for storing the components of the
@@ -200,9 +200,10 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_cc_var;
-    int d_C_current_cc_idx, d_C_half_cc_idx, d_C_new_cc_idx;
+    int d_C_current_cc_idx = IBTK::invalid_index, d_C_half_cc_idx = IBTK::invalid_index,
+        d_C_new_cc_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_F_sc_var;
-    int d_F_sc_idx;
+    int d_F_sc_idx = IBTK::invalid_index;
     std::vector<int> d_F_sc_idxs;
 };
 } // namespace IBAMR

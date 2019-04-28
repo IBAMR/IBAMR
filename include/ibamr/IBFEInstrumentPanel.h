@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <fstream>
+#include <memory>
 
 #include "boost/multi_array.hpp"
 #include "ibamr/IBFEMethod.h"
@@ -65,11 +66,6 @@ public:
      * \brief Constructor.
      */
     IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, int part);
-
-    /*!
-     * \brief Destructor.
-     */
-    ~IBFEInstrumentPanel();
 
     /*!
      * \brief Get data from input file.
@@ -102,7 +98,7 @@ public:
      * \return The instrument dump interval
      */
     int getInstrumentDumpInterval() const;
-    
+
     /*!
      * \return The name of the directory for output
      */
@@ -169,7 +165,7 @@ private:
     /*!
      * \brief number of mesh meters.
      */
-    unsigned int d_num_meters;
+    unsigned int d_num_meters = 0;
 
     /*!
      * \brief quadrature order used for the meter meshes.
@@ -201,7 +197,7 @@ private:
     /*!
      * \brief true if meter meshes and other data are built and initialized.
      */
-    bool d_initialized;
+    bool d_initialized = false;
 
     /*!
      * \brief number of nodes in the perimeter of the meter mesh.
@@ -231,14 +227,14 @@ private:
     std::vector<std::vector<libMesh::dof_id_type> > d_node_dof_IDs;
 
     /*!
-     * \brief contains pointers to the equation systems for the meter mesh.
+     * \brief vector of meter meshes.
      */
-    std::vector<libMesh::EquationSystems*> d_meter_systems;
+    std::vector<std::unique_ptr<libMesh::SerialMesh> > d_meter_meshes;
 
     /*!
-     * \brief vector of meter mesh pointers.
+     * \brief Equation systems for the meter meshes.
      */
-    std::vector<libMesh::SerialMesh*> d_meter_meshes;
+    std::vector<std::unique_ptr<libMesh::EquationSystems> > d_meter_systems;
 
     /*!
      * \brief names for each meter mesh.
@@ -263,7 +259,7 @@ private:
     /*!
      * \brief for ordering objects in a multimap.
      */
-    struct IndexFortranOrder : public std::binary_function<SAMRAI::hier::Index<NDIM>, SAMRAI::hier::Index<NDIM>, bool>
+    struct IndexFortranOrder
     {
         inline bool operator()(const SAMRAI::hier::Index<NDIM>& lhs, const SAMRAI::hier::Index<NDIM>& rhs) const
         {
@@ -292,7 +288,7 @@ private:
     /*!
      * \brief a multimap which associates SAMRAI indices with quadrature point structures.
      */
-    typedef std::multimap<SAMRAI::hier::Index<NDIM>, QuadPointStruct, IndexFortranOrder> QuadPointMap;
+    using QuadPointMap = std::multimap<SAMRAI::hier::Index<NDIM>, QuadPointStruct, IndexFortranOrder>;
     std::vector<QuadPointMap> d_quad_point_map;
 };
 } // namespace IBAMR

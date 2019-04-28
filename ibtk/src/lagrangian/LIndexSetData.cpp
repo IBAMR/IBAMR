@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <vector>
 
 #include "Box.h"
@@ -40,7 +41,6 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
-#include "boost/array.hpp"
 #include "ibtk/LIndexSetData.h"
 #include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
@@ -62,31 +62,11 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-LIndexSetData<T>::LIndexSetData(const Box<NDIM>& box, const IntVector<NDIM>& ghosts)
-    : LSetData<T>(box, ghosts),
-      d_lag_indices(),
-      d_interior_lag_indices(),
-      d_ghost_lag_indices(),
-      d_global_petsc_indices(),
-      d_interior_global_petsc_indices(),
-      d_ghost_global_petsc_indices(),
-      d_local_petsc_indices(),
-      d_interior_local_petsc_indices(),
-      d_ghost_local_petsc_indices(),
-      d_periodic_shifts(),
-      d_interior_periodic_shifts(),
-      d_ghost_periodic_shifts()
+LIndexSetData<T>::LIndexSetData(Box<NDIM> box, IntVector<NDIM> ghosts) : LSetData<T>(std::move(box), std::move(ghosts))
 {
     // intentionally blank
     return;
 } // LIndexSetData
-
-template <class T>
-LIndexSetData<T>::~LIndexSetData()
-{
-    // intentionally blank
-    return;
-} // ~LIndexSetData
 
 template <class T>
 void
@@ -111,7 +91,7 @@ LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntVector
 
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    boost::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
+    std::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         patch_touches_lower_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis, 0);
@@ -121,7 +101,7 @@ LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntVector
     for (typename LSetData<T>::SetIterator it(*this); it; it++)
     {
         const CellIndex<NDIM>& i = it.getIndex();
-        boost::array<int, NDIM> offset;
+        std::array<int, NDIM> offset;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             if (patch_touches_lower_periodic_bdry[d] && i(d) < ilower(d))
@@ -140,7 +120,7 @@ LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntVector
         }
         const LSet<T>& idx_set = *it;
         const bool patch_owns_idx_set = patch_box.contains(i);
-        for (typename LSet<T>::const_iterator n = idx_set.begin(); n != idx_set.end(); ++n)
+        for (auto n = idx_set.begin(); n != idx_set.end(); ++n)
         {
             const typename LSet<T>::value_type& idx = *n;
             const int lag_idx = idx->getLagrangianIndex();

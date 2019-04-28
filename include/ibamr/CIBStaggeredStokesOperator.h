@@ -67,7 +67,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    CIBStaggeredStokesOperator(const std::string& object_name,
+    CIBStaggeredStokesOperator(std::string object_name,
                                SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
                                bool homogeneous_bc = true);
 
@@ -81,7 +81,7 @@ public:
      * \brief Compute hierarchy dependent data required for computing y=Ax.
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
     //\}
 
     //\{ // Additional functionality of CIBStaggeredStokesOperator.
@@ -139,8 +139,8 @@ protected:
     SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
 
     // Scaling factors for various operators.
-    double d_scale_interp, d_scale_spread, d_reg_mob_factor;
-    bool d_normalize_spread_force;
+    double d_scale_interp = 1.0, d_scale_spread = 1.0, d_reg_mob_factor = 1.0;
+    bool d_normalize_spread_force = false;
     //////////////////////////////////////////////////////////////////////////////
 
 private:
@@ -151,7 +151,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CIBStaggeredStokesOperator(const CIBStaggeredStokesOperator& from);
+    CIBStaggeredStokesOperator(const CIBStaggeredStokesOperator& from)= delete;
 
     /*!
      * \brief Assignment operator.
@@ -162,7 +162,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CIBStaggeredStokesOperator& operator=(const CIBStaggeredStokesOperator& that);
+    CIBStaggeredStokesOperator& operator=(const CIBStaggeredStokesOperator& that) = delete;
 };
 
 } // namespace IBAMR

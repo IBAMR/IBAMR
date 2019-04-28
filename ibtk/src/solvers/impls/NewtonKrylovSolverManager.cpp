@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <map>
 #include <ostream>
 #include <string>
@@ -58,7 +57,7 @@ const std::string NewtonKrylovSolverManager::UNDEFINED = "UNDEFINED";
 const std::string NewtonKrylovSolverManager::DEFAULT = "DEFAULT";
 const std::string NewtonKrylovSolverManager::PETSC = "PETSC";
 
-NewtonKrylovSolverManager* NewtonKrylovSolverManager::s_solver_manager_instance = NULL;
+NewtonKrylovSolverManager* NewtonKrylovSolverManager::s_solver_manager_instance = nullptr;
 bool NewtonKrylovSolverManager::s_registered_callback = false;
 unsigned char NewtonKrylovSolverManager::s_shutdown_priority = 200;
 
@@ -81,7 +80,7 @@ void
 NewtonKrylovSolverManager::freeManager()
 {
     delete s_solver_manager_instance;
-    s_solver_manager_instance = NULL;
+    s_solver_manager_instance = nullptr;
     return;
 } // freeManager
 
@@ -93,7 +92,7 @@ NewtonKrylovSolverManager::allocateSolver(const std::string& solver_type,
                                           Pointer<Database> solver_input_db,
                                           const std::string& solver_default_options_prefix) const
 {
-    std::map<std::string, SolverMaker>::const_iterator it = d_solver_maker_map.find(solver_type);
+    auto it = d_solver_maker_map.find(solver_type);
     if (it == d_solver_maker_map.end())
     {
         TBOX_ERROR("NewtonKrylovSolverManager::allocateSolver():\n"
@@ -124,12 +123,6 @@ NewtonKrylovSolverManager::NewtonKrylovSolverManager() : d_solver_maker_map()
     registerSolverFactoryFunction(PETSC, PETScNewtonKrylovSolver::allocate_solver);
     return;
 } // NewtonKrylovSolverManager
-
-NewtonKrylovSolverManager::~NewtonKrylovSolverManager()
-{
-    // intentionally blank
-    return;
-} // ~NewtonKrylovSolverManager
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

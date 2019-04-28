@@ -58,19 +58,12 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-LSetVariable<T>::LSetVariable(const std::string& name)
-    : Variable<NDIM>(name, new LSetDataFactory<T>(IntVector<NDIM>(0)))
+LSetVariable<T>::LSetVariable(std::string name)
+    : Variable<NDIM>(std::move(name), new LSetDataFactory<T>(IntVector<NDIM>(0)))
 {
     // intentionally blank
     return;
 } // LSetVariable
-
-template <class T>
-LSetVariable<T>::~LSetVariable()
-{
-    // intentionally blank
-    return;
-} // ~LSetVariable
 
 template <class T>
 bool

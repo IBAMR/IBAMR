@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <array>
 #include <algorithm>
 #include <ostream>
 #include <vector>
@@ -41,7 +41,6 @@
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "boost/array.hpp"
 #include "ibamr/IBKirchhoffRodForceGen.h"
 #include "ibamr/IBRodForceSpec.h"
 #include "ibamr/ibamr_utilities.h"
@@ -78,12 +77,6 @@ static Timer* t_initialize_level_data;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(Pointer<Database> input_db)
-    : d_D_next_mats(),
-      d_X_next_mats(),
-      d_petsc_curr_node_idxs(),
-      d_petsc_next_node_idxs(),
-      d_material_params(),
-      d_is_initialized()
 {
     // Initialize object with data read from the input database.
     getFromInput(input_db);
@@ -99,19 +92,19 @@ IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(Pointer<Database> input_db)
 IBKirchhoffRodForceGen::~IBKirchhoffRodForceGen()
 {
     int ierr;
-    for (std::vector<Mat>::iterator it = d_D_next_mats.begin(); it != d_D_next_mats.end(); ++it)
+    for (auto& D_next_mat : d_D_next_mats)
     {
-        if (*it)
+        if (D_next_mat)
         {
-            ierr = MatDestroy(&*it);
+            ierr = MatDestroy(&D_next_mat);
             IBTK_CHKERRQ(ierr);
         }
     }
-    for (std::vector<Mat>::iterator it = d_X_next_mats.begin(); it != d_X_next_mats.end(); ++it)
+    for (auto& X_next_mat : d_X_next_mats)
     {
-        if (*it)
+        if (X_next_mat)
         {
-            ierr = MatDestroy(&*it);
+            ierr = MatDestroy(&X_next_mat);
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -152,7 +145,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
     Mat& X_next_mat = d_X_next_mats[level_num];
     std::vector<int>& petsc_curr_node_idxs = d_petsc_curr_node_idxs[level_num];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_num];
-    std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params =
+    std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params =
         d_material_params[level_num];
 
     if (D_next_mat)
@@ -175,9 +168,8 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
 
     // Determine the "next" node indices for all rods associated with the
     // present MPI process.
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (const auto& node_idx : local_nodes)
     {
-        const LNode* const node_idx = *cit;
         const IBRodForceSpec* const force_spec = node_idx->getNodeDataItem<IBRodForceSpec>();
         if (force_spec)
         {
@@ -187,7 +179,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
             TBOX_ASSERT(curr_idx == force_spec->getMasterNodeIndex());
 #endif
             const std::vector<int>& next_idxs = force_spec->getNextNodeIndices();
-            const std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& params =
+            const std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& params =
                 force_spec->getMaterialParams();
 #if !defined(NDEBUG)
             TBOX_ASSERT(num_rods == next_idxs.size());
@@ -237,9 +229,9 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
                              PETSC_DETERMINE,
                              PETSC_DETERMINE,
                              0,
-                             local_sz ? &next_d_nz[0] : NULL,
+                             local_sz ? &next_d_nz[0] : nullptr,
                              0,
-                             local_sz ? &next_o_nz[0] : NULL,
+                             local_sz ? &next_o_nz[0] : nullptr,
                              &D_next_mat);
         IBTK_CHKERRQ(ierr);
 
@@ -255,7 +247,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
 
         int i_offset;
 
-        ierr = MatGetOwnershipRange(D_next_mat, &i_offset, NULL);
+        ierr = MatGetOwnershipRange(D_next_mat, &i_offset, nullptr);
         IBTK_CHKERRQ(ierr);
         i_offset /= 3 * 3;
 
@@ -279,9 +271,9 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
                              PETSC_DETERMINE,
                              PETSC_DETERMINE,
                              0,
-                             local_sz ? &next_d_nz[0] : NULL,
+                             local_sz ? &next_d_nz[0] : nullptr,
                              0,
-                             local_sz ? &next_o_nz[0] : NULL,
+                             local_sz ? &next_o_nz[0] : nullptr,
                              &X_next_mat);
         IBTK_CHKERRQ(ierr);
 
@@ -295,7 +287,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
 
         int i_offset;
 
-        ierr = MatGetOwnershipRange(X_next_mat, &i_offset, NULL);
+        ierr = MatGetOwnershipRange(X_next_mat, &i_offset, nullptr);
         IBTK_CHKERRQ(ierr);
         i_offset /= NDIM;
 
@@ -395,7 +387,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(Pointer<LData> F_data,
 
     std::vector<int>& petsc_curr_node_idxs = d_petsc_curr_node_idxs[level_number];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_number];
-    const std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params =
+    const std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params =
         d_material_params[level_number];
 
     const size_t local_sz = petsc_curr_node_idxs.size();
@@ -423,8 +415,8 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(Pointer<LData> F_data,
         Eigen::Map<const Vector3d> X(&X_vals[(petsc_curr_node_idxs[k] - global_offset) * NDIM]);
         Eigen::Map<const Vector3d> X_next(&X_next_vals[k * NDIM]);
 
-        boost::array<Eigen::Map<const Vector3d>*, 3> D = { { &D1, &D2, &D3 } };
-        boost::array<Eigen::Map<const Vector3d>*, 3> D_next = { { &D1_next, &D2_next, &D3_next } };
+        std::array<Eigen::Map<const Vector3d>*, 3> D = { { &D1, &D2, &D3 } };
+        std::array<Eigen::Map<const Vector3d>*, 3> D_next = { { &D1_next, &D2_next, &D3_next } };
         Matrix3d A(Matrix3d::Zero());
         for (int i = 0; i < 3; ++i)
         {
@@ -432,7 +424,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(Pointer<LData> F_data,
         }
         Matrix3d sqrt_A = A.sqrt();
         Vector3d D1_half, D2_half, D3_half;
-        boost::array<Vector3d*, 3> D_half = { { &D1_half, &D2_half, &D3_half } };
+        std::array<Vector3d*, 3> D_half = { { &D1_half, &D2_half, &D3_half } };
         for (int i = 0; i < 3; ++i)
         {
             *D_half[i] = sqrt_A * (*D[i]);

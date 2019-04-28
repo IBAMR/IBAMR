@@ -75,12 +75,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    RobinPhysBdryPatchStrategy();
+    RobinPhysBdryPatchStrategy() = default;
 
     /*!
      * \brief Destructor.
      */
-    ~RobinPhysBdryPatchStrategy();
+    ~RobinPhysBdryPatchStrategy() = default;
 
     /*!
      * \brief Reset the patch data index operated upon by this class.
@@ -155,7 +155,7 @@ public:
     void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
                           const SAMRAI::hier::Patch<NDIM>& coarse,
                           const SAMRAI::hier::Box<NDIM>& fine_box,
-                          const SAMRAI::hier::IntVector<NDIM>& ratio);
+                          const SAMRAI::hier::IntVector<NDIM>& ratio) override;
 
     /*!
      * Function to perform user-defined postprocess data refine operations.
@@ -180,7 +180,7 @@ public:
     void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
                            const SAMRAI::hier::Patch<NDIM>& coarse,
                            const SAMRAI::hier::Box<NDIM>& fine_box,
-                           const SAMRAI::hier::IntVector<NDIM>& ratio);
+                           const SAMRAI::hier::IntVector<NDIM>& ratio) override;
 
     //\}
 
@@ -217,7 +217,7 @@ protected:
      * should be used.
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
-    bool d_homogeneous_bc;
+    bool d_homogeneous_bc = false;
 
 private:
     /*!
@@ -227,7 +227,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    RobinPhysBdryPatchStrategy(const RobinPhysBdryPatchStrategy& from);
+    RobinPhysBdryPatchStrategy(const RobinPhysBdryPatchStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -238,7 +238,7 @@ private:
      *
      * \return A reference to this object.
      */
-    RobinPhysBdryPatchStrategy& operator=(const RobinPhysBdryPatchStrategy& that);
+    RobinPhysBdryPatchStrategy& operator=(const RobinPhysBdryPatchStrategy& that) = delete;
 };
 } // namespace IBTK
 

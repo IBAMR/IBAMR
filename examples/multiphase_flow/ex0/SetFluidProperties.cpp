@@ -130,7 +130,7 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
                 const double* const patch_dx = patch_geom->getDx();
                 double vol_cell = 1.0;
                 for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-                double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / (double)NDIM);
+                double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
                 const Box<NDIM>& patch_box = patch->getBox();
                 const Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_idx);
@@ -197,7 +197,7 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
                 const double* const patch_dx = patch_geom->getDx();
                 double vol_cell = 1.0;
                 for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-                double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / (double)NDIM);
+                double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
                 const Box<NDIM>& patch_box = patch->getBox();
                 const Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_scratch_idx);
@@ -302,7 +302,7 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
             const double* const patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-            double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / (double)NDIM);
+            double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_idx);

@@ -38,9 +38,9 @@
 #include "RobinBcCoefStrategy.h"
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/IBMethod.h"
-#include "ibamr/IBMethod.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
+#include "ibtk/ibtk_utilities.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -59,7 +59,7 @@ public:
     /*!
      * \brief Constructor of the class.
      */
-    CIBMethod(const std::string& object_name,
+    CIBMethod(std::string object_name,
               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
               const int no_structures = 1,
               bool register_for_restart = true);
@@ -72,38 +72,38 @@ public:
     /*!
      * \brief Typedef specifying interface for specifying constrained body velocities.
      */
-    typedef void (*ConstrainedNodalVelocityFcnPtr)(Vec U_k,
-                                                   const IBTK::RigidDOFVector& U,
-                                                   Vec X,
-                                                   const Eigen::Vector3d& X_com,
-                                                   const Eigen::Matrix3d& rotation_mat,
-                                                   double data_time,
-                                                   void* ctx);
+    using ConstrainedNodalVelocityFcnPtr = void (*)(Vec U_k,
+                                                    const IBTK::RigidDOFVector& U,
+                                                    Vec X,
+                                                    const Eigen::Vector3d& X_com,
+                                                    const Eigen::Matrix3d& rotation_mat,
+                                                    double data_time,
+                                                    void* ctx);
 
-    typedef void (*ConstrainedCOMVelocityFcnPtr)(double data_time,
-                                                 Eigen::Vector3d& U_com,
-                                                 Eigen::Vector3d& W_com,
-                                                 void* ctx);
+    using ConstrainedCOMVelocityFcnPtr = void (*)(double data_time,
+                                                  Eigen::Vector3d& U_com,
+                                                  Eigen::Vector3d& W_com,
+                                                  void* ctx);
 
     /*!
      * \brief Typedef specifying interface for specifying net external force
      * and torque on structures.
      */
-    typedef void (*ExternalForceTorqueFcnPtr)(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T, void* ctx);
+    using ExternalForceTorqueFcnPtr = void (*)(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T, void* ctx);
 
     /*!
      * \brief Callbacks before INS is integrated.
      */
-    typedef void (*preprocessSolveFluidEqn_callbackfcn)(const double, const double, const int, void*);
+    using preprocessSolveFluidEqn_callbackfcn = void (*)(const double, const double, const int, void*);
 
     /*!
      * \brief Struct encapsulating constrained velocity functions data.
      */
     struct ConstrainedVelocityFcnsData
     {
-        ConstrainedVelocityFcnsData(ConstrainedNodalVelocityFcnPtr nodalvelfcn = NULL,
-                                    ConstrainedCOMVelocityFcnPtr comvelfcn = NULL,
-                                    void* ctx = NULL)
+        ConstrainedVelocityFcnsData(ConstrainedNodalVelocityFcnPtr nodalvelfcn = nullptr,
+                                    ConstrainedCOMVelocityFcnPtr comvelfcn = nullptr,
+                                    void* ctx = nullptr)
             : nodalvelfcn(nodalvelfcn), comvelfcn(comvelfcn), ctx(ctx)
         {
             // intentionally left blank
@@ -118,7 +118,7 @@ public:
      */
     struct ExternalForceTorqueFcnData
     {
-        ExternalForceTorqueFcnData(ExternalForceTorqueFcnPtr forcetorquefcn = NULL, void* ctx = NULL)
+        ExternalForceTorqueFcnData(ExternalForceTorqueFcnPtr forcetorquefcn = nullptr, void* ctx = nullptr)
             : forcetorquefcn(forcetorquefcn), ctx(ctx)
         {
             // intentionally left blank
@@ -132,7 +132,7 @@ public:
      */
     void registerConstrainedVelocityFunction(ConstrainedNodalVelocityFcnPtr nodalvelfcn,
                                              ConstrainedCOMVelocityFcnPtr comvelfcn,
-                                             void* ctx = NULL,
+                                             void* ctx = nullptr,
                                              unsigned int part = 0);
 
     /*!
@@ -144,7 +144,7 @@ public:
      * \brief Register an external force and torque function.
      */
     void registerExternalForceTorqueFunction(ExternalForceTorqueFcnPtr forcetorquefcn,
-                                             void* ctx = NULL,
+                                             void* ctx = nullptr,
                                              unsigned int part = 0);
     /*!
      * \brief Register an external force and torque function data.
@@ -169,28 +169,28 @@ public:
     /*!
      * \brief Calculate any body forces for INS solver over here.
      */
-    void preprocessSolveFluidEquations(double current_time, double new_time, int cycle_num);
+    void preprocessSolveFluidEquations(double current_time, double new_time, int cycle_num) override;
 
     /*!
      * \brief Register Eulerian variables with the parent IBHierarchyIntegrator.
      */
-    void registerEulerianVariables();
+    void registerEulerianVariables() override;
 
     /*!
      * \brief Register Eulerian refinement or coarsening algorithms with the parent
      * IBHierarchyIntegrator.
      */
-    void registerEulerianCommunicationAlgorithms();
+    void registerEulerianCommunicationAlgorithms() override;
 
     /*!
      * \brief Method to prepare to advance data from current_time to new_time.
      */
-    void preprocessIntegrateData(double current_time, double new_time, int num_cycles);
+    void preprocessIntegrateData(double current_time, double new_time, int num_cycles) override;
 
     /*!
      * \brief Method to clean up data following call(s) to integrateHierarchy().
      */
-    void postprocessIntegrateData(double current_time, double new_time, int num_cycles);
+    void postprocessIntegrateData(double current_time, double new_time, int num_cycles) override;
 
     /*!
      * \brief Initialize data on a new level after it is inserted into an AMR patch
@@ -204,7 +204,7 @@ public:
                              bool can_be_refined,
                              bool initial_time,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-                             bool allocate_data);
+                             bool allocate_data) override;
 
     /*!
      * \brief Initialize Lagrangian data corresponding to the given AMR patch hierarchy
@@ -223,7 +223,7 @@ public:
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
         int integrator_step,
         double init_data_time,
-        bool initial_time);
+        bool initial_time) override;
 
     /*!
     * \brief Interpolate the Eulerian velocity to the curvilinear mesh at the
@@ -233,7 +233,7 @@ public:
         int u_data_idx,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-        double data_time);
+        double data_time) override;
 
     /*!
      * \brief Spread the Lagrangian force to the Cartesian grid at the specified time
@@ -243,31 +243,31 @@ public:
     spreadForce(int f_data_idx,
                 IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
-                double data_time);
+                double data_time) override;
 
     /*!
      * \brief Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
-    void forwardEulerStep(double current_time, double new_time);
+    void forwardEulerStep(double current_time, double new_time) override;
 
     /*!
      * \brief Advance the positions of the Lagrangian structure using the backward Euler
      * method.
      */
-    void backwardEulerStep(double current_time, double new_time);
+    void backwardEulerStep(double current_time, double new_time) override;
 
     /*!
      * \brief Advance the positions of the Lagrangian structure using the (explicit)
      * midpoint rule.
      */
-    void midpointStep(double current_time, double new_time);
+    void midpointStep(double current_time, double new_time) override;
 
     /*!
      * \brief Advance the positions of the Lagrangian structure using the
      * trapezoidal rule.
      */
-    void trapezoidalStep(double current_time, double new_time);
+    void trapezoidalStep(double current_time, double new_time) override;
 
     /*!
      * \brief Register VisIt data writer to output data files that
@@ -278,7 +278,7 @@ public:
     /*!
      * \brief Override the putToDatabase method of the base Serializable class.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     // \{
     // The following are the concrete implementation of CIBStrategy methods:
@@ -289,74 +289,74 @@ public:
      * \brief Set the constraint force in the internal data structures of the
      * class.
      */
-    void setConstraintForce(Vec L, const double data_time, const double scale = 1.0);
+    void setConstraintForce(Vec L, const double data_time, const double scale = 1.0) override;
 
     // \see CIBStrategy::getConstraintForce()
     /*!
      * \brief Get the constraint rigid body force at the specified time within
      * the current time interval.
      */
-    void getConstraintForce(Vec* L, const double data_time);
+    void getConstraintForce(Vec* L, const double data_time) override;
 
     // \see CIBStrategy::getFreeRigidVelocities()
     /*!
      * \brief Get the free rigid velocities (DOFs) at the specified time within
      * the current time interval.
      */
-    virtual void getFreeRigidVelocities(Vec* U, const double data_time);
+    virtual void getFreeRigidVelocities(Vec* U, const double data_time) override;
 
     // \see CIBStrategy::getNetExternalForceTorque()
     /*!
      * \brief Get net external force and torque at the specified time within
      * the current time interval.
      */
-    virtual void getNetExternalForceTorque(Vec* F, const double data_time);
+    virtual void getNetExternalForceTorque(Vec* F, const double data_time) override;
 
     // \see CIBStrategy::subtractMeanConstraintForce()
     /*!
      * \brief Subtract the mean of constraint force from the background Eulerian
      * grid.
      */
-    void subtractMeanConstraintForce(Vec L, int f_data_idx, const double scale = 1.0);
+    void subtractMeanConstraintForce(Vec L, int f_data_idx, const double scale = 1.0) override;
 
     // \see CIBStrategy::setInterpolatedVelocityVector() method
     /*!
      * \brief Prepare the CIBMethod class to get the interpolated fluid
      * velocity.
      */
-    void setInterpolatedVelocityVector(Vec V, const double data_time);
+    void setInterpolatedVelocityVector(Vec V, const double data_time) override;
 
     // \see CIBStrategy::setInterpolatedVelocityVector() method
     /*!
      * \brief Get interpolated velocity from the Eulerian grid.
      */
-    void getInterpolatedVelocity(Vec V, const double data_time, const double scale = 1.0);
+    void getInterpolatedVelocity(Vec V, const double data_time, const double scale = 1.0) override;
 
     // \see CIBStrategy::computeMobilityRegularization method
     /*!
      * \brief Compute regularization vector for the mobility problem.
      *
      */
-    void computeMobilityRegularization(Vec D, Vec L, const double scale = 1.0);
+    void computeMobilityRegularization(Vec D, Vec L, const double scale = 1.0) override;
 
     // \see CIBStrategy::getNumberOfNodes method
     /*!
      * \brief Get number of nodes for a particular structure registered with CIBMethod.
      */
-    unsigned int getNumberOfNodes(const unsigned int part) const;
+    unsigned int getNumberOfNodes(const unsigned int part) const override;
 
     // \see CIBStrategy::setRigidBodyVelocity method
     /*!
      * \brief Set the rigid body velocity at the nodal points
      * contained in the Vec V.
      */
-    void setRigidBodyVelocity(const unsigned int part, const IBTK::RigidDOFVector& U, Vec V);
+    void setRigidBodyVelocity(const unsigned int part, const IBTK::RigidDOFVector& U, Vec V) override;
 
     // \see CIBStrategy::computeNetRigidGeneralizedForce() method.
     /*!
      * \brief Compute total force and torque on the rigid structure(s).
      */
-    void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, IBTK::RigidDOFVector& F);
+    void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, IBTK::RigidDOFVector& F) override;
 
     // \see CIBStrategy::copyVecToArray() method.
     /*!
@@ -366,7 +366,7 @@ public:
                         double* array,
                         const std::vector<unsigned>& struct_ids,
                         const int data_depth,
-                        const int array_rank);
+                        const int array_rank) override;
 
     // \see CIBStrategy::copyVecToArray() method.
     /*!
@@ -376,7 +376,7 @@ public:
                         double* array,
                         const std::vector<unsigned>& struct_ids,
                         const int data_depth,
-                        const int array_rank);
+                        const int array_rank) override;
 
     // \see CIBStrategy::constructMobilityMatrix() method.
     /*!
@@ -394,7 +394,7 @@ public:
                                  double mu,
                                  const std::pair<double, double>& scale,
                                  double f_periodic_corr,
-                                 const int managing_rank);
+                                 const int managing_rank) override;
 
     // \see CIBStrategy::constructGeometricMatrix() method.
     /*!
@@ -405,7 +405,7 @@ public:
                                   Mat& geometric_mat,
                                   const std::vector<unsigned>& prototype_struct_ids,
                                   const bool initial_time,
-                                  const int managing_rank);
+                                  const int managing_rank) override;
 
     //\see CIBStrategy:: rotateArray() method.
     /*!
@@ -416,7 +416,7 @@ public:
                      const std::vector<unsigned>& struct_ids,
                      const bool use_transpose,
                      const int managing_rank,
-                     const int depth);
+                     const int depth) override;
     //\}
 
     /*!
@@ -460,13 +460,13 @@ protected:
     /*!
      * Boolean to flag if time integrator needs regriding
      */
-    bool d_time_integrator_needs_regrid;
+    bool d_time_integrator_needs_regrid = false;
 
     /*!
      * Eulerian variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_eul_lambda_var;
-    int d_eul_lambda_idx;
+    int d_eul_lambda_idx = IBTK::invalid_index;
 
     /*!
      * Vector of Lagrnagian indices of all structures.
@@ -482,18 +482,18 @@ protected:
     /*!
      * Control printing of S[lambda]
      */
-    bool d_output_eul_lambda;
+    bool d_output_eul_lambda = false;
 
     /*!
      *  Input/output.
      */
-    int d_lambda_dump_interval;
+    int d_lambda_dump_interval = 0;
     std::ofstream d_lambda_stream;
     std::vector<std::string> d_reg_filename;
     std::vector<std::string> d_lambda_filename;
 
     // Velocity boundary operator.
-    IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op;
+    IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op = nullptr;
 
     // Fluid density
     double d_rho;
@@ -512,7 +512,7 @@ private:
     /*!
      * \brief Compute center of mass of structures.
      */
-    void computeCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass,
+    void computeCOMOfStructures(IBTK::EigenAlignedVector<Eigen::Vector3d>& center_of_mass,
                                 std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data);
 
     /*!

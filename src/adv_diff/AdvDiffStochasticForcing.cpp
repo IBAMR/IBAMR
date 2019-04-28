@@ -32,11 +32,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stddef.h>
+#include <cmath>
 #include <limits>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "ArrayData.h"
@@ -101,27 +101,11 @@ genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_name,
+AdvDiffStochasticForcing::AdvDiffStochasticForcing(std::string object_name,
                                                    Pointer<Database> input_db,
                                                    Pointer<CellVariable<NDIM, double> > C_var,
                                                    const AdvDiffSemiImplicitHierarchyIntegrator* const adv_diff_solver)
-    : d_object_name(object_name),
-      d_C_var(C_var),
-      d_f_parser(),
-      d_adv_diff_solver(adv_diff_solver),
-      d_std(std::numeric_limits<double>::quiet_NaN()),
-      d_num_rand_vals(0),
-      d_weights(),
-      d_dirichlet_bc_scaling(sqrt(2.0)),
-      d_neumann_bc_scaling(0.0),
-      d_context(NULL),
-      d_C_cc_var(NULL),
-      d_C_current_cc_idx(-1),
-      d_C_half_cc_idx(-1),
-      d_C_new_cc_idx(-1),
-      d_F_sc_var(NULL),
-      d_F_sc_idx(-1),
-      d_F_sc_idxs()
+    : d_object_name(std::move(object_name)), d_C_var(C_var), d_adv_diff_solver(adv_diff_solver)
 {
     std::string f_expression = "1.0";
     if (input_db)
@@ -137,9 +121,7 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_nam
             TBOX_ASSERT(d_weights.back().size() == d_num_rand_vals);
 #endif
             ++k;
-            std::ostringstream stream;
-            stream << "weights_" << k;
-            key_name = stream.str();
+            key_name = "weights_" + std::to_string(k);
         }
         if (input_db->keyExists("dirichlet_bc_scaling"))
             d_dirichlet_bc_scaling = input_db->getDouble("dirichlet_bc_scaling");
@@ -167,12 +149,6 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_nam
         d_F_sc_idxs.push_back(var_db->registerClonedPatchDataIndex(d_F_sc_var, d_F_sc_idx));
     return;
 } // AdvDiffStochasticForcing
-
-AdvDiffStochasticForcing::~AdvDiffStochasticForcing()
-{
-    // intentionally blank
-    return;
-} // ~AdvDiffStochasticForcing
 
 bool
 AdvDiffStochasticForcing::isTimeDependent() const
@@ -223,7 +199,7 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int C_current_idx = var_db->mapVariableAndContextToIndex(d_C_var, d_adv_diff_solver->getCurrentContext());
         const int C_new_idx = var_db->mapVariableAndContextToIndex(d_C_var, d_adv_diff_solver->getNewContext());
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_fill_components(1);
         HierarchyGhostCellInterpolation ghost_fill_op;
         const std::vector<RobinBcCoefStrategy<NDIM>*>& C_bc_coef = d_adv_diff_solver->getPhysicalBcCoefs(d_C_var);
@@ -375,7 +351,7 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         }
 
         // Synchronize side-centered values.
-        typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+        using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
         SynchronizationTransactionComponent synch_component(d_F_sc_idx);
         SideDataSynchronization synch_data_op;
         synch_data_op.initializeOperatorState(synch_component, hierarchy);
@@ -408,7 +384,7 @@ AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
     for (unsigned int d = 0; d < NDIM; ++d) dV *= dx[d];
     const double kappa = d_adv_diff_solver->getDiffusionCoefficient(d_C_var);
     const double dt = d_adv_diff_solver->getCurrentTimeStepSize();
-    const double scale = d_std * sqrt(2.0 * kappa / (dt * dV));
+    const double scale = d_std * std::sqrt(2.0 * kappa / (dt * dV));
     double C;
     d_f_parser.DefineVar("c", &C);
     d_f_parser.DefineVar("C", &C);
@@ -471,7 +447,7 @@ AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
                                              << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, "
                                                 "TRAPEZOIDAL_RULE\n");
                 }
-                f_scale_sc_data(is, d) = sqrt(f) * scale;
+                f_scale_sc_data(is, d) = std::sqrt(f) * scale;
             }
             for (BoxIterator<NDIM> i(patch_box); i; i++)
             {

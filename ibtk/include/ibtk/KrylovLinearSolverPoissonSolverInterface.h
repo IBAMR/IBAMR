@@ -69,18 +69,18 @@ public:
     /*!
      * Default constructor.
      */
-    KrylovLinearSolverPoissonSolverInterface();
+    KrylovLinearSolverPoissonSolverInterface() = default;
 
     /*!
      * Destructor.
      */
-    ~KrylovLinearSolverPoissonSolverInterface();
+    ~KrylovLinearSolverPoissonSolverInterface() = default;
 
     /*!
      * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
      * the coefficients for the scalar-valued or vector-valued Laplace operator.
      */
-    void setPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& poisson_spec);
+    void setPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& poisson_spec) override;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
@@ -92,7 +92,7 @@ public:
      * \param bc_coef  Pointer to an object that can set the Robin boundary condition
      *coefficients
      */
-    void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
+    void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef) override;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -105,7 +105,7 @@ public:
      * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition
      *coefficients
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs) override;
 
 private:
     /*!
@@ -115,7 +115,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovLinearSolverPoissonSolverInterface(const KrylovLinearSolverPoissonSolverInterface& from);
+    KrylovLinearSolverPoissonSolverInterface(const KrylovLinearSolverPoissonSolverInterface& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -126,7 +126,7 @@ private:
      *
      * \return A reference to this object.
      */
-    KrylovLinearSolverPoissonSolverInterface& operator=(const KrylovLinearSolverPoissonSolverInterface& that);
+    KrylovLinearSolverPoissonSolverInterface& operator=(const KrylovLinearSolverPoissonSolverInterface& that) = delete;
 };
 } // namespace IBTK
 

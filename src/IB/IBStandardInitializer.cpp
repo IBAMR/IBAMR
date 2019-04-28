@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <array>
 #include <algorithm>
 #include <cmath>
 #include <ios>
@@ -56,7 +56,6 @@
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "boost/array.hpp"
 #include "boost/math/special_functions/round.hpp"
 #include "boost/multi_array.hpp"
 #include "ibamr/IBAnchorPointSpec.h"
@@ -127,54 +126,11 @@ discard_comments(const std::string& input_string)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Pointer<Database> input_db)
-    : IBRedundantInitializer(object_name, input_db),
-      d_object_name(object_name),
-      d_use_file_batons(true),
-      d_max_levels(-1),
-      d_level_is_initialized(),
-      d_silo_writer(NULL),
-      d_base_filename(),
-      d_length_scale_factor(1.0),
-      d_posn_shift(Vector::Zero()),
-      d_enable_springs(),
-      d_using_uniform_spring_stiffness(),
-      d_uniform_spring_stiffness(),
-      d_using_uniform_spring_rest_length(),
-      d_uniform_spring_rest_length(),
-      d_using_uniform_spring_force_fcn_idx(),
-      d_uniform_spring_force_fcn_idx(),
-      d_enable_xsprings(),
-      d_using_uniform_xspring_stiffness(),
-      d_uniform_xspring_stiffness(),
-      d_using_uniform_xspring_rest_length(),
-      d_uniform_xspring_rest_length(),
-      d_using_uniform_xspring_force_fcn_idx(),
-      d_uniform_xspring_force_fcn_idx(),
-      d_enable_beams(),
-      d_using_uniform_beam_bend_rigidity(),
-      d_uniform_beam_bend_rigidity(),
-      d_using_uniform_beam_curvature(),
-      d_uniform_beam_curvature(),
-      d_enable_rods(),
-      d_using_uniform_rod_properties(),
-      d_uniform_rod_properties(),
-      d_enable_target_points(),
-      d_using_uniform_target_stiffness(),
-      d_uniform_target_stiffness(),
-      d_using_uniform_target_damping(),
-      d_uniform_target_damping(),
-      d_enable_anchor_points(),
-      d_enable_bdry_mass(),
-      d_using_uniform_bdry_mass(),
-      d_uniform_bdry_mass(),
-      d_using_uniform_bdry_mass_stiffness(),
-      d_uniform_bdry_mass_stiffness(),
-      d_enable_instrumentation(),
-      d_enable_sources()
+IBStandardInitializer::IBStandardInitializer(std::string object_name, Pointer<Database> input_db)
+    : IBRedundantInitializer(std::move(object_name), input_db), d_posn_shift(Vector::Zero())
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!d_object_name.empty());
     TBOX_ASSERT(input_db);
 #endif
 
@@ -194,7 +150,6 @@ IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Poi
     // user data.
     RestartManager* restart_manager = RestartManager::getManager();
     const bool is_from_restart = restart_manager->isFromRestart();
-    d_data_processed = false;
     if (is_from_restart)
     {
         d_data_processed = true;
@@ -601,7 +556,7 @@ IBStandardInitializer::readSpringFiles(const std::string& extension, const bool 
                     bool found_connection = false;
                     std::pair<std::multimap<int, Edge>::iterator, std::multimap<int, Edge>::iterator> range =
                         d_spring_edge_map[ln][j].equal_range(e.first);
-                    for (std::multimap<int, Edge>::iterator it = range.first; it != range.second; ++it)
+                    for (auto it = range.first; it != range.second; ++it)
                     {
                         if (it->second == e) found_connection = true;
                     }
@@ -860,7 +815,7 @@ IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool
                     bool found_connection = false;
                     std::pair<std::multimap<int, Edge>::iterator, std::multimap<int, Edge>::iterator> range =
                         d_xspring_edge_map[ln][j].equal_range(e.first);
-                    for (std::multimap<int, Edge>::iterator it = range.first; it != range.second; ++it)
+                    for (auto it = range.first; it != range.second; ++it)
                     {
                         if (it->second == e) found_connection = true;
                     }
@@ -1125,7 +1080,7 @@ IBStandardInitializer::readBeamFiles(const std::string& extension, const bool in
                     bool found_connection = false;
                     std::pair<std::multimap<int, BeamSpec>::iterator, std::multimap<int, BeamSpec>::iterator> range =
                         d_beam_spec_data[ln][j].equal_range(curr_idx);
-                    for (std::multimap<int, BeamSpec>::iterator it = range.first; it != range.second; ++it)
+                    for (auto it = range.first; it != range.second; ++it)
                     {
                         const BeamSpec& spec_data = it->second;
                         if (spec_data.neighbor_idxs == std::make_pair(next_idx, prev_idx)) found_connection = true;
@@ -1237,7 +1192,7 @@ IBStandardInitializer::readRodFiles(const std::string& extension, const bool inp
                 for (int k = 0; k < num_rods; ++k)
                 {
                     int curr_idx = std::numeric_limits<int>::max(), next_idx = std::numeric_limits<int>::max();
-                    boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> properties;
+                    std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> properties;
                     double& ds = properties[0];
                     double& a1 = properties[1];
                     double& a2 = properties[2];
@@ -1498,7 +1453,7 @@ IBStandardInitializer::readRodFiles(const std::string& extension, const bool inp
                     bool found_connection = false;
                     std::pair<std::multimap<int, Edge>::iterator, std::multimap<int, Edge>::iterator> range =
                         d_rod_edge_map[ln][j].equal_range(curr_idx);
-                    for (std::multimap<int, Edge>::iterator it = range.first; it != range.second; ++it)
+                    for (auto it = range.first; it != range.second; ++it)
                     {
                         if (it->second == e) found_connection = true;
                     }
@@ -2153,7 +2108,7 @@ IBStandardInitializer::readDirectorFiles(const std::string& extension)
                                 }
                                 D_norm_squared += d_directors[ln][j][k][3 * n + d] * d_directors[ln][j][k][3 * n + d];
                             }
-                            const double D_norm = sqrt(D_norm_squared);
+                            const double D_norm = std::sqrt(D_norm_squared);
                             if (!MathUtilities<double>::equalEps(D_norm, 1.0))
                             {
                                 TBOX_WARNING(d_object_name << ":\n  Director vector on line " << 3 * k + n + 2
@@ -2413,8 +2368,7 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
 
                 // Ensure that a complete range of instrument indices were found
                 // in the input file.
-                for (std::vector<bool>::iterator meter_it = encountered_instrument_idx.begin();
-                     meter_it != encountered_instrument_idx.end();
+                for (auto meter_it = encountered_instrument_idx.begin(); meter_it != encountered_instrument_idx.end();
                      ++meter_it)
                 {
                     const size_t meter_idx = std::distance(encountered_instrument_idx.begin(), meter_it);
@@ -2429,9 +2383,7 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
                     }
 
                     std::vector<bool>& meter_node_idxs = encountered_node_idx[meter_idx];
-                    for (std::vector<bool>::iterator node_it = meter_node_idxs.begin();
-                         node_it != meter_node_idxs.end();
-                         ++node_it)
+                    for (auto node_it = meter_node_idxs.begin(); node_it != meter_node_idxs.end(); ++node_it)
                     {
                         const size_t node_idx = std::distance(meter_node_idxs.begin(), node_it);
                         if ((*node_it) == false)
@@ -2728,8 +2680,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
         std::vector<std::vector<double> > parameters;
         if (d_enable_springs[level_number][j])
         {
-            for (std::multimap<int, Edge>::const_iterator it =
-                     d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
+            for (auto it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
                  it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx);
                  ++it)
             {
@@ -2757,8 +2708,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             if (!d_enable_xsprings[level_number][j]) continue;
-            for (std::multimap<int, Edge>::const_iterator it =
-                     d_xspring_edge_map[level_number][j].lower_bound(mastr_idx);
+            for (auto it = d_xspring_edge_map[level_number][j].lower_bound(mastr_idx);
                  it != d_xspring_edge_map[level_number][j].upper_bound(mastr_idx);
                  ++it)
             {
@@ -2794,7 +2744,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
         std::vector<std::pair<int, int> > beam_neighbor_idxs;
         std::vector<double> beam_bend_rigidity;
         std::vector<Vector> beam_mesh_dependent_curvature;
-        for (std::multimap<int, BeamSpec>::const_iterator it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx);
+        for (auto it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx);
              it != d_beam_spec_data[level_number][j].upper_bound(mastr_idx);
              ++it)
         {
@@ -2814,8 +2764,8 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
     if (d_enable_rods[level_number][j])
     {
         std::vector<int> rod_next_idxs;
-        std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
-        for (std::multimap<int, Edge>::const_iterator it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
+        std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
+        for (auto it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
              it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx);
              ++it)
         {
@@ -3057,9 +3007,7 @@ IBStandardInitializer::getFromInput(Pointer<Database> db)
 
             for (int s = 0; s < num_strcts_on_ln; ++s)
             {
-                std::ostringstream strct_name_stream;
-                strct_name_stream << "body_" << s << "_ln_" << ln;
-                d_base_filename[ln][s] = strct_name_stream.str();
+                d_base_filename[ln][s] = "body_" + std::to_string(s) + "_ln_" + std::to_string(ln);
             }
         }
     }
@@ -3067,9 +3015,7 @@ IBStandardInitializer::getFromInput(Pointer<Database> db)
     {
         for (int ln = 0; ln < d_max_levels; ++ln)
         {
-            std::ostringstream db_key_name_stream;
-            db_key_name_stream << "base_filenames_" << ln;
-            const std::string db_key_name = db_key_name_stream.str();
+            const std::string db_key_name = "base_filenames_" + std::to_string(ln);
             if (db->keyExists(db_key_name))
             {
                 const int num_files = db->getArraySize(db_key_name);

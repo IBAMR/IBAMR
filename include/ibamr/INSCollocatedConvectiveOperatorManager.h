@@ -104,7 +104,7 @@ public:
     /*!
      * Typedef for functions to construct cell-centered ConvectiveOperators.
      */
-    typedef SAMRAI::tbox::Pointer<ConvectiveOperator> (*OperatorMaker)(
+    using OperatorMaker = SAMRAI::tbox::Pointer<ConvectiveOperator> (*)(
         const std::string& operator_object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         ConvectiveDifferencingType difference_form,
@@ -124,7 +124,7 @@ protected:
     /*!
      * \brief Destructor.
      */
-    ~INSCollocatedConvectiveOperatorManager();
+    ~INSCollocatedConvectiveOperatorManager() = default;
 
 private:
     /*!
@@ -134,7 +134,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSCollocatedConvectiveOperatorManager(const INSCollocatedConvectiveOperatorManager& from);
+    INSCollocatedConvectiveOperatorManager(const INSCollocatedConvectiveOperatorManager& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -145,7 +145,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSCollocatedConvectiveOperatorManager& operator=(const INSCollocatedConvectiveOperatorManager& that);
+    INSCollocatedConvectiveOperatorManager& operator=(const INSCollocatedConvectiveOperatorManager& that) = delete;
 
     /*!
      * Static data members used to control access to and destruction of

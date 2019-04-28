@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -82,12 +81,11 @@ static const int CELLG = 1;
 
 CCPoissonPETScLevelSolver::CCPoissonPETScLevelSolver(const std::string& object_name,
                                                      Pointer<Database> input_db,
-                                                     const std::string& default_options_prefix)
-    : d_context(NULL), d_dof_index_idx(-1), d_dof_index_var(NULL), d_data_synch_sched(NULL), d_ghost_fill_sched(NULL)
+                                                     std::string default_options_prefix)
 {
     // Configure solver.
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
-    PETScLevelSolver::init(input_db, default_options_prefix);
+    PETScLevelSolver::init(input_db, std::move(default_options_prefix));
 
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();

@@ -92,7 +92,7 @@ public:
      * overriding those found in the restart file).
      */
     AdvDiffPredictorCorrectorHyperbolicPatchOps(
-        const std::string& object_name,
+        std::string object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
@@ -102,14 +102,14 @@ public:
      * The destructor for AdvDiffPredictorCorrectorHyperbolicPatchOps unregisters the patch
      * strategy object with the restart manager when so registered.
      */
-    ~AdvDiffPredictorCorrectorHyperbolicPatchOps();
+    ~AdvDiffPredictorCorrectorHyperbolicPatchOps() = default;
 
     /*!
      * Update solution variables by performing a conservative difference using
      * the fluxes calculated in computeFluxesOnPatch().
      */
     void
-    conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time, double dt, bool at_synchronization);
+    conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time, double dt, bool at_synchronization) override;
 
     /*!
      * Compute the values of any time-dependent source terms for use by the
@@ -128,7 +128,7 @@ public:
                                      double dt,
                                      bool first_step,
                                      bool last_step,
-                                     bool regrid_advance);
+                                     bool regrid_advance) override;
 
     /*!
      * Add source terms to the updated solution.
@@ -147,7 +147,7 @@ public:
                                       double dt,
                                       bool first_step,
                                       bool last_step,
-                                      bool regrid_advance);
+                                      bool regrid_advance) override;
 
 private:
     /*!
@@ -155,7 +155,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvDiffPredictorCorrectorHyperbolicPatchOps();
+    AdvDiffPredictorCorrectorHyperbolicPatchOps() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -164,7 +164,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffPredictorCorrectorHyperbolicPatchOps(const AdvDiffPredictorCorrectorHyperbolicPatchOps& from);
+    AdvDiffPredictorCorrectorHyperbolicPatchOps(const AdvDiffPredictorCorrectorHyperbolicPatchOps& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -175,7 +175,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffPredictorCorrectorHyperbolicPatchOps& operator=(const AdvDiffPredictorCorrectorHyperbolicPatchOps& that);
+    AdvDiffPredictorCorrectorHyperbolicPatchOps& operator=(const AdvDiffPredictorCorrectorHyperbolicPatchOps& that) = delete;
 };
 } // namespace IBAMR
 

@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <map>
 #include <ostream>
@@ -68,18 +67,6 @@ namespace IBTK
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-
-StaggeredPhysicalBoundaryHelper::StaggeredPhysicalBoundaryHelper() : d_hierarchy(NULL), d_dirichlet_bdry_locs()
-{
-    // intentionally blank
-    return;
-} // StaggeredPhysicalBoundaryHelper
-
-StaggeredPhysicalBoundaryHelper::~StaggeredPhysicalBoundaryHelper()
-{
-    // intentionally blank
-    return;
-} // ~StaggeredPhysicalBoundaryHelper
 
 void
 StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(const int u_out_data_idx,

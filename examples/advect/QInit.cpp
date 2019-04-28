@@ -37,7 +37,7 @@
 #include <IBAMR_config.h>
 #include <SAMRAI_config.h>
 
-#include "boost/array.hpp"
+#include <array>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
@@ -125,7 +125,7 @@ QInit::setDataOnPatch(const int data_idx,
             const hier::Index<NDIM>& i = ic();
             // NOTE: This assumes the lattice of Gaussians are being advected
             // and diffused in the unit square.
-            boost::array<int, NDIM> offset;
+            std::array<int, NDIM> offset;
             for (offset[0] = -2; offset[0] <= 2; ++(offset[0]))
             {
                 for (offset[1] = -2; offset[1] <= 2; ++(offset[1]))

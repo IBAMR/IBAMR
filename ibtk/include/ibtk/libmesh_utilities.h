@@ -47,6 +47,7 @@
 #include "libmesh/type_tensor.h"
 #include "libmesh/type_vector.h"
 #include "libmesh/vector_value.h"
+#include "ibtk/IBTK_CHKERRQ.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
@@ -62,7 +63,7 @@ struct SystemData
     SystemData(const std::string& system_name = "",
                const std::vector<int>& vars = std::vector<int>(),
                const std::vector<int>& grad_vars = std::vector<int>(),
-               libMesh::NumericVector<double>* const system_vec = NULL)
+               libMesh::NumericVector<double>* const system_vec = nullptr)
         : system_name(system_name), vars(vars), grad_vars(grad_vars), system_vec(system_vec)
     {
     }
@@ -72,80 +73,213 @@ struct SystemData
     libMesh::NumericVector<double>* system_vec;
 };
 
-typedef void (*ScalarMeshFcnPtr)(
-    double& F,
-    const libMesh::TensorValue<double>& FF,
-    const libMesh::Point& x,
-    const libMesh::Point& X,
-    libMesh::Elem* elem,
-    const std::vector<const std::vector<double>*>& system_var_data,
-    const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
-    double data_time,
-    void* ctx);
+using ScalarMeshFcnPtr =
+    void (*)(double& F,
+             const libMesh::TensorValue<double>& FF,
+             const libMesh::Point& x,
+             const libMesh::Point& X,
+             libMesh::Elem* elem,
+             const std::vector<const std::vector<double>*>& system_var_data,
+             const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
+             double data_time,
+             void* ctx);
 
-typedef void (*VectorMeshFcnPtr)(
-    libMesh::VectorValue<double>& F,
-    const libMesh::TensorValue<double>& FF,
-    const libMesh::Point& x,
-    const libMesh::Point& X,
-    libMesh::Elem* elem,
-    const std::vector<const std::vector<double>*>& system_var_data,
-    const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
-    double data_time,
-    void* ctx);
+using VectorMeshFcnPtr =
+    void (*)(libMesh::VectorValue<double>& F,
+             const libMesh::TensorValue<double>& FF,
+             const libMesh::Point& x,
+             const libMesh::Point& X,
+             libMesh::Elem* elem,
+             const std::vector<const std::vector<double>*>& system_var_data,
+             const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
+             double data_time,
+             void* ctx);
 
-typedef void (*TensorMeshFcnPtr)(
-    libMesh::TensorValue<double>& F,
-    const libMesh::TensorValue<double>& FF,
-    const libMesh::Point& x,
-    const libMesh::Point& X,
-    libMesh::Elem* elem,
-    const std::vector<const std::vector<double>*>& system_var_data,
-    const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
-    double data_time,
-    void* ctx);
+using TensorMeshFcnPtr =
+    void (*)(libMesh::TensorValue<double>& F,
+             const libMesh::TensorValue<double>& FF,
+             const libMesh::Point& x,
+             const libMesh::Point& X,
+             libMesh::Elem* elem,
+             const std::vector<const std::vector<double>*>& system_var_data,
+             const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
+             double data_time,
+             void* ctx);
 
-typedef void (*ScalarSurfaceFcnPtr)(
-    double& F,
-    const libMesh::VectorValue<double>& n,
-    const libMesh::VectorValue<double>& N,
-    const libMesh::TensorValue<double>& FF,
-    const libMesh::Point& x,
-    const libMesh::Point& X,
-    libMesh::Elem* elem,
-    unsigned short int side,
-    const std::vector<const std::vector<double>*>& system_var_data,
-    const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
-    double data_time,
-    void* ctx);
+using ScalarSurfaceFcnPtr =
+    void (*)(double& F,
+             const libMesh::VectorValue<double>& n,
+             const libMesh::VectorValue<double>& N,
+             const libMesh::TensorValue<double>& FF,
+             const libMesh::Point& x,
+             const libMesh::Point& X,
+             libMesh::Elem* elem,
+             unsigned short int side,
+             const std::vector<const std::vector<double>*>& system_var_data,
+             const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
+             double data_time,
+             void* ctx);
 
-typedef void (*VectorSurfaceFcnPtr)(
-    libMesh::VectorValue<double>& F,
-    const libMesh::VectorValue<double>& n,
-    const libMesh::VectorValue<double>& N,
-    const libMesh::TensorValue<double>& FF,
-    const libMesh::Point& x,
-    const libMesh::Point& X,
-    libMesh::Elem* elem,
-    unsigned short int side,
-    const std::vector<const std::vector<double>*>& system_var_data,
-    const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
-    double data_time,
-    void* ctx);
+using VectorSurfaceFcnPtr =
+    void (*)(libMesh::VectorValue<double>& F,
+             const libMesh::VectorValue<double>& n,
+             const libMesh::VectorValue<double>& N,
+             const libMesh::TensorValue<double>& FF,
+             const libMesh::Point& x,
+             const libMesh::Point& X,
+             libMesh::Elem* elem,
+             unsigned short int side,
+             const std::vector<const std::vector<double>*>& system_var_data,
+             const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
+             double data_time,
+             void* ctx);
 
-typedef void (*TensorSurfaceFcnPtr)(
-    libMesh::TensorValue<double>& F,
-    const libMesh::VectorValue<double>& n,
-    const libMesh::VectorValue<double>& N,
-    const libMesh::TensorValue<double>& FF,
-    const libMesh::Point& x,
-    const libMesh::Point& X,
-    libMesh::Elem* elem,
-    unsigned short int side,
-    const std::vector<const std::vector<double>*>& system_var_data,
-    const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
-    double data_time,
-    void* ctx);
+using TensorSurfaceFcnPtr =
+    void (*)(libMesh::TensorValue<double>& F,
+             const libMesh::VectorValue<double>& n,
+             const libMesh::VectorValue<double>& N,
+             const libMesh::TensorValue<double>& FF,
+             const libMesh::Point& x,
+             const libMesh::Point& X,
+             libMesh::Elem* elem,
+             unsigned short int side,
+             const std::vector<const std::vector<double>*>& system_var_data,
+             const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
+             double data_time,
+             void* ctx);
+
+inline void
+copy_and_synch(libMesh::NumericVector<double>& v_in,
+               libMesh::NumericVector<double>& v_out,
+               const bool close_v_in = true,
+               const bool close_v_out = true)
+{
+#if defined(NDEBUG)
+    auto v_in_petsc = static_cast<libMesh::PetscVector<double>*>(&v_in);
+    auto v_out_petsc = static_cast<libMesh::PetscVector<double>*>(&v_out);
+#else
+    auto v_in_petsc = dynamic_cast<libMesh::PetscVector<double>*>(&v_in);
+    auto v_out_petsc = dynamic_cast<libMesh::PetscVector<double>*>(&v_out);
+    TBOX_ASSERT(v_in_petsc);
+    TBOX_ASSERT(v_out_petsc);
+#endif
+    if (close_v_in) v_in.close();
+    PetscErrorCode ierr = VecCopy(v_in_petsc->vec(), v_out_petsc->vec());
+    IBTK_CHKERRQ(ierr);
+    if (close_v_out) v_out.close();
+}
+
+inline void
+batch_vec_copy(const std::vector<libMesh::PetscVector<double>*>& x_vecs,
+               const std::vector<libMesh::PetscVector<double>*>& y_vecs)
+{
+#if defined(NDEBUG)
+    TBOX_ASSERT(x_vecs.size() == y_vecs.size());
+#endif
+    for (unsigned int k = 0; k < x_vecs.size(); ++k)
+    {
+        if (!x_vecs[k] || !y_vecs[k]) continue;
+        int ierr = VecCopy(x_vecs[k]->vec(), y_vecs[k]->vec());
+        IBTK_CHKERRQ(ierr);
+    }
+}
+
+inline void
+batch_vec_copy(const std::vector<std::vector<libMesh::PetscVector<double>*> >& x_vecs,
+               const std::vector<std::vector<libMesh::PetscVector<double>*> >& y_vecs)
+{
+#if defined(NDEBUG)
+    TBOX_ASSERT(x_vecs.size() == y_vecs.size());
+#endif
+    for (unsigned int n = 0; n < x_vecs.size(); ++n)
+    {
+        batch_vec_copy(x_vecs[n], y_vecs[n]);
+    }
+}
+
+inline void
+batch_vec_assembly(const std::vector<libMesh::PetscVector<double>*>& vecs)
+{
+    for (const auto& v : vecs)
+    {
+        if (!v) continue;
+        int ierr = VecAssemblyBegin(v->vec());
+        IBTK_CHKERRQ(ierr);
+    }
+    for (const auto& v : vecs)
+    {
+        if (!v) continue;
+        int ierr = VecAssemblyEnd(v->vec());
+        IBTK_CHKERRQ(ierr);
+    }
+}
+
+inline void
+batch_vec_assembly(const std::vector<std::vector<libMesh::PetscVector<double>*> >& vecs)
+{
+    for (unsigned int n = 0; n < vecs.size(); ++n)
+    {
+        for (const auto& v : vecs[n])
+        {
+            if (!v) continue;
+            int ierr = VecAssemblyBegin(v->vec());
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+    for (unsigned int n = 0; n < vecs.size(); ++n)
+    {
+        for (const auto& v : vecs[n])
+        {
+            if (!v) continue;
+            int ierr = VecAssemblyEnd(v->vec());
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+}
+
+inline void
+batch_vec_ghost_update(const std::vector<libMesh::PetscVector<double>*>& vecs,
+                       const InsertMode insert_mode,
+                       const ScatterMode scatter_mode)
+{
+    for (const auto& v : vecs)
+    {
+        if (!v) continue;
+        int ierr = VecGhostUpdateBegin(v->vec(), insert_mode, scatter_mode);
+        IBTK_CHKERRQ(ierr);
+    }
+    for (const auto& v : vecs)
+    {
+        if (!v) continue;
+        int ierr = VecGhostUpdateEnd(v->vec(), insert_mode, scatter_mode);
+        IBTK_CHKERRQ(ierr);
+    }
+}
+
+inline void
+batch_vec_ghost_update(const std::vector<std::vector<libMesh::PetscVector<double>*> >& vecs,
+                       const InsertMode insert_mode,
+                       const ScatterMode scatter_mode)
+{
+    for (unsigned int n = 0; n < vecs.size(); ++n)
+    {
+        for (const auto& v : vecs[n])
+        {
+            if (!v) continue;
+            int ierr = VecGhostUpdateBegin(v->vec(), insert_mode, scatter_mode);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+    for (unsigned int n = 0; n < vecs.size(); ++n)
+    {
+        for (const auto& v : vecs[n])
+        {
+            if (!v) continue;
+            int ierr = VecGhostUpdateEnd(v->vec(), insert_mode, scatter_mode);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+}
 
 template <class MultiArray, class Array>
 inline void
@@ -198,14 +332,9 @@ get_values_for_interpolation(MultiArray& U_node,
                              const std::vector<unsigned int>& dof_indices)
 {
     libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
-    Vec U_global_vec = U_petsc_vec->vec();
-    Vec U_local_vec;
-    VecGhostGetLocalForm(U_global_vec, &U_local_vec);
-    double* U_local_soln;
-    VecGetArray(U_local_vec, &U_local_soln);
+    const double* const U_local_soln = U_petsc_vec->get_array_read();
     get_values_for_interpolation(U_node, *U_petsc_vec, U_local_soln, dof_indices);
-    VecRestoreArray(U_local_vec, &U_local_soln);
-    VecGhostRestoreLocalForm(U_global_vec, &U_local_vec);
+    U_petsc_vec->restore_array();
     return;
 } // get_values_for_interpolation
 
@@ -216,14 +345,9 @@ get_values_for_interpolation(MultiArray& U_node,
                              const std::vector<std::vector<unsigned int> >& dof_indices)
 {
     libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
-    Vec U_global_vec = U_petsc_vec->vec();
-    Vec U_local_vec;
-    VecGhostGetLocalForm(U_global_vec, &U_local_vec);
-    double* U_local_soln;
-    VecGetArray(U_local_vec, &U_local_soln);
+    const double* const U_local_soln = U_petsc_vec->get_array_read();
     get_values_for_interpolation(U_node, *U_petsc_vec, U_local_soln, dof_indices);
-    VecRestoreArray(U_local_vec, &U_local_soln);
-    VecGhostRestoreLocalForm(U_global_vec, &U_local_vec);
+    U_petsc_vec->restore_array();
     return;
 } // get_values_for_interpolation
 
@@ -511,8 +635,8 @@ intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals
         //
         //    a = 0.5*(-p0+p1)
         //    b = 0.5*(p0+p1) - r
-        const libMesh::Point& p0 = *elem->get_node(0);
-        const libMesh::Point& p1 = *elem->get_node(1);
+        const libMesh::Point& p0 = *elem->node_ptr(0);
+        const libMesh::Point& p1 = *elem->node_ptr(1);
         double a, b;
         if (q(0) != 0.0)
         {
@@ -564,9 +688,9 @@ intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals
         //    a = (0.5*p0+0.5*p1-p2)
         //    b = 0.5*(p1-p0)
         //    c = p2-r
-        const libMesh::Point& p0 = *elem->get_node(0);
-        const libMesh::Point& p1 = *elem->get_node(1);
-        const libMesh::Point& p2 = *elem->get_node(2);
+        const libMesh::Point& p0 = *elem->node_ptr(0);
+        const libMesh::Point& p1 = *elem->node_ptr(1);
+        const libMesh::Point& p2 = *elem->node_ptr(2);
         double a, b, c;
         if (q(0) != 0.0)
         {
@@ -584,7 +708,7 @@ intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals
         std::vector<double> u_vals;
         if (disc > 0.0)
         {
-            const double q = -0.5 * (b + (b > 0.0 ? 1.0 : -1.0) * sqrt(disc));
+            const double q = -0.5 * (b + (b > 0.0 ? 1.0 : -1.0) * std::sqrt(disc));
             const double u0 = q / a;
             u_vals.push_back(u0);
             const double u1 = c / q;
@@ -595,9 +719,8 @@ intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals
         }
 
         // Look for intersections within the element interior.
-        for (unsigned int k = 0; k < u_vals.size(); ++k)
+        for (const auto& u : u_vals)
         {
-            double u = u_vals[k];
             if (u >= -1.0 - tol && u <= 1.0 + tol)
             {
                 is_interior_intersection = (u >= -1.0 && u <= 1.0);
@@ -652,9 +775,9 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
         //
         // https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
         // http://www.lighthouse3d.com/tutorials/maths/ray-triangle-intersection/
-        const libMesh::Point& p0 = *elem->get_node(0);
-        const libMesh::Point& p1 = *elem->get_node(1);
-        const libMesh::Point& p2 = *elem->get_node(2);
+        const libMesh::Point& p0 = *elem->node_ptr(0);
+        const libMesh::Point& p1 = *elem->node_ptr(1);
+        const libMesh::Point& p2 = *elem->node_ptr(2);
 
         const libMesh::VectorValue<double> e1 = p1 - p0;
         const libMesh::VectorValue<double> e2 = p2 - p0;
@@ -680,10 +803,10 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
     }
     case libMesh::QUAD4:
     {
-        const libMesh::Point& p00 = *elem->get_node(0);
-        const libMesh::Point& p10 = *elem->get_node(1);
-        const libMesh::Point& p11 = *elem->get_node(2);
-        const libMesh::Point& p01 = *elem->get_node(3);
+        const libMesh::Point& p00 = *elem->node_ptr(0);
+        const libMesh::Point& p10 = *elem->node_ptr(1);
+        const libMesh::Point& p11 = *elem->node_ptr(2);
+        const libMesh::Point& p01 = *elem->node_ptr(3);
 
         const libMesh::Point a = p11 - p10 - p01 + p00;
         const libMesh::Point b = p10 - p00;
@@ -734,7 +857,7 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
             const double disc = b * b - 4.0 * a * c;
             if (disc > 0.0)
             {
-                const double q = -0.5 * (b + (b > 0.0 ? 1.0 : -1.0) * sqrt(disc));
+                const double q = -0.5 * (b + (b > 0.0 ? 1.0 : -1.0) * std::sqrt(disc));
                 const double v0 = q / a;
                 v_vals.push_back(v0);
                 const double v1 = c / q;
@@ -745,9 +868,8 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
             }
         }
 
-        for (unsigned int k = 0; k < v_vals.size(); ++k)
+        for (const auto& v : v_vals)
         {
-            double v = v_vals[k];
             if (v >= 0.0 - tol && v <= 1.0 + tol)
             {
                 double u;
@@ -801,7 +923,7 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
     return is_interior_intersection;
 } // intersect_line_with_face
 
-struct DofObjectComp : std::binary_function<const libMesh::DofObject* const, const libMesh::DofObject* const, bool>
+struct DofObjectComp
 {
     inline bool operator()(const libMesh::DofObject* const lhs, const libMesh::DofObject* const rhs)
     {
@@ -853,6 +975,133 @@ get_nodal_dof_indices(const libMesh::DofMap &dof_map,
 #endif
 }
 
+
+/**
+ * Return the maximum edge length of a given element with mapped nodes.
+ *
+ * @p elem The given libMesh element.
+ * @p X_node Mapped coordinates of the nodes.
+ */
+template <class MultiArray>
+inline double
+get_max_edge_length(const libMesh::Elem* const elem, const MultiArray& X_node)
+{
+#ifndef NDEBUG
+    TBOX_ASSERT(elem->n_nodes() == X_node.shape()[0]);
+    TBOX_ASSERT(elem->dim() == X_node.shape()[1]);
+#endif
+    const libMesh::ElemType elem_type = elem->type();
+
+    double max_edge_length_2 = 0.0;
+    // TODO: implement additional element-specific versions as needed.
+    switch (elem_type)
+    {
+    case libMesh::TET4:
+    {
+        // all nodes are connected to all other nodes
+        constexpr unsigned int edge_pairs[6][2] = { { 0, 1 }, { 0, 2 }, { 0, 3 }, { 1, 2 }, { 1, 3 }, { 2, 3 } };
+        for (const unsigned int(&pair)[2] : edge_pairs)
+        {
+            const unsigned int n1 = pair[0];
+            const unsigned int n2 = pair[1];
+            double diff_sq = 0.0;
+            for (unsigned int d = 0; d < 3; ++d) // TET4 implies 3D
+                diff_sq += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
+            max_edge_length_2 = std::max(max_edge_length_2, diff_sq);
+        }
+        break;
+    }
+    case libMesh::HEX8:
+    {
+        // see the connectivity diagram in cell_hex8.h to see why these are the edges
+        constexpr unsigned int edge_pairs[12][2] = { { 0, 1 }, { 0, 3 }, { 0, 4 }, { 1, 2 }, { 1, 5 }, { 2, 3 },
+                                                     { 2, 6 }, { 3, 7 }, { 4, 5 }, { 4, 7 }, { 5, 6 }, { 6, 7 } };
+        for (const unsigned int(&pair)[2] : edge_pairs)
+        {
+            const unsigned int n1 = pair[0];
+            const unsigned int n2 = pair[1];
+            double diff_sq = 0.0;
+            for (unsigned int d = 0; d < 3; ++d) // HEX8 implies 3D
+                diff_sq += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
+            max_edge_length_2 = std::max(max_edge_length_2, diff_sq);
+        }
+        break;
+    }
+    default:
+        // Use the old algorithm in all other cases
+        {
+            const unsigned int n_vertices = elem->n_vertices();
+            if (elem->dim() == 1)
+            {
+                for (unsigned int n1 = 0; n1 < n_vertices; ++n1)
+                {
+                    for (unsigned int n2 = n1 + 1; n2 < n_vertices; ++n2)
+                    {
+                        double diff_sq = 0.0;
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            diff_sq += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
+                        }
+                        max_edge_length_2 = std::max(max_edge_length_2, diff_sq);
+                    }
+                }
+            }
+            else
+            {
+                const unsigned int n_edges = elem->n_edges();
+                for (unsigned int e = 0; e < n_edges; ++e)
+                {
+                    for (unsigned int n1 = 0; n1 < n_vertices; ++n1)
+                    {
+                        if (!elem->is_node_on_edge(n1, e)) continue;
+                        for (unsigned int n2 = n1 + 1; n2 < n_vertices; ++n2)
+                        {
+                            if (!elem->is_node_on_edge(n2, e)) continue;
+                            double diff_sq = 0.0;
+                            for (unsigned int d = 0; d < NDIM; ++d)
+                            {
+                                diff_sq += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
+                            }
+                            max_edge_length_2 = std::max(max_edge_length_2, diff_sq);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return std::sqrt(max_edge_length_2);
+}
+
+/*!
+ * Save, in a plain text file, the libMesh partitioning, with the format
+ *
+ *     x,y,z,rank
+ *
+ * where x, y, and z are the center of an Elem and rank is the current MPI
+ * rank.
+ *
+ * @note this function collates the output from all MPI processors in the
+ * communicator assigned to @p position_system, so it is an inherently serial
+ * function.
+ */
+void
+write_elem_partitioning(const std::string& file_name, const libMesh::System& position_system);
+
+/*!
+ * Save, in a plain text file, the libMesh Node partitioning, with the format
+ *
+ *     x,y,z,rank
+ *
+ * where x, y, and z are the coordinates of a Node and rank is the current MPI
+ * rank.
+ *
+ * @note this function collates the output from all MPI processors in the
+ * communicator assigned to @p position_system, so it is an inherently serial
+ * function.
+ */
+void
+write_node_partitioning(const std::string& file_name, const libMesh::System& position_system);
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

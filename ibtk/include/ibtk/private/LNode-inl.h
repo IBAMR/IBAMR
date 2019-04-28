@@ -102,10 +102,9 @@ inline void
 LNode::registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement)
 {
     LNodeIndex::registerPeriodicShift(offset, displacement);
-    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::iterator it = d_node_data.begin(); it != d_node_data.end();
-         ++it)
+    for (const auto& node : d_node_data)
     {
-        (*it)->registerPeriodicShift(offset, displacement);
+        node->registerPeriodicShift(offset, displacement);
     }
     return;
 } // registerPeriodicShift
@@ -160,7 +159,7 @@ LNode::getNodeDataItem() const
     else
     {
         const size_t node_data_sz = d_node_data.size();
-        T* ret_val = NULL;
+        T* ret_val = nullptr;
         Streamable* it_val;
         size_t k;
         for (k = 0; k < node_data_sz && !ret_val; ++k)
@@ -245,7 +244,7 @@ LNode::assignThatToThis(const LNode& that)
 inline void
 LNode::setupNodeDataTypeArray()
 {
-    std::fill(d_node_data_type_arr, d_node_data_type_arr + MAX_SIZE, static_cast<Streamable*>(NULL));
+    std::fill(d_node_data_type_arr, d_node_data_type_arr + MAX_SIZE, static_cast<Streamable*>(nullptr));
     Streamable* it_val;
     int class_id;
     for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit = d_node_data.begin();

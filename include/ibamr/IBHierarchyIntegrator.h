@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -45,7 +44,6 @@
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchyDataOpsReal.h"
 #include "IntVector.h"
-#include "LoadBalancer.h"
 #include "MultiblockDataTranslator.h"
 #include "PatchLevel.h"
 #include "RefineAlgorithm.h"
@@ -109,7 +107,7 @@ public:
      * The destructor for class IBHierarchyIntegrator unregisters the integrator
      * object with the restart manager when the object is so registered.
      */
-    ~IBHierarchyIntegrator();
+    ~IBHierarchyIntegrator() = default;
 
     /*!
      * Return a pointer to the IBStrategy object registered with this
@@ -125,7 +123,7 @@ public:
     /*!
      * Register a load balancer for non-uniform load balancing.
      */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer);
+    virtual void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer) override;
 
     /*!
      * Return a pointer to the fluid velocity variable.
@@ -159,7 +157,7 @@ public:
      * num_cycles and the time step size and checks to see if the time step size
      * has changed.
      */
-    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -171,7 +169,7 @@ public:
      * to calling initializePatchHierarchy().
      */
     void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Initialize the AMR patch hierarchy and data defined on the hierarchy at
@@ -187,14 +185,20 @@ public:
      * function.
      */
     void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
-
-    /*!
-     * Regrid the hierarchy.
-     */
-    void regridHierarchy();
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
 protected:
+    /*!
+     * Perform necessary data movement, workload estimation, and logging prior
+     * to regridding.
+     */
+    void regridHierarchyBeginSpecialized() override;
+
+    /*!
+     * Perform necessary data movement and logging after regridding.
+     */
+    void regridHierarchyEndSpecialized() override;
+
     /*!
      * The constructor for class IBHierarchyIntegrator sets some default values,
      * reads in configuration information from input and restart databases, and
@@ -210,13 +214,13 @@ protected:
      * Function to determine whether regridding should occur at the current time
      * step.
      */
-    bool atRegridPointSpecialized() const;
+    bool atRegridPointSpecialized() const override;
 
     /*!
      * Initialize data after the entire hierarchy has been constructed.
      *
      */
-    void initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time);
+    void initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time) override;
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -228,7 +232,7 @@ protected:
                                         bool can_be_refined,
                                         bool initial_time,
                                         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-                                        bool allocate_data);
+                                        bool allocate_data) override;
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -236,7 +240,7 @@ protected:
     void
     resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                            int coarsest_level,
-                                           int finest_level);
+                                           int finest_level) override;
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -247,22 +251,32 @@ protected:
                                           double error_data_time,
                                           int tag_index,
                                           bool initial_time,
-                                          bool uses_richardson_extrapolation_too);
+                                          bool uses_richardson_extrapolation_too) override;
 
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+
+    /*!
+     * Add the work contributions (excluding the background grid) for the
+     * current hierarchy into the variable with index
+     * <code>workload_data_idx</code>. The only direct workload contribution
+     * of this hierarchy manager is usually the work done by the IBStrategy
+     * object.
+     */
+    virtual void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                     const int workload_data_idx) override;
 
     /*
      * Boolean value that indicates whether the integrator has been initialized.
      */
-    bool d_integrator_is_initialized;
+    bool d_integrator_is_initialized = false;
 
     /*!
      * Enum indicating the time integration employed for the IB equations.
      */
-    TimeSteppingType d_time_stepping_type;
+    TimeSteppingType d_time_stepping_type = MIDPOINT_RULE;
 
     /*!
      * Flag indicating whether to use an explicit predictor for the structure
@@ -274,7 +288,7 @@ protected:
      * Flags to determine whether warnings or error messages should be emitted
      * when time step size changes are encountered.
      */
-    bool d_error_on_dt_change, d_warn_on_dt_change;
+    bool d_error_on_dt_change = true, d_warn_on_dt_change = false;
 
     /*
      * The (optional) INSHierarchyIntegrator is used to provide time integration
@@ -290,7 +304,7 @@ protected:
      * NOTE: Currently, when the CFL-based regrid interval is specified, it is
      * always used instead of the fixed-step regrid interval.
      */
-    double d_regrid_cfl_interval, d_regrid_cfl_estimate;
+    double d_regrid_cfl_interval = 0.0, d_regrid_cfl_estimate = 0.0;
 
     /*
      * IB method implementation object.
@@ -329,13 +343,6 @@ protected:
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_body_force_fcn;
 
     /*
-     * Nonuniform load balancing data structures.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
-    int d_workload_idx;
-
-    /*
      * Lagrangian marker data structures.
      */
     SAMRAI::tbox::Pointer<IBTK::LMarkerSetVariable> d_mark_var;
@@ -358,7 +365,7 @@ protected:
         /*!
          * \brief Destructor.
          */
-        ~IBEulerianForceFunction();
+        ~IBEulerianForceFunction() = default;
 
         /*!
          * \name Methods to set the data.
@@ -368,7 +375,7 @@ protected:
         /*!
          * \note This concrete IBTK::CartGridFunction is time-dependent.
          */
-        bool isTimeDependent() const;
+        bool isTimeDependent() const override;
 
         /*!
          * \brief Set the data on the patch interiors on the specified levels of
@@ -380,7 +387,7 @@ protected:
                                      const double data_time,
                                      const bool initial_time = false,
                                      const int coarsest_ln = -1,
-                                     const int finest_ln = -1);
+                                     const int finest_ln = -1) override;
 
         /*!
          * Set the data on the patch interior.
@@ -391,7 +398,7 @@ protected:
                             double data_time,
                             bool initial_time = false,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
 
         //\}
 
@@ -401,7 +408,7 @@ protected:
          *
          * \note This constructor is not implemented and should not be used.
          */
-        IBEulerianForceFunction();
+        IBEulerianForceFunction() = delete;
 
         /*!
          * \brief Copy constructor.
@@ -410,7 +417,7 @@ protected:
          *
          * \param from The value to copy to this object.
          */
-        IBEulerianForceFunction(const IBEulerianForceFunction& from);
+        IBEulerianForceFunction(const IBEulerianForceFunction& from) = delete;
 
         /*!
          * \brief Assignment operator.
@@ -421,7 +428,7 @@ protected:
          *
          * \return A reference to this object.
          */
-        IBEulerianForceFunction& operator=(const IBEulerianForceFunction& that);
+        IBEulerianForceFunction& operator=(const IBEulerianForceFunction& that) = delete;
 
         const IBHierarchyIntegrator* const d_ib_solver;
     };
@@ -444,7 +451,7 @@ protected:
         /*!
          * \brief Destructor.
          */
-        ~IBEulerianSourceFunction();
+        ~IBEulerianSourceFunction() = default;
 
         /*!
          * \name Methods to set the data.
@@ -454,7 +461,7 @@ protected:
         /*!
          * \note This concrete IBTK::CartGridFunction is time-dependent.
          */
-        bool isTimeDependent() const;
+        bool isTimeDependent() const override;
 
         /*!
          * Set the data on the patch interior.
@@ -465,7 +472,7 @@ protected:
                             double data_time,
                             bool initial_time = false,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
 
         //\}
 
@@ -475,7 +482,7 @@ protected:
          *
          * \note This constructor is not implemented and should not be used.
          */
-        IBEulerianSourceFunction();
+        IBEulerianSourceFunction() = delete;
 
         /*!
          * \brief Copy constructor.
@@ -484,7 +491,7 @@ protected:
          *
          * \param from The value to copy to this object.
          */
-        IBEulerianSourceFunction(const IBEulerianSourceFunction& from);
+        IBEulerianSourceFunction(const IBEulerianSourceFunction& from) = delete;
 
         /*!
          * \brief Assignment operator.
@@ -495,7 +502,7 @@ protected:
          *
          * \return A reference to this object.
          */
-        IBEulerianSourceFunction& operator=(const IBEulerianSourceFunction& that);
+        IBEulerianSourceFunction& operator=(const IBEulerianSourceFunction& that) = delete;
 
         const IBHierarchyIntegrator* const d_ib_solver;
     };
@@ -508,7 +515,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBHierarchyIntegrator();
+    IBHierarchyIntegrator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -517,7 +524,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBHierarchyIntegrator(const IBHierarchyIntegrator& from);
+    IBHierarchyIntegrator(const IBHierarchyIntegrator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -528,7 +535,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBHierarchyIntegrator& operator=(const IBHierarchyIntegrator& that);
+    IBHierarchyIntegrator& operator=(const IBHierarchyIntegrator& that) = delete;
 
     /*!
      * Read input values from a given database.

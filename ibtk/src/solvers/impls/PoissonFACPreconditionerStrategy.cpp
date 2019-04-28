@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <ostream>
 #include <string>
@@ -94,51 +93,18 @@ static Timer* t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::string& object_name,
+PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(std::string object_name,
                                                                    Pointer<Variable<NDIM> > scratch_var,
                                                                    const int ghost_cell_width,
                                                                    const Pointer<Database> input_db,
                                                                    const std::string& default_options_prefix)
-    : FACPreconditionerStrategy(object_name),
-      d_poisson_spec(object_name + "::poisson_spec"),
+    : FACPreconditionerStrategy(std::move(object_name)),
+      d_poisson_spec(d_object_name + "::poisson_spec"),
       d_default_bc_coef(
-          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_bc_coef", Pointer<Database>(NULL))),
+          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_bc_coef", Pointer<Database>(nullptr))),
       d_bc_coefs(1, d_default_bc_coef),
       d_gcw(ghost_cell_width),
-      d_solution(NULL),
-      d_rhs(NULL),
-      d_hierarchy(),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_level_data_ops(),
-      d_level_bdry_fill_ops(),
-      d_level_math_ops(),
-      d_in_initialize_operator_state(false),
-      d_coarsest_reset_ln(-1),
-      d_finest_reset_ln(-1),
-      d_smoother_type("DEFAULT"),
-      d_prolongation_method("DEFAULT"),
-      d_restriction_method("DEFAULT"),
-      d_coarse_solver_type("DEFAULT"),
-      d_coarse_solver_default_options_prefix(default_options_prefix + "_coarse"),
-      d_coarse_solver_rel_residual_tol(1.0e-5),
-      d_coarse_solver_abs_residual_tol(1.0e-50),
-      d_coarse_solver_max_iterations(10),
-      d_context(NULL),
-      d_bc_op(NULL),
-      d_cf_bdry_op(),
-      d_op_stencil_fill_pattern(),
-      d_prolongation_refine_operator(),
-      d_prolongation_refine_patch_strategy(),
-      d_prolongation_refine_algorithm(),
-      d_prolongation_refine_schedules(),
-      d_restriction_coarsen_operator(),
-      d_restriction_coarsen_algorithm(),
-      d_restriction_coarsen_schedules(),
-      d_ghostfill_nocoarse_refine_algorithm(),
-      d_ghostfill_nocoarse_refine_schedules(),
-      d_synch_refine_algorithm(),
-      d_synch_refine_schedules()
+      d_coarse_solver_default_options_prefix(default_options_prefix + "_coarse")
 {
     // Initialize the Poisson specifications.
     d_poisson_spec.setCZero();
@@ -148,8 +114,7 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::st
     // Dirichlet boundary conditions.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        LocationIndexRobinBcCoefs<NDIM>* p_default_bc_coef =
-            dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
+        auto p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
         p_default_bc_coef->setBoundaryValue(2 * d, 0.0);
         p_default_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
     }
@@ -211,7 +176,7 @@ PoissonFACPreconditionerStrategy::~PoissonFACPreconditionerStrategy()
                                  << std::endl);
     }
     delete d_default_bc_coef;
-    d_default_bc_coef = NULL;
+    d_default_bc_coef = nullptr;
     return;
 } // ~PoissonFACPreconditionerStrategy
 
@@ -420,8 +385,8 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
 
     // Setup level operators.
     d_level_data_ops.resize(d_finest_ln + 1);
-    d_level_bdry_fill_ops.resize(d_finest_ln + 1, NULL);
-    d_level_math_ops.resize(d_finest_ln + 1, NULL);
+    d_level_bdry_fill_ops.resize(d_finest_ln + 1, nullptr);
+    d_level_math_ops.resize(d_finest_ln + 1, nullptr);
     HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
@@ -586,9 +551,9 @@ PoissonFACPreconditionerStrategy::xeqScheduleProlongation(const int dst_idx, con
     d_bc_op->setPatchDataIndex(dst_idx);
     d_bc_op->setPhysicalBcCoefs(d_bc_coefs);
     d_bc_op->setHomogeneousBc(true);
-    for (unsigned int k = 0; k < d_bc_coefs.size(); ++k)
+    for (const auto& bc_coef : d_bc_coefs)
     {
-        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[k]);
+        auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
         if (extended_bc_coef)
         {
             extended_bc_coef->setTargetPatchDataIndex(dst_idx);
@@ -600,9 +565,9 @@ PoissonFACPreconditionerStrategy::xeqScheduleProlongation(const int dst_idx, con
     refiner.resetSchedule(d_prolongation_refine_schedules[dst_ln]);
     d_prolongation_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_prolongation_refine_algorithm->resetSchedule(d_prolongation_refine_schedules[dst_ln]);
-    for (unsigned int k = 0; k < d_bc_coefs.size(); ++k)
+    for (const auto& bc_coef : d_bc_coefs)
     {
-        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[k]);
+        auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
         if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
     }
     return;
@@ -625,9 +590,9 @@ PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const int dst_idx
     d_bc_op->setPatchDataIndex(dst_idx);
     d_bc_op->setPhysicalBcCoefs(d_bc_coefs);
     d_bc_op->setHomogeneousBc(true);
-    for (unsigned int k = 0; k < d_bc_coefs.size(); ++k)
+    for (const auto& bc_coef : d_bc_coefs)
     {
-        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[k]);
+        auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
         if (extended_bc_coef)
         {
             extended_bc_coef->setTargetPatchDataIndex(dst_idx);
@@ -639,9 +604,9 @@ PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const int dst_idx
     refiner.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
     d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_ghostfill_nocoarse_refine_algorithm->resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
-    for (unsigned int k = 0; k < d_bc_coefs.size(); ++k)
+    for (const auto& bc_coef : d_bc_coefs)
     {
-        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[k]);
+        auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
         if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
     }
     return;

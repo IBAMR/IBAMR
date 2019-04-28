@@ -47,6 +47,7 @@
 #include "RefinePatchStrategy.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -89,7 +90,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    INSCollocatedPPMConvectiveOperator(const std::string& object_name,
+    INSCollocatedPPMConvectiveOperator(std::string object_name,
                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                        ConvectiveDifferencingType difference_form,
                                        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
@@ -115,7 +116,7 @@ public:
     /*!
      * \brief Compute the action of the convective operator.
      */
-    void applyConvectiveOperator(int U_idx, int N_idx);
+    void applyConvectiveOperator(int U_idx, int N_idx) override;
 
     /*!
      * \name General operator functionality.
@@ -153,7 +154,7 @@ public:
      * \param out output vector
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -164,7 +165,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void deallocateOperatorState();
+    void deallocateOperatorState() override;
 
     //\}
 
@@ -174,7 +175,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSCollocatedPPMConvectiveOperator();
+    INSCollocatedPPMConvectiveOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -183,7 +184,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSCollocatedPPMConvectiveOperator(const INSCollocatedPPMConvectiveOperator& from);
+    INSCollocatedPPMConvectiveOperator(const INSCollocatedPPMConvectiveOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -194,7 +195,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSCollocatedPPMConvectiveOperator& operator=(const INSCollocatedPPMConvectiveOperator& that);
+    INSCollocatedPPMConvectiveOperator& operator=(const INSCollocatedPPMConvectiveOperator& that) = delete;
 
     // Data communication algorithms, operators, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;
@@ -202,17 +203,17 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_ghostfill_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_scheds;
-    std::string d_bdry_extrap_type;
+    std::string d_bdry_extrap_type = "CONSTANT";
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_U_var;
-    int d_U_scratch_idx;
+    int d_U_scratch_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_u_extrap_var, d_u_flux_var;
-    int d_u_extrap_idx, d_u_flux_idx;
+    int d_u_extrap_idx = IBTK::invalid_index, d_u_flux_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR
 

@@ -81,8 +81,8 @@ static const int PENALTY_IB_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PenaltyIBMethod::PenaltyIBMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart)
-    : IBMethod(object_name, input_db, register_for_restart)
+PenaltyIBMethod::PenaltyIBMethod(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
+    : IBMethod(std::move(object_name), input_db, register_for_restart)
 {
     // NOTE: Parent class constructor registers class with the restart manager, sets object
     // name.
@@ -93,15 +93,6 @@ PenaltyIBMethod::PenaltyIBMethod(const std::string& object_name, Pointer<Databas
     if (input_db) getFromInput(input_db, from_restart);
     return;
 } // PenaltyIBMethod
-
-PenaltyIBMethod::~PenaltyIBMethod()
-{
-    // intentionally blank
-    //
-    // NOTE: Parent class constructor unregisters class with the restart
-    // manager.
-    return;
-} // ~PenaltyIBMethod
 
 void
 PenaltyIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
@@ -313,7 +304,7 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
                     F[NDIM * i + d] += K[i] * (Y[NDIM * i + d] - X[NDIM * i + d]);
                     dX += (Y[NDIM * i + d] - X[NDIM * i + d]) * (Y[NDIM * i + d] - X[NDIM * i + d]);
                 }
-                dX = sqrt(dX);
+                dX = std::sqrt(dX);
                 max_displacement = std::max(max_displacement, dX);
             }
         }
@@ -343,7 +334,7 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
                     F[NDIM * i + d] += K[i] * (Y_half - X_half);
                     dX += (Y_half - X_half) * (Y_half - X_half);
                 }
-                dX = sqrt(dX);
+                dX = std::sqrt(dX);
                 max_displacement = std::max(max_displacement, dX);
             }
         }
@@ -369,7 +360,7 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
                     F[NDIM * i + d] += K[i] * (Y[NDIM * i + d] - X[NDIM * i + d]);
                     dX += (Y[NDIM * i + d] - X[NDIM * i + d]) * (Y[NDIM * i + d] - X[NDIM * i + d]);
                 }
-                dX = sqrt(dX);
+                dX = std::sqrt(dX);
                 max_displacement = std::max(max_displacement, dX);
             }
         }

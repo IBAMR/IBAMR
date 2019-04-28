@@ -127,8 +127,8 @@ main()
     interp_coefs[3] = a3;
 
     // No. of points on the backbone and till head.
-    const int headNs = int(ceil(LENGTH_TILLHEAD / dx));
-    const int tailNs = int(ceil((LENGTH_FISH - LENGTH_TILLHEAD) / dx));
+    const int headNs = static_cast<int>(ceil(LENGTH_TILLHEAD / dx));
+    const int tailNs = static_cast<int>(ceil((LENGTH_FISH - LENGTH_TILLHEAD) / dx));
     const int bodyNs = headNs + tailNs + 1;
 
     std::vector<std::pair<int, int> > immersedBodyData(bodyNs);
@@ -139,8 +139,8 @@ main()
         const double s = (i - 1) * dx;
         const double section = sqrt(2 * WIDTH_HEAD * s - s * s);
         const double height = MINOR_AXIS * std::sqrt(1 - pow((s - MAJOR_AXIS) / MAJOR_AXIS, 2));
-        const int numPtsInSection = int(ceil(section / dy));
-        const int numPtsInHeight = int(ceil(height / dz));
+        const int numPtsInSection = static_cast<int>(ceil(section / dy));
+        const int numPtsInHeight = static_cast<int>(ceil(height / dz));
         immersedBodyData[i - 1] = std::make_pair(numPtsInSection, numPtsInHeight);
         immersedBodyWidthHeight[i - 1] = std::make_pair(section, height);
     }
@@ -150,8 +150,8 @@ main()
         const double s = (i - 1) * dx;
         const double section = WIDTH_HEAD * (LENGTH_FISH - s) / (LENGTH_FISH - LENGTH_TILLHEAD);
         const double height = MINOR_AXIS * std::sqrt(1 - pow((s - MAJOR_AXIS) / MAJOR_AXIS, 2));
-        const int numPtsInSection = int(ceil(section / dy));
-        const int numPtsInHeight = int(ceil(height / dz));
+        const int numPtsInSection = static_cast<int>(ceil(section / dy));
+        const int numPtsInHeight = static_cast<int>(ceil(height / dz));
         immersedBodyData[i - 1] = std::make_pair(numPtsInSection, numPtsInHeight);
         immersedBodyWidthHeight[i - 1] = std::make_pair(section, height);
     }
@@ -226,7 +226,7 @@ main()
     }
     std::fstream eelstream;
     eelstream.open("eel3d.vertex", std::fstream::out);
-    assert((unsigned)total_lag_pts == shape_new[0].size());
+    assert(static_cast<std::size_t>(total_lag_pts) == shape_new[0].size());
     eelstream << total_lag_pts << "\n";
 
     for (int k = 1; k <= total_lag_pts; ++k)

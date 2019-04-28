@@ -70,12 +70,12 @@ public:
     /*!
      * \brief Default constructor
      */
-    FaceSynchCopyFillPattern();
+    FaceSynchCopyFillPattern() = default;
 
     /*!
      * \brief Destructor
      */
-    ~FaceSynchCopyFillPattern();
+    ~FaceSynchCopyFillPattern() = default;
 
     /*!
      * Calculate overlaps between the destination and source geometries according
@@ -103,17 +103,17 @@ public:
                      const SAMRAI::hier::Box<NDIM>& dst_patch_box,
                      const SAMRAI::hier::Box<NDIM>& src_mask,
                      bool overwrite_interior,
-                     const SAMRAI::hier::IntVector<NDIM>& src_offset) const;
+                     const SAMRAI::hier::IntVector<NDIM>& src_offset) const override;
 
     /*!
      * Returns the stencil width.
      */
-    SAMRAI::hier::IntVector<NDIM>& getStencilWidth();
+    SAMRAI::hier::IntVector<NDIM>& getStencilWidth() override;
 
     /*!
      * Returns a string name identifier "FACE_SYNCH_COPY_FILL_PATTERN".
      */
-    const std::string& getPatternName() const;
+    const std::string& getPatternName() const override;
 
 private:
     /*!
@@ -123,7 +123,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FaceSynchCopyFillPattern(const FaceSynchCopyFillPattern& from);
+    FaceSynchCopyFillPattern(const FaceSynchCopyFillPattern& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -134,9 +134,9 @@ private:
      *
      * \return A reference to this object.
      */
-    FaceSynchCopyFillPattern& operator=(const FaceSynchCopyFillPattern& that);
+    FaceSynchCopyFillPattern& operator=(const FaceSynchCopyFillPattern& that) = delete;
 
-    SAMRAI::hier::IntVector<NDIM> d_stencil_width;
+    SAMRAI::hier::IntVector<NDIM> d_stencil_width = 1;
 };
 } // namespace IBTK
 

@@ -32,11 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stdbool.h>
-#include <stddef.h>
 #include <algorithm>
+#include <cmath>
 #include <map>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -65,7 +64,6 @@
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/ibtk_utilities.h"
-#include "libmesh/auto_ptr.h"
 #include "libmesh/elem.h"
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
@@ -106,11 +104,11 @@ static const double POINT_FACTOR = 2.0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IMPInitializer::IMPInitializer(const std::string& object_name,
+IMPInitializer::IMPInitializer(std::string object_name,
                                Pointer<Database> input_db,
                                Pointer<PatchHierarchy<NDIM> > hierarchy,
                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
-    : d_object_name(object_name),
+    : d_object_name(std::move(object_name)),
       d_hierarchy(hierarchy),
       d_gridding_alg(gridding_alg),
       d_level_is_initialized(d_gridding_alg->getMaxLevels(), false),
@@ -119,11 +117,10 @@ IMPInitializer::IMPInitializer(const std::string& object_name,
       d_vertex_offset(d_gridding_alg->getMaxLevels()),
       d_vertex_posn(d_gridding_alg->getMaxLevels()),
       d_vertex_wgt(d_gridding_alg->getMaxLevels()),
-      d_vertex_subdomain_id(d_gridding_alg->getMaxLevels()),
-      d_silo_writer(NULL)
+      d_vertex_subdomain_id(d_gridding_alg->getMaxLevels())
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!d_object_name.empty());
     TBOX_ASSERT(input_db);
 #endif
 
@@ -147,7 +144,7 @@ IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     const int max_levels = d_gridding_alg->getMaxLevels();
     if (level_number < 0) level_number = max_levels - 1;
     level_number = std::min(level_number, max_levels - 1);
-    const unsigned int mesh_idx = static_cast<unsigned int>(d_meshes[level_number].size());
+    const auto mesh_idx = static_cast<unsigned int>(d_meshes[level_number].size());
     d_meshes[level_number].push_back(mesh);
 
     // Compute the Cartesian grid spacing on the specified level of the mesh.
@@ -166,8 +163,8 @@ IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     // and weighting factors.
     const int dim = mesh->mesh_dimension();
     FEType fe_type(FIRST, LAGRANGE);
-    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
-    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<libMesh::Point>& q_point = fe->get_xyz();
     const std::vector<double>& JxW = fe->get_JxW();
@@ -306,9 +303,7 @@ IMPInitializer::initializeStructureIndexingOnPatchLevel(
     int offset = 0;
     for (unsigned int j = 0; j < d_meshes[level_number].size(); ++j)
     {
-        std::ostringstream name_stream;
-        name_stream << "mesh_" << j;
-        strct_id_to_strct_name_map[j] = name_stream.str();
+        strct_id_to_strct_name_map[j] = "mesh_" + std::to_string(j);
         strct_id_to_lag_idx_range_map[j] = std::make_pair(offset, offset + d_num_vertex[level_number][j]);
         offset += d_num_vertex[level_number][j];
     }
@@ -353,10 +348,8 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
         std::vector<std::pair<int, int> > patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
         local_node_count += patch_vertices.size();
-        for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end();
-             ++it)
+        for (const auto& point_idx : patch_vertices)
         {
-            const std::pair<int, int>& point_idx = (*it);
             const int lagrangian_idx = getCanonicalLagrangianIndex(point_idx, level_number) + global_index_offset;
             const int local_petsc_idx = ++local_idx + local_index_offset;
             const int global_petsc_idx = local_petsc_idx + global_index_offset;
@@ -453,11 +446,8 @@ IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> 
         {
             std::vector<std::pair<int, int> > patch_vertices;
             getPatchVertices(patch_vertices, patch, ln, can_be_refined);
-            for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin();
-                 it != patch_vertices.end();
-                 ++it)
+            for (const auto& point_idx : patch_vertices)
             {
-                const std::pair<int, int>& point_idx = (*it);
                 const libMesh::Point& X = getVertexPosn(point_idx, ln);
                 const CellIndex<NDIM> i = IndexUtilities::getCellIndex(&X(0), grid_geom, ratio);
                 if (patch_box.contains(i)) (*tag_data)(i) = 1;
@@ -522,9 +512,7 @@ IMPInitializer::initializeLSiloDataWriter(const int level_number)
         {
             if (d_num_vertex[level_number][j])
             {
-                std::ostringstream name_stream;
-                name_stream << "mesh_" << j;
-                const std::string vertices_name = name_stream.str() + "_vertices";
+                const std::string vertices_name = "mesh_" + std::to_string(j) + "_vertices";
                 d_silo_writer->registerMarkerCloud(
                     vertices_name, d_num_vertex[level_number][j], d_vertex_offset[level_number][j], level_number);
             }

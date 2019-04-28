@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
@@ -100,11 +99,6 @@ public:
                            const IBTK::Point& X_target = IBTK::Point::Zero());
 
     /*!
-     * \brief Destructor.
-     */
-    ~IBTargetPointForceSpec();
-
-    /*!
      * \return A const reference to the master node index.
      */
     const int& getMasterNodeIndex() const;
@@ -155,18 +149,18 @@ public:
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
      * extract Streamable objects from data streams.
      */
-    int getStreamableClassID() const;
+    int getStreamableClassID() const override;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    size_t getDataStreamSize() const;
+    size_t getDataStreamSize() const override;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    void packStream(SAMRAI::tbox::AbstractStream& stream);
+    void packStream(SAMRAI::tbox::AbstractStream& stream) override;
 
 private:
     /*!
@@ -176,7 +170,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBTargetPointForceSpec(const IBTargetPointForceSpec& from);
+    IBTargetPointForceSpec(const IBTargetPointForceSpec& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -187,7 +181,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBTargetPointForceSpec& operator=(const IBTargetPointForceSpec& that);
+    IBTargetPointForceSpec& operator=(const IBTargetPointForceSpec& that) = delete;
 
     /*!
      * Data required to define the target point penalty forces.
@@ -206,28 +200,28 @@ private:
         /*!
          * \brief Destructor.
          */
-        ~Factory();
+        ~Factory() = default;
 
         /*!
          * \brief Return the unique identifier used to specify the
          * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
          * extract IBTargetPointForceSpec objects from data streams.
          */
-        int getStreamableClassID() const;
+        int getStreamableClassID() const override;
 
         /*!
          * \brief Set the unique identifier used to specify the
          * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
          * extract IBTargetPointForceSpec objects from data streams.
          */
-        void setStreamableClassID(int class_id);
+        void setStreamableClassID(int class_id) override;
 
         /*!
          * \brief Build an IBTargetPointForceSpec object by unpacking data from the
          * data stream.
          */
         SAMRAI::tbox::Pointer<IBTK::Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                                                             const SAMRAI::hier::IntVector<NDIM>& offset);
+                                                             const SAMRAI::hier::IntVector<NDIM>& offset) override;
 
     private:
         /*!
@@ -242,7 +236,7 @@ private:
          *
          * \param from The value to copy to this object.
          */
-        Factory(const Factory& from);
+        Factory(const Factory& from) = delete;
 
         /*!
          * \brief Assignment operator.
@@ -253,11 +247,11 @@ private:
          *
          * \return A reference to this object.
          */
-        Factory& operator=(const Factory& that);
+        Factory& operator=(const Factory& that) = delete;
 
         friend class IBTargetPointForceSpec;
     };
-    typedef IBTargetPointForceSpec::Factory IBTargetPointForceSpecFactory;
+    using IBTargetPointForceSpecFactory = IBTargetPointForceSpec::Factory;
 };
 } // namespace IBAMR
 

@@ -141,7 +141,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    StaggeredStokesPETScMatUtilities();
+    StaggeredStokesPETScMatUtilities() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -150,7 +150,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesPETScMatUtilities(const StaggeredStokesPETScMatUtilities& from);
+    StaggeredStokesPETScMatUtilities(const StaggeredStokesPETScMatUtilities& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -161,7 +161,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesPETScMatUtilities& operator=(const StaggeredStokesPETScMatUtilities& that);
+    StaggeredStokesPETScMatUtilities& operator=(const StaggeredStokesPETScMatUtilities& that) = delete;
 };
 } // namespace IBAMR
 

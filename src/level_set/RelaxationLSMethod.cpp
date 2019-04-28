@@ -222,20 +222,11 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-RelaxationLSMethod::RelaxationLSMethod(const std::string& object_name, Pointer<Database> db, bool register_for_restart)
-    : LSInitStrategy(object_name, register_for_restart)
+RelaxationLSMethod::RelaxationLSMethod(std::string object_name, Pointer<Database> db, bool register_for_restart)
+    : LSInitStrategy(std::move(object_name), register_for_restart)
 {
     // Some default values.
     d_ls_order = THIRD_ORDER_ENO_LS;
-    d_max_its = 100;
-    d_abs_tol = 1e-5;
-    d_enable_logging = false;
-    d_apply_mass_constraint = false;
-    d_apply_subcell_fix = false;
-    d_apply_sign_fix = false;
-    d_D_gcw = -1;
-    d_apply_volume_shift = false;
-    d_alpha = 1.0;
 
     // Get any additional or overwrite base class options.
     if (d_registered_for_restart) getFromRestart();
@@ -243,11 +234,6 @@ RelaxationLSMethod::RelaxationLSMethod(const std::string& object_name, Pointer<D
 
     return;
 } // RelaxationLSMethod
-
-RelaxationLSMethod::~RelaxationLSMethod()
-{
-    return;
-} // ~RelaxationLSMethod
 
 void
 RelaxationLSMethod::initializeLSData(int D_idx,
@@ -314,7 +300,7 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::COPY"), cell_ghosts);
     const int H_init_idx =
         var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::H_INIT"), cell_ghosts);
-    const int H_scratch_idx = 
+    const int H_scratch_idx =
         var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::H_SCRATCH"), no_ghosts);
 
     // Heaviside variables
@@ -343,12 +329,12 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     }
 
     // Set hierarchy objects.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(
         D_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, d_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> D_fill_op = new HierarchyGhostCellInterpolation();
     InterpolationTransactionComponent H_transcation(
-        H_init_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, NULL);
+        H_init_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, nullptr);
     Pointer<HierarchyGhostCellInterpolation> H_fill_op = new HierarchyGhostCellInterpolation();
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
 
@@ -890,7 +876,7 @@ RelaxationLSMethod::computeRegionVolume(Pointer<HierarchyMathOps> hier_math_ops,
             const double* const patch_dx = patch_geom->getDx();
             double alpha = 1.0;
             for (int d = 0; d < NDIM; ++d) alpha *= patch_dx[d];
-            alpha = std::pow(alpha, 1.0 / ((double)NDIM));
+            alpha = std::pow(alpha, 1.0 / static_cast<double>(NDIM));
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {

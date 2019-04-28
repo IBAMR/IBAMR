@@ -35,9 +35,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <set>
-#include <stdbool.h>
-#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -47,11 +46,13 @@
 #include "PatchHierarchy.h"
 #include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBStrategy.h"
+#include "ibamr/ibamr_enums.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/libmesh_utilities.h"
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
+#include "libmesh/explicit_system.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK
@@ -101,6 +102,47 @@ namespace IBAMR
  * \brief Class IBFEMethod is an implementation of the abstract base class
  * IBStrategy that provides functionality required by the IB method with finite
  * element elasticity.
+ *
+ * By default, the libMesh data is partitioned once at the beginning of the
+ * computation by libMesh's default partitioner.
+ *
+ * This class can repartition libMesh data in a way that matches SAMRAI's
+ * distribution of patches; put another way, if a certain region of space on
+ * the finest level is assigned to processor N, then all libMesh nodes and
+ * elements within that region will also be assigned to processor N. The
+ * actual partitioning here is done by the IBTK::BoxPartitioner class. See the
+ * discussion in HierarchyIntegrator and FEDataManager for descriptions on how
+ * this partitioning is performed.
+ *
+ * The choice of libMesh partitioner depends on the libmesh_partitioner_type
+ * parameter in the input database and whether or not workload estimates are
+ * available (it is assumed that if workload estimates are available then a
+ * load balancer is being used). More exactly:
+ * <ul>
+ *  <li>If <code>libmesh_partitioner_type</code> is <code>AUTOMATIC</code>
+ *      and workload estimates are available then this class will use the
+ *      IBTK::BoxPartitioner class to repartition libMesh data after the SAMRAI
+ *      data is regridded.</li>
+ *
+ *  <li>If <code>libmesh_partitioner_type</code> is <code>AUTOMATIC</code> and
+ *      workload estimates are not available then this class will never
+ *      repartition libMesh data.</li>
+ *
+ *  <li>If <code>libmesh_partitioner_type</code> is
+ *      <code>LIBMESH_DEFAULT</code> then this class will never repartition
+ *      libMesh data, since the default libMesh partitioner is already used at
+ *      the beginning of the computation and, since no degrees of freedom are
+ *      added or removed, any subsequent partitioning would have no
+ *      effect.</li>
+ *
+ *  <li>If <code>libmesh_partitioner_type</code> is <code>SAMRAI_BOX</code>
+ *      then this class will always repartition the libMesh data with
+ *      IBTK::BoxPartitioner every time the Eulerian data is regridded.</li>
+ * </ul>
+ * The default value for <code>libmesh_partitioner_type</code> is
+ * <code>AUTOMATIC</code>. The intent of these choices is to automatically use
+ * the fairest (that is, partitioning based on workload estimation)
+ * partitioner.
  */
 class IBFEMethod : public IBStrategy
 {
@@ -111,12 +153,12 @@ public:
     static const std::string PHI_SYSTEM_NAME;
     static const std::string SOURCE_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
-    
+
     // strings specifying the stress normalization solver.
     static const std::string IPDG_PHI_SOLVER_NAME;
-    static const std::string CG_PHI_SOLVER_NAME;    
+    static const std::string CG_PHI_SOLVER_NAME;
     static const std::string CG_DIFFUSION_PHI_SOLVER_NAME;
-    
+
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > mask_var;
     int mask_current_idx, mask_new_idx, mask_scratch_idx;
 
@@ -130,7 +172,7 @@ public:
      */
     IBFEMethod(const std::string& object_name,
                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-               libMesh::Mesh* mesh,
+               libMesh::MeshBase* mesh,
                int max_level_number,
                bool register_for_restart = true,
                const std::string& restart_read_dirname = "",
@@ -141,7 +183,7 @@ public:
      */
     IBFEMethod(const std::string& object_name,
                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-               const std::vector<libMesh::Mesh*>& meshes,
+               const std::vector<libMesh::MeshBase*>& meshes,
                int max_level_number,
                bool register_for_restart = true,
                const std::string& restart_read_dirname = "",
@@ -166,14 +208,14 @@ public:
     /*!
      * Typedef specifying interface for coordinate mapping function.
      */
-    typedef void (*CoordinateMappingFcnPtr)(libMesh::Point& x, const libMesh::Point& X, void* ctx);
+    using CoordinateMappingFcnPtr = void (*)(libMesh::Point& x, const libMesh::Point& X, void* ctx);
 
     /*!
      * Struct encapsulating coordinate mapping function data.
      */
     struct CoordinateMappingFcnData
     {
-        CoordinateMappingFcnData(CoordinateMappingFcnPtr fcn = NULL, void* ctx = NULL) : fcn(fcn), ctx(ctx)
+        CoordinateMappingFcnData(CoordinateMappingFcnPtr fcn = nullptr, void* ctx = nullptr) : fcn(fcn), ctx(ctx)
         {
         }
 
@@ -199,14 +241,14 @@ public:
     /*!
      * Typedef specifying interface for initial velocity specification function.
      */
-    typedef void (*InitialVelocityFcnPtr)(libMesh::VectorValue<double>& U0, const libMesh::Point& X0, void* ctx);
+    using InitialVelocityFcnPtr = void (*)(libMesh::VectorValue<double>& U0, const libMesh::Point& X0, void* ctx);
 
     /*!
      * Struct encapsulating initial velocity specification function data.
      */
     struct InitialVelocityFcnData
     {
-        InitialVelocityFcnData(InitialVelocityFcnPtr fcn = NULL, void* ctx = NULL) : fcn(fcn), ctx(ctx)
+        InitialVelocityFcnData(InitialVelocityFcnPtr fcn = nullptr, void* ctx = nullptr) : fcn(fcn), ctx(ctx)
         {
         }
 
@@ -231,16 +273,16 @@ public:
     /*!
      * Typedef specifying interface for PK1 stress tensor function.
      */
-    typedef IBTK::TensorMeshFcnPtr PK1StressFcnPtr;
+    using PK1StressFcnPtr = IBTK::TensorMeshFcnPtr;
 
     /*!
      * Struct encapsulating PK1 stress tensor function data.
      */
     struct PK1StressFcnData
     {
-        PK1StressFcnData(PK1StressFcnPtr fcn = NULL,
+        PK1StressFcnData(PK1StressFcnPtr fcn = nullptr,
                          const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                         void* const ctx = NULL,
+                         void* const ctx = nullptr,
                          const libMesh::QuadratureType& quad_type = libMesh::INVALID_Q_RULE,
                          const libMesh::Order& quad_order = libMesh::INVALID_ORDER)
             : fcn(fcn), system_data(system_data), ctx(ctx), quad_type(quad_type), quad_order(quad_order)
@@ -274,16 +316,16 @@ public:
      * Typedef specifying interface for Lagrangian body force distribution
      * function.
      */
-    typedef IBTK::VectorMeshFcnPtr LagBodyForceFcnPtr;
+    using LagBodyForceFcnPtr = IBTK::VectorMeshFcnPtr;
 
     /*!
      * Struct encapsulating Lagrangian body force distribution data.
      */
     struct LagBodyForceFcnData
     {
-        LagBodyForceFcnData(LagBodyForceFcnPtr fcn = NULL,
+        LagBodyForceFcnData(LagBodyForceFcnPtr fcn = nullptr,
                             const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                            void* const ctx = NULL)
+                            void* const ctx = nullptr)
             : fcn(fcn), system_data(system_data), ctx(ctx)
         {
         }
@@ -311,16 +353,16 @@ public:
      * Typedef specifying interface for Lagrangian pressure force distribution
      * function.
      */
-    typedef IBTK::ScalarSurfaceFcnPtr LagSurfacePressureFcnPtr;
+    using LagSurfacePressureFcnPtr = IBTK::ScalarSurfaceFcnPtr;
 
     /*!
      * Struct encapsulating Lagrangian surface pressure distribution data.
      */
     struct LagSurfacePressureFcnData
     {
-        LagSurfacePressureFcnData(LagSurfacePressureFcnPtr fcn = NULL,
+        LagSurfacePressureFcnData(LagSurfacePressureFcnPtr fcn = nullptr,
                                   const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                                  void* const ctx = NULL)
+                                  void* const ctx = nullptr)
             : fcn(fcn), system_data(system_data), ctx(ctx)
         {
         }
@@ -348,16 +390,16 @@ public:
      * Typedef specifying interface for Lagrangian surface force distribution
      * function.
      */
-    typedef IBTK::VectorSurfaceFcnPtr LagSurfaceForceFcnPtr;
+    using LagSurfaceForceFcnPtr = IBTK::VectorSurfaceFcnPtr;
 
     /*!
      * Struct encapsulating Lagrangian surface force distribution data.
      */
     struct LagSurfaceForceFcnData
     {
-        LagSurfaceForceFcnData(LagSurfaceForceFcnPtr fcn = NULL,
+        LagSurfaceForceFcnData(LagSurfaceForceFcnPtr fcn = nullptr,
                                const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                               void* const ctx = NULL)
+                               void* const ctx = nullptr)
             : fcn(fcn), system_data(system_data), ctx(ctx)
         {
         }
@@ -385,16 +427,16 @@ public:
      * Typedef specifying interface for Lagrangian mass source/sink distribution
      * function.
      */
-    typedef IBTK::ScalarMeshFcnPtr LagBodySourceFcnPtr;
+    using LagBodySourceFcnPtr = IBTK::ScalarMeshFcnPtr;
 
     /*!
      * Struct encapsulating Lagrangian mass source/sink distribution data.
      */
     struct LagBodySourceFcnData
     {
-        LagBodySourceFcnData(LagBodySourceFcnPtr fcn = NULL,
+        LagBodySourceFcnData(LagBodySourceFcnPtr fcn = nullptr,
                              const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                             void* const ctx = NULL)
+                             void* const ctx = nullptr)
             : fcn(fcn), system_data(system_data), ctx(ctx)
         {
         }
@@ -421,9 +463,9 @@ public:
     void constrainPartOverlap(unsigned int part1,
                               unsigned int part2,
                               double kappa,
-                              libMesh::QBase* qrule1 = NULL,
-                              libMesh::QBase* qrule2 = NULL);
-    
+                              libMesh::QBase* qrule1 = nullptr,
+                              libMesh::QBase* qrule2 = nullptr);
+
     /*!
      * Always reset the velocity of the nodes of part1 that overlap part2 to
      * equal the velocity of part2.
@@ -436,8 +478,8 @@ public:
     void registerOverlappingForceConstraint(unsigned int part1,
                                             unsigned int part2,
                                             double kappa,
-                                            libMesh::QBase* qrule1 = NULL,
-                                            libMesh::QBase* qrule2 = NULL);
+                                            libMesh::QBase* qrule1 = nullptr,
+                                            libMesh::QBase* qrule2 = nullptr);
 
     /*!
      * Register the (optional) direct forcing kinematics object with the finite
@@ -450,23 +492,23 @@ public:
      * Return the number of ghost cells required by the Lagrangian-Eulerian
      * interaction routines.
      */
-    const SAMRAI::hier::IntVector<NDIM>& getMinimumGhostCellWidth() const;
+    const SAMRAI::hier::IntVector<NDIM>& getMinimumGhostCellWidth() const override;
 
     /*!
      * Setup the tag buffer.
      */
     void setupTagBuffer(SAMRAI::tbox::Array<int>& tag_buffer,
-                        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) const;
+                        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) const override;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
      */
-    void preprocessIntegrateData(double current_time, double new_time, int num_cycles);
+    void preprocessIntegrateData(double current_time, double new_time, int num_cycles) override;
 
     /*!
      * Method to clean up data following call(s) to integrateHierarchy().
      */
-    void postprocessIntegrateData(double current_time, double new_time, int num_cycles);
+    void postprocessIntegrateData(double current_time, double new_time, int num_cycles) override;
 
     /*!
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
@@ -476,31 +518,31 @@ public:
         int u_data_idx,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-        double data_time);
+        double data_time) override;
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
-    void forwardEulerStep(double current_time, double new_time);
+    void forwardEulerStep(double current_time, double new_time) override;
 
     /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
      * midpoint rule.
      */
-    void midpointStep(double current_time, double new_time);
+    void midpointStep(double current_time, double new_time) override;
 
     /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
      * trapezoidal rule.
      */
-    void trapezoidalStep(double current_time, double new_time);
+    void trapezoidalStep(double current_time, double new_time) override;
 
     /*!
      * Compute the Lagrangian force at the specified time within the current
      * time interval.
      */
-    void computeLagrangianForce(double data_time);
+    void computeLagrangianForce(double data_time) override;
 
     /*!
      * Spread the Lagrangian force to the Cartesian grid at the specified time
@@ -510,18 +552,18 @@ public:
     spreadForce(int f_data_idx,
                 IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
-                double data_time);
+                double data_time) override;
 
     /*!
      * Indicate whether there are any internal fluid sources/sinks.
      */
-    bool hasFluidSources() const;
+    bool hasFluidSources() const override;
 
     /*!
      * Compute the Lagrangian source/sink density at the specified time within
      * the current time interval.
      */
-    void computeLagrangianFluidSource(double data_time);
+    void computeLagrangianFluidSource(double data_time) override;
 
     /*!
      * Spread the Lagrangian source/sink density to the Cartesian grid at the
@@ -531,7 +573,7 @@ public:
         int q_data_idx,
         IBTK::RobinPhysBdryPatchStrategy* q_phys_bdry_op,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& q_prolongation_scheds,
-        double data_time);
+        double data_time) override;
 
     /*!
      * Get the default interpolation spec object used by the class.
@@ -542,6 +584,11 @@ public:
      * Get the default spread spec object used by the class.
      */
     IBTK::FEDataManager::SpreadSpec getDefaultSpreadSpec() const;
+
+    /*!
+     * Set the workload spec object used with a particular mesh part.
+     */
+    void setWorkloadSpec(const IBTK::FEDataManager::WorkloadSpec& workload_spec, unsigned int part = 0);
 
     /*!
      * Set the interpolation spec object used with a particular mesh part.
@@ -566,9 +613,15 @@ public:
     void initializeFEData();
 
     /*!
+     * Reinitialize FE data by calling `reinit` on each part's EquationSystem,
+     * reassembling the system matrices, and setting boundary conditions.
+     */
+    void reinitializeFEData();
+
+    /*!
      * \brief Register Eulerian variables with the parent IBHierarchyIntegrator.
      */
-    void registerEulerianVariables();
+    void registerEulerianVariables() override;
 
     /*!
      * Initialize Lagrangian data corresponding to the given AMR patch hierarchy
@@ -587,34 +640,39 @@ public:
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
         int integrator_step,
         double init_data_time,
-        bool initial_time);
+        bool initial_time) override;
 
     /*!
      * Register a load balancer and work load patch data index with the IB
      * strategy object.
+     *
+     * @deprecated This method is no longer necessary with the current
+     * workload estimation scheme.
      */
     void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
-                              int workload_data_idx);
+                              int workload_data_idx) override;
 
     /*!
-     * Update work load estimates on each level of the patch hierarchy.
+     * Add the estimated computational work from the current object (i.e., the
+     * work required by the owned Lagrangian objects) per cell into the
+     * specified <code>workload_data_idx</code>.
      */
-    void updateWorkloadEstimates(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                 int workload_data_idx);
+    void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                             const int workload_data_idx) override;
 
     /*!
      * Begin redistributing Lagrangian data prior to regridding the patch
      * hierarchy.
      */
     void beginDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                 SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+                                 SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Complete redistributing Lagrangian data following regridding the patch
      * hierarchy.
      */
     void endDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                               SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+                               SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -628,7 +686,7 @@ public:
                              bool can_be_refined,
                              bool initial_time,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-                             bool allocate_data);
+                             bool allocate_data) override;
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -637,7 +695,7 @@ public:
      */
     void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                      int coarsest_level,
-                                     int finest_level);
+                                     int finest_level) override;
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -650,12 +708,12 @@ public:
                                double error_data_time,
                                int tag_index,
                                bool initial_time,
-                               bool uses_richardson_extrapolation_too);
+                               bool uses_richardson_extrapolation_too) override;
 
     /*!
      * Write out object state to the given database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*!
      * Write the equation_systems data to a restart file in the specified directory.
@@ -672,15 +730,15 @@ protected:
                                     unsigned int part);
 
     /*!
-     * \brief Compute the interior elastic density, possibly splitting off the
-     * normal component of the transmission force along the physical boundary of
-     * the Lagrangian structure.
+     * \brief Assemble the RHS for the interior elastic density, possibly
+     * splitting off the normal component of the transmission force along the
+     * physical boundary of the Lagrangian structure.
      */
-    void computeInteriorForceDensity(libMesh::PetscVector<double>& G_vec,
-                                     libMesh::PetscVector<double>& X_vec,
-                                     libMesh::PetscVector<double>* Phi_vec,
-                                     double data_time,
-                                     unsigned int part);
+    void assembleInteriorForceDensityRHS(libMesh::PetscVector<double>& G_rhs_vec,
+                                         libMesh::PetscVector<double>& X_vec,
+                                         libMesh::PetscVector<double>* Phi_vec,
+                                         double data_time,
+                                         unsigned int part);
 
     /*!
      * \brief Reset positions in overlap regions.
@@ -753,7 +811,7 @@ protected:
     /*
      * Indicates whether the integrator should output logging messages.
      */
-    bool d_do_log;
+    bool d_do_log = false;
 
     /*
      * Pointers to the patch hierarchy and gridding algorithm objects associated
@@ -761,83 +819,148 @@ protected:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
-    bool d_is_initialized;
+    bool d_is_initialized = false;
 
     /*
      * The current time step interval.
      */
-    double d_current_time, d_new_time, d_half_time;
+    double d_current_time = std::numeric_limits<double>::quiet_NaN(),
+           d_new_time = std::numeric_limits<double>::quiet_NaN(),
+           d_half_time = std::numeric_limits<double>::quiet_NaN();
 
-    /*
+    /*!
      * FE data associated with this object.
      */
-    std::vector<libMesh::Mesh*> d_meshes;
+    std::vector<libMesh::MeshBase*> d_meshes;
     int d_max_level_number;
-    std::vector<libMesh::EquationSystems*> d_equation_systems;
+    std::vector<std::unique_ptr<libMesh::EquationSystems>> d_equation_systems;
 
-    const unsigned int d_num_parts;
+    /// Number of parts owned by the present object.
+    const unsigned int d_num_parts = 1;
+
+    /// Currently, each FEDataManager object is associated with exactly one part.
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
-    SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems, d_Q_systems, d_Phi_systems;
-    std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double> *> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
-    std::vector<libMesh::PetscVector<double> *> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_Q_half_vecs, d_Q_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs;
 
-    bool d_fe_equation_systems_initialized, d_fe_data_initialized;
+    /// Minimum ghost cell width.
+    SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
+
+    /// Vectors of pointers to the systems for each part (for position, velocity, force
+    /// density, sources, and body stress normalization).
+    std::vector<libMesh::ExplicitSystem*> d_X_systems, d_U_systems, d_F_systems, d_Q_systems, d_Phi_systems;
+
+    /*!
+     * Vectors of pointers to the position vectors (both solutions and
+     * RHS). All of these vectors are owned by the libMesh::System objects
+     * except for the ones in d_X_IB_ghost_vecs, which are owned by the
+     * FEDataManager objects.
+     */
+    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_rhs_vecs, d_X_new_vecs, d_X_half_vecs,
+        d_X_IB_ghost_vecs;
+
+    /// Vector of pointers to the velocity vectors (both solutions and RHS).
+    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_rhs_vecs, d_U_new_vecs, d_U_half_vecs;
+
+    /*!
+     * Vectors of pointers to the body force vectors (both solutions and
+     * RHS). All of these vectors are owned by the libMesh::System objects
+     * except for the ones in d_F_IB_ghost_vecs, which are owned by the
+     * FEDataManager objects.
+     */
+    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_rhs_vecs, d_F_tmp_vecs, d_F_IB_ghost_vecs;
+
+    /*!
+     * Vectors of pointers to the fluid source or sink density vectors. All of
+     * these vectors are owned by the libMesh::System objects except for the
+     * ones in d_Q_IB_ghost_vecs, which are owned by the FEDataManager
+     * objects.
+     */
+    std::vector<libMesh::PetscVector<double>*> d_Q_half_vecs, d_Q_rhs_vecs, d_Q_IB_ghost_vecs;
+
+    /// Vector of pointers to body stress normalization vectors (both solutions and RHS).
+    std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs, d_Phi_rhs_vecs, d_Phi_IB_ghost_vecs;
+
+    /**
+     * Vectors containing entries for relevant IB ghost data: see
+     * FEDataManager::buildIBGhostedVector.
+     */
+    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_F_IB_solution_vecs;
+    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_Phi_IB_solution_vecs;
+    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_Q_IB_solution_vecs;
+    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_U_IB_rhs_vecs;
+    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_X_IB_solution_vecs;
+
+    /*!
+     * Whether or not the libMesh equation systems objects have been
+     * initialized (i.e., whether or not initializeFEEquationSystems has been
+     * called).
+     */
+    bool d_fe_equation_systems_initialized = false;
+
+    /*!
+     * Whether or not all finite element data (including that initialized by
+     * initializeFEEquationSystems), such system matrices, is available.
+     */
+    bool d_fe_data_initialized = false;
+
+    /*!
+     * Type of partitioner to use. See the main documentation of this class
+     * for more information.
+     */
+    LibmeshPartitionerType d_libmesh_partitioner_type = AUTOMATIC;
 
     /*
-     * Method paramters.
+     * Method parameters.
      */
     IBTK::FEDataManager::InterpSpec d_default_interp_spec;
     IBTK::FEDataManager::SpreadSpec d_default_spread_spec;
+    IBTK::FEDataManager::WorkloadSpec d_default_workload_spec;
+    std::vector<IBTK::FEDataManager::WorkloadSpec> d_workload_spec;
     std::vector<IBTK::FEDataManager::InterpSpec> d_interp_spec;
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
-    bool d_split_normal_force, d_split_tangential_force;
-    bool d_use_jump_conditions;
+    bool d_split_normal_force = false, d_split_tangential_force = false;
+    bool d_use_jump_conditions = false;
     std::vector<libMesh::FEFamily> d_fe_family;
     std::vector<libMesh::Order> d_fe_order;
     std::vector<libMesh::QuadratureType> d_default_quad_type;
     std::vector<libMesh::Order> d_default_quad_order;
-    bool d_use_consistent_mass_matrix;
+    bool d_use_consistent_mass_matrix = true;
 
     /*
      * Data related to handling stress normalization.
      */
-    double d_phi_epsilon;
-    double d_ipdg_jump0_penalty;
-    double d_ipdg_jump1_penalty;
-    double d_ipdg_beta0;
-    double d_ipdg_beta1;
-    libMesh::Order d_phi_fe_order;
-    double d_cg_penalty;
-    double d_phi_diffusion;
-    std::string d_phi_solver;
-    bool d_phi_current_config;
-    bool d_has_stress_normalization_parts;
+    double d_phi_epsilon = 0.0;
+    double d_ipdg_jump0_penalty = 2.0;
+    double d_ipdg_jump1_penalty = 0.0;
+    double d_ipdg_beta0 = 1.0;
+    double d_ipdg_beta1 = 1.0;
+    libMesh::Order d_phi_fe_order = libMesh::FIRST;
+    double d_cg_penalty = 1.0e10;
+    double d_phi_diffusion = 1.0;
+    std::string d_phi_solver = CG_PHI_SOLVER_NAME;
+    bool d_phi_current_config = true;
+    bool d_has_stress_normalization_parts = false;
     std::vector<bool> d_is_stress_normalization_part;
-    double d_dt_previous;
+    double d_dt_previous = std::numeric_limits<double>::quiet_NaN();
 
     /*
      * Data related to constraining overlaps between pairs of parts.
      */
-    double d_overlap_tolerance;
+    double d_overlap_tolerance = 0.0;
 
-    bool d_has_overlap_velocity_parts;
+    bool d_has_overlap_velocity_parts = false;
     std::vector<bool> d_is_overlap_velocity_part, d_is_overlap_velocity_master_part;
     std::vector<int> d_overlap_velocity_master_part;
     std::vector<std::map<libMesh::dof_id_type, libMesh::dof_id_type> > d_overlap_velocity_part_node_to_elem_map;
     std::vector<std::set<libMesh::dof_id_type> > d_overlap_velocity_part_ghost_idxs;
 
-    bool d_has_overlap_force_parts;
+    bool d_has_overlap_force_parts = false;
     std::vector<bool> d_is_overlap_force_part;
     std::vector<std::set<libMesh::dof_id_type> > d_overlap_force_part_ghost_idxs;
-    std::vector<boost::array<unsigned int, 2> > d_overlap_force_part_idxs;
-    std::vector<boost::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2> >
+    std::vector<std::array<unsigned int, 2> > d_overlap_force_part_idxs;
+    std::vector<std::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2> >
         d_overlapping_elem_map;
     std::vector<double> d_overlap_force_part_kappa;
-    std::vector<boost::array<libMesh::QBase*, 2> > d_overlap_force_part_qrule; // \todo let's try to fix this when we switch to C++11!
+    std::vector<std::array<libMesh::QBase*, 2> > d_overlap_force_part_qrule; // \todo let's try to fix this when we switch to C++11!
     std::vector<std::vector<double> > d_overlap_force_part_max_displacement;
 
     /*
@@ -871,7 +994,7 @@ protected:
     /*
      * Functions used to compute source/sink strength on the Lagrangian mesh.
      */
-    bool d_has_lag_body_source_parts;
+    bool d_has_lag_body_source_parts = false;
     std::vector<bool> d_lag_body_source_part;
     std::vector<LagBodySourceFcnData> d_lag_body_source_fcn_data;
 
@@ -879,7 +1002,7 @@ protected:
      * Nonuniform load balancing data structures.
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
-    int d_workload_idx;
+    int d_workload_idx = IBTK::invalid_index;
 
     /*
      * The object name is used as a handle to databases stored in restart files
@@ -919,7 +1042,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBFEMethod(const IBFEMethod& from);
+    IBFEMethod(const IBFEMethod& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -930,14 +1053,14 @@ private:
      *
      * \return A reference to this object.
      */
-    IBFEMethod& operator=(const IBFEMethod& that);
+    IBFEMethod& operator=(const IBFEMethod& that) = delete;
 
     /*!
      * Implementation of class constructor.
      */
     void commonConstructor(const std::string& object_name,
                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                           const std::vector<libMesh::Mesh*>& meshes,
+                           const std::vector<libMesh::MeshBase*>& meshes,
                            int max_level_number,
                            bool register_for_restart,
                            const std::string& restart_read_dirname,
@@ -953,6 +1076,20 @@ private:
      * members.
      */
     void getFromRestart();
+
+    /*!
+     * Do the actual work in reinitializeFEData and initializeFEData. if @p
+     * use_present_data is `true` then the current content of the solution
+     * vectors is used: more exactly, the coordinates and velocities (computed
+     * by initializeCoordinates and initializeVelocity) are considered as
+     * being up to date, as is the direct forcing kinematic data.
+     */
+    void doInitializeFEData(const bool use_present_data);
+
+    /*!
+     * Update the caches of IB-ghosted vectors.
+     */
+    void updateCachedIBGhostedVectors();
 };
 } // namespace IBAMR
 

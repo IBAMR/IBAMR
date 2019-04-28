@@ -39,6 +39,7 @@
 
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/GeneralOperator.h"
+#include "ibtk/ibtk_utilities.h"
 
 namespace SAMRAI
 {
@@ -63,7 +64,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    ConvectiveOperator(const std::string& object_name, ConvectiveDifferencingType difference_form);
+    ConvectiveOperator(std::string object_name, ConvectiveDifferencingType difference_form);
 
     /*!
      * \brief Destructor.
@@ -123,7 +124,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
     //\}
 
@@ -136,7 +137,7 @@ protected:
     /*!
      * The advection velocity patch data descriptor index.
      */
-    int d_u_idx;
+    int d_u_idx = IBTK::invalid_index;
 
 private:
     /*!
@@ -144,7 +145,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    ConvectiveOperator();
+    ConvectiveOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -153,7 +154,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    ConvectiveOperator(const ConvectiveOperator& from);
+    ConvectiveOperator(const ConvectiveOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -164,7 +165,7 @@ private:
      *
      * \return A reference to this object.
      */
-    ConvectiveOperator& operator=(const ConvectiveOperator& that);
+    ConvectiveOperator& operator=(const ConvectiveOperator& that) = delete;
 };
 } // namespace IBAMR
 

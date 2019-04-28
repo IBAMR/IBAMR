@@ -40,7 +40,6 @@
 #include "CartesianGridGeometry.h"
 #include "IntVector.h"
 #include "PatchLevel.h"
-#include "boost/array.hpp"
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/CartGridFunction.h"
 #include "tbox/Array.h"
@@ -103,7 +102,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~SurfaceTensionForceFunction();
+    virtual ~SurfaceTensionForceFunction() = default;
 
     /*!
      * \brief Set the smoother (kernel function) to mollify the Heaviside function.
@@ -154,7 +153,7 @@ public:
     /*!
      * \note This concrete IBTK::CartGridFunction is time-dependent.
      */
-    bool isTimeDependent() const;
+    bool isTimeDependent() const override;
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
@@ -169,7 +168,7 @@ public:
                                  double data_time,
                                  bool initial_time = false,
                                  int coarsest_ln = -1,
-                                 int finest_ln = -1);
+                                 int finest_ln = -1) override;
 
     /*!
      * Set the data on the patch interior.
@@ -180,7 +179,7 @@ public:
                         double data_time,
                         bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
 
     //\}
 
@@ -190,7 +189,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    SurfaceTensionForceFunction();
+    SurfaceTensionForceFunction() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -199,7 +198,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SurfaceTensionForceFunction(const SurfaceTensionForceFunction& from);
+    SurfaceTensionForceFunction(const SurfaceTensionForceFunction& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -210,7 +209,7 @@ private:
      *
      * \return A reference to this object.
      */
-    SurfaceTensionForceFunction& operator=(const SurfaceTensionForceFunction& that);
+    SurfaceTensionForceFunction& operator=(const SurfaceTensionForceFunction& that) = delete;
 
     /*!
      * Convert the level set variable to a smoothed heaviside function.

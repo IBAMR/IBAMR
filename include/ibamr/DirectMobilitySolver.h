@@ -73,14 +73,14 @@ public:
     /*!
      * \brief The only constructor of this class.
      */
-    DirectMobilitySolver(const std::string& object_name,
+    DirectMobilitySolver(std::string object_name,
                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                          SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy);
 
     /*!
      * \brief Destructor for this class.
      */
-    ~DirectMobilitySolver();
+    virtual ~DirectMobilitySolver();
 
     /*!
      * \brief Register a prototypical structure with a particular mobility
@@ -260,14 +260,14 @@ private:
 
     // Solver stuff
     std::string d_object_name;
-    bool d_is_initialized;
+    bool d_is_initialized = false;
     double d_solution_time, d_current_time, d_new_time;
     SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
 
     // Structure(s) stuff.
     //\{
-    std::map<std::string, std::pair<double*, double*> > d_mat_map;
-    std::map<std::string, double*> d_geometric_mat_map;
+    std::map<std::string, std::pair<std::vector<double>, std::vector<double> > > d_mat_map;
+    std::map<std::string, std::vector<double> > d_geometric_mat_map;
     std::map<std::string, int> d_mat_proc_map;
     std::map<std::string, std::vector<unsigned> > d_mat_prototype_id_map;
     std::map<std::string, std::vector<std::vector<unsigned> > > d_mat_actual_id_map;
@@ -277,7 +277,7 @@ private:
     std::map<std::string, unsigned int> d_mat_parts_map;
     std::map<std::string, std::pair<double, double> > d_mat_scale_map;
     std::map<std::string, std::string> d_mat_filename_map;
-    std::map<std::string, std::pair<int*, int*> > d_ipiv_map; // permutation matrices for LU
+    std::map<std::string, std::pair<std::vector<int>, std::vector<int> > > d_ipiv_map; // permutation matrices for LU
 
     // PETSc representation of matrices.
     std::map<std::string, std::pair<Mat, Mat> > d_petsc_mat_map;
@@ -289,13 +289,13 @@ private:
     double d_rho;
 
     // Parameters used in this class.
-    double d_f_periodic_corr;
-    bool d_recompute_mob_mat;
+    double d_f_periodic_corr = 0.0;
+    bool d_recompute_mob_mat = false;
     double d_svd_replace_value, d_svd_eps;
 
 }; // DirectMobilitySolver
 
-} // IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

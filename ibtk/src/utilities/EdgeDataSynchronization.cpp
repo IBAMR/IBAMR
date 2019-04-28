@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -51,7 +50,6 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "boost/array.hpp"
 #include "ibtk/EdgeDataSynchronization.h"
 #include "ibtk/EdgeSynchCopyFillPattern.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
@@ -74,20 +72,6 @@ namespace IBTK
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-
-EdgeDataSynchronization::EdgeDataSynchronization()
-    : d_is_initialized(false),
-      d_transaction_comps(),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_coarsen_alg(NULL),
-      d_coarsen_scheds(),
-      d_refine_alg(),
-      d_refine_scheds()
-{
-    // intentionally blank
-    return;
-} // EdgeDataSynchronization
 
 EdgeDataSynchronization::~EdgeDataSynchronization()
 {
@@ -124,12 +108,12 @@ EdgeDataSynchronization::initializeOperatorState(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (const auto& transaction_comp : d_transaction_comps)
     {
-        const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
+        const std::string& coarsen_op_name = transaction_comp.d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
         {
-            const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
+            const int data_idx = transaction_comp.d_data_idx;
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
 #if !defined(NDEBUG)
@@ -146,7 +130,7 @@ EdgeDataSynchronization::initializeOperatorState(
         }
     }
 
-    CoarsenPatchStrategy<NDIM>* coarsen_strategy = NULL;
+    CoarsenPatchStrategy<NDIM>* coarsen_strategy = nullptr;
     d_coarsen_scheds.resize(d_finest_ln + 1);
     if (registered_coarsen_op)
     {
@@ -162,9 +146,9 @@ EdgeDataSynchronization::initializeOperatorState(
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         d_refine_alg[axis] = new RefineAlgorithm<NDIM>();
-        for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+        for (const auto& transaction_comp : d_transaction_comps)
         {
-            const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
+            const int data_idx = transaction_comp.d_data_idx;
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
             Pointer<EdgeVariable<NDIM, double> > ec_var = var;
@@ -174,7 +158,7 @@ EdgeDataSynchronization::initializeOperatorState(
                            << "  only double-precision edge-centered data is supported."
                            << std::endl);
             }
-            Pointer<RefineOperator<NDIM> > refine_op = NULL;
+            Pointer<RefineOperator<NDIM> > refine_op = nullptr;
             Pointer<VariableFillPattern<NDIM> > fill_pattern = new EdgeSynchCopyFillPattern(axis);
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source
@@ -233,12 +217,12 @@ EdgeDataSynchronization::resetTransactionComponents(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (const auto& transaction_comp : d_transaction_comps)
     {
-        const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
+        const std::string& coarsen_op_name = transaction_comp.d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
         {
-            const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
+            const int data_idx = transaction_comp.d_data_idx;
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
 #if !defined(NDEBUG)
@@ -267,9 +251,9 @@ EdgeDataSynchronization::resetTransactionComponents(
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         d_refine_alg[axis] = new RefineAlgorithm<NDIM>();
-        for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+        for (const auto& transaction_comp : d_transaction_comps)
         {
-            const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
+            const int data_idx = transaction_comp.d_data_idx;
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
             Pointer<EdgeVariable<NDIM, double> > ec_var = var;
@@ -279,7 +263,7 @@ EdgeDataSynchronization::resetTransactionComponents(
                            << "  only double-precision edge-centered data is supported."
                            << std::endl);
             }
-            Pointer<RefineOperator<NDIM> > refine_op = NULL;
+            Pointer<RefineOperator<NDIM> > refine_op = nullptr;
             Pointer<VariableFillPattern<NDIM> > fill_pattern = new EdgeSynchCopyFillPattern(axis);
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source

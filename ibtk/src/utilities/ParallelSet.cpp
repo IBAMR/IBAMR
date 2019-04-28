@@ -49,25 +49,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ParallelSet::ParallelSet() : d_set(), d_pending_additions(), d_pending_removals()
-{
-    // intentionally blank
-    return;
-} // ParallelSet
-
-ParallelSet::ParallelSet(const ParallelSet& from)
-    : d_set(from.d_set), d_pending_additions(from.d_pending_additions), d_pending_removals(from.d_pending_removals)
-{
-    // intentionally blank
-    return;
-} // ParallelSet
-
-ParallelSet::~ParallelSet()
-{
-    // intentionally blank
-    return;
-} // ~ParallelSet
-
 ParallelSet& ParallelSet::operator=(const ParallelSet& that)
 {
     if (this != &that)

@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <ostream>
 #include <string>
 
@@ -43,7 +44,6 @@
 #include "IntVector.h"
 #include "SideGeometry.h"
 #include "SideOverlap.h"
-#include "boost/array.hpp"
 #include "ibtk/SideNoCornersFillPattern.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
@@ -69,14 +69,7 @@ SideNoCornersFillPattern::SideNoCornersFillPattern(const int stencil_width,
     : d_stencil_width(stencil_width),
       d_include_dst_patch_box(include_dst_patch_box),
       d_include_edges_on_dst_level(include_edges_on_dst_level),
-      d_include_edges_on_src_level(include_edges_on_src_level),
-      d_target_level_num(-1)
-{
-    // intentionally blank
-    return;
-} // SideNoCornersFillPattern
-
-SideNoCornersFillPattern::~SideNoCornersFillPattern()
+      d_include_edges_on_src_level(include_edges_on_src_level)
 {
     // intentionally blank
     return;
@@ -95,11 +88,11 @@ SideNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry
 #if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);
 #endif
-    const SideGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
+    auto const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
 #if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
 #endif
-    boost::array<BoxList<NDIM>, NDIM> dst_boxes;
+    std::array<BoxList<NDIM>, NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
     {
         const Box<NDIM>& dst_box = t_dst_geometry->getBox();
@@ -167,11 +160,11 @@ SideNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometry<NDIM>& dst_g
 #if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);
 #endif
-    const SideGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
+    auto const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
 #if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
 #endif
-    boost::array<BoxList<NDIM>, NDIM> dst_boxes;
+    std::array<BoxList<NDIM>, NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
     {
         const Box<NDIM>& dst_box = t_dst_geometry->getBox();

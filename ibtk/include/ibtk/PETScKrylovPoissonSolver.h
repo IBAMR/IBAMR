@@ -64,14 +64,14 @@ public:
     /*!
      * \brief Constructor.
      */
-    PETScKrylovPoissonSolver(const std::string& object_name,
+    PETScKrylovPoissonSolver(std::string object_name,
                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                             const std::string& default_options_prefix);
+                             std::string default_options_prefix);
 
     /*!
      * \brief Destructor.
      */
-    ~PETScKrylovPoissonSolver();
+    ~PETScKrylovPoissonSolver() = default;
 
 protected:
 private:
@@ -80,7 +80,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PETScKrylovPoissonSolver();
+    PETScKrylovPoissonSolver() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -89,7 +89,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScKrylovPoissonSolver(const PETScKrylovPoissonSolver& from);
+    PETScKrylovPoissonSolver(const PETScKrylovPoissonSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -100,7 +100,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScKrylovPoissonSolver& operator=(const PETScKrylovPoissonSolver& that);
+    PETScKrylovPoissonSolver& operator=(const PETScKrylovPoissonSolver& that) = delete;
 };
 } // namespace IBTK
 

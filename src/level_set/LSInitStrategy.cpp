@@ -32,6 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <utility>
+
 #include "ibamr/LSInitStrategy.h"
 #include "ibamr/namespaces.h"
 #include "tbox/RestartManager.h"
@@ -44,18 +46,9 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LSInitStrategy::LSInitStrategy(const std::string& object_name, bool register_for_restart)
-    : d_object_name(object_name), d_registered_for_restart(register_for_restart)
+LSInitStrategy::LSInitStrategy(std::string object_name, bool register_for_restart)
+    : d_object_name(std::move(object_name)), d_registered_for_restart(register_for_restart)
 {
-    // Some default values.
-    d_ls_order = FIRST_ORDER_LS;
-    d_max_its = 100;
-    d_abs_tol = 1e-5;
-    d_enable_logging = false;
-    d_bc_coef = NULL;
-    d_reinitialize_ls = false;
-    d_reinit_interval = 0;
-
     if (d_registered_for_restart)
     {
         RestartManager::getManager()->registerRestartItem(d_object_name, this);

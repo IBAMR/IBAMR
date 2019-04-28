@@ -32,14 +32,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <algorithm>
 #include <fstream>
 #include <limits>
 #include <map>
-#include <math.h>
+#include <cmath>
 #include <sstream>
-#include <stddef.h>
-#include <stdio.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -60,7 +59,6 @@
 #include "PatchLevel.h"
 #include "SideData.h"
 #include "SideIndex.h"
-#include "boost/array.hpp"
 #include "boost/multi_array.hpp"
 #include "ibamr/IBFEInstrumentPanel.h"
 #include "ibamr/IBFEMethod.h"
@@ -117,7 +115,7 @@ linear_interp(const Vector& X,
               const double* const /*x_upper*/,
               const double* const dx)
 {
-    boost::array<bool, NDIM> is_lower;
+    std::array<bool, NDIM> is_lower;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         is_lower[d] = X[d] < X_cell[d];
@@ -177,7 +175,7 @@ linear_interp(const Vector& X,
 #if !defined(NDEBUG)
     TBOX_ASSERT(v.getDepth() == N);
 #endif
-    boost::array<bool, NDIM> is_lower;
+    std::array<bool, NDIM> is_lower;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         is_lower[d] = X[d] < X_cell[d];
@@ -242,7 +240,7 @@ linear_interp(const Vector& X,
     Vector U(Vector::Zero());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        boost::array<bool, NDIM> is_lower;
+        std::array<bool, NDIM> is_lower;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             if (d == axis)
@@ -298,30 +296,7 @@ linear_interp(const Vector& X,
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const int part)
-    : d_meter_radii(),
-      d_num_meters(0),
-      d_quad_order(),
-      d_input_quad_order(),
-      d_use_adaptive_quadrature(),
-      d_quad_type(),
-      d_part(part),
-      d_initialized(false),
-      d_num_nodes(),
-      d_U_dof_idx(),
-      d_dX_dof_idx(),
-      d_nodes(),
-      d_node_dof_IDs(),
-      d_meter_systems(),
-      d_meter_meshes(),
-      d_meter_mesh_names(),
-      d_nodeset_IDs_for_meters(),
-      d_instrument_dump_interval(),
-      d_flow_values(),
-      d_mean_pressure_values(),
-      d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d"),
-      d_mean_pressure_stream(),
-      d_flux_stream(),
-      d_quad_point_map()
+    : d_part(part), d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d")
 {
     // get input data
     IBFEInstrumentPanel::getFromInput(input_db);
@@ -332,36 +307,13 @@ IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Dat
     // set up file streams
     if (SAMRAI_MPI::getRank() == 0)
     {
-        std::ostringstream press_output;
-        std::ostringstream flux_output;
-        press_output << d_plot_directory_name << "/"
-                     << ""
-                     << "mean_pressure.dat";
-        d_mean_pressure_stream.open(press_output.str().c_str());
-        flux_output << d_plot_directory_name << "/"
-                    << ""
-                    << "flux.dat";
-        d_flux_stream.open(flux_output.str().c_str());
+        d_mean_pressure_stream.open(d_plot_directory_name + "/mean_pressure.dat");
+        d_flux_stream.open(d_plot_directory_name + "/flux.dat");
         d_mean_pressure_stream.precision(15);
         d_flux_stream.precision(15);
     }
 }
 
-IBFEInstrumentPanel::~IBFEInstrumentPanel()
-{
-    // Close the log file stream.
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-        d_mean_pressure_stream.close();
-        d_flux_stream.close();
-    }
-    // delete vectors of pointers
-    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
-    {
-        delete d_meter_systems[ii];
-        delete d_meter_meshes[ii];
-    }
-}
 
 void
 IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_ops)
@@ -386,7 +338,17 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     std::vector<std::set<dof_id_type> > temp_node_dof_ID_sets;
     std::vector<std::vector<libMesh::Point> > temp_nodes;
     std::vector<libMesh::Point> meter_centroids;
+    // new API in 1.4.0
+#if 1 <= LIBMESH_MAJOR_VERSION && 4 <= LIBMESH_MINOR_VERSION
+    const std::vector<std::tuple<dof_id_type, boundary_id_type> > node_list = boundary_info.build_node_list();
+    for (const std::tuple<dof_id_type, boundary_id_type>& pair : node_list)
+    {
+        nodes.push_back(std::get<0>(pair));
+        bcs.push_back(std::get<1>(pair));
+    }
+#else
     boundary_info.build_node_list(nodes, bcs);
+#endif
 
     // check to make sure there are node sets to work with
     if (nodes.size() == 0 || bcs.size() == 0 || (nodes.size() != bcs.size()))
@@ -427,11 +389,8 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     // on all the processes.
     for (int jj = 0; jj < d_nodeset_IDs_for_meters.size(); ++jj)
     {
-        for (std::set<dof_id_type>::iterator it = temp_node_dof_ID_sets[jj].begin();
-             it != temp_node_dof_ID_sets[jj].end();
-             ++it)
+        for (const auto& node_id : temp_node_dof_ID_sets[jj])
         {
-            const dof_id_type node_id = *it;
             temp_node_dof_IDs[jj].push_back(node_id);
             const Node* node = &mesh->node_ref(node_id);
             temp_nodes[jj].push_back(*node);
@@ -484,10 +443,8 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     // initialize meshes and number of nodes
     for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
-        d_meter_meshes.push_back(new SerialMesh(comm_in, NDIM));
-        std::ostringstream id;
-        id << d_nodeset_IDs_for_meters[jj];
-        d_meter_mesh_names.push_back("meter_mesh_" + id.str());
+        d_meter_meshes.emplace_back(new SerialMesh(comm_in, NDIM));
+        d_meter_mesh_names.push_back("meter_mesh_" + std::to_string(d_nodeset_IDs_for_meters[jj]));
         d_num_nodes[jj] = d_nodes[jj].size();
     }
 
@@ -511,6 +468,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
         {
             Elem* elem = new Tri3;
             elem->set_id(jj);
+            // libMesh will delete elem
             elem = d_meter_meshes[ii]->add_elem(elem);
             elem->set_node(0) = d_meter_meshes[ii]->node_ptr(d_num_nodes[ii]);
             elem->set_node(1) = d_meter_meshes[ii]->node_ptr(jj);
@@ -523,13 +481,12 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     // initialize meter mesh equation systems, for both velocity and displacement
     for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
-        d_meter_systems.push_back(new EquationSystems(*d_meter_meshes[jj]));
-        LinearImplicitSystem& velocity_sys =
-            d_meter_systems[jj]->add_system<LinearImplicitSystem>(IBFEMethod::VELOCITY_SYSTEM_NAME);
+        d_meter_systems.emplace_back(new EquationSystems(*d_meter_meshes[jj]));
+        auto& velocity_sys = d_meter_systems[jj]->add_system<LinearImplicitSystem>(IBFEMethod::VELOCITY_SYSTEM_NAME);
         velocity_sys.add_variable("U_0", static_cast<Order>(1), LAGRANGE);
         velocity_sys.add_variable("U_1", static_cast<Order>(1), LAGRANGE);
         velocity_sys.add_variable("U_2", static_cast<Order>(1), LAGRANGE);
-        LinearImplicitSystem& displacement_sys =
+        auto& displacement_sys =
             d_meter_systems[jj]->add_system<LinearImplicitSystem>(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
         displacement_sys.add_variable("dX_0", static_cast<Order>(1), LAGRANGE);
         displacement_sys.add_variable("dX_1", static_cast<Order>(1), LAGRANGE);
@@ -596,7 +553,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
 
     // get the finest spacing of fluid grid
     const IntVector<NDIM>& ratio_to_level_zero = hierarchy->getPatchLevel(finest_ln)->getRatio();
-    boost::array<double, NDIM> dx_finest;
+    std::array<double, NDIM> dx_finest;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         dx_finest[d] = dx_coarsest[d] / static_cast<double>(ratio_to_level_zero(d));
@@ -632,19 +589,19 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
         const Box<NDIM> domain_box_level = Box<NDIM>::refine(domain_box, ratio);
         const Index<NDIM>& domain_box_level_lower = domain_box_level.lower();
         const Index<NDIM>& domain_box_level_upper = domain_box_level.upper();
-        boost::array<double, NDIM> dx;
+        std::array<double, NDIM> dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dx[d] = dx_coarsest[d] / static_cast<double>(ratio(d));
         }
 
         Pointer<PatchLevel<NDIM> > finer_level =
-            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel<NDIM> >(NULL));
+            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel<NDIM> >(nullptr));
         const IntVector<NDIM>& finer_ratio = (ln < finest_ln ? finer_level->getRatio() : IntVector<NDIM>(1));
         const Box<NDIM> finer_domain_box_level = Box<NDIM>::refine(domain_box, finer_ratio);
         const Index<NDIM>& finer_domain_box_level_lower = finer_domain_box_level.lower();
         const Index<NDIM>& finer_domain_box_level_upper = finer_domain_box_level.upper();
-        boost::array<double, NDIM> finer_dx;
+        std::array<double, NDIM> finer_dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             finer_dx[d] = dx_coarsest[d] / static_cast<double>(finer_ratio(d));
@@ -659,8 +616,8 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
             FEType fe_type = displacement_sys.variable_type(0);
 
             // set up FE objects
-            UniquePtr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
-            UniquePtr<QBase> qrule(QBase::build(d_quad_type, NDIM - 1, d_quad_order[jj]));
+            std::unique_ptr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
+            std::unique_ptr<QBase> qrule(QBase::build(d_quad_type, NDIM - 1, d_quad_order[jj]));
             fe_elem->attach_quadrature_rule(qrule.get());
             //  for evaluating the displacement system
             const std::vector<Real>& JxW = fe_elem->get_JxW();
@@ -801,7 +758,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                     );
                     if (U_cc_data)
                     {
-                        for (QuadPointMap::const_iterator it = qp_range.first; it != qp_range.second; ++it)
+                        for (auto it = qp_range.first; it != qp_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const double& JxW = it->second.JxW;
@@ -814,7 +771,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                     }
                     if (U_sc_data)
                     {
-                        for (QuadPointMap::const_iterator it = qp_range.first; it != qp_range.second; ++it)
+                        for (auto it = qp_range.first; it != qp_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const double& JxW = it->second.JxW;
@@ -827,7 +784,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                     }
                     if (P_cc_data)
                     {
-                        for (QuadPointMap::const_iterator it = qp_range.first; it != qp_range.second; ++it)
+                        for (auto it = qp_range.first; it != qp_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const double& JxW = it->second.JxW;
@@ -879,7 +836,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
         FEType fe_type = velocity_sys.variable_type(0);
 
         // set up FE objects
-        UniquePtr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
+        std::unique_ptr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
         QGauss qrule(NDIM - 1, fe_type.default_quadrature_order());
         fe_elem->attach_quadrature_rule(&qrule);
 
@@ -1026,13 +983,13 @@ IBFEInstrumentPanel::initializeSystemDependentData(IBFEMethod* ib_method_ops, co
     U_system.update_global_solution(U_coords_parent);
 
     // get displacement and velocity systems for meter mesh
-    LinearImplicitSystem& velocity_sys =
+    auto& velocity_sys =
         d_meter_systems[meter_mesh_number]->get_system<LinearImplicitSystem>(IBFEMethod::VELOCITY_SYSTEM_NAME);
     const unsigned int velocity_sys_num = velocity_sys.number();
     NumericVector<double>& velocity_solution = *velocity_sys.solution;
     NumericVector<double>& velocity_coords = velocity_sys.get_vector("serial solution");
 
-    LinearImplicitSystem& displacement_sys =
+    auto& displacement_sys =
         d_meter_systems[meter_mesh_number]->get_system<LinearImplicitSystem>(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
     const unsigned int displacement_sys_num = displacement_sys.number();
     NumericVector<double>& displacement_solution = *displacement_sys.solution;
@@ -1124,9 +1081,9 @@ IBFEInstrumentPanel::initializeSystemDependentData(IBFEMethod* ib_method_ops, co
         double radius_squared = 0.0;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            radius_squared += pow((*centroid_node)(d) + centroid_disp[d] - (*node)(d) + node_disp[d], 2.0);
+            radius_squared += std::pow((*centroid_node)(d) + centroid_disp[d] - (*node)(d) + node_disp[d], 2.0);
         }
-        max_meter_radius = std::max(pow(radius_squared, 0.5), max_meter_radius);
+        max_meter_radius = std::max(std::pow(radius_squared, 0.5), max_meter_radius);
     }
     d_meter_radii[meter_mesh_number] = max_meter_radius;
 }

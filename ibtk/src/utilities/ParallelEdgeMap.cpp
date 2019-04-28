@@ -51,18 +51,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ParallelEdgeMap::ParallelEdgeMap() : d_edge_map(), d_pending_additions(), d_pending_removals()
-{
-    // intentionally blank
-    return;
-} // ParallelEdgeMap
-
-ParallelEdgeMap::~ParallelEdgeMap()
-{
-    // intentionally blank
-    return;
-} // ~ParallelEdgeMap
-
 int
 ParallelEdgeMap::addEdge(const std::pair<int, int>& link, int mastr_idx)
 {
@@ -117,17 +105,13 @@ ParallelEdgeMap::communicateData()
 
     static const int SIZE = 3;
     std::vector<int> transactions(SIZE * num_transactions, 0);
-    for (std::multimap<int, std::pair<int, int> >::const_iterator cit = d_pending_additions.begin();
-         cit != d_pending_additions.end();
-         ++cit, ++offset)
+    for (auto cit = d_pending_additions.begin(); cit != d_pending_additions.end(); ++cit, ++offset)
     {
         transactions[SIZE * offset] = cit->first;
         transactions[SIZE * offset + 1] = cit->second.first;
         transactions[SIZE * offset + 2] = cit->second.second;
     }
-    for (std::multimap<int, std::pair<int, int> >::const_iterator cit = d_pending_removals.begin();
-         cit != d_pending_removals.end();
-         ++cit, ++offset)
+    for (auto cit = d_pending_removals.begin(); cit != d_pending_removals.end(); ++cit, ++offset)
     {
         transactions[SIZE * offset] = cit->first;
         transactions[SIZE * offset + 1] = cit->second.first;
@@ -156,23 +140,21 @@ ParallelEdgeMap::communicateData()
         }
     }
 
-    typedef std::multimap<int, std::pair<int, int> >::iterator multimap_iterator;
-    typedef std::multimap<int, std::pair<int, int> >::const_iterator multimap_const_iterator;
-    for (multimap_const_iterator cit = d_pending_additions.begin(); cit != d_pending_additions.end(); ++cit)
+    using multimap_iterator = std::multimap<int, std::pair<int, int> >::iterator;
+    for (const auto& pending_addition : d_pending_additions)
     {
-        d_edge_map.insert(std::make_pair(cit->first, cit->second));
+        d_edge_map.insert(std::make_pair(pending_addition.first, pending_addition.second));
     }
 
-    typedef std::multimap<int, std::pair<int, int> >::const_iterator multimap_const_iterator;
-    for (multimap_const_iterator cit = d_pending_removals.begin(); cit != d_pending_removals.end(); ++cit)
+    for (const auto& pending_removal : d_pending_removals)
     {
-        int mastr_idx = cit->first;
-        const std::pair<int, int>& link = cit->second;
+        int mastr_idx = pending_removal.first;
+        const std::pair<int, int>& link = pending_removal.second;
 
         bool found_link = false;
 
         std::pair<multimap_iterator, multimap_iterator> range = d_edge_map.equal_range(mastr_idx);
-        for (multimap_iterator it = range.first; it != range.second && !found_link; ++it)
+        for (auto it = range.first; it != range.second && !found_link; ++it)
         {
             if (it->second == link)
             {
@@ -195,7 +177,7 @@ ParallelEdgeMap::communicateData()
             }
 
             std::pair<multimap_iterator, multimap_iterator> range = d_edge_map.equal_range(mastr_idx);
-            for (multimap_iterator it = range.first; it != range.second && !found_link; ++it)
+            for (auto it = range.first; it != range.second && !found_link; ++it)
             {
                 if (it->second == link)
                 {

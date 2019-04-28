@@ -37,25 +37,19 @@
 #include "ibamr/MobilityFunctions.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/LSiloDataWriter.h"
 
 namespace IBAMR
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CIBMethod::CIBMethod(const std::string& object_name,
+CIBMethod::CIBMethod(std::string object_name,
                      Pointer<Database> input_db,
                      const int no_structures,
                      bool register_for_restart)
-    : IBMethod(object_name, input_db, register_for_restart), CIBStrategy(no_structures)
+    : IBMethod(std::move(object_name), input_db, register_for_restart), CIBStrategy(no_structures)
 {
-    // Set some default values
-    d_eul_lambda_idx = -1;
-    d_output_eul_lambda = false;
-    d_lambda_dump_interval = 0;
-    d_time_integrator_needs_regrid = false;
-    d_u_phys_bdry_op = NULL;
-
     // Resize some arrays.
     d_constrained_velocity_fcns_data.resize(d_num_rigid_parts);
     d_ext_force_torque_fcn_data.resize(d_num_rigid_parts);
@@ -189,7 +183,7 @@ CIBMethod::registerEulerianCommunicationAlgorithms()
     Pointer<RefineAlgorithm<NDIM> > refine_alg_lambda;
     Pointer<RefineOperator<NDIM> > refine_op;
     refine_alg_lambda = new RefineAlgorithm<NDIM>();
-    refine_op = NULL;
+    refine_op = nullptr;
     refine_alg_lambda->registerRefine(d_eul_lambda_idx, d_eul_lambda_idx, d_eul_lambda_idx, refine_op);
     registerGhostfillRefineAlgorithm(d_object_name + "::eul_lambda", refine_alg_lambda);
 
@@ -345,8 +339,8 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
     {
         Pointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", finest_ln);
         Vec lambda_petsc_vec_parallel = ptr_lagmultpr->getVec();
-        Vec lambda_lag_vec_parallel = NULL;
-        Vec lambda_lag_vec_seq = NULL;
+        Vec lambda_lag_vec_parallel = nullptr;
+        Vec lambda_lag_vec_seq = nullptr;
 
         VecDuplicate(lambda_petsc_vec_parallel, &lambda_lag_vec_parallel);
         d_l_data_manager->scatterPETScToLagrangian(lambda_petsc_vec_parallel, lambda_lag_vec_parallel, finest_ln);
@@ -389,8 +383,8 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
     if (d_output_eul_lambda)
     {
         // Prepare the LData to spread
-        std::vector<Pointer<LData> > spread_lag_data(finest_ln + 1, Pointer<LData>(NULL)),
-            position_lag_data(finest_ln + 1, Pointer<LData>(NULL));
+        std::vector<Pointer<LData> > spread_lag_data(finest_ln + 1, Pointer<LData>(nullptr)),
+            position_lag_data(finest_ln + 1, Pointer<LData>(nullptr));
 
         spread_lag_data[finest_ln] = d_l_data_manager->getLData("lambda", finest_ln);
         ;
@@ -407,7 +401,7 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
                 lambda_data->fillAll(0.0);
             }
         }
-        d_l_data_manager->spread(d_eul_lambda_idx, spread_lag_data, position_lag_data, /*f_phys_bdry_op*/ NULL);
+        d_l_data_manager->spread(d_eul_lambda_idx, spread_lag_data, position_lag_data, /*f_phys_bdry_op*/ nullptr);
     }
 
     // New state becomes current state for the next timestep.
@@ -486,7 +480,7 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int struct_ln = getStructuresLevelNumber();
     std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(struct_ln);
     std::sort(structIDs.begin(), structIDs.end());
-    const unsigned structs_on_this_ln = static_cast<unsigned>(structIDs.size());
+    const auto structs_on_this_ln = static_cast<unsigned>(structIDs.size());
 
     for (unsigned struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
     {
@@ -550,9 +544,8 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
 
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (const auto& node_idx : local_nodes)
         {
-            const LNode* const node_idx = *cit;
             const int local_idx = node_idx->getLocalPETScIndex();
             const Vector& displacement_0 = node_idx->getInitialPeriodicDisplacement();
             double* const X0_unshifted = &X0_unshifted_data_array[local_idx][0];
@@ -569,8 +562,8 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     }
 
     // Initialize initial center of mass of structures.
-    std::vector<Eigen::Vector3d> X0_com(d_num_rigid_parts, Eigen::Vector3d::Zero());
-    std::vector<Pointer<LData> > X0_unshifted_data_vec(finest_ln + 1, Pointer<LData>(NULL));
+    IBTK::EigenAlignedVector<Eigen::Vector3d> X0_com(d_num_rigid_parts, Eigen::Vector3d::Zero());
+    std::vector<Pointer<LData> > X0_unshifted_data_vec(finest_ln + 1, Pointer<LData>(nullptr));
     X0_unshifted_data_vec[finest_ln] = d_l_data_manager->getLData("X0_unshifted", finest_ln);
     computeCOMOfStructures(X0_com, X0_unshifted_data_vec);
     for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
@@ -623,7 +616,7 @@ CIBMethod::spreadForce(
 #if !defined(NDEBUG)
         TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
-        if (f_phys_bdry_op == NULL)
+        if (f_phys_bdry_op == nullptr)
         {
             IBMethod::spreadForce(f_data_idx, d_u_phys_bdry_op, f_prolongation_scheds, data_time);
         }
@@ -645,7 +638,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
     const double dt = MathUtilities<double>::equalEps(d_rho, 0.0) ? 0.0 : (new_time - current_time);
 
     // Fill the rotation matrix of structures with rotation angle 0.5*(W^n)*dt.
-    std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
+    IBTK::EigenAlignedVector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
     setRotationMatrix(d_rot_vel_current, d_quaternion_current, d_quaternion_half, rotation_mat, 0.5 * dt);
 
     // Get the domain limits.
@@ -676,13 +669,12 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
 
         // Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const unsigned structs_on_this_ln = static_cast<unsigned>(structIDs.size());
+        const auto structs_on_this_ln = static_cast<unsigned>(structIDs.size());
 #if !defined(NDEBUG)
         TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (const auto& node_idx : local_nodes)
         {
-            const LNode* const node_idx = *cit;
             const int lag_idx = node_idx->getLagrangianIndex();
             const int local_idx = node_idx->getLocalPETScIndex();
             double* const X_half = &X_half_array[local_idx][0];
@@ -692,6 +684,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
 
             int struct_handle = 0;
             if (structs_on_this_ln > 1) struct_handle = getStructureHandle(lag_idx);
+            TBOX_ASSERT(struct_handle != -1);
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -765,7 +758,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
     const bool is_steady_stokes = MathUtilities<double>::equalEps(d_rho, 0.0);
 
     // Fill the rotation matrix of structures with rotation angle (W^n+1)*dt.
-    std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
+    IBTK::EigenAlignedVector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
     setRotationMatrix(
         is_steady_stokes ? d_rot_vel_new : d_rot_vel_half, d_quaternion_current, d_quaternion_new, rotation_mat, dt);
 
@@ -796,14 +789,13 @@ CIBMethod::midpointStep(double current_time, double new_time)
 
         // Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const unsigned structs_on_this_ln = (unsigned)structIDs.size();
+        const auto structs_on_this_ln = structIDs.size();
 #if !defined(NDEBUG)
         TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
 
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (const auto& node_idx : local_nodes)
         {
-            const LNode* const node_idx = *cit;
             const int lag_idx = node_idx->getLagrangianIndex();
             const int local_idx = node_idx->getLocalPETScIndex();
             double* const X_new = &X_new_array[local_idx][0];
@@ -813,6 +805,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
 
             int struct_handle = 0;
             if (structs_on_this_ln > 1) struct_handle = getStructureHandle(lag_idx);
+            TBOX_ASSERT(struct_handle != -1);
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -906,21 +899,17 @@ CIBMethod::putToDatabase(Pointer<Database> db)
 
     for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
     {
-        std::ostringstream U, W, C, Q;
-        U << "U_" << struct_no;
-        W << "W_" << struct_no;
-        C << "C_" << struct_no;
-        Q << "Q_" << struct_no;
-
+        const std::string struct_no_str = std::to_string(struct_no);
+        
         double Q_coeffs[4] = { d_quaternion_current[struct_no].w(),
                                d_quaternion_current[struct_no].x(),
                                d_quaternion_current[struct_no].y(),
                                d_quaternion_current[struct_no].z() };
 
-        db->putDoubleArray(U.str(), &d_trans_vel_current[struct_no][0], 3);
-        db->putDoubleArray(W.str(), &d_rot_vel_current[struct_no][0], 3);
-        db->putDoubleArray(C.str(), &d_center_of_mass_current[struct_no][0], 3);
-        db->putDoubleArray(Q.str(), &Q_coeffs[0], 4);
+        db->putDoubleArray("U_" + struct_no_str, &d_trans_vel_current[struct_no][0], 3);
+        db->putDoubleArray("W_" + struct_no_str, &d_rot_vel_current[struct_no][0], 3);
+        db->putDoubleArray("C_" + struct_no_str, &d_center_of_mass_current[struct_no][0], 3);
+        db->putDoubleArray("Q_" + struct_no_str, &Q_coeffs[0], 4);
     }
 
     return;
@@ -1130,9 +1119,8 @@ CIBMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[part];
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (const auto& node_idx : local_nodes)
         {
-            const LNode* const node_idx = *cit;
             const int lag_idx = node_idx->getLagrangianIndex();
             if (part_idx_range.first <= lag_idx && lag_idx < part_idx_range.second)
             {
@@ -1186,9 +1174,8 @@ CIBMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rigid
     F.setZero();
     const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (const auto& node_idx : local_nodes)
     {
-        const LNode* const node_idx = *cit;
         const int lag_idx = node_idx->getLagrangianIndex();
         const int local_idx = node_idx->getLocalPETScIndex();
         const double* const P = &p_data_array[local_idx][0];
@@ -1233,7 +1220,7 @@ CIBMethod::copyVecToArray(Vec b,
                           const int array_rank)
 {
     if (struct_ids.empty()) return;
-    const unsigned num_structs = static_cast<unsigned>(struct_ids.size());
+    const auto num_structs = static_cast<unsigned>(struct_ids.size());
 
     // Get the Lagrangian indices of the structures.
     std::vector<int> map;
@@ -1306,7 +1293,7 @@ CIBMethod::copyArrayToVec(Vec b,
                           const int array_rank)
 {
     if (struct_ids.empty()) return;
-    const unsigned num_structs = static_cast<unsigned>(struct_ids.size());
+    const auto num_structs = static_cast<unsigned>(struct_ids.size());
 
     // Get the Lagrangian indices of the structures.
     std::vector<int> map;
@@ -1392,14 +1379,14 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
 
     // Get the size of matrix.
     unsigned num_nodes = 0;
-    for (unsigned i = 0; i < prototype_struct_ids.size(); ++i)
+    for (const auto& prototype_struct_id : prototype_struct_ids)
     {
-        num_nodes += getNumberOfNodes(prototype_struct_ids[i]);
+        num_nodes += getNumberOfNodes(prototype_struct_id);
     }
     const int size = num_nodes * NDIM;
 
     // Get the underlying data pointer for the mobility matrix.
-    double* mobility_mat_data = NULL;
+    double* mobility_mat_data = nullptr;
     if (rank == managing_rank)
     {
 #if !defined(NDEBUG)
@@ -1412,8 +1399,8 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
     }
 
     // Get the position data
-    double* XW = NULL;
-    if (rank == managing_rank) XW = new double[size];
+    std::vector<double> XW;
+    if (rank == managing_rank) XW.resize(size);
     Vec X;
     if (initial_time)
     {
@@ -1426,7 +1413,7 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
         getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
         X = (*X_half_data)[struct_ln]->getVec();
     }
-    copyVecToArray(X, XW, prototype_struct_ids, /*depth*/ NDIM, managing_rank);
+    copyVecToArray(X, XW.data(), prototype_struct_ids, /*depth*/ NDIM, managing_rank);
 
     // Generate mobility matrix
     if (rank == managing_rank)
@@ -1434,7 +1421,7 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
         if (mat_type == RPY)
         {
             MobilityFunctions::constructRPYMobilityMatrix(
-                ib_kernel, mu, grid_dx[0], &XW[0], num_nodes, f_periodic_corr, mobility_mat_data);
+                ib_kernel, mu, grid_dx[0], XW.data(), num_nodes, f_periodic_corr, mobility_mat_data);
         }
         else if (mat_type == EMPIRICAL)
         {
@@ -1443,7 +1430,7 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
                                                                 rho,
                                                                 dt,
                                                                 grid_dx[0],
-                                                                &XW[0],
+                                                                XW.data(),
                                                                 num_nodes,
                                                                 0,
                                                                 f_periodic_corr,
@@ -1458,7 +1445,7 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
 
     // Regularize the mobility matrix
     Vec W = d_l_data_manager->getLData("regulator", struct_ln)->getVec();
-    copyVecToArray(W, XW, prototype_struct_ids, /*depth*/ NDIM, managing_rank);
+    copyVecToArray(W, XW.data(), prototype_struct_ids, /*depth*/ NDIM, managing_rank);
     if (rank == managing_rank)
     {
         for (int i = 0; i < size; ++i)
@@ -1472,7 +1459,6 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
                 }
             }
         }
-        delete[] XW;
         MatDenseRestoreArray(mobility_mat, &mobility_mat_data);
     }
 
@@ -1491,19 +1477,19 @@ CIBMethod::constructGeometricMatrix(const std::string& /*mat_name*/,
 
     // Get the size of matrix
     unsigned num_nodes = 0;
-    for (unsigned i = 0; i < prototype_struct_ids.size(); ++i)
+    for (const auto& prototype_struct_id : prototype_struct_ids)
     {
-        num_nodes += getNumberOfNodes(prototype_struct_ids[i]);
+        num_nodes += getNumberOfNodes(prototype_struct_id);
     }
     int row_size = num_nodes * NDIM;
     int col_size = s_max_free_dofs * static_cast<int>(prototype_struct_ids.size());
     int block_size = s_max_free_dofs;
 
     // Get the position data.
-    double* X_data = NULL;
-    if (rank == managing_rank) X_data = new double[row_size];
+    std::vector<double> X_data;
+    if (rank == managing_rank) X_data.resize(row_size);
     Vec X = d_l_data_manager->getLData("X0_unshifted", struct_ln)->getVec();
-    copyVecToArray(X, X_data, prototype_struct_ids, /*depth*/ NDIM, managing_rank);
+    copyVecToArray(X, X_data.data(), prototype_struct_ids, /*depth*/ NDIM, managing_rank);
 
     // Fill the geometric matrix.
     if (rank == managing_rank)
@@ -1514,7 +1500,7 @@ CIBMethod::constructGeometricMatrix(const std::string& /*mat_name*/,
         TBOX_ASSERT(n_rows == row_size);
         TBOX_ASSERT(n_cols == col_size);
 #endif
-        double* geometric_mat_data = NULL;
+        double* geometric_mat_data = nullptr;
         MatDenseGetArray(geometric_mat, &geometric_mat_data);
         std::fill(geometric_mat_data, geometric_mat_data + (row_size * col_size), 0.0);
 
@@ -1565,7 +1551,6 @@ CIBMethod::constructGeometricMatrix(const std::string& /*mat_name*/,
 #endif
             }
         }
-        delete[] X_data;
         MatDenseRestoreArray(geometric_mat, &geometric_mat_data);
     }
 
@@ -1597,7 +1582,7 @@ CIBMethod::rotateArray(double* array,
     {
         const bool position_system = (depth % NDIM == 0);
         const bool force_system = (depth % s_max_free_dofs == 0);
-        const unsigned num_structs = static_cast<unsigned>(struct_ids.size());
+        const auto num_structs = static_cast<unsigned>(struct_ids.size());
         unsigned offset = 0;
 
         for (unsigned k = 0; k < num_structs; ++k)
@@ -1686,7 +1671,7 @@ CIBMethod::getFromInput(Pointer<Database> input_db)
     if (input_db->keyExists("lambda_filenames"))
     {
         tbox::Array<std::string> lambda_filenames = input_db->getStringArray("lambda_filenames");
-        TBOX_ASSERT(lambda_filenames.size() == (int)d_num_rigid_parts);
+        TBOX_ASSERT(lambda_filenames.size() == static_cast<int>(d_num_rigid_parts));
         for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
         {
             d_lambda_filename[struct_no] = lambda_filenames[struct_no];
@@ -1696,7 +1681,7 @@ CIBMethod::getFromInput(Pointer<Database> input_db)
     if (input_db->keyExists("weight_filenames"))
     {
         tbox::Array<std::string> weight_filenames = input_db->getStringArray("weight_filenames");
-        TBOX_ASSERT(weight_filenames.size() == (int)d_num_rigid_parts);
+        TBOX_ASSERT(weight_filenames.size() == static_cast<int>(d_num_rigid_parts));
         for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
         {
             d_reg_filename[struct_no] = weight_filenames[struct_no];
@@ -1724,17 +1709,13 @@ CIBMethod::getFromRestart()
 
     for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
     {
-        std::ostringstream U, W, C, Q;
-        U << "U_" << struct_no;
-        W << "W_" << struct_no;
-        C << "C_" << struct_no;
-        Q << "Q_" << struct_no;
-
+        const std::string struct_no_str = std::to_string(struct_no);
+        
         double Q_coeffs[4];
-        db->getDoubleArray(U.str(), &d_trans_vel_current[struct_no][0], 3);
-        db->getDoubleArray(W.str(), &d_rot_vel_current[struct_no][0], 3);
-        db->getDoubleArray(C.str(), &d_center_of_mass_current[struct_no][0], 3);
-        db->getDoubleArray(Q.str(), &Q_coeffs[0], 4);
+        db->getDoubleArray("U_" + struct_no_str, &d_trans_vel_current[struct_no][0], 3);
+        db->getDoubleArray("W_" + struct_no_str, &d_rot_vel_current[struct_no][0], 3);
+        db->getDoubleArray("C_" + struct_no_str, &d_center_of_mass_current[struct_no][0], 3);
+        db->getDoubleArray("Q_" + struct_no_str, &Q_coeffs[0], 4);
 
         d_quaternion_current[struct_no].w() = Q_coeffs[0];
         d_quaternion_current[struct_no].x() = Q_coeffs[1];
@@ -1747,7 +1728,7 @@ CIBMethod::getFromRestart()
 } // getFromRestart
 
 void
-CIBMethod::computeCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass, std::vector<Pointer<LData> >& X_data)
+CIBMethod::computeCOMOfStructures(IBTK::EigenAlignedVector<Eigen::Vector3d>& center_of_mass, std::vector<Pointer<LData> >& X_data)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1768,20 +1749,20 @@ CIBMethod::computeCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass, 
 
         // Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const unsigned structs_on_this_ln = static_cast<unsigned>(structIDs.size());
+        const auto structs_on_this_ln = static_cast<unsigned>(structIDs.size());
 #if !defined(NDEBUG)
         TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
 
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (const auto& node_idx : local_nodes)
         {
-            const LNode* const node_idx = *cit;
             const int lag_idx = node_idx->getLagrangianIndex();
             const int local_idx = node_idx->getLocalPETScIndex();
             const double* const X = &X_data_array[local_idx][0];
 
             int struct_handle = 0;
             if (structs_on_this_ln > 1) struct_handle = getStructureHandle(lag_idx);
+            TBOX_ASSERT(struct_handle != -1);
 
             for (unsigned int d = 0; d < NDIM; ++d) center_of_mass[struct_handle][d] += X[d];
         }
@@ -1818,7 +1799,7 @@ CIBMethod::setRegularizationWeight(const int level_number)
 
     // Get structures on this level.
     const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(level_number);
-    const unsigned structs_on_this_ln = static_cast<unsigned>(structIDs.size());
+    const auto structs_on_this_ln = static_cast<unsigned>(structIDs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
@@ -1828,9 +1809,8 @@ CIBMethod::setRegularizationWeight(const int level_number)
         const std::pair<int, int>& lag_idx_range = d_struct_lag_idx_range[struct_no];
         if (d_reg_filename[struct_no].empty())
         {
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            for (const auto& node_idx : local_nodes)
             {
-                const LNode* const node_idx = *cit;
                 const int lag_idx = node_idx->getLagrangianIndex();
                 if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                 {
@@ -1895,9 +1875,8 @@ CIBMethod::setRegularizationWeight(const int level_number)
             }
         }
 
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (const auto& node_idx : local_nodes)
         {
-            const LNode* const node_idx = *cit;
             const int lag_idx = node_idx->getLagrangianIndex();
             if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
             {
@@ -1938,7 +1917,7 @@ CIBMethod::setInitialLambda(const int level_number)
 
     // Get structures on this level.
     const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(level_number);
-    const unsigned structs_on_this_ln = static_cast<unsigned>(structIDs.size());
+    const auto structs_on_this_ln = static_cast<unsigned>(structIDs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
@@ -1998,9 +1977,8 @@ CIBMethod::setInitialLambda(const int level_number)
             }
         }
 
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (const auto& node_idx : local_nodes)
         {
-            const LNode* const node_idx = *cit;
             const int lag_idx = node_idx->getLagrangianIndex();
             if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
             {

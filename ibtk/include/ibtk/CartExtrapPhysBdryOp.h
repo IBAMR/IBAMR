@@ -79,7 +79,7 @@ public:
      * \see setPatchDataIndices
      * \see setExtrapolationType
      */
-    CartExtrapPhysBdryOp();
+    CartExtrapPhysBdryOp() = default;
 
     /*!
      * \brief Constructor.
@@ -120,7 +120,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~CartExtrapPhysBdryOp();
+    ~CartExtrapPhysBdryOp() = default;
 
     /*!
      * \brief Reset the patch data index operated upon by this class.
@@ -166,7 +166,7 @@ public:
      */
     void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
                                        double fill_time,
-                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
@@ -175,7 +175,7 @@ public:
      *
      * Presently, the refine operator stencil width is zero.
      */
-    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const;
+    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const override;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -199,7 +199,7 @@ public:
     void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
                           const SAMRAI::hier::Patch<NDIM>& coarse,
                           const SAMRAI::hier::Box<NDIM>& fine_box,
-                          const SAMRAI::hier::IntVector<NDIM>& ratio);
+                          const SAMRAI::hier::IntVector<NDIM>& ratio) override;
 
     /*!
      * Function to perform user-defined postprocess data refine operations.
@@ -223,7 +223,7 @@ public:
     void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
                            const SAMRAI::hier::Patch<NDIM>& coarse,
                            const SAMRAI::hier::Box<NDIM>& fine_box,
-                           const SAMRAI::hier::IntVector<NDIM>& ratio);
+                           const SAMRAI::hier::IntVector<NDIM>& ratio) override;
 
     //\}
 
@@ -236,7 +236,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartExtrapPhysBdryOp(const CartExtrapPhysBdryOp& from);
+    CartExtrapPhysBdryOp(const CartExtrapPhysBdryOp& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -247,7 +247,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartExtrapPhysBdryOp& operator=(const CartExtrapPhysBdryOp& that);
+    CartExtrapPhysBdryOp& operator=(const CartExtrapPhysBdryOp& that) = delete;
 
     /*!
      * \brief The implementation of setPhysicalBoundaryConditions() for
@@ -291,7 +291,7 @@ private:
      * The type of extrapolation to perform.  Choices are presently "CONSTANT",
      * "LINEAR", or "QUADRATIC".
      */
-    std::string d_extrap_type;
+    std::string d_extrap_type = "NULL";
 };
 } // namespace IBTK
 

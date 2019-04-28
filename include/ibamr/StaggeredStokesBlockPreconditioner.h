@@ -45,6 +45,7 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -77,7 +78,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~StaggeredStokesBlockPreconditioner();
+    ~StaggeredStokesBlockPreconditioner() = default;
 
     /*!
      * \brief Indicate whether the preconditioner needs a velocity subdomain
@@ -95,7 +96,7 @@ public:
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
+    void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs) override;
 
     /*!
      * \brief Indicate whether the preconditioner needs a pressure subdomain
@@ -130,7 +131,7 @@ public:
      *for the pressure
      */
     virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
+                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -150,7 +151,7 @@ public:
      * \note A default implementation is provided which does nothing.
      */
     void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -163,7 +164,7 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void deallocateSolverState();
+    void deallocateSolverState() override;
 
 protected:
     /*!
@@ -181,9 +182,9 @@ protected:
 
     // Hierarchy data.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > d_velocity_data_ops, d_pressure_data_ops;
-    int d_velocity_wgt_idx, d_pressure_wgt_idx;
+    int d_velocity_wgt_idx = IBTK::invalid_index, d_pressure_wgt_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 
 private:
@@ -192,7 +193,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    StaggeredStokesBlockPreconditioner();
+    StaggeredStokesBlockPreconditioner() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -201,7 +202,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesBlockPreconditioner(const StaggeredStokesBlockPreconditioner& from);
+    StaggeredStokesBlockPreconditioner(const StaggeredStokesBlockPreconditioner& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -212,7 +213,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesBlockPreconditioner& operator=(const StaggeredStokesBlockPreconditioner& that);
+    StaggeredStokesBlockPreconditioner& operator=(const StaggeredStokesBlockPreconditioner& that) = delete;
 };
 } // namespace IBAMR
 

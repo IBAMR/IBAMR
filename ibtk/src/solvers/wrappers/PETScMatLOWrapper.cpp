@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <string>
 
 #include "IntVector.h"
@@ -56,15 +55,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PETScMatLOWrapper::PETScMatLOWrapper(const std::string& object_name, const Mat& petsc_mat)
-    : LinearOperator(object_name),
-      d_petsc_mat(petsc_mat),
-      d_x(NULL),
-      d_y(NULL),
-      d_z(NULL),
-      d_petsc_x(NULL),
-      d_petsc_y(NULL),
-      d_petsc_z(NULL)
+PETScMatLOWrapper::PETScMatLOWrapper(std::string object_name, Mat petsc_mat)
+    : LinearOperator(std::move(object_name)), d_petsc_mat(std::move(petsc_mat))
 {
     // intentionally blank
     return;

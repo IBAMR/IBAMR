@@ -308,8 +308,8 @@ IBEELKinematics3d::setImmersedBodyLayout(Pointer<PatchHierarchy<NDIM> > patch_hi
     }
 
     // No. of points on the backbone and till head.
-    d_HeadNs = int(ceil(LENGTH_TILLHEAD / d_mesh_width[0]));
-    d_TailNs = int(ceil((LENGTH_FISH - LENGTH_TILLHEAD) / d_mesh_width[0]));
+    d_HeadNs = static_cast<int>(ceil(LENGTH_TILLHEAD / d_mesh_width[0]));
+    d_TailNs = static_cast<int>(ceil((LENGTH_FISH - LENGTH_TILLHEAD) / d_mesh_width[0]));
     d_BodyNs = d_HeadNs + d_TailNs + 1;
 
     d_IBPts.resize(d_BodyNs);
@@ -320,8 +320,8 @@ IBEELKinematics3d::setImmersedBodyLayout(Pointer<PatchHierarchy<NDIM> > patch_hi
         const double s = (i - 1) * d_mesh_width[0];
         const double section = sqrt(2 * WIDTH_HEAD * s - s * s);
         const double height = MINOR_AXIS * std::sqrt(1 - pow((s - MAJOR_AXIS) / MAJOR_AXIS, 2));
-        const int NumPtsInSection = int(ceil(section / d_mesh_width[1]));
-        const int NumPtsInHeight = int(ceil(height / d_mesh_width[2]));
+        const int NumPtsInSection = static_cast<int>(ceil(section / d_mesh_width[1]));
+        const int NumPtsInHeight = static_cast<int>(ceil(height / d_mesh_width[2]));
         d_IBPts[i - 1] = std::make_pair(NumPtsInSection, NumPtsInHeight);
         d_IBWidthHeight[i - 1] = std::make_pair(section, height);
     }
@@ -331,8 +331,8 @@ IBEELKinematics3d::setImmersedBodyLayout(Pointer<PatchHierarchy<NDIM> > patch_hi
         const double s = (i - 1) * d_mesh_width[0];
         const double section = WIDTH_HEAD * (LENGTH_FISH - s) / (LENGTH_FISH - LENGTH_TILLHEAD);
         const double height = MINOR_AXIS * std::sqrt(1 - pow((s - MAJOR_AXIS) / MAJOR_AXIS, 2));
-        const int NumPtsInSection = int(ceil(section / d_mesh_width[1]));
-        const int NumPtsInHeight = int(ceil(height / d_mesh_width[2]));
+        const int NumPtsInSection = static_cast<int>(ceil(section / d_mesh_width[1]));
+        const int NumPtsInHeight = static_cast<int>(ceil(height / d_mesh_width[2]));
         d_IBPts[i - 1] = std::make_pair(NumPtsInSection, NumPtsInHeight);
         d_IBWidthHeight[i - 1] = std::make_pair(section, height);
     }

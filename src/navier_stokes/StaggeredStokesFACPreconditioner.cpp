@@ -66,12 +66,6 @@ StaggeredStokesFACPreconditioner::StaggeredStokesFACPreconditioner(const std::st
     return;
 } // StaggeredStokesFACPreconditioner
 
-StaggeredStokesFACPreconditioner::~StaggeredStokesFACPreconditioner()
-{
-    // intentionally blank
-    return;
-} // ~StaggeredStokesFACPreconditioner
-
 void
 StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
 {

@@ -33,6 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <ostream>
 #include <string>
@@ -53,7 +54,6 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include <Eigen/Dense>
-#include "boost/array.hpp"
 #include "boost/multi_array.hpp"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LData.h"
@@ -965,13 +965,13 @@ ib4_kernel_fcn(double r)
     if (r < 1.0)
     {
         const double t2 = r * r;
-        const double t6 = sqrt(-0.4e1 * t2 + 0.4e1 * r + 0.1e1);
+        const double t6 = std::sqrt(-0.4e1 * t2 + 0.4e1 * r + 0.1e1);
         return -r / 0.4e1 + 0.3e1 / 0.8e1 + t6 / 0.8e1;
     }
     else if (r < 2.0)
     {
         const double t2 = r * r;
-        const double t6 = sqrt(0.12e2 * r - 0.7e1 - 0.4e1 * t2);
+        const double t6 = std::sqrt(0.12e2 * r - 0.7e1 - 0.4e1 * t2);
         return -r / 0.4e1 + 0.5e1 / 0.8e1 - t6 / 0.8e1;
     }
     else
@@ -986,9 +986,9 @@ NINT(double a)
     return (a >= 0.0 ? static_cast<int>(a + 0.5) : static_cast<int>(a - 0.5));
 }
 
-typedef boost::multi_array<double, 1> Weight;
-typedef boost::array<Weight, NDIM> TensorProductWeights;
-typedef boost::multi_array<double, NDIM> MLSWeight;
+using Weight = boost::multi_array<double, 1>;
+using TensorProductWeights = std::array<Weight, NDIM>;
+using MLSWeight = boost::multi_array<double, NDIM>;
 
 void
 perform_mls(const int stencil_sz,
@@ -1170,8 +1170,8 @@ get_mls_weights(const std::string& kernel_fcn,
     }
     else if (kernel_fcn == "USER_DEFINED")
     {
-        boost::array<double, NDIM> X_cell;
-        boost::array<int, NDIM> stencil_center;
+        std::array<double, NDIM> X_cell;
+        std::array<int, NDIM> stencil_center;
 
         // Determine the Cartesian cell in which X is located.
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -1553,8 +1553,8 @@ LEInteractor::interpolate(double* const Q_data,
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1617,8 +1617,8 @@ LEInteractor::interpolate(double* const Q_data,
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1635,7 +1635,7 @@ LEInteractor::interpolate(double* const Q_data,
     // Interpolate.
     if (!local_indices.empty())
     {
-        boost::array<double, NDIM> x_lower_node, x_upper_node;
+        std::array<double, NDIM> x_lower_node, x_upper_node;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             x_lower_node[d] = x_lower[d] - 0.5 * dx[d];
@@ -1694,8 +1694,8 @@ LEInteractor::interpolate(double* const Q_data,
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1712,7 +1712,7 @@ LEInteractor::interpolate(double* const Q_data,
     // Interpolate.
     if (!local_indices.empty())
     {
-        boost::array<double, NDIM> x_lower_axis, x_upper_axis;
+        std::array<double, NDIM> x_lower_axis, x_upper_axis;
         const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -1740,9 +1740,9 @@ LEInteractor::interpolate(double* const Q_data,
                         periodic_shifts,
                         interp_fcn,
                         axis);
-            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            for (const auto& local_index : local_indices)
             {
-                Q_data[NDIM * local_indices[k] + axis] = Q_data_axis[local_indices[k]];
+                Q_data[NDIM * local_index + axis] = Q_data_axis[local_index];
             }
         }
     }
@@ -1783,8 +1783,8 @@ LEInteractor::interpolate(double* const Q_data,
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1801,7 +1801,7 @@ LEInteractor::interpolate(double* const Q_data,
     // Interpolate.
     if (!local_indices.empty())
     {
-        boost::array<double, NDIM> x_lower_axis, x_upper_axis;
+        std::array<double, NDIM> x_lower_axis, x_upper_axis;
         const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -1832,9 +1832,9 @@ LEInteractor::interpolate(double* const Q_data,
                         periodic_shifts,
                         interp_fcn,
                         axis);
-            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            for (const auto& local_index : local_indices)
             {
-                Q_data[NDIM * local_indices[k] + axis] = Q_data_axis[local_indices[k]];
+                Q_data[NDIM * local_index + axis] = Q_data_axis[local_index];
             }
         }
     }
@@ -2009,8 +2009,8 @@ LEInteractor::interpolate(double* const Q_data,
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -2122,8 +2122,8 @@ LEInteractor::interpolate(double* const Q_data,
     const IntVector<NDIM> ig_upper = iupper + q_gcw;
 
     // Get boundary info.
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -2203,8 +2203,8 @@ LEInteractor::interpolate(double* const Q_data,
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -2222,7 +2222,7 @@ LEInteractor::interpolate(double* const Q_data,
     // Interpolate.
     if (!local_indices.empty())
     {
-        boost::array<double, NDIM> x_lower_node, x_upper_node;
+        std::array<double, NDIM> x_lower_node, x_upper_node;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             x_lower_node[d] = x_lower[d] - 0.5 * dx[d];
@@ -2280,8 +2280,8 @@ LEInteractor::interpolate(double* const Q_data,
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -2299,7 +2299,7 @@ LEInteractor::interpolate(double* const Q_data,
     // Interpolate.
     if (!local_indices.empty())
     {
-        boost::array<double, NDIM> x_lower_axis, x_upper_axis;
+        std::array<double, NDIM> x_lower_axis, x_upper_axis;
         const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -2327,9 +2327,9 @@ LEInteractor::interpolate(double* const Q_data,
                         periodic_shifts,
                         interp_fcn,
                         axis);
-            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            for (const auto& local_index : local_indices)
             {
-                Q_data[NDIM * local_indices[k] + axis] = Q_data_axis[local_indices[k]];
+                Q_data[NDIM * local_index + axis] = Q_data_axis[local_index];
             }
         }
     }
@@ -2410,8 +2410,8 @@ LEInteractor::interpolate(double* const Q_data,
     }
 
     // Get boundary info.
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -2430,7 +2430,7 @@ LEInteractor::interpolate(double* const Q_data,
     const int nindices = static_cast<int>(local_indices.size());
     if (nindices)
     {
-        boost::array<double, NDIM> x_lower_axis, x_upper_axis;
+        std::array<double, NDIM> x_lower_axis, x_upper_axis;
         IntVector<NDIM> stencil_lower, stencil_upper;
 
         for (int axis = 0; axis < NDIM; ++axis)
@@ -2511,8 +2511,8 @@ LEInteractor::interpolate(double* const Q_data,
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -2530,7 +2530,7 @@ LEInteractor::interpolate(double* const Q_data,
     // Interpolate.
     if (!local_indices.empty())
     {
-        boost::array<double, NDIM> x_lower_axis, x_upper_axis;
+        std::array<double, NDIM> x_lower_axis, x_upper_axis;
         const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -2561,9 +2561,9 @@ LEInteractor::interpolate(double* const Q_data,
                         periodic_shifts,
                         interp_fcn,
                         axis);
-            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            for (const auto& local_index : local_indices)
             {
-                Q_data[NDIM * local_indices[k] + axis] = Q_data_axis[local_indices[k]];
+                Q_data[NDIM * local_index + axis] = Q_data_axis[local_index];
             }
         }
     }
@@ -2749,8 +2749,8 @@ LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -2813,8 +2813,8 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -2831,7 +2831,7 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
     // Spread.
     if (!local_indices.empty())
     {
-        boost::array<double, NDIM> x_lower_node, x_upper_node;
+        std::array<double, NDIM> x_lower_node, x_upper_node;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             x_lower_node[d] = x_lower[d] - 0.5 * dx[d];
@@ -2890,8 +2890,8 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -2908,7 +2908,7 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
     // Spread.
     if (!local_indices.empty())
     {
-        boost::array<double, NDIM> x_lower_axis, x_upper_axis;
+        std::array<double, NDIM> x_lower_axis, x_upper_axis;
         const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -2920,9 +2920,9 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
             }
             x_lower_axis[axis] -= 0.5 * dx[axis];
             x_upper_axis[axis] += 0.5 * dx[axis];
-            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            for (const auto& local_index : local_indices)
             {
-                Q_data_axis[local_indices[k]] = Q_data[NDIM * local_indices[k] + axis];
+                Q_data_axis[local_index] = Q_data[NDIM * local_index + axis];
             }
             spread(q_data->getPointer(axis),
                    SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis),
@@ -2979,8 +2979,8 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -2997,7 +2997,7 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
     // Spread.
     if (!local_indices.empty())
     {
-        boost::array<double, NDIM> x_lower_axis, x_upper_axis;
+        std::array<double, NDIM> x_lower_axis, x_upper_axis;
         const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -3012,9 +3012,9 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
                     x_upper_axis[d] += 0.5 * dx[d];
                 }
             }
-            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            for (const auto& local_index : local_indices)
             {
-                Q_data_axis[local_indices[k]] = Q_data[NDIM * local_indices[k] + axis];
+                Q_data_axis[local_index] = Q_data[NDIM * local_index + axis];
             }
             spread(q_data->getPointer(axis),
                    EdgeGeometry<NDIM>::toEdgeBox(q_data->getBox(), axis),
@@ -3205,8 +3205,8 @@ LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -3318,8 +3318,8 @@ LEInteractor::spread(Pointer<CellData<NDIM, double> > mask_data,
     const IntVector<NDIM> ig_upper = iupper + q_gcw;
 
     // Get boundary info.
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -3400,8 +3400,8 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -3419,7 +3419,7 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
     // Spread.
     if (!local_indices.empty())
     {
-        boost::array<double, NDIM> x_lower_node, x_upper_node;
+        std::array<double, NDIM> x_lower_node, x_upper_node;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             x_lower_node[d] = x_lower[d] - 0.5 * dx[d];
@@ -3472,8 +3472,8 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -3491,7 +3491,7 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
     // Spread.
     if (!local_indices.empty())
     {
-        boost::array<double, NDIM> x_lower_axis, x_upper_axis;
+        std::array<double, NDIM> x_lower_axis, x_upper_axis;
         const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -3503,9 +3503,9 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
             }
             x_lower_axis[axis] -= 0.5 * dx[axis];
             x_upper_axis[axis] += 0.5 * dx[axis];
-            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            for (const auto& local_index : local_indices)
             {
-                Q_data_axis[local_indices[k]] = Q_data[NDIM * local_indices[k] + axis];
+                Q_data_axis[local_index] = Q_data[NDIM * local_index + axis];
             }
             spread(q_data->getPointer(axis),
                    SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis),
@@ -3601,8 +3601,8 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
     }
 
     // Determine the boundary info.
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -3621,7 +3621,7 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
     const int nindices = static_cast<int>(local_indices.size());
     if (nindices)
     {
-        boost::array<double, NDIM> x_lower_axis, x_upper_axis;
+        std::array<double, NDIM> x_lower_axis, x_upper_axis;
         IntVector<NDIM> stencil_lower, stencil_upper;
         for (int axis = 0; axis < NDIM; ++axis)
         {
@@ -3696,8 +3696,8 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
-    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    std::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -3715,7 +3715,7 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
     // Spread.
     if (!local_indices.empty())
     {
-        boost::array<double, NDIM> x_lower_axis, x_upper_axis;
+        std::array<double, NDIM> x_lower_axis, x_upper_axis;
         const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -3730,9 +3730,9 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
                     x_upper_axis[axis] += 0.5 * dx[axis];
                 }
             }
-            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            for (const auto& local_index : local_indices)
             {
-                Q_data_axis[local_indices[k]] = Q_data[NDIM * local_indices[k] + axis];
+                Q_data_axis[local_index] = Q_data[NDIM * local_index + axis];
             }
             spread(q_data->getPointer(axis),
                    EdgeGeometry<NDIM>::toEdgeBox(q_data->getBox(), axis),
@@ -3770,8 +3770,8 @@ LEInteractor::interpolate(double* const Q_data,
                           const double* const x_lower,
                           const double* const x_upper,
                           const double* const dx,
-                          const boost::array<int, NDIM>& /*patch_touches_lower_physical_bdry*/,
-                          const boost::array<int, NDIM>& /*patch_touches_upper_physical_bdry*/,
+                          const std::array<int, NDIM>& /*patch_touches_lower_physical_bdry*/,
+                          const std::array<int, NDIM>& /*patch_touches_upper_physical_bdry*/,
                           const std::vector<int>& local_indices,
                           const std::vector<double>& periodic_shifts,
                           const std::string& interp_fcn,
@@ -4254,8 +4254,8 @@ LEInteractor::spread(double* const q_data,
                      const double* const x_lower,
                      const double* const x_upper,
                      const double* const dx,
-                     const boost::array<int, NDIM>& patch_touches_lower_physical_bdry,
-                     const boost::array<int, NDIM>& patch_touches_upper_physical_bdry,
+                     const std::array<int, NDIM>& patch_touches_lower_physical_bdry,
+                     const std::array<int, NDIM>& patch_touches_upper_physical_bdry,
                      const std::vector<int>& local_indices,
                      const std::vector<double>& periodic_shifts,
                      const std::string& spread_fcn,
@@ -4756,7 +4756,7 @@ LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
 
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    boost::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
+    std::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         patch_touches_lower_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis, 0);
@@ -4780,7 +4780,7 @@ LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
             const Index<NDIM>& i = it.getIndex();
             if (!box.contains(i)) continue;
 
-            boost::array<int, NDIM> offset;
+            std::array<int, NDIM> offset;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (patch_touches_lower_periodic_bdry[d] && i(d) < ilower(d))
@@ -4799,7 +4799,7 @@ LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
                 }
             }
             const LSet<T>& idx_set = it.getItem();
-            for (typename LSet<T>::const_iterator n = idx_set.begin(); n != idx_set.end(); ++n)
+            for (auto n = idx_set.begin(); n != idx_set.end(); ++n)
             {
                 const typename LSet<T>::value_type& idx = *n;
                 local_indices.push_back(idx->getLocalPETScIndex());
@@ -4854,7 +4854,7 @@ LEInteractor::userDefinedInterpolate(double* Q,
 {
     const int* const ilower = q_data_box.lower();
     const int* const iupper = q_data_box.upper();
-    typedef boost::multi_array_types::extent_range range;
+    using range = boost::multi_array_types::extent_range;
     boost::const_multi_array_ref<double, NDIM + 1> q_data(
         q,
         (boost::extents[range(ilower[0] - q_gcw[0], iupper[0] + q_gcw[0] + 1)][range(ilower[1] - q_gcw[1],
@@ -4864,8 +4864,8 @@ LEInteractor::userDefinedInterpolate(double* Q,
 #endif
                        [range(0, q_depth)]),
         boost::fortran_storage_order());
-    boost::array<double, NDIM> X_cell;
-    boost::array<int, NDIM> stencil_center, stencil_lower, stencil_upper;
+    std::array<double, NDIM> X_cell;
+    std::array<int, NDIM> stencil_center, stencil_lower, stencil_upper;
     for (int l = 0; l < num_local_indices; ++l)
     {
         const int s = local_indices[l];
@@ -4982,7 +4982,7 @@ LEInteractor::userDefinedSpread(double* q,
 {
     const int* const ilower = q_data_box.lower();
     const int* const iupper = q_data_box.upper();
-    typedef boost::multi_array_types::extent_range range;
+    using range = boost::multi_array_types::extent_range;
     boost::multi_array_ref<double, NDIM + 1> q_data(
         q,
         (boost::extents[range(ilower[0] - q_gcw[0], iupper[0] + q_gcw[0] + 1)][range(ilower[1] - q_gcw[1],
@@ -4992,8 +4992,8 @@ LEInteractor::userDefinedSpread(double* q,
 #endif
                        [range(0, q_depth)]),
         boost::fortran_storage_order());
-    boost::array<double, NDIM> X_cell;
-    boost::array<int, NDIM> stencil_center, stencil_lower, stencil_upper;
+    std::array<double, NDIM> X_cell;
+    std::array<int, NDIM> stencil_center, stencil_lower, stencil_upper;
     for (int l = 0; l < num_local_indices; ++l)
     {
         const int s = local_indices[l];

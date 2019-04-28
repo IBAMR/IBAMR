@@ -120,7 +120,7 @@ protected:
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     // Nullspace info
-    bool d_has_velocity_nullspace, d_has_pressure_nullspace;
+    bool d_has_velocity_nullspace = false, d_has_pressure_nullspace = false;
 
 private:
     /*!
@@ -130,7 +130,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesSolver(const StaggeredStokesSolver& from);
+    StaggeredStokesSolver(const StaggeredStokesSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -141,7 +141,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesSolver& operator=(const StaggeredStokesSolver& that);
+    StaggeredStokesSolver& operator=(const StaggeredStokesSolver& that) = delete;
 };
 } // namespace IBAMR
 

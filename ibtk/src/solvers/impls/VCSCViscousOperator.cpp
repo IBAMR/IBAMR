@@ -33,7 +33,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
-#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -97,11 +96,11 @@ static Timer* t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-VCSCViscousOperator::VCSCViscousOperator(const std::string& object_name, const bool homogeneous_bc)
-    : SCLaplaceOperator(object_name, homogeneous_bc)
+VCSCViscousOperator::VCSCViscousOperator(std::string object_name, const bool homogeneous_bc)
+    : SCLaplaceOperator(std::move(object_name), homogeneous_bc)
 {
     // Setup the operator to use default vector-valued boundary conditions.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)));
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr)));
 
     // Setup Timers.
     IBTK_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBTK::VCSCViscousOperator::apply()");
@@ -159,7 +158,7 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
     d_x->allocateVectorData();
 
     // Simultaneously fill ghost cell values for all components.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
@@ -200,13 +199,13 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
                                     beta,
                                     d_poisson_spec.getDPatchDataId(),
 #if (NDIM == 2)
-                                    Pointer<NodeVariable<NDIM, double> >(NULL),
+                                    Pointer<NodeVariable<NDIM, double> >(nullptr),
 #elif (NDIM == 3)
-                                    Pointer<EdgeVariable<NDIM, double> >(NULL),
+                                    Pointer<EdgeVariable<NDIM, double> >(nullptr),
 #endif
                                     x_scratch_idx,
                                     x_sc_var,
-                                    Pointer<HierarchyGhostCellInterpolation>(NULL),
+                                    Pointer<HierarchyGhostCellInterpolation>(nullptr),
                                     d_solution_time,
                                     d_D_interp_type,
                                     d_poisson_spec.cIsVariable() ? d_poisson_spec.getCPatchDataId() : -1);
@@ -269,8 +268,8 @@ VCSCViscousOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double
     }
 
     // Setup the interpolation transaction information.
-    d_fill_pattern = NULL;
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    d_fill_pattern = nullptr;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)
     {

@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -74,10 +73,10 @@ public:
      * object.  Data management for this PETSc Vec object is handled by the
      * LData object.
      */
-    LData(const std::string& name,
+    LData(std::string name,
           unsigned int num_local_nodes,
           unsigned int depth,
-          const std::vector<int>& nonlocal_petsc_indices = std::vector<int>(0));
+          std::vector<int> nonlocal_petsc_indices = std::vector<int>(0));
 
     /*!
      * \brief Constructor.
@@ -92,9 +91,9 @@ public:
      * appropriately.  Its value is used to determine the data depth (i.e., the
      * number of data components per node).
      */
-    LData(const std::string& name,
+    LData(std::string name,
           Vec vec,
-          const std::vector<int>& nonlocal_petsc_indices = std::vector<int>(0),
+          std::vector<int> nonlocal_petsc_indices = std::vector<int>(0),
           const bool manage_petsc_vec = true);
 
     /*!
@@ -295,7 +294,7 @@ public:
     /*!
      * \brief Write out object state to the given database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 private:
     /*!
@@ -303,7 +302,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LData();
+    LData() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -312,7 +311,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LData(const LData& from);
+    LData(const LData& from) = delete;
 
     /*
      * Extract the array data.
@@ -328,22 +327,22 @@ private:
     /*
      * The total number of nodes in the mesh.
      */
-    unsigned int d_global_node_count;
+    unsigned int d_global_node_count = 0;
 
     /*
      * The number of local nodes in the mesh.
      */
-    unsigned int d_local_node_count;
+    unsigned int d_local_node_count = 0;
 
     /*
      * The number of local ghost nodes.
      */
-    unsigned int d_ghost_node_count;
+    unsigned int d_ghost_node_count = 0;
 
     /*
      * The depth (i.e., number of components per node) of the LData.
      */
-    unsigned int d_depth;
+    unsigned int d_depth = 0;
 
     /*
      * The nonlocal PETSc indices available in the ghosted local form.
@@ -354,21 +353,21 @@ private:
      * The global PETSc Vec object that contains the mesh data, its underlying
      * array, and a boost::multi_array_ref object that wraps that array.
      */
-    Vec d_global_vec;
-    bool d_managing_petsc_vec;
-    double* d_array;
-    boost::multi_array_ref<double, 1> *d_boost_array, *d_boost_local_array;
-    boost::multi_array_ref<double, 2> *d_boost_vec_array, *d_boost_local_vec_array;
+    Vec d_global_vec = nullptr;
+    bool d_managing_petsc_vec = true;
+    double* d_array = nullptr;
+    boost::multi_array_ref<double, 1>*d_boost_array = nullptr, *d_boost_local_array = nullptr;
+    boost::multi_array_ref<double, 2>*d_boost_vec_array = nullptr, *d_boost_local_vec_array = nullptr;
 
     /*
      * The array corresponding to the PETSc Vec object in local form, its
      * underyling array, and a boost::multi_array_ref object that wraps that
      * array.
      */
-    Vec d_ghosted_local_vec;
-    double* d_ghosted_local_array;
-    boost::multi_array_ref<double, 1>* d_boost_ghosted_local_array;
-    boost::multi_array_ref<double, 2>* d_boost_vec_ghosted_local_array;
+    Vec d_ghosted_local_vec = nullptr;
+    double* d_ghosted_local_array = nullptr;
+    boost::multi_array_ref<double, 1>* d_boost_ghosted_local_array = nullptr;
+    boost::multi_array_ref<double, 2>* d_boost_vec_ghosted_local_array = nullptr;
 };
 } // namespace IBTK
 

@@ -35,22 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <array>
 #include <string>
 #include <vector>
 
-#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
+#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 
-namespace boost
-{
-template <class T, std::size_t N>
-class array;
-} // namespace boost
 namespace SAMRAI
 {
 namespace hier
@@ -137,7 +133,7 @@ public:
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
-                     bool performing_post_sweeps);
+                     bool performing_post_sweeps) override;
 
     //\}
 
@@ -148,12 +144,12 @@ protected:
     void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
                                             int coarsest_reset_ln,
-                                            int finest_reset_ln);
+                                            int finest_reset_ln) override;
 
     /*!
      * \brief Remove implementation-specific hierarchy-dependent data.
      */
-    void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln);
+    void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) override;
 
 private:
     /*!
@@ -161,7 +157,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    StaggeredStokesLevelRelaxationFACOperator();
+    StaggeredStokesLevelRelaxationFACOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -170,7 +166,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesLevelRelaxationFACOperator(const StaggeredStokesLevelRelaxationFACOperator& from);
+    StaggeredStokesLevelRelaxationFACOperator(const StaggeredStokesLevelRelaxationFACOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -181,21 +177,22 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesLevelRelaxationFACOperator& operator=(const StaggeredStokesLevelRelaxationFACOperator& that);
+    StaggeredStokesLevelRelaxationFACOperator& operator=(const StaggeredStokesLevelRelaxationFACOperator& that) = delete;
 
     /*
      * Level solvers and solver parameters.
      */
-    std::string d_level_solver_type, d_level_solver_default_options_prefix;
-    double d_level_solver_abs_residual_tol, d_level_solver_rel_residual_tol;
-    int d_level_solver_max_iterations;
+    std::string d_level_solver_type = StaggeredStokesSolverManager::PETSC_LEVEL_SOLVER,
+                d_level_solver_default_options_prefix;
+    double d_level_solver_abs_residual_tol = 1.0e-50, d_level_solver_rel_residual_tol = 1.0e-5;
+    int d_level_solver_max_iterations = 1;
     std::vector<SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> > d_level_solvers;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
 
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
+    std::vector<std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
 };
 } // namespace IBTK

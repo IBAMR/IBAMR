@@ -35,13 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <array>
 #include <string>
 
 #include "CartesianGridGeometry.h"
 #include "IntVector.h"
 #include "PatchLevel.h"
-#include "boost/array.hpp"
 #include "ibtk/CartGridFunction.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
@@ -94,7 +93,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~SpongeLayerForceFunction();
+    ~SpongeLayerForceFunction() = default;
 
     /*!
      * \name Methods to set the data.
@@ -104,7 +103,7 @@ public:
     /*!
      * \note This concrete IBTK::CartGridFunction is time-dependent.
      */
-    bool isTimeDependent() const;
+    bool isTimeDependent() const override;
 
     /*!
      * Set the data on the patch interior.
@@ -115,7 +114,7 @@ public:
                         double data_time,
                         bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
 
     //\}
 
@@ -125,7 +124,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    SpongeLayerForceFunction();
+    SpongeLayerForceFunction() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -134,7 +133,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SpongeLayerForceFunction(const SpongeLayerForceFunction& from);
+    SpongeLayerForceFunction(const SpongeLayerForceFunction& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -145,7 +144,7 @@ private:
      *
      * \return A reference to this object.
      */
-    SpongeLayerForceFunction& operator=(const SpongeLayerForceFunction& that);
+    SpongeLayerForceFunction& operator=(const SpongeLayerForceFunction& that) = delete;
 
     /*!
      * Set the data on the patch interior.
@@ -165,8 +164,8 @@ private:
                             double kappa,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch);
 
-    boost::array<SAMRAI::tbox::Array<bool>, 2 * NDIM> d_forcing_enabled;
-    boost::array<double, 2 * NDIM> d_width;
+    std::array<SAMRAI::tbox::Array<bool>, 2 * NDIM> d_forcing_enabled;
+    std::array<double, 2 * NDIM> d_width;
     const INSHierarchyIntegrator* const d_fluid_solver;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
 };

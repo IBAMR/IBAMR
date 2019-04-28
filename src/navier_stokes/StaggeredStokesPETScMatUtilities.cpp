@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <array>
 #include <algorithm>
 #include <numeric>
 #include <ostream>
@@ -59,7 +59,6 @@
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "Variable.h"
-#include "boost/array.hpp"
 #include "ibamr/StaggeredStokesPETScMatUtilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
@@ -117,7 +116,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
     // Setup the finite difference stencils.
     static const int uu_stencil_sz = 2 * NDIM + 1;
-    boost::array<Index<NDIM>, uu_stencil_sz> uu_stencil(array_constant<Index<NDIM>, uu_stencil_sz>(Index<NDIM>(0)));
+    std::array<Index<NDIM>, uu_stencil_sz> uu_stencil(array_constant<Index<NDIM>, uu_stencil_sz>(Index<NDIM>(0)));
     for (unsigned int axis = 0, uu_stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++uu_stencil_index)
@@ -126,8 +125,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         }
     }
     static const int up_stencil_sz = 2;
-    boost::array<boost::array<Index<NDIM>, up_stencil_sz>, NDIM> up_stencil(
-        array_constant<boost::array<Index<NDIM>, up_stencil_sz>, NDIM>(
+    std::array<std::array<Index<NDIM>, up_stencil_sz>, NDIM> up_stencil(
+        array_constant<std::array<Index<NDIM>, up_stencil_sz>, NDIM>(
             array_constant<Index<NDIM>, up_stencil_sz>(Index<NDIM>(0))));
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
@@ -137,7 +136,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         }
     }
     static const int pu_stencil_sz = 2 * NDIM;
-    boost::array<Index<NDIM>, pu_stencil_sz> pu_stencil(array_constant<Index<NDIM>, pu_stencil_sz>(Index<NDIM>(0)));
+    std::array<Index<NDIM>, pu_stencil_sz> pu_stencil(array_constant<Index<NDIM>, pu_stencil_sz>(Index<NDIM>(0)));
     for (unsigned int axis = 0, pu_stencil_index = 0; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++pu_stencil_index)
@@ -237,9 +236,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        nlocal ? &d_nnz[0] : NULL,
+                        nlocal ? &d_nnz[0] : nullptr,
                         0,
-                        nlocal ? &o_nnz[0] : NULL,
+                        nlocal ? &o_nnz[0] : nullptr,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -352,7 +351,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 // Temporarily reset the patch geometry object associated with
                 // the patch so that boundary conditions are set at the correct
                 // spatial locations.
-                boost::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+                std::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     shifted_patch_x_lower[d] = patch_x_lower[d];
@@ -369,15 +368,14 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
-                ExtendedRobinBcCoefStrategy* extended_bc_coef =
-                    dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
+                auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
                 if (extended_bc_coef)
                 {
                     extended_bc_coef->clearTargetPatchDataIndex();
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
                 u_bc_coefs[axis]->setBcCoefs(
-                    acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+                    acoef_data, bcoef_data, gcoef_data, nullptr, *patch, trimmed_bdry_box, data_time);
                 if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 // Restore the original patch geometry object.
@@ -472,15 +470,14 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
-                ExtendedRobinBcCoefStrategy* extended_bc_coef =
-                    dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
+                auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
                 if (extended_bc_coef)
                 {
                     extended_bc_coef->clearTargetPatchDataIndex();
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
                 u_bc_coefs[axis]->setBcCoefs(
-                    acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+                    acoef_data, bcoef_data, gcoef_data, nullptr, *patch, trimmed_bdry_box, data_time);
                 if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 // Modify the matrix coefficients to account for homogeneous
@@ -617,14 +614,14 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
                                                                    Pointer<CoarseFineBoundary<NDIM> > /*cf_boundary*/)
 {
     // Clear previously stored index sets.
-    for (unsigned int k = 0; k < is_overlap.size(); ++k)
+    for (auto& k : is_overlap)
     {
-        is_overlap[k].clear();
+        k.clear();
     }
     is_overlap.clear();
-    for (unsigned int k = 0; k < is_nonoverlap.size(); ++k)
+    for (auto& k : is_nonoverlap)
     {
-        is_nonoverlap[k].clear();
+        k.clear();
     }
     is_nonoverlap.clear();
 
@@ -652,7 +649,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
     // Synchronize the patch number at patch boundaries to determine which patch
     // owns a given DOF along patch boundaries.
     RefineAlgorithm<NDIM> bdry_synch_alg;
-    bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
+    bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, nullptr, new SideSynchCopyFillPattern());
     bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
 
     // For a single patch in a periodic domain, the far side DOFs are not master.
@@ -817,9 +814,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level)
 {
     // Destroy the previously stored IS'es
-    for (unsigned int k = 0; k < is_field.size(); ++k)
+    for (auto& k : is_field)
     {
-        is_field[k].clear();
+        k.clear();
     }
     is_field.clear();
     is_field_name.clear();
@@ -905,7 +902,7 @@ StaggeredStokesPETScMatUtilities::constructProlongationOp(Mat& mat,
                                                           const int p_coarse_ao_offset)
 {
     int ierr;
-    Mat p_prolong_mat = NULL;
+    Mat p_prolong_mat = nullptr;
     PETScMatUtilities::constructProlongationOp(mat,
                                                u_op_type,
                                                u_dof_index_idx,

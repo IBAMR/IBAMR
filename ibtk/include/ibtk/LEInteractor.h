@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <iosfwd>
 #include <string>
 #include <vector>
@@ -1219,14 +1218,14 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LEInteractor();
+    LEInteractor() = delete;
 
     /*!
      * \brief Default destructor constructor.
      *
      * \note This destructor is not implemented and should not be used.
      */
-    ~LEInteractor();
+    ~LEInteractor() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -1235,7 +1234,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LEInteractor(const LEInteractor& from);
+    LEInteractor(const LEInteractor& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -1246,7 +1245,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LEInteractor& operator=(const LEInteractor& that);
+    LEInteractor& operator=(const LEInteractor& that) = delete;
 
     /*!
      * Implementation of the IB interpolation operation.
@@ -1261,8 +1260,8 @@ private:
                             const double* x_lower,
                             const double* x_upper,
                             const double* dx,
-                            const boost::array<int, NDIM>& patch_touches_lower_physical_bdry,
-                            const boost::array<int, NDIM>& patch_touches_upper_physical_bdry,
+                            const std::array<int, NDIM>& patch_touches_lower_physical_bdry,
+                            const std::array<int, NDIM>& patch_touches_upper_physical_bdry,
                             const std::vector<int>& local_indices,
                             const std::vector<double>& periodic_shifts,
                             const std::string& interp_fcn,
@@ -1281,8 +1280,8 @@ private:
                        const double* x_lower,
                        const double* x_upper,
                        const double* dx,
-                       const boost::array<int, NDIM>& patch_touches_lower_physical_bdry,
-                       const boost::array<int, NDIM>& patch_touches_upper_physical_bdry,
+                       const std::array<int, NDIM>& patch_touches_lower_physical_bdry,
+                       const std::array<int, NDIM>& patch_touches_upper_physical_bdry,
                        const std::vector<int>& local_indices,
                        const std::vector<double>& periodic_shifts,
                        const std::string& spread_fcn,

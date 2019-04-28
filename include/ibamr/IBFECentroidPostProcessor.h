@@ -52,12 +52,7 @@ public:
     /*!
      * Constructor.
      */
-    IBFECentroidPostProcessor(const std::string& name, IBTK::FEDataManager* fe_data_manager);
-
-    /*!
-     * Destructor.
-     */
-    ~IBFECentroidPostProcessor();
+    IBFECentroidPostProcessor(std::string name, IBTK::FEDataManager* fe_data_manager);
 
     /*!
      * Register a scalar-valued variable for reconstruction.
@@ -71,7 +66,7 @@ public:
                                 libMesh::Order fe_order,
                                 IBTK::ScalarMeshFcnPtr fcn,
                                 const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                                void* fcn_ctx = NULL);
+                                void* fcn_ctx = nullptr) override;
 
     /*!
      * Register a vector-valued variable for reconstruction.
@@ -85,8 +80,8 @@ public:
                                 libMesh::Order var_fe_order,
                                 IBTK::VectorMeshFcnPtr var_fcn,
                                 const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                                void* var_fcn_ctx = NULL,
-                                unsigned int var_dim = NDIM);
+                                void* var_fcn_ctx = nullptr,
+                                unsigned int var_dim = NDIM) override;
 
     /*!
      * Register a tensor-valued variable for reconstruction.
@@ -100,13 +95,13 @@ public:
                                 libMesh::Order var_fe_order,
                                 IBTK::TensorMeshFcnPtr var_fcn,
                                 const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                                void* var_fcn_ctx = NULL,
-                                unsigned int var_dim = NDIM);
+                                void* var_fcn_ctx = nullptr,
+                                unsigned int var_dim = NDIM) override;
 
     /*!
      * Reconstruct the data on the mesh.
      */
-    void reconstructVariables(double data_time);
+    void reconstructVariables(double data_time) override;
 
 private:
     /*!
@@ -114,7 +109,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBFECentroidPostProcessor();
+    IBFECentroidPostProcessor() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -123,7 +118,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBFECentroidPostProcessor(const IBFECentroidPostProcessor& from);
+    IBFECentroidPostProcessor(const IBFECentroidPostProcessor& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -134,7 +129,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBFECentroidPostProcessor& operator=(const IBFECentroidPostProcessor& that);
+    IBFECentroidPostProcessor& operator=(const IBFECentroidPostProcessor& that) = delete;
 };
 } // namespace IBAMR
 

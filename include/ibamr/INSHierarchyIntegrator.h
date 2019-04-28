@@ -353,16 +353,21 @@ public:
     /*!
      * Returns the number of cycles to perform for the present time step.
      */
-    int getNumberOfCycles() const;
+    int getNumberOfCycles() const override;
 
 protected:
+    /*!
+     * Pure virtual method to project the velocity field following a regridding operation.
+     */
+    virtual void regridProjection() = 0;
+
     /*!
      * The constructor for class INSHierarchyIntegrator sets some default
      * values, reads in configuration information from input and restart
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    INSHierarchyIntegrator(const std::string& object_name,
+    INSHierarchyIntegrator(std::string object_name,
                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                            SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > U_var,
                            SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > P_var,
@@ -373,7 +378,7 @@ protected:
     /*!
      * Return the maximum stable time step size.
      */
-    double getMaximumTimeStepSizeSpecialized();
+    double getMaximumTimeStepSizeSpecialized() override;
 
     /*!
      * Determine the largest stable timestep on an individual patch level.
@@ -388,30 +393,30 @@ protected:
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*
      * Boolean value that indicates whether the integrator has been initialized.
      */
-    bool d_integrator_is_initialized;
+    bool d_integrator_is_initialized = false;
 
     /*!
      * Enum indicating the time integration employed for the implicit
      * discretization of the viscous terms.
      */
-    TimeSteppingType d_viscous_time_stepping_type;
+    TimeSteppingType d_viscous_time_stepping_type = TRAPEZOIDAL_RULE;
 
     /*!
      * Enum indicating the time integration employed for the explicit
      * discretization of the convective terms.
      */
-    TimeSteppingType d_convective_time_stepping_type;
+    TimeSteppingType d_convective_time_stepping_type = ADAMS_BASHFORTH;
 
     /*!
      * Enum indicating the time integration employed for the explicit
      * discretization of the convective terms during the \em initial time step.
      */
-    TimeSteppingType d_init_convective_time_stepping_type;
+    TimeSteppingType d_init_convective_time_stepping_type = MIDPOINT_RULE;
 
     /*!
      * Problem coeficients.
@@ -428,21 +433,21 @@ protected:
     /*!
      * The maximum CFL number.
      */
-    double d_cfl_max;
+    double d_cfl_max = 1.0;
 
     /*!
      * Cell tagging criteria based on the relative and absolute magnitudes of
      * the local vorticity.
      */
-    bool d_using_vorticity_tagging;
+    bool d_using_vorticity_tagging = false;
     SAMRAI::tbox::Array<double> d_Omega_rel_thresh, d_Omega_abs_thresh;
-    double d_Omega_max;
+    double d_Omega_max = 0.0;
 
     /*!
      * This boolean value determines whether the pressure is normalized to have
      * zero mean (i.e., discrete integral) at the end of each timestep.
      */
-    bool d_normalize_pressure;
+    bool d_normalize_pressure = false;
 
     /*!
      * This boolean value determines whether the velocity is normalized to have
@@ -451,20 +456,20 @@ protected:
      * This parameter only affects the case in which rho=0 (i.e. the steady
      * Stokes equations).
      */
-    bool d_normalize_velocity;
+    bool d_normalize_velocity = false;
 
     /*!
      * This boolean value determines whether the convective acceleration term is
      * included in the momentum equation.  (If it is not, this solver
      * effectively solves the so-called creeping Stokes equations.)
      */
-    bool d_creeping_flow;
+    bool d_creeping_flow = false;
 
     /*!
      * Threshold that determines whether the velocity field needs to be
      * reprojected following adaptive regridding.
      */
-    double d_regrid_max_div_growth_factor;
+    double d_regrid_max_div_growth_factor = 1.1;
 
     /*!
      * Double precision values are (optional) factors used to rescale the
@@ -473,8 +478,10 @@ protected:
      * Boolean values indicates whether to output various quantities for
      * visualization.
      */
-    double d_U_scale, d_P_scale, d_F_scale, d_Q_scale, d_Omega_scale, d_Div_U_scale, d_EE_scale;
-    bool d_output_U, d_output_P, d_output_F, d_output_Q, d_output_Omega, d_output_Div_U, d_output_EE;
+    double d_U_scale = 1.0, d_P_scale = 1.0, d_F_scale = 1.0, d_Q_scale = 1.0, d_Omega_scale = 1.0, d_Div_U_scale = 1.0,
+           d_EE_scale = 1.0;
+    bool d_output_U = true, d_output_P = true, d_output_F = false, d_output_Q = false, d_output_Omega = true,
+         d_output_Div_U = true, d_output_EE = false;
 
     /*!
      * Fluid solver variables.
@@ -488,21 +495,21 @@ protected:
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_U_init, d_P_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_bc_coefs;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM> *> d_bc_coefs, d_U_bc_coefs, d_U_star_bc_coefs;
-    TractionBcType d_traction_bc_type;
+    TractionBcType d_traction_bc_type = TRACTION;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM> *d_P_bc_coef, *d_Phi_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_P_bdry_bc_fill_op,
         d_Q_bdry_bc_fill_op, d_no_fill_op;
 
-    bool d_use_div_sink_drag_term;
+    bool d_use_div_sink_drag_term = false;
 
     /*!
      * Hierarchy operators and solvers and related configuration data.
      */
     int d_coarsest_reset_ln, d_finest_reset_ln;
 
-    std::string d_convective_op_type;
-    ConvectiveDifferencingType d_convective_difference_form;
+    std::string d_convective_op_type = "DEFAULT";
+    ConvectiveDifferencingType d_convective_difference_form = ADVECTIVE;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_convective_op_input_db;
     SAMRAI::tbox::Pointer<ConvectiveOperator> d_convective_op;
     bool d_convective_op_needs_init;
@@ -538,7 +545,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSHierarchyIntegrator(const INSHierarchyIntegrator& from);
+    INSHierarchyIntegrator(const INSHierarchyIntegrator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -549,7 +556,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSHierarchyIntegrator& operator=(const INSHierarchyIntegrator& that);
+    INSHierarchyIntegrator& operator=(const INSHierarchyIntegrator& that) = delete;
 
     /*!
      * Read input values from a given database.

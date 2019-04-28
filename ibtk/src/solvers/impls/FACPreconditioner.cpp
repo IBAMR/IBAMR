@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <ostream>
 #include <string>
 
@@ -58,22 +57,14 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FACPreconditioner::FACPreconditioner(const std::string& object_name,
+FACPreconditioner::FACPreconditioner(std::string object_name,
                                      Pointer<FACPreconditionerStrategy> fac_strategy,
                                      tbox::Pointer<tbox::Database> input_db,
                                      const std::string& /*default_options_prefix*/)
-    : d_fac_strategy(fac_strategy),
-      d_hierarchy(NULL),
-      d_coarsest_ln(0),
-      d_finest_ln(0),
-      d_cycle_type(V_CYCLE),
-      d_num_pre_sweeps(0),
-      d_num_post_sweeps(2),
-      d_f(),
-      d_r()
+    : d_fac_strategy(fac_strategy)
 {
     // Setup default options.
-    GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
+    GeneralSolver::init(std::move(object_name), /*homogeneous_bc*/ true);
     d_initial_guess_nonzero = false;
     d_rel_residual_tol = 1.0e-5;
     d_abs_residual_tol = 1.0e-50;

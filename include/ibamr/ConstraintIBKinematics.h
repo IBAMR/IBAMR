@@ -35,6 +35,7 @@
 
 ///////////////////////////////////////// INCLUDES //////////////////////////////////////////
 
+#include <utility>
 #include <vector>
 
 #include "ibtk/LData.h"
@@ -154,7 +155,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    ConstraintIBKinematics(const std::string& object_name,
+    ConstraintIBKinematics(std::string object_name,
                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                            IBTK::LDataManager* l_data_manager,
                            bool register_for_restart = true);
@@ -222,7 +223,7 @@ public:
      *
      * \note An empty default implementation is provided.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     /*!
@@ -233,23 +234,23 @@ protected:
     /*!
      * If the object is registred for restart.
      */
-    bool d_registered_for_restart;
+    bool d_registered_for_restart = false;
 
 private:
     /*!
      * \brief Deleted default ctor.
      */
-    ConstraintIBKinematics();
+    ConstraintIBKinematics() = delete;
 
     /*!
      * \brief Deleted default copy ctor.
      */
-    ConstraintIBKinematics(const ConstraintIBKinematics& from);
+    ConstraintIBKinematics(const ConstraintIBKinematics& from) = delete;
 
     /*!
      * \brief Deleted default assignment.
      */
-    ConstraintIBKinematics& operator=(const ConstraintIBKinematics& that);
+    ConstraintIBKinematics& operator=(const ConstraintIBKinematics& that) = delete;
 
     /*!
      * \brief Object enclosing all the parameters of the structure.

@@ -83,14 +83,14 @@ public:
     /*!
      * \brief Constructor.
      */
-    FastSweepingLSMethod(const std::string& object_name,
+    FastSweepingLSMethod(std::string object_name,
                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = NULL,
                          bool register_for_restart = true);
 
     /*!
      * \brief Destructor.
      */
-    virtual ~FastSweepingLSMethod();
+    virtual ~FastSweepingLSMethod() = default;
 
     /*!
      * \brief Initialize level set data using the fast-sweeping method.
@@ -99,11 +99,11 @@ public:
                           SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hierarchy_math_ops,
                           int integrator_step,
                           double time,
-                          bool initial_time);
+                          bool initial_time) override;
 
 protected:
     // Algorithm parameters.
-    bool d_consider_phys_bdry_wall;
+    bool d_consider_phys_bdry_wall = false;
     int d_wall_location_idx[2 * NDIM];
 
 private:
@@ -137,7 +137,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FastSweepingLSMethod(const FastSweepingLSMethod& from);
+    FastSweepingLSMethod(const FastSweepingLSMethod& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -148,7 +148,7 @@ private:
      *
      * \return A reference to this object.
      */
-    FastSweepingLSMethod& operator=(const FastSweepingLSMethod& that);
+    FastSweepingLSMethod& operator=(const FastSweepingLSMethod& that) = delete;
 };
 } // namespace IBAMR
 

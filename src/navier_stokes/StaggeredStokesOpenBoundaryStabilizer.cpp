@@ -49,7 +49,6 @@
 #include "SideIndex.h"
 #include "Variable.h"
 #include "VariableContext.h"
-#include "boost/array.hpp"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesOpenBoundaryStabilizer.h"
 #include "ibamr/StokesSpecifications.h"
@@ -80,7 +79,7 @@ namespace
 inline double
 smooth_kernel(const double r)
 {
-    return std::abs(r) < 1.0 ? 0.5 * (cos(M_PI * r) + 1.0) : 0.0;
+    return std::abs(r) < 1.0 ? 0.5 * (std::cos(M_PI * r) + 1.0) : 0.0;
 } // smooth_kernel
 }
 
@@ -103,9 +102,7 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
     {
         for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
         {
-            std::ostringstream stabilization_type_stream;
-            stabilization_type_stream << "stabilization_type_" << location_index;
-            const std::string stabilization_type_key = stabilization_type_stream.str();
+            const std::string stabilization_type_key = "stabilization_type_" + std::to_string(location_index);
             if (input_db->keyExists(stabilization_type_key))
             {
                 const std::string stabilization_type = input_db->getString(stabilization_type_key);
@@ -132,9 +129,7 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
                         << "  supported values are: ``INFLOW'', ``OUTFLOW'', or ``NONE''\n");
                 }
             }
-            std::ostringstream width_stream;
-            width_stream << "width_" << location_index;
-            const std::string width_key = width_stream.str();
+            const std::string width_key = "width_" + std::to_string(location_index);
             if (input_db->keyExists(width_key))
             {
                 d_width[location_index] = input_db->getDouble(width_key);
@@ -143,12 +138,6 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
     }
     return;
 } // StaggeredStokesOpenBoundaryStabilizer
-
-StaggeredStokesOpenBoundaryStabilizer::~StaggeredStokesOpenBoundaryStabilizer()
-{
-    // intentionally blank
-    return;
-} // ~StaggeredStokesOpenBoundaryStabilizer
 
 bool
 StaggeredStokesOpenBoundaryStabilizer::isTimeDependent() const

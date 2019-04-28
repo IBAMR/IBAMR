@@ -62,23 +62,11 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovLinearSolverStaggeredStokesSolverInterface::KrylovLinearSolverStaggeredStokesSolverInterface()
-{
-    // intentionally blank
-    return;
-} // KrylovLinearSolverStaggeredStokesSolverInterface
-
-KrylovLinearSolverStaggeredStokesSolverInterface::~KrylovLinearSolverStaggeredStokesSolverInterface()
-{
-    // intentionally blank
-    return;
-} // ~KrylovLinearSolverStaggeredStokesSolverInterface
-
 void
 KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifications(
     const PoissonSpecifications& U_problem_coefs)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
+    auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_this);
 #endif
@@ -94,7 +82,7 @@ void
 KrylovLinearSolverStaggeredStokesSolverInterface::setComponentsHaveNullspace(const bool has_velocity_nullspace,
                                                                              const bool has_pressure_nullspace)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
+    auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_this);
 #endif
@@ -110,7 +98,7 @@ KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
+    auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_this);
 #endif
@@ -126,7 +114,7 @@ void
 KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
+    auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_this);
 #endif

@@ -54,19 +54,19 @@ public:
     /*!
      * \brief Default constructor.
      */
-    ParallelSet();
+    ParallelSet() = default;
 
     /*!
      * \brief Copy constructor.
      *
      * \param from The value to copy to this object.
      */
-    ParallelSet(const ParallelSet& from);
+    ParallelSet(const ParallelSet& from) = default;
 
     /*!
      * \brief Destructor.
      */
-    ~ParallelSet();
+    virtual ~ParallelSet() = default;
 
     /*!
      * \brief Assignment operator.

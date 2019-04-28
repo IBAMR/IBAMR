@@ -59,18 +59,12 @@ namespace IBTK
 PoissonFACPreconditioner::PoissonFACPreconditioner(const std::string& object_name,
                                                    Pointer<PoissonFACPreconditionerStrategy> fac_strategy,
                                                    Pointer<Database> input_db,
-                                                   const std::string& default_options_prefix)
-    : FACPreconditioner(object_name, fac_strategy, input_db, default_options_prefix)
+                                                   std::string default_options_prefix)
+    : FACPreconditioner(object_name, fac_strategy, input_db, std::move(default_options_prefix))
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
     return;
 } // PoissonFACPreconditioner
-
-PoissonFACPreconditioner::~PoissonFACPreconditioner()
-{
-    // intentionally blank
-    return;
-} // ~PoissonFACPreconditioner
 
 void
 PoissonFACPreconditioner::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)

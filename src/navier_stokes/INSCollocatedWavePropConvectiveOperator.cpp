@@ -32,6 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <utility>
+
 #include "ibamr/INSCollocatedWavePropConvectiveOperator.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
@@ -50,7 +52,6 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "boost/array.hpp"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
@@ -115,18 +116,11 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSCollocatedWavePropConvectiveOperator::INSCollocatedWavePropConvectiveOperator(
-    const std::string& object_name,
+    std::string object_name,
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
-    : ConvectiveOperator(object_name, difference_form),
-      d_bc_coefs(bc_coefs),
-      d_bdry_extrap_type("CONSTANT"),
-      d_hierarchy(NULL),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_U_var(NULL),
-      d_U_scratch_idx(-1)
+    std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
+    : ConvectiveOperator(std::move(object_name), difference_form), d_bc_coefs(std::move(bc_coefs))
 {
     if (d_difference_form != ADVECTIVE /* && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC*/)
     {
@@ -143,8 +137,6 @@ INSCollocatedWavePropConvectiveOperator::INSCollocatedWavePropConvectiveOperator
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> context = var_db->getContext("INSCollocatedWavePropConvectiveOperator::CONTEXT");
-
-    d_k = 3;
 
     const std::string U_var_name = "INSCollocatedWavePropConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
@@ -191,7 +183,7 @@ INSCollocatedWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx
     // Fill ghost cell values for all components.
     HierarchyMathOps hier_math_ops("HierarchyMathOps", d_hierarchy);
     static const bool homogeneous_bc = false;
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps(1);
     transaction_comps[0] = InterpolationTransactionComponent(d_U_scratch_idx,
                                                              U_idx,
@@ -298,7 +290,7 @@ INSCollocatedWavePropConvectiveOperator::initializeOperatorState(const SAMRAIVec
 #endif
 
     // Setup the interpolation transaction information.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_transaction_comps.resize(1);
     d_transaction_comps[0] = InterpolationTransactionComponent(d_U_scratch_idx,
                                                                in.getComponentDescriptorIndex(0),

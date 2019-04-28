@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <functional>
 #include <map>
 #include <string>
@@ -42,7 +43,6 @@
 #include <vector>
 
 #include "IntVector.h"
-#include "boost/array.hpp"
 #include "ibamr/IBRedundantInitializer.h"
 #include "ibamr/IBRodForceSpec.h"
 #include "ibtk/LInitStrategy.h"
@@ -429,7 +429,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBStandardInitializer(const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    IBStandardInitializer(std::string object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -439,7 +439,7 @@ public:
     /*!
      * \brief Initialize structure specific configurations.
      */
-    void init();
+    void init() override;
 
 protected:
 private:
@@ -448,7 +448,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBStandardInitializer();
+    IBStandardInitializer() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -457,7 +457,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBStandardInitializer(const IBStandardInitializer& from);
+    IBStandardInitializer(const IBStandardInitializer& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -468,7 +468,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBStandardInitializer& operator=(const IBStandardInitializer& that);
+    IBStandardInitializer& operator=(const IBStandardInitializer& that) = delete;
 
     /*!
      * \brief Read the vertex data from one or more input files.
@@ -531,7 +531,7 @@ private:
      */
     std::vector<SAMRAI::tbox::Pointer<IBTK::Streamable> > initializeNodeData(const std::pair<int, int>& point_index,
                                                                              unsigned int global_index_offset,
-                                                                             int level_number) const;
+                                                                             int level_number) const override;
 
     /*!
      * Read input values, indicated above, from given database.
@@ -541,24 +541,18 @@ private:
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*
-     * The object name is used as a handle to databases stored in restart files
-     * and for error reporting purposes.
-     */
-    std::string d_object_name;
-
-    /*
      * The boolean value determines whether file read batons are employed to
      * prevent multiple MPI processes from accessing the same input files
      * simultaneously.
      */
-    bool d_use_file_batons;
+    bool d_use_file_batons = true;
 
     /*
      * The maximum number of levels in the Cartesian grid patch hierarchy and a
      * vector of boolean values indicating whether a particular level has been
      * initialized yet.
      */
-    int d_max_levels;
+    int d_max_levels = -1;
     std::vector<bool> d_level_is_initialized;
 
     /*
@@ -584,7 +578,7 @@ private:
      * \note The shift factor should have the same units as the positions in the
      * input files, i.e., X_final = scale*(X_initial + shift).
      */
-    double d_length_scale_factor;
+    double d_length_scale_factor = 1.0;
     IBTK::Vector d_posn_shift;
 
     /*
@@ -632,7 +626,7 @@ private:
     std::vector<std::vector<bool> > d_enable_rods;
 
     std::vector<std::vector<bool> > d_using_uniform_rod_properties;
-    std::vector<std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_uniform_rod_properties;
+    std::vector<std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_uniform_rod_properties;
 
     /*
      * Target point information.
@@ -670,7 +664,6 @@ private:
      * Source information.
      */
     std::vector<std::vector<bool> > d_enable_sources;
-
 };
 } // namespace IBAMR
 

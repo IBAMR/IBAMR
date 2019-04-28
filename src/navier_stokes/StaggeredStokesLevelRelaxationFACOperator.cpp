@@ -33,6 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
+#include <cstring>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -75,7 +76,6 @@
 #include "petscpc.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "boost/array.hpp"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -96,16 +96,10 @@ StaggeredStokesLevelRelaxationFACOperator::StaggeredStokesLevelRelaxationFACOper
     const std::string& object_name,
     const Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : StaggeredStokesFACPreconditionerStrategy(object_name, GHOST_CELL_WIDTH, input_db, default_options_prefix)
+    : StaggeredStokesFACPreconditionerStrategy(object_name, GHOST_CELL_WIDTH, input_db, default_options_prefix),
+      d_level_solver_default_options_prefix(default_options_prefix + "level_"),
+      d_level_solver_db(new MemoryDatabase(object_name + "::level_solver_db"))
 {
-    // Set some default values for the level solvers.
-    d_level_solver_type = StaggeredStokesSolverManager::PETSC_LEVEL_SOLVER;
-    d_level_solver_default_options_prefix = default_options_prefix + "level_";
-    d_level_solver_rel_residual_tol = 1.0e-5;
-    d_level_solver_abs_residual_tol = 1.0e-50;
-    d_level_solver_max_iterations = 1;
-    d_level_solver_db = new MemoryDatabase(object_name + "::level_solver_db");
-
     // Get values from the input database.
     if (input_db)
     {
@@ -263,13 +257,13 @@ StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, do
         level_solver->setSolutionTime(d_solution_time);
         level_solver->setTimeInterval(d_current_time, d_new_time);
         level_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
-        LinearSolver* p_level_solver = dynamic_cast<LinearSolver*>(level_solver.getPointer());
+        auto p_level_solver = dynamic_cast<LinearSolver*>(level_solver.getPointer());
         if (p_level_solver)
         {
             bool initial_guess_nonzero = true;
 
-            PETScKrylovLinearSolver* p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_level_solver);
-            PETScLevelSolver* p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_level_solver);
+            auto p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_level_solver);
+            auto p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_level_solver);
 
             if (p_petsc_solver || p_petsc_level_solver)
             {
@@ -277,7 +271,7 @@ StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, do
                     p_petsc_solver ? p_petsc_solver->getPETScKSP() : p_petsc_level_solver->getPETScKSP();
                 KSPType ksp_type;
                 KSPGetType(petsc_ksp, &ksp_type);
-                if (!strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
+                if (!std::strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
             }
             p_level_solver->setInitialGuessNonzero(initial_guess_nonzero);
         }
@@ -305,10 +299,8 @@ StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         Pointer<StaggeredStokesSolver>& level_solver = d_level_solvers[ln];
         if (!level_solver)
         {
-            std::ostringstream level_solver_stream;
-            level_solver_stream << d_level_solver_default_options_prefix;
             level_solver = StaggeredStokesSolverManager::getManager()->allocateSolver(
-                d_level_solver_type, d_object_name + "::level_solver", d_level_solver_db, level_solver_stream.str());
+                d_level_solver_type, d_object_name + "::level_solver", d_level_solver_db, d_level_solver_default_options_prefix);
         }
 
         level_solver->setSolutionTime(d_solution_time);

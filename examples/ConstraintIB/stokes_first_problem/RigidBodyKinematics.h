@@ -140,8 +140,8 @@ private:
     /*!
      * Parser variables.
      */
-    double* d_parser_time;
-    double* d_parser_posn;
+    mutable double d_parser_time;
+    mutable IBTK::Point d_parser_posn;
 
     /*!
      * Current time (t) and new time (t+dt).
@@ -164,6 +164,6 @@ private:
 
 }; // RigidBodyKinematics
 
-} // IBAMR
+} // namespace IBAMR
 
 #endif // included_RgidBodyKinematics

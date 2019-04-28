@@ -81,12 +81,12 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBInstrumentPanel(const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    IBInstrumentPanel(std::string object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.
      */
-    ~IBInstrumentPanel();
+    virtual ~IBInstrumentPanel();
 
     /*!
      * \return A const reference to the vector of instrument names.
@@ -183,7 +183,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBInstrumentPanel();
+    IBInstrumentPanel() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -192,7 +192,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBInstrumentPanel(const IBInstrumentPanel& from);
+    IBInstrumentPanel(const IBInstrumentPanel& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -203,7 +203,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBInstrumentPanel& operator=(const IBInstrumentPanel& that);
+    IBInstrumentPanel& operator=(const IBInstrumentPanel& that) = delete;
 
     /*!
      * Read input values, indicated above, from given database.
@@ -225,16 +225,16 @@ private:
     /*!
      * \brief Instrumentation data.
      */
-    bool d_initialized;
-    unsigned int d_num_meters;
+    bool d_initialized = false;
+    unsigned int d_num_meters = 0;
     std::vector<int> d_num_perimeter_nodes;
     std::vector<IBTK::Vector> d_X_centroid;
     std::vector<boost::multi_array<IBTK::Vector, 1> > d_X_perimeter;
     std::vector<boost::multi_array<IBTK::Vector, 2> > d_X_web, d_dA_web;
 
-    int d_instrument_read_timestep_num;
-    double d_instrument_read_time;
-    int d_max_instrument_name_len;
+    int d_instrument_read_timestep_num = -1;
+    double d_instrument_read_time = std::numeric_limits<double>::quiet_NaN();
+    int d_max_instrument_name_len = -1;
     std::vector<std::string> d_instrument_names;
     std::vector<double> d_flow_values, d_mean_pres_values, d_point_pres_values;
 
@@ -243,7 +243,7 @@ private:
      * and web patch data (i.e., patch centroids and area-weighted normals) and
      * meter centroid data.
      */
-    struct IndexFortranOrder : public std::binary_function<SAMRAI::hier::Index<NDIM>, SAMRAI::hier::Index<NDIM>, bool>
+    struct IndexFortranOrder
     {
         inline bool operator()(const SAMRAI::hier::Index<NDIM>& lhs, const SAMRAI::hier::Index<NDIM>& rhs) const
         {
@@ -267,7 +267,7 @@ private:
         const IBTK::Vector* dA;
     };
 
-    typedef std::multimap<SAMRAI::hier::Index<NDIM>, WebPatch, IndexFortranOrder> WebPatchMap;
+    using WebPatchMap = std::multimap<SAMRAI::hier::Index<NDIM>, WebPatch, IndexFortranOrder>;
     std::vector<WebPatchMap> d_web_patch_map;
 
     struct WebCentroid
@@ -276,7 +276,7 @@ private:
         const IBTK::Vector* X;
     };
 
-    typedef std::multimap<SAMRAI::hier::Index<NDIM>, WebCentroid, IndexFortranOrder> WebCentroidMap;
+    using WebCentroidMap = std::multimap<SAMRAI::hier::Index<NDIM>, WebCentroid, IndexFortranOrder>;
     std::vector<WebCentroidMap> d_web_centroid_map;
 
     /*
@@ -288,10 +288,10 @@ private:
     /*!
      * The log file name and optional flow rate and pressure conversion factors.
      */
-    bool d_output_log_file;
+    bool d_output_log_file = false;
     std::string d_log_file_name;
     std::ofstream d_log_file_stream;
-    double d_flow_conv, d_pres_conv;
+    double d_flow_conv = 1.0, d_pres_conv = 1.0;
     std::string d_flow_units, d_pres_units;
 };
 } // namespace IBAMR

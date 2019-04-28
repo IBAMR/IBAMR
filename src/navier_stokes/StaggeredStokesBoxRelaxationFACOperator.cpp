@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <algorithm>
 #include <limits>
 #include <ostream>
@@ -58,7 +59,6 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "boost/array.hpp"
 #include "ibamr/StaggeredStokesBoxRelaxationFACOperator.h"
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -115,7 +115,7 @@ buildBoxOperator(Mat& A,
                  const PoissonSpecifications& U_problem_coefs,
                  const Box<NDIM>& box,
                  const Box<NDIM>& ghost_box,
-                 const boost::array<double, NDIM>& dx)
+                 const std::array<double, NDIM>& dx)
 {
     int ierr;
 
@@ -123,8 +123,8 @@ buildBoxOperator(Mat& A,
     const double D = U_problem_coefs.getDConstant();
 
     // Allocate a PETSc matrix for the box operator.
-    boost::array<Box<NDIM>, NDIM> side_boxes;
-    boost::array<BoxList<NDIM>, NDIM> side_ghost_boxes;
+    std::array<Box<NDIM>, NDIM> side_boxes;
+    std::array<BoxList<NDIM>, NDIM> side_ghost_boxes;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         side_boxes[axis] = SideGeometry<NDIM>::toSideBox(box, axis);
@@ -172,7 +172,7 @@ buildBoxOperator(Mat& A,
         }
     }
 
-    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, 0, size ? &nnz[0] : NULL, &A);
+    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, 0, size ? &nnz[0] : nullptr, &A);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.
@@ -450,13 +450,7 @@ StaggeredStokesBoxRelaxationFACOperator::StaggeredStokesBoxRelaxationFACOperator
     const std::string& object_name,
     const Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : StaggeredStokesFACPreconditionerStrategy(object_name, GHOSTS, input_db, default_options_prefix),
-      d_box_op(),
-      d_box_e(),
-      d_box_r(),
-      d_box_ksp(),
-      d_patch_side_bc_box_overlap(),
-      d_patch_cell_bc_box_overlap()
+    : StaggeredStokesFACPreconditionerStrategy(object_name, GHOSTS, input_db, default_options_prefix)
 {
     // intentionally blank
     return;
@@ -655,7 +649,7 @@ StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(cons
     const Box<NDIM> box(Index<NDIM>(0), Index<NDIM>(0));
     Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
     const double* const dx_coarsest = geometry->getDx();
-    boost::array<double, NDIM> dx;
+    std::array<double, NDIM> dx;
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
         const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(ln)->getRatio();

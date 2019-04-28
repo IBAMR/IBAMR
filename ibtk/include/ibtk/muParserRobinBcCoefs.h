@@ -131,7 +131,7 @@ public:
                     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
                     const SAMRAI::hier::Patch<NDIM>& patch,
                     const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-                    double fill_time = 0.0) const;
+                    double fill_time = 0.0) const override;
 
     /*
      * \brief Return how many cells past the edge or corner of the patch the
@@ -148,7 +148,7 @@ public:
      * The boundary box that setBcCoefs() is required to fill should not extend
      * past the limits returned by this function.
      */
-    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const;
+    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const override;
 
     //\}
 
@@ -158,7 +158,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    muParserRobinBcCoefs();
+    muParserRobinBcCoefs() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -167,7 +167,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    muParserRobinBcCoefs(const muParserRobinBcCoefs& from);
+    muParserRobinBcCoefs(const muParserRobinBcCoefs& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -178,7 +178,7 @@ private:
      *
      * \return A reference to this object.
      */
-    muParserRobinBcCoefs& operator=(const muParserRobinBcCoefs& that);
+    muParserRobinBcCoefs& operator=(const muParserRobinBcCoefs& that) = delete;
 
     /*!
      * Current time value used by the mu::Parser instances.
@@ -191,7 +191,7 @@ private:
      * this variable is only written to and subsequently read from in that
      * function this is reasonable.
      */
-    mutable double d_parser_time;
+    mutable double d_parser_time = 0.0;
 
     /*!
      * Current space point used by the mu::Parser instances.
@@ -223,9 +223,9 @@ private:
     /*!
      * The mu::Parser objects which evaluate the data-setting functions.
      */
-    std::vector<mu::Parser> d_acoef_parsers;
-    std::vector<mu::Parser> d_bcoef_parsers;
-    std::vector<mu::Parser> d_gcoef_parsers;
+    std::array<mu::Parser, 2 * NDIM> d_acoef_parsers;
+    std::array<mu::Parser, 2 * NDIM> d_bcoef_parsers;
+    std::array<mu::Parser, 2 * NDIM> d_gcoef_parsers;
 };
 } // namespace IBTK
 

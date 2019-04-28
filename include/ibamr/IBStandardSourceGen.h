@@ -80,7 +80,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~IBStandardSourceGen();
+    ~IBStandardSourceGen() = default;
 
     /*!
      * \brief Returns a boolean indicating whether the class has been registered
@@ -151,7 +151,7 @@ public:
                              int level_number,
                              double init_data_time,
                              bool initial_time,
-                             IBTK::LDataManager* l_data_manager);
+                             IBTK::LDataManager* l_data_manager) override;
 
     /*!
      * \brief Specify the number of distributed internal sources or sinks.
@@ -163,7 +163,7 @@ public:
     unsigned int getNumSources(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                int level_number,
                                double data_time,
-                               IBTK::LDataManager* l_data_manager);
+                               IBTK::LDataManager* l_data_manager) override;
 
     /*!
      * \brief Compute the source locations for each of the distributed internal
@@ -179,7 +179,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                             int level_number,
                             double data_time,
-                            IBTK::LDataManager* l_data_manager);
+                            IBTK::LDataManager* l_data_manager) override;
 
     /*!
      * \brief Set the normalized pressures at the sources.
@@ -188,7 +188,7 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                             int level_number,
                             double data_time,
-                            IBTK::LDataManager* l_data_manager);
+                            IBTK::LDataManager* l_data_manager) override;
 
     /*!
      * \brief Compute the source strengths for each of the distributed internal
@@ -202,14 +202,14 @@ public:
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                 int level_number,
                                 double data_time,
-                                IBTK::LDataManager* l_data_manager);
+                                IBTK::LDataManager* l_data_manager) override;
 
     /*!
      * Write out object state to the given database.
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 private:
     /*!
@@ -219,7 +219,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBStandardSourceGen(const IBStandardSourceGen& from);
+    IBStandardSourceGen(const IBStandardSourceGen& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -230,7 +230,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBStandardSourceGen& operator=(const IBStandardSourceGen& that);
+    IBStandardSourceGen& operator=(const IBStandardSourceGen& that) = delete;
 
     /*!
      * Read object state from the restart file and initialize class data

@@ -92,12 +92,12 @@ static const int IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION = 2;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(const std::string& object_name,
+IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(std::string object_name,
                                                              Pointer<Database> input_db,
                                                              Pointer<IBStrategy> ib_method_ops,
                                                              Pointer<INSHierarchyIntegrator> ins_hier_integrator,
                                                              bool register_for_restart)
-    : IBHierarchyIntegrator(object_name, input_db, ib_method_ops, ins_hier_integrator, register_for_restart)
+    : IBHierarchyIntegrator(std::move(object_name), input_db, ib_method_ops, ins_hier_integrator, register_for_restart)
 {
     // Set default configuration options.
     d_use_structure_predictor = true;
@@ -114,12 +114,6 @@ IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(const std::string& 
     if (from_restart) getFromRestart();
     return;
 } // IBExplicitHierarchyIntegrator
-
-IBExplicitHierarchyIntegrator::~IBExplicitHierarchyIntegrator()
-{
-    // intentionally blank
-    return;
-} // ~IBExplicitHierarchyIntegrator
 
 void
 IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
@@ -289,7 +283,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
         // NOTE: This does not correctly treat the case in which the structure
         // is close to the physical boundary.
         d_ib_method_ops->spreadFluidSource(
-            d_q_idx, NULL, getProlongRefineSchedules(d_object_name + "::q"), half_time);
+            d_q_idx, nullptr, getProlongRefineSchedules(d_object_name + "::q"), half_time);
     }
 
     // Solve the incompressible Navier-Stokes equations.

@@ -37,6 +37,7 @@
 
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 
 namespace IBAMR
 {
@@ -58,12 +59,12 @@ public:
     /*!
      * \brief Empty default constructor.
      */
-    StokesBcCoefStrategy();
+    StokesBcCoefStrategy() = default;
 
     /*!
      * \brief Empty destructor.
      */
-    ~StokesBcCoefStrategy();
+    ~StokesBcCoefStrategy() = default;
 
     /*!
      * \brief Set the StokesSpecifications object used by this boundary condition
@@ -120,13 +121,13 @@ protected:
     /*!
      * Patch data indices.
      */
-    int d_u_target_data_idx, d_p_target_data_idx;
+    int d_u_target_data_idx = IBTK::invalid_index, d_p_target_data_idx = IBTK::invalid_index;
 
     /*
      * The type of traction boundary conditions.  Supported options are:
      * TRACTION_BOUNDARY_CONDITIONS and PSEUDO_TRACTION_BOUNDARY_CONDITIONS.
      */
-    TractionBcType d_traction_bc_type;
+    TractionBcType d_traction_bc_type = TRACTION;
 
 private:
     /*!
@@ -136,7 +137,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StokesBcCoefStrategy(const StokesBcCoefStrategy& from);
+    StokesBcCoefStrategy(const StokesBcCoefStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -147,7 +148,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StokesBcCoefStrategy& operator=(const StokesBcCoefStrategy& that);
+    StokesBcCoefStrategy& operator=(const StokesBcCoefStrategy& that) = delete;
 };
 } // namespace IBAMR
 

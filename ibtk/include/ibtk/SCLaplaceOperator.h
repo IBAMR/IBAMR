@@ -44,6 +44,7 @@
 #include "VariableFillPattern.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/LaplaceOperator.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK
@@ -68,7 +69,7 @@ public:
      * \brief Constructor for class SCLaplaceOperator initializes the operator
      * coefficients and boundary conditions to default values.
      */
-    SCLaplaceOperator(const std::string& object_name, bool homogeneous_bc = true);
+    SCLaplaceOperator(std::string object_name, bool homogeneous_bc = true);
 
     /*!
      * \brief Destructor.
@@ -106,7 +107,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
     /*!
      * \brief Compute hierarchy-dependent data required for computing y=Ax (and
@@ -118,7 +119,7 @@ public:
      * \see KrylovLinearSolver::initializeSolverState
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
 
     /*!
      * \brief Remove all hierarchy-dependent data computed by
@@ -131,13 +132,13 @@ public:
      * \see initializeOperatorState
      * \see KrylovLinearSolver::deallocateSolverState
      */
-    void deallocateOperatorState();
+    void deallocateOperatorState() override;
 
     //\}
 
 protected:
     // Operator parameters.
-    int d_ncomp;
+    int d_ncomp = 0;
 
     // Cached communications operators.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
@@ -149,7 +150,7 @@ protected:
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Dirichlet boundary condition utilities.
     std::vector<SAMRAI::tbox::Pointer<StaggeredPhysicalBoundaryHelper> > d_bc_helpers;
@@ -160,7 +161,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    SCLaplaceOperator();
+    SCLaplaceOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -169,7 +170,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SCLaplaceOperator(const SCLaplaceOperator& from);
+    SCLaplaceOperator(const SCLaplaceOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -180,7 +181,7 @@ private:
      *
      * \return A reference to this object.
      */
-    SCLaplaceOperator& operator=(const SCLaplaceOperator& that);
+    SCLaplaceOperator& operator=(const SCLaplaceOperator& that) = delete;
 
 };
 } // namespace IBTK

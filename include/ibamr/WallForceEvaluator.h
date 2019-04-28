@@ -65,17 +65,17 @@ public:
                                 const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                 const int level_number,
                                 const double data_time,
-                                IBTK::LDataManager* const l_data_manager);
+                                IBTK::LDataManager* const l_data_manager) override;
 
 private:
     // Default constructor, not implemented.
-    WallForceEvaluator();
+    WallForceEvaluator() = delete;
 
     // Copy constructor, not implemented.
-    WallForceEvaluator(const WallForceEvaluator& from);
+    WallForceEvaluator(const WallForceEvaluator& from) = delete;
 
     // Assignment operator, not implemented.
-    WallForceEvaluator& operator=(const WallForceEvaluator& that);
+    WallForceEvaluator& operator=(const WallForceEvaluator& that) = delete;
 
     // collection of walls:
     std::vector<Wall> d_walls_vec;

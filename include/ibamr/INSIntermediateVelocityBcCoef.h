@@ -108,7 +108,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~INSIntermediateVelocityBcCoef();
+    ~INSIntermediateVelocityBcCoef() = default;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -136,18 +136,18 @@ public:
     /*!
      * \brief Set the target data index.
      */
-    void setTargetPatchDataIndex(int target_idx);
+    void setTargetPatchDataIndex(int target_idx) override;
 
     /*!
      * \brief Clear the target data index.
      */
-    void clearTargetPatchDataIndex();
+    void clearTargetPatchDataIndex() override;
 
     /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
      * boundary conditions.
      */
-    void setHomogeneousBc(bool homogeneous_bc);
+    void setHomogeneousBc(bool homogeneous_bc) override;
 
     //\}
 
@@ -193,7 +193,7 @@ public:
                     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
                     const SAMRAI::hier::Patch<NDIM>& patch,
                     const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-                    double fill_time = 0.0) const;
+                    double fill_time = 0.0) const override;
 
     /*
      * \brief Return how many cells past the edge or corner of the patch the
@@ -210,7 +210,7 @@ public:
      * The boundary box that setBcCoefs() is required to fill should not extend
      * past the limits returned by this function.
      */
-    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const;
+    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const override;
 
     //\}
 
@@ -221,7 +221,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSIntermediateVelocityBcCoef();
+    INSIntermediateVelocityBcCoef() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -230,7 +230,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSIntermediateVelocityBcCoef(const INSIntermediateVelocityBcCoef& from);
+    INSIntermediateVelocityBcCoef(const INSIntermediateVelocityBcCoef& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -241,7 +241,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSIntermediateVelocityBcCoef& operator=(const INSIntermediateVelocityBcCoef& that);
+    INSIntermediateVelocityBcCoef& operator=(const INSIntermediateVelocityBcCoef& that) = delete;
 
     /*
      * Component of the velocity which this boundary condition specification is

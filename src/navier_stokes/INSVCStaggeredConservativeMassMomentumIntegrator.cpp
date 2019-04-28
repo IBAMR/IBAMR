@@ -32,9 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <limits>
 #include <ostream>
-#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -57,7 +57,6 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "boost/array.hpp"
 #include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
@@ -969,47 +968,10 @@ static Timer* t_deallocate_integrator;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMassMomentumIntegrator(
-    const std::string& object_name,
+    std::string object_name,
     Pointer<Database> input_db)
+    : d_object_name(std::move(object_name)), d_u_sc_bc_coefs(NDIM), d_rho_sc_bc_coefs(NDIM)
 {
-    // Set some default values
-    d_object_name = object_name;
-    d_velocity_bdry_extrap_type = "CONSTANT";
-    d_density_bdry_extrap_type = "CONSTANT";
-    d_hierarchy = NULL;
-    d_coarsest_ln = -1;
-    d_finest_ln = -1;
-    d_num_steps = 1;
-    d_u_sc_bc_coefs.resize(NDIM);
-    d_rho_sc_bc_coefs.resize(NDIM);
-    d_V_var = NULL;
-    d_V_scratch_idx = -1;
-    d_V_old_idx = -1;
-    d_V_current_idx = -1;
-    d_V_new_idx = -1;
-    d_N_idx = -1;
-    d_rho_sc_var = NULL;
-    d_rho_sc_current_idx = -1;
-    d_rho_sc_scratch_idx = -1;
-    d_rho_sc_new_idx = -1;
-    d_velocity_convective_limiter = UPWIND;
-    d_density_convective_limiter = UPWIND;
-    d_velocity_limiter_gcw = 1;
-    d_density_limiter_gcw = 1;
-    d_density_time_stepping_type = FORWARD_EULER;
-    d_S_var = NULL;
-    d_S_scratch_idx = -1;
-    d_S_fcn = NULL;
-    d_is_initialized = false;
-    d_enable_logging = false;
-    d_cycle_num = -1;
-    d_dt_prev = -1.0;
-    d_solution_time = std::numeric_limits<double>::quiet_NaN();
-    d_current_time = std::numeric_limits<double>::quiet_NaN();
-    d_new_time = std::numeric_limits<double>::quiet_NaN();
-    d_hier_math_ops = NULL;
-    d_hier_math_ops_external = false;
-
     if (input_db)
     {
         if (input_db->keyExists("bdry_extrap_type"))
@@ -1261,7 +1223,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
 
     // Fill ghost cell values
     static const bool homogeneous_bc = false;
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
 
     // Fill ghost cells for current density
     std::vector<InterpolationTransactionComponent> rho_transaction_comps(1);
@@ -1292,13 +1254,13 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
                                                                d_u_sc_bc_coefs);
     d_hier_v_bdry_fill->resetTransactionComponents(v_transaction_comps);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-        d_u_sc_bc_coefs, NULL, d_V_scratch_idx, -1, homogeneous_bc);
+        d_u_sc_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
     d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_v_bdry_fill->fillData(d_current_time);
     d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
         d_V_scratch_idx, d_coarsest_ln, d_finest_ln, StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
     enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
-    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_sc_bc_coefs, NULL);
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_sc_bc_coefs, nullptr);
     d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
 
     // Compute the old mass
@@ -1386,13 +1348,13 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
                                                                               d_u_sc_bc_coefs);
             d_hier_v_bdry_fill->resetTransactionComponents(v_transaction_comps);
             StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-                d_u_sc_bc_coefs, NULL, d_V_scratch_idx, -1, homogeneous_bc);
+                d_u_sc_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
             d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
             d_hier_v_bdry_fill->fillData(eval_time);
             d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
                 d_V_scratch_idx, d_coarsest_ln, d_finest_ln, StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
             enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
-            StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_sc_bc_coefs, NULL);
+            StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_sc_bc_coefs, nullptr);
             d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
         }
 
@@ -1430,11 +1392,11 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
                 // Define variables that live on the "faces" of control volumes centered about side-centered staggered
                 // velocity components
                 const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
-                boost::array<Box<NDIM>, NDIM> side_boxes;
-                boost::array<Pointer<FaceData<NDIM, double> >, NDIM> V_adv_data;
-                boost::array<Pointer<FaceData<NDIM, double> >, NDIM> V_half_data;
-                boost::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data;
-                boost::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data;
+                std::array<Box<NDIM>, NDIM> side_boxes;
+                std::array<Pointer<FaceData<NDIM, double> >, NDIM> V_adv_data;
+                std::array<Pointer<FaceData<NDIM, double> >, NDIM> V_half_data;
+                std::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data;
+                std::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data;
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
@@ -1580,7 +1542,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::initializeTimeIntegrator(
     d_finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Setup the interpolation transaction information.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_rho_transaction_comps.resize(1);
     d_rho_transaction_comps[0] = InterpolationTransactionComponent(d_rho_sc_scratch_idx,
                                                                    d_rho_sc_new_idx,
@@ -1674,10 +1636,10 @@ INSVCStaggeredConservativeMassMomentumIntegrator::deallocateTimeIntegrator()
     }
 
     // Deallocate coarse-fine boundary object.
-    for (std::vector<CoarseFineBoundary<NDIM>*>::iterator it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
+    for (auto& cf_boundary : d_cf_boundary)
     {
-        delete (*it);
-        (*it) = NULL;
+        delete cf_boundary;
+        cf_boundary = nullptr;
     }
     d_cf_boundary.clear();
 
@@ -1849,11 +1811,11 @@ INSVCStaggeredConservativeMassMomentumIntegrator::setPreviousTimeStepSize(double
 
 void
 INSVCStaggeredConservativeMassMomentumIntegrator::computeAdvectionVelocity(
-    boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
+    std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
     const Pointer<SideData<NDIM, double> > U_data,
     const IntVector<NDIM>& patch_lower,
     const IntVector<NDIM>& patch_upper,
-    const boost::array<Box<NDIM>, NDIM>& side_boxes)
+    const std::array<Box<NDIM>, NDIM>& side_boxes)
 {
 #if (NDIM == 2)
     NAVIER_STOKES_INTERP_COMPS_FC(patch_lower(0),
@@ -1935,12 +1897,12 @@ INSVCStaggeredConservativeMassMomentumIntegrator::computeAdvectionVelocity(
 
 void
 INSVCStaggeredConservativeMassMomentumIntegrator::interpolateSideQuantity(
-    boost::array<Pointer<FaceData<NDIM, double> >, NDIM> Q_half_data,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
+    std::array<Pointer<FaceData<NDIM, double> >, NDIM> Q_half_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
     const Pointer<SideData<NDIM, double> > Q_data,
     const IntVector<NDIM>& patch_lower,
     const IntVector<NDIM>& patch_upper,
-    const boost::array<Box<NDIM>, NDIM>& side_boxes,
+    const std::array<Box<NDIM>, NDIM>& side_boxes,
     const LimiterType& convective_limiter)
 {
     switch (convective_limiter)
@@ -2411,11 +2373,11 @@ INSVCStaggeredConservativeMassMomentumIntegrator::interpolateSideQuantity(
 void
 INSVCStaggeredConservativeMassMomentumIntegrator::computeConvectiveDerivative(
     Pointer<SideData<NDIM, double> > N_data,
-    boost::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data,
-    const boost::array<Box<NDIM>, NDIM>& side_boxes,
+    std::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data,
+    const std::array<Box<NDIM>, NDIM>& side_boxes,
     const double* const dx)
 {
 // Compute the upwinded momentum P_half = R_half * U_half
@@ -2584,10 +2546,10 @@ INSVCStaggeredConservativeMassMomentumIntegrator::computeDensityUpdate(
     const double& a1,
     const Pointer<SideData<NDIM, double> > R1_data,
     const double& a2,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
-    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
     const Pointer<SideData<NDIM, double> > S_data,
-    const boost::array<Box<NDIM>, NDIM>& side_boxes,
+    const std::array<Box<NDIM>, NDIM>& side_boxes,
     const double& dt,
     const double* const dx)
 {

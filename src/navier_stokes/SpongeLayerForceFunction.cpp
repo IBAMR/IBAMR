@@ -52,7 +52,6 @@
 #include "SideIndex.h"
 #include "Variable.h"
 #include "VariableContext.h"
-#include "boost/array.hpp"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/SpongeLayerForceFunction.h"
 #include "ibamr/StokesSpecifications.h"
@@ -84,7 +83,7 @@ namespace
 inline double
 smooth_kernel(const double r)
 {
-    return std::abs(r) < 1.0 ? 0.5 * (cos(M_PI * r) + 1.0) : 0.0;
+    return std::abs(r) < 1.0 ? 0.5 * (std::cos(M_PI * r) + 1.0) : 0.0;
 } // smooth_kernel
 }
 
@@ -105,16 +104,12 @@ SpongeLayerForceFunction::SpongeLayerForceFunction(const std::string& object_nam
         for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
         {
             for (unsigned int d = 0; d < NDIM; ++d) d_forcing_enabled[location_index][d] = false;
-            std::ostringstream forcing_enabled_stream;
-            forcing_enabled_stream << "forcing_enabled_" << location_index;
-            const std::string forcing_enabled_key = forcing_enabled_stream.str();
+            const std::string forcing_enabled_key = "forcing_enabled_" + std::to_string(location_index);
             if (input_db->keyExists(forcing_enabled_key))
             {
                 d_forcing_enabled[location_index] = input_db->getBoolArray(forcing_enabled_key);
             }
-            std::ostringstream width_stream;
-            width_stream << "width_" << location_index;
-            const std::string width_key = width_stream.str();
+            const std::string width_key = "width_" + std::to_string(location_index);
             if (input_db->keyExists(width_key))
             {
                 d_width[location_index] = input_db->getDouble(width_key);
@@ -123,12 +118,6 @@ SpongeLayerForceFunction::SpongeLayerForceFunction(const std::string& object_nam
     }
     return;
 } // SpongeLayerForceFunction
-
-SpongeLayerForceFunction::~SpongeLayerForceFunction()
-{
-    // intentionally blank
-    return;
-} // ~SpongeLayerForceFunction
 
 bool
 SpongeLayerForceFunction::isTimeDependent() const

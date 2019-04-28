@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <ostream>
 
 #include "Box.h"
@@ -49,7 +50,6 @@
 #include "PatchSideDataOpsReal.h"
 #include "SideData.h"
 #include "SideGeometry.h"
-#include "boost/array.hpp"
 #include "ibtk/PatchMathOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
@@ -1446,18 +1446,6 @@ namespace IBTK
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-
-PatchMathOps::PatchMathOps()
-{
-    // intentionally blank
-    return;
-} // PatchMathOps
-
-PatchMathOps::~PatchMathOps()
-{
-    // intentionally blank
-    return;
-} // ~PatchMathOps
 
 void
 PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
@@ -5231,14 +5219,14 @@ PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    boost::array<double*, NDIM> F;
+    std::array<double*, NDIM> F;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         F[d] = dst->getPointer(d, l);
     }
     const int F_ghosts = (dst->getGhostCellWidth()).max();
 
-    boost::array<const double*, NDIM> U;
+    std::array<const double*, NDIM> U;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         U[d] = src1->getPointer(d, m);
@@ -5303,7 +5291,7 @@ PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
 
     if (!src2 || (gamma == 0.0))
     {
-        boost::array<int, NDIM> ilower, iupper;
+        std::array<int, NDIM> ilower, iupper;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             for (unsigned int dd = 0; dd < NDIM; ++dd)
@@ -5352,7 +5340,7 @@ PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
     }
     else
     {
-        boost::array<const double*, NDIM> V;
+        std::array<const double*, NDIM> V;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             V[d] = src2->getPointer(d, n);
@@ -5374,7 +5362,7 @@ PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
                        << std::endl);
         }
 #endif
-        boost::array<int, NDIM> ilower, iupper;
+        std::array<int, NDIM> ilower, iupper;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             for (unsigned int dd = 0; dd < NDIM; ++dd)
@@ -5914,8 +5902,8 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
     const int mu_ghosts = (coef1->getGhostCellWidth()).max();
 
     const int rho_varying = !(coef2.isNull());
-    const double* rho0 = NULL;
-    const double* rho1 = NULL;
+    const double* rho0 = nullptr;
+    const double* rho1 = nullptr;
     const int rho_ghosts = rho_varying ? (coef2->getGhostCellWidth()).max() : 0;
     if (rho_varying)
     {
@@ -6108,9 +6096,9 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
     const int mu_ghosts = (coef1->getGhostCellWidth()).max();
 
     const int rho_varying = !(coef2.isNull());
-    const double* rho0 = NULL;
-    const double* rho1 = NULL;
-    const double* rho2 = NULL;
+    const double* rho0 = nullptr;
+    const double* rho1 = nullptr;
+    const double* rho2 = nullptr;
     const int rho_ghosts = rho_varying ? (coef2->getGhostCellWidth()).max() : 0;
     if (rho_varying)
     {

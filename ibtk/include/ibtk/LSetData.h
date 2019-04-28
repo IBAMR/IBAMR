@@ -82,19 +82,19 @@ public:
     /*!
      * This iterator iterates over the elements of a cell centered box geometry.
      */
-    typedef SAMRAI::pdat::CellIterator<NDIM> CellIterator;
+    using CellIterator = SAMRAI::pdat::CellIterator<NDIM>;
 
     /*!
      * This iterator iterates over the LSet elements within the IndexData patch
      * data object.
      */
-    typedef SAMRAI::pdat::IndexIterator<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> > SetIterator;
+    using SetIterator = SAMRAI::pdat::IndexIterator<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> >;
 
     /*!
      * This iterator iterates over the Lagrangian elements located within a cell
      * centered box geometry.
      */
-    typedef IBTK::LSetDataIterator<T> DataIterator;
+    using DataIterator = IBTK::LSetDataIterator<T>;
 
     /*!
      * Return an iterator to the first Lagrangian data object in the specified
@@ -113,12 +113,12 @@ public:
      * describes the interior of the index space and the ghosts vector describes
      * the ghost nodes in each coordinate direction.
      */
-    LSetData(const SAMRAI::hier::Box<NDIM>& box, const SAMRAI::hier::IntVector<NDIM>& ghosts);
+    LSetData(SAMRAI::hier::Box<NDIM> box, SAMRAI::hier::IntVector<NDIM> ghosts);
 
     /*!
      * The virtual destructor for an LSetData object.
      */
-    virtual ~LSetData();
+    virtual ~LSetData() = default;
 
 private:
     /*!
@@ -126,7 +126,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LSetData();
+    LSetData() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -135,7 +135,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LSetData(const LSetData<T>& from);
+    LSetData(const LSetData<T>& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -146,7 +146,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LSetData& operator=(const LSetData<T>& that);
+    LSetData& operator=(const LSetData<T>& that) = delete;
 };
 } // namespace IBTK
 

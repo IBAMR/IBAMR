@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <ostream>
 #include <string>
 
@@ -103,13 +102,7 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
     Pointer<Database> /*input_db*/,
     const std::string& /*default_options_prefix*/)
     : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true,
-                                         /*needs_pressure_solver*/ true),
-      d_Phi_bdry_fill_op(NULL),
-      d_no_fill_op(NULL),
-      d_Phi_var(NULL),
-      d_F_Phi_var(NULL),
-      d_Phi_scratch_idx(-1),
-      d_F_Phi_idx(-1)
+                                         /*needs_pressure_solver*/ true)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
 
@@ -237,7 +230,7 @@ StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, doub
     //
     // An approximate Helmholtz solver is used.
     d_velocity_solver->setHomogeneousBc(true);
-    LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+    auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver) p_velocity_solver->setInitialGuessNonzero(false);
     d_velocity_solver->solveSystem(*U_vec, *F_U_vec);
 
@@ -286,7 +279,7 @@ StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, doub
                          F_P_idx,
                          F_P_cc_var);
     d_pressure_solver->setHomogeneousBc(true);
-    LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+    auto p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
     p_pressure_solver->setInitialGuessNonzero(false);
     d_pressure_solver->solveSystem(*Phi_scratch_vec, *F_Phi_vec);
     if (steady_state)
@@ -362,7 +355,7 @@ StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVecto
 
     // Setup hierarchy operators.
     Pointer<VariableFillPattern<NDIM> > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent P_scratch_component(d_Phi_scratch_idx,
                                                           DATA_REFINE_TYPE,
                                                           USE_CF_INTERPOLATION,

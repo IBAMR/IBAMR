@@ -75,19 +75,12 @@ std::vector<std::vector<double> > IBStandardSourceGen::s_source_radii;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBStandardSourceGen::IBStandardSourceGen()
-    : d_n_src(), d_source_names(), d_r_src(), d_num_perimeter_nodes(), d_Q_src(), d_P_src()
 {
     RestartManager::getManager()->registerRestartItem("IBStandardSourceGen", this);
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     return;
 } // IBStandardSourceGen
-
-IBStandardSourceGen::~IBStandardSourceGen()
-{
-    // intentionally blank
-    return;
-} // ~IBStandardSourceGen
 
 void
 IBStandardSourceGen::setNumSources(const int ln, const unsigned int num_sources)
@@ -178,9 +171,8 @@ IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*
     std::fill(d_num_perimeter_nodes[level_number].begin(), d_num_perimeter_nodes[level_number].end(), 0);
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (const auto& node_idx : local_nodes)
     {
-        const LNode* const node_idx = *cit;
         const IBSourceSpec* const spec = node_idx->getNodeDataItem<IBSourceSpec>();
         if (!spec) continue;
         const int source_idx = spec->getSourceIndex();
@@ -227,9 +219,8 @@ IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
     const double* const X_node = X_data->getLocalFormVecArray()->data();
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (const auto& node_idx : local_nodes)
     {
-        const LNode* const node_idx = *cit;
         const IBSourceSpec* const spec = node_idx->getNodeDataItem<IBSourceSpec>();
         if (!spec) continue;
         const int& petsc_idx = node_idx->getLocalPETScIndex();
@@ -296,9 +287,7 @@ IBStandardSourceGen::putToDatabase(Pointer<Database> db)
     {
         for (int n = 0; n < s_num_sources[ln]; ++n)
         {
-            std::ostringstream id_stream;
-            id_stream << ln << "_" << n;
-            const std::string id_string = id_stream.str();
+            const std::string id_string = std::to_string(ln) + "_" + std::to_string(n);
             db->putString("s_source_names_" + id_string, s_source_names[ln][n]);
             db->putDouble("s_source_radii_" + id_string, s_source_radii[ln][n]);
         }
@@ -311,9 +300,7 @@ IBStandardSourceGen::putToDatabase(Pointer<Database> db)
     {
         for (int n = 0; n < d_n_src[ln]; ++n)
         {
-            std::ostringstream id_stream;
-            id_stream << ln << "_" << n;
-            const std::string id_string = id_stream.str();
+            const std::string id_string = std::to_string(ln) + "_" + std::to_string(n);
             db->putString("d_source_names_" + id_string, d_source_names[ln][n]);
             db->putDouble("d_r_src_" + id_string, d_r_src[ln][n]);
             db->putInteger("d_num_perimeter_nodes_" + id_string, d_num_perimeter_nodes[ln][n]);
@@ -355,9 +342,7 @@ IBStandardSourceGen::getFromRestart()
         s_source_radii[ln].resize(s_num_sources[ln]);
         for (int n = 0; n < s_num_sources[ln]; ++n)
         {
-            std::ostringstream id_stream;
-            id_stream << ln << "_" << n;
-            const std::string id_string = id_stream.str();
+            const std::string id_string = std::to_string(ln) + "_" + std::to_string(n);
             s_source_names[ln][n] = db->getString("s_source_names_" + id_string);
             s_source_radii[ln][n] = db->getDouble("s_source_radii_" + id_string);
         }
@@ -380,9 +365,7 @@ IBStandardSourceGen::getFromRestart()
         d_P_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
         for (int n = 0; n < d_n_src[ln]; ++n)
         {
-            std::ostringstream id_stream;
-            id_stream << ln << "_" << n;
-            const std::string id_string = id_stream.str();
+            const std::string id_string = std::to_string(ln) + "_" + std::to_string(n);
             d_source_names[ln][n] = db->getString("d_source_names_" + id_string);
             d_r_src[ln][n] = db->getDouble("d_r_src_" + id_string);
             d_num_perimeter_nodes[ln][n] = db->getInteger("d_num_perimeter_nodes_" + id_string);

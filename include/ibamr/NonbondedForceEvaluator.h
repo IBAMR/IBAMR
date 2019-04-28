@@ -55,7 +55,7 @@ public:
     // q_j will experience force -out_force.
     //
     // parameters are passed in the double* params.
-    typedef void (*NonBddForceFcnPtr)(double* D, const SAMRAI::tbox::Array<double> params, double* out_force);
+    using NonBddForceFcnPtr = void (*)(double* D, const SAMRAI::tbox::Array<double> params, double* out_force);
 
     // Class constructor.
     NonbondedForceEvaluator(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
@@ -75,20 +75,20 @@ public:
                                 const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                 const int level_number,
                                 const double data_time,
-                                IBTK::LDataManager* const l_data_manager);
+                                IBTK::LDataManager* const l_data_manager) override;
 
     // Register the force function used
     void registerForceFcnPtr(NonBddForceFcnPtr force_fcn_ptr);
 
 private:
     // Default constructor, not implemented.
-    NonbondedForceEvaluator();
+    NonbondedForceEvaluator() = delete;
 
     // Copy constructor, not implemented.
-    NonbondedForceEvaluator(const NonbondedForceEvaluator& from);
+    NonbondedForceEvaluator(const NonbondedForceEvaluator& from) = delete;
 
     // Assignment operator, not implemented.
-    NonbondedForceEvaluator& operator=(const NonbondedForceEvaluator& that);
+    NonbondedForceEvaluator& operator=(const NonbondedForceEvaluator& that) = delete;
 
     // type of force to use:
     int d_force_type;

@@ -106,9 +106,9 @@ public:
     /*!
      * \brief Constructor.
      */
-    VCSCViscousPETScLevelSolver(const std::string& object_name,
+    VCSCViscousPETScLevelSolver(std::string object_name,
                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                const std::string& default_options_prefix);
+                                std::string default_options_prefix);
 
     /*!
      * \brief Destructor.
@@ -136,7 +136,7 @@ protected:
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */
     void initializeSolverStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Copy solution and right-hand-side data to the PETSc
@@ -146,7 +146,7 @@ protected:
     void setupKSPVecs(Vec& petsc_x,
                       Vec& petsc_b,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
 private:
     /*!
@@ -154,7 +154,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCSCViscousPETScLevelSolver();
+    VCSCViscousPETScLevelSolver() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -163,7 +163,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCSCViscousPETScLevelSolver(const VCSCViscousPETScLevelSolver& from);
+    VCSCViscousPETScLevelSolver(const VCSCViscousPETScLevelSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -174,7 +174,7 @@ private:
      *
      * \return A reference to this object.
      */
-    VCSCViscousPETScLevelSolver& operator=(const VCSCViscousPETScLevelSolver& that);
+    VCSCViscousPETScLevelSolver& operator=(const VCSCViscousPETScLevelSolver& that) = delete;
 
     /*
      * The interpolation type to be used for viscosity

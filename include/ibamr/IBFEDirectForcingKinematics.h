@@ -36,8 +36,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <set>
-#include <stdbool.h>
-#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -77,9 +75,16 @@ class IBFEDirectForcingKinematics : public virtual SAMRAI::tbox::DescribedClass,
 {
 public:
     /*!
+     * Since this class has Eigen object members, which have special alignment
+     * requirements, we must explicitly override operator new to get the
+     * correct aligment for the object as a whole.
+     */
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    /*!
      * \brief Constructor.
      */
-    IBFEDirectForcingKinematics(const std::string& object_name,
+    IBFEDirectForcingKinematics(std::string object_name,
                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                 SAMRAI::tbox::Pointer<IBAMR::IBFEMethod> ibfe_method_ops,
                                 int part,
@@ -88,19 +93,19 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~IBFEDirectForcingKinematics();
+    virtual ~IBFEDirectForcingKinematics();
 
     /*!
      * \brief Typedef specifying interface for specifying rigid body velocities.
      */
-    typedef void (*KinematicsFcnPtr)(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* ctx);
+    using KinematicsFcnPtr = void (*)(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* ctx);
 
     /*
      * \brief Kinematics function data.
      */
     struct KinematicsFcnData
     {
-        KinematicsFcnData(KinematicsFcnPtr comvelfcn = NULL, void* ctx = NULL) : comvelfcn(comvelfcn), ctx(ctx)
+        KinematicsFcnData(KinematicsFcnPtr comvelfcn = nullptr, void* ctx = nullptr) : comvelfcn(comvelfcn), ctx(ctx)
         {
             // intentionally left blank
         }
@@ -111,7 +116,7 @@ public:
     /*!
      * \brief Register user defined constrained velocity functions.
      */
-    void registerKinematicsFunction(KinematicsFcnPtr comvelfcn, void* ctx = NULL);
+    void registerKinematicsFunction(KinematicsFcnPtr comvelfcn, void* ctx = nullptr);
 
     /*!
      * \brief Register user defined velocity function data.
@@ -207,7 +212,7 @@ public:
      *
      * \note An empty default implementation is provided.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     /*!
@@ -247,18 +252,24 @@ protected:
     double d_rho;
 
     // Center of mass.
-    Eigen::Vector3d d_center_of_mass_initial, d_center_of_mass_current, d_center_of_mass_half, d_center_of_mass_new;
+    Eigen::Vector3d d_center_of_mass_initial = Eigen::Vector3d::Zero(),
+                    d_center_of_mass_current = Eigen::Vector3d::Zero(), d_center_of_mass_half = Eigen::Vector3d::Zero(),
+                    d_center_of_mass_new = Eigen::Vector3d::Zero();
 
     // Quaternion of the body.
-    Eigen::Quaterniond d_quaternion_current, d_quaternion_half, d_quaternion_new;
+    Eigen::Quaterniond d_quaternion_current = Eigen::Quaterniond::Identity(),
+                       d_quaternion_half = Eigen::Quaterniond::Identity(),
+                       d_quaternion_new = Eigen::Quaterniond::Identity();
 
     // Indicate which rigid degrees of freedom to solve.
     IBTK::FRDV d_solve_rigid_vel;
 
     // Rigid body velocity of the structure.
-    Eigen::Vector3d d_trans_vel_current, d_trans_vel_half, d_trans_vel_new;
-    Eigen::Vector3d d_rot_vel_current, d_rot_vel_half, d_rot_vel_new;
-    Eigen::Matrix3d d_inertia_tensor_initial;
+    Eigen::Vector3d d_trans_vel_current = Eigen::Vector3d::Zero(), d_trans_vel_half = Eigen::Vector3d::Zero(),
+                    d_trans_vel_new = Eigen::Vector3d::Zero();
+    Eigen::Vector3d d_rot_vel_current = Eigen::Vector3d::Zero(), d_rot_vel_half = Eigen::Vector3d::Zero(),
+                    d_rot_vel_new = Eigen::Vector3d::Zero();
+    Eigen::Matrix3d d_inertia_tensor_initial = Eigen::Matrix3d::Zero();
 
     /*
      * A boolean value indicating whether the class is registered with the
@@ -272,7 +283,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBFEDirectForcingKinematics();
+    IBFEDirectForcingKinematics() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -281,7 +292,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBFEDirectForcingKinematics(const IBFEDirectForcingKinematics& from);
+    IBFEDirectForcingKinematics(const IBFEDirectForcingKinematics& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -292,7 +303,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBFEDirectForcingKinematics& operator=(const IBFEDirectForcingKinematics& that);
+    IBFEDirectForcingKinematics& operator=(const IBFEDirectForcingKinematics& that) = delete;
 
     /*!
      * Read input values from a given database.

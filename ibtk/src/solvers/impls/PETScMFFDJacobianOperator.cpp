@@ -32,10 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <ostream>
 #include <string>
+#include <utility>
 
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -66,18 +66,9 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PETScMFFDJacobianOperator::PETScMFFDJacobianOperator(const std::string& object_name, const std::string& options_prefix)
-    : JacobianOperator(object_name),
-      d_F(NULL),
-      d_nonlinear_solver(NULL),
-      d_petsc_jac(NULL),
-      d_op_u(NULL),
-      d_op_x(NULL),
-      d_op_y(NULL),
-      d_petsc_u(NULL),
-      d_petsc_x(NULL),
-      d_petsc_y(NULL),
-      d_options_prefix(options_prefix)
+PETScMFFDJacobianOperator::PETScMFFDJacobianOperator(std::string object_name, std::string options_prefix)
+    : JacobianOperator(std::move(object_name)),
+      d_options_prefix(std::move(options_prefix))
 {
     // intentionally blank
 }
@@ -109,7 +100,7 @@ PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& u)
         Vec u, f;
         ierr = SNESGetSolution(snes, &u);
         IBTK_CHKERRQ(ierr);
-        ierr = SNESGetFunction(snes, &f, NULL, NULL);
+        ierr = SNESGetFunction(snes, &f, nullptr, nullptr);
         IBTK_CHKERRQ(ierr);
         ierr = MatMFFDSetBase(d_petsc_jac, u, f);
         IBTK_CHKERRQ(ierr);
@@ -123,7 +114,7 @@ PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& u)
         d_op_u->allocateVectorData();
         d_op_u->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&u, false), false);
         PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_u, d_op_u);
-        ierr = MatMFFDSetBase(d_petsc_jac, d_petsc_u, NULL);
+        ierr = MatMFFDSetBase(d_petsc_jac, d_petsc_u, nullptr);
         IBTK_CHKERRQ(ierr);
         ierr = MatAssemblyBegin(d_petsc_jac, MAT_FINAL_ASSEMBLY);
         IBTK_CHKERRQ(ierr);
@@ -152,7 +143,7 @@ PETScMFFDJacobianOperator::getBaseVector() const
     {
         return d_op_u;
     }
-    return Pointer<SAMRAIVectorReal<NDIM, double> >(NULL);
+    return Pointer<SAMRAIVectorReal<NDIM, double> >(nullptr);
 }
 
 void
@@ -208,25 +199,25 @@ PETScMFFDJacobianOperator::deallocateOperatorState()
     if (!d_is_initialized) return;
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_u);
-    d_petsc_u = NULL;
+    d_petsc_u = nullptr;
     d_op_u->resetLevels(0,
                         std::min(d_op_u->getFinestLevelNumber(), d_op_u->getPatchHierarchy()->getFinestLevelNumber()));
     d_op_u->freeVectorComponents();
     d_op_u.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
-    d_petsc_x = NULL;
+    d_petsc_x = nullptr;
     d_op_x->freeVectorComponents();
     d_op_x.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_y);
-    d_petsc_y = NULL;
+    d_petsc_y = nullptr;
     d_op_y->freeVectorComponents();
     d_op_y.setNull();
 
     int ierr = MatDestroy(&d_petsc_jac);
     IBTK_CHKERRQ(ierr);
-    d_petsc_jac = NULL;
+    d_petsc_jac = nullptr;
 
     d_is_initialized = false;
 }
@@ -236,7 +227,7 @@ PETScMFFDJacobianOperator::deallocateOperatorState()
 PetscErrorCode
 PETScMFFDJacobianOperator::FormFunction_SAMRAI(void* p_ctx, Vec x, Vec f)
 {
-    PETScMFFDJacobianOperator* jac_op = static_cast<PETScMFFDJacobianOperator*>(p_ctx);
+    auto jac_op = static_cast<PETScMFFDJacobianOperator*>(p_ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(jac_op);
     TBOX_ASSERT(jac_op->d_F);

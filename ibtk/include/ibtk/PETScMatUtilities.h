@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
+#include <cmath>
 #include <vector>
 
 #include "PoissonSpecifications.h"
@@ -165,7 +165,7 @@ public:
      */
     static void ib_4_interp_fcn(const double r, double* const w)
     {
-        const double q = sqrt(-7.0 + 12.0 * r - 4.0 * r * r);
+        const double q = std::sqrt(-7.0 + 12.0 * r - 4.0 * r * r);
         w[0] = 0.125 * (5.0 - 2.0 * r - q);
         w[1] = 0.125 * (5.0 - 2.0 * r + q);
         w[2] = 0.125 * (-1.0 + 2.0 * r + q);
@@ -232,7 +232,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PETScMatUtilities();
+    PETScMatUtilities() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -241,7 +241,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScMatUtilities(const PETScMatUtilities& from);
+    PETScMatUtilities(const PETScMatUtilities& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -252,7 +252,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScMatUtilities& operator=(const PETScMatUtilities& that);
+    PETScMatUtilities& operator=(const PETScMatUtilities& that) = delete;
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to cc-data

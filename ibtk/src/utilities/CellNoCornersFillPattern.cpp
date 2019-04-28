@@ -68,14 +68,7 @@ CellNoCornersFillPattern::CellNoCornersFillPattern(const int stencil_width,
     : d_stencil_width(stencil_width),
       d_include_dst_patch_box(include_dst_patch_box),
       d_include_edges_on_dst_level(include_edges_on_dst_level),
-      d_include_edges_on_src_level(include_edges_on_src_level),
-      d_target_level_num(-1)
-{
-    // intentionally blank
-    return;
-} // CellNoCornersFillPattern
-
-CellNoCornersFillPattern::~CellNoCornersFillPattern()
+      d_include_edges_on_src_level(include_edges_on_src_level)
 {
     // intentionally blank
     return;
@@ -94,7 +87,7 @@ CellNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry
 #if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);
 #endif
-    const CellGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const CellGeometry<NDIM>*>(&dst_geometry);
+    auto const t_dst_geometry = dynamic_cast<const CellGeometry<NDIM>*>(&dst_geometry);
 #if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
 #endif
@@ -163,7 +156,7 @@ CellNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometry<NDIM>& dst_g
 #if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);
 #endif
-    const CellGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const CellGeometry<NDIM>*>(&dst_geometry);
+    auto const t_dst_geometry = dynamic_cast<const CellGeometry<NDIM>*>(&dst_geometry);
 #if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
 #endif

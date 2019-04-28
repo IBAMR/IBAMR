@@ -32,6 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <utility>
+
 #include "ibamr/RelaxationLSBcCoefs.h"
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -57,17 +59,11 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-RelaxationLSBcCoefs::RelaxationLSBcCoefs(const std::string& object_name) : d_object_name(object_name), d_phi_idx(-1)
+RelaxationLSBcCoefs::RelaxationLSBcCoefs(std::string object_name) : d_object_name(std::move(object_name))
 {
     // intentionally blank
     return;
 } // RelaxationLSBcCoefs
-
-RelaxationLSBcCoefs::~RelaxationLSBcCoefs()
-{
-    // intentionally blank
-    return;
-} // ~RelaxationLSBcCoefs
 
 void
 RelaxationLSBcCoefs::setLSPatchDataIndex(int phi_idx)

@@ -55,7 +55,7 @@ IBSpringForceSpec::getIsRegisteredWithStreamableManager()
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline IBSpringForceSpec::IBSpringForceSpec(const unsigned int num_springs)
-    : d_master_idx(-1), d_slave_idxs(num_springs), d_force_fcn_idxs(num_springs), d_parameters(num_springs)
+    : d_slave_idxs(num_springs), d_force_fcn_idxs(num_springs), d_parameters(num_springs)
 {
 #if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
@@ -88,16 +88,10 @@ inline IBSpringForceSpec::IBSpringForceSpec(const int master_idx,
     return;
 } // IBSpringForceSpec
 
-inline IBSpringForceSpec::~IBSpringForceSpec()
-{
-    // intentionally blank
-    return;
-} // ~IBSpringForceSpec
-
 inline unsigned int
 IBSpringForceSpec::getNumberOfSprings() const
 {
-    const unsigned int num_springs = static_cast<unsigned int>(d_slave_idxs.size());
+    const auto num_springs = static_cast<unsigned int>(d_slave_idxs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
     TBOX_ASSERT(num_springs == d_parameters.size());
@@ -179,7 +173,7 @@ IBSpringForceSpec::getDataStreamSize() const
 inline void
 IBSpringForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
-    const unsigned int num_springs = static_cast<unsigned int>(d_slave_idxs.size());
+    const auto num_springs = static_cast<unsigned int>(d_slave_idxs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
     TBOX_ASSERT(num_springs == d_parameters.size());

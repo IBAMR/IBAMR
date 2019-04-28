@@ -1,3 +1,6 @@
+// IBTK uses muParser to load functions from a input file without requiring them
+// to be compiled or recompiled. Here we define the solution (u) and -1 times
+// its Laplacian (f).
 u {
    function = "sin(2*PI*(X_0-0.1234))*sin(2*PI*(X_1-0.1234))"
 }
@@ -20,17 +23,36 @@ Main {
    timer_enabled = TRUE
 }
 
+// The number of cells to use in each direction in the background grid. The
+// error in the Laplace operator is first order where we refine the mesh and
+// second order away from coarse-fine interfaces: one can observe both rates of
+// convergence by halving this number and then rerunning the code.
 N = 8
 
 CartesianGeometry {
-   domain_boxes       = [(0,0), (N - 1,N - 1)]
-   x_lo               = 0, 0      // lower end of computational domain.
-   x_up               = 1, 1      // upper end of computational domain.
+   // The coarse grid behind all other grids is set up as a N - 1 x N - 1
+   // square, where N is defined above.
+   domain_boxes       = [(0, 0), (N - 1, N - 1)]
+   // The lower left corner of the computational domain.
+   x_lo               = 0, 0
+   // The upper right corner of the computational domain.
+   x_up               = 1, 1
+   // A 1 signifies that we are periodic in this direction, while a 0 means we
+   // are not periodic. In this case we are periodic in both the x and y
+   // directions, so we set periodic_dimension to 1, 1. If, for example, we were
+   // *not* periodic in the x direction but were periodic in the y direction we
+   // would use 0, 1.
+   //
+   // Setting both dimensions to periodic makes this example a lot simpler:
+   // instead of relying on some strategy for setting ghost values outside the
+   // boundary or enforcing Dirichlet boundary conditions, we can instead just
+   // look to the other side of the domain to do a standard centered difference
+   // stencil at the boundaries.
    periodic_dimension = 1, 1
 }
 
 GriddingAlgorithm {
-   max_levels = 2                 // Maximum number of levels in hierarchy.
+   max_levels = 3                 // Maximum number of levels in hierarchy.
 
    ratio_to_coarser {
       level_1 = 4, 4              // vector ratio to next coarser level
@@ -51,15 +73,21 @@ GriddingAlgorithm {
                                   // boxes < efficiency * vol of large box
 }
 
+// Set up some cells to be refined at the beginning of the simulation. This adds
+// three refined boxes in an L-shape to the coarse grid. Note that the boxes we
+// provide are a list of cells to refine to create the *new* level: that is, we
+// specify three boxes in level 0 that are refined to create level 1. If we
+// wanted to add a third level then we would specify a list of boxes in level 1
+// in the same way.
 StandardTagAndInitialize {
    tagging_method = "REFINE_BOXES"
    RefineBoxes {
-//    level_0 = [( N/4 , 0 ),( 3*N/4 - 1 , N - 1 )]
-//    level_0 = [( 0 , N/4 ),( N - 1 , 3*N/4 - 1 )]
-//    level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , 3*N/4 - 1 )]
-//    level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
-//    level_0 = [( N/4 , N/4 ),( N/2 - 1 , 3*N/4 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )]
-      level_0 = [( N/4 , N/4 ),( N/2 - 1 , N/2 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
+      level_0 = [(N/4 ,N/4), (N/2 - 1, N/2 - 1)],
+                [(N/2, N/4), (N - 1,   N/2 - 1)],
+                [(N/4, N/2), (N/2 - 1, 3*N/4 - 1)]
+      // try uncommenting this line to create another refined box on level 1:
+      // level_1 = [( 5*N/4 , 5*N/4 ), (15*N/4 - 1, 7*N/4 - 1 )]
+
    }
 }
 

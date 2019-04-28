@@ -89,7 +89,7 @@ public:
     /*!
      * Constructor.
      */
-    FACPreconditioner(const std::string& object_name,
+    FACPreconditioner(std::string object_name,
                       SAMRAI::tbox::Pointer<FACPreconditionerStrategy> fac_strategy,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                       const std::string& default_options_prefix);
@@ -107,17 +107,17 @@ public:
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
      */
-    void setHomogeneousBc(bool homogeneous_bc);
+    void setHomogeneousBc(bool homogeneous_bc) override;
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
      */
-    void setSolutionTime(double solution_time);
+    void setSolutionTime(double solution_time) override;
 
     /*!
      * \brief Set the current time interval.
      */
-    void setTimeInterval(double current_time, double new_time);
+    void setTimeInterval(double current_time, double new_time) override;
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -156,7 +156,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -200,7 +200,7 @@ public:
      * \see deallocateSolverState
      */
     void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -215,7 +215,7 @@ public:
      *
      * \see initializeSolverState
      */
-    void deallocateSolverState();
+    void deallocateSolverState() override;
 
     //\}
 
@@ -227,12 +227,12 @@ public:
     /*!
      * \brief Set whether the initial guess is non-zero.
      */
-    void setInitialGuessNonzero(bool initial_guess_nonzero = true);
+    void setInitialGuessNonzero(bool initial_guess_nonzero = true) override;
 
     /*!
      * \brief Set the maximum number of iterations to use per solve.
      */
-    void setMaxIterations(int max_iterations);
+    void setMaxIterations(int max_iterations) override;
 
     /*!
      * \brief Set the multigrid algorithm cycle type.
@@ -295,10 +295,10 @@ protected:
 
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln;
-    int d_finest_ln;
-    MGCycleType d_cycle_type;
-    int d_num_pre_sweeps, d_num_post_sweeps;
+    int d_coarsest_ln = 0;
+    int d_finest_ln = 0;
+    MGCycleType d_cycle_type = V_CYCLE;
+    int d_num_pre_sweeps = 0, d_num_post_sweeps = 2;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_f, d_r;
 
 private:
@@ -307,7 +307,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    FACPreconditioner();
+    FACPreconditioner() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -316,7 +316,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FACPreconditioner(const FACPreconditioner& from);
+    FACPreconditioner(const FACPreconditioner& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -327,7 +327,7 @@ private:
      *
      * \return A reference to this object.
      */
-    FACPreconditioner& operator=(const FACPreconditioner& that);
+    FACPreconditioner& operator=(const FACPreconditioner& that) = delete;
 
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 };

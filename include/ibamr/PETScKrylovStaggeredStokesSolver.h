@@ -72,7 +72,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~PETScKrylovStaggeredStokesSolver();
+    ~PETScKrylovStaggeredStokesSolver() = default;
 
 protected:
 private:
@@ -81,7 +81,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PETScKrylovStaggeredStokesSolver();
+    PETScKrylovStaggeredStokesSolver() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -90,7 +90,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScKrylovStaggeredStokesSolver(const PETScKrylovStaggeredStokesSolver& from);
+    PETScKrylovStaggeredStokesSolver(const PETScKrylovStaggeredStokesSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -101,7 +101,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScKrylovStaggeredStokesSolver& operator=(const PETScKrylovStaggeredStokesSolver& that);
+    PETScKrylovStaggeredStokesSolver& operator=(const PETScKrylovStaggeredStokesSolver& that) = delete;
 };
 } // namespace IBAMR
 

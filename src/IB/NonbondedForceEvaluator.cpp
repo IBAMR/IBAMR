@@ -46,6 +46,7 @@ namespace IBAMR
 
 NonbondedForceEvaluator::NonbondedForceEvaluator(Pointer<Database> input_db,
                                                  Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
+    : d_grid_geometry(grid_geometry)
 {
     // get interaction radius
     if (input_db->keyExists("interaction_radius"))
@@ -66,9 +67,6 @@ NonbondedForceEvaluator::NonbondedForceEvaluator(Pointer<Database> input_db,
     {
         TBOX_ERROR("Must specify regrid_alpha for NonbondedForceEvaluator.");
     }
-
-    // get grid geometry and grid bounds
-    d_grid_geometry = grid_geometry;
 
     // this will only work if the domain is a single box.
     assert(d_grid_geometry->getDomainIsSingleBox());
@@ -119,9 +117,9 @@ NonbondedForceEvaluator::evaluateForces(int mstr_petsc_idx,
     {
         D[k] = (position[mstr_petsc_idx * NDIM + k] - position[search_petsc_idx * NDIM + k] -
                 cell_offset[k] * (x_upper[k] - x_lower[k]));
-        R += pow(D[k], 2);
+        R += std::pow(D[k], 2);
     }
-    R = sqrt(R);
+    R = std::sqrt(R);
 
     double nonbdd_force[NDIM];
     (d_force_fcn_ptr)(D, d_parameters, nonbdd_force);
@@ -202,17 +200,14 @@ NonbondedForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
                         // we have a set of nodes in the first cell and the search cell,
                         // add up forces
                         // and accumulate for the first cell.
-                        for (LNodeSet::iterator it = mstr_node_set->begin(); it != mstr_node_set->end(); ++it)
+                        for (const auto& mstr_node_idx : *mstr_node_set)
                         {
                             // master nodes
-                            LNodeSet::value_type& mstr_node_idx = *it;
                             const int mstr_lag_idx = mstr_node_idx->getLagrangianIndex();
                             const int mstr_petsc_idx = mstr_node_idx->getLocalPETScIndex();
 
-                            for (LNodeSet::iterator sit = search_node_set->begin(); sit != search_node_set->end();
-                                 ++sit)
+                            for (const auto& search_node_idx : *search_node_set)
                             {
-                                LNodeSet::value_type& search_node_idx = *sit;
                                 const int search_lag_idx = search_node_idx->getLagrangianIndex();
                                 const int search_petsc_idx = search_node_idx->getLocalPETScIndex();
                                 if (mstr_lag_idx < search_lag_idx)

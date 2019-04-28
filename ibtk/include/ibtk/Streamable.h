@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
@@ -79,12 +78,12 @@ public:
     /*!
      * \brief Default empty constructor.
      */
-    Streamable();
+    Streamable() = default;
 
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~Streamable();
+    virtual ~Streamable() = default;
 
     /*!
      * \brief Return the unique class identifier used to specify the
@@ -120,7 +119,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    Streamable(const Streamable& from);
+    Streamable(const Streamable& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -131,7 +130,7 @@ private:
      *
      * \return A reference to this object.
      */
-    Streamable& operator=(const Streamable& that);
+    Streamable& operator=(const Streamable& that) = delete;
 };
 } // namespace IBTK
 

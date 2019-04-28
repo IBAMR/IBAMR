@@ -71,12 +71,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    CartCellDoubleBoundsPreservingConservativeLinearRefine();
+    CartCellDoubleBoundsPreservingConservativeLinearRefine() = default;
 
     /*!
      * \brief Destructor.
      */
-    ~CartCellDoubleBoundsPreservingConservativeLinearRefine();
+    ~CartCellDoubleBoundsPreservingConservativeLinearRefine() = default;
 
     /*!
      * \name Implementation of SAMRAI::xfer::RefineOperator interface.
@@ -88,12 +88,12 @@ public:
      * string identifier request; false, otherwise.
      */
     bool findRefineOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
-                            const std::string& op_name) const;
+                            const std::string& op_name) const override;
 
     /*!
      * Return name string identifier of the refining operation.
      */
-    const std::string& getOperatorName() const;
+    const std::string& getOperatorName() const override;
 
     /*!
      * Return the priority of this operator relative to other refining
@@ -101,7 +101,7 @@ public:
      * operators with lower priority will be performed before those with higher
      * priority.
      */
-    int getOperatorPriority() const;
+    int getOperatorPriority() const override;
 
     /*!
      * Return the stencil width associated with the refining operator.  The
@@ -109,7 +109,7 @@ public:
      * sufficient ghost cell data surrounding the interior to satisfy the
      * stencil width requirements for each refining operator.
      */
-    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const;
+    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const override;
 
     /*!
      * Refine the source component on the fine patch to the destination
@@ -123,7 +123,7 @@ public:
                 int dst_component,
                 int src_component,
                 const SAMRAI::hier::Box<NDIM>& fine_box,
-                const SAMRAI::hier::IntVector<NDIM>& ratio) const;
+                const SAMRAI::hier::IntVector<NDIM>& ratio) const override;
 
     //\}
 
@@ -137,7 +137,7 @@ private:
      * \param from The value to copy to this object.
      */
     CartCellDoubleBoundsPreservingConservativeLinearRefine(
-        const CartCellDoubleBoundsPreservingConservativeLinearRefine& from);
+        const CartCellDoubleBoundsPreservingConservativeLinearRefine& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -149,7 +149,7 @@ private:
      * \return A reference to this object.
      */
     CartCellDoubleBoundsPreservingConservativeLinearRefine&
-    operator=(const CartCellDoubleBoundsPreservingConservativeLinearRefine& that);
+    operator=(const CartCellDoubleBoundsPreservingConservativeLinearRefine& that) = delete;
 
     /*!
      * The operator name.

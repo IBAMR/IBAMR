@@ -116,18 +116,6 @@ static const int COARSEN_OP_PRIORITY = 0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartSideDoubleCubicCoarsen::CartSideDoubleCubicCoarsen() : d_weighted_average_coarsen_op()
-{
-    // intentionally blank
-    return;
-} // CartSideDoubleCubicCoarsen
-
-CartSideDoubleCubicCoarsen::~CartSideDoubleCubicCoarsen()
-{
-    // intentionally blank
-    return;
-} // ~CartSideDoubleCubicCoarsen
-
 bool
 CartSideDoubleCubicCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
 {

@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
+#include <cstring>
 #include <functional>
 #include <map>
 #include <ostream>
@@ -68,7 +68,6 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "boost/array.hpp"
 #include "ibtk/CCPoissonLevelRelaxationFACOperator.h"
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartCellDoubleCubicCoarsen.h"
@@ -143,25 +142,14 @@ CCPoissonLevelRelaxationFACOperator::CCPoissonLevelRelaxationFACOperator(const s
           CELLG,
           input_db,
           default_options_prefix),
-      d_level_solver_type(),
-      d_level_solvers(),
-      d_level_solver_db(),
-      d_coarse_solver(NULL),
-      d_coarse_solver_db()
+      d_level_solver_default_options_prefix(default_options_prefix + "level_")
 {
     // Set some default values.
     d_prolongation_method = "LINEAR_REFINE";
     d_restriction_method = "CONSERVATIVE_COARSEN";
-    d_level_solver_type = CCPoissonSolverManager::PETSC_LEVEL_SOLVER;
-    d_level_solver_default_options_prefix = default_options_prefix + "level_";
-    d_level_solver_rel_residual_tol = 1.0e-5;
-    d_level_solver_abs_residual_tol = 1.0e-50;
-    d_level_solver_max_iterations = 1;
     d_level_solver_db = new MemoryDatabase(object_name + "::level_solver_db");
     d_coarse_solver_type = CCPoissonSolverManager::PETSC_LEVEL_SOLVER;
     d_coarse_solver_default_options_prefix = default_options_prefix + "level_0_";
-    d_coarse_solver_rel_residual_tol = 1.0e-5;
-    d_coarse_solver_abs_residual_tol = 1.0e-50;
     d_coarse_solver_max_iterations = 1;
     d_coarse_solver_db = new MemoryDatabase(object_name + "::coarse_solver_db");
 
@@ -332,13 +320,13 @@ CCPoissonLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
         Pointer<PoissonSolver> level_solver = d_level_solvers[level_num];
         level_solver->setSolutionTime(d_solution_time);
         level_solver->setTimeInterval(d_current_time, d_new_time);
-        LinearSolver* p_level_solver = dynamic_cast<LinearSolver*>(level_solver.getPointer());
+        auto p_level_solver = dynamic_cast<LinearSolver*>(level_solver.getPointer());
         if (p_level_solver)
         {
             bool initial_guess_nonzero = true;
 
-            PETScKrylovLinearSolver* p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_level_solver);
-            PETScLevelSolver* p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_level_solver);
+            auto p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_level_solver);
+            auto p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_level_solver);
 
             if (p_petsc_solver || p_petsc_level_solver)
             {
@@ -346,7 +334,7 @@ CCPoissonLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                     p_petsc_solver ? p_petsc_solver->getPETScKSP() : p_petsc_level_solver->getPETScKSP();
                 KSPType ksp_type;
                 KSPGetType(petsc_ksp, &ksp_type);
-                if (!strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
+                if (!std::strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
             }
             p_level_solver->setInitialGuessNonzero(initial_guess_nonzero);
         }
@@ -371,19 +359,19 @@ CCPoissonLevelRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, d
     Pointer<SAMRAIVectorReal<NDIM, double> > r_level = getLevelSAMRAIVectorReal(residual, coarsest_ln);
     d_coarse_solver->setSolutionTime(d_solution_time);
     d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
-    LinearSolver* p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
+    auto p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
     if (p_coarse_solver)
     {
         bool initial_guess_nonzero = true;
-        PETScKrylovLinearSolver* p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_coarse_solver);
-        PETScLevelSolver* p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_coarse_solver);
+        auto p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_coarse_solver);
+        auto p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_coarse_solver);
         if (p_petsc_solver || p_petsc_level_solver)
         {
             const KSP& petsc_ksp = p_petsc_solver ? p_petsc_solver->getPETScKSP() : p_petsc_level_solver->getPETScKSP();
             KSPType ksp_type;
             KSPGetType(petsc_ksp, &ksp_type);
 
-            if (!strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
+            if (!std::strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
         }
         p_coarse_solver->setInitialGuessNonzero(initial_guess_nonzero);
     }
@@ -411,7 +399,7 @@ CCPoissonLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
     const Pointer<CellVariable<NDIM, double> > rhs_var = rhs.getComponentVariable(0);
 
     // Fill ghost-cell values.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     Pointer<CellNoCornersFillPattern> fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     InterpolationTransactionComponent transaction_comp(sol_idx,
                                                        DATA_REFINE_TYPE,
@@ -446,13 +434,11 @@ CCPoissonLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
     // Compute the residual, r = f - A*u.
     if (!d_level_math_ops[finest_level_num])
     {
-        std::ostringstream stream;
-        stream << d_object_name << "::hier_math_ops_" << finest_level_num;
         d_level_math_ops[finest_level_num] =
-            new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
+            new HierarchyMathOps(d_object_name + "::hier_math_ops_" + std::to_string(finest_level_num), d_hierarchy, coarsest_level_num, finest_level_num);
     }
     d_level_math_ops[finest_level_num]->laplace(
-        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_solution_time);
+        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, nullptr, d_solution_time);
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     hier_cc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
 
@@ -506,10 +492,8 @@ CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
         Pointer<PoissonSolver>& level_solver = d_level_solvers[ln];
         if (!level_solver)
         {
-            std::ostringstream level_solver_stream;
-            level_solver_stream << d_level_solver_default_options_prefix << ln << "_";
             level_solver = CCPoissonSolverManager::getManager()->allocateSolver(
-                d_level_solver_type, d_object_name + "::level_solver", d_level_solver_db, level_solver_stream.str());
+                d_level_solver_type, d_object_name + "::level_solver", d_level_solver_db, d_level_solver_default_options_prefix + std::to_string(ln) + "_");
         }
 
         level_solver->setSolutionTime(d_solution_time);
@@ -559,7 +543,7 @@ CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     }
     else
     {
-        d_op_stencil_fill_pattern = NULL;
+        d_op_stencil_fill_pattern = nullptr;
     }
 
     // Get overlap information for setting patch boundary conditions.

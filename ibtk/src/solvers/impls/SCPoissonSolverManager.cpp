@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <map>
 #include <ostream>
 #include <string>
@@ -70,7 +69,7 @@ const std::string SCPoissonSolverManager::DEFAULT_LEVEL_SOLVER = "DEFAULT_LEVEL_
 const std::string SCPoissonSolverManager::HYPRE_LEVEL_SOLVER = "HYPRE_LEVEL_SOLVER";
 const std::string SCPoissonSolverManager::PETSC_LEVEL_SOLVER = "PETSC_LEVEL_SOLVER";
 
-SCPoissonSolverManager* SCPoissonSolverManager::s_solver_manager_instance = NULL;
+SCPoissonSolverManager* SCPoissonSolverManager::s_solver_manager_instance = nullptr;
 bool SCPoissonSolverManager::s_registered_callback = false;
 unsigned char SCPoissonSolverManager::s_shutdown_priority = 200;
 
@@ -93,7 +92,7 @@ void
 SCPoissonSolverManager::freeManager()
 {
     delete s_solver_manager_instance;
-    s_solver_manager_instance = NULL;
+    s_solver_manager_instance = nullptr;
     return;
 } // freeManager
 
@@ -119,7 +118,7 @@ SCPoissonSolverManager::allocateSolver(const std::string& solver_type,
                                        Pointer<Database> solver_input_db,
                                        const std::string& solver_default_options_prefix) const
 {
-    std::map<std::string, SolverMaker>::const_iterator it = d_solver_maker_map.find(solver_type);
+    auto it = d_solver_maker_map.find(solver_type);
     if (it == d_solver_maker_map.end())
     {
         TBOX_ERROR("CCPoissonSolverManager::allocateSolver():\n"
@@ -188,12 +187,6 @@ SCPoissonSolverManager::SCPoissonSolverManager() : d_solver_maker_map()
     registerSolverFactoryFunction(PETSC_LEVEL_SOLVER, SCPoissonPETScLevelSolver::allocate_solver);
     return;
 } // SCPoissonSolverManager
-
-SCPoissonSolverManager::~SCPoissonSolverManager()
-{
-    // intentionally blank
-    return;
-} // ~SCPoissonSolverManager
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

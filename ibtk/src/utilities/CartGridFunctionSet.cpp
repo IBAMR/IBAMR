@@ -76,17 +76,11 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartGridFunctionSet::CartGridFunctionSet(const std::string& object_name) : CartGridFunction(object_name), d_fcns()
+CartGridFunctionSet::CartGridFunctionSet(std::string object_name) : CartGridFunction(std::move(object_name))
 {
     // intentionally blank
     return;
 } // CartGridFunctionSet
-
-CartGridFunctionSet::~CartGridFunctionSet()
-{
-    // intentionally blank
-    return;
-} // ~CartGridFunctionSet
 
 void
 CartGridFunctionSet::addFunction(Pointer<CartGridFunction> fcn)
@@ -101,9 +95,9 @@ CartGridFunctionSet::addFunction(Pointer<CartGridFunction> fcn)
 bool
 CartGridFunctionSet::isTimeDependent() const
 {
-    for (unsigned int k = 0; k < d_fcns.size(); ++k)
+    for (const auto& fcn : d_fcns)
     {
-        if (d_fcns[k]->isTimeDependent()) return true;
+        if (fcn->isTimeDependent()) return true;
     }
     return false;
 } // isTimeDependent

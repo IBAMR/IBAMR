@@ -35,14 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <map>
 #include <string>
 #include <vector>
 
 #include "CartesianGridGeometry.h"
 #include "PatchLevel.h"
-#include "boost/array.hpp"
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/ibtk_utilities.h"
 #include "muParser.h"
@@ -79,14 +77,14 @@ public:
     /*!
      * \brief Constructor.
      */
-    muParserCartGridFunction(const std::string& object_name,
+    muParserCartGridFunction(std::string object_name,
                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                              SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
 
     /*!
      * \brief Empty destructor.
      */
-    ~muParserCartGridFunction();
+    ~muParserCartGridFunction() = default;
 
     /*!
      * \name Methods to set patch interior data.
@@ -97,7 +95,7 @@ public:
      * \brief Indicates whether the concrete CartGridFunction object is
      * time-dependent.
      */
-    bool isTimeDependent() const;
+    bool isTimeDependent() const override;
 
     /*!
      * \brief Virtual function to evaluate the function on the patch interior.
@@ -108,7 +106,7 @@ public:
                         double data_time,
                         bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
 
     //\}
 
@@ -119,7 +117,7 @@ private:
      * \note This constructor is not implemented and should not be
      * used.
      */
-    muParserCartGridFunction();
+    muParserCartGridFunction() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -128,7 +126,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    muParserCartGridFunction(const muParserCartGridFunction& from);
+    muParserCartGridFunction(const muParserCartGridFunction& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -139,7 +137,7 @@ private:
      *
      * \return A reference to this object.
      */
-    muParserCartGridFunction& operator=(const muParserCartGridFunction& that);
+    muParserCartGridFunction& operator=(const muParserCartGridFunction& that) = delete;
 
     /*!
      * The Cartesian grid geometry object provides the extents of the
@@ -166,7 +164,7 @@ private:
     /*!
      * Time and position variables.
      */
-    double d_parser_time;
+    double d_parser_time = 0.0;
     Point d_parser_posn;
 };
 } // namespace IBTK

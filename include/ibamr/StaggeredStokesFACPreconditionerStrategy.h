@@ -55,6 +55,7 @@
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/FACPreconditionerStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -250,7 +251,7 @@ public:
     /*!
      * \brief Zero the supplied vector.
      */
-    void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num);
+    void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num) override;
 
     /*!
      * \brief Restrict the residual quantity to the specified level from the
@@ -262,7 +263,7 @@ public:
      */
     void restrictResidual(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
                           SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
-                          int dst_ln);
+                          int dst_ln) override;
 
     /*!
      * \brief Prolong the error quantity to the specified level from the next
@@ -274,7 +275,7 @@ public:
      */
     void prolongError(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
-                      int dst_ln);
+                      int dst_ln) override;
 
     /*!
      * \brief Prolong the error quantity to the specified level from the next
@@ -286,7 +287,7 @@ public:
      */
     void prolongErrorAndCorrect(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
                                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
-                                int dst_ln);
+                                int dst_ln) override;
 
     /*!
      * \brief Solve the residual equation Ae=r on the coarsest level of the
@@ -298,7 +299,7 @@ public:
      */
     bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                            int coarsest_ln);
+                            int coarsest_ln) override;
 
     /*!
      * \brief Compute the composite-grid residual on the specified range of
@@ -308,7 +309,7 @@ public:
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
                          int coarsest_level_num,
-                         int finest_level_num);
+                         int finest_level_num) override;
 
     /*!
      * \brief Compute hierarchy-dependent data.
@@ -325,7 +326,7 @@ public:
      * \param rhs right hand side vector f
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs) override;
 
     /*!
      * \brief Remove all hierarchy-dependent data.
@@ -334,7 +335,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void deallocateOperatorState();
+    void deallocateOperatorState() override;
 
     //\}
 
@@ -419,7 +420,7 @@ protected:
      * lists.  We use it to enforce working on one hierarchy at a time.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     /*
      * Level operators, used to compute composite-grid residuals.
@@ -430,8 +431,8 @@ protected:
     /*
      * Range of levels to be reset the next time the operator is initialized.
      */
-    bool d_in_initialize_operator_state;
-    int d_coarsest_reset_ln, d_finest_reset_ln;
+    bool d_in_initialize_operator_state = false;
+    int d_coarsest_reset_ln = IBTK::invalid_level_number, d_finest_reset_ln = IBTK::invalid_level_number;
 
     //\}
 
@@ -443,35 +444,35 @@ protected:
     /*
      * The kind of smoothing to perform.
      */
-    std::string d_smoother_type;
+    std::string d_smoother_type = "ADDITIVE";
 
     /*
      * The names of the refinement operators used to prolong the coarse grid
      * correction.
      */
-    std::string d_U_prolongation_method, d_P_prolongation_method;
+    std::string d_U_prolongation_method = "CONSTANT_REFINE", d_P_prolongation_method = "LINEAR_REFINE";
 
     /*
      * The names of the coarsening operators used to restrict the fine grid
      * error or residual.
      */
-    std::string d_U_restriction_method, d_P_restriction_method;
+    std::string d_U_restriction_method = "CONSERVATIVE_COARSEN", d_P_restriction_method = "CONSERVATIVE_COARSEN";
 
     /*
      * Coarse level solver parameters.
      */
-    bool d_coarse_solver_init_subclass;
-    std::string d_coarse_solver_type, d_coarse_solver_default_options_prefix;
-    double d_coarse_solver_rel_residual_tol;
-    double d_coarse_solver_abs_residual_tol;
-    int d_coarse_solver_max_iterations;
+    bool d_coarse_solver_init_subclass = false;
+    std::string d_coarse_solver_type = "LEVEL_SMOOTHER", d_coarse_solver_default_options_prefix;
+    double d_coarse_solver_rel_residual_tol = 1.0e-5;
+    double d_coarse_solver_abs_residual_tol = 1.0e-50;
+    int d_coarse_solver_max_iterations = 10;
     SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> d_coarse_solver;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     /*
      * Nullspace info.
      */
-    bool d_has_velocity_nullspace, d_has_pressure_nullspace;
+    bool d_has_velocity_nullspace = false, d_has_pressure_nullspace = false;
 
     //\}
 
@@ -488,7 +489,7 @@ protected:
     /*
      * Patch descriptor indices for scratch data.
      */
-    int d_side_scratch_idx, d_cell_scratch_idx;
+    int d_side_scratch_idx = IBTK::invalid_index, d_cell_scratch_idx = IBTK::invalid_index;
 
     //\}
 
@@ -522,7 +523,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    StaggeredStokesFACPreconditionerStrategy();
+    StaggeredStokesFACPreconditionerStrategy() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -531,7 +532,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesFACPreconditionerStrategy(const StaggeredStokesFACPreconditionerStrategy& from);
+    StaggeredStokesFACPreconditionerStrategy(const StaggeredStokesFACPreconditionerStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -542,7 +543,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesFACPreconditionerStrategy& operator=(const StaggeredStokesFACPreconditionerStrategy& that);
+    StaggeredStokesFACPreconditionerStrategy& operator=(const StaggeredStokesFACPreconditionerStrategy& that) = delete;
 
     /*
      * Combined U & P physical boundary operator.

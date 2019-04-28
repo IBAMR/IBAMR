@@ -74,12 +74,12 @@ public:
     /*!
      * \brief Constructor.
      */
-    CoarseFineBoundaryRefinePatchStrategy();
+    CoarseFineBoundaryRefinePatchStrategy() = default;
 
     /*!
      * \brief Destructor.
      */
-    virtual ~CoarseFineBoundaryRefinePatchStrategy();
+    virtual ~CoarseFineBoundaryRefinePatchStrategy() = default;
 
     /*!
      * \name SAMRAI::xfer::RefinePatchStrategy interface.
@@ -101,14 +101,14 @@ public:
      */
     void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
                                        double fill_time,
-                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) = 0;
+                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override = 0;
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const = 0;
+    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const override = 0;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -130,7 +130,7 @@ public:
     void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
                           const SAMRAI::hier::Patch<NDIM>& coarse,
                           const SAMRAI::hier::Box<NDIM>& fine_box,
-                          const SAMRAI::hier::IntVector<NDIM>& ratio) = 0;
+                          const SAMRAI::hier::IntVector<NDIM>& ratio) override = 0;
 
     /*!
      * Function to perform user-defined postprocess data refine operations.
@@ -152,7 +152,7 @@ public:
     void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
                            const SAMRAI::hier::Patch<NDIM>& coarse,
                            const SAMRAI::hier::Box<NDIM>& fine_box,
-                           const SAMRAI::hier::IntVector<NDIM>& ratio) = 0;
+                           const SAMRAI::hier::IntVector<NDIM>& ratio) override = 0;
 
     //\}
 
@@ -216,7 +216,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CoarseFineBoundaryRefinePatchStrategy(const CoarseFineBoundaryRefinePatchStrategy& from);
+    CoarseFineBoundaryRefinePatchStrategy(const CoarseFineBoundaryRefinePatchStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -227,7 +227,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CoarseFineBoundaryRefinePatchStrategy& operator=(const CoarseFineBoundaryRefinePatchStrategy& that);
+    CoarseFineBoundaryRefinePatchStrategy& operator=(const CoarseFineBoundaryRefinePatchStrategy& that) = delete;
 };
 } // namespace IBTK
 

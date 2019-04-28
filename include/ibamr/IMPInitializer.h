@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stdbool.h>
 #include <map>
 #include <string>
 #include <utility>
@@ -87,7 +86,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IMPInitializer(const std::string& object_name,
+    IMPInitializer(std::string object_name,
                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
@@ -114,7 +113,7 @@ public:
      * \return A boolean value indicating whether Lagrangian data is associated
      * with the given level in the patch hierarchy.
      */
-    bool getLevelHasLagrangianData(int level_number, bool can_be_refined) const;
+    bool getLevelHasLagrangianData(int level_number, bool can_be_refined) const override;
 
     /*!
      * \return Determine the number of global nodes on the patch level.
@@ -126,7 +125,7 @@ public:
                                        int level_number,
                                        double init_data_time,
                                        bool can_be_refined,
-                                       bool initial_time);
+                                       bool initial_time) override;
 
     /*!
      * \brief Determine the number of local nodes on the specified patch level.
@@ -137,7 +136,7 @@ public:
                                                    int level_number,
                                                    double init_data_time,
                                                    bool can_be_refined,
-                                                   bool initial_time);
+                                                   bool initial_time) override;
 
     /*!
      * \brief Initialize the structure indexing information on the patch level.
@@ -148,7 +147,7 @@ public:
                                                  double init_data_time,
                                                  bool can_be_refined,
                                                  bool initial_time,
-                                                 IBTK::LDataManager* l_data_manager);
+                                                 IBTK::LDataManager* l_data_manager) override;
 
     /*!
      * \brief Initialize the LNode and LData data needed to specify the
@@ -166,7 +165,7 @@ public:
                                             double init_data_time,
                                             bool can_be_refined,
                                             bool initial_time,
-                                            IBTK::LDataManager* l_data_manager);
+                                            IBTK::LDataManager* l_data_manager) override;
 
     /*!
      * \brief Tag cells for initial refinement.
@@ -180,7 +179,7 @@ public:
     void tagCellsForInitialRefinement(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                       int level_number,
                                       double error_data_time,
-                                      int tag_index);
+                                      int tag_index) override;
 
     /*!
      * \brief Write vertex position in a file.
@@ -203,7 +202,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IMPInitializer();
+    IMPInitializer() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -212,7 +211,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IMPInitializer(const IMPInitializer& from);
+    IMPInitializer(const IMPInitializer& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -223,7 +222,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IMPInitializer& operator=(const IMPInitializer& that);
+    IMPInitializer& operator=(const IMPInitializer& that) = delete;
 
     /*!
      * \brief Configure the Lagrangian Silo data writer to plot the data

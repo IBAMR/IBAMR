@@ -61,43 +61,16 @@ static Timer* t_deallocate_solver_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovFreeBodyMobilitySolver::KrylovFreeBodyMobilitySolver(const std::string& object_name,
+KrylovFreeBodyMobilitySolver::KrylovFreeBodyMobilitySolver(std::string object_name,
                                                            Pointer<Database> input_db,
-                                                           const std::string& default_options_prefix,
+                                                           std::string default_options_prefix,
                                                            Pointer<CIBStrategy> cib_strategy,
                                                            MPI_Comm petsc_comm)
+    : d_object_name(std::move(object_name)),
+      d_options_prefix(std::move(default_options_prefix)),
+      d_petsc_comm(petsc_comm),
+      d_cib_strategy(cib_strategy)
 {
-    d_object_name = object_name;
-    d_options_prefix = default_options_prefix;
-    d_cib_strategy = cib_strategy;
-
-    d_petsc_b = NULL;
-    d_petsc_temp_v = NULL;
-    d_petsc_temp_f = NULL;
-    d_petsc_comm = petsc_comm;
-    d_petsc_ksp = NULL;
-    d_petsc_mat = NULL;
-    d_mobility_solver = NULL;
-
-    d_rho = 1.0;
-    d_mu = 1.0;
-
-    d_current_time = std::numeric_limits<double>::signaling_NaN();
-    d_new_time = std::numeric_limits<double>::signaling_NaN();
-    d_solution_time = std::numeric_limits<double>::signaling_NaN();
-    d_dt = std::numeric_limits<double>::signaling_NaN();
-
-    // Some default values for the Krylov solver.
-    d_ksp_type = KSPGMRES;
-    d_pc_type = "shell";
-    d_max_iterations = 10000;
-    d_abs_residual_tol = 1.0e-50;
-    d_rel_residual_tol = 1.0e-5;
-    d_initial_guess_nonzero = true;
-    d_enable_logging = false;
-    d_is_initialized = false;
-    d_reinitializing_solver = false;
-
     // Get values from the input database.
     if (input_db)
     {
@@ -129,12 +102,12 @@ KrylovFreeBodyMobilitySolver::~KrylovFreeBodyMobilitySolver()
     if (d_petsc_mat)
     {
         MatDestroy(&d_petsc_mat);
-        d_petsc_mat = NULL;
+        d_petsc_mat = nullptr;
     }
     if (d_petsc_ksp)
     {
         KSPDestroy(&d_petsc_ksp);
-        d_petsc_ksp = NULL;
+        d_petsc_ksp = nullptr;
     }
 } // ~KrylovFreeBodyMobilitySolver
 
@@ -240,7 +213,7 @@ KrylovFreeBodyMobilitySolver::initializeSolverState(Vec /*x*/, Vec b)
     // Generate RHS and temporary vectors for storing Lagrange multiplier
     // and rigid body velocity.
     Vec* vb;
-    VecNestGetSubVecs(b, NULL, &vb);
+    VecNestGetSubVecs(b, nullptr, &vb);
     VecDuplicate(vb[2], &d_petsc_b);
     VecDuplicate(vb[1], &d_petsc_temp_f);
     VecDuplicate(vb[1], &d_petsc_temp_v);
@@ -266,9 +239,9 @@ KrylovFreeBodyMobilitySolver::deallocateSolverState()
     VecDestroy(&d_petsc_b);
     VecDestroy(&d_petsc_temp_f);
     VecDestroy(&d_petsc_temp_v);
-    d_petsc_temp_v = NULL;
-    d_petsc_temp_f = NULL;
-    d_petsc_b = NULL;
+    d_petsc_temp_v = nullptr;
+    d_petsc_temp_f = nullptr;
+    d_petsc_b = nullptr;
 
     // Destroy the KSP solver.
     destroyKSP();
@@ -359,7 +332,7 @@ KrylovFreeBodyMobilitySolver::initializeKSP()
     PetscBool initial_guess_nonzero;
     KSPGetInitialGuessNonzero(d_petsc_ksp, &initial_guess_nonzero);
     d_initial_guess_nonzero = (initial_guess_nonzero == PETSC_TRUE);
-    KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
+    KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, nullptr, &d_max_iterations);
 } // initializeKSP
 
 void
@@ -367,7 +340,7 @@ KrylovFreeBodyMobilitySolver::destroyKSP()
 {
     if (!d_petsc_ksp) return;
     KSPDestroy(&d_petsc_ksp);
-    d_petsc_ksp = NULL;
+    d_petsc_ksp = nullptr;
 } // destroyKSP
 
 void
@@ -392,8 +365,8 @@ KrylovFreeBodyMobilitySolver::resetKSPOptions()
         KSPMonitorSet(d_petsc_ksp,
                       reinterpret_cast<PetscErrorCode (*)(KSP, PetscInt, PetscReal, void*)>(
                           KrylovFreeBodyMobilitySolver::monitorKSP),
-                      NULL,
-                      NULL);
+                      nullptr,
+                      nullptr);
     }
 } // resetKSPOptions
 
@@ -404,7 +377,7 @@ KrylovFreeBodyMobilitySolver::resetKSPOperators()
     if (d_petsc_mat)
     {
         MatDestroy(&d_petsc_mat);
-        d_petsc_mat = NULL;
+        d_petsc_mat = nullptr;
     }
     if (!d_petsc_mat)
     {
@@ -432,7 +405,7 @@ KrylovFreeBodyMobilitySolver::resetKSPPC()
     static const size_t len = 255;
     char pc_type_str[len];
     PetscBool flg;
-    PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+    PetscOptionsGetString(nullptr, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
     std::string pc_type = d_pc_type;
     if (flg)
     {
@@ -471,7 +444,7 @@ KrylovFreeBodyMobilitySolver::MatVecMult_KFBMSolver(Mat A, Vec x, Vec y)
 {
     void* p_ctx;
     MatShellGetContext(A, &p_ctx);
-    KrylovFreeBodyMobilitySolver* solver = static_cast<KrylovFreeBodyMobilitySolver*>(p_ctx);
+    auto solver = static_cast<KrylovFreeBodyMobilitySolver*>(p_ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
 #endif
@@ -500,12 +473,12 @@ KrylovFreeBodyMobilitySolver::PCApply_KFBMSolver(PC pc, Vec x, Vec y)
     // Here we are trying to the solve the problem of the type: Py = x for y.
     void* ctx;
     PCShellGetContext(pc, &ctx);
-    KrylovFreeBodyMobilitySolver* solver = static_cast<KrylovFreeBodyMobilitySolver*>(ctx);
+    auto solver = static_cast<KrylovFreeBodyMobilitySolver*>(ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
 #endif
     DirectMobilitySolver* direct_solver;
-    solver->d_mobility_solver->getMobilitySolvers(NULL, &direct_solver, NULL);
+    solver->d_mobility_solver->getMobilitySolvers(nullptr, &direct_solver, nullptr);
     direct_solver->solveBodySystem(y, x);
     VecScale(y, 1.0 / (solver->d_interp_scale * solver->d_spread_scale));
     PetscFunctionReturn(0);
@@ -520,7 +493,7 @@ KrylovFreeBodyMobilitySolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void*
     char print_normtype[256];
     KSPNormType ksp_normtype;
 
-    KSPBuildResidual(ksp, NULL, NULL, &resid);
+    KSPBuildResidual(ksp, nullptr, nullptr, &resid);
     VecNorm(resid, NORM_2, &truenorm);
     VecDestroy(&resid);
     KSPGetRhs(ksp, &rhs);
@@ -535,8 +508,8 @@ KrylovFreeBodyMobilitySolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void*
     }
 
     std::streamsize old_precision = tbox::plog.precision(16);
-    tbox::plog << std::scientific << it << " KFBMInv_KSP " << print_normtype << " resid norm " << (double)rnorm
-               << " true resid norm " << (double)truenorm << " ||r(i)||/||b|| " << (double)(truenorm / bnorm)
+    tbox::plog << std::scientific << it << " KFBMInv_KSP " << print_normtype << " resid norm " << rnorm
+               << " true resid norm " << truenorm << " ||r(i)||/||b|| " << truenorm / bnorm
                << std::endl;
     tbox::plog.precision(old_precision);
     PetscFunctionReturn(0);

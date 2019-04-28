@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <string>
 
 #include "PatchLevel.h"
@@ -69,12 +68,12 @@ public:
     /*!
      * \brief The default constructor sets the name of the strategy object.
      */
-    CartGridFunction(const std::string& object_name = "");
+    CartGridFunction(std::string object_name = "");
 
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual ~CartGridFunction();
+    virtual ~CartGridFunction() = default;
 
     /*!
      * \name Methods to set patch interior data.
@@ -142,7 +141,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartGridFunction(const CartGridFunction& from);
+    CartGridFunction(const CartGridFunction& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -153,7 +152,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartGridFunction& operator=(const CartGridFunction& that);
+    CartGridFunction& operator=(const CartGridFunction& that) = delete;
 };
 } // namespace IBTK
 

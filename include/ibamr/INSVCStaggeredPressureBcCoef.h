@@ -100,7 +100,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~INSVCStaggeredPressureBcCoef();
+    ~INSVCStaggeredPressureBcCoef() = default;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -131,31 +131,31 @@ public:
      *
      * \param problem_coefs   Problem coefficients
      */
-    void setStokesSpecifications(const StokesSpecifications* problem_coefs);
+    void setStokesSpecifications(const StokesSpecifications* problem_coefs) override;
 
     /*!
      * \brief Set the target velocity data index to use when setting physical
      * boundary conditions and the time at which it is defined.
      */
-    void setTargetVelocityPatchDataIndex(int u_target_data_idx);
+    void setTargetVelocityPatchDataIndex(int u_target_data_idx) override;
 
     /*!
      * \brief Clear the target velocity data index used when setting physical
      * boundary conditions.
      */
-    void clearTargetVelocityPatchDataIndex();
+    void clearTargetVelocityPatchDataIndex() override;
 
     /*!
      * \brief Set the target pressure data index to use when setting physical
      * boundary conditions and the time at which it is defined.
      */
-    void setTargetPressurePatchDataIndex(int p_target_data_idx);
+    void setTargetPressurePatchDataIndex(int p_target_data_idx) override;
 
     /*!
      * \brief Clear the target pressure data index used when setting physical
      * boundary conditions.
      */
-    void clearTargetPressurePatchDataIndex();
+    void clearTargetPressurePatchDataIndex() override;
 
     //\}
 
@@ -167,18 +167,18 @@ public:
     /*!
      * \brief Set the target data index.
      */
-    void setTargetPatchDataIndex(int target_idx);
+    void setTargetPatchDataIndex(int target_idx) override;
 
     /*!
      * \brief Clear the target data index.
      */
-    void clearTargetPatchDataIndex();
+    void clearTargetPatchDataIndex() override;
 
     /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
      * boundary conditions.
      */
-    void setHomogeneousBc(bool homogeneous_bc);
+    void setHomogeneousBc(bool homogeneous_bc) override;
 
     //\}
 
@@ -224,7 +224,7 @@ public:
                     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
                     const SAMRAI::hier::Patch<NDIM>& patch,
                     const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-                    double fill_time = 0.0) const;
+                    double fill_time = 0.0) const override;
 
     /*
      * \brief Return how many cells past the edge or corner of the patch the
@@ -241,7 +241,7 @@ public:
      * The boundary box that setBcCoefs() is required to fill should not extend
      * past the limits returned by this function.
      */
-    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const;
+    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const override;
 
     //\}
 
@@ -258,7 +258,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSVCStaggeredPressureBcCoef();
+    INSVCStaggeredPressureBcCoef() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -267,7 +267,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSVCStaggeredPressureBcCoef(const INSVCStaggeredPressureBcCoef& from);
+    INSVCStaggeredPressureBcCoef(const INSVCStaggeredPressureBcCoef& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -278,7 +278,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSVCStaggeredPressureBcCoef& operator=(const INSVCStaggeredPressureBcCoef& that);
+    INSVCStaggeredPressureBcCoef& operator=(const INSVCStaggeredPressureBcCoef& that) = delete;
 
     /*
      * The fluid solver.

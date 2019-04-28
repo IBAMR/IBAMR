@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <iosfwd>
 #include <string>
 #include <vector>
@@ -126,9 +125,9 @@ public:
      * \brief Constructor for a concrete KrylovLinearSolver that employs the
      * PETSc KSP solver framework.
      */
-    PETScKrylovLinearSolver(const std::string& object_name,
+    PETScKrylovLinearSolver(std::string object_name,
                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                            const std::string& default_options_prefix,
+                            std::string default_options_prefix,
                             MPI_Comm petsc_comm = PETSC_COMM_WORLD);
 
     /*!
@@ -142,7 +141,7 @@ public:
      * acts as a "wrapper" for the provided KSP object.  Note that memory
      * management of the provided KSP object is \em NOT handled by this class.
      */
-    PETScKrylovLinearSolver(const std::string& object_name, const KSP& petsc_ksp);
+    PETScKrylovLinearSolver(std::string object_name, const KSP& petsc_ksp);
 
     /*!
      * \brief Destructor.
@@ -190,7 +189,7 @@ public:
     /*!
      * \brief Set the linear operator used when solving \f$Ax=b\f$.
      */
-    void setOperator(SAMRAI::tbox::Pointer<LinearOperator> A);
+    void setOperator(SAMRAI::tbox::Pointer<LinearOperator> A) override;
 
     /*!
      * \brief Set the preconditioner used by the Krylov subspace method when
@@ -198,7 +197,7 @@ public:
      *
      * \note If the preconditioner is NULL, no preconditioning is performed.
      */
-    void setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = NULL);
+    void setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = NULL) override;
 
     /*!
      * \brief Set the nullspace of the linear system.
@@ -209,7 +208,7 @@ public:
     void setNullspace(
         bool contains_constant_vec,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs =
-            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >());
+            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >()) override;
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -248,7 +247,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -292,7 +291,7 @@ public:
      * \see deallocateSolverState
      */
     void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -307,7 +306,7 @@ public:
      *
      * \see initializeSolverState
      */
-    void deallocateSolverState();
+    void deallocateSolverState() override;
 
     //\}
 
@@ -317,7 +316,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PETScKrylovLinearSolver();
+    PETScKrylovLinearSolver() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -326,7 +325,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScKrylovLinearSolver(const PETScKrylovLinearSolver& from);
+    PETScKrylovLinearSolver(const PETScKrylovLinearSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -337,7 +336,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScKrylovLinearSolver& operator=(const PETScKrylovLinearSolver& that);
+    PETScKrylovLinearSolver& operator=(const PETScKrylovLinearSolver& that) = delete;
 
     /*!
      * \brief Common routine used by all class constructors.
@@ -401,24 +400,24 @@ private:
 
     std::string d_ksp_type;
 
-    bool d_reinitializing_solver;
+    bool d_reinitializing_solver = false;
 
-    Vec d_petsc_x, d_petsc_b;
+    Vec d_petsc_x = nullptr, d_petsc_b = nullptr;
 
     std::string d_options_prefix;
 
     MPI_Comm d_petsc_comm;
-    KSP d_petsc_ksp;
-    Mat d_petsc_mat;
-    MatNullSpace d_petsc_nullsp;
-    bool d_managing_petsc_ksp;
-    bool d_user_provided_mat;
-    bool d_user_provided_pc;
+    KSP d_petsc_ksp = nullptr;
+    Mat d_petsc_mat = nullptr;
+    MatNullSpace d_petsc_nullsp = nullptr;
+    bool d_managing_petsc_ksp = true;
+    bool d_user_provided_mat = false;
+    bool d_user_provided_pc = false;
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_nullspace_constant_vec;
-    Vec d_petsc_nullspace_constant_vec;
+    Vec d_petsc_nullspace_constant_vec = nullptr;
     std::vector<Vec> d_petsc_nullspace_basis_vecs;
-    bool d_solver_has_attached_nullspace;
+    bool d_solver_has_attached_nullspace = false;
 };
 } // namespace IBTK
 

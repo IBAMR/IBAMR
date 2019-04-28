@@ -60,13 +60,12 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-BGaussSeidelPreconditioner::BGaussSeidelPreconditioner(const std::string& object_name,
+BGaussSeidelPreconditioner::BGaussSeidelPreconditioner(std::string object_name,
                                                        Pointer<Database> input_db,
                                                        const std::string& /*default_options_prefix*/)
-    : d_pc_map(), d_linear_ops_map(), d_symmetric_preconditioner(false), d_reverse_order(false)
 {
     // Setup default options.
-    GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
+    GeneralSolver::init(std::move(object_name), /*homogeneous_bc*/ true);
     d_initial_guess_nonzero = false;
     d_max_iterations = 1;
 
@@ -208,7 +207,7 @@ BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRA
 
     // Apply the component preconditioners.
     int count = 0;
-    for (std::vector<int>::const_iterator it = comps.begin(); it != comps.end(); ++it, ++count)
+    for (auto it = comps.begin(); it != comps.end(); ++it, ++count)
     {
         const int comp = (*it);
 
@@ -290,22 +289,18 @@ BGaussSeidelPreconditioner::deallocateSolverState()
     if (!d_is_initialized) return;
 
     // Deallocate the component preconditioners.
-    for (std::map<unsigned int, Pointer<LinearSolver> >::iterator it = d_pc_map.begin(); it != d_pc_map.end(); ++it)
+    for (const auto& linearSolver_pair : d_pc_map)
     {
-        it->second->deallocateSolverState();
+        linearSolver_pair.second->deallocateSolverState();
     }
 
     // Deallocate the component operators.
-    for (std::map<unsigned int, std::vector<Pointer<LinearOperator> > >::iterator it = d_linear_ops_map.begin();
-         it != d_linear_ops_map.end();
-         ++it)
+    for (auto& linearSolverVec_pair : d_linear_ops_map)
     {
-        std::vector<Pointer<LinearOperator> >& comp_linear_ops = it->second;
-        for (std::vector<Pointer<LinearOperator> >::iterator comp_it = comp_linear_ops.begin();
-             comp_it != comp_linear_ops.end();
-             ++comp_it)
+        std::vector<Pointer<LinearOperator> >& comp_linear_ops = linearSolverVec_pair.second;
+        for (auto& comp_linear_op : comp_linear_ops)
         {
-            if (*comp_it) (*comp_it)->deallocateOperatorState();
+            if (comp_linear_op) comp_linear_op->deallocateOperatorState();
         }
     }
 
@@ -370,10 +365,8 @@ BGaussSeidelPreconditioner::getComponentVectors(const ConstPointer<SAMRAIVectorR
     std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > > x_comps(ncomps);
     for (int comp = 0; comp < ncomps; ++comp)
     {
-        std::ostringstream str;
-        str << comp;
         x_comps[comp] =
-            new SAMRAIVectorReal<NDIM, double>(x_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
+            new SAMRAIVectorReal<NDIM, double>(x_name + "_component_" + std::to_string(comp), hierarchy, coarsest_ln, finest_ln);
         x_comps[comp]->addComponent(
             x->getComponentVariable(comp), x->getComponentDescriptorIndex(comp), x->getControlVolumeIndex(comp));
     }

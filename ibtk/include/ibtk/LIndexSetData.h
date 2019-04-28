@@ -72,12 +72,12 @@ public:
      * interior of the index space and the ghosts vector describes the ghost
      * nodes in each coordinate direction.
      */
-    LIndexSetData(const SAMRAI::hier::Box<NDIM>& box, const SAMRAI::hier::IntVector<NDIM>& ghosts);
+    LIndexSetData(SAMRAI::hier::Box<NDIM> box, SAMRAI::hier::IntVector<NDIM> ghosts);
 
     /*!
      * The virtual destructor for an LIndexSetData object.
      */
-    virtual ~LIndexSetData();
+    virtual ~LIndexSetData() = default;
 
     /*!
      * \brief Update the cached indexing data.
@@ -163,7 +163,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LIndexSetData();
+    LIndexSetData() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -172,7 +172,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LIndexSetData(const LIndexSetData<T>& from);
+    LIndexSetData(const LIndexSetData<T>& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -183,7 +183,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LIndexSetData& operator=(const LIndexSetData<T>& that);
+    LIndexSetData& operator=(const LIndexSetData<T>& that) = delete;
 
     std::vector<int> d_lag_indices, d_interior_lag_indices, d_ghost_lag_indices;
     std::vector<int> d_global_petsc_indices, d_interior_global_petsc_indices, d_ghost_global_petsc_indices;

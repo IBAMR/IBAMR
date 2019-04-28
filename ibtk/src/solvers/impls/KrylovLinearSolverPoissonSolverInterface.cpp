@@ -61,22 +61,10 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovLinearSolverPoissonSolverInterface::KrylovLinearSolverPoissonSolverInterface()
-{
-    // intentionally blank
-    return;
-} // KrylovLinearSolverPoissonSolverInterface
-
-KrylovLinearSolverPoissonSolverInterface::~KrylovLinearSolverPoissonSolverInterface()
-{
-    // intentionally blank
-    return;
-} // ~KrylovLinearSolverPoissonSolverInterface
-
 void
 KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
+    auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_this);
 #endif
@@ -91,7 +79,7 @@ KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(const Poisson
 void
 KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* bc_coef)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
+    auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_this);
 #endif
@@ -106,7 +94,7 @@ KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStrategy<
 void
 KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
+    auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_this);
 #endif

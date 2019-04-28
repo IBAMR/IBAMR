@@ -35,17 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <string>
 #include <vector>
 
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SideVariable.h"
-#include "boost/array.hpp"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -83,10 +84,10 @@ public:
     /*!
      * \brief Class constructor.
      */
-    INSStaggeredStabilizedPPMConvectiveOperator(const std::string& object_name,
+    INSStaggeredStabilizedPPMConvectiveOperator(std::string object_name,
                                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                                 ConvectiveDifferencingType difference_form,
-                                                const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+                                                std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -109,7 +110,7 @@ public:
     /*!
      * \brief Compute the action of the convective operator.
      */
-    void applyConvectiveOperator(int U_idx, int N_idx);
+    void applyConvectiveOperator(int U_idx, int N_idx) override;
 
     /*!
      * \name General operator functionality.
@@ -147,7 +148,7 @@ public:
      * \param out output vector
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -158,7 +159,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void deallocateOperatorState();
+    void deallocateOperatorState() override;
 
     //\}
 
@@ -168,7 +169,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredStabilizedPPMConvectiveOperator();
+    INSStaggeredStabilizedPPMConvectiveOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -177,7 +178,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredStabilizedPPMConvectiveOperator(const INSStaggeredStabilizedPPMConvectiveOperator& from);
+    INSStaggeredStabilizedPPMConvectiveOperator(const INSStaggeredStabilizedPPMConvectiveOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -188,29 +189,29 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredStabilizedPPMConvectiveOperator& operator=(const INSStaggeredStabilizedPPMConvectiveOperator& that);
+    INSStaggeredStabilizedPPMConvectiveOperator& operator=(const INSStaggeredStabilizedPPMConvectiveOperator& that) = delete;
 
     // Operator configuration.
-    std::string d_stabilization_type;
-    boost::array<bool, 2 * NDIM> d_open_bdry;
-    boost::array<double, 2 * NDIM> d_width;
+    std::string d_stabilization_type = "UPWIND";
+    std::array<bool, 2 * NDIM> d_open_bdry;
+    std::array<double, 2 * NDIM> d_width;
 
     // Boundary condition helper object.
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     // Cached communications operators.
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
-    std::string d_bdry_extrap_type;
+    std::string d_bdry_extrap_type = "CONSTANT";
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
-    int d_U_scratch_idx;
+    int d_U_scratch_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR
 

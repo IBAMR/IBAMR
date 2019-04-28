@@ -322,7 +322,7 @@ public:
      * This routine is a concrete implementation of the function declared in the
      * SAMRAI::tbox::Serializable abstract base class.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 private:
     /*!
@@ -330,7 +330,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvectorExplicitPredictorPatchOps();
+    AdvectorExplicitPredictorPatchOps() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -339,7 +339,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvectorExplicitPredictorPatchOps(const AdvectorExplicitPredictorPatchOps& from);
+    AdvectorExplicitPredictorPatchOps(const AdvectorExplicitPredictorPatchOps& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -350,7 +350,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvectorExplicitPredictorPatchOps& operator=(const AdvectorExplicitPredictorPatchOps& that);
+    AdvectorExplicitPredictorPatchOps& operator=(const AdvectorExplicitPredictorPatchOps& that) = delete;
 
     /*
      * Private functions used to compute the predicted values/fluxes.
@@ -394,9 +394,9 @@ private:
      *    d_using_full_ctu ...... specifies whether full corner transport
      *                            upwinding is used for 3D computations
      */
-    LimiterType d_limiter_type;
+    LimiterType d_limiter_type = MC_LIMITED;
 #if (NDIM == 3)
-    bool d_using_full_ctu;
+    bool d_using_full_ctu = true;
 #endif
 };
 } // namespace IBAMR

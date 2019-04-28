@@ -94,9 +94,9 @@ void
 WallForceEvaluator::registerWallForceFcn(Wall::WallForceFcnPtr wall_force_fcn)
 {
     // register the given force function pointer with all walls
-    for (std::vector<Wall>::iterator wall_it = d_walls_vec.begin(); wall_it != d_walls_vec.end(); ++wall_it)
+    for (auto& wall_vec : d_walls_vec)
     { // iterate through walls
-        wall_it->registerWallForceFcn(wall_force_fcn);
+        wall_vec.registerWallForceFcn(wall_force_fcn);
     }
     return;
 } // registerWallForceFcn
@@ -130,11 +130,11 @@ WallForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
 
     const int lag_node_idx_current_idx = l_data_manager->getLNodePatchDescriptorIndex();
 
-    for (std::vector<Wall>::iterator wall_it = d_walls_vec.begin(); wall_it != d_walls_vec.end(); ++wall_it)
+    for (auto& wall : d_walls_vec)
     { // iterate through walls
 
         // get axis (which direction the wall is normal to)
-        int axis = wall_it->getAxis();
+        int axis = wall.getAxis();
 
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
         const IntVector<NDIM>& ratio = level->getRatio();
@@ -146,7 +146,7 @@ WallForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
             const Box<NDIM>& patch_box = patch->getBox();
 
             // get just the area near the wall
-            const Box<NDIM> intersect_box = patch_box * Box<NDIM>::refine(wall_it->getForceArea(), ratio);
+            const Box<NDIM> intersect_box = patch_box * Box<NDIM>::refine(wall.getForceArea(), ratio);
 
             // iterate through cells in relevant area
             for (LNodeSetData::CellIterator scit(intersect_box); scit; scit++)
@@ -158,15 +158,14 @@ WallForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
                 // if particles exist in this cell, add forces to them
                 if (search_node_set)
                 {
-                    for (LNodeSet::iterator it = search_node_set->begin(); it != search_node_set->end(); ++it)
+                    for (const auto& particle_node_idx : *search_node_set)
                     {
                         // get node data
-                        LNodeSet::value_type& particle_node_idx = *it;
                         const int particle_petsc_idx = particle_node_idx->getLocalPETScIndex();
 
                         // get wall distance
-                        double wall_distance = lposition[particle_petsc_idx * NDIM + axis] - wall_it->getLocation();
-                        force[particle_petsc_idx * NDIM + axis] += wall_it->applyForce(wall_distance, eval_time);
+                        double wall_distance = lposition[particle_petsc_idx * NDIM + axis] - wall.getLocation();
+                        force[particle_petsc_idx * NDIM + axis] += wall.applyForce(wall_distance, eval_time);
                     } // iterate through nodes
                 }     // if search_node_set
             }         // iterate through cells in wall area

@@ -32,10 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <algorithm>
 #include <numeric>
 #include <ostream>
-#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -62,7 +62,6 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "boost/array.hpp"
 #include "ibamr/StaggeredStokesPETScVecUtilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -238,7 +237,7 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
         {
             Pointer<RefineClasses<NDIM> > data_synch_config = data_synch_sched->getEquivalenceClasses();
             RefineAlgorithm<NDIM> data_synch_alg;
-            data_synch_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, NULL, new SideSynchCopyFillPattern());
+            data_synch_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, nullptr, new SideSynchCopyFillPattern());
             data_synch_alg.resetSchedule(data_synch_sched);
             data_synch_sched->fillData(0.0);
             data_synch_sched->reset(data_synch_config);
@@ -257,8 +256,8 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     {
         Pointer<RefineClasses<NDIM> > ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
         RefineAlgorithm<NDIM> ghost_fill_alg;
-        ghost_fill_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, NULL);
-        ghost_fill_alg.registerRefine(p_data_idx, p_data_idx, p_data_idx, NULL);
+        ghost_fill_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, nullptr);
+        ghost_fill_alg.registerRefine(p_data_idx, p_data_idx, p_data_idx, nullptr);
         ghost_fill_alg.resetSchedule(ghost_fill_sched);
         ghost_fill_sched->fillData(0.0);
         ghost_fill_sched->reset(ghost_fill_config);
@@ -282,7 +281,7 @@ StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_id
     if (u_data_sc_var && p_data_cc_var)
     {
         RefineAlgorithm<NDIM> data_synch_alg;
-        data_synch_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, NULL, new SideSynchCopyFillPattern());
+        data_synch_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, nullptr, new SideSynchCopyFillPattern());
         data_synch_sched = data_synch_alg.createSchedule(patch_level);
     }
     else
@@ -303,8 +302,8 @@ StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(const int u_data_id
                                                              Pointer<PatchLevel<NDIM> > patch_level)
 {
     RefineAlgorithm<NDIM> ghost_fill_alg;
-    ghost_fill_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, NULL);
-    ghost_fill_alg.registerRefine(p_data_idx, p_data_idx, p_data_idx, NULL);
+    ghost_fill_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, nullptr);
+    ghost_fill_alg.registerRefine(p_data_idx, p_data_idx, p_data_idx, nullptr);
     return ghost_fill_alg.createSchedule(patch_level);
 } // constructGhostFillSchedule
 
@@ -364,7 +363,7 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelAO(AO& ao,
     IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(patch_level->getRatio());
 
     const Index<NDIM> p_num_cells = domain_upper - domain_lower + 1;
-    boost::array<Index<NDIM>, NDIM> u_num_cells;
+    std::array<Index<NDIM>, NDIM> u_num_cells;
     for (unsigned d = 0; d < NDIM; ++d)
     {
         Index<NDIM> offset = 1;
@@ -638,9 +637,9 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
     // Synchronize the patch number at patch boundaries to determine which patch
     // owns a given DOF along patch boundaries.
     RefineAlgorithm<NDIM> bdry_synch_alg;
-    bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
+    bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, nullptr, new SideSynchCopyFillPattern());
     bdry_synch_alg.registerRefine(
-        u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, NULL, new SideSynchCopyFillPattern());
+        u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, nullptr, new SideSynchCopyFillPattern());
     bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
 
     // For a single patch in a periodic domain, the far side DOFs are not master.
@@ -704,7 +703,7 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
         Pointer<SideData<NDIM, bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         p_dof_index_data->fillAll(-1);
-        boost::array<Box<NDIM>, NDIM> data_boxes;
+        std::array<Box<NDIM>, NDIM> data_boxes;
         BoxList<NDIM> data_box_union(patch_box);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
@@ -746,11 +745,11 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
     // Communicate ghost DOF indices.
     RefineAlgorithm<NDIM> dof_synch_alg;
     dof_synch_alg.registerRefine(
-        u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, NULL, new SideSynchCopyFillPattern());
+        u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, nullptr, new SideSynchCopyFillPattern());
     dof_synch_alg.createSchedule(patch_level)->fillData(0.0);
     RefineAlgorithm<NDIM> ghost_fill_alg;
-    ghost_fill_alg.registerRefine(u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, NULL);
-    ghost_fill_alg.registerRefine(p_dof_index_idx, p_dof_index_idx, p_dof_index_idx, NULL);
+    ghost_fill_alg.registerRefine(u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, nullptr);
+    ghost_fill_alg.registerRefine(p_dof_index_idx, p_dof_index_idx, p_dof_index_idx, nullptr);
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
     return;
 } // constructPatchLevelDOFIndices_MAC

@@ -62,7 +62,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    PoissonSolver();
+    PoissonSolver() = default;
 
     /*!
      * \brief Destructor.
@@ -102,11 +102,11 @@ public:
 
 protected:
     // Specialized solver initialization.
-    void initSpecialized(const std::string& object_name, bool homogeneous_bc);
+    void initSpecialized(const std::string& object_name, bool homogeneous_bc) override;
 
     // Problem specification.
-    SAMRAI::solv::PoissonSpecifications d_poisson_spec;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_bc_coef;
+    SAMRAI::solv::PoissonSpecifications d_poisson_spec = SAMRAI::solv::PoissonSpecifications("");
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_bc_coef = nullptr;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
 
 private:
@@ -117,7 +117,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PoissonSolver(const PoissonSolver& from);
+    PoissonSolver(const PoissonSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -128,7 +128,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PoissonSolver& operator=(const PoissonSolver& that);
+    PoissonSolver& operator=(const PoissonSolver& that) = delete;
 };
 } // namespace IBTK
 

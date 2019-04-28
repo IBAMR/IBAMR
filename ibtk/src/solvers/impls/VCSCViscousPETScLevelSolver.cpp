@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -78,10 +77,10 @@ namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-VCSCViscousPETScLevelSolver::VCSCViscousPETScLevelSolver(const std::string& object_name,
+VCSCViscousPETScLevelSolver::VCSCViscousPETScLevelSolver(std::string object_name,
                                                          Pointer<Database> input_db,
-                                                         const std::string& default_options_prefix)
-    : SCPoissonPETScLevelSolver(object_name, input_db, default_options_prefix)
+                                                         std::string default_options_prefix)
+    : SCPoissonPETScLevelSolver(std::move(object_name), input_db, std::move(default_options_prefix))
 {
     // Set a default interpolation type.
     d_mu_interp_type = VC_HARMONIC_INTERP;

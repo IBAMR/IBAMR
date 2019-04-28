@@ -60,12 +60,6 @@ IBInstrumentationSpec::Factory::Factory()
     return;
 } // Factory
 
-IBInstrumentationSpec::Factory::~Factory()
-{
-    // intentionally blank
-    return;
-} // ~Factory
-
 int
 IBInstrumentationSpec::Factory::getStreamableClassID() const
 {

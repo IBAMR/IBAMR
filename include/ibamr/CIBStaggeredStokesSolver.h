@@ -39,6 +39,7 @@
 
 #include "IntVector.h"
 #include "ibamr/StaggeredStokesSolver.h"
+#include "ibtk/ibtk_utilities.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 
@@ -89,12 +90,12 @@ public:
      * Initialize the solver before solving the system of equations.
      */
     virtual void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                       const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                                       const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * Deallocate the solver when hierarchy changes.
      */
-    virtual void deallocateSolverState();
+    virtual void deallocateSolverState() override;
 
     /*!
      * \brief Solve the system of equations.
@@ -103,14 +104,14 @@ public:
      * false otherwise.
      */
     virtual bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                             SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                             SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    virtual void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& u_problem_coefs);
+    virtual void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& u_problem_coefs) override;
 
     /*!
      *\brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -128,23 +129,23 @@ public:
      * coefficients for the pressure.
      */
     virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef);
+                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef) override;
 
     /*!
      * \brief Set the StaggeredStokesPhysicalBoundaryHelper object to be used
      * in the StokesOperator.
      */
-    virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
      */
-    virtual void setSolutionTime(double solution_time);
+    virtual void setSolutionTime(double solution_time) override;
 
     /*!
      * \brief Set the current time interval.
      */
-    virtual void setTimeInterval(double current_time, double new_time);
+    virtual void setTimeInterval(double current_time, double new_time) override;
 
     /*!
      * \brief Get the saddle-point solver for the extended Stokes
@@ -164,7 +165,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CIBStaggeredStokesSolver(const CIBStaggeredStokesSolver& from);
+    CIBStaggeredStokesSolver(const CIBStaggeredStokesSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -175,7 +176,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CIBStaggeredStokesSolver& operator=(const CIBStaggeredStokesSolver& that);
+    CIBStaggeredStokesSolver& operator=(const CIBStaggeredStokesSolver& that) = delete;
 
     // Pointer to the constraint IB strategy.
     SAMRAI::tbox::Pointer<CIBStrategy> d_cib_strategy;
@@ -189,13 +190,13 @@ private:
     // Patch data to support delta function.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_wide_u_var, d_wide_f_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_wide_ctx;
-    int d_wide_u_idx, d_wide_f_idx;
+    int d_wide_u_idx = IBTK::invalid_index, d_wide_f_idx = IBTK::invalid_index;
 
     // SVR for holding widened u/f.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x_wide, d_b_wide;
 
     // Bools to control initialization and deallocation
-    bool d_is_initialized, d_reinitializing_solver;
+    bool d_is_initialized = false, d_reinitializing_solver = false;
 };
 } // namespace IBAMR
 

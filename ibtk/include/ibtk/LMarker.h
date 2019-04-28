@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 
 #include "IntVector.h"
 #include "ibtk/ibtk_utilities.h"
@@ -88,7 +87,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~LMarker();
+    virtual ~LMarker();
 
     /*!
      * \brief Assignment operator.

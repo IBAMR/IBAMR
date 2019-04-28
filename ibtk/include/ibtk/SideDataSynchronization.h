@@ -43,6 +43,7 @@
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
@@ -135,12 +136,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    SideDataSynchronization();
+    SideDataSynchronization() = default;
 
     /*!
      * \brief Destructor.
      */
-    ~SideDataSynchronization();
+    virtual ~SideDataSynchronization();
 
     /*!
      * \brief Setup the hierarchy synchronization operator to perform the
@@ -186,7 +187,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SideDataSynchronization(const SideDataSynchronization& from);
+    SideDataSynchronization(const SideDataSynchronization& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -197,10 +198,10 @@ private:
      *
      * \return A reference to this object.
      */
-    SideDataSynchronization& operator=(const SideDataSynchronization& that);
+    SideDataSynchronization& operator=(const SideDataSynchronization& that) = delete;
 
     // Boolean indicating whether the operator is initialized.
-    bool d_is_initialized;
+    bool d_is_initialized = false;
 
     // The component synchronization operations to perform.
     std::vector<SynchronizationTransactionComponent> d_transaction_comps;
@@ -208,7 +209,7 @@ private:
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Cached communications algorithms and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;

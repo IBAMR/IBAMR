@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -40,7 +41,6 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
-#include "boost/array.hpp"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LMarker.h"
 #include "ibtk/LMarkerRefine.h"
@@ -77,18 +77,6 @@ static const int REFINE_OP_STENCIL_WIDTH = 0;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-
-LMarkerRefine::LMarkerRefine()
-{
-    // intentionally blank
-    return;
-} // LMarkerRefine
-
-LMarkerRefine::~LMarkerRefine()
-{
-    // intentionally blank
-    return;
-} // ~LMarkerRefine
 
 bool
 LMarkerRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
@@ -143,12 +131,11 @@ LMarkerRefine::refine(Patch<NDIM>& fine,
         if (coarse_box.contains(coarse_i))
         {
             const LMarkerSet& coarse_mark_set = it();
-            for (LMarkerSet::const_iterator cit = coarse_mark_set.begin(); cit != coarse_mark_set.end(); ++cit)
+            for (const auto& coarse_mark : coarse_mark_set)
             {
-                const LMarkerSet::value_type& coarse_mark = *cit;
                 const Point& X = coarse_mark->getPosition();
                 const IntVector<NDIM>& offset = coarse_mark->getPeriodicOffset();
-                boost::array<double, NDIM> X_shifted;
+                std::array<double, NDIM> X_shifted;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     X_shifted[d] = X[d] + static_cast<double>(offset(d)) * coarse_patchDx[d];

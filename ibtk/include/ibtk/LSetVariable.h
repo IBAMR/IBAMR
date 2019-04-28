@@ -54,19 +54,19 @@ public:
     /*!
      * Create an LSetVariable object with the specified name.
      */
-    LSetVariable(const std::string& name);
+    LSetVariable(std::string name);
 
     /*!
      * Virtual destructor for LSetVariable objects.
      */
-    virtual ~LSetVariable();
+    virtual ~LSetVariable() = default;
 
     /*!
      * Return false since the LSet data index space matches the
      * cell-centered index space for AMR patches.  Thus, LSet data does
      * not live on patch borders.
      */
-    bool dataLivesOnPatchBorder() const;
+    bool dataLivesOnPatchBorder() const override;
 
     /*!
      * Return true so that the LSet data quantities will always be treated
@@ -76,7 +76,7 @@ public:
      * data does not live on patch borders and so there is no ambiguity
      * regarding coarse-fine interface values.
      */
-    bool fineBoundaryRepresentsVariable() const;
+    bool fineBoundaryRepresentsVariable() const override;
 
 private:
     /*!
@@ -84,7 +84,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LSetVariable();
+    LSetVariable() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -93,7 +93,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LSetVariable(const LSetVariable<T>& from);
+    LSetVariable(const LSetVariable<T>& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -104,7 +104,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LSetVariable<T>& operator=(const LSetVariable<T>& that);
+    LSetVariable<T>& operator=(const LSetVariable<T>& that) = delete;
 };
 } // namespace IBTK
 

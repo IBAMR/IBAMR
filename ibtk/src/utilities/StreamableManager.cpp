@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <map>
 #include <ostream>
 
@@ -50,7 +49,7 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-StreamableManager* StreamableManager::s_data_manager_instance = NULL;
+StreamableManager* StreamableManager::s_data_manager_instance = nullptr;
 bool StreamableManager::s_registered_callback = false;
 int StreamableManager::s_current_id_number = 0;
 const int StreamableManager::s_unregistered_id_number = -1;
@@ -75,7 +74,7 @@ void
 StreamableManager::freeManager()
 {
     delete s_data_manager_instance;
-    s_data_manager_instance = NULL;
+    s_data_manager_instance = nullptr;
     return;
 } // freeManager
 

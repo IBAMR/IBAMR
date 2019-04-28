@@ -32,12 +32,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
 
 #include "ibamr/MobilityFunctions.h"
+
+#include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -86,12 +89,12 @@ static double Z_s[3];
 KERNEL_TYPES
 GetKernelType(const char* IBKernelName)
 {
-    if (!strcmp(IBKernelName, "IB_3")) return IB3;
-    if (!strcmp(IBKernelName, "IB_4")) return IB4;
-    if (!strcmp(IBKernelName, "IB_6")) return IB6;
+    if (!std::strcmp(IBKernelName, "IB_3")) return IB3;
+    if (!std::strcmp(IBKernelName, "IB_4")) return IB4;
+    if (!std::strcmp(IBKernelName, "IB_6")) return IB6;
 
-    fprintf(stderr, "IBEmpiricalMobility: Unknown interpolation kernel type.\n");
-    exit(EXIT_FAILURE);
+    std::cerr << "IBEmpiricalMobility: Unknown interpolation kernel type.\n";
+    std::exit(EXIT_FAILURE);
 } // GetKernelType
 
 // Returns Hydrodynamic radius value
@@ -112,6 +115,7 @@ get_sqnorm(const double* a_vec)
     return a_vec[0] * a_vec[0] + a_vec[1] * a_vec[1];
 #endif
 
+    TBOX_ASSERT(false);
     return -1.0;
 } // get_sqnorm
 
@@ -419,20 +423,20 @@ _F_R_INF(const double rr, const double Dx, const double L_domain)
     if (r < 0.8)
         return factor / (3.0 / 4.0 * HRad + F_s[6] * r * r);
     else
-        return factor * (exp(-F_s[0] * r) * F_s[1] / HRad +
-                         (F_s[2] * r + F_s[3] * r * r * r) / (1.0 + F_s[4] * r * r + F_s[5] * pow(r, 4)));
+        return factor * (std::exp(-F_s[0] * r) * F_s[1] / HRad +
+                         (F_s[2] * r + F_s[3] * r * r * r) / (1.0 + F_s[4] * r * r + F_s[5] * std::pow(r, 4)));
 #elif(NDIM == 2)
     if (L_domain < ZERO_TOL)
     {
-        fprintf(stderr, "IBEMpiricalMobility:_F_R_INF()  L_domain must be non specified in 2D!. Abort.\n");
-        exit(EXIT_FAILURE);
+        std::cerr << "IBEMpiricalMobility:_F_R_INF()  L_domain must be non specified in 2D!. Abort.\n";
+        std::exit(EXIT_FAILURE);
     }
-    double f_0 = (Z_s[0] + Z_s[1] * log(L_domain / Z_s[2]));
+    double f_0 = (Z_s[0] + Z_s[1] * std::log(L_domain / Z_s[2]));
     if (r < 0.1)
         return f_0;
     else
         return (f_0 +
-                (F_s[0] * r * r + F_s[1] * r * r * r + F_s[2] * r * r * r * log(r)) /
+                (F_s[0] * r * r + F_s[1] * r * r * r + F_s[2] * r * r * r * std::log(r)) /
                     (1.0 + F_s[3] * r + F_s[4] * r * r - F_s[2] * 4 * M_PI * r * r * r));
 #endif
 } // _F_R_INF
@@ -459,20 +463,20 @@ _F_R_BETA(const double rr, const double Dx, const double beta, const double L_do
 
 #if (NDIM == 3)
     (void)L_domain;
-    double f_0 = (1.0 + Z_b[1] * sqrt(beta) + Z_b[2] * beta) /
+    double f_0 = (1.0 + Z_b[1] * std::sqrt(beta) + Z_b[2] * beta) /
                  (Z_b[0] + Z_b[3] * beta + Z_b[2] * 6.0 * M_PI * HRad * beta * beta);
 
     // invisid case
     if (beta < ZERO_TOL)
         return f_0 / 4.0 / M_PI *
                ((4.0 * M_PI - F_b[4] * r * r) /
-                    (1.0 + F_b[0] * r + F_b[1] * r * r + F_b[2] * r * r * r + F_b[4] * f_0 * pow(r, 5)) +
-                (F_b[5] * r * exp(-F_b[6] * r) + F_b[7] * r) / (1.0 + F_b[8] * r * r * r + F_b[9] * pow(r, 5)));
+                    (1.0 + F_b[0] * r + F_b[1] * r * r + F_b[2] * r * r * r + F_b[4] * f_0 * std::pow(r, 5)) +
+                (F_b[5] * r * std::exp(-F_b[6] * r) + F_b[7] * r) / (1.0 + F_b[8] * r * r * r + F_b[9] * std::pow(r, 5)));
     else if (beta < 1000.1)
         return f_0 / 4.0 / M_PI *
-               ((4.0 * M_PI + F_b[4] * (-r * r + pow(r, 4) * exp(-F_b[3] * r / sqrt(beta)) / (2.0 * beta))) /
-                    (1.0 + F_b[0] * r + F_b[1] * r * r + F_b[2] * r * r * r + F_b[4] * f_0 * pow(r, 5)) +
-                (F_b[5] * r * exp(-F_b[6] * r) + F_b[7] * r) / (1.0 + F_b[8] * r * r * r + F_b[9] * pow(r, 5)));
+               ((4.0 * M_PI + F_b[4] * (-r * r + std::pow(r, 4) * std::exp(-F_b[3] * r / std::sqrt(beta)) / (2.0 * beta))) /
+                    (1.0 + F_b[0] * r + F_b[1] * r * r + F_b[2] * r * r * r + F_b[4] * f_0 * std::pow(r, 5)) +
+                (F_b[5] * r * std::exp(-F_b[6] * r) + F_b[7] * r) / (1.0 + F_b[8] * r * r * r + F_b[9] * std::pow(r, 5)));
     else
         return _F_R_INF(rr, Dx, 0.0);
 
@@ -482,12 +486,12 @@ _F_R_BETA(const double rr, const double Dx, const double beta, const double L_do
     {
         if (r < 0.8) // if distance is less self mobility is used
             return (Z_b[0] + Z_b[1] * beta * beta) /
-                   (Z_b[4] * pow(beta, 4) + Z_b[3] * beta * beta * beta + Z_b[2] * beta + 1.0) /
-                   (1.0 + r * r / (1.7 + 1.5 * log(1.0 + beta)));
+                   (Z_b[4] * std::pow(beta, 4) + Z_b[3] * beta * beta * beta + Z_b[2] * beta + 1.0) /
+                   (1.0 + r * r / (1.7 + 1.5 * std::log(1.0 + beta)));
         else
-            return factor * (-0.5 * exp(-F_b[0] / r) / (F_b[1] + r * r) +
+            return factor * (-0.5 * std::exp(-F_b[0] / r) / (F_b[1] + r * r) +
                              (F_b[2] + F_b[3] * r + F_b[4] * r * r) /
-                                 (1.0 + F_b[5] * r * r + F_b[6] * r * r * r + F_b[7] * pow(r, 4)) / r);
+                                 (1.0 + F_b[5] * r * r + F_b[6] * r * r * r + F_b[7] * std::pow(r, 4)) / r);
     }
     else
     {
@@ -503,14 +507,14 @@ _G_R_BETA(const double rr, const double Dx, const double beta)
     const double r = rr / Dx;
 
 #if (NDIM == 3)
-    double f_0 = (1.0 + Z_b[1] * sqrt(beta) + Z_b[2] * beta) /
+    double f_0 = (1.0 + Z_b[1] * std::sqrt(beta) + Z_b[2] * beta) /
                  (Z_b[0] + Z_b[3] * beta + Z_b[2] * 6.0 * M_PI * HRad * beta * beta);
     if (beta < ZERO_TOL)
         return f_0 * 3.0 / (4.0 * M_PI) * G_b[4] * r * r /
-               (1.0 + G_b[0] * r + G_b[1] * r * r + G_b[2] * r * r * r + G_b[4] * f_0 * pow(r, 5));
+               (1.0 + G_b[0] * r + G_b[1] * r * r + G_b[2] * r * r * r + G_b[4] * f_0 * std::pow(r, 5));
     else if (beta < 1001.0)
-        return f_0 * 3.0 / (4.0 * M_PI) * G_b[4] * (r * r + pow(r, 4) * exp(-G_b[3] * r / sqrt(beta)) / (6.0 * beta)) /
-               (1.0 + G_b[0] * r + G_b[1] * r * r + G_b[2] * r * r * r + G_b[5] * pow(r, 4) + G_b[4] * f_0 * pow(r, 5));
+        return f_0 * 3.0 / (4.0 * M_PI) * G_b[4] * (r * r + std::pow(r, 4) * std::exp(-G_b[3] * r / std::sqrt(beta)) / (6.0 * beta)) /
+               (1.0 + G_b[0] * r + G_b[1] * r * r + G_b[2] * r * r * r + G_b[5] * std::pow(r, 4) + G_b[4] * f_0 * std::pow(r, 5));
     else
         return _G_R_INF(rr, Dx);
 #elif(NDIM == 2)
@@ -521,7 +525,7 @@ _G_R_BETA(const double rr, const double Dx, const double beta)
             return 0.0;
         else
         {
-            return factor * r / (exp(-G_b[0] * r) * (G_b[1] + G_b[2] * r + G_b[3] * r * r) + r * r * r);
+            return factor * r / (std::exp(-G_b[0] * r) * (G_b[1] + G_b[2] * r + G_b[3] * r * r) + r * r * r);
         }
     }
     else
@@ -600,7 +604,7 @@ MobilityFunctions::constructEmpiricalMobilityMatrix(const char* IBKernelName,
             }
 
             const double rsq = get_sqnorm(r_vec);
-            const double r = sqrt(rsq);
+            const double r = std::sqrt(rsq);
             double F_R, G_R;
 
             getEmpiricalMobilityComponents(IBKernelName, MU, rho, Dt, r, DX, resetAllConstants, L_domain, &F_R, &G_R);
@@ -660,7 +664,7 @@ MobilityFunctions::constructRPYMobilityMatrix(const char* IBKernelName,
                 }
 
                 const double rsq = get_sqnorm(r_vec);
-                const double r = sqrt(rsq);
+                const double r = std::sqrt(rsq);
                 int idir, jdir;
                 for (idir = 0; idir < NDIM; idir++)
                     for (jdir = 0; jdir <= idir; jdir++)

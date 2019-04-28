@@ -112,7 +112,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
     //\}
 
@@ -130,7 +130,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCStaggeredStokesOperator();
+    VCStaggeredStokesOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -139,7 +139,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCStaggeredStokesOperator(const VCStaggeredStokesOperator& from);
+    VCStaggeredStokesOperator(const VCStaggeredStokesOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -150,7 +150,7 @@ private:
      *
      * \return A reference to this object.
      */
-    VCStaggeredStokesOperator& operator=(const VCStaggeredStokesOperator& that);
+    VCStaggeredStokesOperator& operator=(const VCStaggeredStokesOperator& that) = delete;
 
     /*
      * The interpolation type to be used in computing the variable coefficient viscous Laplacian.

@@ -87,7 +87,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    BJacobiPreconditioner(const std::string& object_name,
+    BJacobiPreconditioner(std::string object_name,
                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                           const std::string& default_options_prefix);
 
@@ -144,7 +144,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -184,7 +184,7 @@ public:
      * \see deallocateSolverState
      */
     void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -195,7 +195,7 @@ public:
      *
      * \see initializeSolverState
      */
-    void deallocateSolverState();
+    void deallocateSolverState() override;
 
     //\}
 
@@ -207,12 +207,12 @@ public:
     /*!
      * \brief Set whether the initial guess is non-zero.
      */
-    void setInitialGuessNonzero(bool initial_guess_nonzero = true);
+    void setInitialGuessNonzero(bool initial_guess_nonzero = true) override;
 
     /*!
      * \brief Set the maximum number of iterations to use per solve.
      */
-    void setMaxIterations(int max_iterations);
+    void setMaxIterations(int max_iterations) override;
 
     //\}
 
@@ -224,12 +224,12 @@ public:
     /*!
      * \brief Return the iteration count from the most recent linear solve.
      */
-    int getNumIterations() const;
+    int getNumIterations() const override;
 
     /*!
      * \brief Return the residual norm from the most recent iteration.
      */
-    double getResidualNorm() const;
+    double getResidualNorm() const override;
 
     //\}
 
@@ -239,7 +239,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    BJacobiPreconditioner();
+    BJacobiPreconditioner() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -248,7 +248,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    BJacobiPreconditioner(const BJacobiPreconditioner& from);
+    BJacobiPreconditioner(const BJacobiPreconditioner& from) = delete;
 
     /*!
      * ]brief Assignment operator.
@@ -259,7 +259,7 @@ private:
      *
      * \return A reference to this object.
      */
-    BJacobiPreconditioner& operator=(const BJacobiPreconditioner& that);
+    BJacobiPreconditioner& operator=(const BJacobiPreconditioner& that) = delete;
 
     /*!
      * The component preconditioners.

@@ -107,7 +107,7 @@ public:
     /*!
      * Typedef for functions to construct cell-centered ConvectiveOperators.
      */
-    typedef SAMRAI::tbox::Pointer<ConvectiveOperator> (*OperatorMaker)(
+    using OperatorMaker = SAMRAI::tbox::Pointer<ConvectiveOperator> (*)(
         const std::string& operator_object_name,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
@@ -128,7 +128,7 @@ protected:
     /*!
      * \brief Destructor.
      */
-    ~AdvDiffConvectiveOperatorManager();
+    ~AdvDiffConvectiveOperatorManager() = default;
 
 private:
     /*!
@@ -138,7 +138,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffConvectiveOperatorManager(const AdvDiffConvectiveOperatorManager& from);
+    AdvDiffConvectiveOperatorManager(const AdvDiffConvectiveOperatorManager& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -149,7 +149,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffConvectiveOperatorManager& operator=(const AdvDiffConvectiveOperatorManager& that);
+    AdvDiffConvectiveOperatorManager& operator=(const AdvDiffConvectiveOperatorManager& that) = delete;
 
     /*!
      * Static data members used to control access to and destruction of

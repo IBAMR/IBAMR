@@ -33,7 +33,6 @@
 #ifndef included_IBAMR_INSStaggeredStochasticForcing
 #define included_IBAMR_INSStaggeredStochasticForcing
 
-#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -45,6 +44,7 @@
 #include "VariableContext.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 
@@ -87,14 +87,14 @@ public:
      * storing the stochastic stresses at the centers and nodes of the Cartesian
      * grid.
      */
-    INSStaggeredStochasticForcing(const std::string& object_name,
+    INSStaggeredStochasticForcing(std::string object_name,
                                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                   const INSStaggeredHierarchyIntegrator* fluid_solver);
 
     /*!
      * \brief Empty destructor.
      */
-    ~INSStaggeredStochasticForcing();
+    ~INSStaggeredStochasticForcing() = default;
 
     /*!
      * \name Methods to set patch data.
@@ -105,7 +105,7 @@ public:
      * \brief Indicates whether the concrete INSStaggeredStochasticForcing object is
      * time-dependent.
      */
-    bool isTimeDependent() const;
+    bool isTimeDependent() const override;
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
@@ -117,7 +117,7 @@ public:
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
-                                 const int finest_ln = -1);
+                                 const int finest_ln = -1) override;
 
     /*!
      * \brief Evaluate the function on the patch interior.
@@ -128,7 +128,7 @@ public:
                         const double data_time,
                         const bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
 
     //\}
 
@@ -144,7 +144,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredStochasticForcing();
+    INSStaggeredStochasticForcing() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -153,7 +153,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredStochasticForcing(const INSStaggeredStochasticForcing& from);
+    INSStaggeredStochasticForcing(const INSStaggeredStochasticForcing& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -164,7 +164,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredStochasticForcing& operator=(const INSStaggeredStochasticForcing& that);
+    INSStaggeredStochasticForcing& operator=(const INSStaggeredStochasticForcing& that) = delete;
 
     /*!
      * Pointer to the fluid solver object that is using this stochastic force
@@ -175,19 +175,19 @@ private:
     /*!
      * Type of stress tensor (correlated or uncorrelated).
      */
-    StochasticStressTensorType d_stress_tensor_type;
+    StochasticStressTensorType d_stress_tensor_type = UNCORRELATED;
 
     /*!
      * Weighting data.
      */
-    double d_std;
-    int d_num_rand_vals;
+    double d_std = std::numeric_limits<double>::quiet_NaN();
+    int d_num_rand_vals = 0;
     std::vector<SAMRAI::tbox::Array<double> > d_weights;
 
     /*!
      * Boundary condition scalings.
      */
-    double d_velocity_bc_scaling, d_traction_bc_scaling;
+    double d_velocity_bc_scaling, d_traction_bc_scaling = 0.0;
 
     /*!
      * VariableContext and Variable objects for storing the components of the
@@ -195,16 +195,16 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_W_cc_var;
-    int d_W_cc_idx;
+    int d_W_cc_idx = IBTK::invalid_index;
     std::vector<int> d_W_cc_idxs;
 #if (NDIM == 2)
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_W_nc_var;
-    int d_W_nc_idx;
+    int d_W_nc_idx = IBTK::invalid_index;
     std::vector<int> d_W_nc_idxs;
 #endif
 #if (NDIM == 3)
     SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_W_ec_var;
-    int d_W_ec_idx;
+    int d_W_ec_idx = IBTK::invalid_index;
     std::vector<int> d_W_ec_idxs;
 #endif
 };

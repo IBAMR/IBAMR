@@ -85,9 +85,7 @@ public:
      * \param register_for_restart  Boolean indicating whether to register this object with the
      *restart manager.
      */
-    LSiloDataWriter(const std::string& object_name,
-                    const std::string& dump_directory_name,
-                    bool register_for_restart = true);
+    LSiloDataWriter(std::string object_name, std::string dump_directory_name, bool register_for_restart = true);
 
     /*!
      * \brief Destructor.
@@ -209,7 +207,7 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
 private:
@@ -218,7 +216,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LSiloDataWriter();
+    LSiloDataWriter() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -227,7 +225,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LSiloDataWriter(const LSiloDataWriter& from);
+    LSiloDataWriter(const LSiloDataWriter& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -238,7 +236,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LSiloDataWriter& operator=(const LSiloDataWriter& that);
+    LSiloDataWriter& operator=(const LSiloDataWriter& that) = delete;
 
     /*!
      * \brief Build the VecScatter objects required to communicate data for
@@ -277,13 +275,13 @@ private:
     /*
      * Time step number (passed in by user).
      */
-    int d_time_step_number;
+    int d_time_step_number = -1;
 
     /*
      * Grid hierarchy information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = 0, d_finest_ln = 0;
 
     /*
      * Information about the indices in the local marker clouds.

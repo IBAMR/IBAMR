@@ -56,25 +56,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ParallelMap::ParallelMap() : d_map(), d_pending_additions(), d_pending_removals()
-{
-    // intentionally blank
-    return;
-} // ParallelMap
-
-ParallelMap::ParallelMap(const ParallelMap& from)
-    : d_map(from.d_map), d_pending_additions(from.d_pending_additions), d_pending_removals(from.d_pending_removals)
-{
-    // intentionally blank
-    return;
-} // ParallelMap
-
-ParallelMap::~ParallelMap()
-{
-    // intentionally blank
-    return;
-} // ~ParallelMap
-
 ParallelMap& ParallelMap::operator=(const ParallelMap& that)
 {
     if (this != &that)
@@ -121,12 +102,10 @@ ParallelMap::communicateData()
         // broadcast by each process.
         std::vector<int> keys_to_send;
         std::vector<tbox::Pointer<Streamable> > data_items_to_send;
-        for (std::map<int, tbox::Pointer<Streamable> >::const_iterator cit = d_pending_additions.begin();
-             cit != d_pending_additions.end();
-             ++cit)
+        for (const auto& pending_addition : d_pending_additions)
         {
-            keys_to_send.push_back(cit->first);
-            data_items_to_send.push_back(cit->second);
+            keys_to_send.push_back(pending_addition.first);
+            data_items_to_send.push_back(pending_addition.second);
         }
         std::vector<int> data_sz(size, 0);
         data_sz[rank] = static_cast<int>(tbox::AbstractStream::sizeofInt() * keys_to_send.size() +

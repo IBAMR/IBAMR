@@ -55,7 +55,7 @@ IBBeamForceSpec::getIsRegisteredWithStreamableManager()
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline IBBeamForceSpec::IBBeamForceSpec(const unsigned int num_beams)
-    : d_master_idx(-1), d_neighbor_idxs(num_beams), d_bend_rigidities(num_beams), d_mesh_dependent_curvatures(num_beams)
+    : d_neighbor_idxs(num_beams), d_bend_rigidities(num_beams), d_mesh_dependent_curvatures(num_beams)
 {
 #if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
@@ -100,7 +100,7 @@ inline IBBeamForceSpec::~IBBeamForceSpec()
 inline unsigned int
 IBBeamForceSpec::getNumberOfBeams() const
 {
-    const unsigned int num_beams = static_cast<unsigned int>(d_neighbor_idxs.size());
+    const auto num_beams = static_cast<unsigned int>(d_neighbor_idxs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_beams == d_bend_rigidities.size());
     TBOX_ASSERT(num_beams == d_mesh_dependent_curvatures.size());
@@ -173,7 +173,7 @@ IBBeamForceSpec::getDataStreamSize() const
 inline void
 IBBeamForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
-    const unsigned int num_beams = static_cast<unsigned int>(d_neighbor_idxs.size());
+    const auto num_beams = static_cast<unsigned int>(d_neighbor_idxs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_beams == d_bend_rigidities.size());
     TBOX_ASSERT(num_beams == d_mesh_dependent_curvatures.size());

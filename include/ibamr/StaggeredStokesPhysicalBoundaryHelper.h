@@ -74,12 +74,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    StaggeredStokesPhysicalBoundaryHelper();
+    StaggeredStokesPhysicalBoundaryHelper() = default;
 
     /*!
      * \brief Destructor.
      */
-    ~StaggeredStokesPhysicalBoundaryHelper();
+    ~StaggeredStokesPhysicalBoundaryHelper() = default;
 
     /*!
      * \brief At Dirichlet boundaries, set values to enforce normal velocity
@@ -144,7 +144,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesPhysicalBoundaryHelper(const StaggeredStokesPhysicalBoundaryHelper& from);
+    StaggeredStokesPhysicalBoundaryHelper(const StaggeredStokesPhysicalBoundaryHelper& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -155,7 +155,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesPhysicalBoundaryHelper& operator=(const StaggeredStokesPhysicalBoundaryHelper& that);
+    StaggeredStokesPhysicalBoundaryHelper& operator=(const StaggeredStokesPhysicalBoundaryHelper& that) = delete;
 };
 } // namespace IBAMR
 

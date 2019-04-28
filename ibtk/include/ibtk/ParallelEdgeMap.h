@@ -54,12 +54,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    ParallelEdgeMap();
+    ParallelEdgeMap() = default;
 
     /*!
      * \brief Destructor.
      */
-    ~ParallelEdgeMap();
+    virtual ~ParallelEdgeMap() = default;
 
     /*!
      * \brief Add an edge to the edge map.
@@ -108,7 +108,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    ParallelEdgeMap(const ParallelEdgeMap& from);
+    ParallelEdgeMap(const ParallelEdgeMap& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -119,7 +119,7 @@ private:
      *
      * \return A reference to this object.
      */
-    ParallelEdgeMap& operator=(const ParallelEdgeMap& that);
+    ParallelEdgeMap& operator=(const ParallelEdgeMap& that) = delete;
 
     // Member data.
     std::multimap<int, std::pair<int, int> > d_edge_map;

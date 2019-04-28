@@ -49,8 +49,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LinearOperator::LinearOperator(const std::string& object_name, bool homogeneous_bc)
-    : GeneralOperator(object_name, homogeneous_bc)
+LinearOperator::LinearOperator(std::string object_name, bool homogeneous_bc)
+    : GeneralOperator(std::move(object_name), homogeneous_bc)
 {
     // intentionally blank
     return;

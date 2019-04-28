@@ -33,6 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <ios>
 #include <iosfwd>
@@ -42,7 +43,6 @@
 #include <map>
 #include <numeric>
 #include <ostream>
-#include <stddef.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -56,7 +56,6 @@
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "boost/array.hpp"
 #include "boost/math/special_functions/round.hpp"
 #include "boost/multi_array.hpp"
 #include "ibamr/IBAnchorPointSpec.h"
@@ -85,7 +84,6 @@
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
-#include <../contrib/eigen/Eigen/src/Core/products/GeneralBlockPanelKernel.h>
 
 namespace IBTK
 {
@@ -98,44 +96,11 @@ namespace IBAMR
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBRedundantInitializer::IBRedundantInitializer(const std::string& object_name, Pointer<Database> input_db)
-    : d_object_name(object_name),
-      d_max_levels(-1),
-      d_level_is_initialized(),
-      d_silo_writer(NULL),
-      d_base_filename(),
-      d_length_scale_factor(1.0),
-      d_posn_shift(Vector::Zero()),
-      d_num_vertex(),
-      d_vertex_offset(),
-      d_vertex_posn(),
-      d_spring_edge_map(),
-      d_spring_spec_data(),
-      d_xspring_edge_map(),
-      d_xspring_spec_data(),
-      d_beam_spec_data(),
-      d_rod_edge_map(),
-      d_rod_spec_data(),
-      d_target_spec_data(),
-      d_anchor_spec_data(),
-      d_bdry_mass_spec_data(),
-      d_directors(),
-      d_instrument_idx(),
-      d_source_idx(),
-      d_global_index_offset(),
-      d_data_processed(false),
-      d_init_structure_on_level_fcn(NULL),
-      d_init_spring_on_level_fcn(NULL),
-      d_init_beam_on_level_fcn(NULL),
-      d_init_director_and_rod_on_level_fcn(NULL),
-      d_init_boundary_mass_on_level_fcn(NULL),
-      d_init_target_pt_on_level_fcn(NULL),
-      d_init_anchor_pt_on_level_fcn(NULL),
-      d_init_instrumentation_on_level_fcn(NULL),
-      d_init_source_on_level_fcn(NULL)
+IBRedundantInitializer::IBRedundantInitializer(std::string object_name, Pointer<Database> input_db)
+    : d_object_name(std::move(object_name)), d_posn_shift(Vector::Zero())
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!d_object_name.empty());
     TBOX_ASSERT(input_db);
 #endif
 
@@ -375,7 +340,7 @@ IBRedundantInitializer::initializeStructurePosition()
 #endif
 
             // Shift and scale the position of structures
-            for (unsigned int k = 0; k < unsigned(d_num_vertex[ln][j]); ++k)
+            for (unsigned int k = 0; k < static_cast<unsigned>(d_num_vertex[ln][j]); ++k)
             {
                 Point& X = d_vertex_posn[ln][j][k];
                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -405,11 +370,9 @@ IBRedundantInitializer::initializeSprings()
 
                 int min_idx = 0;
                 int max_idx = d_num_vertex[ln][j];
-                for (std::multimap<int, Edge>::iterator it = d_spring_edge_map[ln][j].begin();
-                     it != d_spring_edge_map[ln][j].end();
-                     ++it)
+                for (const auto& edge_pair : d_spring_edge_map[ln][j])
                 {
-                    Edge& e = it->second;
+                    const Edge& e = edge_pair.second;
                     const SpringSpec& spec = d_spring_spec_data[ln][j][e];
                     if ((e.first < min_idx) || (e.first > max_idx))
                     {
@@ -423,7 +386,7 @@ IBRedundantInitializer::initializeSprings()
                                                  << " and structure number " << j << ":\n"
                                                  << e.second << " is not a valid index.");
                     }
-                    if (it->first > e.second)
+                    if (edge_pair.first > e.second)
                     {
                         TBOX_ERROR(d_object_name << ":\n Error on level " << ln << " and structure number " << j
                                                  << ".\n Master index must be lower than the slave index for springs.");
@@ -462,11 +425,9 @@ IBRedundantInitializer::initializeXSprings()
                 d_init_xspring_on_level_fcn(j, ln, d_xspring_edge_map[ln][j], d_xspring_spec_data[ln][j]);
                 const int min_idx = 0;
                 const int max_idx = std::accumulate(d_num_vertex[ln].begin(), d_num_vertex[ln].end(), 0);
-                for (std::multimap<int, Edge>::iterator it = d_xspring_edge_map[ln][j].begin();
-                     it != d_xspring_edge_map[ln][j].end();
-                     ++it)
+                for (const auto& edge_pair : d_xspring_edge_map[ln][j])
                 {
-                    Edge& e = it->second;
+                    const Edge& e = edge_pair.second;
                     const XSpringSpec& spec = d_xspring_spec_data[ln][j][e];
                     if ((e.first < min_idx) || (e.first > max_idx))
                     {
@@ -480,7 +441,7 @@ IBRedundantInitializer::initializeXSprings()
                                                  << " and structure number " << j << ":\n"
                                                  << e.second << " is not a valid index.");
                     }
-                    if (it->first > e.second)
+                    if (edge_pair.first > e.second)
                     {
                         TBOX_ERROR(d_object_name
                                    << ":\n Error on level " << ln << " and structure number " << j
@@ -520,11 +481,9 @@ IBRedundantInitializer::initializeBeams()
 
                 const int min_idx = 0;
                 const int max_idx = d_num_vertex[ln][j];
-                for (std::multimap<int, BeamSpec>::const_iterator it = d_beam_spec_data[ln][j].begin();
-                     it != d_beam_spec_data[ln][j].end();
-                     ++it)
+                for (const auto& spec_pair : d_beam_spec_data[ln][j])
                 {
-                    const BeamSpec& e = it->second;
+                    const BeamSpec& e = spec_pair.second;
                     const std::pair<int, int>& idxs = e.neighbor_idxs;
                     if ((idxs.first < min_idx) || (idxs.first > max_idx))
                     {
@@ -542,7 +501,8 @@ IBRedundantInitializer::initializeBeams()
                     {
                         TBOX_ERROR(d_object_name << ":\n Invalid bending rigidity encountered on level " << ln
                                                  << " and structure number " << j << ":\n"
-                                                 << e.bend_rigidity << " for index " << it->first << " is negative");
+                                                 << e.bend_rigidity << " for index " << spec_pair.first
+                                                 << " is negative");
                     }
                 }
             }
@@ -571,16 +531,16 @@ IBRedundantInitializer::initializeTargetPts()
                 int min_idx = 0;
                 int max_idx = d_num_vertex[ln][j];
                 d_target_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
-                for (std::multimap<int, TargetSpec>::const_iterator it = tg_pt_spec.begin(); it != tg_pt_spec.end();
-                     ++it)
+                for (const auto& spec_pair : tg_pt_spec)
                 {
-                    if ((it->first < min_idx) || (it->first > max_idx))
+                    const int& idx = spec_pair.first;
+                    if ((idx < min_idx) || (idx > max_idx))
                     {
                         TBOX_ERROR(d_object_name << ":\n Invalid target point index on level " << ln
                                                  << " and structure number " << j << ": \n"
-                                                 << it->first);
+                                                 << idx);
                     }
-                    const TargetSpec& tg_spec = it->second;
+                    const TargetSpec& tg_spec = spec_pair.second;
                     if (tg_spec.stiffness < 0.0)
                     {
                         TBOX_ERROR(d_object_name << ":\n Invalid target point stiffness encountered on level " << ln
@@ -593,7 +553,7 @@ IBRedundantInitializer::initializeTargetPts()
                                                  << " and structure number " << j << ": \n"
                                                  << tg_spec.damping << " is negative");
                     }
-                    d_target_spec_data[ln][j][it->first] = tg_spec;
+                    d_target_spec_data[ln][j][idx] = tg_spec;
                 }
             }
         }
@@ -626,7 +586,7 @@ IBRedundantInitializer::initializeDirectorAndRods()
 
                 const int min_idx = 0;
                 const int max_idx = d_num_vertex[ln][j];
-                if (d_directors[ln][j].size() != unsigned(max_idx))
+                if (d_directors[ln][j].size() != static_cast<unsigned>(max_idx))
                 {
                     TBOX_ERROR(d_object_name << "\n Not enough director vectors supplied for structure " << j
                                              << "on level " << ln << ".");
@@ -645,7 +605,7 @@ IBRedundantInitializer::initializeDirectorAndRods()
                         {
                             D_norm_squared += d_directors[ln][j][k][3 * n + d] * d_directors[ln][j][k][3 * n + d];
                         }
-                        const double D_norm = sqrt(D_norm_squared);
+                        const double D_norm = std::sqrt(D_norm_squared);
                         if (!MathUtilities<double>::equalEps(D_norm, 1.0))
                         {
                             TBOX_WARNING(d_object_name << ":\n  Director vector for index " << k << " of structure "
@@ -658,13 +618,11 @@ IBRedundantInitializer::initializeDirectorAndRods()
                         }
                     }
                 }
-                for (std::multimap<int, Edge>::const_iterator it = d_rod_edge_map[ln][j].begin();
-                     it != d_rod_edge_map[ln][j].end();
-                     ++it)
+                for (const auto& edge_pair : d_rod_edge_map[ln][j])
                 {
-                    const Edge& e = it->second;
+                    const Edge& e = edge_pair.second;
                     const RodSpec& rod_spec = d_rod_spec_data[ln][j][e];
-                    const boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> parameters = rod_spec.properties;
+                    const std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> parameters = rod_spec.properties;
                     if ((e.first < min_idx) || (e.first > max_idx))
                     {
                         TBOX_ERROR(d_object_name << ":\n Invalid rod edge encountered on level " << ln
@@ -745,15 +703,16 @@ IBRedundantInitializer::initializeBoundaryMass()
                 d_bdry_mass_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
                 int min_idx = 0;
                 int max_idx = d_num_vertex[ln][j];
-                for (std::multimap<int, BdryMassSpec>::const_iterator it = bdry_map.begin(); it != bdry_map.end(); ++it)
+                for (const auto& spec_pair : bdry_map)
                 {
-                    if ((it->first < min_idx) || (it->first > max_idx))
+                    const int& idx = spec_pair.first;
+                    if ((idx < min_idx) || (idx > max_idx))
                     {
                         TBOX_ERROR(d_object_name << ":\n Invalid massive point index on level " << ln
                                                  << " and structure number " << j << ": \n"
-                                                 << it->first);
+                                                 << idx);
                     }
-                    const BdryMassSpec& bdry_mass_spec = it->second;
+                    const BdryMassSpec& bdry_mass_spec = spec_pair.second;
                     if (bdry_mass_spec.bdry_mass < 0.0)
                     {
                         TBOX_ERROR(d_object_name << ":\n Invalid boundary mass encountered on level " << ln
@@ -766,7 +725,7 @@ IBRedundantInitializer::initializeBoundaryMass()
                                                  << " and structure number " << j << ": \n"
                                                  << bdry_mass_spec.stiffness << " is negative");
                     }
-                    d_bdry_mass_spec_data[ln][j][it->first] = bdry_mass_spec;
+                    d_bdry_mass_spec_data[ln][j][idx] = bdry_mass_spec;
                 }
             }
         }
@@ -799,16 +758,16 @@ IBRedundantInitializer::initializeAnchorPts()
                 d_anchor_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
                 int min_idx = 0;
                 int max_idx = d_num_vertex[ln][j];
-                for (std::multimap<int, AnchorSpec>::const_iterator it = anchor_map.begin(); it != anchor_map.end();
-                     ++it)
+                for (const auto& anchor_pair : anchor_map)
                 {
-                    if ((it->first < min_idx) || (it->first > max_idx))
+                    const int& anchor_pt = anchor_pair.first;
+                    if ((anchor_pt < min_idx) || (anchor_pt > max_idx))
                     {
                         TBOX_ERROR(d_object_name << ":\n Invalid anchor point index on level " << ln
                                                  << " and structure number " << j << ": \n"
-                                                 << it->first);
+                                                 << anchor_pt);
                     }
-                    d_anchor_spec_data[ln][j][it->first] = it->second;
+                    d_anchor_spec_data[ln][j][anchor_pt] = anchor_pair.second;
                 }
             }
         }
@@ -840,13 +799,10 @@ IBRedundantInitializer::initializeInstrumentationData()
                 d_init_instrumentation_on_level_fcn(j, ln, new_names, d_instrument_idx[ln][j]);
                 std::vector<bool> encountered_instrument_idx;
                 std::map<int, std::vector<bool> > encountered_node_idxs;
-                for (std::vector<std::string>::iterator i = new_names.begin(); i != new_names.end(); ++i)
-                    instrument_names.push_back(*i);
+                for (const auto& new_name : new_names) instrument_names.push_back(new_name);
                 const int min_idx = 0;
                 const int max_idx = d_num_vertex[ln][j];
-                for (std::map<int, std::pair<int, int> >::iterator it = d_instrument_idx[ln][j].begin();
-                     it != d_instrument_idx[ln][j].end();
-                     ++it)
+                for (auto it = d_instrument_idx[ln][j].begin(); it != d_instrument_idx[ln][j].end(); ++it)
                 {
                     if ((it->first < min_idx) || (it->first >= max_idx))
                     {
@@ -855,7 +811,7 @@ IBRedundantInitializer::initializeInstrumentationData()
                                                  << " is out of range.\n");
                     }
                     std::pair<int, int>& meter_map = it->second;
-                    if (meter_map.first < 0 || unsigned(meter_map.first) >= instrument_names.size())
+                    if (meter_map.first < 0 || static_cast<unsigned>(meter_map.first) >= instrument_names.size())
                     {
                         TBOX_ERROR(d_object_name << ":\n Invalid meter number on level " << ln
                                                  << " and structure number " << j << ".\n Meter index "
@@ -882,8 +838,7 @@ IBRedundantInitializer::initializeInstrumentationData()
 
                     meter_map.first += instrument_offset;
                 }
-                for (std::vector<bool>::iterator meter_it = encountered_instrument_idx.begin();
-                     meter_it != encountered_instrument_idx.end();
+                for (auto meter_it = encountered_instrument_idx.begin(); meter_it != encountered_instrument_idx.end();
                      ++meter_it)
                 {
                     const size_t meter_idx = std::distance(encountered_instrument_idx.begin(), meter_it);
@@ -894,9 +849,7 @@ IBRedundantInitializer::initializeInstrumentationData()
                     }
 
                     std::vector<bool>& meter_node_idxs = encountered_node_idxs[meter_idx];
-                    for (std::vector<bool>::iterator node_it = meter_node_idxs.begin();
-                         node_it != meter_node_idxs.end();
-                         ++node_it)
+                    for (auto node_it = meter_node_idxs.begin(); node_it != meter_node_idxs.end(); ++node_it)
                     {
                         const size_t node_idx = std::distance(meter_node_idxs.begin(), node_it);
                         if ((*node_it) == false)
@@ -946,13 +899,10 @@ IBRedundantInitializer::initializeSourceData()
                                              << source_names.size() << " is not equal to number of radii "
                                              << source_radii.size() << ".\n");
                 }
-                for (std::vector<std::string>::iterator i = new_names.begin(); i != new_names.end(); ++i)
-                    source_names.push_back(*i);
-                for (std::vector<double>::iterator i = new_radii.begin(); i != new_radii.end(); ++i)
-                    source_radii.push_back(*i);
+                for (const auto& new_name : new_names) source_names.push_back(new_name);
+                for (double& radius : new_radii) source_radii.push_back(radius);
                 num_source = new_names.size();
-                for (std::map<int, int>::iterator it = d_source_idx[ln][j].begin(); it != d_source_idx[ln][j].end();
-                     ++it)
+                for (auto it = d_source_idx[ln][j].begin(); it != d_source_idx[ln][j].end(); ++it)
                 {
                     int& src_num = it->second;
                     if ((it->first < min_idx) || (it->first >= max_idx))
@@ -1032,10 +982,8 @@ IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
         std::vector<std::pair<int, int> > patch_vertices;
         getPatchVertices(patch_vertices, patch, hierarchy);
         local_node_count += patch_vertices.size();
-        for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end();
-             ++it)
+        for (const auto& point_idx : patch_vertices)
         {
-            const std::pair<int, int>& point_idx = (*it);
             const int lagrangian_idx = getCanonicalLagrangianIndex(point_idx, level_number) + global_index_offset;
             const int local_petsc_idx = ++local_idx + local_index_offset;
             const int global_petsc_idx = local_petsc_idx + global_index_offset;
@@ -1087,9 +1035,9 @@ IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
             // vertex.
             std::vector<Pointer<Streamable> > node_data =
                 initializeNodeData(point_idx, global_index_offset, level_number);
-            for (std::vector<Pointer<Streamable> >::iterator it = node_data.begin(); it != node_data.end(); ++it)
+            for (const auto& node : node_data)
             {
-                (*it)->registerPeriodicShift(periodic_offset, periodic_displacement);
+                node->registerPeriodicShift(periodic_offset, periodic_displacement);
             }
 
             // Create or retrieve a pointer to the LNodeSet associated with the
@@ -1162,10 +1110,8 @@ IBRedundantInitializer::initializeMassDataOnPatchLevel(const unsigned int /*glob
         std::vector<std::pair<int, int> > patch_vertices;
         getPatchVertices(patch_vertices, patch, hierarchy);
         local_node_count += patch_vertices.size();
-        for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end();
-             ++it)
+        for (const auto& point_idx : patch_vertices)
         {
-            const std::pair<int, int>& point_idx = (*it);
             const int local_petsc_idx = ++local_idx + local_index_offset;
 
             // Initialize the mass and penalty stiffness coefficient
@@ -1225,10 +1171,8 @@ IBRedundantInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*
         std::vector<std::pair<int, int> > patch_vertices;
         getPatchVertices(patch_vertices, patch, hierarchy);
         local_node_count += patch_vertices.size();
-        for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end();
-             ++it)
+        for (const auto& point_idx : patch_vertices)
         {
-            const std::pair<int, int>& point_idx = (*it);
             const int local_petsc_idx = ++local_idx + local_index_offset;
 
             // Initialize the director corresponding to the present vertex.
@@ -1279,12 +1223,8 @@ IBRedundantInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarch
         {
             std::vector<std::pair<int, int> > patch_vertices;
             getPatchVerticesAtLevel(patch_vertices, patch, hierarchy, ln);
-            for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin();
-                 it != patch_vertices.end();
-                 ++it)
+            for (const auto& point_idx : patch_vertices)
             {
-                const std::pair<int, int>& point_idx = (*it);
-
                 // Get the coordinates of the present vertex.
                 const Point& X = getShiftedVertexPosn(point_idx, ln, domain_x_lower, domain_x_upper, periodic_shift);
 
@@ -1526,8 +1466,7 @@ std::pair<int, int>
 IBRedundantInitializer::getVertexInstrumentationIndices(const std::pair<int, int>& point_index,
                                                         const int level_number) const
 {
-    std::map<int, std::pair<int, int> >::const_iterator it =
-        d_instrument_idx[level_number][point_index.first].find(point_index.second);
+    auto it = d_instrument_idx[level_number][point_index.first].find(point_index.second);
     if (it != d_instrument_idx[level_number][point_index.first].end())
     {
         return it->second;
@@ -1541,7 +1480,7 @@ IBRedundantInitializer::getVertexInstrumentationIndices(const std::pair<int, int
 int
 IBRedundantInitializer::getVertexSourceIndices(const std::pair<int, int>& point_index, const int level_number) const
 {
-    std::map<int, int>::const_iterator it = d_source_idx[level_number][point_index.first].find(point_index.second);
+    auto it = d_source_idx[level_number][point_index.first].find(point_index.second);
     if (it != d_source_idx[level_number][point_index.first].end())
     {
         return it->second;
@@ -1566,7 +1505,7 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
     {
         std::vector<int> slave_idxs, force_fcn_idxs;
         std::vector<std::vector<double> > parameters;
-        for (std::multimap<int, Edge>::const_iterator it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
+        for (auto it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
              it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx);
              ++it)
         {
@@ -1592,8 +1531,7 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
         const size_t num_base_filename = d_base_filename[level_number].size();
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
-            for (std::multimap<int, Edge>::const_iterator it =
-                     d_xspring_edge_map[level_number][j].lower_bound(mastr_idx);
+            for (auto it = d_xspring_edge_map[level_number][j].lower_bound(mastr_idx);
                  it != d_xspring_edge_map[level_number][j].upper_bound(mastr_idx);
                  ++it)
             {
@@ -1628,7 +1566,7 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
         std::vector<std::pair<int, int> > beam_neighbor_idxs;
         std::vector<double> beam_bend_rigidity;
         std::vector<Vector> beam_mesh_dependent_curvature;
-        for (std::multimap<int, BeamSpec>::const_iterator it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx);
+        for (auto it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx);
              it != d_beam_spec_data[level_number][j].upper_bound(mastr_idx);
              ++it)
         {
@@ -1647,8 +1585,8 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
     // Initialize any rod specifications associated with the present vertex.
     {
         std::vector<int> rod_next_idxs;
-        std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
-        for (std::multimap<int, Edge>::const_iterator it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
+        std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
+        for (auto it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
              it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx);
              ++it)
         {
@@ -1826,9 +1764,7 @@ IBRedundantInitializer::getFromInput(Pointer<Database> db)
 
             for (int s = 0; s < num_strcts_on_ln; ++s)
             {
-                std::ostringstream strct_name_stream;
-                strct_name_stream << "body_" << s << "_ln_" << ln;
-                d_base_filename[ln][s] = strct_name_stream.str();
+                d_base_filename[ln][s] = "body_" + std::to_string(s) + "_ln_" + std::to_string(ln);
             }
         }
     }
@@ -1836,9 +1772,7 @@ IBRedundantInitializer::getFromInput(Pointer<Database> db)
     {
         for (int ln = 0; ln < d_max_levels; ++ln)
         {
-            std::ostringstream db_key_name_stream;
-            db_key_name_stream << "base_filenames_" << ln;
-            const std::string db_key_name = db_key_name_stream.str();
+            const std::string db_key_name = "base_filenames_" + std::to_string(ln);
             if (db->keyExists(db_key_name))
             {
                 const int num_files = db->getArraySize(db_key_name);

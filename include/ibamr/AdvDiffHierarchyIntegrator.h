@@ -47,6 +47,7 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -437,23 +438,23 @@ public:
      * to calling initializePatchHierarchy().
      */
     void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
      */
-    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
 
     /*!
      * \brief Function to reset variables registered by this integrator
      */
-    typedef void (*ResetPropertiesFcnPtr)(int property_idx,
-                                          SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                          int integrator_step,
-                                          double time,
-                                          bool initial_time,
-                                          bool regrid_time,
-                                          void* ctx);
+    using ResetPropertiesFcnPtr = void (*)(int property_idx,
+                                           SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                           int integrator_step,
+                                           double time,
+                                           bool initial_time,
+                                           bool regrid_time,
+                                           void* ctx);
 
     /*!
      * \brief Register a reset callback function for a specified variable.
@@ -494,7 +495,7 @@ protected:
     /*!
      * Return the maximum stable time step size.
      */
-    double getMaximumTimeStepSizeSpecialized();
+    double getMaximumTimeStepSizeSpecialized() override;
 
     /*!
      * Initialize composite hierarchy data.
@@ -503,7 +504,7 @@ protected:
      */
     void initializeCompositeHierarchyDataSpecialized(
         double init_data_time,
-        bool initial_time);
+        bool initial_time) override;
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -511,12 +512,12 @@ protected:
     void
     resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                            int coarsest_level,
-                                           int finest_level);
+                                           int finest_level) override;
 
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*!
      * Standard variable registration.
@@ -526,22 +527,22 @@ protected:
     /*
      * Boolean value that indicates whether the integrator has been initialized.
      */
-    bool d_integrator_is_initialized;
+    bool d_integrator_is_initialized = false;
 
     /*!
      * Advective CFL condition.
      */
-    double d_cfl_max;
+    double d_cfl_max = 0.5;
 
     /*!
      * Default diffusion time integration method.
      */
-    TimeSteppingType d_default_diffusion_time_stepping_type;
+    TimeSteppingType d_default_diffusion_time_stepping_type = TRAPEZOIDAL_RULE;
 
     /*!
      * Default convective differencing type.
      */
-    ConvectiveDifferencingType d_default_convective_difference_form;
+    ConvectiveDifferencingType d_default_convective_difference_form = CONSERVATIVE;
 
     /*!
      * Advection velocity data.
@@ -549,14 +550,16 @@ protected:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_u_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >, bool> d_u_is_div_free;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_u_fcn;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_u_fcn;
 
     /*!
      * Source term data.
      */
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_F_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_F_fcn;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_F_fcn;
 
     /*!
      * Diffusion coefficient data
@@ -564,19 +567,22 @@ protected:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > > d_diffusion_coef_var,
         d_diffusion_coef_rhs_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_diffusion_coef_fcn;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_diffusion_coef_fcn;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > > d_diffusion_coef_rhs_map;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > >
+        d_diffusion_coef_rhs_map;
 
     /*!
      * Transported quantities.
      */
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_Q_var, d_Q_rhs_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_Q_u_map;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > >
+        d_Q_u_map;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_Q_F_map,
-        d_Q_Q_rhs_map;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > >
+        d_Q_F_map, d_Q_Q_rhs_map;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, TimeSteppingType>
         d_Q_diffusion_time_stepping_type;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, ConvectiveDifferencingType>
@@ -584,14 +590,17 @@ protected:
 
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, double> d_Q_diffusion_coef;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > > d_Q_diffusion_coef_variable;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > >
+        d_Q_diffusion_coef_variable;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, bool> d_Q_is_diffusion_coef_variable;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, double> d_Q_damping_coef;
 
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_Q_init;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_Q_init;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coef;
+             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> >
+        d_Q_bc_coef;
 
     /*!
      * Objects to keep track of the resetting functions.
@@ -618,7 +627,7 @@ protected:
     std::vector<SAMRAI::tbox::Pointer<IBTK::PoissonSolver> > d_helmholtz_solvers;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> > d_helmholtz_rhs_ops;
     std::vector<bool> d_helmholtz_solvers_need_init, d_helmholtz_rhs_ops_need_init;
-    int d_coarsest_reset_ln, d_finest_reset_ln;
+    int d_coarsest_reset_ln = IBTK::invalid_level_number, d_finest_reset_ln = IBTK::invalid_level_number;
 
 private:
     /*!
@@ -626,7 +635,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvDiffHierarchyIntegrator();
+    AdvDiffHierarchyIntegrator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -635,7 +644,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffHierarchyIntegrator(const AdvDiffHierarchyIntegrator& from);
+    AdvDiffHierarchyIntegrator(const AdvDiffHierarchyIntegrator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -646,7 +655,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffHierarchyIntegrator& operator=(const AdvDiffHierarchyIntegrator& that);
+    AdvDiffHierarchyIntegrator& operator=(const AdvDiffHierarchyIntegrator& that) = delete;
 
     /*!
      * Read input values from a given database.

@@ -44,20 +44,14 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PETScKrylovPoissonSolver::PETScKrylovPoissonSolver(const std::string& object_name,
+PETScKrylovPoissonSolver::PETScKrylovPoissonSolver(std::string object_name,
                                                    Pointer<Database> input_db,
-                                                   const std::string& default_options_prefix)
-    : PETScKrylovLinearSolver(object_name, input_db, default_options_prefix)
+                                                   std::string default_options_prefix)
+    : PETScKrylovLinearSolver(std::move(object_name), input_db, std::move(default_options_prefix))
 {
     // intentionally blank
     return;
 } // PETScKrylovPoissonSolver()
-
-PETScKrylovPoissonSolver::~PETScKrylovPoissonSolver()
-{
-    // intentionally blank
-    return;
-} // ~PETScKrylovPoissonSolver()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

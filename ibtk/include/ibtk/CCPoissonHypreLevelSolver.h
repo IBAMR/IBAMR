@@ -47,6 +47,7 @@
 #include "PatchHierarchy.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -196,7 +197,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -236,7 +237,7 @@ public:
      * \see deallocateSolverState
      */
     void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -247,7 +248,7 @@ public:
      *
      * \see initializeSolverState
      */
-    void deallocateSolverState();
+    void deallocateSolverState() override;
 
     //\}
 
@@ -257,7 +258,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CCPoissonHypreLevelSolver();
+    CCPoissonHypreLevelSolver() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -266,7 +267,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CCPoissonHypreLevelSolver(const CCPoissonHypreLevelSolver& from);
+    CCPoissonHypreLevelSolver(const CCPoissonHypreLevelSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -277,7 +278,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CCPoissonHypreLevelSolver& operator=(const CCPoissonHypreLevelSolver& that);
+    CCPoissonHypreLevelSolver& operator=(const CCPoissonHypreLevelSolver& that) = delete;
 
     /*!
      * \brief Functions to allocate, initialize, access, and deallocate hypre
@@ -305,35 +306,35 @@ private:
     /*!
      * \brief Associated patch level and C-F boundary (for level numbers > 0).
      */
-    int d_level_num;
+    int d_level_num = IBTK::invalid_level_number;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_level;
     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 
     /*!
      * \name Problem specification.
      */
-    bool d_grid_aligned_anisotropy;
+    bool d_grid_aligned_anisotropy = true;
 
     /*!
      * \name hypre objects.
      */
     //\{
-    unsigned int d_depth;
-    HYPRE_StructGrid d_grid;
-    HYPRE_StructStencil d_stencil;
+    unsigned int d_depth = 0;
+    HYPRE_StructGrid d_grid = nullptr;
+    HYPRE_StructStencil d_stencil = nullptr;
     std::vector<HYPRE_StructMatrix> d_matrices;
     std::vector<HYPRE_StructVector> d_rhs_vecs, d_sol_vecs;
     std::vector<HYPRE_StructSolver> d_solvers, d_preconds;
     std::vector<SAMRAI::hier::Index<NDIM> > d_stencil_offsets;
 
-    std::string d_solver_type, d_precond_type;
-    int d_rel_change;
-    int d_num_pre_relax_steps, d_num_post_relax_steps;
-    int d_memory_use;
+    std::string d_solver_type = "PFMG", d_precond_type = "none";
+    int d_rel_change = 0;
+    int d_num_pre_relax_steps = 1, d_num_post_relax_steps = 1;
+    int d_memory_use = 0;
     int d_rap_type;
     int d_relax_type;
-    int d_skip_relax;
-    int d_two_norm;
+    int d_skip_relax = 1;
+    int d_two_norm = 1;
     //\}
 };
 } // namespace IBTK

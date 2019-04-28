@@ -95,7 +95,7 @@ public:
     /*!
      * \brief The only constructor of this class.
      */
-    CIBMobilitySolver(const std::string& object_name,
+    CIBMobilitySolver(std::string object_name,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                       SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
                       SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy);
@@ -103,7 +103,7 @@ public:
     /*!
      * \brief Destructor for this class.
      */
-    ~CIBMobilitySolver();
+    virtual ~CIBMobilitySolver();
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
@@ -214,9 +214,9 @@ public:
      * \note A null argument is simply skipped with no corresponding solver
      * return.
      */
-    void getMobilitySolvers(IBAMR::KrylovMobilitySolver** km_solver = NULL,
-                            IBAMR::DirectMobilitySolver** dm_solver = NULL,
-                            IBAMR::KrylovFreeBodyMobilitySolver** fbm_solver = NULL);
+    void getMobilitySolvers(IBAMR::KrylovMobilitySolver** km_solver = nullptr,
+                            IBAMR::DirectMobilitySolver** dm_solver = nullptr,
+                            IBAMR::KrylovFreeBodyMobilitySolver** fbm_solver = nullptr);
 
     /////////////////////////////// PRIVATE //////////////////////////////////////
 private:
@@ -239,8 +239,8 @@ private:
 
     // Other parameters.
     double d_solution_time, d_current_time, d_new_time;
-    bool d_is_initialized, d_reinitializing_solver, d_has_free_parts;
-    double d_interp_scale, d_spread_scale, d_reg_mob_scale;
+    bool d_is_initialized = false, d_reinitializing_solver, d_has_free_parts;
+    double d_interp_scale = 1.0, d_spread_scale = 1.0, d_reg_mob_scale;
 
     // Type of mobility solver to be used
     enum MobilitySolverType

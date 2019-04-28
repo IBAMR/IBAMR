@@ -31,6 +31,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include <utility>
 
 #include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
 #include "ArrayDataBasicOps.h"
@@ -42,7 +43,6 @@
 #include "PatchHierarchy.h"
 #include "SideData.h"
 #include "SideIndex.h"
-#include "boost/array.hpp"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/INSStaggeredPressureBcCoef.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
@@ -75,25 +75,17 @@ sign(const double X)
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
-    const std::string& object_name,
+    std::string object_name,
     Pointer<CellVariable<NDIM, double> > ls_solid_var,
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
     Pointer<INSHierarchyIntegrator> fluid_solver,
     Pointer<Database> db)
-    : d_object_name(object_name),
+    : d_object_name(std::move(object_name)),
       d_ls_solid_var(ls_solid_var),
       d_adv_diff_solver(adv_diff_solver),
-      d_fluid_solver(fluid_solver),
-      d_ls_solid_idx(-1),
-      d_u_idx(-1),
-      d_p_idx(-1),
-      d_mu_idx(-1),
-      d_mu(std::numeric_limits<double>::quiet_NaN())
+      d_fluid_solver(fluid_solver)
 
 {
-    // Set some default values
-    d_surface_contour_value = 0.0;
-
     // Get from database
     if (!db.isNull()) getFromInput(db);
 
@@ -125,11 +117,9 @@ IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
     Pointer<VariableContext> p_ctx = var_db->getContext(d_object_name + "::p_ctx");
     d_p_idx = var_db->registerVariableAndContext(p_var, p_ctx, IntVector<NDIM>(GPRESSUREG));
 
-    INSStaggeredHierarchyIntegrator* p_ins_hier_integrator =
-        dynamic_cast<INSStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
+    auto p_ins_hier_integrator = dynamic_cast<INSStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
 
-    INSVCStaggeredHierarchyIntegrator* p_vc_ins_hier_integrator =
-        dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
+    auto p_vc_ins_hier_integrator = dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
 
     if (p_ins_hier_integrator)
     {
@@ -172,17 +162,15 @@ IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
     // Set up the streams for printing drag and torque
     if (SAMRAI_MPI::getRank() == 0)
     {
-        std::ostringstream drag;
-        drag << "Hydro_Force_" << d_ls_solid_var->getName();
         bool from_restart = RestartManager::getManager()->isFromRestart();
         if (from_restart)
         {
-            d_hydro_force_stream = new std::ofstream(drag.str().c_str(), std::fstream::app);
+            d_hydro_force_stream = new std::ofstream("Hydro_Force_" + d_ls_solid_var->getName(), std::fstream::app);
             d_hydro_force_stream->precision(10);
         }
         else
         {
-            d_hydro_force_stream = new std::ofstream(drag.str().c_str(), std::fstream::out);
+            d_hydro_force_stream = new std::ofstream("Hydro_Force_" + d_ls_solid_var->getName(), std::fstream::out);
             d_hydro_force_stream->precision(10);
         }
     }
@@ -356,7 +344,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
 {
     // Fill ghost cells for level set
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
 
     const int ls_solid_current_idx =
         var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getCurrentContext());
@@ -368,7 +356,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
                                                            /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                            /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                            d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var),
-                                                           Pointer<VariableFillPattern<NDIM> >(NULL));
+                                                           Pointer<VariableFillPattern<NDIM> >(nullptr));
     Pointer<HierarchyGhostCellInterpolation> hier_ls_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_ls_bdry_fill->initializeOperatorState(ls_solid_transaction, patch_hierarchy);
     hier_ls_bdry_fill->setHomogeneousBc(false);
@@ -385,7 +373,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
                                                     /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                     /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                     d_fluid_solver->getVelocityBoundaryConditions(),
-                                                    Pointer<VariableFillPattern<NDIM> >(NULL));
+                                                    Pointer<VariableFillPattern<NDIM> >(nullptr));
 
     Pointer<HierarchyGhostCellInterpolation> hier_vel_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_vel_bdry_fill->initializeOperatorState(u_transaction, patch_hierarchy);
@@ -395,14 +383,13 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
     // Fill in ghost cells for viscosity, when necessary
     if (!d_mu_is_const)
     {
-        INSVCStaggeredHierarchyIntegrator* p_vc_ins_hier_integrator =
-            dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
+        auto p_vc_ins_hier_integrator = dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
 #if !defined(NDEBUG)
         TBOX_ASSERT(p_vc_ins_hier_integrator);
 #endif
         Pointer<CellVariable<NDIM, double> > mu_adv_diff_var = p_vc_ins_hier_integrator->getTransportedViscosityVariable();
         Pointer<CellVariable<NDIM, double> > mu_ins_var = p_vc_ins_hier_integrator->getViscosityVariable();
-        RobinBcCoefStrategy<NDIM>* mu_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* mu_bc_coef = nullptr;
         int mu_current_idx = -1;
         if (mu_adv_diff_var)
         {
@@ -413,7 +400,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
         else if (mu_ins_var)
         {
             mu_current_idx = var_db->mapVariableAndContextToIndex(mu_ins_var, d_fluid_solver->getCurrentContext());
-            INSVCStaggeredHierarchyIntegrator* p_vc_ins_hier_integrator =
+            auto p_vc_ins_hier_integrator =
                 dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
             mu_bc_coef = p_vc_ins_hier_integrator->getViscosityBoundaryConditions();
         }
@@ -430,7 +417,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
                                                               /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                               /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                               mu_bc_coef,
-                                                              Pointer<VariableFillPattern<NDIM> >(NULL));
+                                                              Pointer<VariableFillPattern<NDIM> >(nullptr));
         Pointer<HierarchyGhostCellInterpolation> hier_mu_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_mu_bdry_fill->initializeOperatorState(mu_transaction_comp, patch_hierarchy);
         hier_mu_bdry_fill->setHomogeneousBc(false);
@@ -439,9 +426,8 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
         // Fill ghost cells for pressure
         Pointer<CellVariable<NDIM, double> > p_var = d_fluid_solver->getPressureVariable();
         const int p_current_idx = var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getCurrentContext());
-        INSStaggeredPressureBcCoef* p_ins_bc_coef =
-            dynamic_cast<INSStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
-        INSVCStaggeredPressureBcCoef* p_vc_ins_bc_coef =
+        auto p_ins_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
+        auto p_vc_ins_bc_coef =
             dynamic_cast<INSVCStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
         InterpolationTransactionComponent p_transaction_comp;
         if (p_ins_bc_coef)
@@ -455,7 +441,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
                                                                  /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                                  /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                                  p_ins_bc_coef,
-                                                                 Pointer<VariableFillPattern<NDIM> >(NULL));
+                                                                 Pointer<VariableFillPattern<NDIM> >(nullptr));
             Pointer<HierarchyGhostCellInterpolation> hier_p_bdry_fill = new HierarchyGhostCellInterpolation();
             hier_p_bdry_fill->initializeOperatorState(p_transaction_comp, patch_hierarchy);
             hier_p_bdry_fill->setHomogeneousBc(false);
@@ -472,7 +458,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
                                                                  /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                                  /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                                  p_vc_ins_bc_coef,
-                                                                 Pointer<VariableFillPattern<NDIM> >(NULL));
+                                                                 Pointer<VariableFillPattern<NDIM> >(nullptr));
 
             Pointer<HierarchyGhostCellInterpolation> hier_p_bdry_fill = new HierarchyGhostCellInterpolation();
             hier_p_bdry_fill->initializeOperatorState(p_transaction_comp, patch_hierarchy);

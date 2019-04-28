@@ -1,2 +1,3 @@
-A test program to check that the cell-centered Laplace operator
-discretization yields the expected order of accuracy.
+An example program showing the basics of generating a grid hierarchy and
+variables with SAMRAI and computes rates of convergence with a second difference
+formula.

@@ -43,6 +43,7 @@
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/LinearSolver.h"
+#include "ibtk/ibtk_utilities.h"
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscvec.h"
@@ -130,7 +131,7 @@ public:
     void setNullspace(
         bool contains_constant_vec,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs =
-            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >());
+            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >()) override;
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -169,7 +170,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -213,7 +214,7 @@ public:
      * \see deallocateSolverState
      */
     void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -228,7 +229,7 @@ public:
      *
      * \see initializeSolverState
      */
-    void deallocateSolverState();
+    void deallocateSolverState() override;
 
     //\}
 
@@ -295,7 +296,7 @@ protected:
     /*!
      * \brief Associated patch level and C-F boundary (for level numbers > 0).
      */
-    int d_level_num;
+    int d_level_num = IBTK::invalid_level_number;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_level;
     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 
@@ -303,12 +304,12 @@ protected:
      * \name PETSc objects.
      */
     //\{
-    std::string d_ksp_type, d_pc_type, d_shell_pc_type;
+    std::string d_ksp_type = KSPGMRES, d_pc_type = PCILU, d_shell_pc_type;
     std::string d_options_prefix;
-    KSP d_petsc_ksp;
-    Mat d_petsc_mat, d_petsc_pc;
+    KSP d_petsc_ksp = nullptr;
+    Mat d_petsc_mat = nullptr, d_petsc_pc = nullptr;
     MatNullSpace d_petsc_nullsp;
-    Vec d_petsc_x, d_petsc_b;
+    Vec d_petsc_x = nullptr, d_petsc_b = nullptr;
     //\}
 
     /*!
@@ -352,7 +353,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScLevelSolver& operator=(const PETScLevelSolver& that);
+    PETScLevelSolver& operator=(const PETScLevelSolver& that) = delete;
 
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.

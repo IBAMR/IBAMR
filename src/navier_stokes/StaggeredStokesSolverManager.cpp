@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <map>
 #include <ostream>
 #include <string>
@@ -79,7 +78,7 @@ const std::string StaggeredStokesSolverManager::LEVEL_RELAXATION_FAC_PRECONDITIO
 const std::string StaggeredStokesSolverManager::DEFAULT_LEVEL_SOLVER = "DEFAULT_LEVEL_SOLVER";
 const std::string StaggeredStokesSolverManager::PETSC_LEVEL_SOLVER = "PETSC_LEVEL_SOLVER";
 
-StaggeredStokesSolverManager* StaggeredStokesSolverManager::s_solver_manager_instance = NULL;
+StaggeredStokesSolverManager* StaggeredStokesSolverManager::s_solver_manager_instance = nullptr;
 bool StaggeredStokesSolverManager::s_registered_callback = false;
 unsigned char StaggeredStokesSolverManager::s_shutdown_priority = 200;
 
@@ -102,7 +101,7 @@ void
 StaggeredStokesSolverManager::freeManager()
 {
     delete s_solver_manager_instance;
-    s_solver_manager_instance = NULL;
+    s_solver_manager_instance = nullptr;
     return;
 } // freeManager
 
@@ -128,7 +127,7 @@ StaggeredStokesSolverManager::allocateSolver(const std::string& solver_type,
                                              Pointer<Database> solver_input_db,
                                              const std::string& solver_default_options_prefix) const
 {
-    std::map<std::string, SolverMaker>::const_iterator it = d_solver_maker_map.find(solver_type);
+    auto it = d_solver_maker_map.find(solver_type);
     if (it == d_solver_maker_map.end())
     {
         TBOX_ERROR("CCPoissonSolverManager::allocateSolver():\n"
@@ -185,7 +184,7 @@ StaggeredStokesSolverManager::registerSolverFactoryFunction(const std::string& s
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-StaggeredStokesSolverManager::StaggeredStokesSolverManager() : d_solver_maker_map()
+StaggeredStokesSolverManager::StaggeredStokesSolverManager()
 {
     registerSolverFactoryFunction(DEFAULT_KRYLOV_SOLVER, allocate_petsc_krylov_solver);
     registerSolverFactoryFunction(PETSC_KRYLOV_SOLVER, allocate_petsc_krylov_solver);
@@ -202,12 +201,6 @@ StaggeredStokesSolverManager::StaggeredStokesSolverManager() : d_solver_maker_ma
     registerSolverFactoryFunction(PETSC_LEVEL_SOLVER, StaggeredStokesPETScLevelSolver::allocate_solver);
     return;
 } // StaggeredStokesSolverManager
-
-StaggeredStokesSolverManager::~StaggeredStokesSolverManager()
-{
-    // intentionally blank
-    return;
-} // ~StaggeredStokesSolverManager
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -580,24 +580,27 @@ protected:
      * \param rot_mat Matrix to set.
      * \param dt Time interval of rotation.
      */
-    void setRotationMatrix(const std::vector<Eigen::Vector3d>& rot_vel,
-                           const std::vector<Eigen::Quaterniond>& q_old,
-                           std::vector<Eigen::Quaterniond>& q_new,
-                           std::vector<Eigen::Matrix3d>& rot_mat,
+    void setRotationMatrix(const IBTK::EigenAlignedVector<Eigen::Vector3d>& rot_vel,
+                           const IBTK::EigenAlignedVector<Eigen::Quaterniond>& q_old,
+                           IBTK::EigenAlignedVector<Eigen::Quaterniond>& q_new,
+                           IBTK::EigenAlignedVector<Eigen::Matrix3d>& rot_mat,
                            const double dt);
 
     // Number of rigid parts.
     unsigned int d_num_rigid_parts;
 
-    // Center of mass.
-    std::vector<Eigen::Vector3d> d_center_of_mass_initial, d_center_of_mass_current, d_center_of_mass_half,
+    /*!
+     * Center of mass.
+     */
+    IBTK::EigenAlignedVector<Eigen::Vector3d> d_center_of_mass_initial, d_center_of_mass_current, d_center_of_mass_half,
         d_center_of_mass_new;
 
     // User-defined (initial) center of mass.
     std::vector<bool> d_compute_center_of_mass_initial;
 
-    // Quaternion of the body.
-    std::vector<Eigen::Quaterniond> d_quaternion_current, d_quaternion_half, d_quaternion_new;
+    /*! Quaternion of the body.
+     */
+    IBTK::EigenAlignedVector<Eigen::Quaterniond> d_quaternion_current, d_quaternion_half, d_quaternion_new;
 
     // Whether to solve for rigid body velocity.
     std::vector<IBTK::FRDV> d_solve_rigid_vel;
@@ -609,9 +612,11 @@ protected:
     std::vector<std::pair<int, int> > d_free_dofs_map;
     bool d_free_dofs_map_updated;
 
-    // Rigid body velocity of the structures.
-    std::vector<Eigen::Vector3d> d_trans_vel_current, d_trans_vel_half, d_trans_vel_new;
-    std::vector<Eigen::Vector3d> d_rot_vel_current, d_rot_vel_half, d_rot_vel_new;
+    /*!
+     * Rigid body velocity of the structures.
+     */
+    IBTK::EigenAlignedVector<Eigen::Vector3d> d_trans_vel_current, d_trans_vel_half, d_trans_vel_new;
+    IBTK::EigenAlignedVector<Eigen::Vector3d> d_rot_vel_current, d_rot_vel_half, d_rot_vel_new;
 
     // Net rigid generalized force.
     std::vector<IBTK::RigidDOFVector> d_net_rigid_generalized_force;
@@ -625,7 +630,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CIBStrategy(const CIBStrategy& from);
+    CIBStrategy(const CIBStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -636,7 +641,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CIBStrategy& operator=(const CIBStrategy& that);
+    CIBStrategy& operator=(const CIBStrategy& that) = delete;
 
 }; // CIBStrategy
 

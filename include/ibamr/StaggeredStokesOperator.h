@@ -151,7 +151,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
@@ -184,7 +184,7 @@ public:
      * \param out output vector
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -196,17 +196,17 @@ public:
      *
      * \see initializeOperatorState
      */
-    void deallocateOperatorState();
+    void deallocateOperatorState() override;
 
     /*!
      * \brief Modify the RHS vector to account for physical boundary conditions.
      */
-    void modifyRhsForBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void modifyRhsForBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
     /*!
      * \brief Modify the solution vector to account for physical boundary conditions.
      */
-    void imposeSolBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u);
+    void imposeSolBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u) override;
 
     //\}
 
@@ -235,7 +235,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    StaggeredStokesOperator();
+    StaggeredStokesOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -244,7 +244,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesOperator(const StaggeredStokesOperator& from);
+    StaggeredStokesOperator(const StaggeredStokesOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -255,7 +255,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesOperator& operator=(const StaggeredStokesOperator& that);
+    StaggeredStokesOperator& operator=(const StaggeredStokesOperator& that) = delete;
 };
 } // namespace IBAMR
 

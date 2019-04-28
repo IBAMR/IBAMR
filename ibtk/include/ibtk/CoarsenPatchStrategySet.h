@@ -84,7 +84,7 @@ public:
      * operations.  This is needed to determine the correct coarsening data
      * dependencies.
      */
-    SAMRAI::hier::IntVector<NDIM> getCoarsenOpStencilWidth() const;
+    SAMRAI::hier::IntVector<NDIM> getCoarsenOpStencilWidth() const override;
 
     /*!
      * Perform user-defined coarsening operations.  This member function is
@@ -106,7 +106,7 @@ public:
     void preprocessCoarsen(SAMRAI::hier::Patch<NDIM>& coarse,
                            const SAMRAI::hier::Patch<NDIM>& fine,
                            const SAMRAI::hier::Box<NDIM>& coarse_box,
-                           const SAMRAI::hier::IntVector<NDIM>& ratio);
+                           const SAMRAI::hier::IntVector<NDIM>& ratio) override;
 
     /*!
      * Perform user-defined coarsening operations.  This member function is
@@ -126,7 +126,7 @@ public:
     void postprocessCoarsen(SAMRAI::hier::Patch<NDIM>& coarse,
                             const SAMRAI::hier::Patch<NDIM>& fine,
                             const SAMRAI::hier::Box<NDIM>& coarse_box,
-                            const SAMRAI::hier::IntVector<NDIM>& ratio);
+                            const SAMRAI::hier::IntVector<NDIM>& ratio) override;
 
 protected:
 private:
@@ -135,7 +135,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CoarsenPatchStrategySet();
+    CoarsenPatchStrategySet() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -144,7 +144,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CoarsenPatchStrategySet(const CoarsenPatchStrategySet& from);
+    CoarsenPatchStrategySet(const CoarsenPatchStrategySet& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -155,7 +155,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CoarsenPatchStrategySet& operator=(const CoarsenPatchStrategySet& that);
+    CoarsenPatchStrategySet& operator=(const CoarsenPatchStrategySet& that) = delete;
 
     /*!
      * \brief The set of SAMRAI::xfer:CoarsenPatchStrategy objects.

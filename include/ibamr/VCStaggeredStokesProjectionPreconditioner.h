@@ -67,7 +67,7 @@ namespace IBAMR
  * Finite-Volume Stokes Solvers</A>
  *
  *
- * 
+ *
  * \see INSStaggeredHierarchyIntegrator
  */
 class VCStaggeredStokesProjectionPreconditioner : public StaggeredStokesBlockPreconditioner
@@ -105,7 +105,7 @@ public:
     /*!
      * \brief Compute the action of the preconditioner.
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -125,7 +125,7 @@ public:
      * \note A default implementation is provided which does nothing.
      */
     void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -138,7 +138,7 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void deallocateSolverState();
+    void deallocateSolverState() override;
 
     //\}
 
@@ -150,12 +150,12 @@ public:
     /*!
      * \brief Set whether the initial guess is non-zero.
      */
-    void setInitialGuessNonzero(bool initial_guess_nonzero = true);
+    void setInitialGuessNonzero(bool initial_guess_nonzero = true) override;
 
     /*!
      * \brief Set the maximum number of iterations to use per solve.
      */
-    void setMaxIterations(int max_iterations);
+    void setMaxIterations(int max_iterations) override;
 
     /*!
      * \brief Set the cell centered quantity representing the viscous velocity coefficient
@@ -172,7 +172,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCStaggeredStokesProjectionPreconditioner();
+    VCStaggeredStokesProjectionPreconditioner() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -181,7 +181,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCStaggeredStokesProjectionPreconditioner(const VCStaggeredStokesProjectionPreconditioner& from);
+    VCStaggeredStokesProjectionPreconditioner(const VCStaggeredStokesProjectionPreconditioner& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -192,7 +192,7 @@ private:
      *
      * \return A reference to this object.
      */
-    VCStaggeredStokesProjectionPreconditioner& operator=(const VCStaggeredStokesProjectionPreconditioner& that);
+    VCStaggeredStokesProjectionPreconditioner& operator=(const VCStaggeredStokesProjectionPreconditioner& that) = delete;
 
     // Boundary condition objects.
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;

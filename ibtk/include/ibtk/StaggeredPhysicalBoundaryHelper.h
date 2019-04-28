@@ -87,12 +87,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    StaggeredPhysicalBoundaryHelper();
+    StaggeredPhysicalBoundaryHelper() = default;
 
     /*!
      * \brief Destructor.
      */
-    ~StaggeredPhysicalBoundaryHelper();
+    virtual ~StaggeredPhysicalBoundaryHelper() = default;
 
     /*!
      * \brief Copy data to u_data_out_idx from u_data_in_idx at Dirichlet
@@ -174,7 +174,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredPhysicalBoundaryHelper(const StaggeredPhysicalBoundaryHelper& from);
+    StaggeredPhysicalBoundaryHelper(const StaggeredPhysicalBoundaryHelper& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -185,7 +185,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredPhysicalBoundaryHelper& operator=(const StaggeredPhysicalBoundaryHelper& that);
+    StaggeredPhysicalBoundaryHelper& operator=(const StaggeredPhysicalBoundaryHelper& that) = delete;
 };
 } // namespace IBTK
 

@@ -9,7 +9,7 @@ What Is IBAMR?
 IBAMR is a distributed-memory parallel implementation of the immersed boundary (IB) method with support for Cartesian grid adaptive mesh refinement (AMR).  Support for distributed-memory parallelism is via [MPI](http://www.mcs.anl.gov/research/projects/mpi), the Message Passing Interface.
 
 Core IBAMR functionality relies upon several high-quality open-source libraries, including:
- * [SAMRAI](https://computation-rnd.llnl.gov/SAMRAI), the Structured Adaptive Mesh Refinement Application Infrastructure
+ * [SAMRAI](https://computation.llnl.gov/projects/samrai), the Structured Adaptive Mesh Refinement Application Infrastructure
  * [PETSc](http://www.mcs.anl.gov/petsc), the Portable, Extensible Toolkit for Scientific Computation
  * [libMesh](http://libmesh.sourceforge.net), a C++ finite element library
  * [*hypre*](http://computation.llnl.gov/casc/linear_solvers/sls_hypre.html), a library of high performance preconditioners that features parallel multigrid methods for both structured and unstructured grid problems.

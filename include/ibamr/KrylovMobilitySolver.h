@@ -80,17 +80,17 @@ public:
      * \brief Constructor for mobility solver that employs the
      * PETSc KSP solver framework.
      */
-    KrylovMobilitySolver(const std::string& object_name,
+    KrylovMobilitySolver(std::string object_name,
                          SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
                          SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                         const std::string& default_options_prefix,
+                         std::string default_options_prefix,
                          MPI_Comm petsc_comm = PETSC_COMM_WORLD);
 
     /*!
      * \brief Destructor.
      */
-    ~KrylovMobilitySolver();
+    virtual ~KrylovMobilitySolver();
 
     /*!
      * \brief Set the KSP type.
@@ -217,7 +217,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovMobilitySolver(const KrylovMobilitySolver& from);
+    KrylovMobilitySolver(const KrylovMobilitySolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -228,7 +228,7 @@ private:
      *
      * \return A reference to this object.
      */
-    KrylovMobilitySolver& operator=(const KrylovMobilitySolver& that);
+    KrylovMobilitySolver& operator=(const KrylovMobilitySolver& that) = delete;
 
     /*!
      * \brief Get solver settings from the input file.
@@ -296,14 +296,14 @@ private:
     //\}
 
     // Solver stuff
-    std::string d_object_name, d_ksp_type, d_pc_type;
-    bool d_is_initialized;
-    bool d_reinitializing_solver;
-    Vec d_petsc_x, d_petsc_b;
+    std::string d_object_name, d_ksp_type = KSPGMRES, d_pc_type = "none";
+    bool d_is_initialized = false;
+    bool d_reinitializing_solver = false;
+    Vec d_petsc_x = nullptr, d_petsc_b = nullptr;
     std::string d_options_prefix;
     MPI_Comm d_petsc_comm;
-    KSP d_petsc_ksp;
-    Mat d_petsc_mat;
+    KSP d_petsc_ksp = nullptr;
+    Mat d_petsc_mat = nullptr;
 
     // Linear operator.
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > > d_samrai_temp;
@@ -313,11 +313,11 @@ private:
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velocity_solver, d_pressure_solver;
 
     // KSP options and settings.
-    int d_max_iterations, d_current_iterations;
-    double d_abs_residual_tol, d_rel_residual_tol;
+    int d_max_iterations = 10000, d_current_iterations;
+    double d_abs_residual_tol = 1.0e-50, d_rel_residual_tol = 1.0e-5;
     double d_current_residual_norm;
-    bool d_initial_guess_nonzero;
-    bool d_enable_logging;
+    bool d_initial_guess_nonzero = false;
+    bool d_enable_logging = false;
 
     // Velocity BCs and cached communication operators for interpolation operation.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
@@ -334,7 +334,7 @@ private:
      * This boolean value determines whether the pressure is normalized to have
      * zero mean (i.e., discrete integral) at the end of each timestep.
      */
-    bool d_normalize_pressure;
+    bool d_normalize_pressure = false;
 
     /*!
      * This boolean value determines whether the velocity is normalized to have
@@ -343,13 +343,14 @@ private:
      * This parameter only affects the case in which rho=0 (i.e. the steady
      * Stokes equations).
      */
-    bool d_normalize_velocity;
+    bool d_normalize_velocity = false;
 
     // The current and new time.
-    double d_current_time, d_new_time;
+    double d_current_time = std::numeric_limits<double>::signaling_NaN(),
+           d_new_time = std::numeric_limits<double>::signaling_NaN();
 
     // Scaling parameters and force normalization of the problem.
-    double d_scale_interp, d_scale_spread, d_reg_mob_factor, d_normalize_spread_force;
+    double d_scale_interp = 1.0, d_scale_spread = 1.0, d_reg_mob_factor = 0.0, d_normalize_spread_force;
 };
 } // namespace IBAMR
 

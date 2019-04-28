@@ -60,7 +60,7 @@ public:
      * \brief Constructor for class VCSCViscousOperator initializes the operator
      * coefficients and boundary conditions to default values.
      */
-    VCSCViscousOperator(const std::string& object_name, bool homogeneous_bc = true);
+    VCSCViscousOperator(std::string object_name, bool homogeneous_bc = true);
 
     /*!
      * \brief Destructor.
@@ -98,7 +98,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
     /*!
      * \brief Compute hierarchy-dependent data required for computing y=Ax (and
@@ -110,7 +110,7 @@ public:
      * \see KrylovLinearSolver::initializeSolverState
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
 
     /*!
      * \brief Remove all hierarchy-dependent data computed by
@@ -123,7 +123,7 @@ public:
      * \see initializeOperatorState
      * \see KrylovLinearSolver::deallocateSolverState
      */
-    void deallocateOperatorState();
+    void deallocateOperatorState() override;
 
     //\}
 
@@ -139,7 +139,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCSCViscousOperator();
+    VCSCViscousOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -148,7 +148,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCSCViscousOperator(const VCSCViscousOperator& from);
+    VCSCViscousOperator(const VCSCViscousOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -159,7 +159,7 @@ private:
      *
      * \return A reference to this object.
      */
-    VCSCViscousOperator& operator=(const VCSCViscousOperator& that);
+    VCSCViscousOperator& operator=(const VCSCViscousOperator& that) = delete;
 
     /*
      * The interpolation type to be used in computing the variable coefficient viscous Laplacian.

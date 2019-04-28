@@ -61,18 +61,6 @@ static const std::string PATTERN_NAME = "SIDE_SYNCH_COPY_FILL_PATTERN";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-SideSynchCopyFillPattern::SideSynchCopyFillPattern() : d_stencil_width(1)
-{
-    // intentionally blank
-    return;
-} // SideSynchCopyFillPattern
-
-SideSynchCopyFillPattern::~SideSynchCopyFillPattern()
-{
-    // intentionally blank
-    return;
-} // SideSynchCopyFillPattern
-
 Pointer<BoxOverlap<NDIM> >
 SideSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
                                            const BoxGeometry<NDIM>& src_geometry,
@@ -88,7 +76,7 @@ SideSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry
 #endif
     if (box_geom_overlap->isOverlapEmpty()) return box_geom_overlap;
 
-    const SideGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
+    auto const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
 #if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
 #endif

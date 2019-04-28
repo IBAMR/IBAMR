@@ -80,7 +80,7 @@ public:
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    IBExplicitHierarchyIntegrator(const std::string& object_name,
+    IBExplicitHierarchyIntegrator(std::string object_name,
                                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                   SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops,
                                   SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
@@ -91,18 +91,18 @@ public:
      * integrator object with the restart manager when the object is so
      * registered.
      */
-    ~IBExplicitHierarchyIntegrator();
+    ~IBExplicitHierarchyIntegrator() = default;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
      */
-    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
 
     /*!
      * Synchronously advance each level in the hierarchy over the given time
      * increment.
      */
-    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0);
+    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0) override;
 
     /*!
      * Clean up data following call(s) to integrateHierarchy().
@@ -110,7 +110,7 @@ public:
     void postprocessIntegrateHierarchy(double current_time,
                                        double new_time,
                                        bool skip_synchronize_new_state_data,
-                                       int num_cycles = 1);
+                                       int num_cycles = 1) override;
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -122,13 +122,13 @@ public:
      * to calling initializePatchHierarchy().
      */
     void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
 protected:
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 private:
     /*!
@@ -136,7 +136,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBExplicitHierarchyIntegrator();
+    IBExplicitHierarchyIntegrator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -145,7 +145,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBExplicitHierarchyIntegrator(const IBExplicitHierarchyIntegrator& from);
+    IBExplicitHierarchyIntegrator(const IBExplicitHierarchyIntegrator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -156,7 +156,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBExplicitHierarchyIntegrator& operator=(const IBExplicitHierarchyIntegrator& that);
+    IBExplicitHierarchyIntegrator& operator=(const IBExplicitHierarchyIntegrator& that) = delete;
 
     /*!
      * Read object state from the restart file and initialize class data

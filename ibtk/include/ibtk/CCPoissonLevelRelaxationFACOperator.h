@@ -41,6 +41,7 @@
 
 #include "IntVector.h"
 #include "PoissonSpecifications.h"
+#include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/PoissonFACPreconditioner.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "petscksp.h"
@@ -154,12 +155,12 @@ public:
     /*!
      * \brief Specify the level solver type.
      */
-    void setSmootherType(const std::string& level_solver_type);
+    void setSmootherType(const std::string& level_solver_type) override;
 
     /*!
      * \brief Specify the coarse level solver.
      */
-    void setCoarseSolverType(const std::string& coarse_solver_type);
+    void setCoarseSolverType(const std::string& coarse_solver_type) override;
 
     //\}
 
@@ -183,7 +184,7 @@ public:
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
-                     bool performing_post_sweeps);
+                     bool performing_post_sweeps) override;
 
     /*!
      * \brief Solve the residual equation Ae=r on the coarsest level of the
@@ -195,7 +196,7 @@ public:
      */
     bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                            int coarsest_ln);
+                            int coarsest_ln) override;
 
     /*!
      * \brief Compute composite grid residual on a range of levels.
@@ -210,7 +211,7 @@ public:
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
                          int coarsest_level_num,
-                         int finest_level_num);
+                         int finest_level_num) override;
 
     //\}
 
@@ -221,12 +222,12 @@ protected:
     void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
                                             int coarsest_reset_ln,
-                                            int finest_reset_ln);
+                                            int finest_reset_ln) override;
 
     /*!
      * \brief Remove implementation-specific hierarchy-dependent data.
      */
-    void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln);
+    void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) override;
 
 private:
     /*!
@@ -234,7 +235,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CCPoissonLevelRelaxationFACOperator();
+    CCPoissonLevelRelaxationFACOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -243,7 +244,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CCPoissonLevelRelaxationFACOperator(const CCPoissonLevelRelaxationFACOperator& from);
+    CCPoissonLevelRelaxationFACOperator(const CCPoissonLevelRelaxationFACOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -254,14 +255,14 @@ private:
      *
      * \return A reference to this object.
      */
-    CCPoissonLevelRelaxationFACOperator& operator=(const CCPoissonLevelRelaxationFACOperator& that);
+    CCPoissonLevelRelaxationFACOperator& operator=(const CCPoissonLevelRelaxationFACOperator& that) = delete;
 
     /*
      * Level solvers and solver parameters.
      */
-    std::string d_level_solver_type, d_level_solver_default_options_prefix;
-    double d_level_solver_abs_residual_tol, d_level_solver_rel_residual_tol;
-    int d_level_solver_max_iterations;
+    std::string d_level_solver_type = CCPoissonSolverManager::PETSC_LEVEL_SOLVER, d_level_solver_default_options_prefix;
+    double d_level_solver_abs_residual_tol = 1.0e-50, d_level_solver_rel_residual_tol = 1.0e-5;
+    int d_level_solver_max_iterations = 1;
     std::vector<SAMRAI::tbox::Pointer<PoissonSolver> > d_level_solvers;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
 

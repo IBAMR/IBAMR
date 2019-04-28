@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <map>
 #include <ostream>
 #include <string>
@@ -58,7 +57,7 @@ const std::string KrylovLinearSolverManager::UNDEFINED = "UNDEFINED";
 const std::string KrylovLinearSolverManager::DEFAULT = "DEFAULT";
 const std::string KrylovLinearSolverManager::PETSC = "PETSC";
 
-KrylovLinearSolverManager* KrylovLinearSolverManager::s_solver_manager_instance = NULL;
+KrylovLinearSolverManager* KrylovLinearSolverManager::s_solver_manager_instance = nullptr;
 bool KrylovLinearSolverManager::s_registered_callback = false;
 unsigned char KrylovLinearSolverManager::s_shutdown_priority = 200;
 
@@ -81,7 +80,7 @@ void
 KrylovLinearSolverManager::freeManager()
 {
     delete s_solver_manager_instance;
-    s_solver_manager_instance = NULL;
+    s_solver_manager_instance = nullptr;
     return;
 } // freeManager
 
@@ -93,7 +92,7 @@ KrylovLinearSolverManager::allocateSolver(const std::string& solver_type,
                                           Pointer<Database> solver_input_db,
                                           const std::string& solver_default_options_prefix) const
 {
-    std::map<std::string, SolverMaker>::const_iterator it = d_solver_maker_map.find(solver_type);
+    auto it = d_solver_maker_map.find(solver_type);
     if (it == d_solver_maker_map.end())
     {
         TBOX_ERROR("KrylovLinearSolverManager::allocateSolver():\n"
@@ -124,12 +123,6 @@ KrylovLinearSolverManager::KrylovLinearSolverManager() : d_solver_maker_map()
     registerSolverFactoryFunction(PETSC, PETScKrylovLinearSolver::allocate_solver);
     return;
 } // KrylovLinearSolverManager
-
-KrylovLinearSolverManager::~KrylovLinearSolverManager()
-{
-    // intentionally blank
-    return;
-} // ~KrylovLinearSolverManager
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

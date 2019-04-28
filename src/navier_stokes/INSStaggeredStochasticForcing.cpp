@@ -32,11 +32,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stddef.h>
+#include <cmath>
 #include <limits>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "ArrayData.h"
@@ -180,31 +180,12 @@ genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& object_name,
+INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(std::string object_name,
                                                              Pointer<Database> input_db,
                                                              const INSStaggeredHierarchyIntegrator* const fluid_solver)
-    : d_object_name(object_name),
+    : d_object_name(std::move(object_name)),
       d_fluid_solver(fluid_solver),
-      d_stress_tensor_type(UNCORRELATED),
-      d_std(std::numeric_limits<double>::quiet_NaN()),
-      d_num_rand_vals(0),
-      d_weights(),
-      d_velocity_bc_scaling(NDIM == 2 ? 2.0 : 5.0 / 3.0),
-      d_traction_bc_scaling(0.0),
-      d_context(NULL),
-      d_W_cc_var(NULL),
-      d_W_cc_idx(-1),
-      d_W_cc_idxs(),
-#if (NDIM == 2)
-      d_W_nc_var(NULL),
-      d_W_nc_idx(-1),
-      d_W_nc_idxs()
-#endif
-#if (NDIM == 3)
-          d_W_ec_var(NULL),
-      d_W_ec_idx(-1),
-      d_W_ec_idxs()
-#endif
+      d_velocity_bc_scaling(NDIM == 2 ? 2.0 : 5.0 / 3.0)
 {
     if (input_db)
     {
@@ -222,9 +203,7 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& 
             TBOX_ASSERT(d_weights.back().size() == d_num_rand_vals);
 #endif
             ++k;
-            std::ostringstream stream;
-            stream << "weights_" << k;
-            key_name = stream.str();
+            key_name = "weights_" + std::to_string(k);
         }
         if (input_db->keyExists("velocity_bc_scaling"))
             d_velocity_bc_scaling = input_db->getDouble("velocity_bc_scaling");
@@ -256,12 +235,6 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& 
 #endif
     return;
 } // INSStaggeredStochasticForcing
-
-INSStaggeredStochasticForcing::~INSStaggeredStochasticForcing()
-{
-    // intentionally blank
-    return;
-} // ~INSStaggeredStochasticForcing
 
 bool
 INSStaggeredStochasticForcing::isTimeDependent() const
@@ -395,8 +368,8 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     {
                         const NodeIndex<NDIM> i_n(it(), 0);
                         double avg = 0.5 * ((*W_nc_data)(i_n, 0) + (*W_nc_data)(i_n, 1));
-                        (*W_nc_data)(i_n, 0) = sqrt(2.0) * avg;
-                        (*W_nc_data)(i_n, 1) = sqrt(2.0) * avg;
+                        (*W_nc_data)(i_n, 0) = std::sqrt(2.0) * avg;
+                        (*W_nc_data)(i_n, 1) = std::sqrt(2.0) * avg;
                     }
 #endif
 #if (NDIM == 3)
@@ -406,8 +379,8 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         {
                             const EdgeIndex<NDIM> i_e(it(), axis, 0);
                             double avg = 0.5 * ((*W_ec_data)(i_e, 0) + (*W_ec_data)(i_e, 1));
-                            (*W_ec_data)(i_e, 0) = sqrt(2.0) * avg;
-                            (*W_ec_data)(i_e, 1) = sqrt(2.0) * avg;
+                            (*W_ec_data)(i_e, 0) = std::sqrt(2.0) * avg;
+                            (*W_ec_data)(i_e, 1) = std::sqrt(2.0) * avg;
                         }
                     }
 #endif
@@ -420,7 +393,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                             const Index<NDIM>& i = it();
                             for (int d = 0; d < NDIM; ++d)
                             {
-                                (*W_cc_data)(i, d) *= sqrt(2.0);
+                                (*W_cc_data)(i, d) *= std::sqrt(2.0);
                             }
                         }
                     }
@@ -438,7 +411,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                             }
                             for (int d = 0; d < NDIM; ++d)
                             {
-                                (*W_cc_data)(i, d) = sqrt(2.0) * ((*W_cc_data)(i, d) - trace / double(NDIM));
+                                (*W_cc_data)(i, d) = std::sqrt(2.0) * ((*W_cc_data)(i, d) - trace / static_cast<double>(NDIM));
                             }
                         }
                     }
@@ -621,7 +594,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 
 #if (NDIM == 2)
         // Synchronize node-centered values.
-        typedef NodeDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+        using SynchronizationTransactionComponent = NodeDataSynchronization::SynchronizationTransactionComponent;
         SynchronizationTransactionComponent synch_component(d_W_nc_idx);
         NodeDataSynchronization synch_data_op;
         synch_data_op.initializeOperatorState(synch_component, hierarchy);
@@ -629,7 +602,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
 #if (NDIM == 3)
         // Synchronize edge-centered values.
-        typedef EdgeDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+        using SynchronizationTransactionComponent = EdgeDataSynchronization::SynchronizationTransactionComponent;
         SynchronizationTransactionComponent synch_component(d_W_ec_idx);
         EdgeDataSynchronization synch_data_op;
         synch_data_op.initializeOperatorState(synch_component, hierarchy);
@@ -637,14 +610,14 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
 
         // Communicate ghost-cell data.
-        LocationIndexRobinBcCoefs<NDIM> bc_coef(d_object_name + "::bc_coef", Pointer<Database>(NULL));
+        LocationIndexRobinBcCoefs<NDIM> bc_coef(d_object_name + "::bc_coef", Pointer<Database>(nullptr));
         for (int d = 0; d < NDIM; ++d)
         {
             bc_coef.setBoundarySlope(2 * d, 0.0);
             bc_coef.setBoundarySlope(2 * d + 1, 0.0);
         }
         std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, &bc_coef);
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_fill_components(1);
         ghost_fill_components[0] =
             InterpolationTransactionComponent(d_W_cc_idx, "NONE", false, "NONE", "NONE", false, bc_coefs);
@@ -681,7 +654,7 @@ INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
     const double mu = d_fluid_solver->getStokesSpecifications()->getMu();
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     // NOTE: We are solving the momentum equation, not the velocity equation.
-    const double scale = d_std * sqrt(2.0 * mu / (dt * dV));
+    const double scale = d_std * std::sqrt(2.0 * mu / (dt * dV));
     Pointer<CellData<NDIM, double> > W_cc_data = patch->getPatchData(d_W_cc_idx);
     const IntVector<NDIM> W_cc_ghosts = W_cc_data->getGhostCellWidth();
 #if (NDIM == 2)

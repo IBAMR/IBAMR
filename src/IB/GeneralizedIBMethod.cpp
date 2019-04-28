@@ -32,8 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stddef.h>
+#include <cmath>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -96,10 +95,8 @@ static const int GENERALIZED_IB_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-GeneralizedIBMethod::GeneralizedIBMethod(const std::string& object_name,
-                                         Pointer<Database> input_db,
-                                         bool register_for_restart)
-    : IBMethod(object_name, input_db, register_for_restart)
+GeneralizedIBMethod::GeneralizedIBMethod(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
+    : IBMethod(std::move(object_name), input_db, register_for_restart)
 {
     // NOTE: Parent class constructor registers class with the restart manager, sets object
     // name.
@@ -109,21 +106,8 @@ GeneralizedIBMethod::GeneralizedIBMethod(const std::string& object_name,
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
 
-    // Indicate all Lagrangian data needs ghost values to be refilled, and that
-    // all intermediate data needs to be initialized.
-    d_N_current_needs_ghost_fill = true;
-    d_N_new_needs_ghost_fill = true;
     return;
 } // GeneralizedIBMethod
-
-GeneralizedIBMethod::~GeneralizedIBMethod()
-{
-    // intentionally blank
-    //
-    // NOTE: Parent class constructor unregisters class with the restart
-    // manager.
-    return;
-} // ~GeneralizedIBMethod
 
 void
 GeneralizedIBMethod::registerIBKirchhoffRodForceGen(Pointer<IBKirchhoffRodForceGen> ib_force_and_torque_fcn)
@@ -181,12 +165,12 @@ GeneralizedIBMethod::registerEulerianCommunicationAlgorithms()
     Pointer<RefineOperator<NDIM> > refine_op;
 
     refine_alg = new RefineAlgorithm<NDIM>();
-    refine_op = NULL;
+    refine_op = nullptr;
     refine_alg->registerRefine(d_w_idx, d_w_idx, d_w_idx, refine_op);
     registerGhostfillRefineAlgorithm(d_object_name + "::w", refine_alg);
 
     refine_alg = new RefineAlgorithm<NDIM>();
-    refine_op = NULL;
+    refine_op = nullptr;
     refine_alg->registerRefine(d_n_idx, d_n_idx, d_n_idx, refine_op);
     registerGhostfillRefineAlgorithm(d_object_name + "::n", refine_alg);
     return;
@@ -279,7 +263,7 @@ GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
     IBMethod::interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);
 
     // Interpolate the angular velocities.
-    std::vector<Pointer<LData> >* W_data = NULL;
+    std::vector<Pointer<LData> >* W_data = nullptr;
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         W_data = &d_W_current_data;
@@ -302,12 +286,12 @@ GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
     if (u_cc_var)
     {
         Pointer<CellVariable<NDIM, double> > w_cc_var = d_w_var;
-        getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, NULL, data_time);
+        getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, nullptr, data_time);
     }
     else if (u_sc_var)
     {
         Pointer<SideVariable<NDIM, double> > w_sc_var = d_w_var;
-        getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, NULL, data_time);
+        getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, nullptr, data_time);
     }
     else
     {
@@ -361,8 +345,8 @@ GeneralizedIBMethod::forwardEulerStep(const double current_time, const double ne
             {
                 const double theta = norm_e * dt;
                 e /= norm_e;
-                const double c_t = cos(theta);
-                const double s_t = sin(theta);
+                const double c_t = std::cos(theta);
+                const double s_t = std::sin(theta);
                 R << c_t + (1.0 - c_t) * e(0) * e(0), (1.0 - c_t) * e(0) * e(1) - s_t * e(2),
                     (1.0 - c_t) * e(0) * e(2) + s_t * e(1), (1.0 - c_t) * e(1) * e(0) + s_t * e(2),
                     c_t + (1.0 - c_t) * e(1) * e(1), (1.0 - c_t) * e(1) * e(2) - s_t * e(0),
@@ -429,8 +413,8 @@ GeneralizedIBMethod::trapezoidalStep(const double current_time, const double new
             {
                 const double theta = norm_e * dt;
                 e /= norm_e;
-                const double c_t = cos(theta);
-                const double s_t = sin(theta);
+                const double c_t = std::cos(theta);
+                const double s_t = std::sin(theta);
                 R << c_t + (1.0 - c_t) * e(0) * e(0), (1.0 - c_t) * e(0) * e(1) - s_t * e(2),
                     (1.0 - c_t) * e(0) * e(2) + s_t * e(1), (1.0 - c_t) * e(1) * e(0) + s_t * e(2),
                     c_t + (1.0 - c_t) * e(1) * e(1), (1.0 - c_t) * e(1) * e(2) - s_t * e(0),
@@ -465,10 +449,10 @@ GeneralizedIBMethod::computeLagrangianForce(const double data_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     int ierr;
-    std::vector<Pointer<LData> >* F_data = NULL;
-    std::vector<Pointer<LData> >* N_data = NULL;
-    std::vector<Pointer<LData> >* X_data = NULL;
-    std::vector<Pointer<LData> >* D_data = NULL;
+    std::vector<Pointer<LData> >* F_data = nullptr;
+    std::vector<Pointer<LData> >* N_data = nullptr;
+    std::vector<Pointer<LData> >* X_data = nullptr;
+    std::vector<Pointer<LData> >* D_data = nullptr;
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         d_F_current_needs_ghost_fill = true;
@@ -524,8 +508,8 @@ GeneralizedIBMethod::spreadForce(const int f_data_idx,
 {
     IBMethod::spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
 
-    std::vector<Pointer<LData> >* N_data = NULL;
-    bool* N_needs_ghost_fill = NULL;
+    std::vector<Pointer<LData> >* N_data = nullptr;
+    bool* N_needs_ghost_fill = nullptr;
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         N_data = &d_N_current_data;
@@ -574,13 +558,13 @@ GeneralizedIBMethod::spreadForce(const int f_data_idx,
     {
         Pointer<CellVariable<NDIM, double> > f_cc_var = d_f_var;
         Pointer<CellVariable<NDIM, double> > n_cc_var = d_n_var;
-        getHierarchyMathOps()->curl(d_f_idx, f_cc_var, d_n_idx, n_cc_var, NULL, data_time);
+        getHierarchyMathOps()->curl(d_f_idx, f_cc_var, d_n_idx, n_cc_var, nullptr, data_time);
     }
     else if (u_sc_var)
     {
         Pointer<SideVariable<NDIM, double> > f_sc_var = d_f_var;
         Pointer<SideVariable<NDIM, double> > n_sc_var = d_n_var;
-        getHierarchyMathOps()->curl(d_f_idx, f_sc_var, d_n_idx, n_sc_var, NULL, data_time);
+        getHierarchyMathOps()->curl(d_f_idx, f_sc_var, d_n_idx, n_sc_var, nullptr, data_time);
     }
     else
     {
@@ -635,12 +619,12 @@ GeneralizedIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hie
         if (u_cc_var)
         {
             Pointer<CellVariable<NDIM, double> > w_cc_var = d_w_var;
-            getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, NULL, init_data_time);
+            getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, nullptr, init_data_time);
         }
         else if (u_sc_var)
         {
             Pointer<SideVariable<NDIM, double> > w_sc_var = d_w_var;
-            getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, NULL, init_data_time);
+            getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, nullptr, init_data_time);
         }
         else
         {

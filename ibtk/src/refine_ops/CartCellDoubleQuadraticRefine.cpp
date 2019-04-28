@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <array>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -44,7 +45,6 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
-#include "boost/array.hpp"
 #include "ibtk/CartCellDoubleQuadraticRefine.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
@@ -92,18 +92,6 @@ coarsen(const Index<NDIM>& index, const IntVector<NDIM>& ratio)
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-
-CartCellDoubleQuadraticRefine::CartCellDoubleQuadraticRefine()
-{
-    // intentionally blank
-    return;
-} // CartCellDoubleQuadraticRefine
-
-CartCellDoubleQuadraticRefine::~CartCellDoubleQuadraticRefine()
-{
-    // intentionally blank
-    return;
-} // ~CartCellDoubleQuadraticRefine
 
 bool
 CartCellDoubleQuadraticRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
@@ -173,9 +161,9 @@ CartCellDoubleQuadraticRefine::refine(Patch<NDIM>& fine,
 
         // Determine the interpolation weights.
         static const int degree = 2;
-        boost::array<boost::array<double, degree + 1>, NDIM> wgts(
-            array_constant<boost::array<double, degree + 1>, NDIM>(
-                boost::array<double, degree + 1>(array_constant<double, degree + 1>(0.0))));
+        std::array<std::array<double, degree + 1>, NDIM> wgts(
+            array_constant<std::array<double, degree + 1>, NDIM>(
+                std::array<double, degree + 1>(array_constant<double, degree + 1>(0.0))));
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             const double X =

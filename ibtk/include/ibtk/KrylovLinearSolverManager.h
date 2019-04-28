@@ -93,10 +93,10 @@ public:
     /*!
      * Typedef for functions to construct KrylovLinearSolvers.
      */
-    typedef SAMRAI::tbox::Pointer<KrylovLinearSolver> (*SolverMaker)(
-        const std::string& solver_object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
-        const std::string& solver_default_options_prefix);
+    using SolverMaker =
+        SAMRAI::tbox::Pointer<KrylovLinearSolver> (*)(const std::string& solver_object_name,
+                                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
+                                                      const std::string& solver_default_options_prefix);
 
     /*!
      * Register a solver factory function with the solver manager class.
@@ -112,7 +112,7 @@ protected:
     /*!
      * \brief Destructor.
      */
-    ~KrylovLinearSolverManager();
+    ~KrylovLinearSolverManager() = default;
 
 private:
     /*!
@@ -122,7 +122,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovLinearSolverManager(const KrylovLinearSolverManager& from);
+    KrylovLinearSolverManager(const KrylovLinearSolverManager& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -133,7 +133,7 @@ private:
      *
      * \return A reference to this object.
      */
-    KrylovLinearSolverManager& operator=(const KrylovLinearSolverManager& that);
+    KrylovLinearSolverManager& operator=(const KrylovLinearSolverManager& that) = delete;
 
     /*!
      * Static data members used to control access to and destruction of

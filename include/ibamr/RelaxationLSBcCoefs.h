@@ -79,12 +79,12 @@ public:
     /*!
      * \brief Constructor
      */
-    RelaxationLSBcCoefs(const std::string& name);
+    RelaxationLSBcCoefs(std::string name);
 
     /*!
      * \brief Destructor.
      */
-    virtual ~RelaxationLSBcCoefs();
+    virtual ~RelaxationLSBcCoefs() = default;
 
     /*!
      * \brief Set the level set field to extract boundary condition value.
@@ -135,7 +135,7 @@ public:
                     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
                     const SAMRAI::hier::Patch<NDIM>& patch,
                     const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-                    double fill_time = 0.0) const;
+                    double fill_time = 0.0) const override;
 
     /*
      * \brief Return how many cells past the edge or corner of the patch the
@@ -152,7 +152,7 @@ public:
      * The boundary box that setBcCoefs() is required to fill should not extend
      * past the limits returned by this function.
      */
-    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const;
+    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const override;
 
     //\}
 
@@ -164,7 +164,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    RelaxationLSBcCoefs(const RelaxationLSBcCoefs& from);
+    RelaxationLSBcCoefs(const RelaxationLSBcCoefs& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -175,10 +175,10 @@ private:
      *
      * \return A reference to this object.
      */
-    RelaxationLSBcCoefs& operator=(const RelaxationLSBcCoefs& that);
+    RelaxationLSBcCoefs& operator=(const RelaxationLSBcCoefs& that) = delete;
 
     const std::string d_object_name;
-    int d_phi_idx;
+    int d_phi_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR
 

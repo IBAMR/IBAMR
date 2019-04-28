@@ -60,17 +60,6 @@ CIBStaggeredStokesSolver::CIBStaggeredStokesSolver(const std::string& object_nam
 {
     GeneralSolver::init(object_name, /*homogeneous bcs*/ false);
 
-    d_sp_solver = NULL;
-    d_wide_u_var = NULL;
-    d_wide_f_var = NULL;
-    d_wide_ctx = NULL;
-    d_wide_u_idx = -1;
-    d_wide_f_idx = -1;
-    d_x_wide = NULL;
-    d_b_wide = NULL;
-    d_is_initialized = false;
-    d_reinitializing_solver = false;
-
     // Create the saddle-point solver for solving constraint problem.
     d_sp_solver = new CIBSaddlePointSolver(
         object_name, input_db, navier_stokes_integrator, d_cib_strategy, default_options_prefix);
@@ -195,8 +184,8 @@ CIBStaggeredStokesSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, dou
     vb[0] = g_h;
     vb[1] = V;
     vb[2] = F;
-    VecCreateNest(PETSC_COMM_WORLD, 3, NULL, &vx[0], &mv_x);
-    VecCreateNest(PETSC_COMM_WORLD, 3, NULL, &vb[0], &mv_b);
+    VecCreateNest(PETSC_COMM_WORLD, 3, nullptr, &vx[0], &mv_x);
+    VecCreateNest(PETSC_COMM_WORLD, 3, nullptr, &vb[0], &mv_b);
 
     // Initialize the saddle-point solver.
     d_sp_solver->initializeSolverState(mv_x, mv_b);
@@ -299,8 +288,8 @@ CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIV
     vb[2] = F;
 
     Vec mv_x, mv_b;
-    VecCreateNest(PETSC_COMM_WORLD, 3, NULL, &vx[0], &mv_x);
-    VecCreateNest(PETSC_COMM_WORLD, 3, NULL, &vb[0], &mv_b);
+    VecCreateNest(PETSC_COMM_WORLD, 3, nullptr, &vx[0], &mv_x);
+    VecCreateNest(PETSC_COMM_WORLD, 3, nullptr, &vb[0], &mv_b);
 
     // Solve for velocity, pressure and Lagrange multipliers.
     // Notice that initial guess for U is provided by the implementation of the
@@ -324,7 +313,7 @@ CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIV
          << "Interpolating velocity on structure at time  " << half_time << "....\n" << std::endl;
 
     RefineAlgorithm<NDIM> ghost_fill_alg;
-    ghost_fill_alg.registerRefine(d_wide_u_idx, d_wide_u_idx, d_wide_u_idx, NULL);
+    ghost_fill_alg.registerRefine(d_wide_u_idx, d_wide_u_idx, d_wide_u_idx, nullptr);
     Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
     Pointer<RefineSchedule<NDIM> > ghost_fill_schd = ghost_fill_alg.createSchedule(hierarchy->getPatchLevel(0));
     ghost_fill_schd->fillData(half_time);
@@ -340,7 +329,7 @@ CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIV
     ib_method_ops->setComputeVelL2Projection(cached_compute_L2_projection);
     d_cib_strategy->getInterpolatedVelocity(V, half_time);
     Vec* vV;
-    VecNestGetSubVecs(V, NULL, &vV);
+    VecNestGetSubVecs(V, nullptr, &vV);
     VecView(vV[0], PETSC_VIEWER_STDOUT_WORLD);
 #endif
 

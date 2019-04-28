@@ -120,16 +120,16 @@ public:
     /*!
      * \brief Print class data to stream.
      */
-    virtual void printClassData(std::ostream& stream);
+    virtual void printClassData(std::ostream& stream) override;
 
     //\}
 
 protected:
     // Solver parameters.
-    bool d_initial_guess_nonzero;
+    bool d_initial_guess_nonzero = true;
 
     // Nullspace data.
-    bool d_nullspace_contains_constant_vec;
+    bool d_nullspace_contains_constant_vec = false;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_nullspace_basis_vecs;
 
 private:
@@ -140,7 +140,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LinearSolver(const LinearSolver& from);
+    LinearSolver(const LinearSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -151,7 +151,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LinearSolver& operator=(const LinearSolver& that);
+    LinearSolver& operator=(const LinearSolver& that) = delete;
 };
 } // namespace IBTK
 

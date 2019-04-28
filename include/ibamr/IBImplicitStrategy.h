@@ -75,12 +75,12 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBImplicitStrategy();
+    IBImplicitStrategy() = default;
 
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~IBImplicitStrategy();
+    virtual ~IBImplicitStrategy() = default;
 
     /*!
      * Create solution and rhs data.
@@ -165,7 +165,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBImplicitStrategy(const IBImplicitStrategy& from);
+    IBImplicitStrategy(const IBImplicitStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -176,7 +176,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBImplicitStrategy& operator=(const IBImplicitStrategy& that);
+    IBImplicitStrategy& operator=(const IBImplicitStrategy& that) = delete;
 };
 } // namespace IBAMR
 

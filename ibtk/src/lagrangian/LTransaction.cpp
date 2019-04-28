@@ -58,35 +58,23 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-LTransaction<T>::LTransaction(const int src_proc, const int dst_proc)
-    : d_src_item_set(), d_src_proc(src_proc), d_outgoing_bytes(0), d_dst_item_set(), d_dst_proc(dst_proc)
+LTransaction<T>::LTransaction(const int src_proc, const int dst_proc) : d_src_proc(src_proc), d_dst_proc(dst_proc)
 {
     // intentionally blank
     return;
 } // LTransaction
 
 template <class T>
-LTransaction<T>::LTransaction(const int src_proc,
-                              const int dst_proc,
-                              const std::vector<LTransactionComponent>& src_item_set)
-    : d_src_item_set(src_item_set), d_src_proc(src_proc), d_outgoing_bytes(0), d_dst_item_set(), d_dst_proc(dst_proc)
+LTransaction<T>::LTransaction(const int src_proc, const int dst_proc, std::vector<LTransactionComponent> src_item_set)
+    : d_src_item_set(std::move(src_item_set)), d_src_proc(src_proc), d_dst_proc(dst_proc)
 {
     d_outgoing_bytes = AbstractStream::sizeofInt();
-    for (typename std::vector<LTransactionComponent>::const_iterator cit = d_src_item_set.begin();
-         cit != d_src_item_set.end();
-         ++cit)
+    for (auto cit = d_src_item_set.begin(); cit != d_src_item_set.end(); ++cit)
     {
         d_outgoing_bytes += cit->item->getDataStreamSize() + NDIM * AbstractStream::sizeofDouble();
     }
     return;
 } // LTransaction
-
-template <class T>
-LTransaction<T>::~LTransaction()
-{
-    // intentionally blank
-    return;
-} // ~LTransaction
 
 template <class T>
 bool
@@ -128,8 +116,7 @@ void
 LTransaction<T>::packStream(AbstractStream& stream)
 {
     stream << static_cast<int>(d_src_item_set.size());
-    for (typename std::vector<LTransactionComponent>::iterator it = d_src_item_set.begin(); it != d_src_item_set.end();
-         ++it)
+    for (auto it = d_src_item_set.begin(); it != d_src_item_set.end(); ++it)
     {
         typename LSet<T>::value_type& item = it->item;
         item->packStream(stream);
@@ -147,8 +134,7 @@ LTransaction<T>::unpackStream(AbstractStream& stream)
     int num_items;
     stream >> num_items;
     d_dst_item_set.resize(num_items);
-    for (typename std::vector<LTransactionComponent>::iterator it = d_dst_item_set.begin(); it != d_dst_item_set.end();
-         ++it)
+    for (auto it = d_dst_item_set.begin(); it != d_dst_item_set.end(); ++it)
     {
         it->item->unpackStream(stream, periodic_offset);
         Point& posn = it->posn;

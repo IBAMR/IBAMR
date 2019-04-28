@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <map>
 #include <vector>
 
@@ -182,7 +181,7 @@ protected:
     static int createUniqueID();
 
 private:
-    typedef std::map<int, SAMRAI::tbox::Pointer<StreamableFactory> > StreamableFactoryMap;
+    using StreamableFactoryMap = std::map<int, SAMRAI::tbox::Pointer<StreamableFactory> >;
 
     /*!
      * \brief Copy constructor.
@@ -191,7 +190,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StreamableManager(const StreamableManager& from);
+    StreamableManager(const StreamableManager& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -202,7 +201,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StreamableManager& operator=(const StreamableManager& that);
+    StreamableManager& operator=(const StreamableManager& that) = delete;
 
     /*!
      * Static data members used to control access to and destruction of

@@ -163,14 +163,14 @@ public:
      */
     void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
                                        double fill_time,
-                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const;
+    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const override;
 
     //\}
 
@@ -188,7 +188,7 @@ public:
      */
     void accumulateFromPhysicalBoundaryData(SAMRAI::hier::Patch<NDIM>& patch,
                                             double fill_time,
-                                            const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+                                            const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
 
 protected:
 private:
@@ -199,7 +199,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartSideRobinPhysBdryOp(const CartSideRobinPhysBdryOp& from);
+    CartSideRobinPhysBdryOp(const CartSideRobinPhysBdryOp& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -210,7 +210,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartSideRobinPhysBdryOp& operator=(const CartSideRobinPhysBdryOp& that);
+    CartSideRobinPhysBdryOp& operator=(const CartSideRobinPhysBdryOp& that) = delete;
 
     /*!
      * \brief Set the boundary conditions for normal components along the

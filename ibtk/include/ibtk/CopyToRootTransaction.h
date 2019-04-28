@@ -77,7 +77,7 @@ public:
     /*!
      * \brief Destructor
      */
-    ~CopyToRootTransaction();
+    ~CopyToRootTransaction() = default;
 
     /*!
      * Return a pointer to the data on the root process.
@@ -88,49 +88,49 @@ public:
      * Return a boolean indicating whether this transaction can estimate the
      * size of an incoming message.
      */
-    bool canEstimateIncomingMessageSize();
+    bool canEstimateIncomingMessageSize() override;
 
     /*!
      * Return the amount of buffer space needed for the incoming message.
      * This routine is only called if the transaction can estimate the
      * size of the incoming message.
      */
-    int computeIncomingMessageSize();
+    int computeIncomingMessageSize() override;
 
     /*!
      * Return the buffer space needed for the outgoing message.
      */
-    int computeOutgoingMessageSize();
+    int computeOutgoingMessageSize() override;
 
     /*!
      * Return the sending processor for the communications transaction.
      */
-    int getSourceProcessor();
+    int getSourceProcessor() override;
 
     /*!
      * Return the receiving processor for the communications transaction.
      */
-    int getDestinationProcessor();
+    int getDestinationProcessor() override;
 
     /*!
      * Pack the transaction data into the message stream.
      */
-    void packStream(SAMRAI::tbox::AbstractStream& stream);
+    void packStream(SAMRAI::tbox::AbstractStream& stream) override;
 
     /*!
      * Unpack the transaction data from the message stream.
      */
-    void unpackStream(SAMRAI::tbox::AbstractStream& stream);
+    void unpackStream(SAMRAI::tbox::AbstractStream& stream) override;
 
     /*!
      * Perform the local data copy for the transaction.
      */
-    void copyLocalData();
+    void copyLocalData() override;
 
     /*!
      * Print out transaction information.
      */
-    void printClassData(std::ostream& stream) const;
+    void printClassData(std::ostream& stream) const override;
 
 private:
     /*!
@@ -138,7 +138,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CopyToRootTransaction();
+    CopyToRootTransaction() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -147,7 +147,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CopyToRootTransaction(const CopyToRootTransaction& from);
+    CopyToRootTransaction(const CopyToRootTransaction& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -158,7 +158,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CopyToRootTransaction& operator=(const CopyToRootTransaction& that);
+    CopyToRootTransaction& operator=(const CopyToRootTransaction& that) = delete;
 
     const int d_src_proc, d_dst_proc;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_patch_level;

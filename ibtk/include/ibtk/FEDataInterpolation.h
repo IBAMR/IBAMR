@@ -58,9 +58,8 @@ public:
     inline void attachQuadratureRule(libMesh::QBase* qrule)
     {
         d_qrule = qrule;
-        for (size_t k = 0; k < d_fe.size(); ++k)
+        for (auto fe : d_fe)
         {
-            SAMRAI::tbox::Pointer<libMesh::FEBase> fe = d_fe[k];
             if (fe)
             {
                 fe->attach_quadrature_rule(d_qrule);
@@ -72,9 +71,8 @@ public:
     inline void attachQuadratureRuleFace(libMesh::QBase* qrule_face)
     {
         d_qrule_face = qrule_face;
-        for (size_t k = 0; k < d_fe_face.size(); ++k)
+        for (auto fe_face : d_fe_face)
         {
-            SAMRAI::tbox::Pointer<libMesh::FEBase> fe_face = d_fe_face[k];
             if (fe_face)
             {
                 fe_face->attach_quadrature_rule(d_qrule_face);
@@ -222,7 +220,7 @@ public:
     size_t registerInterpolatedSystem(const libMesh::System& system,
                                       const std::vector<int>& vars = std::vector<int>(1, 0),
                                       const std::vector<int>& grad_vars = std::vector<int>(),
-                                      libMesh::NumericVector<double>* system_data = NULL);
+                                      libMesh::NumericVector<double>* system_data = nullptr);
 
     /*!
      * \brief Get the variable data for all of the systems.
@@ -273,8 +271,8 @@ public:
      * NOTE: Nodal values are set by calling collectDataForInterpolation().
      */
     void reinit(const libMesh::Elem* elem,
-                const std::vector<libMesh::Point>* const points = NULL,
-                const std::vector<double>* weights = NULL);
+                const std::vector<libMesh::Point>* const points = nullptr,
+                const std::vector<double>* weights = nullptr);
 
     /*!
      * \brief Reinitialize the FE shape functions, quadrature rules, etc. for the specified side of the specificed
@@ -285,8 +283,8 @@ public:
     void reinit(const libMesh::Elem* elem,
                 unsigned int side,
                 double tol = libMesh::TOLERANCE,
-                const std::vector<libMesh::Point>* points = NULL,
-                const std::vector<double>* weights = NULL);
+                const std::vector<libMesh::Point>* points = nullptr,
+                const std::vector<double>* weights = nullptr);
 
     /*!
      * \brief Get the local (element) data to be interpolated from the global vectors.
@@ -312,9 +310,9 @@ public:
     void interpolate(const libMesh::Elem* elem, unsigned int side);
 
 private:
-    FEDataInterpolation();
-    FEDataInterpolation(const FEDataInterpolation&);
-    FEDataInterpolation& operator=(const FEDataInterpolation&);
+    FEDataInterpolation() = delete;
+    FEDataInterpolation(const FEDataInterpolation&) = delete;
+    FEDataInterpolation& operator=(const FEDataInterpolation&) = delete;
 
     size_t getFETypeIndex(const libMesh::FEType& fe_type) const;
 
@@ -326,12 +324,13 @@ private:
 
     const unsigned int d_dim;
     FEDataManager* const d_fe_data_manager;
-    bool d_initialized;
-    bool d_eval_q_point, d_eval_JxW, d_eval_q_point_face, d_eval_JxW_face, d_eval_normal_face;
-    libMesh::QBase *d_qrule, *d_qrule_face;
-    const std::vector<libMesh::Point> *d_q_point, *d_q_point_face;
-    const std::vector<double> *d_JxW, *d_JxW_face;
-    const std::vector<libMesh::Point>* d_normal_face;
+    bool d_initialized = false;
+    bool d_eval_q_point = false, d_eval_JxW = false, d_eval_q_point_face = false, d_eval_JxW_face = false,
+         d_eval_normal_face = false;
+    libMesh::QBase *d_qrule = nullptr, *d_qrule_face = nullptr;
+    const std::vector<libMesh::Point>*d_q_point = nullptr, *d_q_point_face = nullptr;
+    const std::vector<double>*d_JxW = nullptr, *d_JxW_face = nullptr;
+    const std::vector<libMesh::Point>* d_normal_face = nullptr;
 
     // Data associated with systems.
     std::vector<const libMesh::System*> d_systems;
@@ -354,7 +353,7 @@ private:
     std::vector<const std::vector<std::vector<libMesh::VectorValue<double> > > *> d_dphi, d_dphi_face;
 
     // Data associated with the current element.
-    const libMesh::Elem* d_current_elem;
+    const libMesh::Elem* d_current_elem = nullptr;
     unsigned int d_current_side;
     std::vector<boost::multi_array<double, 2> > d_system_elem_data;
     unsigned int d_n_qp;

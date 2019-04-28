@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LMesh.h"
 
@@ -149,6 +150,7 @@ LDataManager::getLNodePatchDescriptorIndex() const
 inline int
 LDataManager::getWorkloadPatchDescriptorIndex() const
 {
+    IBTK_DEPRECATED_MEMBER_FUNCTION1("LDataManager", "getWorkloadPatchDescriptorIndex");
     return d_workload_idx;
 } // getWorkloadPatchDescriptorIndex
 
@@ -165,11 +167,9 @@ LDataManager::getLagrangianStructureNames(const int level_number) const
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 #endif
     std::vector<std::string> ret_val;
-    for (std::map<int, std::string>::const_iterator cit(d_strct_id_to_strct_name_map[level_number].begin());
-         cit != d_strct_id_to_strct_name_map[level_number].end();
-         ++cit)
+    for (const auto& map : d_strct_id_to_strct_name_map[level_number])
     {
-        ret_val.push_back(cit->second);
+        ret_val.push_back(map.second);
     }
     return ret_val;
 } // getLagrangianStructureNames
@@ -181,11 +181,9 @@ LDataManager::getLagrangianStructureIDs(const int level_number) const
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 #endif
     std::vector<int> ret_val;
-    for (std::map<std::string, int>::const_iterator cit(d_strct_name_to_strct_id_map[level_number].begin());
-         cit != d_strct_name_to_strct_id_map[level_number].end();
-         ++cit)
+    for (const auto& map : d_strct_name_to_strct_id_map[level_number])
     {
-        ret_val.push_back(cit->second);
+        ret_val.push_back(map.second);
     }
     return ret_val;
 } // getLagrangianStructureIDs

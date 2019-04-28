@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "RobinBcCoefStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -54,12 +55,12 @@ public:
     /*!
      * \brief Empty default constructor.
      */
-    ExtendedRobinBcCoefStrategy();
+    ExtendedRobinBcCoefStrategy() = default;
 
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual ~ExtendedRobinBcCoefStrategy();
+    virtual ~ExtendedRobinBcCoefStrategy() = default;
 
     /*!
      * \name Extended SAMRAI::solv::RobinBcCoefStrategy interface.
@@ -88,12 +89,12 @@ protected:
     /*
      * The patch data index corresponding to the data to be filled.
      */
-    int d_target_data_idx;
+    int d_target_data_idx = IBTK::invalid_index;
 
     /*
      * Whether to use homogeneous boundary conditions.
      */
-    bool d_homogeneous_bc;
+    bool d_homogeneous_bc = false;
 
 private:
     /*!
@@ -103,7 +104,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    ExtendedRobinBcCoefStrategy(const ExtendedRobinBcCoefStrategy& from);
+    ExtendedRobinBcCoefStrategy(const ExtendedRobinBcCoefStrategy& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -114,7 +115,7 @@ private:
      *
      * \return A reference to this object.
      */
-    ExtendedRobinBcCoefStrategy& operator=(const ExtendedRobinBcCoefStrategy& that);
+    ExtendedRobinBcCoefStrategy& operator=(const ExtendedRobinBcCoefStrategy& that) = delete;
 };
 } // namespace IBTK
 

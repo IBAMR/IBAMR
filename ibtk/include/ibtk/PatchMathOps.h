@@ -79,12 +79,12 @@ public:
     /*!
      * \brief Default constructor.
      */
-    PatchMathOps();
+    PatchMathOps() = default;
 
     /*!
      * \brief Destructor.
      */
-    ~PatchMathOps();
+    virtual ~PatchMathOps() = default;
 
     /*!
      * \name Mathematical operations.
@@ -162,7 +162,7 @@ public:
     void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
              SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > src,
              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-             CartSideRobinPhysBdryOp* bc_op = NULL,
+             CartSideRobinPhysBdryOp* bc_op = nullptr,
              double fill_time = 0.0) const;
 
     /*!
@@ -173,7 +173,7 @@ public:
     void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-             CartSideRobinPhysBdryOp* bc_op = NULL,
+             CartSideRobinPhysBdryOp* bc_op = nullptr,
              double fill_time = 0.0) const;
 
     /*!
@@ -184,7 +184,7 @@ public:
     void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
              SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > src,
              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-             CartSideRobinPhysBdryOp* bc_op = NULL,
+             CartSideRobinPhysBdryOp* bc_op = nullptr,
              double fill_time = 0.0) const;
 
     /*!
@@ -195,7 +195,7 @@ public:
     void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src,
              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-             CartSideRobinPhysBdryOp* bc_op = NULL,
+             CartSideRobinPhysBdryOp* bc_op = nullptr,
              double fill_time = 0.0) const;
 
     /*!
@@ -750,7 +750,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PatchMathOps(const PatchMathOps& from);
+    PatchMathOps(const PatchMathOps& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -761,7 +761,7 @@ private:
      *
      * \return A reference to this object.
      */
-    PatchMathOps& operator=(const PatchMathOps& that);
+    PatchMathOps& operator=(const PatchMathOps& that) = delete;
 };
 } // namespace IBTK
 

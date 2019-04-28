@@ -50,7 +50,7 @@
 namespace IBTK
 {
 template <typename T>
-struct IndexOrder : std::binary_function<T, T, bool>
+struct IndexOrder
 {
     inline bool operator()(const T& lhs, const T& rhs) const
     {
@@ -67,8 +67,8 @@ struct IndexOrder : std::binary_function<T, T, bool>
     }
 };
 
-typedef struct IndexOrder<SAMRAI::hier::Index<NDIM> > IndexFortranOrder;
-typedef struct IndexOrder<SAMRAI::pdat::CellIndex<NDIM> > CellIndexFortranOrder;
+using IndexFortranOrder = struct IndexOrder<SAMRAI::hier::Index<NDIM> >;
+using CellIndexFortranOrder = struct IndexOrder<SAMRAI::pdat::CellIndex<NDIM> >;
 
 /*!
  * \brief Class IndexUtilities is a utility class that defines simple functions
@@ -204,7 +204,7 @@ private:
      * \note This constructor is not implemented and should not be
      * used.
      */
-    IndexUtilities();
+    IndexUtilities() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -214,12 +214,12 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IndexUtilities(const IndexUtilities& from);
+    IndexUtilities(const IndexUtilities& from) = delete;
 
     /*!
      * \brief Unimplemented destructor.
      */
-    ~IndexUtilities();
+    ~IndexUtilities() = delete;
 
     /*!
      * \brief Assignment operator.
@@ -230,7 +230,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IndexUtilities& operator=(const IndexUtilities& that);
+    IndexUtilities& operator=(const IndexUtilities& that) = delete;
 };
 } // namespace IBTK
 

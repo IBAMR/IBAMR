@@ -95,14 +95,9 @@ public:
     /*!
      * \brief Constructor.
      */
-    RelaxationLSMethod(const std::string& object_name,
+    RelaxationLSMethod(std::string object_name,
                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = NULL,
                        bool register_for_restart = true);
-
-    /*!
-     * \brief Destructor.
-     */
-    virtual ~RelaxationLSMethod();
 
     /*!
      * \name Implementation of IBAMR::LSInitStrategy interface.
@@ -116,7 +111,7 @@ public:
                           SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hierarchy_math_ops,
                           int integrator_step,
                           double time,
-                          bool initial_time);
+                          bool initial_time) override;
 
     //\}
 
@@ -147,25 +142,25 @@ public:
 
 protected:
     // Flag for applying the mass constraint
-    bool d_apply_mass_constraint;
+    bool d_apply_mass_constraint = false;
 
     // Flag for applying subcell fix
-    bool d_apply_subcell_fix;
+    bool d_apply_subcell_fix = false;
 
     // Flag for applying sign fix near interface points
-    bool d_apply_sign_fix;
+    bool d_apply_sign_fix = false;
 
     // Ghost cell width for level set variable
-    int d_D_gcw;
+    int d_D_gcw = -1;
 
     // Flag for applying the volume shift
-    bool d_apply_volume_shift;
+    bool d_apply_volume_shift = false;
 
     // Initial volume of the level set domain
     double d_init_ls_vol;
 
     // Relaxation weight parameter
-    double d_alpha;
+    double d_alpha = 1.0;
 
 private:
     /*!
@@ -256,7 +251,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    RelaxationLSMethod(const RelaxationLSMethod& from);
+    RelaxationLSMethod(const RelaxationLSMethod& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -267,7 +262,7 @@ private:
      *
      * \return A reference to this object.
      */
-    RelaxationLSMethod& operator=(const RelaxationLSMethod& that);
+    RelaxationLSMethod& operator=(const RelaxationLSMethod& that) = delete;
 };
 } // namespace IBAMR
 

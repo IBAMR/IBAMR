@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include <array>
 #include <string>
 #include <vector>
 
@@ -44,12 +44,6 @@
 #include "petscmat.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
-
-namespace boost
-{
-template <class T, std::size_t N>
-class array;
-} // namespace boost
 
 namespace SAMRAI
 {
@@ -150,7 +144,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesBoxRelaxationFACOperator(const StaggeredStokesBoxRelaxationFACOperator& from);
+    StaggeredStokesBoxRelaxationFACOperator(const StaggeredStokesBoxRelaxationFACOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -161,7 +155,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesBoxRelaxationFACOperator& operator=(const StaggeredStokesBoxRelaxationFACOperator& that);
+    StaggeredStokesBoxRelaxationFACOperator& operator=(const StaggeredStokesBoxRelaxationFACOperator& that) = delete;
 
     /*
      * Box operator data.
@@ -173,7 +167,7 @@ private:
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
+    std::vector<std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
 };
 } // namespace IBTK

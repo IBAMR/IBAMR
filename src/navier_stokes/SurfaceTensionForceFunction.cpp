@@ -213,12 +213,6 @@ SurfaceTensionForceFunction::SurfaceTensionForceFunction(const std::string& obje
     return;
 } // SurfaceTensionForceFunction
 
-SurfaceTensionForceFunction::~SurfaceTensionForceFunction()
-{
-    // intentionally blank
-    return;
-} // ~SurfaceTensionForceFunction
-
 void
 SurfaceTensionForceFunction::setSmoother(const std::string& kernel_fcn)
 {
@@ -315,7 +309,7 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
 
     // Fill ghost cells
     RobinBcCoefStrategy<NDIM>* phi_bc_coef = (d_adv_diff_solver->getPhysicalBcCoefs(phi_cc_var)).front();
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent C_transaction(
         d_C_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, phi_bc_coef);
     InterpolationTransactionComponent phi_transaction(
@@ -394,7 +388,7 @@ SurfaceTensionForceFunction::convertToHeaviside(int phi_idx,
             const double* const patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-            double eps = d_num_interface_cells * std::pow(vol_cell, 1.0 / (double)NDIM);
+            double eps = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
             const Box<NDIM>& patch_box = patch->getBox();
             Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);

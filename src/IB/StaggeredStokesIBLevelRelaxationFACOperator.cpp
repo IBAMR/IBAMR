@@ -33,9 +33,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
+#include <cstring>
 #include <limits>
 #include <ostream>
-#include <stddef.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -64,7 +64,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "boost/array.hpp"
 #include "ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h"
 #include "ibamr/StaggeredStokesPETScLevelSolver.h"
 #include "ibamr/StaggeredStokesPETScMatUtilities.h"
@@ -115,21 +114,15 @@ static const int NOGHOST = 0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFACOperator(
-    const std::string& object_name,
+    std::string object_name,
     const Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : StaggeredStokesFACPreconditionerStrategy(object_name, std::max(SIDEG, CELLG), input_db, default_options_prefix),
-      d_rediscretize_stokes(true),
+    : StaggeredStokesFACPreconditionerStrategy(std::move(object_name),
+                                               std::max(SIDEG, CELLG),
+                                               input_db,
+                                               default_options_prefix),
       d_res_rediscretized_stokes(d_rediscretize_stokes),
-      d_level_solver_type("PETSC_LEVEL_SOLVER"),
-      d_level_solver_default_options_prefix(default_options_prefix + "level_"),
-      d_level_solver_abs_residual_tol(1.0e-50),
-      d_level_solver_rel_residual_tol(1.0e-5),
-      d_level_solver_max_iterations(10),
-      d_u_petsc_prolongation_method("RT0"),
-      d_p_petsc_prolongation_method("CONSERVATIVE"),
-      d_SAJ_fill(1.0),
-      d_RStokesIBP_fill(1.0)
+      d_level_solver_default_options_prefix(default_options_prefix + "level_")
 {
     // Set the time stepping type to UNKNOWN to ensure that the IB solver sets it correctly.
     d_time_stepping_type = UNKNOWN_TIME_STEPPING_TYPE;
@@ -169,7 +162,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
 
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    d_u_dof_index_var = new SideVariable<NDIM, int>(object_name + "::u_dof_index");
+    d_u_dof_index_var = new SideVariable<NDIM, int>(d_object_name + "::u_dof_index");
     if (var_db->checkVariableExists(d_u_dof_index_var->getName()))
     {
         d_u_dof_index_var = var_db->getVariable(d_u_dof_index_var->getName());
@@ -177,7 +170,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
         var_db->removePatchDataIndex(d_u_dof_index_idx);
     }
     d_u_dof_index_idx = var_db->registerVariableAndContext(d_u_dof_index_var, d_context, NOGHOST);
-    d_p_dof_index_var = new CellVariable<NDIM, int>(object_name + "::p_dof_index");
+    d_p_dof_index_var = new CellVariable<NDIM, int>(d_object_name + "::p_dof_index");
     if (var_db->checkVariableExists(d_p_dof_index_var->getName()))
     {
         d_p_dof_index_var = var_db->getVariable(d_p_dof_index_var->getName());
@@ -316,7 +309,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
             IBTK_CHKERRQ(ierr);
 
             StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(
-                residual_vec, U_res_idx, d_u_dof_index_idx, P_res_idx, d_p_dof_index_idx, level, NULL, NULL);
+                residual_vec, U_res_idx, d_u_dof_index_idx, P_res_idx, d_p_dof_index_idx, level, nullptr, nullptr);
             xeqScheduleDataSynch(U_res_idx, ln);
             xeqScheduleGhostFillNoCoarse(std::make_pair(U_res_idx, P_res_idx), ln);
 
@@ -360,7 +353,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
 
             const KSP& level_ksp = d_level_solvers[ln]->getPETScKSP();
             Mat A;
-            ierr = KSPGetOperators(level_ksp, &A, NULL);
+            ierr = KSPGetOperators(level_ksp, &A, nullptr);
             IBTK_CHKERRQ(ierr);
             ierr = MatMult(A, solution_vec, residual_vec);
             IBTK_CHKERRQ(ierr);
@@ -368,7 +361,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
             IBTK_CHKERRQ(ierr);
 
             StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(
-                residual_vec, U_res_idx, d_u_dof_index_idx, P_res_idx, d_p_dof_index_idx, level, NULL, NULL);
+                residual_vec, U_res_idx, d_u_dof_index_idx, P_res_idx, d_p_dof_index_idx, level, nullptr, nullptr);
             xeqScheduleDataSynch(U_res_idx, ln);
             xeqScheduleGhostFillNoCoarse(std::make_pair(U_res_idx, P_res_idx), ln);
 
@@ -497,7 +490,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, 
         const KSP& petsc_ksp = level_solver->getPETScKSP();
         KSPType ksp_type;
         KSPGetType(petsc_ksp, &ksp_type);
-        if (!strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
+        if (!std::strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
         level_solver->setInitialGuessNonzero(initial_guess_nonzero);
 
         level_solver->solveSystem(*e_level, *r_level);
@@ -546,7 +539,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     }
 
     // Setup application ordering for the velocity and pressure DOFs.
-    d_u_p_app_ordering.resize(d_finest_ln + 1, NULL);
+    d_u_p_app_ordering.resize(d_finest_ln + 1, nullptr);
     std::vector<int> u_ao_offset(d_finest_ln + 1, 0);
     std::vector<int> p_ao_offset(d_finest_ln + 1, 0);
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln - 1); ln <= std::min(d_finest_ln - 1, finest_reset_ln);
@@ -563,10 +556,10 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     }
 
     // Construct prolongation matrix and scaling for restriction matrix for various levels.
-    d_SAJ_prolongation_mat.resize(d_finest_ln + 1, NULL);
-    d_scale_SAJ_restriction_mat.resize(d_finest_ln + 1, NULL);
-    d_stokesib_prolongation_mat.resize(d_finest_ln + 1, NULL);
-    d_scale_stokesib_restriction_mat.resize(d_finest_ln + 1, NULL);
+    d_SAJ_prolongation_mat.resize(d_finest_ln + 1, nullptr);
+    d_scale_SAJ_restriction_mat.resize(d_finest_ln + 1, nullptr);
+    d_stokesib_prolongation_mat.resize(d_finest_ln + 1, nullptr);
+    d_scale_stokesib_restriction_mat.resize(d_finest_ln + 1, nullptr);
     for (int ln = std::min(d_finest_ln - 1, finest_reset_ln); ln >= std::max(d_coarsest_ln, coarsest_reset_ln - 1);
          --ln)
     {
@@ -602,7 +595,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     }
 
     // Compute SAJ operator for various patch levels.
-    d_SAJ_mat.resize(d_finest_ln + 1, NULL);
+    d_SAJ_mat.resize(d_finest_ln + 1, nullptr);
     for (int ln = std::min(d_finest_ln, finest_reset_ln); ln >= std::max(d_coarsest_ln, coarsest_reset_ln - 1); --ln)
     {
         if (ln == d_finest_ln)
@@ -625,22 +618,20 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
             ierr =
                 MatPtAP(d_SAJ_mat[ln + 1], d_SAJ_prolongation_mat[ln], MAT_INITIAL_MATRIX, d_SAJ_fill, &d_SAJ_mat[ln]);
             IBTK_CHKERRQ(ierr);
-            ierr = MatDiagonalScale(d_SAJ_mat[ln], d_scale_SAJ_restriction_mat[ln], NULL);
+            ierr = MatDiagonalScale(d_SAJ_mat[ln], d_scale_SAJ_restriction_mat[ln], nullptr);
             IBTK_CHKERRQ(ierr);
         }
     }
 
     d_level_solvers.resize(d_finest_ln + 1);
-    d_galerkin_stokesib_mat.resize(d_finest_ln + 1, NULL);
+    d_galerkin_stokesib_mat.resize(d_finest_ln + 1, nullptr);
     for (int ln = std::min(d_finest_ln, finest_reset_ln); ln >= std::max(d_coarsest_ln + 1, coarsest_reset_ln); --ln)
     {
         Pointer<StaggeredStokesPETScLevelSolver>& level_solver = d_level_solvers[ln];
         if (!level_solver)
         {
-            std::ostringstream level_solver_stream;
-            level_solver_stream << d_level_solver_default_options_prefix << ln << "_";
             level_solver = StaggeredStokesSolverManager::getManager()->allocateSolver(
-                d_level_solver_type, d_object_name + "::level_solver", d_level_solver_db, level_solver_stream.str());
+                d_level_solver_type, d_object_name + "::level_solver", d_level_solver_db, d_level_solver_default_options_prefix + std::to_string(ln) + "_");
         }
         level_solver->setSolutionTime(d_solution_time);
         level_solver->setTimeInterval(d_current_time, d_new_time);
@@ -679,7 +670,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         if (!d_rediscretize_stokes)
         {
             Mat level_mat;
-            ierr = KSPGetOperators(level_ksp, &level_mat, NULL);
+            ierr = KSPGetOperators(level_ksp, &level_mat, nullptr);
             IBTK_CHKERRQ(ierr);
             ierr = MatPtAP(level_mat,
                            d_stokesib_prolongation_mat[ln - 1],
@@ -687,7 +678,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
                            d_RStokesIBP_fill,
                            &d_galerkin_stokesib_mat[ln - 1]);
             IBTK_CHKERRQ(ierr);
-            ierr = MatDiagonalScale(d_galerkin_stokesib_mat[ln - 1], d_scale_stokesib_restriction_mat[ln - 1], NULL);
+            ierr = MatDiagonalScale(d_galerkin_stokesib_mat[ln - 1], d_scale_stokesib_restriction_mat[ln - 1], nullptr);
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -813,7 +804,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(
     {
         ierr = AODestroy(&d_u_p_app_ordering[ln]);
         IBTK_CHKERRQ(ierr);
-        d_u_p_app_ordering[ln] = NULL;
+        d_u_p_app_ordering[ln] = nullptr;
     }
 
     // Deallocate prolongation mat and restriction scaling Mat.
@@ -822,19 +813,19 @@ StaggeredStokesIBLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(
     {
         ierr = MatDestroy(&d_SAJ_prolongation_mat[ln]);
         IBTK_CHKERRQ(ierr);
-        d_SAJ_prolongation_mat[ln] = NULL;
+        d_SAJ_prolongation_mat[ln] = nullptr;
 
         ierr = VecDestroy(&d_scale_SAJ_restriction_mat[ln]);
         IBTK_CHKERRQ(ierr);
-        d_scale_SAJ_restriction_mat[ln] = NULL;
+        d_scale_SAJ_restriction_mat[ln] = nullptr;
 
         ierr = MatDestroy(&d_stokesib_prolongation_mat[ln]);
         IBTK_CHKERRQ(ierr);
-        d_stokesib_prolongation_mat[ln] = NULL;
+        d_stokesib_prolongation_mat[ln] = nullptr;
 
         ierr = VecDestroy(&d_scale_stokesib_restriction_mat[ln]);
         IBTK_CHKERRQ(ierr);
-        d_scale_stokesib_restriction_mat[ln] = NULL;
+        d_scale_stokesib_restriction_mat[ln] = nullptr;
     }
 
     // Deallocate SAJ and Galerkin Stokes-IB Mat.
@@ -842,11 +833,11 @@ StaggeredStokesIBLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(
     {
         ierr = MatDestroy(&d_SAJ_mat[ln]);
         IBTK_CHKERRQ(ierr);
-        d_SAJ_mat[ln] = NULL;
+        d_SAJ_mat[ln] = nullptr;
 
         ierr = MatDestroy(&d_galerkin_stokesib_mat[ln]);
         IBTK_CHKERRQ(ierr);
-        d_galerkin_stokesib_mat[ln] = NULL;
+        d_galerkin_stokesib_mat[ln] = nullptr;
     }
 
     // Deallocate DOF index data.

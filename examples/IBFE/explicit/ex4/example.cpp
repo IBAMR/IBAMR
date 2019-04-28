@@ -60,6 +60,7 @@
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+#include <ibtk/BoxPartitioner.h>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -118,7 +119,7 @@ using namespace ModelData;
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-                 Mesh& mesh,
+                 MeshBase& mesh,
                  EquationSystems* equation_systems,
                  const int iteration_num,
                  const double loop_time,
@@ -184,7 +185,7 @@ bool run_example(int argc, char** argv)
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
         // Create a simple FE mesh.
-        Mesh mesh(init.comm(), NDIM);
+        ReplicatedMesh mesh(init.comm(), NDIM);
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
@@ -244,6 +245,13 @@ bool run_example(int argc, char** argv)
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<LoadBalancer<NDIM> > load_balancer =
+            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
+
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
@@ -273,16 +281,12 @@ bool run_example(int argc, char** argv)
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        time_integrator->registerLoadBalancer(load_balancer);
+
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
@@ -375,13 +379,9 @@ bool run_example(int argc, char** argv)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "u_bc_coefs_" << d;
-                const string bc_coefs_name = bc_coefs_name_stream.str();
+                const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
 
-                ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
-                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+                const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
 
                 u_bc_coefs[d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
@@ -402,8 +402,10 @@ bool run_example(int argc, char** argv)
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
+            visit_data_writer->registerPlotQuantity("workload", "SCALAR",
+                                                    time_integrator->getWorkloadDataIndex());
         }
-        libMesh::UniquePtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
@@ -425,8 +427,17 @@ bool run_example(int argc, char** argv)
             pout << "\n\nWriting visualization files...\n\n";
             if (uses_visit)
             {
+                const System& position_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
                 time_integrator->setupPlotData();
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+                if (NDIM < 3)
+                {
+                    IBTK::BoxPartitioner partitioner(*patch_hierarchy, position_system);
+                    partitioner.writePartitioning("patch-part-" + std::to_string(iteration_num) + ".txt");
+                    // Write partitioning data from libMesh.
+                    IBTK::write_node_partitioning("node-part-" + std::to_string(iteration_num) + ".txt",
+                                                  position_system);
+                }
             }
             if (uses_exodus)
             {
@@ -476,8 +487,16 @@ bool run_example(int argc, char** argv)
                 pout << "\nWriting visualization files...\n\n";
                 if (uses_visit)
                 {
+                    const System& position_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
                     time_integrator->setupPlotData();
                     visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+                    if (NDIM < 3)
+                    {
+                        IBTK::BoxPartitioner partitioner(*patch_hierarchy, position_system);
+                        partitioner.writePartitioning("patch-part-" + std::to_string(iteration_num) + ".txt");
+                        IBTK::write_node_partitioning("node-part-" + std::to_string(iteration_num) + ".txt",
+                                                      position_system);
+                    }
                 }
                 if (uses_exodus)
                 {
@@ -515,8 +534,8 @@ bool run_example(int argc, char** argv)
             X_vec->localize(*X_ghost_vec);
             DofMap& X_dof_map = X_system.get_dof_map();
             vector<vector<unsigned int> > X_dof_indices(NDIM);
-            libMesh::UniquePtr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
-            libMesh::UniquePtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
+            std::unique_ptr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
+            std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
             fe->attach_quadrature_rule(qrule.get());
             const vector<double>& JxW = fe->get_JxW();
             const vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
@@ -568,7 +587,7 @@ bool run_example(int argc, char** argv)
 void
 output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
             Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-            Mesh& mesh,
+            MeshBase& mesh,
             EquationSystems* equation_systems,
             const int iteration_num,
             const double loop_time,

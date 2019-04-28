@@ -37,7 +37,6 @@
 #include "HierarchyCellDataOpsReal.h"
 #include "IBAMR_config.h"
 #include "VariableDatabase.h"
-#include "boost/array.hpp"
 #include "ibamr/namespaces.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
@@ -85,30 +84,16 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FastSweepingLSMethod::FastSweepingLSMethod(const std::string& object_name,
-                                           Pointer<Database> db,
-                                           bool register_for_restart)
-    : LSInitStrategy(object_name, register_for_restart)
+FastSweepingLSMethod::FastSweepingLSMethod(std::string object_name, Pointer<Database> db, bool register_for_restart)
+    : LSInitStrategy(std::move(object_name), register_for_restart)
 {
-    // Some default values.
-    d_ls_order = FIRST_ORDER_LS;
-    d_max_its = 100;
-    d_abs_tol = 1e-5;
-    d_enable_logging = false;
-    d_consider_phys_bdry_wall = false;
-    for (int k = 0; k < 2 * NDIM; ++k) d_wall_location_idx[k] = 0;
+    for (int& wall_idx : d_wall_location_idx) wall_idx = 0;
 
     if (d_registered_for_restart) getFromRestart();
     if (!db.isNull()) getFromInput(db);
 
     return;
 } // FastSweepingLSMethod
-
-FastSweepingLSMethod::~FastSweepingLSMethod()
-{
-    // intentionally-left blank.
-    return;
-} // ~FastSweepingLSMethod
 
 void
 FastSweepingLSMethod::initializeLSData(int D_idx,
@@ -162,7 +147,7 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     }
 
     // Set hierarchy objects.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(
         D_scratch_idx, "LINEAR_REFINE", true, "NONE", "LINEAR", false, d_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();

@@ -74,6 +74,7 @@
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
@@ -120,11 +121,11 @@ public:
     /*!
      * \brief Class constructor.
      */
-    AdvDiffWavePropConvectiveOperator(const std::string& object_name,
+    AdvDiffWavePropConvectiveOperator(std::string object_name,
                                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
                                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                       const ConvectiveDifferencingType difference_form,
-                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& conc_bc_coefs);
+                                      std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> conc_bc_coefs);
     /*!
      * \brief Destructor.
      */
@@ -146,7 +147,7 @@ public:
     /*!
      * \brief Compute the action of the convective operator.
      */
-    void applyConvectiveOperator(int Q_idx, int Y_idx);
+    void applyConvectiveOperator(int Q_idx, int Y_idx) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=F[x] and
@@ -179,7 +180,7 @@ public:
      * \param out output vector
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -190,7 +191,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void deallocateOperatorState();
+    void deallocateOperatorState() override;
 
 private:
     /*!
@@ -198,7 +199,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvDiffWavePropConvectiveOperator();
+    AdvDiffWavePropConvectiveOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -207,7 +208,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffWavePropConvectiveOperator(const AdvDiffWavePropConvectiveOperator& from);
+    AdvDiffWavePropConvectiveOperator(const AdvDiffWavePropConvectiveOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -218,7 +219,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffWavePropConvectiveOperator& operator=(const AdvDiffWavePropConvectiveOperator& that);
+    AdvDiffWavePropConvectiveOperator& operator=(const AdvDiffWavePropConvectiveOperator& that) = delete;
 
     // Data communication algorithms, operators, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg_Q;
@@ -226,21 +227,21 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_alg_Q;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_ghostfill_strategy_Q;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_scheds_Q;
-    std::string d_outflow_bdry_extrap_type;
+    std::string d_outflow_bdry_extrap_type = "CONSTANT";
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_var;
-    unsigned int d_Q_data_depth;
-    int d_Q_scratch_idx;
+    unsigned int d_Q_data_depth = 0;
+    int d_Q_scratch_idx = 0;
 
     const std::vector<RobinBcCoefStrategy<NDIM>*> d_conc_bc_coefs;
     // Reconstruction Order (2*k-1)
     // Currently only available for k=3
-    int d_k;
+    int d_k = 3;
 
     ConvectiveDifferencingType d_difference_form;
 };

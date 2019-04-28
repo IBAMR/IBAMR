@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <map>
 #include <ostream>
 #include <utility>
@@ -74,18 +73,6 @@ const short int StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY = 0x100 | 0x200;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-StaggeredStokesPhysicalBoundaryHelper::StaggeredStokesPhysicalBoundaryHelper()
-{
-    // intentionally blank
-    return;
-} // StaggeredStokesPhysicalBoundaryHelper
-
-StaggeredStokesPhysicalBoundaryHelper::~StaggeredStokesPhysicalBoundaryHelper()
-{
-    // intentionally blank
-    return;
-} // ~StaggeredStokesPhysicalBoundaryHelper
-
 void
 StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
     const int u_data_idx,
@@ -101,7 +88,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
     TBOX_ASSERT(d_hierarchy);
 #endif
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-        u_bc_coefs, /*p_bc_coef*/ NULL, u_data_idx, p_data_idx, homogeneous_bc);
+        u_bc_coefs, /*p_bc_coef*/ nullptr, u_data_idx, p_data_idx, homogeneous_bc);
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
     {
@@ -134,7 +121,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
                                                              *patch,
                                                              trimmed_bdry_box,
                                                              fill_time);
-                    ExtendedRobinBcCoefStrategy* const extended_bc_coef =
+                    auto const extended_bc_coef =
                         dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[bdry_normal_axis]);
                     if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
                     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
@@ -155,7 +142,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
             }
         }
     }
-    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(u_bc_coefs, /*p_bc_coef*/ NULL);
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(u_bc_coefs, /*p_bc_coef*/ nullptr);
     return;
 } // enforceNormalVelocityBoundaryConditions
 
@@ -262,26 +249,26 @@ StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector<Robi
 #endif
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ExtendedRobinBcCoefStrategy* extended_u_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[d]);
+        auto extended_u_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[d]);
         if (extended_u_bc_coef)
         {
             extended_u_bc_coef->clearTargetPatchDataIndex();
             extended_u_bc_coef->setHomogeneousBc(homogeneous_bc);
         }
-        StokesBcCoefStrategy* stokes_u_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(u_bc_coefs[d]);
+        auto stokes_u_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(u_bc_coefs[d]);
         if (stokes_u_bc_coef)
         {
             stokes_u_bc_coef->setTargetVelocityPatchDataIndex(u_target_data_idx);
             stokes_u_bc_coef->setTargetPressurePatchDataIndex(p_target_data_idx);
         }
     }
-    ExtendedRobinBcCoefStrategy* extended_p_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(p_bc_coef);
+    auto extended_p_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(p_bc_coef);
     if (extended_p_bc_coef)
     {
         extended_p_bc_coef->clearTargetPatchDataIndex();
         extended_p_bc_coef->setHomogeneousBc(homogeneous_bc);
     }
-    StokesBcCoefStrategy* stokes_p_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(p_bc_coef);
+    auto stokes_p_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(p_bc_coef);
     if (stokes_p_bc_coef)
     {
         stokes_p_bc_coef->setTargetVelocityPatchDataIndex(u_target_data_idx);
@@ -299,14 +286,14 @@ StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(const std::vector<Robi
 #endif
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        StokesBcCoefStrategy* stokes_u_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(u_bc_coefs[d]);
+        auto stokes_u_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(u_bc_coefs[d]);
         if (stokes_u_bc_coef)
         {
             stokes_u_bc_coef->clearTargetVelocityPatchDataIndex();
             stokes_u_bc_coef->clearTargetPressurePatchDataIndex();
         }
     }
-    StokesBcCoefStrategy* stokes_p_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(p_bc_coef);
+    auto stokes_p_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(p_bc_coef);
     if (stokes_p_bc_coef)
     {
         stokes_p_bc_coef->clearTargetVelocityPatchDataIndex();

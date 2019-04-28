@@ -60,19 +60,19 @@ public:
     /*!
      * \brief Default constructor.
      */
-    ParallelMap();
+    ParallelMap() = default;
 
     /*!
      * \brief Copy constructor.
      *
      * \param from The value to copy to this object.
      */
-    ParallelMap(const ParallelMap& from);
+    ParallelMap(const ParallelMap& from) = default;
 
     /*!
      * \brief Destructor.
      */
-    ~ParallelMap();
+    virtual ~ParallelMap() = default;
 
     /*!
      * \brief Assignment operator.
