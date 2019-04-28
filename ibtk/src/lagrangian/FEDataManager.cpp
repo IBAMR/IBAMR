@@ -1720,7 +1720,6 @@ FEDataManager::interpWeighted(const int f_data_idx,
             {
                 Elem* const elem = patch_elems[e_idx];
                 const auto& F_dof_indices = F_dof_map_cache.dof_indices(elem);
-                F_rhs.resize(static_cast<unsigned int>(F_dof_indices[0].size()));
                 // check the concatenation assumption
 #ifndef NDEBUG
                 for (unsigned int i = 0; i < n_vars; ++i)
@@ -1758,6 +1757,9 @@ FEDataManager::interpWeighted(const int f_data_idx,
 
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
+                    // libMesh sometimes resizes F_rhs inside
+                    // constrain_element_vector, so ensure it has the right size:
+                    F_rhs.resize(F_dof_indices[i].size());
                     std::copy(F_rhs_concatenated.begin() + i * n_basis,
                               F_rhs_concatenated.begin() + (i + 1) * n_basis,
                               F_rhs.get_values().begin());
