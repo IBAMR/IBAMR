@@ -593,7 +593,7 @@ sum_weighted_elem_solution_n_vars_n_basis(const int qp_offset,
     if (n_vars == -1 || n_basis == -1)
     {
         const int n_basis_ = phi_F.size();
-        const int n_vars_ = F_node.shape()[0];
+        const int n_vars_ = F_node.shape()[1];
         for (int qp = 0; qp < n_qp; ++qp)
         {
             const int idx = n_vars_ * (qp_offset + qp);
