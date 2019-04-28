@@ -20,7 +20,7 @@ SMOOTH_CASE = FALSE
 
 // solver parameters
 IB_DELTA_FUNCTION          = "IB_4"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
-SPLIT_FORCES               = TRUE              // whether to split interior and boundary forces
+SPLIT_FORCES               = FALSE              // whether to split interior and boundary forces
 USE_JUMP_CONDITIONS        = FALSE             // whether to impose pressure jumps at fluid-structure interfaces
 USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or lumped mass matrix
 IB_POINT_DENSITY           = 2.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
@@ -45,6 +45,8 @@ OUTPUT_F                   = TRUE
 OUTPUT_OMEGA               = TRUE
 OUTPUT_DIV_U               = TRUE
 ENABLE_LOGGING             = TRUE
+ELIMINATE_PRESSURE_JUMPS   = TRUE
+
 
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
@@ -101,7 +103,8 @@ IBFEMethod {
    use_jump_conditions        = USE_JUMP_CONDITIONS
    use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
    IB_point_density           = IB_POINT_DENSITY
-}
+   Phi_dt                     = DT
+ }
 
 INSCollocatedHierarchyIntegrator {
    mu                            = MU

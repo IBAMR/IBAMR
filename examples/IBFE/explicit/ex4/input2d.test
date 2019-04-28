@@ -48,6 +48,7 @@ OUTPUT_F                   = TRUE
 OUTPUT_OMEGA               = TRUE
 OUTPUT_DIV_U               = TRUE
 ENABLE_LOGGING             = TRUE
+ELIMINATE_PRESSURE_JUMPS   = FALSE        
 
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
