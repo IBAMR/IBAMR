@@ -643,6 +643,7 @@ sum_weighted_elem_solution_n_vars(const int n_basis,
         SWITCH_CASE(5)
         SWITCH_CASE(6)
         SWITCH_CASE(8)
+        SWITCH_CASE(9)
         SWITCH_CASE(10)
         SWITCH_CASE(27)
 #undef SWITCH_CASE
@@ -1348,6 +1349,7 @@ integrate_elem_rhs_n_vars(const int n_basis,
         SWITCH_CASE(5)
         SWITCH_CASE(6)
         SWITCH_CASE(8)
+        SWITCH_CASE(9)
         SWITCH_CASE(10)
         SWITCH_CASE(27)
 #undef SWITCH_CASE
