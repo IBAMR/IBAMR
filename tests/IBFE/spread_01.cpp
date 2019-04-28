@@ -311,7 +311,7 @@ int main(int argc, char** argv)
         auto &equation_systems = *fe_data_manager.getEquationSystems();
         auto &force_system = equation_systems.get_system(IBFEMethod::FORCE_SYSTEM_NAME);
         auto &half_f_vector = dynamic_cast<libMesh::PetscVector<double> &>(*force_system.current_local_solution);
-        for (unsigned int i = half_f_vector.first_local_index(); i <= half_f_vector.last_local_index(); ++i)
+        for (unsigned int i = half_f_vector.first_local_index(); i < half_f_vector.last_local_index(); ++i)
         {
             half_f_vector.set(i, i % 10);
         }
