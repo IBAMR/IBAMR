@@ -40,6 +40,10 @@
 
 #include "tbox/Utilities.h"
 
+#include <type_traits>
+#include <utility>
+#include <vector>
+
 namespace IBTK
 {
 inline MPI_Datatype
