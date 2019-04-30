@@ -26,7 +26,7 @@ spread_01_SOURCES = spread_01.cpp
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  ln -L -f -s $(srcdir)/*input $(PWD) ; \
-	  ln -L -f -s $(srcdir)/*output $(PWD) ; \
+	  ln -f -s $(srcdir)/*input $(PWD) ; \
+	  ln -f -s $(srcdir)/*output $(PWD) ; \
 	fi ;
 .PHONY: tests
