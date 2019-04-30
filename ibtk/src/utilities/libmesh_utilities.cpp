@@ -53,6 +53,48 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>
+getQuadratureKey(const libMesh::QuadratureType quad_type,
+                 libMesh::Order order,
+                 const bool use_adaptive_quadrature,
+                 const double point_density,
+                 const libMesh::Elem* const elem,
+                 const boost::multi_array<double, 2>& X_node,
+                 const double dx_min)
+{
+    const libMesh::ElemType elem_type = elem->type();
+#ifndef NDEBUG
+    TBOX_ASSERT(elem->p_level() == 0); // higher levels are not implemented
+#endif
+    if (use_adaptive_quadrature)
+    {
+        const double hmax = get_max_edge_length(elem, X_node);
+        int npts = int(std::ceil(point_density * hmax / dx_min));
+        if (npts < 3)
+        {
+            if (elem->default_order() == libMesh::FIRST)
+                npts = 2;
+            else
+                npts = 3;
+        }
+        switch (quad_type)
+        {
+        case libMesh::QGAUSS:
+            order = static_cast<libMesh::Order>(std::min(2 * npts - 1, static_cast<int>(libMesh::FORTYTHIRD)));
+            break;
+        case libMesh::QGRID:
+            order = static_cast<libMesh::Order>(npts);
+            break;
+        default:
+            TBOX_ERROR("IBTK::getQuadratureKey():\n"
+                       << "  adaptive quadrature rules are available only for quad_type = QGAUSS "
+                       "or QGRID\n");
+        }
+    }
+
+    return std::make_tuple(elem_type, quad_type, order);
+}
+
 void
 write_elem_partitioning(const std::string& file_name, const libMesh::System& position_system)
 {

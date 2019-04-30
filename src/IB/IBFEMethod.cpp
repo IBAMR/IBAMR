@@ -2871,7 +2871,6 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     FEDataInterpolation fe(dim, d_fe_data_managers[part]);
     std::unique_ptr<QBase> default_qrule_face =
         QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
-    std::unique_ptr<QBase> qrule_face;
     fe.attachQuadratureRuleFace(default_qrule_face.get());
     fe.evalNormalsFace();
     fe.evalQuadraturePointsFace();
@@ -2933,6 +2932,8 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         T_bdry.clear();
         x_bdry.clear();
         int qp_offset = 0;
+
+        IBTK::QuadratureCache side_quad_cache(dim - 1);
         for (size_t e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             Elem* const elem = patch_elems[e_idx];
@@ -2943,6 +2944,26 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
             fe.collectDataForInterpolation(elem);
             const boost::multi_array<double, 2>& X_node = fe.getElemData(elem, X_sys_idx);
 
+            // Set the length scale for each side (and, therefore, the quadrature
+            // rule) to be the same as the length scale for the element.
+            using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+            // This duplicates the logic in updateSpreadQuadratureRule so that
+            // we can get the key here
+            const quad_key_type elem_quad_key = getQuadratureKey(d_spread_spec[part].quad_type,
+                                                                 d_spread_spec[part].quad_order,
+                                                                 d_spread_spec[part].use_adaptive_quadrature,
+                                                                 d_spread_spec[part].point_density,
+                                                                 elem,
+                                                                 X_node,
+                                                                 patch_dx_min);
+            // TODO: surely there is a better way to get the type of a side
+            // than this!
+            std::unique_ptr<Elem> side_ptr = elem->build_side_ptr(0);
+            const quad_key_type side_quad_key = std::make_tuple(side_ptr->type(),
+                                                                d_spread_spec[part].quad_type,
+                                                                std::get<2>(elem_quad_key));
+            libMesh::QBase &side_quadrature = side_quad_cache[side_quad_key];
+
             // Loop over the element boundaries.
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
@@ -2952,17 +2973,10 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                 // Skip Dirichlet boundaries.
                 if (is_dirichlet_bdry(elem, side, boundary_info, G_dof_map)) continue;
 
-                // Construct a side element.
-                std::unique_ptr<Elem> side_elem = elem->build_side_ptr(side, /*proxy*/ false);
-                const bool qrule_changed = d_fe_data_managers[part]->updateSpreadQuadratureRule(
-                    qrule_face, d_spread_spec[part], side_elem.get(), X_node, patch_dx_min);
-                if (qrule_changed)
-                {
-                    fe.attachQuadratureRuleFace(qrule_face.get());
-                }
+                fe.attachQuadratureRuleFace(&side_quadrature);
                 fe.reinit(elem, side);
                 fe.interpolate(elem, side);
-                const unsigned int n_qp = qrule_face->n_points();
+                const unsigned int n_qp = side_quadrature.n_points();
                 T_bdry.resize(T_bdry.size() + NDIM * n_qp);
                 x_bdry.resize(x_bdry.size() + NDIM * n_qp);
                 for (unsigned int qp = 0; qp < n_qp; ++qp, ++qp_offset)
