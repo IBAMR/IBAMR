@@ -1,0 +1,6 @@
+Fixed: IBFEMethod::spreadTransmissionForceDensity() previously computed length
+scales (for determining side quadrature rules) incorrectly. The length scale for
+the element side is now determined by the length scale of the element itself
+instead of a calculation that did not make sense.
+<br>
+(David Wells, 2019/04/30)
