@@ -40,6 +40,10 @@
 #include "libmesh/numeric_vector.h"
 #include "libmesh/system.h"
 
+#include "libmesh/enum_quadrature_type.h"
+#include "libmesh/enum_order.h"
+#include "libmesh/enum_elem_type.h"
+
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
