@@ -2714,7 +2714,6 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     Phi_system.solve();
     Phi_system.solution->close();
     Phi_system.solution->localize(Phi_vec);
-    // TODO: Why do we enforce constraints only for these cases?
     if ((solver_flag.compare(CG_PHI_SOLVER_NAME) == 0) || (solver_flag.compare(CG_DIFFUSION_PHI_SOLVER_NAME) == 0))
     {
         Phi_dof_map.enforce_constraints_exactly(Phi_system, &Phi_vec);
