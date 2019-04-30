@@ -2698,16 +2698,15 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
             }
         }
 
+        dof_id_scratch = Phi_dof_indices;
         if ((solver_flag.compare(CG_PHI_SOLVER_NAME) == 0) || (solver_flag.compare(CG_DIFFUSION_PHI_SOLVER_NAME) == 0))
         {
             // Apply constraints (e.g., enforce periodic boundary conditions)
             // and add the elemental contributions to the global vector.
-            dof_id_scratch = Phi_dof_indices;
             Phi_dof_map.constrain_element_vector(Phi_rhs_e, dof_id_scratch);
-            Phi_rhs_vec->add_vector(Phi_rhs_e, dof_id_scratch);
         }
 
-        Phi_rhs_vec->add_vector(Phi_rhs_e, Phi_dof_indices);
+        Phi_rhs_vec->add_vector(Phi_rhs_e, dof_id_scratch);
     }
 
     // Solve for Phi.
