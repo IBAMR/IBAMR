@@ -214,55 +214,6 @@ get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
     }
     return dirichlet_bdry_ids;
 } // get_dirichlet_bdry_ids
-
-/**
- * Return the quadrature key description (see QuadratureCache, FECache, and
- * FEMapCache) of a quadrature rule.
- *
- * @seealso FEDataManager::updateQuadratureRule.
- */
-inline
-std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>
-getQuadratureKey(const QuadratureType quad_type,
-                 Order order,
-                 const bool use_adaptive_quadrature,
-                 const double point_density,
-                 const Elem* const elem,
-                 const boost::multi_array<double, 2>& X_node,
-                 const double dx_min)
-{
-    const ElemType elem_type = elem->type();
-#ifndef NDEBUG
-    TBOX_ASSERT(elem->p_level() == 0); // higher levels are not implemented
-#endif
-    if (use_adaptive_quadrature)
-    {
-        const double hmax = get_max_edge_length(elem, X_node);
-        int npts = int(std::ceil(point_density * hmax / dx_min));
-        if (npts < 3)
-        {
-            if (elem->default_order() == FIRST)
-                npts = 2;
-            else
-                npts = 3;
-        }
-        switch (quad_type)
-        {
-        case QGAUSS:
-            order = static_cast<Order>(std::min(2 * npts - 1, static_cast<int>(FORTYTHIRD)));
-            break;
-        case QGRID:
-            order = static_cast<Order>(npts);
-            break;
-        default:
-            TBOX_ERROR("IBTK::getQuadratureKey():\n"
-                       << "  adaptive quadrature rules are available only for quad_type = QGAUSS "
-                       "or QGRID\n");
-        }
-    }
-
-    return std::make_tuple(elem_type, quad_type, order);
-}
 }
 
 const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID = 0x100;
