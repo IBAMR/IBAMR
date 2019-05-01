@@ -2703,6 +2703,9 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
         {
             // Apply constraints (e.g., enforce periodic boundary conditions)
             // and add the elemental contributions to the global vector.
+            // The DOFs for CG and CG_diffusion are on the element nodes, so we enforce constraints here for periodic
+            // boundary conditions, etc.  The DOFs for IPDG are not on the elements nodes.  Instead, periodic boundary
+            // conditions are enforced "weakly" in the IPDG formulation, so enforcing constraints is not necessary.
             Phi_dof_map.constrain_element_vector(Phi_rhs_e, dof_id_scratch);
         }
 
