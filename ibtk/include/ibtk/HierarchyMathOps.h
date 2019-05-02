@@ -811,6 +811,46 @@ public:
                 double src_ghost_fill_time);
 
     /*!
+     * \brief Interpolate to a node-centered vector/tensor field from a
+     * face-centered normal vector/tensor field.
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.  When specified, coarse values
+     * on each coarse-fine interface are synchronized prior to performing the
+     * interpolation.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void interp(int dst_idx,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                int src_idx,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src_var,
+                SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                double src_ghost_fill_time,
+                bool src_cf_bdry_synch);
+
+    /*!
+     * \brief Interpolate to a node-centered vector/tensor field from a
+     * side-centered normal vector/tensor field.
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.  When specified, coarse values
+     * on each coarse-fine interface are synchronized prior to performing the
+     * interpolation.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void interp(int dst_idx,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                int src_idx,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
+                SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                double src_ghost_fill_time,
+                bool src_cf_bdry_synch);
+
+    /*!
      * \brief Interpolate to a edge-centered vector/tensor field from a
      * cell-centered vector/tensor field.
      *
