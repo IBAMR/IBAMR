@@ -306,11 +306,11 @@ def main():
                 unstarted_tests.append(Test(executable, input_file, output_file,
                                             parameters=parameters))
             else:
-                print("Warning: The test with input file \n\n    " + input_file_name +
-                      "\n\n cannot be run since either the input file, output "
+                print("\nWarning: The test with input file \n\n    " + input_file_name +
+                      "\n\ncannot be run since either the input file, output "
                       "file, or executable is\nmissing. This usually means that "
-                      "either\n the test's executable failed to\ncompile or the "
-                      "input file is a broken link.")
+                      "either the test's executable failed to\ncompile or the "
+                      "input file is a broken link.\n")
 
     unstarted_tests.sort(key=lambda u: u.n_mpi_processes())
 
