@@ -349,6 +349,22 @@ public:
                 bool dst_ghost_interp) const;
 
     /*!
+     * \brief Computes the node-centered vector field dst from the face-centered
+     * vector field src by spatial averaging.
+     */
+    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > dst,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > src,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Computes the node-centered vector field dst from the side-centered
+     * vector field src by spatial averaging.
+     */
+    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > dst,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
      * \brief Computes the edge-centered vector field dst from the cell-centered
      * vector field src by spatial averaging.
      */
