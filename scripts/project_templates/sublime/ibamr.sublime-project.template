@@ -42,8 +42,8 @@
             "${HOME}/sfw/samrai/2.4.4/darwin-clang-dbg/include",
         ],
         "SublimeLinter.linters.cppcheck.disable": false,
+        "SublimeLinter.linters.cppcheck.args": "--language=c++",
         "SublimeLinter.linters.cppcheck.enable": "information,performance,portability,style,warning",
-        "SublimeLinter.linters.cppcheck.language": "c++",
-        "SublimeLinter.linters.cppcheck.std": ["c++11"],
+        "SublimeLinter.linters.cppcheck.std": "c++11",
     }
 }
