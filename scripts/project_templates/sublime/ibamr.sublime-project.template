@@ -43,6 +43,7 @@
         ],
         "SublimeLinter.linters.cppcheck.disable": false,
         "SublimeLinter.linters.cppcheck.enable": "information,performance,portability,style,warning",
-        "SublimeLinter.linters.cppcheck.std": ["c++11","c99"],
+        "SublimeLinter.linters.cppcheck.language": "c++",
+        "SublimeLinter.linters.cppcheck.std": ["c++11"],
     }
 }
