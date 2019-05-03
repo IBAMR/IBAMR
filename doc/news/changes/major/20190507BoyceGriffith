@@ -1,0 +1,4 @@
+New: Added routines for tracking mean flow quantities and computing turbluent
+kinetic energy and Reynolds stresses for "steady" fluctuating flows.
+<br>
+(Boyce Griffith, 2019/05/07)
