@@ -392,17 +392,17 @@ public:
 
 protected:
     /*!
-     * L1 norm of the fluid velocity before regridding.
+     * L1 norm of the discrete divergence of the fluid velocity before regridding.
      */
     double d_div_U_norm_1_pre = 0.0;
 
     /*!
-     * L2 norm of the fluid velocity before regridding.
+     * L2 norm of the discrete divergence of the fluid velocity before regridding.
      */
     double d_div_U_norm_2_pre = 0.0;
 
     /*!
-     * L-infinity norm of the fluid velocity before regridding.
+     * L-infinity norm of the discrete divergence of the fluid velocity before regridding.
      */
     double d_div_U_norm_oo_pre = 0.0;
 
