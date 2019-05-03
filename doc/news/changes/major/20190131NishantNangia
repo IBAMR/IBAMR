@@ -1,0 +1,7 @@
+New: Three new multiphase flows examples (7, 8, and 9) have been added. The demonstrate:
+<ol>
+  <li>A cylinder splashing into two fluids with constant viscosity,</li>
+  <li>a buoyant cylinder heaving on an air-water interface, and</li>
+  <li>the differences (in static equilibrium) between full and flow gravitational forces.</li>
+<br>
+(Nishant Nangia, 2019/01/31)

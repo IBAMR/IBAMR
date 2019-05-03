@@ -188,6 +188,9 @@ AC_CONFIG_FILES([
   examples/multiphase_flow/ex4/Makefile
   examples/multiphase_flow/ex5/Makefile
   examples/multiphase_flow/ex6/Makefile
+  examples/multiphase_flow/ex7/Makefile
+  examples/multiphase_flow/ex8/Makefile
+  examples/multiphase_flow/ex9/Makefile
   examples/navier_stokes/Makefile
   examples/navier_stokes/ex0/Makefile
   examples/navier_stokes/ex1/Makefile
