@@ -23,7 +23,7 @@ if GTEST_ENABLED
 GTESTS   += test3d
 endif
 EXAMPLES += main3d
-EXTRA_PROGRAMS += $(GTESTS) $(EXAMPLES)
+EXTRA_PROGRAMS += $(GTESTS) $(EXAMPLES) sphereGen
 endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -34,6 +34,10 @@ main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 main3d_SOURCES = $(EXAMPLE_DRIVER)
 
+sphereGen_CXXFLAGS = $(AM_CXXFLAGS)
+sphereGen_LDADD =
+sphereGen_SOURCES = sphereGen.cpp
+
 test2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 test2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 test2d_SOURCES = $(GTEST_DRIVER)
@@ -42,12 +46,14 @@ test3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 test3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 test3d_SOURCES = $(GTEST_DRIVER)
 
-examples: $(EXAMPLES)
+sphere3d.vertex: sphereGen
+	./sphereGen
+
+examples: $(EXAMPLES) sphere3d.vertex
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d* $(PWD) ; \
 	  cp -f $(srcdir)/cylinder2d.vertex $(PWD) ; \
 	  cp -f $(srcdir)/Cylinder2d_cubic.m $(PWD) ; \
-	  cp -f $(srcdir)/sphereGen.cpp $(PWD) ; \
 	fi ;
 
 if GTEST_ENABLED
@@ -58,7 +64,7 @@ gtest: $(GTESTS)
 	fi ;
 	./test2d input2d.test
 
-gtest-long: 
+gtest-long:
 	make gtest
 
 else
