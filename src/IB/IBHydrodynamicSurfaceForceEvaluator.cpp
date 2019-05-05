@@ -165,12 +165,14 @@ IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
         bool from_restart = RestartManager::getManager()->isFromRestart();
         if (from_restart)
         {
-            d_hydro_force_stream = new std::ofstream("Hydro_Force_" + d_ls_solid_var->getName(), std::fstream::app);
+            d_hydro_force_stream.reset(
+                new std::ofstream("Hydro_Force_" + d_ls_solid_var->getName(), std::fstream::app));
             d_hydro_force_stream->precision(10);
         }
         else
         {
-            d_hydro_force_stream = new std::ofstream("Hydro_Force_" + d_ls_solid_var->getName(), std::fstream::out);
+            d_hydro_force_stream.reset(
+                new std::ofstream("Hydro_Force_" + d_ls_solid_var->getName(), std::fstream::out));
             d_hydro_force_stream->precision(10);
         }
     }
@@ -185,7 +187,6 @@ IBHydrodynamicSurfaceForceEvaluator::~IBHydrodynamicSurfaceForceEvaluator()
     var_db->removePatchDataIndex(d_u_idx);
     var_db->removePatchDataIndex(d_p_idx);
     var_db->removePatchDataIndex(d_mu_idx);
-    delete (d_hydro_force_stream);
 
     return;
 } // ~IBHydrodynamicSurfaceForceEvaluator

@@ -588,7 +588,7 @@ private:
      * introduced via FuRMoRP algorithm.
      */
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_velcorrection_projection_bc_coef;
-    SAMRAI::solv::PoissonSpecifications* d_velcorrection_projection_spec;
+    std::unique_ptr<SAMRAI::solv::PoissonSpecifications> d_velcorrection_projection_spec;
     SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> d_velcorrection_projection_op;
     SAMRAI::tbox::Pointer<IBTK::PETScKrylovPoissonSolver> d_velcorrection_projection_solver;
     SAMRAI::tbox::Pointer<IBTK::CCPoissonPointRelaxationFACOperator> d_velcorrection_projection_fac_op;
@@ -598,8 +598,8 @@ private:
     /*!
      * File streams associated for the output.
      */
-    std::vector<std::ofstream *> d_trans_vel_stream, d_rot_vel_stream, d_drag_force_stream, d_moment_of_inertia_stream,
-        d_torque_stream, d_position_COM_stream, d_power_spent_stream;
+    std::vector<std::unique_ptr<std::ofstream> > d_trans_vel_stream, d_rot_vel_stream, d_drag_force_stream,
+        d_moment_of_inertia_stream, d_torque_stream, d_position_COM_stream, d_power_spent_stream;
 
     /*!
      * Stream for calculating Eulerian momentum.
@@ -608,6 +608,8 @@ private:
 
     /*!
      * Pre and post fluid solve call back functions and contexts.
+     *
+     * TODO: Update these to use std::function.
      */
     std::vector<void (*)(const double, const double, const int, void *)> d_prefluidsolve_callback_fns,
         d_postfluidsolve_callback_fns;
