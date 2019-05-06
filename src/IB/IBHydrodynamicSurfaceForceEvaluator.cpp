@@ -186,7 +186,10 @@ IBHydrodynamicSurfaceForceEvaluator::~IBHydrodynamicSurfaceForceEvaluator()
     var_db->removePatchDataIndex(d_ls_solid_idx);
     var_db->removePatchDataIndex(d_u_idx);
     var_db->removePatchDataIndex(d_p_idx);
-    var_db->removePatchDataIndex(d_mu_idx);
+    if (!d_mu_is_const)
+    {
+        var_db->removePatchDataIndex(d_mu_idx);
+    }
 
     return;
 } // ~IBHydrodynamicSurfaceForceEvaluator
