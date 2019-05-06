@@ -52,13 +52,6 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PoissonSolver::~PoissonSolver()
-{
-    delete d_default_bc_coef;
-    d_default_bc_coef = nullptr;
-    return;
-} // ~PoissonSolver()
-
 void
 PoissonSolver::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
@@ -85,7 +78,7 @@ PoissonSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>&
         }
         else
         {
-            d_bc_coefs[l] = d_default_bc_coef;
+            d_bc_coefs[l] = d_default_bc_coef.get();
         }
     }
     return;
@@ -101,14 +94,15 @@ PoissonSolver::initSpecialized(const std::string& object_name, const bool /*homo
     setPoissonSpecifications(poisson_spec);
 
     // Initialize the boundary conditions.
-    d_default_bc_coef = new LocationIndexRobinBcCoefs<NDIM>(object_name + "::default_bc_coef", Pointer<Database>(nullptr));
+    d_default_bc_coef.reset(
+        new LocationIndexRobinBcCoefs<NDIM>(object_name + "::default_bc_coef", Pointer<Database>(nullptr)));
+    auto p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef.get());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
         p_default_bc_coef->setBoundaryValue(2 * d, 0.0);
         p_default_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
     }
-    setPhysicalBcCoef(d_default_bc_coef);
+    setPhysicalBcCoef(d_default_bc_coef.get());
 } // initSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////

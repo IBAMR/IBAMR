@@ -220,7 +220,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(src_ln);
             Pointer<PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(src_ln - 1);
-            d_coarsen_scheds[src_ln] = d_coarsen_alg->createSchedule(coarser_level, level, d_coarsen_strategy);
+            d_coarsen_scheds[src_ln] = d_coarsen_alg->createSchedule(coarser_level, level, d_coarsen_strategy.get());
         }
     }
 
@@ -334,14 +334,14 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         }
     }
 
-    d_refine_strategy =
-        new RefinePatchStrategySet(refine_patch_strategies.begin(), refine_patch_strategies.end(), false);
+    d_refine_strategy.reset(
+        new RefinePatchStrategySet(refine_patch_strategies.begin(), refine_patch_strategies.end(), false));
 
     d_refine_scheds.resize(d_finest_ln + 1);
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(dst_ln);
-        d_refine_scheds[dst_ln] = d_refine_alg->createSchedule(level, dst_ln - 1, d_hierarchy, d_refine_strategy);
+        d_refine_scheds[dst_ln] = d_refine_alg->createSchedule(level, dst_ln - 1, d_hierarchy, d_refine_strategy.get());
     }
 
     // Setup physical BC type.
@@ -560,12 +560,10 @@ HierarchyGhostCellInterpolation::deallocateOperatorState()
 
     // Clear cached communication schedules.
     d_coarsen_alg.setNull();
-    delete d_coarsen_strategy;
     d_coarsen_strategy = nullptr;
     d_coarsen_scheds.clear();
 
     d_refine_alg.setNull();
-    delete d_refine_strategy;
     d_refine_strategy = nullptr;
     d_refine_scheds.clear();
 

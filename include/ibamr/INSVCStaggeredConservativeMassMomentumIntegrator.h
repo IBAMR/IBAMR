@@ -391,8 +391,8 @@ private:
            d_solution_time = std::numeric_limits<double>::quiet_NaN(), d_dt = std::numeric_limits<double>::quiet_NaN(),
            d_dt_prev = -1.0;
 
-    // Coarse-fine boundary object
-    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM>*> d_cf_boundary;
+    // Coarse-fine boundary objects.
+    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 };
 } // namespace IBAMR
 

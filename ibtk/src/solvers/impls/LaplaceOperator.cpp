@@ -58,7 +58,7 @@ LaplaceOperator::LaplaceOperator(std::string object_name, bool homogeneous_bc)
       d_poisson_spec(d_object_name + "::poisson_spec"),
       d_default_bc_coef(
           new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_bc_coef", Pointer<Database>(nullptr))),
-      d_bc_coefs(1, d_default_bc_coef)
+      d_bc_coefs(1, d_default_bc_coef.get())
 {
     // Initialize the Poisson specifications.
     d_poisson_spec.setCZero();
@@ -66,21 +66,14 @@ LaplaceOperator::LaplaceOperator(std::string object_name, bool homogeneous_bc)
 
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
+    auto p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef.get());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
         p_default_bc_coef->setBoundaryValue(2 * d, 0.0);
         p_default_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
     }
     return;
 } // LaplaceOperator()
-
-LaplaceOperator::~LaplaceOperator()
-{
-    delete d_default_bc_coef;
-    d_default_bc_coef = nullptr;
-    return;
-} // ~LaplaceOperator()
 
 void
 LaplaceOperator::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
@@ -114,7 +107,7 @@ LaplaceOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*
         }
         else
         {
-            d_bc_coefs[l] = d_default_bc_coef;
+            d_bc_coefs[l] = d_default_bc_coef.get();
         }
     }
     return;
