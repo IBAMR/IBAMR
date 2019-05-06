@@ -1,0 +1,83 @@
+u {
+   function = "sin(2*PI*X_0)*sin(2*PI*X_1)"
+}
+
+f {
+   function = "(2*(2*PI)^2)*sin(2*PI*X_0)*sin(2*PI*X_1)"
+}
+
+solver_type = "PETSC_KRYLOV_SOLVER"
+solver_db {
+   // intentionally blank
+}
+
+precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+precond_db {
+   num_pre_sweeps  = 0
+   num_post_sweeps = 3
+   prolongation_method = "LINEAR_REFINE"
+   restriction_method  = "CONSERVATIVE_COARSEN"
+   coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+   coarse_solver_rel_residual_tol = 1.0e-12
+   coarse_solver_abs_residual_tol = 1.0e-50
+   coarse_solver_max_iterations = 1
+   coarse_solver_db {
+      solver_type          = "PFMG"
+      num_pre_relax_steps  = 0
+      num_post_relax_steps = 3
+      enable_logging       = FALSE
+   }
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+N = 16
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (N - 1,N - 1)]
+   x_lo               = 0, 0      // lower end of computational domain.
+   x_up               = 1, 1      // upper end of computational domain.
+   periodic_dimension = 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 2                 // Maximum number of levels in hierarchy.
+
+   ratio_to_coarser {
+      level_1 = 4, 4              // vector ratio to next coarser level
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512          // largest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 =   4,   4          // smallest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   efficiency_tolerance = 0.70e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller
+                                  // boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+//    level_0 = [( N/4 , 0 ),( 3*N/4 - 1 , N - 1 )]
+//    level_0 = [( 0 , N/4 ),( N - 1 , 3*N/4 - 1 )]
+//    level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , 3*N/4 - 1 )]
+//    level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
+//    level_0 = [( N/4 , N/4 ),( N/2 - 1 , 3*N/4 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )]
+      level_0 = [( N/4 , N/4 ),( N/2 - 1 , N/2 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
