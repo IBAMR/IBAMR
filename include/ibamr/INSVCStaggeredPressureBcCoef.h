@@ -291,11 +291,6 @@ private:
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
 
     /*
-     * Patch data index for cell-centered viscosity with ghost cells.
-     */
-    int d_mu_idx;
-
-    /*
      * The type of interpolation to bring cell centered viscosity to side centers.
      */
     IBTK::VCInterpType d_mu_interp_type;

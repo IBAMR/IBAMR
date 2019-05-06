@@ -223,7 +223,7 @@ public:
         return;
     }
 
-    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
+    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs) const
     {
 #if !defined(NDEBUG)
 #if ((NDIM > 3) || (NDIM < 1))
@@ -249,7 +249,7 @@ public:
                 (lhs.getLagrangianIndex() < rhs.getLagrangianIndex()));
     } // operator()
 
-    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs) const
     {
         return (*this)(*lhs, *rhs);
     } // operator()
@@ -264,7 +264,7 @@ private:
  */
 struct LNodeIndexLagrangianIndexComp
 {
-    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
+    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs) const
     {
 #if !defined(NDEBUG)
         TBOX_ASSERT(lhs.getLagrangianIndex() >= 0);
@@ -273,7 +273,7 @@ struct LNodeIndexLagrangianIndexComp
         return lhs.getLagrangianIndex() < rhs.getLagrangianIndex();
     } // operator()
 
-    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs) const
     {
         return (*this)(*lhs, *rhs);
     } // operator()
@@ -285,7 +285,7 @@ struct LNodeIndexLagrangianIndexComp
  */
 struct LNodeIndexGlobalPETScIndexComp
 {
-    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
+    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs) const
     {
 #if !defined(NDEBUG)
         TBOX_ASSERT(lhs.getGlobalPETScIndex() >= 0);
@@ -294,7 +294,7 @@ struct LNodeIndexGlobalPETScIndexComp
         return lhs.getGlobalPETScIndex() < rhs.getGlobalPETScIndex();
     } // operator()
 
-    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs) const
     {
         return (*this)(*lhs, *rhs);
     } // operator()
@@ -306,7 +306,7 @@ struct LNodeIndexGlobalPETScIndexComp
  */
 struct LNodeIndexLocalPETScIndexComp
 {
-    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
+    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs) const
     {
 #if !defined(NDEBUG)
         TBOX_ASSERT(lhs.getLocalPETScIndex() >= 0);
@@ -315,7 +315,7 @@ struct LNodeIndexLocalPETScIndexComp
         return lhs.getLocalPETScIndex() < rhs.getLocalPETScIndex();
     } // operator()
 
-    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs) const
     {
         return (*this)(*lhs, *rhs);
     } // operator()
@@ -341,7 +341,7 @@ public:
         return;
     }
 
-    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
+    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs) const
     {
         const double* const X_lhs = &(*d_X_ghosted_local_form_array)[lhs.getLocalPETScIndex()][0];
         const double* const X_rhs = &(*d_X_ghosted_local_form_array)[rhs.getLocalPETScIndex()][0];
@@ -352,7 +352,7 @@ public:
         return true;
     } // operator()
 
-    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs) const
     {
         return (*this)(*lhs, *rhs);
     } // operator()
@@ -367,7 +367,7 @@ private:
  */
 struct LNodeIndexLagrangianIndexEqual
 {
-    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
+    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs) const
     {
 #if !defined(NDEBUG)
         TBOX_ASSERT(lhs.getLagrangianIndex() >= 0);
@@ -376,7 +376,7 @@ struct LNodeIndexLagrangianIndexEqual
         return lhs.getLagrangianIndex() == rhs.getLagrangianIndex();
     } // operator()
 
-    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs) const
     {
         return (*this)(*lhs, *rhs);
     } // operator()
@@ -388,7 +388,7 @@ struct LNodeIndexLagrangianIndexEqual
  */
 struct LNodeIndexGlobalPETScIndexEqual
 {
-    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
+    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs) const
     {
 #if !defined(NDEBUG)
         TBOX_ASSERT(lhs.getGlobalPETScIndex() >= 0);
@@ -397,7 +397,7 @@ struct LNodeIndexGlobalPETScIndexEqual
         return lhs.getGlobalPETScIndex() == rhs.getGlobalPETScIndex();
     } // operator()
 
-    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs) const
     {
         return (*this)(*lhs, *rhs);
     } // operator()
@@ -409,7 +409,7 @@ struct LNodeIndexGlobalPETScIndexEqual
  */
 struct LNodeIndexLocalPETScIndexEqual
 {
-    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
+    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs) const
     {
 #if !defined(NDEBUG)
         TBOX_ASSERT(lhs.getLocalPETScIndex() >= 0);
@@ -418,7 +418,7 @@ struct LNodeIndexLocalPETScIndexEqual
         return lhs.getLocalPETScIndex() == rhs.getLocalPETScIndex();
     } // operator()
 
-    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs) const
     {
         return (*this)(*lhs, *rhs);
     } // operator()

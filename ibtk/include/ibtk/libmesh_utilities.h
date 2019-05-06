@@ -969,7 +969,7 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
 
 struct DofObjectComp
 {
-    inline bool operator()(const libMesh::DofObject* const lhs, const libMesh::DofObject* const rhs)
+    inline bool operator()(const libMesh::DofObject* const lhs, const libMesh::DofObject* const rhs) const
     {
         return lhs->id() < rhs->id();
     }

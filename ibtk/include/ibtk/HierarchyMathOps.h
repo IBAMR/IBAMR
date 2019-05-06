@@ -1449,8 +1449,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_sc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OuterfaceVariable<NDIM, double> > d_of_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideVariable<NDIM, double> > d_os_var;
-    int d_fc_idx = IBTK::invalid_index, d_sc_idx = IBTK::invalid_index, d_nc_idx = IBTK::invalid_index,
-        d_ec_idx = IBTK::invalid_index, d_of_idx = IBTK::invalid_index, d_os_idx = IBTK::invalid_index;
+    int d_fc_idx = IBTK::invalid_index, d_sc_idx = IBTK::invalid_index, d_of_idx = IBTK::invalid_index,
+        d_os_idx = IBTK::invalid_index;
 
     // Communications operators, algorithms, and schedules.
     std::string d_coarsen_op_name;

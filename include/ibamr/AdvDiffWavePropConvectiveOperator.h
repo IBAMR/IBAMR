@@ -235,7 +235,6 @@ private:
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_var;
-    unsigned int d_Q_data_depth = 0;
     int d_Q_scratch_idx = 0;
 
     const std::vector<RobinBcCoefStrategy<NDIM>*> d_conc_bc_coefs;
