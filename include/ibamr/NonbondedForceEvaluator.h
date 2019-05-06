@@ -90,9 +90,6 @@ private:
     // Assignment operator, not implemented.
     NonbondedForceEvaluator& operator=(const NonbondedForceEvaluator& that) = delete;
 
-    // type of force to use:
-    int d_force_type;
-
     // interaction radius:
     double d_interaction_radius;
 
