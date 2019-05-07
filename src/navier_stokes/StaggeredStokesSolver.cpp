@@ -56,37 +56,26 @@ namespace IBAMR
 
 StaggeredStokesSolver::StaggeredStokesSolver()
     : d_U_problem_coefs("U_problem_coefs"),
-      d_default_U_bc_coef(new LocationIndexRobinBcCoefs<NDIM>("default_U_bc_coef", Pointer<Database>(nullptr))),
-      d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef)),
-      d_default_P_bc_coef(new LocationIndexRobinBcCoefs<NDIM>("default_P_bc_coef", Pointer<Database>(nullptr))),
-      d_P_bc_coef(d_default_P_bc_coef)
+      d_default_U_bc_coef("default_U_bc_coef", Pointer<Database>(nullptr)),
+      d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, &d_default_U_bc_coef)),
+      d_default_P_bc_coef("default_P_bc_coef", Pointer<Database>(nullptr)),
+      d_P_bc_coef(&d_default_P_bc_coef)
 {
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions for the velocity and homogeneous Neumann
     // boundary conditions for the pressure.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto p_default_U_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_U_bc_coef);
-        p_default_U_bc_coef->setBoundaryValue(2 * d, 0.0);
-        p_default_U_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
-        auto p_default_P_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_P_bc_coef);
-        p_default_P_bc_coef->setBoundarySlope(2 * d, 0.0);
-        p_default_P_bc_coef->setBoundarySlope(2 * d + 1, 0.0);
+        d_default_U_bc_coef.setBoundaryValue(2 * d, 0.0);
+        d_default_U_bc_coef.setBoundaryValue(2 * d + 1, 0.0);
+        d_default_P_bc_coef.setBoundarySlope(2 * d, 0.0);
+        d_default_P_bc_coef.setBoundarySlope(2 * d + 1, 0.0);
     }
 
     // Initialize the boundary conditions objects.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef), d_default_P_bc_coef);
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, &d_default_U_bc_coef), &d_default_P_bc_coef);
     return;
 } // StaggeredStokesSolver()
-
-StaggeredStokesSolver::~StaggeredStokesSolver()
-{
-    delete d_default_U_bc_coef;
-    d_default_U_bc_coef = nullptr;
-    delete d_default_P_bc_coef;
-    d_default_P_bc_coef = nullptr;
-    return;
-} // ~StaggeredStokesSolver()
 
 void
 StaggeredStokesSolver::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
@@ -119,7 +108,7 @@ StaggeredStokesSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<
         }
         else
         {
-            d_U_bc_coefs[d] = d_default_U_bc_coef;
+            d_U_bc_coefs[d] = &d_default_U_bc_coef;
         }
     }
 
@@ -129,7 +118,7 @@ StaggeredStokesSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<
     }
     else
     {
-        d_P_bc_coef = d_default_P_bc_coef;
+        d_P_bc_coef = &d_default_P_bc_coef;
     }
     return;
 } // setPhysicalBcCoefs
