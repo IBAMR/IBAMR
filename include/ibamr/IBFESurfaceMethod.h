@@ -331,6 +331,10 @@ public:
                                         double data_time,
                                         unsigned int part = 0,
                                         bool calculate_interior_side = false);
+      /*!
+     * A wrapper to compute the interfacial pressure and fluid traction from the jumps
+     */                                 
+    void calculateInterfacialFluidForces(double data_time, bool calculate_interior_side =false);
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
@@ -604,6 +608,7 @@ protected:
     std::vector<IBTK::FEDataManager::InterpSpec> d_interp_spec;
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
     bool d_use_pressure_jump_conditions, d_use_velocity_jump_conditions;
+    bool d_use_l2_lagrange_family;
     bool d_compute_fluid_traction;
     //~ bool d_calculate_interior_side;
     bool d_perturb_fe_mesh_nodes;

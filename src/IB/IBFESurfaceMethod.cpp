@@ -485,6 +485,61 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
 } // preprocessIntegrateData
 
 void
+IBFESurfaceMethod::calculateInterfacialFluidForces(double data_time, bool calculate_interior_side)
+{
+	
+	batch_vec_ghost_update(
+        { d_X_new_vecs, d_U_new_vecs, d_U_n_new_vecs, d_U_t_new_vecs, d_F_half_vecs }, INSERT_VALUES, SCATTER_FORWARD);
+    batch_vec_ghost_update(
+        { d_WSS_half_vecs, d_P_half_vecs, d_P_jump_half_vecs, d_TAU_half_vecs }, INSERT_VALUES, SCATTER_FORWARD);
+    //~ for (unsigned int d = 0; d < NDIM; ++d)
+    //~ {
+    //~ batch_vec_ghost_update({d_DU_jump_half_vecs[d] }, INSERT_VALUES, SCATTER_FORWARD);
+    //~ }
+
+    for (unsigned part = 0; part < d_num_parts; ++part)
+    {
+        if ((!d_use_pressure_jump_conditions || !d_use_velocity_jump_conditions) && d_compute_fluid_traction)
+        {
+            TBOX_ERROR(
+                d_object_name << ": To compute the traction both velocity and preussure jumps need to be turned on!"
+                              << std::endl);
+        }
+
+        if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
+        {
+            const int coarsest_ln = 0;
+            const int finest_ln = d_hierarchy->getFinestLevelNumber();
+            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            const int p_data_idx = var_db->mapVariableAndContextToIndex(
+                getINSHierarchyIntegrator()->getPressureVariable(), getINSHierarchyIntegrator()->getScratchContext());
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                const Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                if (!level->checkAllocated(mask_scratch_idx)) level->allocatePatchData(mask_scratch_idx);
+            }
+
+            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, coarsest_ln, finest_ln);
+            hier_cc_data_ops.copyData(mask_scratch_idx, p_data_idx, /*interior only*/ false);
+
+            RefineAlgorithm<NDIM> ghost_fill_alg_p;
+            ghost_fill_alg_p.registerRefine(mask_scratch_idx, mask_scratch_idx, mask_scratch_idx, NULL);
+            Pointer<RefineSchedule<NDIM> > ghost_fill_schd_p =
+                ghost_fill_alg_p.createSchedule(d_hierarchy->getPatchLevel(finest_ln));
+            ghost_fill_schd_p->fillData(data_time);
+            interpolatePressureForTraction(mask_scratch_idx, data_time, part, calculate_interior_side);
+
+            if (d_compute_fluid_traction && d_traction_activation_time <= data_time)
+
+            {
+                computeFluidTraction(data_time, part, calculate_interior_side);
+            }
+        }
+	}
+	
+} //calculateInterfacialFluidForces
+
+void
 IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
 {
     batch_vec_ghost_update(
@@ -525,13 +580,13 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
             ghost_fill_alg_p.registerRefine(mask_scratch_idx, mask_scratch_idx, mask_scratch_idx, NULL);
             Pointer<RefineSchedule<NDIM> > ghost_fill_schd_p =
                 ghost_fill_alg_p.createSchedule(d_hierarchy->getPatchLevel(finest_ln));
-            ghost_fill_schd_p->fillData(d_half_time);
-            interpolatePressureForTraction(mask_scratch_idx, d_half_time, part, CALCULATE_INTERIOR_SIDE);
+            ghost_fill_schd_p->fillData(d_new_time);
+            interpolatePressureForTraction(mask_scratch_idx, d_new_time, part, CALCULATE_INTERIOR_SIDE);
 
             if (d_compute_fluid_traction && d_traction_activation_time <= d_current_time)
 
             {
-                computeFluidTraction(d_half_time, part, CALCULATE_INTERIOR_SIDE);
+                computeFluidTraction(d_new_time, part, CALCULATE_INTERIOR_SIDE);
             }
         }
 
@@ -1860,11 +1915,18 @@ IBFESurfaceMethod::initializeFEEquationSystems()
 
             if (d_use_pressure_jump_conditions)
             {
-                System& P_jump_system = equation_systems->add_system<System>(PRESSURE_JUMP_SYSTEM_NAME);
-                P_jump_system.add_variable("P_jump_", d_fe_order[part], d_fe_family[part]);
-
-                System& P_system = equation_systems->add_system<System>(P_SYSTEM_NAME);
-                P_system.add_variable("P_", d_fe_order[part], d_fe_family[part]);
+				System& P_jump_system = equation_systems->add_system<System>(PRESSURE_JUMP_SYSTEM_NAME);
+				System& P_system = equation_systems->add_system<System>(P_SYSTEM_NAME);
+				if (d_use_l2_lagrange_family)
+				{
+					P_jump_system.add_variable("P_jump_", d_fe_order[part], L2_LAGRANGE);
+					P_system.add_variable("P_", d_fe_order[part], L2_LAGRANGE);
+				}
+				else
+				{
+					P_jump_system.add_variable("P_jump_", d_fe_order[part], d_fe_family[part]);
+					P_system.add_variable("P_", d_fe_order[part], d_fe_family[part]);
+				}
             }
 
             if (d_use_velocity_jump_conditions)
@@ -1878,7 +1940,14 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                     {
                         std::ostringstream os;
                         os << "DU_jump_" << d << "_" << i;
-                        DU_jump_system[d]->add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                        if (d_use_l2_lagrange_family)
+						{
+							DU_jump_system[d]->add_variable(os.str(), d_fe_order[part], L2_LAGRANGE);
+						}
+						else
+						{
+							DU_jump_system[d]->add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+						}
                     }
                 }
 
@@ -1887,7 +1956,14 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                 {
                     std::ostringstream os;
                     os << "WSS_" << d;
-                    WSS_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                    if (d_use_l2_lagrange_family)
+					{
+						WSS_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+					}
+					else
+					{
+						WSS_system.add_variable(os.str(), d_fe_order[part], L2_LAGRANGE);
+					}
                 }
             }
 
@@ -1898,7 +1974,14 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                 {
                     std::ostringstream os;
                     os << "TAU_" << d;
-                    TAU_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+                    if (d_use_l2_lagrange_family)
+					{
+						TAU_system.add_variable(os.str(), d_fe_order[part],  L2_LAGRANGE);
+					}
+					else
+					{
+						TAU_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+					}
                 }
             }
         }
@@ -2140,6 +2223,7 @@ IBFESurfaceMethod::putToDatabase(Pointer<Database> db)
     db->putInteger("d_num_parts", d_num_parts);
     db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
     db->putBool("d_use_velocity_jump_conditions", d_use_velocity_jump_conditions);
+    db->putBool("d_use_l2_lagrange_family", d_use_l2_lagrange_family);
     db->putBool("d_use_pressure_jump_conditions", d_use_pressure_jump_conditions);
     db->putBool("d_compute_fluid_traction", d_compute_fluid_traction);
     db->putDouble("d_traction_activation_time", d_traction_activation_time);
@@ -2186,7 +2270,7 @@ void
 IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx,
                                                   const double data_time,
                                                   unsigned int part,
-                                                  bool CALCULATE_INTERIOR_SIDE)
+                                                  bool calculate_interior_side)
 {
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_fe_data_managers[part]->getPatchHierarchy();
 
@@ -2250,7 +2334,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx,
     System& P_system = equation_systems->get_system(P_SYSTEM_NAME);
     const DofMap& P_dof_map = P_system.get_dof_map();
     FEDataManager::SystemDofMapCache& P_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(P_SYSTEM_NAME);
-    TBOX_ASSERT(P_dof_map.variable_type(0) == X_fe_type);
+   // TBOX_ASSERT(P_dof_map.variable_type(0) == X_fe_type);
     std::vector<unsigned int> P_dof_indices;
 
     const std::vector<std::vector<Elem*> >& active_patch_element_map =
@@ -2462,13 +2546,8 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx,
         {
             for (unsigned int k = 0; k < nindices; ++k)
             {
-                if (CALCULATE_INTERIOR_SIDE)
-                    P_qp[local_indices[k]] = -(P_jump_qp[local_indices[k]] - Q_io_qp[local_indices[k]]);
-                else
-                    P_qp[local_indices[k]] =
-                        P_jump_qp[local_indices[k]] +
-                        Q_io_qp[local_indices[k]]; // 0.5 * ( P_jump_qp[local_indices[k]] + Q_i_qp[local_indices[k]] +
-                                                   // Q_o_qp[local_indices[k]]);
+
+                 P_qp[local_indices[k]] =  Q_io_qp[local_indices[k]];
             }
         }
 
@@ -2529,7 +2608,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx,
 } // interpolatePressureForTraction
 
 void
-IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int part, bool CALCULATE_INTERIOR_SIDE)
+IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int part, bool calculate_interior_side)
 {
     NumericVector<double>* WSS_vec = NULL;
     NumericVector<double>* WSS_ghost_vec = d_WSS_IB_ghost_vecs[part];
@@ -2626,7 +2705,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     System& P_system = equation_systems->get_system(P_SYSTEM_NAME);
     const DofMap& P_dof_map = P_system.get_dof_map();
     FEDataManager::SystemDofMapCache& P_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(P_SYSTEM_NAME);
-    TBOX_ASSERT(P_dof_map.variable_type(0) == X_fe_type);
+   // TBOX_ASSERT(P_dof_map.variable_type(0) == X_fe_type);
     std::vector<unsigned int> P_dof_indices;
 
     System& WSS_system = equation_systems->get_system(WSS_SYSTEM_NAME);
@@ -3772,6 +3851,7 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     d_ghosts = 0;
     d_use_velocity_jump_conditions = false;
     d_use_pressure_jump_conditions = false;
+    d_use_l2_lagrange_family = false;
     d_compute_fluid_traction = false;
     d_perturb_fe_mesh_nodes = true;
     d_normalize_pressure_jump = false;
@@ -3939,6 +4019,9 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     // Force computation settings.
     if (db->isBool("use_pressure_jump_conditions"))
         d_use_pressure_jump_conditions = db->getBool("use_pressure_jump_conditions");
+        
+    if (db->isBool("use_l2_lagrange_family"))
+        d_use_l2_lagrange_family = db->getBool("use_l2_lagrange_family");
 
     if (db->isBool("use_velocity_jump_conditions"))
         d_use_velocity_jump_conditions = db->getBool("use_velocity_jump_conditions");
@@ -4006,6 +4089,7 @@ IBFESurfaceMethod::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
     db->getIntegerArray("d_ghosts", d_ghosts, NDIM);
+    d_use_l2_lagrange_family = db->getBool("d_use_l2_lagrange_family");
     d_use_pressure_jump_conditions = db->getBool("d_use_pressure_jump_conditions");
     d_use_velocity_jump_conditions = db->getBool("d_use_velocity_jump_conditions");
     d_compute_fluid_traction = db->getBool("d_compute_fluid_traction");
