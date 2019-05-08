@@ -283,6 +283,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/utilities/ParallelSet.cpp \
 	../src/utilities/PartitioningBox.cpp \
 	../src/utilities/RefinePatchStrategySet.cpp \
+	../src/utilities/SAMRAIDataCache.cpp \
 	../src/utilities/SideDataSynchronization.cpp \
 	../src/utilities/SideNoCornersFillPattern.cpp \
 	../src/utilities/SideSynchCopyFillPattern.cpp \
@@ -435,6 +436,7 @@ am__objects_2 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK2d_a-ParallelSet.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-PartitioningBox.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-RefinePatchStrategySet.$(OBJEXT) \
+	../src/utilities/libIBTK2d_a-SAMRAIDataCache.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-SideDataSynchronization.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-SideNoCornersFillPattern.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-SideSynchCopyFillPattern.$(OBJEXT) \
@@ -576,6 +578,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/utilities/ParallelSet.cpp \
 	../src/utilities/PartitioningBox.cpp \
 	../src/utilities/RefinePatchStrategySet.cpp \
+	../src/utilities/SAMRAIDataCache.cpp \
 	../src/utilities/SideDataSynchronization.cpp \
 	../src/utilities/SideNoCornersFillPattern.cpp \
 	../src/utilities/SideSynchCopyFillPattern.cpp \
@@ -728,6 +731,7 @@ am__objects_4 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK3d_a-ParallelSet.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-PartitioningBox.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-RefinePatchStrategySet.$(OBJEXT) \
+	../src/utilities/libIBTK3d_a-SAMRAIDataCache.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-SideDataSynchronization.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-SideNoCornersFillPattern.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-SideSynchCopyFillPattern.$(OBJEXT) \
@@ -980,6 +984,7 @@ am__depfiles_remade = ../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellIn
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Po \
+	../src/utilities/$(DEPDIR)/libIBTK2d_a-SAMRAIDataCache.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-SideDataSynchronization.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-SideNoCornersFillPattern.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-SideSynchCopyFillPattern.Po \
@@ -1013,6 +1018,7 @@ am__depfiles_remade = ../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellIn
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Po \
+	../src/utilities/$(DEPDIR)/libIBTK3d_a-SAMRAIDataCache.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-SideNoCornersFillPattern.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-SideSynchCopyFillPattern.Po \
@@ -1531,6 +1537,7 @@ pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
 	../include/ibtk/PoissonUtilities.h \
 	../include/ibtk/RefinePatchStrategySet.h \
 	../include/ibtk/RobinPhysBdryPatchStrategy.h \
+	../include/ibtk/SAMRAIDataCache.h \
 	../include/ibtk/SCLaplaceOperator.h \
 	../include/ibtk/SCPoissonHypreLevelSolver.h \
 	../include/ibtk/SCPoissonPETScLevelSolver.h \
@@ -1672,6 +1679,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	../src/utilities/ParallelSet.cpp \
 	../src/utilities/PartitioningBox.cpp \
 	../src/utilities/RefinePatchStrategySet.cpp \
+	../src/utilities/SAMRAIDataCache.cpp \
 	../src/utilities/SideDataSynchronization.cpp \
 	../src/utilities/SideNoCornersFillPattern.cpp \
 	../src/utilities/SideSynchCopyFillPattern.cpp \
@@ -2209,6 +2217,9 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/utilities/libIBTK2d_a-RefinePatchStrategySet.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK2d_a-SAMRAIDataCache.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-SideDataSynchronization.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -2679,6 +2690,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/utilities/libIBTK3d_a-RefinePatchStrategySet.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK3d_a-SAMRAIDataCache.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-SideDataSynchronization.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -3006,6 +3020,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-SAMRAIDataCache.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-SideDataSynchronization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-SideNoCornersFillPattern.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-SideSynchCopyFillPattern.Po@am__quote@ # am--include-marker
@@ -3039,6 +3054,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-SAMRAIDataCache.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-SideNoCornersFillPattern.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-SideSynchCopyFillPattern.Po@am__quote@ # am--include-marker
@@ -4659,6 +4675,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/RefinePatchStrategySet.cpp' object='../src/utilities/libIBTK2d_a-RefinePatchStrategySet.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-RefinePatchStrategySet.obj `if test -f '../src/utilities/RefinePatchStrategySet.cpp'; then $(CYGPATH_W) '../src/utilities/RefinePatchStrategySet.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/RefinePatchStrategySet.cpp'; fi`
+
+../src/utilities/libIBTK2d_a-SAMRAIDataCache.o: ../src/utilities/SAMRAIDataCache.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-SAMRAIDataCache.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-SAMRAIDataCache.Tpo -c -o ../src/utilities/libIBTK2d_a-SAMRAIDataCache.o `test -f '../src/utilities/SAMRAIDataCache.cpp' || echo '$(srcdir)/'`../src/utilities/SAMRAIDataCache.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-SAMRAIDataCache.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-SAMRAIDataCache.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/SAMRAIDataCache.cpp' object='../src/utilities/libIBTK2d_a-SAMRAIDataCache.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-SAMRAIDataCache.o `test -f '../src/utilities/SAMRAIDataCache.cpp' || echo '$(srcdir)/'`../src/utilities/SAMRAIDataCache.cpp
+
+../src/utilities/libIBTK2d_a-SAMRAIDataCache.obj: ../src/utilities/SAMRAIDataCache.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-SAMRAIDataCache.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-SAMRAIDataCache.Tpo -c -o ../src/utilities/libIBTK2d_a-SAMRAIDataCache.obj `if test -f '../src/utilities/SAMRAIDataCache.cpp'; then $(CYGPATH_W) '../src/utilities/SAMRAIDataCache.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/SAMRAIDataCache.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-SAMRAIDataCache.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-SAMRAIDataCache.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/SAMRAIDataCache.cpp' object='../src/utilities/libIBTK2d_a-SAMRAIDataCache.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-SAMRAIDataCache.obj `if test -f '../src/utilities/SAMRAIDataCache.cpp'; then $(CYGPATH_W) '../src/utilities/SAMRAIDataCache.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/SAMRAIDataCache.cpp'; fi`
 
 ../src/utilities/libIBTK2d_a-SideDataSynchronization.o: ../src/utilities/SideDataSynchronization.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-SideDataSynchronization.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-SideDataSynchronization.Tpo -c -o ../src/utilities/libIBTK2d_a-SideDataSynchronization.o `test -f '../src/utilities/SideDataSynchronization.cpp' || echo '$(srcdir)/'`../src/utilities/SideDataSynchronization.cpp
@@ -6396,6 +6426,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-RefinePatchStrategySet.obj `if test -f '../src/utilities/RefinePatchStrategySet.cpp'; then $(CYGPATH_W) '../src/utilities/RefinePatchStrategySet.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/RefinePatchStrategySet.cpp'; fi`
 
+../src/utilities/libIBTK3d_a-SAMRAIDataCache.o: ../src/utilities/SAMRAIDataCache.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-SAMRAIDataCache.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-SAMRAIDataCache.Tpo -c -o ../src/utilities/libIBTK3d_a-SAMRAIDataCache.o `test -f '../src/utilities/SAMRAIDataCache.cpp' || echo '$(srcdir)/'`../src/utilities/SAMRAIDataCache.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-SAMRAIDataCache.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-SAMRAIDataCache.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/SAMRAIDataCache.cpp' object='../src/utilities/libIBTK3d_a-SAMRAIDataCache.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-SAMRAIDataCache.o `test -f '../src/utilities/SAMRAIDataCache.cpp' || echo '$(srcdir)/'`../src/utilities/SAMRAIDataCache.cpp
+
+../src/utilities/libIBTK3d_a-SAMRAIDataCache.obj: ../src/utilities/SAMRAIDataCache.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-SAMRAIDataCache.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-SAMRAIDataCache.Tpo -c -o ../src/utilities/libIBTK3d_a-SAMRAIDataCache.obj `if test -f '../src/utilities/SAMRAIDataCache.cpp'; then $(CYGPATH_W) '../src/utilities/SAMRAIDataCache.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/SAMRAIDataCache.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-SAMRAIDataCache.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-SAMRAIDataCache.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/SAMRAIDataCache.cpp' object='../src/utilities/libIBTK3d_a-SAMRAIDataCache.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-SAMRAIDataCache.obj `if test -f '../src/utilities/SAMRAIDataCache.cpp'; then $(CYGPATH_W) '../src/utilities/SAMRAIDataCache.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/SAMRAIDataCache.cpp'; fi`
+
 ../src/utilities/libIBTK3d_a-SideDataSynchronization.o: ../src/utilities/SideDataSynchronization.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-SideDataSynchronization.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Tpo -c -o ../src/utilities/libIBTK3d_a-SideDataSynchronization.o `test -f '../src/utilities/SideDataSynchronization.cpp' || echo '$(srcdir)/'`../src/utilities/SideDataSynchronization.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Po
@@ -6958,6 +7002,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SAMRAIDataCache.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SideDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SideNoCornersFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SideSynchCopyFillPattern.Po
@@ -6991,6 +7036,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SAMRAIDataCache.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SideNoCornersFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SideSynchCopyFillPattern.Po
@@ -7251,6 +7297,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SAMRAIDataCache.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SideDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SideNoCornersFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-SideSynchCopyFillPattern.Po
@@ -7284,6 +7331,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SAMRAIDataCache.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SideNoCornersFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-SideSynchCopyFillPattern.Po

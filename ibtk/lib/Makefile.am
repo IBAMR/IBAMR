@@ -146,6 +146,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/utilities/ParallelSet.cpp \
 ../src/utilities/PartitioningBox.cpp \
 ../src/utilities/RefinePatchStrategySet.cpp \
+../src/utilities/SAMRAIDataCache.cpp \
 ../src/utilities/SideDataSynchronization.cpp \
 ../src/utilities/SideNoCornersFillPattern.cpp \
 ../src/utilities/SideSynchCopyFillPattern.cpp \
@@ -285,6 +286,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/PoissonUtilities.h \
 ../include/ibtk/RefinePatchStrategySet.h \
 ../include/ibtk/RobinPhysBdryPatchStrategy.h \
+../include/ibtk/SAMRAIDataCache.h \
 ../include/ibtk/SCLaplaceOperator.h \
 ../include/ibtk/SCPoissonHypreLevelSolver.h \
 ../include/ibtk/SCPoissonPETScLevelSolver.h \
