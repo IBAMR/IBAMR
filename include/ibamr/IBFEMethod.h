@@ -106,6 +106,19 @@ namespace IBAMR
  * By default, the libMesh data is partitioned once at the beginning of the
  * computation by libMesh's default partitioner.
  *
+ * <h2>Options Controlling Finite Element Vector Data Layout</h2>
+ * IBFEMethod performs an L2 projection to transfer the velocity of the fluid
+ * from the Eulerian grid to the finite element representation. The parallel
+ * performance of this operation can be substantially improved by doing
+ * assembly into the ghost region of each vector (instead of accumulating into
+ * an internal PETSc object). By default this class will use the 'accumulate
+ * into the ghost region' assembly strategy. The assembly strategy can be
+ * selected by changing the database variable vector_assembly_accumulation
+ * from <code>GHOSTED</code>, the default, to <code>CACHE</code>, which will
+ * use PETSc's VecCache object to distribute data.
+ *
+ * <h2>Options Controlling Partitioning</h2>
+ *
  * This class can repartition libMesh data in a way that matches SAMRAI's
  * distribution of patches; put another way, if a certain region of space on
  * the finest level is assigned to processor N, then all libMesh nodes and
@@ -871,11 +884,20 @@ protected:
     /**
      * Vectors containing entries for relevant IB ghost data: see
      * FEDataManager::buildIBGhostedVector.
+     *
+     * Unlike the other vectors, d_U_IB_rhs_vecs is for assembly and may not
+     * be used: see the main documentation of this class for more information.
      */
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_F_IB_solution_vecs;
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_Q_IB_solution_vecs;
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_U_IB_rhs_vecs;
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_X_IB_solution_vecs;
+
+    /*
+     * Whether or not to use the ghost region for velocity assembly. See the
+     * main documentation of this class for more information.
+     */
+    bool d_use_ghosted_velocity_rhs = true;
 
     /*!
      * Whether or not the libMesh equation systems objects have been
