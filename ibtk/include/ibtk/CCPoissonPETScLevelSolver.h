@@ -44,6 +44,7 @@
 #include "VariableContext.h"
 #include "ibtk/PETScLevelSolver.h"
 #include "ibtk/PoissonSolver.h"
+#include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_utilities.h"
 #include "petscvec.h"
 #include "tbox/Database.h"

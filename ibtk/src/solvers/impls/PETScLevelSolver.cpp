@@ -337,6 +337,10 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         d_cf_boundary = new CoarseFineBoundary<NDIM>(*d_hierarchy, d_level_num, IntVector<NDIM>(1));
     }
 
+    // Setup data cache.
+    d_cached_eulerian_data.setPatchHierarchy(d_hierarchy);
+    d_cached_eulerian_data.resetLevels(d_level_num, d_level_num);
+
     // Perform specialized operations to initialize solver state();
     initializeSolverStateSpecialized(x, b);
 
