@@ -1,5 +1,5 @@
 include $(top_srcdir)/config/Make-rules
-TEST_DIRECTORIES = IBTK IBFE
+TEST_DIRECTORIES = IBTK IBFE multiphase_flow
 
 tests: $(TEST_DIRECTORIES)
 
