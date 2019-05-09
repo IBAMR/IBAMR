@@ -1541,13 +1541,29 @@ FEDataManager::interpWeighted(const int f_data_idx,
     else
     {
         // Extract local form vectors.
-        auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
+        auto X_petsc_vec = dynamic_cast<PetscVector<double>*>(&X_vec);
+        TBOX_ASSERT(X_petsc_vec != nullptr);
         const double* const X_local_soln = X_petsc_vec->get_array_read();
+        // Since we do a lot of assembly in this routine into off-processor
+        // entries we will directly insert into the ghost values (and then
+        // scatter in the calling function with the usual batch function).
+        F_vec.zero();
+        auto F_petsc_vec = dynamic_cast<PetscVector<double>*>(&F_vec);
+        Vec F_local_form = nullptr;
+        double *F_local_soln = nullptr;
+        const bool is_ghosted = F_vec.type() == GHOSTED;
+        if (is_ghosted)
+        {
+            TBOX_ASSERT(F_petsc_vec != nullptr);
+            int ierr = VecGhostGetLocalForm(F_petsc_vec->vec(), &F_local_form);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecGetArray(F_local_form, &F_local_soln);
+            IBTK_CHKERRQ(ierr);
+        }
 
         // Loop over the patches to interpolate values to the element quadrature
         // points from the grid, then use these values to compute the projection
         // of the interpolated velocity field onto the FE basis functions.
-        F_vec.zero();
         DenseVector<double> F_rhs;
         // Assemble F_rhs_e's vectors in an interleaved format (see the implementation):
         std::vector<double> F_rhs_concatenated;
@@ -1719,7 +1735,18 @@ FEDataManager::interpWeighted(const int f_data_idx,
 
                     dof_id_scratch = F_dof_indices[i];
                     F_dof_map.constrain_element_vector(F_rhs, dof_id_scratch);
-                    F_vec.add_vector(F_rhs, dof_id_scratch);
+                    if (is_ghosted)
+                    {
+                        for (unsigned int i = 0; i < dof_id_scratch.size(); ++i)
+                        {
+                            F_local_soln[F_petsc_vec->map_global_to_local_index(dof_id_scratch[i])]
+                                += F_rhs(i);
+                        }
+                    }
+                    else
+                    {
+                        F_vec.add_vector(F_rhs, dof_id_scratch);
+                    }
                 }
                 qp_offset += n_qp;
             }
@@ -1727,6 +1754,21 @@ FEDataManager::interpWeighted(const int f_data_idx,
 
         // Restore local form vectors.
         X_petsc_vec->restore_array();
+        if (is_ghosted)
+        {
+            int ierr = VecRestoreArray(F_local_form, &F_local_soln);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecGhostRestoreLocalForm(F_petsc_vec->vec(), &F_local_form);
+            IBTK_CHKERRQ(ierr);
+
+            if (close_F)
+            {
+                ierr = VecGhostUpdateBegin(F_petsc_vec->vec(), ADD_VALUES, SCATTER_REVERSE);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecGhostUpdateEnd(F_petsc_vec->vec(), ADD_VALUES, SCATTER_REVERSE);
+                IBTK_CHKERRQ(ierr);
+            }
+        }
     }
 
     // Accumulate data.

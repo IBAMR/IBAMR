@@ -515,11 +515,51 @@ public:
                      bool close_X = true);
 
     /*!
-     * \brief Interpolate a value from the Cartesian grid to the FE mesh using
-     * the default interpolation spec. This interpolation function does NOT do
-     * an L2-projection of the interpolated quantity. It does however weighs/filters
-     * the interpolated quantity at the quadrature points to the nodes. Here, the
-     * basis functions of the deformational field is used as the filter.
+     * \brief Set up the right-hand side @p F of an L2 projection problem
+     * where Eulerian data given by @p f_data_idx is projected onto the finite
+     * element space given by @p system_name.
+     *
+     * @param[in] f_data_idx Index of the variable being projected.
+     *
+     * @param[in] IB-ghosted position vector containing the current position
+     * of all dofs whose basis functions have support (in the deformed
+     * configuration) on the locally owned set of patches.
+     *
+     * @param[out] F Vector into which the L2-projection RHS vector will be
+     * assembled. If this vector is ghosted then off-processor entries are
+     * assembled into the ghost value region of the vector and callers should
+     * complete the assembly process with, e.g.,
+     * @code
+     * ierr = VecGhostUpdateBegin(F.vec(), ADD_VALUES, SCATTER_REVERSE);
+     * IBTK_CHKERRQ(ierr);
+     * ierr = VecGhostUpdateEnd(F.vec(), INSERT_VALUES, SCATTER_FORWARD);
+     * IBTK_CHKERRQ(ierr);
+     * @endcode
+     * otherwise values are added into the vector directly (which, for a
+     * libMesh::PetscVector, will involve the use of the PETSc VecCache object
+     * to track off-processor entries). It is strongly recommended, for
+     * performance reasons, that one assemble into a ghosted vector instead of
+     * the approach with VecCache.
+     *
+     * @param[in] system_name Name of the libMesh system corresponding to the
+     * vector @p F.
+     *
+     * @param[in] f_refine_scheds Refinement schedules to process before
+     * actually running this function.
+     *
+     * @param[in] fill_data_time Time at which the data in @p f_data_idx was filled.
+     *
+     * @param[in] Whether or not to close @p F after assembly.
+     *
+     * @param[in] Whether or not to close @p X before assembly.
+     *
+     * @note We recommend against using the last two booleans: it is usually
+     * better to do any vector communication before calling this function.
+     *
+     * @note This function is poorly named: it actually sets up a dual-space
+     * vector @p F which is the right-hand side of an L2 projection
+     * problem. Callers will still need to solve the resulting linear
+     * system. The result, therefore, is projected, not interpolated.
      */
     void
     interpWeighted(int f_data_idx,
