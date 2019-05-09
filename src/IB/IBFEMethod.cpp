@@ -807,7 +807,10 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
 
         d_U_systems[part] = &d_equation_systems[part]->get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
         d_U_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->current_local_solution.get());
-        d_U_rhs_vecs[part] = d_U_IB_rhs_vecs[part].get();
+        if (d_use_ghosted_velocity_rhs)
+            d_U_rhs_vecs[part] = d_U_IB_rhs_vecs[part].get();
+        else
+            d_U_rhs_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->rhs);
         d_U_new_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->request_vector("new"));
         d_U_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->request_vector("half"));
 
@@ -1640,7 +1643,8 @@ IBFEMethod::updateCachedIBGhostedVectors()
 {
     d_F_IB_solution_vecs.resize(d_num_parts);
     d_Q_IB_solution_vecs.resize(d_num_parts);
-    d_U_IB_rhs_vecs.resize(d_num_parts);
+    if (d_use_ghosted_velocity_rhs)
+        d_U_IB_rhs_vecs.resize(d_num_parts);
     d_X_IB_solution_vecs.resize(d_num_parts);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -1649,7 +1653,8 @@ IBFEMethod::updateCachedIBGhostedVectors()
         {
             d_Q_IB_solution_vecs[part] = d_fe_data_managers[part]->buildIBGhostedVector(SOURCE_SYSTEM_NAME);
         }
-        d_U_IB_rhs_vecs[part] = d_fe_data_managers[part]->buildIBGhostedVector(VELOCITY_SYSTEM_NAME);
+        if (d_use_ghosted_velocity_rhs)
+            d_U_IB_rhs_vecs[part] = d_fe_data_managers[part]->buildIBGhostedVector(VELOCITY_SYSTEM_NAME);
         d_X_IB_solution_vecs[part] = d_fe_data_managers[part]->buildIBGhostedVector(COORDS_SYSTEM_NAME);
     }
 }
@@ -3742,6 +3747,19 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_default_interp_spec.use_nodal_quadrature = db->getBool("interp_use_nodal_quadrature");
     else if (db->isBool("IB_use_nodal_quadrature"))
         d_default_interp_spec.use_nodal_quadrature = db->getBool("IB_use_nodal_quadrature");
+    if (db->isString("vector_assembly_accumulation"))
+    {
+        const std::string vector_assembly = db->getString("vector_assembly_accumulation");
+        if (vector_assembly == "GHOSTED")
+            d_use_ghosted_velocity_rhs = true;
+        else if (vector_assembly == "CACHED")
+            d_use_ghosted_velocity_rhs = false;
+        else
+        {
+            TBOX_ERROR(d_object_name << ": value " << vector_assembly << " for vector_assembly_accumulation should be "
+                                     << "either GHOSTED or CACHED." << std::endl);
+        }
+    }
 
     // Spreading settings.
     if (db->isString("spread_delta_fcn"))
