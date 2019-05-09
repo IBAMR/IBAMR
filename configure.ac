@@ -218,6 +218,7 @@ AC_CONFIG_FILES([
   src/utilities/Makefile
   src/tools/Makefile
   tests/Makefile
+  tests/advect/Makefile
   tests/IBFE/Makefile
   tests/IBTK/Makefile
   tests/multiphase_flow/Makefile
