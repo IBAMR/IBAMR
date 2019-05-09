@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <map>
+#include <memory>
 #include <set>
 #include <tuple>
 #include <typeindex>
@@ -82,7 +83,74 @@ public:
     //\}
 
     /**
+     * @brief      Class for accessing cached patch data indices.
+     *
+     * @note       Cached indices will be released when all references to them are deleted.
+     */
+    class CachedPatchDataIndex
+    {
+    public:
+        friend SAMRAIDataCache;
+
+        CachedPatchDataIndex() = delete;
+
+        ~CachedPatchDataIndex() = default;
+
+        inline operator int() const
+        {
+            return getPatchDataIndex();
+        }
+
+        inline int getPatchDataIndex() const
+        {
+            return d_idx_data->d_idx;
+        }
+
+    private:
+        inline CachedPatchDataIndex(const int idx, SAMRAIDataCache* const cache)
+            : d_idx_data(new PatchDataIndexHandle(idx, cache))
+        {
+        }
+
+        struct PatchDataIndexHandle
+        {
+            PatchDataIndexHandle() = delete;
+
+            PatchDataIndexHandle(const PatchDataIndexHandle&) = delete;
+
+            PatchDataIndexHandle& operator=(const PatchDataIndexHandle&) = delete;
+
+            inline PatchDataIndexHandle(const int idx, SAMRAIDataCache* const cache) : d_idx(idx), d_cache(cache)
+            {
+            }
+
+            inline ~PatchDataIndexHandle()
+            {
+                d_cache->restoreCachedPatchDataIndex(d_idx);
+            }
+
+            int d_idx;
+            SAMRAIDataCache* d_cache;
+        };
+
+        std::shared_ptr<PatchDataIndexHandle> d_idx_data;
+    };
+
+    /**
      * @brief      Gets the cached patch data index.
+     *
+     * @param[in]  idx  The patch data index clone or lookup.
+     *
+     * @return     The cached patch data index.
+     */
+    inline CachedPatchDataIndex getCachedPatchDataIndex(int idx)
+    {
+        return CachedPatchDataIndex(lookupCachedPatchDataIndex(idx), this);
+    }
+
+private:
+    /**
+     * @brief      Lookup the cached patch data index.
      *
      * @param[in]  idx  The patch data index clone or lookup.
      *
@@ -90,7 +158,7 @@ public:
      *
      * @note       Patch data indices should be restored to the caching object via restoreCachedPatchDataIndex().
      */
-    int getCachedPatchDataIndex(int idx);
+    int lookupCachedPatchDataIndex(int idx);
 
     /**
      * @brief      Restore the cached patch data index, to allow other to use the corresponding data.
@@ -101,7 +169,6 @@ public:
      */
     void restoreCachedPatchDataIndex(int cached_idx);
 
-private:
     /// \brief Disable the copy constructor.
     SAMRAIDataCache(const SAMRAIDataCache& from) = delete;
 

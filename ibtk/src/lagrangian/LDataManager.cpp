@@ -601,7 +601,7 @@ LDataManager::spread(const int f_data_idx,
     TBOX_ASSERT(cc_data || ec_data || nc_data || sc_data);
 
     // Make a copy of the Eulerian data.
-    const int f_copy_data_idx = d_cached_eulerian_data.getCachedPatchDataIndex(f_data_idx);
+    const auto f_copy_data_idx = d_cached_eulerian_data.getCachedPatchDataIndex(f_data_idx);
     Pointer<HierarchyDataOpsReal<NDIM, double> > f_data_ops =
         HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
@@ -675,7 +675,6 @@ LDataManager::spread(const int f_data_idx,
     // Accumulate data.
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
-    d_cached_eulerian_data.restoreCachedPatchDataIndex(f_copy_data_idx);
 
     IBTK_TIMER_STOP(t_spread);
     return;

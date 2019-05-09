@@ -1176,7 +1176,7 @@ HierarchyMathOps::grad(const int dst_idx,
 
         if (beta != 0.0)
         {
-            int cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
+            const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
             const Pointer<CellVariable<NDIM, double> > cc_var = dst_var;
 
             interp(cc_idx,
@@ -1192,8 +1192,6 @@ HierarchyMathOps::grad(const int dst_idx,
                                           cc_idx,    // src1
                                           beta,      // beta
                                           src2_idx); // src2
-
-            d_cached_eulerian_data.restoreCachedPatchDataIndex(cc_idx);
         }
         else
         {
@@ -1370,7 +1368,7 @@ HierarchyMathOps::grad(const int dst_idx,
 
     if (beta != 0.0)
     {
-        int cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
+        const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
         const Pointer<CellVariable<NDIM, double> > cc_var = dst_var;
 
         interp(cc_idx,
@@ -1386,8 +1384,6 @@ HierarchyMathOps::grad(const int dst_idx,
                                       cc_idx,    // src1
                                       beta,      // beta
                                       src2_idx); // src2
-
-        d_cached_eulerian_data.restoreCachedPatchDataIndex(cc_idx);
     }
     else
     {
@@ -1445,7 +1441,7 @@ HierarchyMathOps::grad(const int dst_idx,
 
     if (beta != 0.0)
     {
-        int cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
+        const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
         const Pointer<CellVariable<NDIM, double> > cc_var = dst_var;
 
         interp(cc_idx,
@@ -1461,8 +1457,6 @@ HierarchyMathOps::grad(const int dst_idx,
                                       cc_idx,    // src1
                                       beta,      // beta
                                       src2_idx); // src2
-
-        d_cached_eulerian_data.restoreCachedPatchDataIndex(cc_idx);
     }
     else
     {
@@ -2264,7 +2258,7 @@ HierarchyMathOps::laplace(const int dst_idx,
         }
         else
         {
-            int cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
+            const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
             const Pointer<CellVariable<NDIM, double> > cc_var = dst_var;
             const int cc_depth = dst_depth;
 
@@ -2284,8 +2278,6 @@ HierarchyMathOps::laplace(const int dst_idx,
 
             pointwiseMultiply(
                 dst_idx, dst_var, gamma, src2_idx, src2_var, 1.0, cc_idx, cc_var, dst_depth, src2_depth, cc_depth);
-
-            d_cached_eulerian_data.restoreCachedPatchDataIndex(cc_idx);
         }
 
         // Deallocate temporary data.

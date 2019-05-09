@@ -217,8 +217,10 @@ SAMRAIDataCache::resetLevels(const int coarsest_ln, const int finest_ln)
     d_finest_ln = finest_ln;
 }
 
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
 int
-SAMRAIDataCache::getCachedPatchDataIndex(const int idx)
+SAMRAIDataCache::lookupCachedPatchDataIndex(const int idx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy && (0 <= d_coarsest_ln) && (d_coarsest_ln <= d_finest_ln) &&
@@ -279,8 +281,6 @@ SAMRAIDataCache::restoreCachedPatchDataIndex(const int cached_idx)
     d_unavailable_data_idx_map.erase(it);
     return;
 }
-
-/////////////////////////////// PRIVATE //////////////////////////////////////
 
 SAMRAIDataCache::key_type
 SAMRAIDataCache::construct_data_descriptor(const int idx)

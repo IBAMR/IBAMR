@@ -284,10 +284,8 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     const int p_idx = x.getComponentDescriptorIndex(1);
     const int f_idx = b.getComponentDescriptorIndex(0);
     const int h_idx = b.getComponentDescriptorIndex(1);
-    const int f_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(f_idx);
-    const int h_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(h_idx);
-    d_level->allocatePatchData(f_adj_idx);
-    d_level->allocatePatchData(h_adj_idx);
+    const auto f_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(f_idx);
+    const auto h_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(h_idx);
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
@@ -323,9 +321,6 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
 
     StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
         petsc_b, f_adj_idx, d_u_dof_index_idx, h_adj_idx, d_p_dof_index_idx, d_level);
-
-    d_cached_eulerian_data.restoreCachedPatchDataIndex(f_adj_idx);
-    d_cached_eulerian_data.restoreCachedPatchDataIndex(h_adj_idx);
 
     copyToPETScVec(petsc_b, b);
     return;

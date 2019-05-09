@@ -193,7 +193,7 @@ SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     const bool level_zero = (d_level_num == 0);
     const int x_idx = x.getComponentDescriptorIndex(0);
     const int b_idx = b.getComponentDescriptorIndex(0);
-    const int b_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(b_idx);
+    const auto b_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(b_idx);
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
@@ -219,7 +219,6 @@ SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         }
     }
     PETScVecUtilities::copyToPatchLevelVec(petsc_b, b_adj_idx, d_dof_index_idx, d_level);
-    d_cached_eulerian_data.restoreCachedPatchDataIndex(b_adj_idx);
     return;
 } // setupKSPVecs
 
