@@ -95,7 +95,9 @@ public:
     /*!
      * Update the sign of the distance function away from the finite element mesh.
      */
-    void updateSignAwayFromInterface(int d_idx);
+    static void updateSignAwayFromInterface(int d_idx,
+                                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                                            double large_distance = s_large_distance);
 
     /*!
      * Check whether the grown box and line element intersect in 2D.
