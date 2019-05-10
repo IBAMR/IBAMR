@@ -41,11 +41,13 @@
 
 #include "BoxGeometryFillPattern.h"
 #include "CartesianGridGeometry.h"
+#include "CoarseFineBoundary.h"
 #include "CoarsenAlgorithm.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
 #include "VariableFillPattern.h"
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
@@ -55,7 +57,6 @@ namespace IBTK
 class CartCellRobinPhysBdryOp;
 class CartExtrapPhysBdryOp;
 class CartSideRobinPhysBdryOp;
-class CoarseFineBoundaryRefinePatchStrategy;
 } // namespace IBTK
 namespace SAMRAI
 {
@@ -376,11 +377,11 @@ private:
 
     // Cached communications algorithms and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;
-    SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* d_coarsen_strategy = nullptr;
+    std::unique_ptr<SAMRAI::xfer::CoarsenPatchStrategy<NDIM> > d_coarsen_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds;
 
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_refine_alg;
-    SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_refine_strategy = nullptr;
+    std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_refine_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_refine_scheds;
 
     // Cached coarse-fine boundary and physical boundary condition handlers.

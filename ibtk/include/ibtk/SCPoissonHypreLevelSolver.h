@@ -286,7 +286,7 @@ private:
     void setupHypreSolver();
     bool solveSystem(int x_idx, int b_idx);
     void copyToHypre(HYPRE_SStructVector vector,
-                     const SAMRAI::pdat::SideData<NDIM, double>& src_data,
+                     SAMRAI::pdat::SideData<NDIM, double>& src_data,
                      const SAMRAI::hier::Box<NDIM>& box);
     void copyFromHypre(SAMRAI::pdat::SideData<NDIM, double>& dst_data,
                        HYPRE_SStructVector vector,

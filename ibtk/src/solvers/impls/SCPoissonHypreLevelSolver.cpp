@@ -836,22 +836,21 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 
 void
 SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
-                                       const SideData<NDIM, double>& src_data,
+                                       SideData<NDIM, double>& src_data,
                                        const Box<NDIM>& box)
 {
     const bool copy_data = src_data.getGhostBox() != box;
-    SideData<NDIM, double>* hypre_data =
-        copy_data ? new SideData<NDIM, double>(box, 1, 0) : const_cast<SideData<NDIM, double>*>(&src_data);
-    if (copy_data) hypre_data->copyOnBox(src_data, box);
+    std::unique_ptr<SideData<NDIM, double> > src_data_box(copy_data ? new SideData<NDIM, double>(box, 1, 0) : nullptr);
+    SideData<NDIM, double>& hypre_data = copy_data ? *src_data_box : src_data;
+    if (copy_data) hypre_data.copyOnBox(src_data, box);
     for (int var = 0; var < NVARS; ++var)
     {
         const unsigned int axis = var;
         Index<NDIM> lower = box.lower();
         lower(axis) -= 1;
         Index<NDIM> upper = box.upper();
-        HYPRE_SStructVectorSetBoxValues(vector, PART, lower, upper, var, hypre_data->getPointer(axis));
+        HYPRE_SStructVectorSetBoxValues(vector, PART, lower, upper, var, hypre_data.getPointer(axis));
     }
-    if (hypre_data != &src_data) delete hypre_data;
     return;
 } // copyToHypre
 
@@ -861,20 +860,20 @@ SCPoissonHypreLevelSolver::copyFromHypre(SideData<NDIM, double>& dst_data,
                                          const Box<NDIM>& box)
 {
     const bool copy_data = dst_data.getGhostBox() != box;
-    SideData<NDIM, double>* hypre_data = copy_data ? new SideData<NDIM, double>(box, 1, 0) : &dst_data;
+    std::unique_ptr<SideData<NDIM, double> > dst_data_box(copy_data ? new SideData<NDIM, double>(box, 1, 0) : nullptr);
+    SideData<NDIM, double>& hypre_data = copy_data ? *dst_data_box : dst_data;
     for (int var = 0; var < NVARS; ++var)
     {
         const unsigned int axis = var;
         Index<NDIM> lower = box.lower();
         lower(axis) -= 1;
         Index<NDIM> upper = box.upper();
-        HYPRE_SStructVectorGetBoxValues(vector, PART, lower, upper, var, hypre_data->getPointer(axis));
+        HYPRE_SStructVectorGetBoxValues(vector, PART, lower, upper, var, hypre_data.getPointer(axis));
     }
     if (copy_data)
     {
-        dst_data.copyOnBox(*hypre_data, box);
+        dst_data.copyOnBox(hypre_data, box);
     }
-    if (hypre_data != &dst_data) delete hypre_data;
     return;
 } // copyFromHypre
 

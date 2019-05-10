@@ -275,8 +275,8 @@ private:
      * Cached hierarchy-related information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM>*> d_cf_boundary;
-    std::vector<SAMRAI::hier::BoxArray<NDIM>*> d_domain_boxes;
+    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
+    std::vector<SAMRAI::hier::BoxArray<NDIM> > d_domain_boxes;
     std::vector<SAMRAI::hier::IntVector<NDIM> > d_periodic_shift;
 };
 } // namespace IBTK

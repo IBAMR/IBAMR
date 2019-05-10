@@ -1578,7 +1578,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::initializeTimeIntegrator(
     const IntVector<NDIM>& max_ghost_width = CF_GHOST_WIDTH;
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        d_cf_boundary[ln] = new CoarseFineBoundary<NDIM>(*d_hierarchy, ln, max_ghost_width);
+        d_cf_boundary[ln] = CoarseFineBoundary<NDIM>(*d_hierarchy, ln, max_ghost_width);
     }
 
     // Allocate data.
@@ -1636,11 +1636,6 @@ INSVCStaggeredConservativeMassMomentumIntegrator::deallocateTimeIntegrator()
     }
 
     // Deallocate coarse-fine boundary object.
-    for (auto& cf_boundary : d_cf_boundary)
-    {
-        delete cf_boundary;
-        cf_boundary = nullptr;
-    }
     d_cf_boundary.clear();
 
     // Deallocate hierarchy math operations object.
@@ -2645,8 +2640,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::enforceDivergenceFreeCondition
             Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(U_idx);
             const int patch_ln = patch->getPatchLevelNumber();
             const int patch_num = patch->getPatchNumber();
-            const Array<BoundaryBox<NDIM> >& cf_bdry_codim1_boxes =
-                d_cf_boundary[patch_ln]->getBoundaries(patch_num, 1);
+            const Array<BoundaryBox<NDIM> >& cf_bdry_codim1_boxes = d_cf_boundary[patch_ln].getBoundaries(patch_num, 1);
             const int n_cf_bdry_codim1_boxes = cf_bdry_codim1_boxes.size();
             if (n_cf_bdry_codim1_boxes == 0) continue;
 

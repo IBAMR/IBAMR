@@ -105,7 +105,7 @@ build_local_marker_cloud(DBfile* dbfile,
                          const std::vector<int>& varstartdepths,
                          const std::vector<int>& varplotdepths,
                          const std::vector<int>& vardepths,
-                         const std::vector<const double*> varvals,
+                         const std::vector<const double*>& varvals,
                          const int time_step,
                          const double simulation_time)
 {
@@ -218,7 +218,7 @@ build_local_curv_block(DBfile* dbfile,
                        const std::vector<int>& varstartdepths,
                        const std::vector<int>& varplotdepths,
                        const std::vector<int>& vardepths,
-                       const std::vector<const double*> varvals,
+                       const std::vector<const double*>& varvals,
                        const int time_step,
                        const double simulation_time)
 {
@@ -421,7 +421,7 @@ build_local_ucd_mesh(DBfile* dbfile,
                      const std::vector<int>& varstartdepths,
                      const std::vector<int>& varplotdepths,
                      const std::vector<int>& vardepths,
-                     const std::vector<const double*> varvals,
+                     const std::vector<const double*>& varvals,
                      const int time_step,
                      const double simulation_time)
 {
@@ -1575,11 +1575,8 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
             block_names_per_proc[ln].resize(mpi_nodes);
             mb_names_per_proc[ln].resize(mpi_nodes);
             ucd_mesh_names_per_proc[ln].resize(mpi_nodes);
-        }
 
-        // Set the values for the root process.
-        if (mpi_rank == SILO_MPI_ROOT)
-        {
+            // Set the values for the root process.
             nclouds_per_proc[ln][mpi_rank] = d_nclouds[ln];
             nblocks_per_proc[ln][mpi_rank] = d_nblocks[ln];
             nmbs_per_proc[ln][mpi_rank] = d_nmbs[ln];
@@ -1631,14 +1628,12 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                 cloud_names_per_proc[ln][proc].resize(nclouds_per_proc[ln][proc]);
 
                 int num_bytes;
-                char* name;
                 for (int cloud = 0; cloud < nclouds_per_proc[ln][proc]; ++cloud)
                 {
                     SAMRAI_MPI::recv(&num_bytes, one, proc, false);
-                    name = new char[num_bytes / sizeof(char)];
-                    SAMRAI_MPI::recvBytes(static_cast<void*>(name), num_bytes);
-                    cloud_names_per_proc[ln][proc][cloud].assign(name);
-                    delete[] name;
+                    std::vector<char> name(num_bytes / sizeof(char));
+                    SAMRAI_MPI::recvBytes(static_cast<void*>(name.data()), num_bytes);
+                    cloud_names_per_proc[ln][proc][cloud].assign(name.data());
                 }
             }
 
@@ -1675,14 +1670,12 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                 SAMRAI_MPI::recv(&vartypes_per_proc[ln][proc][0], nblocks_per_proc[ln][proc], proc, false);
 
                 int num_bytes;
-                char* name;
                 for (int block = 0; block < nblocks_per_proc[ln][proc]; ++block)
                 {
                     SAMRAI_MPI::recv(&num_bytes, one, proc, false);
-                    name = new char[num_bytes / sizeof(char)];
-                    SAMRAI_MPI::recvBytes(static_cast<void*>(name), num_bytes);
-                    block_names_per_proc[ln][proc][block].assign(name);
-                    delete[] name;
+                    std::vector<char> name(num_bytes / sizeof(char));
+                    SAMRAI_MPI::recvBytes(static_cast<void*>(name.data()), num_bytes);
+                    block_names_per_proc[ln][proc][block].assign(name.data());
                 }
             }
 
@@ -1729,7 +1722,6 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                 SAMRAI_MPI::recv(&mb_nblocks_per_proc[ln][proc][0], nmbs_per_proc[ln][proc], proc, false);
 
                 int num_bytes;
-                char* name;
                 for (int mb = 0; mb < nmbs_per_proc[ln][proc]; ++mb)
                 {
                     multimeshtypes_per_proc[ln][proc][mb].resize(mb_nblocks_per_proc[ln][proc][mb]);
@@ -1741,15 +1733,14 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                         &multivartypes_per_proc[ln][proc][mb][0], mb_nblocks_per_proc[ln][proc][mb], proc, false);
 
                     SAMRAI_MPI::recv(&num_bytes, one, proc, false);
-                    name = new char[num_bytes];
+                    std::vector<char> name(num_bytes / sizeof(char));
 
                     MPI_Status status;
-                    MPI_Recv(name, num_bytes, MPI_CHAR, proc, SILO_MPI_TAG, SAMRAI_MPI::commWorld, &status);
+                    MPI_Recv(name.data(), num_bytes, MPI_CHAR, proc, SILO_MPI_TAG, SAMRAI_MPI::commWorld, &status);
                     const int tree = SAMRAI_MPI::getTreeDepth();
                     SAMRAI_MPI::updateIncomingStatistics(tree, num_bytes * sizeof(char));
 
-                    mb_names_per_proc[ln][proc][mb].assign(name);
-                    delete[] name;
+                    mb_names_per_proc[ln][proc][mb].assign(name.data());
                 }
             }
 
@@ -1777,14 +1768,12 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
             {
                 ucd_mesh_names_per_proc[ln][proc].resize(nucd_meshes_per_proc[ln][proc]);
                 int num_bytes;
-                char* name;
                 for (int mesh = 0; mesh < nucd_meshes_per_proc[ln][proc]; ++mesh)
                 {
                     SAMRAI_MPI::recv(&num_bytes, one, proc, false);
-                    name = new char[num_bytes / sizeof(char)];
-                    SAMRAI_MPI::recvBytes(static_cast<void*>(name), num_bytes);
-                    ucd_mesh_names_per_proc[ln][proc][mesh].assign(name);
-                    delete[] name;
+                    std::vector<char> name(num_bytes / sizeof(char));
+                    SAMRAI_MPI::recvBytes(static_cast<void*>(name.data()), num_bytes);
+                    ucd_mesh_names_per_proc[ln][proc][mesh].assign(name.data());
                 }
             }
 
@@ -1877,7 +1866,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
                     const int nblocks = mb_nblocks_per_proc[ln][proc][mb];
-                    auto meshnames = new char*[nblocks];
+                    std::vector<char*> meshnames(nblocks);
 
                     for (int block = 0; block < nblocks; ++block)
                     {
@@ -1889,7 +1878,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                     DBPutMultimesh(dbfile,
                                    mb_name.c_str(),
                                    nblocks,
-                                   meshnames,
+                                   meshnames.data(),
                                    &multimeshtypes_per_proc[ln][proc][mb][0],
                                    optlist);
 
@@ -1905,7 +1894,6 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                     {
                         free(meshnames[block]);
                     }
-                    delete[] meshnames;
                 }
 
                 for (int mesh = 0; mesh < nucd_meshes_per_proc[ln][proc]; ++mesh)
@@ -1978,7 +1966,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                         current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
                         const int nblocks = mb_nblocks_per_proc[ln][proc][mb];
-                        auto varnames = new char*[nblocks];
+                        std::vector<char*> varnames(nblocks);
 
                         for (int block = 0; block < nblocks; ++block)
                         {
@@ -1992,7 +1980,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                         DBPutMultivar(dbfile,
                                       var_name.c_str(),
                                       nblocks,
-                                      varnames,
+                                      varnames.data(),
                                       &multivartypes_per_proc[ln][proc][mb][0],
                                       optlist);
 
@@ -2000,7 +1988,6 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                         {
                             free(varnames[block]);
                         }
-                        delete[] varnames;
                     }
 
                     for (int mesh = 0; mesh < nucd_meshes_per_proc[ln][proc]; ++mesh)

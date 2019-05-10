@@ -102,7 +102,7 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(std::string o
       d_poisson_spec(d_object_name + "::poisson_spec"),
       d_default_bc_coef(
           new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_bc_coef", Pointer<Database>(nullptr))),
-      d_bc_coefs(1, d_default_bc_coef),
+      d_bc_coefs(1, d_default_bc_coef.get()),
       d_gcw(ghost_cell_width),
       d_coarse_solver_default_options_prefix(default_options_prefix + "_coarse")
 {
@@ -112,9 +112,9 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(std::string o
 
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
+    auto p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef.get());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
         p_default_bc_coef->setBoundaryValue(2 * d, 0.0);
         p_default_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
     }
@@ -175,8 +175,6 @@ PoissonFACPreconditionerStrategy::~PoissonFACPreconditionerStrategy()
                                  << "  subclass must call deallocateOperatorState in subclass destructor"
                                  << std::endl);
     }
-    delete d_default_bc_coef;
-    d_default_bc_coef = nullptr;
     return;
 } // ~PoissonFACPreconditionerStrategy
 
@@ -206,7 +204,7 @@ PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<RobinBcCo
         }
         else
         {
-            d_bc_coefs[l] = d_default_bc_coef;
+            d_bc_coefs[l] = d_default_bc_coef.get();
         }
     }
     return;

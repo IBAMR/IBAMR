@@ -1200,7 +1200,7 @@ private:
      * Cached communications algorithms, strategies, and schedules.
      */
     using RefineAlgorithmMap = std::map<std::string, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >;
-    using RefinePatchStrategyMap = std::map<std::string, SAMRAI::xfer::RefinePatchStrategy<NDIM>*>;
+    using RefinePatchStrategyMap = std::map<std::string, std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM> > >;
     using RefineScheduleMap =
         std::map<std::string, std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > >;
 
@@ -1213,7 +1213,7 @@ private:
     RefineScheduleMap d_prolong_scheds;
 
     using CoarsenAlgorithmMap = std::map<std::string, SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >;
-    using CoarsenPatchStrategyMap = std::map<std::string, SAMRAI::xfer::CoarsenPatchStrategy<NDIM>*>;
+    using CoarsenPatchStrategyMap = std::map<std::string, std::unique_ptr<SAMRAI::xfer::CoarsenPatchStrategy<NDIM> > >;
     using CoarsenScheduleMap =
         std::map<std::string, std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > >;
 

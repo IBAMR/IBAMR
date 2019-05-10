@@ -1196,26 +1196,19 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 
 void
 CCPoissonHypreLevelSolver::copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
-                                       const CellData<NDIM, double>& src_data,
+                                       CellData<NDIM, double>& src_data,
                                        const Box<NDIM>& box)
 {
+    const bool copy_data = src_data.getGhostBox() != box;
+    std::unique_ptr<CellData<NDIM, double> > src_data_box(
+        copy_data ? new CellData<NDIM, double>(box, src_data.getDepth(), 0) : nullptr);
+    CellData<NDIM, double>& hypre_data = copy_data ? *src_data_box : src_data;
+    if (copy_data) hypre_data.copyOnBox(src_data, box);
     Index<NDIM> lower = box.lower();
     Index<NDIM> upper = box.upper();
-    if (src_data.getGhostBox() == box)
+    for (unsigned int k = 0; k < d_depth; ++k)
     {
-        for (unsigned int k = 0; k < d_depth; ++k)
-        {
-            HYPRE_StructVectorSetBoxValues(vectors[k], lower, upper, const_cast<double*>(src_data.getPointer(k)));
-        }
-    }
-    else
-    {
-        CellData<NDIM, double> hypre_data(box, 1, 0);
-        for (unsigned int k = 0; k < d_depth; ++k)
-        {
-            hypre_data.copyDepth(0, src_data, k);
-            HYPRE_StructVectorSetBoxValues(vectors[k], lower, upper, hypre_data.getPointer());
-        }
+        HYPRE_StructVectorSetBoxValues(vectors[k], lower, upper, hypre_data.getPointer(k));
     }
     return;
 } // copyToHypre
@@ -1225,23 +1218,19 @@ CCPoissonHypreLevelSolver::copyFromHypre(CellData<NDIM, double>& dst_data,
                                          const std::vector<HYPRE_StructVector>& vectors,
                                          const Box<NDIM>& box)
 {
+    const bool copy_data = dst_data.getGhostBox() != box;
+    std::unique_ptr<CellData<NDIM, double> > dst_data_box(
+        copy_data ? new CellData<NDIM, double>(box, dst_data.getDepth(), 0) : nullptr);
+    CellData<NDIM, double>& hypre_data = copy_data ? *dst_data_box : dst_data;
     Index<NDIM> lower = box.lower();
     Index<NDIM> upper = box.upper();
-    if (dst_data.getGhostBox() == box)
+    for (unsigned int k = 0; k < d_depth; ++k)
     {
-        for (unsigned int k = 0; k < d_depth; ++k)
-        {
-            HYPRE_StructVectorGetBoxValues(vectors[k], lower, upper, dst_data.getPointer(k));
-        }
+        HYPRE_StructVectorGetBoxValues(vectors[k], lower, upper, hypre_data.getPointer(k));
     }
-    else
+    if (copy_data)
     {
-        CellData<NDIM, double> hypre_data(box, 1, 0);
-        for (unsigned int k = 0; k < d_depth; ++k)
-        {
-            HYPRE_StructVectorGetBoxValues(vectors[k], lower, upper, hypre_data.getPointer());
-            dst_data.copyDepth(k, hypre_data, 0);
-        }
+        dst_data.copyOnBox(hypre_data, box);
     }
     return;
 } // copyFromHypre
