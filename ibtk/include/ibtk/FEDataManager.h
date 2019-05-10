@@ -52,8 +52,9 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "boost/multi_array.hpp"
-#include "ibtk/ibtk_utilities.h"
 #include "ibtk/QuadratureCache.h"
+#include "ibtk/SAMRAIDataCache.h"
+#include "ibtk/ibtk_utilities.h"
 #include "libmesh/dof_map.h"
 #include "libmesh/elem.h"
 #include "libmesh/enum_order.h"
@@ -890,6 +891,11 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
+
+    /*
+     * Cached Eulerian data to reduce the number of allocations/deallocations.
+     */
+    SAMRAIDataCache d_cached_eulerian_data;
 
     /*
      * SAMRAI::hier::VariableContext object used for data management.

@@ -148,10 +148,7 @@ VCSCViscousPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     const bool level_zero = (d_level_num == 0);
     const int x_idx = x.getComponentDescriptorIndex(0);
     const int b_idx = b.getComponentDescriptorIndex(0);
-    Pointer<SideVariable<NDIM, double> > b_var = b.getComponentVariable(0);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int b_adj_idx = var_db->registerClonedPatchDataIndex(b_var, b_idx);
-    d_level->allocatePatchData(b_adj_idx);
+    const auto b_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(b_idx);
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
@@ -183,8 +180,6 @@ VCSCViscousPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         }
     }
     PETScVecUtilities::copyToPatchLevelVec(petsc_b, b_adj_idx, d_dof_index_idx, d_level);
-    d_level->deallocatePatchData(b_adj_idx);
-    var_db->removePatchDataIndex(b_adj_idx);
     return;
 } // setupKSPVecs
 

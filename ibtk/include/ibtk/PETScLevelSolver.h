@@ -301,6 +301,11 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 
     /*!
+     * \brief Scratch data.
+     */
+    SAMRAIDataCache d_cached_eulerian_data;
+
+    /*!
      * \name PETSc objects.
      */
     //\{

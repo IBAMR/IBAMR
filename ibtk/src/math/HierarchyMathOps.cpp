@@ -194,7 +194,7 @@ HierarchyMathOps::HierarchyMathOps(std::string name,
     {
         d_sc_idx = var_db->registerVariableAndContext(d_sc_var, d_context, ghosts);
     }
-    
+
     if (var_db->checkVariableExists(d_of_var->getName()))
     {
         d_of_var = var_db->getVariable(d_of_var->getName());
@@ -275,6 +275,7 @@ HierarchyMathOps::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
     // Reset the hierarchy.
     d_hierarchy = hierarchy;
     d_grid_geom = hierarchy->getGridGeometry();
+    d_cached_eulerian_data.setPatchHierarchy(d_hierarchy);
 
     // Obtain the hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
@@ -304,6 +305,7 @@ HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
     // Reset the level numbers.
     d_coarsest_ln = coarsest_ln;
     d_finest_ln = finest_ln;
+    d_cached_eulerian_data.resetLevels(d_coarsest_ln, d_finest_ln);
     d_hier_cc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
     d_hier_fc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
     d_hier_sc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
@@ -1174,14 +1176,8 @@ HierarchyMathOps::grad(const int dst_idx,
 
         if (beta != 0.0)
         {
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            int cc_idx = var_db->registerClonedPatchDataIndex(dst_var, dst_idx);
+            const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
             const Pointer<CellVariable<NDIM, double> > cc_var = dst_var;
-
-            for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-            {
-                d_hierarchy->getPatchLevel(ln)->allocatePatchData(cc_idx);
-            }
 
             interp(cc_idx,
                    cc_var,
@@ -1196,14 +1192,6 @@ HierarchyMathOps::grad(const int dst_idx,
                                           cc_idx,    // src1
                                           beta,      // beta
                                           src2_idx); // src2
-
-            for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-            {
-                d_hierarchy->getPatchLevel(ln)->deallocatePatchData(cc_idx);
-            }
-
-            var_db->removePatchDataIndex(cc_idx);
-            cc_idx = -1;
         }
         else
         {
@@ -1380,14 +1368,8 @@ HierarchyMathOps::grad(const int dst_idx,
 
     if (beta != 0.0)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        int cc_idx = var_db->registerClonedPatchDataIndex(dst_var, dst_idx);
+        const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
         const Pointer<CellVariable<NDIM, double> > cc_var = dst_var;
-
-        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-        {
-            d_hierarchy->getPatchLevel(ln)->allocatePatchData(cc_idx);
-        }
 
         interp(cc_idx,
                cc_var,
@@ -1402,14 +1384,6 @@ HierarchyMathOps::grad(const int dst_idx,
                                       cc_idx,    // src1
                                       beta,      // beta
                                       src2_idx); // src2
-
-        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-        {
-            d_hierarchy->getPatchLevel(ln)->deallocatePatchData(cc_idx);
-        }
-
-        var_db->removePatchDataIndex(cc_idx);
-        cc_idx = -1;
     }
     else
     {
@@ -1467,14 +1441,8 @@ HierarchyMathOps::grad(const int dst_idx,
 
     if (beta != 0.0)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        int cc_idx = var_db->registerClonedPatchDataIndex(dst_var, dst_idx);
+        const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
         const Pointer<CellVariable<NDIM, double> > cc_var = dst_var;
-
-        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-        {
-            d_hierarchy->getPatchLevel(ln)->allocatePatchData(cc_idx);
-        }
 
         interp(cc_idx,
                cc_var,
@@ -1489,14 +1457,6 @@ HierarchyMathOps::grad(const int dst_idx,
                                       cc_idx,    // src1
                                       beta,      // beta
                                       src2_idx); // src2
-
-        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-        {
-            d_hierarchy->getPatchLevel(ln)->deallocatePatchData(cc_idx);
-        }
-
-        var_db->removePatchDataIndex(cc_idx);
-        cc_idx = -1;
     }
     else
     {
@@ -2298,15 +2258,9 @@ HierarchyMathOps::laplace(const int dst_idx,
         }
         else
         {
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            int cc_idx = var_db->registerClonedPatchDataIndex(dst_var, dst_idx);
+            const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
             const Pointer<CellVariable<NDIM, double> > cc_var = dst_var;
             const int cc_depth = dst_depth;
-
-            for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-            {
-                d_hierarchy->getPatchLevel(ln)->allocatePatchData(cc_idx);
-            }
 
             div(cc_idx,
                 cc_var,
@@ -2324,14 +2278,6 @@ HierarchyMathOps::laplace(const int dst_idx,
 
             pointwiseMultiply(
                 dst_idx, dst_var, gamma, src2_idx, src2_var, 1.0, cc_idx, cc_var, dst_depth, src2_depth, cc_depth);
-
-            for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-            {
-                d_hierarchy->getPatchLevel(ln)->deallocatePatchData(cc_idx);
-            }
-
-            var_db->removePatchDataIndex(cc_idx);
-            cc_idx = -1;
         }
 
         // Deallocate temporary data.

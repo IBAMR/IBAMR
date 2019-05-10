@@ -294,6 +294,7 @@ FEDataManager::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
     // Reset the hierarchy.
     TBOX_ASSERT(hierarchy);
     d_hierarchy = hierarchy;
+    d_cached_eulerian_data.setPatchHierarchy(hierarchy);
     return;
 } // setPatchHierarchy
 
@@ -311,6 +312,7 @@ FEDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
     TBOX_ASSERT((coarsest_ln >= 0) && (finest_ln >= coarsest_ln) && (finest_ln <= d_hierarchy->getFinestLevelNumber()));
     d_coarsest_ln = coarsest_ln;
     d_finest_ln = finest_ln;
+    d_cached_eulerian_data.resetLevels(coarsest_ln, finest_ln);
     return;
 } // setPatchLevels
 
@@ -664,11 +666,8 @@ FEDataManager::spread(const int f_data_idx,
 {
     IBTK_TIMER_START(t_spread);
 
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
     // Determine the type of data centering.
+    auto var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<hier::Variable<NDIM> > f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
     Pointer<CellVariable<NDIM, double> > f_cc_var = f_var;
@@ -678,12 +677,7 @@ FEDataManager::spread(const int f_data_idx,
     TBOX_ASSERT(cc_data || sc_data);
 
     // Make a copy of the Eulerian data.
-    const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(f_copy_data_idx);
-    }
+    const auto f_copy_data_idx = d_cached_eulerian_data.getCachedPatchDataIndex(f_data_idx);
     Pointer<HierarchyDataOpsReal<NDIM, double> > f_data_ops =
         HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
@@ -983,12 +977,6 @@ FEDataManager::spread(const int f_data_idx,
     // Accumulate data.
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(f_copy_data_idx);
-    }
-    var_db->removePatchDataIndex(f_copy_data_idx);
 
     IBTK_TIMER_STOP(t_spread);
     return;

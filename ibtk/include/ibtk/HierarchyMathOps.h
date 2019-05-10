@@ -57,6 +57,7 @@
 #include "SideVariable.h"
 #include "VariableContext.h"
 #include "ibtk/PatchMathOps.h"
+#include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_enums.h"
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
@@ -1445,6 +1446,7 @@ private:
     int d_coarsest_ln, d_finest_ln;
 
     // Scratch Variables.
+    SAMRAIDataCache d_cached_eulerian_data;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_fc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_sc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OuterfaceVariable<NDIM, double> > d_of_var;
