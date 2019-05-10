@@ -1,0 +1,4 @@
+Fixed: AdvDiffSemiImplicitHierarchyIntegrator will no longer perform a KSP
+solve when the diffusion coefficient is not present or zero.
+<br>
+(Aaron Barrett, 2019/07/30)
