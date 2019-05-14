@@ -62,30 +62,10 @@ LData::LData(std::string name,
     : d_name(std::move(name)), d_depth(depth), d_nonlocal_petsc_indices(std::move(nonlocal_petsc_indices))
 {
     // Create the PETSc Vec that provides storage for the Lagrangian data.
-    int ierr;
-    if (d_depth == 1)
-    {
-        ierr = VecCreateGhost(PETSC_COMM_WORLD,
-                              num_local_nodes,
-                              PETSC_DECIDE,
-                              static_cast<int>(d_nonlocal_petsc_indices.size()),
-                              d_nonlocal_petsc_indices.empty() ? nullptr : &d_nonlocal_petsc_indices[0],
-                              &d_global_vec);
-        IBTK_CHKERRQ(ierr);
-    }
-    else
-    {
-        ierr = VecCreateGhostBlock(PETSC_COMM_WORLD,
-                                   d_depth,
-                                   d_depth * num_local_nodes,
-                                   PETSC_DECIDE,
-                                   static_cast<int>(d_nonlocal_petsc_indices.size()),
-                                   d_nonlocal_petsc_indices.empty() ? nullptr : &d_nonlocal_petsc_indices[0],
-                                   &d_global_vec);
-        IBTK_CHKERRQ(ierr);
-    }
-    int global_node_count;
-    ierr = VecGetSize(d_global_vec, &global_node_count);
+    d_global_vec = setup_petsc_vector(num_local_nodes, d_depth, d_nonlocal_petsc_indices);
+
+    int global_node_count = 0;
+    const int ierr = VecGetSize(d_global_vec, &global_node_count);
     IBTK_CHKERRQ(ierr);
 #if !defined(NDEBUG)
     TBOX_ASSERT(global_node_count >= 0);
@@ -139,36 +119,14 @@ LData::LData(Pointer<Database> db) : d_name(db->getString("d_name")), d_depth(db
     if (num_ghost_nodes > 0)
     {
         db->getIntegerArray("d_nonlocal_petsc_indices",
-                            d_nonlocal_petsc_indices.empty() ? nullptr : &d_nonlocal_petsc_indices[0],
+                            d_nonlocal_petsc_indices.data(),
                             num_ghost_nodes);
     }
 
-    // Create the PETSc Vec which actually provides the storage for the
-    // Lagrangian data.
-    int ierr;
-    if (d_depth == 1)
-    {
-        ierr = VecCreateGhost(PETSC_COMM_WORLD,
-                              num_local_nodes,
-                              PETSC_DECIDE,
-                              static_cast<int>(d_nonlocal_petsc_indices.size()),
-                              d_nonlocal_petsc_indices.empty() ? nullptr : &d_nonlocal_petsc_indices[0],
-                              &d_global_vec);
-        IBTK_CHKERRQ(ierr);
-    }
-    else
-    {
-        ierr = VecCreateGhostBlock(PETSC_COMM_WORLD,
-                                   d_depth,
-                                   d_depth * num_local_nodes,
-                                   PETSC_DECIDE,
-                                   static_cast<int>(d_nonlocal_petsc_indices.size()),
-                                   d_nonlocal_petsc_indices.empty() ? nullptr : &d_nonlocal_petsc_indices[0],
-                                   &d_global_vec);
-        IBTK_CHKERRQ(ierr);
-    }
+    d_global_vec = setup_petsc_vector(num_local_nodes, d_depth, d_nonlocal_petsc_indices);
+
     int global_node_count;
-    ierr = VecGetSize(d_global_vec, &global_node_count);
+    int ierr = VecGetSize(d_global_vec, &global_node_count);
     IBTK_CHKERRQ(ierr);
 #if !defined(NDEBUG)
     TBOX_ASSERT(global_node_count >= 0);
