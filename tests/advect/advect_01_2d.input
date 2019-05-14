@@ -1,0 +1,120 @@
+// physical parameters
+L = 1.0
+
+// grid spacing parameters
+MAX_LEVELS = 4                            // maximum number of levels in locally refined grid
+REF_RATIO  = 2                            // refinement ratio between levels
+N = 16                                    // coarsest grid spacing
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
+TAG_BUFFER                 = 1            // size of tag buffer used by grid generation algorithm
+
+AdvectorExplicitPredictorPatchOps {
+// Available values for limiter_type:
+// "CTU_ONLY", "MINMOD_LIMITED", "MC_LIMITED",
+// "SUPERBEE_LIMITED", "MUSCL_LIMITED"
+// "SECOND_ORDER", "FOURTH_ORDER",
+// "PPM", "XSPPM7"
+    limiter_type = "XSPPM7"
+}
+
+AdvectorPredictorCorrectorHyperbolicPatchOps {
+   Refinement_data {
+      refine_criteria = "QVAL_GRADIENT"
+      QVAL_GRADIENT {
+         grad_tol = 5.0,5.0,5.0
+      }
+   }
+}
+
+QInit {
+   init_type = "GAUSSIAN"
+   kappa = 0.001
+}
+
+LocationIndexRobinBcCoefs {
+   boundary_0 = "value","0.0"
+   boundary_1 = "value","0.0"
+   boundary_2 = "value","0.0"
+   boundary_3 = "value","0.0"
+}
+
+UFunction {
+   init_type = "UNIFORM"
+   uniform_u = -2.0,1.0
+}
+
+HyperbolicLevelIntegrator {
+   cfl                      = 0.9975e0 // max cfl factor used in problem
+   cfl_init                 = 0.9975e0 // initial cfl factor
+   lag_dt_computation       = TRUE
+   use_ghosts_to_compute_dt = FALSE
+}
+
+TimeRefinementIntegrator {
+   start_time           = 0.0e0  // initial simulation time
+   end_time             = 1.0e0  // final simulation time
+   grow_dt              = 2.0e0  // growth factor for timesteps
+   max_integrator_steps = 10000  // max number of simulation timesteps
+   tag_buffer           = TAG_BUFFER
+}
+
+Main {
+// log file parameters
+   log_file_name               = "advect_2d.log"
+   log_all_nodes               = FALSE
+
+// visualization dump parameters
+   viz_writer                  = "VisIt"
+   viz_dump_interval           = 2
+   viz_dump_dirname            = "viz_advect2d"
+   visit_number_procs_per_file = 1
+
+// restart dump parameters
+   restart_dump_interval      = 0
+   restart_dump_dirname       = "restart_advect2d"
+
+// application parameters
+   timestepping               = "REFINED"
+   u_is_div_free              = TRUE
+   difference_form            = "CONSERVATIVE"
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = L,L
+   periodic_dimension = 1,1
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = REF_RATIO,REF_RATIO
+      level_2 = REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO
+   }
+   largest_patch_size {
+      level_0 = 512,512  // all finer levels will use same values as level_0
+   }
+   smallest_patch_size {
+      level_0 =   4,  4  // all finer levels will use same values as level_0
+   }
+   efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total     = TRUE
+   print_threshold = 0.1
+   timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
+}

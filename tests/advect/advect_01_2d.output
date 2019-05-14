@@ -1,0 +1,12 @@
+using subcycled timestepping.
+advection velocity u is discretely divergence free.
+solving the advection equation in CONSERVATIVE form.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+Computing error norms.
+
+Error in Q at time 1:
+  L1-norm:  0.506702718
+  L2-norm:  3.149813642
+  max-norm: 38.17240882
++++++++++++++++++++++++++++++++++++++++++++++++++++
