@@ -1,0 +1,59 @@
+u {
+   function = "sin(2*PI*(X_0-0.1234))*sin(2*PI*(X_1-0.1234))*sin(2*PI*(X_2-0.1234))"
+}
+
+f {
+   function = "(3*(2*PI)^2)*sin(2*PI*(X_0-0.1234))*sin(2*PI*(X_1-0.1234))*sin(2*PI*(X_2-0.1234))"
+}
+
+Main {
+// log file parameters
+   log_file_name = "CCLaplaceTester3d.log"
+   log_all_nodes = FALSE
+
+// timer dump parameters
+   timer_enabled = TRUE
+}
+
+N = 128
+
+CartesianGeometry {
+   domain_boxes       = [(0,0,0), (N - 1,N - 1,N - 1)]
+   x_lo               = 0, 0, 0   // lower end of computational domain.
+   x_up               = 1, 1, 1   // upper end of computational domain.
+   periodic_dimension = 1, 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 3                 // Maximum number of levels in hierarchy.
+
+   ratio_to_coarser {
+      level_1 = 4, 4, 4           // vector ratio to next coarser level
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512, 512     // largest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 =   1,   1,   1     // smallest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   efficiency_tolerance = 0.70e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller
+                                  // boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0,0,0), (N/2 - 1,N/2 - 1,N/2 - 1)]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
