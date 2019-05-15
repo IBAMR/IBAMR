@@ -42,6 +42,8 @@
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
+#include <boost/multi_array.hpp>
+
 namespace SAMRAI
 {
 namespace tbox
@@ -49,11 +51,6 @@ namespace tbox
 class Database;
 } // namespace tbox
 } // namespace SAMRAI
-namespace boost
-{
-template <typename T, std::size_t NumDims>
-class multi_array_ref;
-} // namespace boost
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -313,6 +310,12 @@ private:
      */
     LData(const LData& from) = delete;
 
+    /*!
+     * Convenience method for doing in-place destruction of array references.
+     */
+    template <std::size_t dim>
+    void destroy_ref(boost::multi_array_ref<double, dim> &ref);
+
     /*
      * Extract the array data.
      */
@@ -352,12 +355,18 @@ private:
     /*
      * The global PETSc Vec object that contains the mesh data, its underlying
      * array, and a boost::multi_array_ref object that wraps that array.
+     *
+     * @note We initialize these with std::vectors here since, with GCC 5 and
+     * glibcxx debugging mode enabled, std::array fails to pass a boost
+     * concept check.
      */
     Vec d_global_vec = nullptr;
     bool d_managing_petsc_vec = true;
     double* d_array = nullptr;
-    boost::multi_array_ref<double, 1>*d_boost_array = nullptr, *d_boost_local_array = nullptr;
-    boost::multi_array_ref<double, 2>*d_boost_vec_array = nullptr, *d_boost_local_vec_array = nullptr;
+    boost::multi_array_ref<double, 1> d_boost_array {nullptr, std::vector<int>{{0}}};
+    boost::multi_array_ref<double, 1> d_boost_local_array {nullptr, std::vector<int>{{0}}};
+    boost::multi_array_ref<double, 2> d_boost_vec_array {nullptr, std::vector<int>{{0, 0}}};
+    boost::multi_array_ref<double, 2> d_boost_local_vec_array {nullptr, std::vector<int>{{0, 0}}};
 
     /*
      * The array corresponding to the PETSc Vec object in local form, its
@@ -366,8 +375,8 @@ private:
      */
     Vec d_ghosted_local_vec = nullptr;
     double* d_ghosted_local_array = nullptr;
-    boost::multi_array_ref<double, 1>* d_boost_ghosted_local_array = nullptr;
-    boost::multi_array_ref<double, 2>* d_boost_vec_ghosted_local_array = nullptr;
+    boost::multi_array_ref<double, 1> d_boost_ghosted_local_array {nullptr, std::vector<int>{{0}}};
+    boost::multi_array_ref<double, 2> d_boost_vec_ghosted_local_array {nullptr, std::vector<int>{{0, 0}}};
 };
 } // namespace IBTK
 

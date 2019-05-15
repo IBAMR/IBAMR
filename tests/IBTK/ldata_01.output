@@ -1,0 +1,32 @@
+LData
+object name: l_data_1
+
+rank: 0
+global nodes: 10 local nodes: 10 ghost nodes: 0
+test locally indexed:
+local entries: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+local ghost entries: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+
+with 2D vector:
+local entries: (0), (1), (2), (3), (4), (5), (6), (7), (8), (9)
+local ghost entries: (0), (1), (2), (3), (4), (5), (6), (7), (8), (9)
+
+test globally indexed:
+local range: [0, 10)
+local entries: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+finished rank 0
+object name: l_data_2
+
+rank: 0
+global nodes: 10 local nodes: 10 ghost nodes: 0
+test locally indexed:
+with 2D vector:
+local entries: (0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8), (9, 9)
+local ghost entries: (0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8), (9, 9)
+
+test globally indexed:
+with 2D vector:
+local range: [0, 5)
+index bases: 0, 0
+local entries: (0, 0), (1, 1), (2, 2), (3, 3), (4, 4)
+finished rank 0

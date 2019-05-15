@@ -91,7 +91,7 @@ EXTRA_PROGRAMS = elem_hmax_01$(EXEEXT) elem_hmax_02$(EXEEXT) \
 	mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	poisson_01_3d$(EXEEXT) samraidatacache_01_2d$(EXEEXT) \
 	samraidatacache_01_3d$(EXEEXT) laplace_01_2d$(EXEEXT) \
-	laplace_01_3d$(EXEEXT)
+	laplace_01_3d$(EXEEXT) ldata_01$(EXEEXT)
 subdir = tests/IBTK
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
@@ -153,6 +153,12 @@ laplace_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(laplace_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
+am_ldata_01_OBJECTS = ldata_01-ldata_01.$(OBJEXT)
+ldata_01_OBJECTS = $(am_ldata_01_OBJECTS)
+ldata_01_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+ldata_01_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(ldata_01_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_mpi_type_wrappers_OBJECTS =  \
 	mpi_type_wrappers-mpi_type_wrappers.$(OBJEXT)
 mpi_type_wrappers_OBJECTS = $(am_mpi_type_wrappers_OBJECTS)
@@ -210,6 +216,7 @@ am__depfiles_remade = ./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po \
 	./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po \
 	./$(DEPDIR)/laplace_01_2d-laplace_01.Po \
 	./$(DEPDIR)/laplace_01_3d-laplace_01.Po \
+	./$(DEPDIR)/ldata_01-ldata_01.Po \
 	./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po \
 	./$(DEPDIR)/poisson_01_2d-poisson_01.Po \
 	./$(DEPDIR)/poisson_01_3d-poisson_01.Po \
@@ -236,13 +243,15 @@ am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(elem_hmax_01_SOURCES) $(elem_hmax_02_SOURCES) \
 	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
-	$(mpi_type_wrappers_SOURCES) $(poisson_01_2d_SOURCES) \
-	$(poisson_01_3d_SOURCES) $(samraidatacache_01_2d_SOURCES) \
+	$(ldata_01_SOURCES) $(mpi_type_wrappers_SOURCES) \
+	$(poisson_01_2d_SOURCES) $(poisson_01_3d_SOURCES) \
+	$(samraidatacache_01_2d_SOURCES) \
 	$(samraidatacache_01_3d_SOURCES)
 DIST_SOURCES = $(elem_hmax_01_SOURCES) $(elem_hmax_02_SOURCES) \
 	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
-	$(mpi_type_wrappers_SOURCES) $(poisson_01_2d_SOURCES) \
-	$(poisson_01_3d_SOURCES) $(samraidatacache_01_2d_SOURCES) \
+	$(ldata_01_SOURCES) $(mpi_type_wrappers_SOURCES) \
+	$(poisson_01_2d_SOURCES) $(poisson_01_3d_SOURCES) \
+	$(samraidatacache_01_2d_SOURCES) \
 	$(samraidatacache_01_3d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -597,6 +606,9 @@ samraidatacache_01_2d_SOURCES = samraidatacache_01.cpp
 samraidatacache_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 samraidatacache_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 samraidatacache_01_3d_SOURCES = samraidatacache_01.cpp
+ldata_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+ldata_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+ldata_01_SOURCES = ldata_01.cpp
 all: all-am
 
 .SUFFIXES:
@@ -648,6 +660,10 @@ laplace_01_3d$(EXEEXT): $(laplace_01_3d_OBJECTS) $(laplace_01_3d_DEPENDENCIES) $
 	@rm -f laplace_01_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(laplace_01_3d_LINK) $(laplace_01_3d_OBJECTS) $(laplace_01_3d_LDADD) $(LIBS)
 
+ldata_01$(EXEEXT): $(ldata_01_OBJECTS) $(ldata_01_DEPENDENCIES) $(EXTRA_ldata_01_DEPENDENCIES) 
+	@rm -f ldata_01$(EXEEXT)
+	$(AM_V_CXXLD)$(ldata_01_LINK) $(ldata_01_OBJECTS) $(ldata_01_LDADD) $(LIBS)
+
 mpi_type_wrappers$(EXEEXT): $(mpi_type_wrappers_OBJECTS) $(mpi_type_wrappers_DEPENDENCIES) $(EXTRA_mpi_type_wrappers_DEPENDENCIES) 
 	@rm -f mpi_type_wrappers$(EXEEXT)
 	$(AM_V_CXXLD)$(mpi_type_wrappers_LINK) $(mpi_type_wrappers_OBJECTS) $(mpi_type_wrappers_LDADD) $(LIBS)
@@ -678,6 +694,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/laplace_01_2d-laplace_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/laplace_01_3d-laplace_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ldata_01-ldata_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poisson_01_2d-poisson_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poisson_01_3d-poisson_01.Po@am__quote@ # am--include-marker
@@ -769,6 +786,20 @@ laplace_01_3d-laplace_01.obj: laplace_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='laplace_01.cpp' object='laplace_01_3d-laplace_01.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o laplace_01_3d-laplace_01.obj `if test -f 'laplace_01.cpp'; then $(CYGPATH_W) 'laplace_01.cpp'; else $(CYGPATH_W) '$(srcdir)/laplace_01.cpp'; fi`
+
+ldata_01-ldata_01.o: ldata_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldata_01_CXXFLAGS) $(CXXFLAGS) -MT ldata_01-ldata_01.o -MD -MP -MF $(DEPDIR)/ldata_01-ldata_01.Tpo -c -o ldata_01-ldata_01.o `test -f 'ldata_01.cpp' || echo '$(srcdir)/'`ldata_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ldata_01-ldata_01.Tpo $(DEPDIR)/ldata_01-ldata_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ldata_01.cpp' object='ldata_01-ldata_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldata_01_CXXFLAGS) $(CXXFLAGS) -c -o ldata_01-ldata_01.o `test -f 'ldata_01.cpp' || echo '$(srcdir)/'`ldata_01.cpp
+
+ldata_01-ldata_01.obj: ldata_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldata_01_CXXFLAGS) $(CXXFLAGS) -MT ldata_01-ldata_01.obj -MD -MP -MF $(DEPDIR)/ldata_01-ldata_01.Tpo -c -o ldata_01-ldata_01.obj `if test -f 'ldata_01.cpp'; then $(CYGPATH_W) 'ldata_01.cpp'; else $(CYGPATH_W) '$(srcdir)/ldata_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ldata_01-ldata_01.Tpo $(DEPDIR)/ldata_01-ldata_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ldata_01.cpp' object='ldata_01-ldata_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldata_01_CXXFLAGS) $(CXXFLAGS) -c -o ldata_01-ldata_01.obj `if test -f 'ldata_01.cpp'; then $(CYGPATH_W) 'ldata_01.cpp'; else $(CYGPATH_W) '$(srcdir)/ldata_01.cpp'; fi`
 
 mpi_type_wrappers-mpi_type_wrappers.o: mpi_type_wrappers.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mpi_type_wrappers_CXXFLAGS) $(CXXFLAGS) -MT mpi_type_wrappers-mpi_type_wrappers.o -MD -MP -MF $(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Tpo -c -o mpi_type_wrappers-mpi_type_wrappers.o `test -f 'mpi_type_wrappers.cpp' || echo '$(srcdir)/'`mpi_type_wrappers.cpp
@@ -975,6 +1006,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
 	-rm -f ./$(DEPDIR)/laplace_01_2d-laplace_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_3d-laplace_01.Po
+	-rm -f ./$(DEPDIR)/ldata_01-ldata_01.Po
 	-rm -f ./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po
 	-rm -f ./$(DEPDIR)/poisson_01_2d-poisson_01.Po
 	-rm -f ./$(DEPDIR)/poisson_01_3d-poisson_01.Po
@@ -1029,6 +1061,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
 	-rm -f ./$(DEPDIR)/laplace_01_2d-laplace_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_3d-laplace_01.Po
+	-rm -f ./$(DEPDIR)/ldata_01-ldata_01.Po
 	-rm -f ./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po
 	-rm -f ./$(DEPDIR)/poisson_01_2d-poisson_01.Po
 	-rm -f ./$(DEPDIR)/poisson_01_3d-poisson_01.Po
