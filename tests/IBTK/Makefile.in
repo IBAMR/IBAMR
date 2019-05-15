@@ -101,7 +101,8 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	ghost_accumulation_01_3d$(EXEEXT) ghost_indices_01_2d$(EXEEXT) \
 	ghost_indices_01_3d$(EXEEXT) ibtk_init$(EXEEXT) \
 	hierarchy_callbacks$(EXEEXT) ibtk_mpi$(EXEEXT) \
-	equal_eps$(EXEEXT) $(am__EXEEXT_1)
+	equal_eps$(EXEEXT) rt0_coarsen_01_2d$(EXEEXT) \
+	rt0_coarsen_01_3d$(EXEEXT) $(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
 @LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d mapping_01 fe_values_01 fe_values_02 \
 @LIBMESH_ENABLED_TRUE@multilevel_fe_01_2d multilevel_fe_01_3d subdomain_level_translation_01 \
@@ -431,6 +432,22 @@ prolongation_mat_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(prolongation_mat_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_rt0_coarsen_01_2d_OBJECTS =  \
+	rt0_coarsen_01_2d-rt0_coarsen_01.$(OBJEXT)
+rt0_coarsen_01_2d_OBJECTS = $(am_rt0_coarsen_01_2d_OBJECTS)
+rt0_coarsen_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+rt0_coarsen_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(rt0_coarsen_01_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_rt0_coarsen_01_3d_OBJECTS =  \
+	rt0_coarsen_01_3d-rt0_coarsen_01.$(OBJEXT)
+rt0_coarsen_01_3d_OBJECTS = $(am_rt0_coarsen_01_3d_OBJECTS)
+rt0_coarsen_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+rt0_coarsen_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(rt0_coarsen_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_samraidatacache_01_2d_OBJECTS =  \
 	samraidatacache_01_2d-samraidatacache_01.$(OBJEXT)
 samraidatacache_01_2d_OBJECTS = $(am_samraidatacache_01_2d_OBJECTS)
@@ -525,6 +542,8 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/poisson_01_3d-poisson_01.Po \
 	./$(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po \
 	./$(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po \
+	./$(DEPDIR)/rt0_coarsen_01_2d-rt0_coarsen_01.Po \
+	./$(DEPDIR)/rt0_coarsen_01_3d-rt0_coarsen_01.Po \
 	./$(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po \
 	./$(DEPDIR)/samraidatacache_01_3d-samraidatacache_01.Po \
 	./$(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Po \
@@ -568,8 +587,8 @@ SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(multilevel_fe_01_3d_SOURCES) $(phys_boundary_ops_2d_SOURCES) \
 	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
 	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
-	$(prolongation_mat_3d_SOURCES) \
-	$(samraidatacache_01_2d_SOURCES) \
+	$(prolongation_mat_3d_SOURCES) $(rt0_coarsen_01_2d_SOURCES) \
+	$(rt0_coarsen_01_3d_SOURCES) $(samraidatacache_01_2d_SOURCES) \
 	$(samraidatacache_01_3d_SOURCES) \
 	$(subdomain_level_translation_01_SOURCES) \
 	$(vc_viscous_solver_2d_SOURCES) \
@@ -597,8 +616,8 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(phys_boundary_ops_2d_SOURCES) \
 	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
 	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
-	$(prolongation_mat_3d_SOURCES) \
-	$(samraidatacache_01_2d_SOURCES) \
+	$(prolongation_mat_3d_SOURCES) $(rt0_coarsen_01_2d_SOURCES) \
+	$(rt0_coarsen_01_3d_SOURCES) $(samraidatacache_01_2d_SOURCES) \
 	$(samraidatacache_01_3d_SOURCES) \
 	$(am__subdomain_level_translation_01_SOURCES_DIST) \
 	$(vc_viscous_solver_2d_SOURCES) \
@@ -1018,6 +1037,12 @@ hierarchy_callbacks_SOURCES = hierarchy_callbacks.cpp
 @LIBMESH_ENABLED_TRUE@fischer_guess_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
 @LIBMESH_ENABLED_TRUE@fischer_guess_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 @LIBMESH_ENABLED_TRUE@fischer_guess_01_SOURCES = fischer_guess_01.cpp
+rt0_coarsen_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+rt0_coarsen_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+rt0_coarsen_01_2d_SOURCES = rt0_coarsen_01.cpp
+rt0_coarsen_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+rt0_coarsen_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+rt0_coarsen_01_3d_SOURCES = rt0_coarsen_01.cpp
 all: all-am
 
 .SUFFIXES:
@@ -1193,6 +1218,14 @@ prolongation_mat_3d$(EXEEXT): $(prolongation_mat_3d_OBJECTS) $(prolongation_mat_
 	@rm -f prolongation_mat_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(prolongation_mat_3d_LINK) $(prolongation_mat_3d_OBJECTS) $(prolongation_mat_3d_LDADD) $(LIBS)
 
+rt0_coarsen_01_2d$(EXEEXT): $(rt0_coarsen_01_2d_OBJECTS) $(rt0_coarsen_01_2d_DEPENDENCIES) $(EXTRA_rt0_coarsen_01_2d_DEPENDENCIES) 
+	@rm -f rt0_coarsen_01_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(rt0_coarsen_01_2d_LINK) $(rt0_coarsen_01_2d_OBJECTS) $(rt0_coarsen_01_2d_LDADD) $(LIBS)
+
+rt0_coarsen_01_3d$(EXEEXT): $(rt0_coarsen_01_3d_OBJECTS) $(rt0_coarsen_01_3d_DEPENDENCIES) $(EXTRA_rt0_coarsen_01_3d_DEPENDENCIES) 
+	@rm -f rt0_coarsen_01_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(rt0_coarsen_01_3d_LINK) $(rt0_coarsen_01_3d_OBJECTS) $(rt0_coarsen_01_3d_LDADD) $(LIBS)
+
 samraidatacache_01_2d$(EXEEXT): $(samraidatacache_01_2d_OBJECTS) $(samraidatacache_01_2d_DEPENDENCIES) $(EXTRA_samraidatacache_01_2d_DEPENDENCIES) 
 	@rm -f samraidatacache_01_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(samraidatacache_01_2d_LINK) $(samraidatacache_01_2d_OBJECTS) $(samraidatacache_01_2d_LDADD) $(LIBS)
@@ -1254,6 +1287,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poisson_01_3d-poisson_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rt0_coarsen_01_2d-rt0_coarsen_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rt0_coarsen_01_3d-rt0_coarsen_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/samraidatacache_01_3d-samraidatacache_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Po@am__quote@ # am--include-marker
@@ -1780,6 +1815,34 @@ prolongation_mat_3d-prolongation_mat.obj: prolongation_mat.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(prolongation_mat_3d_CXXFLAGS) $(CXXFLAGS) -c -o prolongation_mat_3d-prolongation_mat.obj `if test -f 'prolongation_mat.cpp'; then $(CYGPATH_W) 'prolongation_mat.cpp'; else $(CYGPATH_W) '$(srcdir)/prolongation_mat.cpp'; fi`
 
+rt0_coarsen_01_2d-rt0_coarsen_01.o: rt0_coarsen_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rt0_coarsen_01_2d_CXXFLAGS) $(CXXFLAGS) -MT rt0_coarsen_01_2d-rt0_coarsen_01.o -MD -MP -MF $(DEPDIR)/rt0_coarsen_01_2d-rt0_coarsen_01.Tpo -c -o rt0_coarsen_01_2d-rt0_coarsen_01.o `test -f 'rt0_coarsen_01.cpp' || echo '$(srcdir)/'`rt0_coarsen_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/rt0_coarsen_01_2d-rt0_coarsen_01.Tpo $(DEPDIR)/rt0_coarsen_01_2d-rt0_coarsen_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='rt0_coarsen_01.cpp' object='rt0_coarsen_01_2d-rt0_coarsen_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rt0_coarsen_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o rt0_coarsen_01_2d-rt0_coarsen_01.o `test -f 'rt0_coarsen_01.cpp' || echo '$(srcdir)/'`rt0_coarsen_01.cpp
+
+rt0_coarsen_01_2d-rt0_coarsen_01.obj: rt0_coarsen_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rt0_coarsen_01_2d_CXXFLAGS) $(CXXFLAGS) -MT rt0_coarsen_01_2d-rt0_coarsen_01.obj -MD -MP -MF $(DEPDIR)/rt0_coarsen_01_2d-rt0_coarsen_01.Tpo -c -o rt0_coarsen_01_2d-rt0_coarsen_01.obj `if test -f 'rt0_coarsen_01.cpp'; then $(CYGPATH_W) 'rt0_coarsen_01.cpp'; else $(CYGPATH_W) '$(srcdir)/rt0_coarsen_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/rt0_coarsen_01_2d-rt0_coarsen_01.Tpo $(DEPDIR)/rt0_coarsen_01_2d-rt0_coarsen_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='rt0_coarsen_01.cpp' object='rt0_coarsen_01_2d-rt0_coarsen_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rt0_coarsen_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o rt0_coarsen_01_2d-rt0_coarsen_01.obj `if test -f 'rt0_coarsen_01.cpp'; then $(CYGPATH_W) 'rt0_coarsen_01.cpp'; else $(CYGPATH_W) '$(srcdir)/rt0_coarsen_01.cpp'; fi`
+
+rt0_coarsen_01_3d-rt0_coarsen_01.o: rt0_coarsen_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rt0_coarsen_01_3d_CXXFLAGS) $(CXXFLAGS) -MT rt0_coarsen_01_3d-rt0_coarsen_01.o -MD -MP -MF $(DEPDIR)/rt0_coarsen_01_3d-rt0_coarsen_01.Tpo -c -o rt0_coarsen_01_3d-rt0_coarsen_01.o `test -f 'rt0_coarsen_01.cpp' || echo '$(srcdir)/'`rt0_coarsen_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/rt0_coarsen_01_3d-rt0_coarsen_01.Tpo $(DEPDIR)/rt0_coarsen_01_3d-rt0_coarsen_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='rt0_coarsen_01.cpp' object='rt0_coarsen_01_3d-rt0_coarsen_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rt0_coarsen_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o rt0_coarsen_01_3d-rt0_coarsen_01.o `test -f 'rt0_coarsen_01.cpp' || echo '$(srcdir)/'`rt0_coarsen_01.cpp
+
+rt0_coarsen_01_3d-rt0_coarsen_01.obj: rt0_coarsen_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rt0_coarsen_01_3d_CXXFLAGS) $(CXXFLAGS) -MT rt0_coarsen_01_3d-rt0_coarsen_01.obj -MD -MP -MF $(DEPDIR)/rt0_coarsen_01_3d-rt0_coarsen_01.Tpo -c -o rt0_coarsen_01_3d-rt0_coarsen_01.obj `if test -f 'rt0_coarsen_01.cpp'; then $(CYGPATH_W) 'rt0_coarsen_01.cpp'; else $(CYGPATH_W) '$(srcdir)/rt0_coarsen_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/rt0_coarsen_01_3d-rt0_coarsen_01.Tpo $(DEPDIR)/rt0_coarsen_01_3d-rt0_coarsen_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='rt0_coarsen_01.cpp' object='rt0_coarsen_01_3d-rt0_coarsen_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rt0_coarsen_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o rt0_coarsen_01_3d-rt0_coarsen_01.obj `if test -f 'rt0_coarsen_01.cpp'; then $(CYGPATH_W) 'rt0_coarsen_01.cpp'; else $(CYGPATH_W) '$(srcdir)/rt0_coarsen_01.cpp'; fi`
+
 samraidatacache_01_2d-samraidatacache_01.o: samraidatacache_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(samraidatacache_01_2d_CXXFLAGS) $(CXXFLAGS) -MT samraidatacache_01_2d-samraidatacache_01.o -MD -MP -MF $(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Tpo -c -o samraidatacache_01_2d-samraidatacache_01.o `test -f 'samraidatacache_01.cpp' || echo '$(srcdir)/'`samraidatacache_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Tpo $(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po
@@ -2016,6 +2079,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/poisson_01_3d-poisson_01.Po
 	-rm -f ./$(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po
 	-rm -f ./$(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po
+	-rm -f ./$(DEPDIR)/rt0_coarsen_01_2d-rt0_coarsen_01.Po
+	-rm -f ./$(DEPDIR)/rt0_coarsen_01_3d-rt0_coarsen_01.Po
 	-rm -f ./$(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po
 	-rm -f ./$(DEPDIR)/samraidatacache_01_3d-samraidatacache_01.Po
 	-rm -f ./$(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Po
@@ -2101,6 +2166,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/poisson_01_3d-poisson_01.Po
 	-rm -f ./$(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po
 	-rm -f ./$(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po
+	-rm -f ./$(DEPDIR)/rt0_coarsen_01_2d-rt0_coarsen_01.Po
+	-rm -f ./$(DEPDIR)/rt0_coarsen_01_3d-rt0_coarsen_01.Po
 	-rm -f ./$(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po
 	-rm -f ./$(DEPDIR)/samraidatacache_01_3d-samraidatacache_01.Po
 	-rm -f ./$(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Po
