@@ -57,10 +57,34 @@ namespace IBAMR
 class FESurfaceDistanceEvaluator
 {
 public:
+    /*!
+     *  \brief Set uninitialized distance value to \em s_large_distance.
+     *
+     *  \note Since the class computes distance from the interface only upto
+     *  ghost width specified in the constructor of the class, the rest of the
+     *  distance values are uninitialized. It is advisable to set a specific number
+     *  to distinguish between initialized and uninitialzed distance values.
+     *
+     *  \note An unitialized distance value of zero, could lead to subtle bugs in the
+     *  code as zero distance value implies cell centers intersected by the interface.
+     *
+     */
     static const double s_large_distance;
 
     /*!
-     * The only constructor of this class.
+     * \brief The only constructor of this class.
+     *
+     * \param mesh The finite element mesh representing either codim-0 or codim-1 object.
+     *
+     * \param bdry_mesh The codim-1 version of \em mesh. If provided \em mesh is already codim-1, then
+     * \em bdry_mesh will be equivalent to \em \mesh.
+
+     * \param gcw These are the number of cells on inside and outside region demarcated by the interface
+     * for which ditance is computed.
+     *
+     * \param use_extracted_bdry_mesh Boolean indicating if we are working with codim-1 mesh that is extracted
+     * from a codim-0 \em mesh. Therefore, this boolean should be true for codim-0 \em mesh and false
+     * for codim-1 \em mesh.
      */
     FESurfaceDistanceEvaluator(const std::string& object_name,
                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
@@ -72,28 +96,41 @@ public:
                                bool use_extracted_bdry_mesh = true);
 
     /*!
-     * Destructor for this class.
+     * \brief Destructor for this class.
      */
     ~FESurfaceDistanceEvaluator();
 
     /*!
-     * Map the triangles intersecting a particular grid cell.
+     * \brief Map the triangles intersecting a particular grid cell.
      */
     void mapIntersections();
 
     /*!
-     * Get the map maintaining triangle-cell intersection and neighbors.
+     * \brief Get the map maintaining triangle-cell intersection and neighbors.
      */
     const std::map<SAMRAI::pdat::CellIndex<NDIM>, std::set<libMesh::Elem*>, IBTK::CellIndexFortranOrder>&
     getNeighborIntersectionsMap();
 
     /*!
-     * Compute the signed distance in the viscinity of the finite element mesh.
+     * \brief Compute the signed distance in the viscinity of the finite element mesh.
+     *
+     * \param n_idx Patch data index to hold number of finite elements in Cartesian cell.
+     *  A negative patch data index ignores populating this field.
+     *
+     * \param d_idx Patch data index to hold the distance value from the interface.
+     *
+     * \note The user should first initialize d_idx with (positive and uniform) "large" distance value
+     * (relevant to a particular application) away from the interface before letting this function
+     * calculate distance values near the interface.
      */
     void computeSignedDistance(int n_idx, int d_idx);
 
     /*!
-     * Update the sign of the distance function away from the finite element mesh.
+     * \brief Update the sign of the \em large_distance value away from the finite element mesh.
+     *
+     * \note Some specified distance (as given in the constructor of this class) away from the interface,
+     * the distance value is set to (positive) \em large_distance. This routine negates \em large_distance
+     * value inside the body, while retaining its positive sign outside the body.
      */
     static void updateSignAwayFromInterface(int d_idx,
                                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,

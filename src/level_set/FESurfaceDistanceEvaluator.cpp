@@ -334,7 +334,6 @@ void
 FESurfaceDistanceEvaluator::computeSignedDistance(int n_idx, int d_idx)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(n_idx >= 0);
     TBOX_ASSERT(d_idx >= 0);
 #endif
 
@@ -990,7 +989,10 @@ FESurfaceDistanceEvaluator::computeSignedDistanceVolExtractedBdryMesh(int n_idx,
             {
                 std::set<Elem*> elem_set = d_cell_elem_neighbor_map[ci];
                 const int num_elements = static_cast<int>(elem_set.size());
-                (*n_data)(ci) = num_elements;
+                if (n_data)
+                {
+                    (*n_data)(ci) = num_elements;
+                }
 
                 // Loop over the cutting elements and find the minimum distance
                 IBTK::VectorNd P;
@@ -1166,7 +1168,10 @@ FESurfaceDistanceEvaluator::computeSignedDistanceSurfaceMesh(int n_idx, int d_id
             {
                 std::set<Elem*> elem_set = d_cell_elem_neighbor_map[ci];
                 const int num_elements = static_cast<int>(elem_set.size());
-                (*n_data)(ci) = num_elements;
+                if (n_data)
+                {
+                    (*n_data)(ci) = num_elements;
+                }
 
                 // Loop over the cutting elements and find the minimum distance
                 IBTK::VectorNd P;
