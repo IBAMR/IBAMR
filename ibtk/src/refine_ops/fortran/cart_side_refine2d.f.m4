@@ -68,12 +68,11 @@ minmod3(
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Perform specialized refine operation that employs constant
-c     prolongation followed by linear interpolation.
+c     Perform side-centered refine operation based on RT0 interpolation.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine cart_side_specialized_constant_refine2d(
+      subroutine cart_side_rt0_refine2d(
      &     u0_f,u1_f,u_f_gcw,
      &     flower0,fupper0,
      &     flower1,fupper1,

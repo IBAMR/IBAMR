@@ -1,4 +1,4 @@
-// Filename: CartSideDoubleSpecializedConstantRefine.h
+// Filename: CartSideDoubleRT0Refine.h
 // Created on 17 Sep 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2017, Boyce Griffith
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBTK_CartSideDoubleSpecializedConstantRefine
-#define included_IBTK_CartSideDoubleSpecializedConstantRefine
+#ifndef included_IBTK_CartSideDoubleRT0Refine
+#define included_IBTK_CartSideDoubleRT0Refine
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -58,22 +58,22 @@ class Variable;
 namespace IBTK
 {
 /*!
- * \brief Class CartSideDoubleSpecializedConstantRefine is a concrete
+ * \brief Class CartSideDoubleRT0Refine is a concrete
  * SAMRAI::xfer::RefineOperator object that prolongs side-centered double
- * precision patch data via constant prolongation.
+ * precision patch data via RT0-based interpolation.
  */
-class CartSideDoubleSpecializedConstantRefine : public SAMRAI::xfer::RefineOperator<NDIM>
+class CartSideDoubleRT0Refine : public SAMRAI::xfer::RefineOperator<NDIM>
 {
 public:
     /*!
      * \brief Default constructor.
      */
-    CartSideDoubleSpecializedConstantRefine() = default;
+    CartSideDoubleRT0Refine() = default;
 
     /*!
      * \brief Destructor.
      */
-    ~CartSideDoubleSpecializedConstantRefine() = default;
+    ~CartSideDoubleRT0Refine() = default;
 
     /*!
      * \name Implementation of SAMRAI::xfer::RefineOperator interface.
@@ -133,7 +133,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartSideDoubleSpecializedConstantRefine(const CartSideDoubleSpecializedConstantRefine& from) = delete;
+    CartSideDoubleRT0Refine(const CartSideDoubleRT0Refine& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -144,7 +144,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartSideDoubleSpecializedConstantRefine& operator=(const CartSideDoubleSpecializedConstantRefine& that) = delete;
+    CartSideDoubleRT0Refine& operator=(const CartSideDoubleRT0Refine& that) = delete;
 
     /*!
      * The operator name.
@@ -155,4 +155,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_CartSideDoubleSpecializedConstantRefine
+#endif //#ifndef included_IBTK_CartSideDoubleRT0Refine

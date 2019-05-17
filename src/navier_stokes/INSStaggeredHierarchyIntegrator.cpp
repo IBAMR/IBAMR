@@ -106,7 +106,7 @@
 #include "ibtk/CartCellDoubleBoundsPreservingConservativeLinearRefine.h"
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/CartSideDoubleDivPreservingRefine.h"
-#include "ibtk/CartSideDoubleSpecializedConstantRefine.h"
+#include "ibtk/CartSideDoubleRT0Refine.h"
 #include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
@@ -826,7 +826,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     // INSStaggeredHierarchyIntegrator.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     grid_geom->addSpatialRefineOperator(new CartCellDoubleBoundsPreservingConservativeLinearRefine());
-    grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedConstantRefine());
+    grid_geom->addSpatialRefineOperator(new CartSideDoubleRT0Refine());
     grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
 
     const IntVector<NDIM> cell_ghosts = CELLG;
