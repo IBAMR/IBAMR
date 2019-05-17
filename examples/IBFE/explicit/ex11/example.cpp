@@ -233,12 +233,12 @@ run_example(int argc, char** argv)
             Elem* const elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                const bool at_mesh_bdry = !elem->neighbor(side);
+                const bool at_mesh_bdry = !elem->neighbor_ptr(side);
                 if (!at_mesh_bdry) continue;
                 for (unsigned int k = 0; k < elem->n_nodes(); ++k)
                 {
                     if (!elem->is_node_on_side(k, side)) continue;
-                    Node& n = *elem->get_node(k);
+                    Node& n = elem->node_ref(k);
                     n = R * n.unit();
                 }
             }
