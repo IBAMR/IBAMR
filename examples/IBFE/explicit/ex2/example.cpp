@@ -211,7 +211,7 @@ run_example(int argc, char* argv[])
             Elem* const elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                const bool at_mesh_bdry = !elem->neighbor(side);
+                const bool at_mesh_bdry = !elem->neighbor_ptr(side);
                 if (at_mesh_bdry)
                 {
                     BoundaryInfo* boundary_info = mesh.boundary_info.get();
