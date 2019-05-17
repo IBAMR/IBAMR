@@ -75,7 +75,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp \
 ../src/refine_ops/CartCellDoubleQuadraticRefine.cpp \
 ../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
-../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp \
+../src/refine_ops/CartSideDoubleRT0Refine.cpp \
 ../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp \
 ../src/refine_ops/LMarkerRefine.cpp \
 ../src/solvers/impls/BGaussSeidelPreconditioner.cpp \
@@ -187,7 +187,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/CartSideDoubleDivPreservingRefine.h \
 ../include/ibtk/CartSideDoubleQuadraticCFInterpolation.h \
 ../include/ibtk/CartSideDoubleRT0Coarsen.h \
-../include/ibtk/CartSideDoubleSpecializedConstantRefine.h \
+../include/ibtk/CartSideDoubleRT0Refine.h \
 ../include/ibtk/CartSideDoubleSpecializedLinearRefine.h \
 ../include/ibtk/CartSideRobinPhysBdryOp.h \
 ../include/ibtk/CellNoCornersFillPattern.h \

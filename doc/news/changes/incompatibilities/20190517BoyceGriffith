@@ -1,0 +1,7 @@
+Renamed class CartSideDoubleSpecializedConstantRefine as
+CartSideDoubleRT0Refine.
+
+Changed corresponding refine operator name from "SPECIALIZED_CONSTANT_REFINE" to
+"RT0_REFINE".
+<br>
+(Boyce Griffith, 2019/05/17)

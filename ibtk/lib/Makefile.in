@@ -212,7 +212,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp \
 	../src/refine_ops/CartCellDoubleQuadraticRefine.cpp \
 	../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
-	../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp \
+	../src/refine_ops/CartSideDoubleRT0Refine.cpp \
 	../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp \
 	../src/refine_ops/LMarkerRefine.cpp \
 	../src/solvers/impls/BGaussSeidelPreconditioner.cpp \
@@ -365,7 +365,7 @@ am__objects_2 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/refine_ops/libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.$(OBJEXT) \
 	../src/refine_ops/libIBTK2d_a-CartCellDoubleQuadraticRefine.$(OBJEXT) \
 	../src/refine_ops/libIBTK2d_a-CartSideDoubleDivPreservingRefine.$(OBJEXT) \
-	../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.$(OBJEXT) \
+	../src/refine_ops/libIBTK2d_a-CartSideDoubleRT0Refine.$(OBJEXT) \
 	../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT) \
 	../src/refine_ops/libIBTK2d_a-LMarkerRefine.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
@@ -507,7 +507,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp \
 	../src/refine_ops/CartCellDoubleQuadraticRefine.cpp \
 	../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
-	../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp \
+	../src/refine_ops/CartSideDoubleRT0Refine.cpp \
 	../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp \
 	../src/refine_ops/LMarkerRefine.cpp \
 	../src/solvers/impls/BGaussSeidelPreconditioner.cpp \
@@ -660,7 +660,7 @@ am__objects_4 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/refine_ops/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.$(OBJEXT) \
 	../src/refine_ops/libIBTK3d_a-CartCellDoubleQuadraticRefine.$(OBJEXT) \
 	../src/refine_ops/libIBTK3d_a-CartSideDoubleDivPreservingRefine.$(OBJEXT) \
-	../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.$(OBJEXT) \
+	../src/refine_ops/libIBTK3d_a-CartSideDoubleRT0Refine.$(OBJEXT) \
 	../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT) \
 	../src/refine_ops/libIBTK3d_a-LMarkerRefine.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
@@ -864,13 +864,13 @@ am__depfiles_remade = ../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellIn
 	../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleQuadraticRefine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleDivPreservingRefine.Po \
-	../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.Po \
+	../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Refine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK2d_a-LMarkerRefine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleQuadraticRefine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleDivPreservingRefine.Po \
-	../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.Po \
+	../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po \
@@ -1449,7 +1449,7 @@ pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
 	../include/ibtk/CartSideDoubleDivPreservingRefine.h \
 	../include/ibtk/CartSideDoubleQuadraticCFInterpolation.h \
 	../include/ibtk/CartSideDoubleRT0Coarsen.h \
-	../include/ibtk/CartSideDoubleSpecializedConstantRefine.h \
+	../include/ibtk/CartSideDoubleRT0Refine.h \
 	../include/ibtk/CartSideDoubleSpecializedLinearRefine.h \
 	../include/ibtk/CartSideRobinPhysBdryOp.h \
 	../include/ibtk/CellNoCornersFillPattern.h \
@@ -1608,7 +1608,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	../src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp \
 	../src/refine_ops/CartCellDoubleQuadraticRefine.cpp \
 	../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
-	../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp \
+	../src/refine_ops/CartSideDoubleRT0Refine.cpp \
 	../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp \
 	../src/refine_ops/LMarkerRefine.cpp \
 	../src/solvers/impls/BGaussSeidelPreconditioner.cpp \
@@ -1980,7 +1980,7 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/refine_ops/libIBTK2d_a-CartSideDoubleDivPreservingRefine.$(OBJEXT):  \
 	../src/refine_ops/$(am__dirstamp) \
 	../src/refine_ops/$(DEPDIR)/$(am__dirstamp)
-../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.$(OBJEXT):  \
+../src/refine_ops/libIBTK2d_a-CartSideDoubleRT0Refine.$(OBJEXT):  \
 	../src/refine_ops/$(am__dirstamp) \
 	../src/refine_ops/$(DEPDIR)/$(am__dirstamp)
 ../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT):  \
@@ -2477,7 +2477,7 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/refine_ops/libIBTK3d_a-CartSideDoubleDivPreservingRefine.$(OBJEXT):  \
 	../src/refine_ops/$(am__dirstamp) \
 	../src/refine_ops/$(DEPDIR)/$(am__dirstamp)
-../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.$(OBJEXT):  \
+../src/refine_ops/libIBTK3d_a-CartSideDoubleRT0Refine.$(OBJEXT):  \
 	../src/refine_ops/$(am__dirstamp) \
 	../src/refine_ops/$(DEPDIR)/$(am__dirstamp)
 ../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT):  \
@@ -2900,13 +2900,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleQuadraticRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleDivPreservingRefine.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Refine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK2d_a-LMarkerRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleQuadraticRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleDivPreservingRefine.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po@am__quote@ # am--include-marker
@@ -3682,19 +3682,19 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK2d_a-CartSideDoubleDivPreservingRefine.obj `if test -f '../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp'; then $(CYGPATH_W) '../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp'; fi`
 
-../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.o: ../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.o -MD -MP -MF ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.Tpo -c -o ../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.o `test -f '../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp' || echo '$(srcdir)/'`../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.Tpo ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp' object='../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.o' libtool=no @AMDEPBACKSLASH@
+../src/refine_ops/libIBTK2d_a-CartSideDoubleRT0Refine.o: ../src/refine_ops/CartSideDoubleRT0Refine.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/refine_ops/libIBTK2d_a-CartSideDoubleRT0Refine.o -MD -MP -MF ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Refine.Tpo -c -o ../src/refine_ops/libIBTK2d_a-CartSideDoubleRT0Refine.o `test -f '../src/refine_ops/CartSideDoubleRT0Refine.cpp' || echo '$(srcdir)/'`../src/refine_ops/CartSideDoubleRT0Refine.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Refine.Tpo ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Refine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/refine_ops/CartSideDoubleRT0Refine.cpp' object='../src/refine_ops/libIBTK2d_a-CartSideDoubleRT0Refine.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.o `test -f '../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp' || echo '$(srcdir)/'`../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK2d_a-CartSideDoubleRT0Refine.o `test -f '../src/refine_ops/CartSideDoubleRT0Refine.cpp' || echo '$(srcdir)/'`../src/refine_ops/CartSideDoubleRT0Refine.cpp
 
-../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.obj: ../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.obj -MD -MP -MF ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.Tpo -c -o ../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.obj `if test -f '../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp'; then $(CYGPATH_W) '../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.Tpo ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp' object='../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.obj' libtool=no @AMDEPBACKSLASH@
+../src/refine_ops/libIBTK2d_a-CartSideDoubleRT0Refine.obj: ../src/refine_ops/CartSideDoubleRT0Refine.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/refine_ops/libIBTK2d_a-CartSideDoubleRT0Refine.obj -MD -MP -MF ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Refine.Tpo -c -o ../src/refine_ops/libIBTK2d_a-CartSideDoubleRT0Refine.obj `if test -f '../src/refine_ops/CartSideDoubleRT0Refine.cpp'; then $(CYGPATH_W) '../src/refine_ops/CartSideDoubleRT0Refine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/CartSideDoubleRT0Refine.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Refine.Tpo ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Refine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/refine_ops/CartSideDoubleRT0Refine.cpp' object='../src/refine_ops/libIBTK2d_a-CartSideDoubleRT0Refine.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.obj `if test -f '../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp'; then $(CYGPATH_W) '../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK2d_a-CartSideDoubleRT0Refine.obj `if test -f '../src/refine_ops/CartSideDoubleRT0Refine.cpp'; then $(CYGPATH_W) '../src/refine_ops/CartSideDoubleRT0Refine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/CartSideDoubleRT0Refine.cpp'; fi`
 
 ../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.o: ../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.o -MD -MP -MF ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Tpo -c -o ../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.o `test -f '../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp' || echo '$(srcdir)/'`../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp
@@ -5432,19 +5432,19 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK3d_a-CartSideDoubleDivPreservingRefine.obj `if test -f '../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp'; then $(CYGPATH_W) '../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp'; fi`
 
-../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.o: ../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.o -MD -MP -MF ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.Tpo -c -o ../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.o `test -f '../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp' || echo '$(srcdir)/'`../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.Tpo ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp' object='../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.o' libtool=no @AMDEPBACKSLASH@
+../src/refine_ops/libIBTK3d_a-CartSideDoubleRT0Refine.o: ../src/refine_ops/CartSideDoubleRT0Refine.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/refine_ops/libIBTK3d_a-CartSideDoubleRT0Refine.o -MD -MP -MF ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Tpo -c -o ../src/refine_ops/libIBTK3d_a-CartSideDoubleRT0Refine.o `test -f '../src/refine_ops/CartSideDoubleRT0Refine.cpp' || echo '$(srcdir)/'`../src/refine_ops/CartSideDoubleRT0Refine.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Tpo ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/refine_ops/CartSideDoubleRT0Refine.cpp' object='../src/refine_ops/libIBTK3d_a-CartSideDoubleRT0Refine.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.o `test -f '../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp' || echo '$(srcdir)/'`../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK3d_a-CartSideDoubleRT0Refine.o `test -f '../src/refine_ops/CartSideDoubleRT0Refine.cpp' || echo '$(srcdir)/'`../src/refine_ops/CartSideDoubleRT0Refine.cpp
 
-../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.obj: ../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.obj -MD -MP -MF ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.Tpo -c -o ../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.obj `if test -f '../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp'; then $(CYGPATH_W) '../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.Tpo ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp' object='../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.obj' libtool=no @AMDEPBACKSLASH@
+../src/refine_ops/libIBTK3d_a-CartSideDoubleRT0Refine.obj: ../src/refine_ops/CartSideDoubleRT0Refine.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/refine_ops/libIBTK3d_a-CartSideDoubleRT0Refine.obj -MD -MP -MF ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Tpo -c -o ../src/refine_ops/libIBTK3d_a-CartSideDoubleRT0Refine.obj `if test -f '../src/refine_ops/CartSideDoubleRT0Refine.cpp'; then $(CYGPATH_W) '../src/refine_ops/CartSideDoubleRT0Refine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/CartSideDoubleRT0Refine.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Tpo ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/refine_ops/CartSideDoubleRT0Refine.cpp' object='../src/refine_ops/libIBTK3d_a-CartSideDoubleRT0Refine.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.obj `if test -f '../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp'; then $(CYGPATH_W) '../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK3d_a-CartSideDoubleRT0Refine.obj `if test -f '../src/refine_ops/CartSideDoubleRT0Refine.cpp'; then $(CYGPATH_W) '../src/refine_ops/CartSideDoubleRT0Refine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/CartSideDoubleRT0Refine.cpp'; fi`
 
 ../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.o: ../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.o -MD -MP -MF ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Tpo -c -o ../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.o `test -f '../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp' || echo '$(srcdir)/'`../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp
@@ -6882,13 +6882,13 @@ distclean: distclean-am
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleQuadraticRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleDivPreservingRefine.Po
-	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.Po
+	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Refine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-LMarkerRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleQuadraticRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleDivPreservingRefine.Po
-	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.Po
+	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po
@@ -7177,13 +7177,13 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleQuadraticRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleDivPreservingRefine.Po
-	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.Po
+	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Refine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-LMarkerRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleQuadraticRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleDivPreservingRefine.Po
-	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.Po
+	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po

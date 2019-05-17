@@ -59,7 +59,7 @@
 #include <ibamr/app_namespaces.h>
 #include <ibamr/ibamr_utilities.h>
 #include <ibtk/CartSideDoubleRT0Coarsen.h>
-#include <ibtk/CartSideDoubleSpecializedConstantRefine.h>
+#include <ibtk/CartSideDoubleRT0Refine.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
@@ -930,10 +930,10 @@ buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
     // Get the transfer operators.
     Pointer<CartesianGridGeometry<NDIM> > geometry = patch_hierarchy->getGridGeometry();
     IBAMR_DO_ONCE(geometry->addSpatialCoarsenOperator(new CartSideDoubleRT0Coarsen(gcw));
-                  geometry->addSpatialRefineOperator(new CartSideDoubleSpecializedConstantRefine()));
+                  geometry->addSpatialRefineOperator(new CartSideDoubleRT0Refine()));
 
     Pointer<RefineOperator<NDIM> > prolongation_op =
-        geometry->lookupRefineOperator(u_var, "SPECIALIZED_CONSTANT_REFINE");
+        geometry->lookupRefineOperator(u_var, "RT0_REFINE");
     Pointer<CoarsenOperator<NDIM> > restriction_op = geometry->lookupCoarsenOperator(u_var, "RT0_COARSEN");
 
     // Define the prolongation and refine algorithms

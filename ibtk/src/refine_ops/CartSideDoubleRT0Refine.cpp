@@ -1,4 +1,4 @@
-// Filename: CartSideDoubleSpecializedConstantRefine.cpp
+// Filename: CartSideDoubleRT0Refine.cpp
 // Created on 17 Sep 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2017, Boyce Griffith
@@ -42,7 +42,7 @@
 #include "Patch.h"
 #include "SideData.h"
 #include "SideVariable.h"
-#include "ibtk/CartSideDoubleSpecializedConstantRefine.h"
+#include "ibtk/CartSideDoubleRT0Refine.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
@@ -58,17 +58,17 @@ class Variable;
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define CART_SIDE_SPECIALIZED_CONSTANT_REFINE_FC                                                                       \
-    IBTK_FC_FUNC(cart_side_specialized_constant_refine2d, CART_SIDE_SPECIALIZED_CONSTANT_REFINE2D)
+#define CART_SIDE_RT0_REFINE_FC                                                                       \
+    IBTK_FC_FUNC(cart_side_rt0_refine2d, CART_SIDE_RT0_REFINE2D)
 #endif
 #if (NDIM == 3)
-#define CART_SIDE_SPECIALIZED_CONSTANT_REFINE_FC                                                                       \
-    IBTK_FC_FUNC(cart_side_specialized_constant_refine3d, CART_SIDE_SPECIALIZED_CONSTANT_REFINE3D)
+#define CART_SIDE_RT0_REFINE_FC                                                                       \
+    IBTK_FC_FUNC(cart_side_rt0_refine3d, CART_SIDE_RT0_REFINE3D)
 #endif
 
 // Function interfaces
 extern "C" {
-void CART_SIDE_SPECIALIZED_CONSTANT_REFINE_FC(
+void CART_SIDE_RT0_REFINE_FC(
 #if (NDIM == 2)
     double*,
     double*,
@@ -136,7 +136,7 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string CartSideDoubleSpecializedConstantRefine::s_op_name = "SPECIALIZED_CONSTANT_REFINE";
+const std::string CartSideDoubleRT0Refine::s_op_name = "RT0_REFINE";
 
 namespace
 {
@@ -147,7 +147,7 @@ static const int REFINE_OP_STENCIL_WIDTH = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 bool
-CartSideDoubleSpecializedConstantRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
+CartSideDoubleRT0Refine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
                                                             const std::string& op_name) const
 {
     const Pointer<SideVariable<NDIM, double> > sc_var = var;
@@ -155,25 +155,25 @@ CartSideDoubleSpecializedConstantRefine::findRefineOperator(const Pointer<Variab
 } // findRefineOperator
 
 const std::string&
-CartSideDoubleSpecializedConstantRefine::getOperatorName() const
+CartSideDoubleRT0Refine::getOperatorName() const
 {
     return s_op_name;
 } // getOperatorName
 
 int
-CartSideDoubleSpecializedConstantRefine::getOperatorPriority() const
+CartSideDoubleRT0Refine::getOperatorPriority() const
 {
     return REFINE_OP_PRIORITY;
 } // getOperatorPriority
 
 IntVector<NDIM>
-CartSideDoubleSpecializedConstantRefine::getStencilWidth() const
+CartSideDoubleRT0Refine::getStencilWidth() const
 {
     return REFINE_OP_STENCIL_WIDTH;
 } // getStencilWidth
 
 void
-CartSideDoubleSpecializedConstantRefine::refine(Patch<NDIM>& fine,
+CartSideDoubleRT0Refine::refine(Patch<NDIM>& fine,
                                                 const Patch<NDIM>& coarse,
                                                 const int dst_component,
                                                 const int src_component,
@@ -206,7 +206,7 @@ CartSideDoubleSpecializedConstantRefine::refine(Patch<NDIM>& fine,
     const Box<NDIM> fill_box = Box<NDIM>::refine(Box<NDIM>::coarsen(fine_box, ratio), ratio);
     for (int depth = 0; depth < data_depth; ++depth)
     {
-        CART_SIDE_SPECIALIZED_CONSTANT_REFINE_FC(
+        CART_SIDE_RT0_REFINE_FC(
 #if (NDIM == 2)
             fdata->getPointer(0, depth),
             fdata->getPointer(1, depth),
