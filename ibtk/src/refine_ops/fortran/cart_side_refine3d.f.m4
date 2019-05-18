@@ -92,9 +92,6 @@ c
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     ilower2,iupper2,
-     &     fill_lower0,fill_upper0,
-     &     fill_lower1,fill_upper1,
-     &     fill_lower2,fill_upper2,
      &     ratio)
 c
       implicit none
@@ -112,9 +109,6 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
-      INTEGER fill_lower0,fill_upper0
-      INTEGER fill_lower1,fill_upper1
-      INTEGER fill_lower2,fill_upper2
       INTEGER ratio(0:NDIM-1)
 
       REAL u0_c(SIDE3d0(clower,cupper,u_c_gcw))
@@ -135,15 +129,15 @@ c
 c
 c     Refine data.
 c
-      do i2=fill_lower2,fill_upper2
+      do i2=ilower2,iupper2
          coarsen_index(i2,i_c2,ratio(2))
-         do i1=fill_lower1,fill_upper1
+         do i1=ilower1,iupper1
             coarsen_index(i1,i_c1,ratio(1))
-            do i0=fill_lower0,fill_upper0+1
+            do i0=ilower0,iupper0+1
                coarsen_index(i0,i_c0,ratio(0))
-               if ( i0 .ge. ilower0 .and. i0 .le. iupper0+1 .and.
-     &              i1 .ge. ilower1 .and. i1 .le. iupper1   .and.
-     &              i2 .ge. ilower2 .and. i2 .le. iupper2   ) then
+               if ( i0 .eq. ratio(0)*i_c0 ) then
+                  u0_f(i0,i1,i2) = u0_c(i_c0,i_c1,i_c2)
+               else
                   w1 = dble(i0-ratio(0)*i_c0)/dble(ratio(0))
                   w0 = 1.d0-w1
                   u0_f(i0,i1,i2) =
@@ -154,15 +148,15 @@ c
          enddo
       enddo
 
-      do i2=fill_lower2,fill_upper2
+      do i2=ilower2,iupper2
          coarsen_index(i2,i_c2,ratio(2))
-         do i1=fill_lower1,fill_upper1+1
+         do i1=ilower1,iupper1+1
             coarsen_index(i1,i_c1,ratio(1))
-            do i0=fill_lower0,fill_upper0
+            do i0=ilower0,iupper0
                coarsen_index(i0,i_c0,ratio(0))
-               if ( i0 .ge. ilower0 .and. i0 .le. iupper0   .and.
-     &              i1 .ge. ilower1 .and. i1 .le. iupper1+1 .and.
-     &              i2 .ge. ilower2 .and. i2 .le. iupper2   ) then
+               if ( i1 .eq. ratio(1)*i_c1 ) then
+                  u1_f(i0,i1,i2) = u1_c(i_c0,i_c1,i_c2)
+               else
                   w1 = dble(i1-ratio(1)*i_c1)/dble(ratio(1))
                   w0 = 1.d0-w1
                   u1_f(i0,i1,i2) =
@@ -173,15 +167,15 @@ c
          enddo
       enddo
 
-      do i2=fill_lower2,fill_upper2+1
+      do i2=ilower2,iupper2+1
          coarsen_index(i2,i_c2,ratio(2))
-         do i1=fill_lower1,fill_upper1
+         do i1=ilower1,iupper1
             coarsen_index(i1,i_c1,ratio(1))
-            do i0=fill_lower0,fill_upper0
+            do i0=ilower0,iupper0
                coarsen_index(i0,i_c0,ratio(0))
-               if ( i0 .ge. ilower0 .and. i0 .le. iupper0   .and.
-     &              i1 .ge. ilower1 .and. i1 .le. iupper1   .and.
-     &              i2 .ge. ilower2 .and. i2 .le. iupper2+1 ) then
+               if ( i2 .eq. ratio(2)*i_c2 ) then
+                  u2_f(i0,i1,i2) = u2_c(i_c0,i_c1,i_c2)
+               else
                   w1 = dble(i2-ratio(2)*i_c2)/dble(ratio(2))
                   w0 = 1.d0-w1
                   u2_f(i0,i1,i2) =

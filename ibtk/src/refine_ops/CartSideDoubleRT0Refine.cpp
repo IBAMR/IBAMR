@@ -58,76 +58,65 @@ class Variable;
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define CART_SIDE_RT0_REFINE_FC                                                                       \
-    IBTK_FC_FUNC(cart_side_rt0_refine2d, CART_SIDE_RT0_REFINE2D)
+#define CART_SIDE_RT0_REFINE_FC IBTK_FC_FUNC(cart_side_rt0_refine2d, CART_SIDE_RT0_REFINE2D)
 #endif
 #if (NDIM == 3)
-#define CART_SIDE_RT0_REFINE_FC                                                                       \
-    IBTK_FC_FUNC(cart_side_rt0_refine3d, CART_SIDE_RT0_REFINE3D)
+#define CART_SIDE_RT0_REFINE_FC IBTK_FC_FUNC(cart_side_rt0_refine3d, CART_SIDE_RT0_REFINE3D)
 #endif
 
 // Function interfaces
-extern "C" {
-void CART_SIDE_RT0_REFINE_FC(
+extern "C"
+{
+    void CART_SIDE_RT0_REFINE_FC(
 #if (NDIM == 2)
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
 #endif
 #if (NDIM == 3)
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
 #endif
-    const int*);
+        const int*);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -142,13 +131,12 @@ namespace
 {
 static const int REFINE_OP_PRIORITY = 0;
 static const int REFINE_OP_STENCIL_WIDTH = 1;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 bool
-CartSideDoubleRT0Refine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
-                                                            const std::string& op_name) const
+CartSideDoubleRT0Refine::findRefineOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
 {
     const Pointer<SideVariable<NDIM, double> > sc_var = var;
     return (sc_var && op_name == s_op_name);
@@ -174,11 +162,11 @@ CartSideDoubleRT0Refine::getStencilWidth() const
 
 void
 CartSideDoubleRT0Refine::refine(Patch<NDIM>& fine,
-                                                const Patch<NDIM>& coarse,
-                                                const int dst_component,
-                                                const int src_component,
-                                                const Box<NDIM>& fine_box,
-                                                const IntVector<NDIM>& ratio) const
+                                const Patch<NDIM>& coarse,
+                                const int dst_component,
+                                const int src_component,
+                                const Box<NDIM>& fine_box,
+                                const IntVector<NDIM>& ratio) const
 {
     // Get the patch data.
     Pointer<SideData<NDIM, double> > fdata = fine.getPatchData(dst_component);
@@ -203,7 +191,6 @@ CartSideDoubleRT0Refine::refine(Patch<NDIM>& fine,
 #endif
 
     // Refine the data.
-    const Box<NDIM> fill_box = Box<NDIM>::refine(Box<NDIM>::coarsen(fine_box, ratio), ratio);
     for (int depth = 0; depth < data_depth; ++depth)
     {
         CART_SIDE_RT0_REFINE_FC(
@@ -226,10 +213,6 @@ CartSideDoubleRT0Refine::refine(Patch<NDIM>& fine,
             fine_box.upper()(0),
             fine_box.lower()(1),
             fine_box.upper()(1),
-            fill_box.lower()(0),
-            fill_box.upper()(0),
-            fill_box.lower()(1),
-            fill_box.upper()(1),
 #endif
 #if (NDIM == 3)
             fdata->getPointer(0, depth),
@@ -258,12 +241,6 @@ CartSideDoubleRT0Refine::refine(Patch<NDIM>& fine,
             fine_box.upper()(1),
             fine_box.lower()(2),
             fine_box.upper()(2),
-            fill_box.lower()(0),
-            fill_box.upper()(0),
-            fill_box.lower()(1),
-            fill_box.upper()(1),
-            fill_box.lower()(2),
-            fill_box.upper()(2),
 #endif
             ratio);
     }
