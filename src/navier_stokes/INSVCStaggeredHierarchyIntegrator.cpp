@@ -323,9 +323,17 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
     : INSHierarchyIntegrator(std::move(object_name),
                              input_db,
                              new SideVariable<NDIM, double>(object_name + "::U"),
+                             "CONSERVATIVE_COARSEN",
+                             "CONSERVATIVE_LINEAR_REFINE",
                              new CellVariable<NDIM, double>(object_name + "::P"),
+                             "CONSERVATIVE_COARSEN",
+                             "LINEAR_REFINE",
                              new SideVariable<NDIM, double>(object_name + "::F"),
+                             "CONSERVATIVE_COARSEN",
+                             "CONSERVATIVE_LINEAR_REFINE",
                              new CellVariable<NDIM, double>(object_name + "::Q"),
+                             "CONSERVATIVE_COARSEN",
+                             "CONSTANT_REFINE",
                              register_for_restart),
       d_rho_vc_interp_type(VC_HARMONIC_INTERP),
       d_mu_vc_interp_type(VC_HARMONIC_INTERP)
@@ -499,6 +507,10 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
         d_U_bc_coefs[d] = new INSVCStaggeredVelocityBcCoef(d, this, d_bc_coefs, d_traction_bc_type);
     }
     d_P_bc_coef = new INSVCStaggeredPressureBcCoef(this, d_bc_coefs, d_traction_bc_type);
+
+    // Get coarsen and refine operator types.
+    if (input_db->keyExists("N_coarsen_type")) d_N_coarsen_type = input_db->getString("N_coarsen_type");
+    if (input_db->keyExists("N_refine_type")) d_N_refine_type = input_db->getString("N_refine_type");
 
     // Initialize all variables.  The velocity, pressure, body force, and fluid
     // source variables were created above in the constructor for the
@@ -784,8 +796,8 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
                      d_U_scratch_idx,
                      d_U_var,
                      side_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE",
+                     d_U_coarsen_type,
+                     d_U_refine_type,
                      d_U_init);
 
     registerVariable(d_P_current_idx,
@@ -793,8 +805,8 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
                      d_P_scratch_idx,
                      d_P_var,
                      cell_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "LINEAR_REFINE",
+                     d_P_coarsen_type,
+                     d_P_refine_type,
                      d_P_init);
 
     if (d_F_fcn)
@@ -804,8 +816,8 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
                          d_F_scratch_idx,
                          d_F_var,
                          side_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
+                         d_F_coarsen_type,
+                         d_F_refine_type,
                          d_F_fcn);
     }
     else
@@ -822,8 +834,8 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
                          d_Q_scratch_idx,
                          d_Q_var,
                          cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSTANT_REFINE",
+                         d_Q_coarsen_type,
+                         d_Q_refine_type,
                          d_Q_fcn);
     }
     else
@@ -838,8 +850,8 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
                      d_N_old_scratch_idx,
                      d_N_old_var,
                      side_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE");
+                     d_N_coarsen_type,
+                     d_N_refine_type);
 
     // Get the viscosity variable, which can either be an advected field maintained by
     // an appropriate advection-diffusion integrator, or a set field with some functional

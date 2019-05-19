@@ -100,7 +100,7 @@ public:
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    INSStaggeredHierarchyIntegrator(const std::string& object_name,
+    INSStaggeredHierarchyIntegrator(std::string object_name,
                                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                     bool register_for_restart = true);
 
@@ -405,6 +405,9 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_EE_var;
 
+    std::string d_N_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_N_refine_type = "CONSERVATIVE_LINEAR_REFINE";
+
     /*
      * Patch data descriptor indices for all "state" variables managed by the
      * integrator.
@@ -440,8 +443,22 @@ private:
      * Data for tracking mean flow quantities and computing turbulent kinetic energy and Reynolds stresses.
      */
     unsigned int d_flow_averaging_interval = 0;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_U_mean_var, d_UU_mean_var, d_UU_fluct_var,
-        d_k_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_U_mean_var;
+    std::string d_U_mean_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_U_mean_refine_type = "BOUNDS_PRESERVING_CONSERVATIVE_LINEAR_REFINE";
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_UU_mean_var;
+    std::string d_UU_mean_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_UU_mean_refine_type = "BOUNDS_PRESERVING_CONSERVATIVE_LINEAR_REFINE";
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_UU_fluct_var;
+    std::string d_UU_fluct_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_UU_fluct_refine_type = "BOUNDS_PRESERVING_CONSERVATIVE_LINEAR_REFINE";
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_k_var;
+    std::string d_k_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_k_refine_type = "BOUNDS_PRESERVING_CONSERVATIVE_LINEAR_REFINE";
+
     int d_U_mean_current_idx = IBTK::invalid_index, d_U_mean_new_idx = IBTK::invalid_index,
         d_U_mean_scratch_idx = IBTK::invalid_index;
     int d_UU_mean_current_idx = IBTK::invalid_index, d_UU_mean_new_idx = IBTK::invalid_index,

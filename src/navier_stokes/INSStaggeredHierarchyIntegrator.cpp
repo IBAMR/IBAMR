@@ -415,15 +415,23 @@ copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHierarchy
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::string& object_name,
+INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string object_name,
                                                                  Pointer<Database> input_db,
                                                                  bool register_for_restart)
-    : INSHierarchyIntegrator(object_name,
+    : INSHierarchyIntegrator(std::move(object_name),
                              input_db,
                              new SideVariable<NDIM, double>(object_name + "::U"),
+                             "CONSERVATIVE_COARSEN",
+                             "CONSERVATIVE_LINEAR_REFINE",
                              new CellVariable<NDIM, double>(object_name + "::P"),
+                             "CONSERVATIVE_COARSEN",
+                             "LINEAR_REFINE",
                              new SideVariable<NDIM, double>(object_name + "::F"),
+                             "CONSERVATIVE_COARSEN",
+                             "CONSERVATIVE_LINEAR_REFINE",
                              new CellVariable<NDIM, double>(object_name + "::Q"),
+                             "CONSERVATIVE_COARSEN",
+                             "CONSTANT_REFINE",
                              register_for_restart)
 {
     // Check to see whether the solver types have been set.
@@ -559,6 +567,25 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
     // Check to see whether to track mean flow quantities and turbulent kinetic energy.
     if (input_db->keyExists("flow_averaging_interval"))
         d_flow_averaging_interval = input_db->getInteger("flow_averaging_interval");
+
+    // Get coarsen and refine operator types.
+    if (input_db->keyExists("N_coarsen_type")) d_N_coarsen_type = input_db->getString("N_coarsen_type");
+    if (input_db->keyExists("N_refine_type")) d_N_refine_type = input_db->getString("N_refine_type");
+
+    if (input_db->keyExists("U_mean_coarsen_type")) d_U_mean_coarsen_type = input_db->getString("U_mean_coarsen_type");
+    if (input_db->keyExists("U_mean_refine_type")) d_U_mean_refine_type = input_db->getString("U_mean_refine_type");
+
+    if (input_db->keyExists("UU_mean_coarsen_type"))
+        d_UU_mean_coarsen_type = input_db->getString("UU_mean_coarsen_type");
+    if (input_db->keyExists("UU_mean_refine_type")) d_UU_mean_refine_type = input_db->getString("UU_mean_refine_type");
+
+    if (input_db->keyExists("UU_fluct_coarsen_type"))
+        d_UU_fluct_coarsen_type = input_db->getString("UU_fluct_coarsen_type");
+    if (input_db->keyExists("UU_fluct_refine_type"))
+        d_UU_fluct_refine_type = input_db->getString("UU_fluct_refine_type");
+
+    if (input_db->keyExists("k_coarsen_type")) d_k_coarsen_type = input_db->getString("k_coarsen_type");
+    if (input_db->keyExists("k_refine_type")) d_k_refine_type = input_db->getString("k_refine_type");
 
     // Initialize all variables.  The velocity, pressure, body force, and fluid
     // source variables were created above in the constructor for the
@@ -838,8 +865,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                      d_U_scratch_idx,
                      d_U_var,
                      side_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE",
+                     d_U_coarsen_type,
+                     d_U_refine_type,
                      d_U_init);
 
     registerVariable(d_P_current_idx,
@@ -847,8 +874,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                      d_P_scratch_idx,
                      d_P_var,
                      cell_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "LINEAR_REFINE",
+                     d_P_coarsen_type,
+                     d_P_refine_type,
                      d_P_init);
 
     if (d_F_fcn)
@@ -858,8 +885,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                          d_F_scratch_idx,
                          d_F_var,
                          side_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
+                         d_F_coarsen_type,
+                         d_F_refine_type,
                          d_F_fcn);
     }
     else
@@ -876,8 +903,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                          d_Q_scratch_idx,
                          d_Q_var,
                          cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "BOUNDS_PRESERVING_CONSERVATIVE_LINEAR_REFINE",
+                         d_Q_coarsen_type,
+                         d_Q_refine_type,
                          d_Q_fcn);
     }
     else
@@ -892,8 +919,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                      d_N_old_scratch_idx,
                      d_N_old_var,
                      side_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE");
+                     d_N_coarsen_type,
+                     d_N_refine_type);
 
     // Register plot variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
@@ -935,8 +962,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                          d_U_mean_scratch_idx,
                          d_U_mean_var,
                          cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "BOUNDS_PRESERVING_CONSERVATIVE_LINEAR_REFINE");
+                         d_U_mean_coarsen_type,
+                         d_U_mean_refine_type);
     }
 
     if (d_UU_mean_var)
@@ -946,8 +973,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                          d_UU_mean_scratch_idx,
                          d_UU_mean_var,
                          cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "BOUNDS_PRESERVING_CONSERVATIVE_LINEAR_REFINE");
+                         d_UU_mean_coarsen_type,
+                         d_UU_mean_refine_type);
     }
 
     if (d_UU_fluct_var)
@@ -957,19 +984,14 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                          d_UU_fluct_scratch_idx,
                          d_UU_fluct_var,
                          cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "BOUNDS_PRESERVING_CONSERVATIVE_LINEAR_REFINE");
+                         d_UU_fluct_coarsen_type,
+                         d_UU_fluct_refine_type);
     }
 
     if (d_k_var)
     {
-        registerVariable(d_k_current_idx,
-                         d_k_new_idx,
-                         d_k_scratch_idx,
-                         d_k_var,
-                         cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "BOUNDS_PRESERVING_CONSERVATIVE_LINEAR_REFINE");
+        registerVariable(
+            d_k_current_idx, d_k_new_idx, d_k_scratch_idx, d_k_var, cell_ghosts, d_k_refine_type, d_k_coarsen_type);
     }
 
     // Register variables for plotting.
