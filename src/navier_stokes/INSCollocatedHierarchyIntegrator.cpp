@@ -291,15 +291,23 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::string& object_name,
+INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(std::string object_name,
                                                                    Pointer<Database> input_db,
                                                                    bool register_for_restart)
-    : INSHierarchyIntegrator(object_name,
+    : INSHierarchyIntegrator(std::move(object_name),
                              input_db,
                              new CellVariable<NDIM, double>(object_name + "::U", NDIM),
+                             "CONSERVATIVE_COARSEN",
+                             "CONSERVATIVE_LINEAR_REFINE",
                              new CellVariable<NDIM, double>(object_name + "::P"),
+                             "CONSERVATIVE_COARSEN",
+                             "LINEAR_REFINE",
                              new CellVariable<NDIM, double>(object_name + "::F", NDIM),
+                             "CONSERVATIVE_COARSEN",
+                             "CONSERVATIVE_LINEAR_REFINE",
                              new CellVariable<NDIM, double>(object_name + "::Q"),
+                             "CONSERVATIVE_COARSEN",
+                             "CONSTANT_REFINE",
                              register_for_restart)
 {
     // Check to make sure the time stepping type is supported.
@@ -404,6 +412,13 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::st
     {
         d_U_bc_coefs[d] = new INSCollocatedVelocityBcCoef(d, this, d_bc_coefs, d_traction_bc_type);
     }
+
+    // Get coarsen and refine operator types.
+    if (input_db->keyExists("u_ADV_coarsen_type")) d_u_ADV_coarsen_type = input_db->getString("u_ADV_coarsen_type");
+    if (input_db->keyExists("u_ADV_refine_type")) d_u_ADV_refine_type = input_db->getString("u_ADV_refine_type");
+
+    if (input_db->keyExists("N_coarsen_type")) d_N_coarsen_type = input_db->getString("N_coarsen_type");
+    if (input_db->keyExists("N_refine_type")) d_N_refine_type = input_db->getString("N_refine_type");
 
     // Initialize all variables.  The velocity, pressure, body force, and fluid
     // source variables were created above in the constructor for the
@@ -668,8 +683,8 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
                      d_U_scratch_idx,
                      d_U_var,
                      cell_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE",
+                     d_U_coarsen_type,
+                     d_U_refine_type,
                      d_U_init);
 
     registerVariable(d_u_ADV_current_idx,
@@ -677,16 +692,16 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
                      d_u_ADV_scratch_idx,
                      d_u_ADV_var,
                      face_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE");
+                     d_u_ADV_coarsen_type,
+                     d_u_ADV_refine_type);
 
     registerVariable(d_P_current_idx,
                      d_P_new_idx,
                      d_P_scratch_idx,
                      d_P_var,
                      cell_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "LINEAR_REFINE",
+                     d_P_coarsen_type,
+                     d_P_refine_type,
                      d_P_init);
 
     if (d_F_fcn)
@@ -696,8 +711,8 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
                          d_F_scratch_idx,
                          d_F_var,
                          cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
+                         d_F_coarsen_type,
+                         d_F_refine_type,
                          d_F_fcn);
     }
     else
@@ -714,8 +729,8 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
                          d_Q_scratch_idx,
                          d_Q_var,
                          cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSTANT_REFINE",
+                         d_Q_coarsen_type,
+                         d_Q_refine_type,
                          d_Q_fcn);
     }
     else
@@ -730,8 +745,8 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
                      d_N_old_scratch_idx,
                      d_N_old_var,
                      cell_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE");
+                     d_N_coarsen_type,
+                     d_N_refine_type);
 
     // Register plot variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
@@ -819,9 +834,9 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
     Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     Pointer<CoarsenOperator<NDIM> > coarsen_op;
-    coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
+    coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
     coarsen_alg->registerCoarsen(d_U_scratch_idx, d_U_scratch_idx, coarsen_op);
-    coarsen_op = grid_geom->lookupCoarsenOperator(d_u_ADV_var, "CONSERVATIVE_COARSEN");
+    coarsen_op = grid_geom->lookupCoarsenOperator(d_u_ADV_var, d_u_ADV_coarsen_type);
     coarsen_alg->registerCoarsen(d_u_ADV_scratch_idx, d_u_ADV_scratch_idx, coarsen_op);
     registerCoarsenAlgorithm(d_object_name + "::CONVECTIVE_OP", coarsen_alg);
 
@@ -1020,9 +1035,9 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
             Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
             Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
             Pointer<CoarsenOperator<NDIM> > coarsen_op;
-            coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
+            coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
             coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
-            coarsen_op = grid_geom->lookupCoarsenOperator(d_u_ADV_var, "CONSERVATIVE_COARSEN");
+            coarsen_op = grid_geom->lookupCoarsenOperator(d_u_ADV_var, d_u_ADV_coarsen_type);
             coarsen_alg->registerCoarsen(d_u_ADV_scratch_idx, d_u_ADV_scratch_idx, coarsen_op);
             coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
             getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]->coarsenData();
@@ -1167,9 +1182,9 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
                 Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
                 Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
                 Pointer<CoarsenOperator<NDIM> > coarsen_op;
-                coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
+                coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
                 coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
-                coarsen_op = grid_geom->lookupCoarsenOperator(d_u_ADV_var, "CONSERVATIVE_COARSEN");
+                coarsen_op = grid_geom->lookupCoarsenOperator(d_u_ADV_var, d_u_ADV_coarsen_type);
                 coarsen_alg->registerCoarsen(d_u_ADV_scratch_idx, d_u_ADV_scratch_idx, coarsen_op);
                 coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
                 getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]->coarsenData();

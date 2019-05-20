@@ -1,0 +1,6 @@
+Allow for more flexible specification on interlevel data transfer operators in
+the incompressible Navier-Stokes (INS) solver hierarchy.  It is now possible to
+set default values and to override those defaults in one version of the
+protected INSHierarchyIntegrator base class constructor.
+<br>
+(Boyce Griffith, 2019/05/19)

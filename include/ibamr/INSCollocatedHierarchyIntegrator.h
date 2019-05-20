@@ -100,7 +100,7 @@ public:
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    INSCollocatedHierarchyIntegrator(const std::string& object_name,
+    INSCollocatedHierarchyIntegrator(std::string object_name,
                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                      bool register_for_restart = true);
 
@@ -328,6 +328,12 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Grad_Phi_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_Grad_Phi_fc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_F_div_var;
+
+    std::string d_u_ADV_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_u_ADV_refine_type = "CONSERVATIVE_LINEAR_REFINE";
+
+    std::string d_N_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_N_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the

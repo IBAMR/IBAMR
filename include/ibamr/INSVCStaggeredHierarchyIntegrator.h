@@ -558,6 +558,9 @@ protected:
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_N_full_var;
 
+    std::string d_N_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_N_refine_type = "CONSERVATIVE_LINEAR_REFINE";
+
     /*!
      * Interpolated material property variables.
      */

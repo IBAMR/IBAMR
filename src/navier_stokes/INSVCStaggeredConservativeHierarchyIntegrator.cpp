@@ -164,11 +164,11 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarchyIntegrator(
-    const std::string& object_name,
-    Pointer<Database> input_db,
-    bool register_for_restart)
-    : INSVCStaggeredHierarchyIntegrator(object_name, input_db, register_for_restart), d_rho_sc_bc_coefs(NDIM, nullptr)
+INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarchyIntegrator(std::string object_name,
+                                                                                             Pointer<Database> input_db,
+                                                                                             bool register_for_restart)
+    : INSVCStaggeredHierarchyIntegrator(std::move(object_name), input_db, register_for_restart),
+      d_rho_sc_bc_coefs(NDIM, nullptr)
 {
     if (!(d_convective_difference_form == CONSERVATIVE))
     {
@@ -260,8 +260,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
                      d_U_old_scratch_idx,
                      d_U_old_var,
                      side_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE",
+                     d_U_coarsen_type,
+                     d_U_refine_type,
                      d_U_init);
 
     // Set various objects with conservative time integrator.
