@@ -87,7 +87,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = free_falling_cyl_cib$(EXEEXT)
+EXTRA_PROGRAMS = free_falling_cyl_cib$(EXEEXT) \
+	rotating_barge_cib$(EXEEXT)
 subdir = tests/multiphase_flow
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
@@ -131,6 +132,14 @@ free_falling_cyl_cib_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(free_falling_cyl_cib_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_rotating_barge_cib_OBJECTS =  \
+	rotating_barge_cib-rotating_barge_cib.$(OBJEXT)
+rotating_barge_cib_OBJECTS = $(am_rotating_barge_cib_OBJECTS)
+rotating_barge_cib_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+rotating_barge_cib_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(rotating_barge_cib_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -147,7 +156,8 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade =  \
-	./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po
+	./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po \
+	./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -167,8 +177,10 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(free_falling_cyl_cib_SOURCES)
-DIST_SOURCES = $(free_falling_cyl_cib_SOURCES)
+SOURCES = $(free_falling_cyl_cib_SOURCES) \
+	$(rotating_barge_cib_SOURCES)
+DIST_SOURCES = $(free_falling_cyl_cib_SOURCES) \
+	$(rotating_barge_cib_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -500,6 +512,9 @@ SUFFIXES = .f.m4
 free_falling_cyl_cib_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
 free_falling_cyl_cib_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 free_falling_cyl_cib_SOURCES = free_falling_cyl_cib.cpp
+rotating_barge_cib_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+rotating_barge_cib_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+rotating_barge_cib_SOURCES = rotating_barge_cib.cpp
 all: all-am
 
 .SUFFIXES:
@@ -539,6 +554,10 @@ free_falling_cyl_cib$(EXEEXT): $(free_falling_cyl_cib_OBJECTS) $(free_falling_cy
 	@rm -f free_falling_cyl_cib$(EXEEXT)
 	$(AM_V_CXXLD)$(free_falling_cyl_cib_LINK) $(free_falling_cyl_cib_OBJECTS) $(free_falling_cyl_cib_LDADD) $(LIBS)
 
+rotating_barge_cib$(EXEEXT): $(rotating_barge_cib_OBJECTS) $(rotating_barge_cib_DEPENDENCIES) $(EXTRA_rotating_barge_cib_DEPENDENCIES) 
+	@rm -f rotating_barge_cib$(EXEEXT)
+	$(AM_V_CXXLD)$(rotating_barge_cib_LINK) $(rotating_barge_cib_OBJECTS) $(rotating_barge_cib_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -546,6 +565,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -590,6 +610,20 @@ free_falling_cyl_cib-free_falling_cyl_cib.obj: free_falling_cyl_cib.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='free_falling_cyl_cib.cpp' object='free_falling_cyl_cib-free_falling_cyl_cib.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(free_falling_cyl_cib_CXXFLAGS) $(CXXFLAGS) -c -o free_falling_cyl_cib-free_falling_cyl_cib.obj `if test -f 'free_falling_cyl_cib.cpp'; then $(CYGPATH_W) 'free_falling_cyl_cib.cpp'; else $(CYGPATH_W) '$(srcdir)/free_falling_cyl_cib.cpp'; fi`
+
+rotating_barge_cib-rotating_barge_cib.o: rotating_barge_cib.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rotating_barge_cib_CXXFLAGS) $(CXXFLAGS) -MT rotating_barge_cib-rotating_barge_cib.o -MD -MP -MF $(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Tpo -c -o rotating_barge_cib-rotating_barge_cib.o `test -f 'rotating_barge_cib.cpp' || echo '$(srcdir)/'`rotating_barge_cib.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Tpo $(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='rotating_barge_cib.cpp' object='rotating_barge_cib-rotating_barge_cib.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rotating_barge_cib_CXXFLAGS) $(CXXFLAGS) -c -o rotating_barge_cib-rotating_barge_cib.o `test -f 'rotating_barge_cib.cpp' || echo '$(srcdir)/'`rotating_barge_cib.cpp
+
+rotating_barge_cib-rotating_barge_cib.obj: rotating_barge_cib.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rotating_barge_cib_CXXFLAGS) $(CXXFLAGS) -MT rotating_barge_cib-rotating_barge_cib.obj -MD -MP -MF $(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Tpo -c -o rotating_barge_cib-rotating_barge_cib.obj `if test -f 'rotating_barge_cib.cpp'; then $(CYGPATH_W) 'rotating_barge_cib.cpp'; else $(CYGPATH_W) '$(srcdir)/rotating_barge_cib.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Tpo $(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='rotating_barge_cib.cpp' object='rotating_barge_cib-rotating_barge_cib.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rotating_barge_cib_CXXFLAGS) $(CXXFLAGS) -c -o rotating_barge_cib-rotating_barge_cib.obj `if test -f 'rotating_barge_cib.cpp'; then $(CYGPATH_W) 'rotating_barge_cib.cpp'; else $(CYGPATH_W) '$(srcdir)/rotating_barge_cib.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -723,6 +757,7 @@ clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po
+	-rm -f ./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -769,6 +804,7 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po
+	-rm -f ./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

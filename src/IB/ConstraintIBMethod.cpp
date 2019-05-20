@@ -1666,53 +1666,49 @@ ConstraintIBMethod::calculateCurrentLagrangianVelocity()
                     double* const U_current = &U_current_data[local_idx][0];
                     const double* const X = &X_data[local_idx][0];
 
-                    if (struct_param.getStructureIsSelfTranslating())
+                    // Imposed velocity
+                    for (int d = 0; d < NDIM; ++d)
                     {
-                        if (struct_param.getStructureIsSelfRotating())
-                        {
-                            for (int d = 0; d < NDIM; ++d)
-                                R[d] = X[d] - d_center_of_mass_current[location_struct_handle][d];
-
-                            WxR[0] = R[2] * (d_rigid_rot_vel_current[location_struct_handle][1] -
-                                             d_omega_com_def_current[location_struct_handle][1]) -
-                                     R[1] * (d_rigid_rot_vel_current[location_struct_handle][2] -
-                                             d_omega_com_def_current[location_struct_handle][2]);
-
-                            WxR[1] = -R[2] * (d_rigid_rot_vel_current[location_struct_handle][0] -
-                                              d_omega_com_def_current[location_struct_handle][0]) +
-                                     R[0] * (d_rigid_rot_vel_current[location_struct_handle][2] -
-                                             d_omega_com_def_current[location_struct_handle][2]);
-
-                            WxR[2] = R[1] * (d_rigid_rot_vel_current[location_struct_handle][0] -
-                                             d_omega_com_def_current[location_struct_handle][0]) -
-                                     R[0] * (d_rigid_rot_vel_current[location_struct_handle][1] -
-                                             d_omega_com_def_current[location_struct_handle][1]);
-
-                            for (int d = 0; d < NDIM; ++d)
-                            {
-                                U_current[d] = d_rigid_trans_vel_current[location_struct_handle][d] -
-                                               d_vel_com_def_current[location_struct_handle][d] + WxR[d] +
-                                               current_vel[d][lag_idx - offset];
-                            }
-                        } // rotating
-                        else
-                        {
-                            for (int d = 0; d < NDIM; ++d)
-                            {
-                                U_current[d] = d_rigid_trans_vel_current[location_struct_handle][d] -
-                                               d_vel_com_def_current[location_struct_handle][d] +
-                                               current_vel[d][lag_idx - offset];
-                            }
-
-                        } // not rotating
+                        U_current[d] = current_vel[d][lag_idx - offset];
                     }
-                    else
+
+                    // Translational velocity
+                    if (struct_param.getStructureIsSelfTranslating())
                     {
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            U_current[d] = current_vel[d][lag_idx - offset];
+                            U_current[d] += d_rigid_trans_vel_current[location_struct_handle][d] -
+                                            d_vel_com_def_current[location_struct_handle][d];
                         }
-                    } // imposed momentum
+                    }
+
+                    // Rotational velocity
+                    if (struct_param.getStructureIsSelfRotating())
+                    {
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            R[d] = X[d] - d_center_of_mass_current[location_struct_handle][d];
+                        }
+
+                        WxR[0] = R[2] * (d_rigid_rot_vel_current[location_struct_handle][1] -
+                                         d_omega_com_def_current[location_struct_handle][1]) -
+                                 R[1] * (d_rigid_rot_vel_current[location_struct_handle][2] -
+                                         d_omega_com_def_current[location_struct_handle][2]);
+
+                        WxR[1] = -R[2] * (d_rigid_rot_vel_current[location_struct_handle][0] -
+                                          d_omega_com_def_current[location_struct_handle][0]) +
+                                 R[0] * (d_rigid_rot_vel_current[location_struct_handle][2] -
+                                         d_omega_com_def_current[location_struct_handle][2]);
+
+                        WxR[2] = R[1] * (d_rigid_rot_vel_current[location_struct_handle][0] -
+                                         d_omega_com_def_current[location_struct_handle][0]) -
+                                 R[0] * (d_rigid_rot_vel_current[location_struct_handle][1] -
+                                         d_omega_com_def_current[location_struct_handle][1]);
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            U_current[d] += WxR[d];
+                        }
+                    }
 
                 } // choose a struct
             }     // all nodes on a level
@@ -1773,55 +1769,54 @@ ConstraintIBMethod::correctVelocityOnLagrangianMesh()
                     double* const U_new = &U_new_data[local_idx][0];
                     const double* const X = &X_data[local_idx][0];
 
-                    if (struct_param.getStructureIsSelfTranslating())
+                    // Imposed velocity
+                    for (int d = 0; d < NDIM; ++d)
                     {
-                        if (struct_param.getStructureIsSelfRotating())
-                        {
-                            for (int d = 0; d < NDIM; ++d)
-                                R[d] = X[d] - d_center_of_mass_new[location_struct_handle][d];
-
-                            WxR[0] = R[2] * (d_rigid_rot_vel_new[location_struct_handle][1] -
-                                             d_omega_com_def_new[location_struct_handle][1]) -
-                                     R[1] * (d_rigid_rot_vel_new[location_struct_handle][2] -
-                                             d_omega_com_def_new[location_struct_handle][2]);
-
-                            WxR[1] = -R[2] * (d_rigid_rot_vel_new[location_struct_handle][0] -
-                                              d_omega_com_def_new[location_struct_handle][0]) +
-                                     R[0] * (d_rigid_rot_vel_new[location_struct_handle][2] -
-                                             d_omega_com_def_new[location_struct_handle][2]);
-
-                            WxR[2] = R[1] * (d_rigid_rot_vel_new[location_struct_handle][0] -
-                                             d_omega_com_def_new[location_struct_handle][0]) -
-                                     R[0] * (d_rigid_rot_vel_new[location_struct_handle][1] -
-                                             d_omega_com_def_new[location_struct_handle][1]);
-
-                            for (int d = 0; d < NDIM; ++d)
-                            {
-                                U_new[d] = d_rigid_trans_vel_new[location_struct_handle][d] -
-                                           d_vel_com_def_new[location_struct_handle][d] + WxR[d] +
-                                           new_vel[d][lag_idx - offset];
-                                U_corr[d] = (U_new[d] - U[d]) * d_vol_element[location_struct_handle];
-                            }
-                        } // rotating
-                        else
-                        {
-                            for (int d = 0; d < NDIM; ++d)
-                            {
-                                U_new[d] = d_rigid_trans_vel_new[location_struct_handle][d] -
-                                           d_vel_com_def_new[location_struct_handle][d] + new_vel[d][lag_idx - offset];
-                                U_corr[d] = (U_new[d] - U[d]) * d_vol_element[location_struct_handle];
-                            }
-
-                        } // not rotating
+                        U_new[d] = new_vel[d][lag_idx - offset];
                     }
-                    else
+
+                    // Translational velocity
+                    if (struct_param.getStructureIsSelfTranslating())
                     {
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            U_new[d] = new_vel[d][lag_idx - offset];
-                            U_corr[d] = (U_new[d] - U[d]) * d_vol_element[location_struct_handle];
+                            U_new[d] += d_rigid_trans_vel_new[location_struct_handle][d] -
+                                        d_vel_com_def_new[location_struct_handle][d];
                         }
-                    } // imposed momentum
+                    }
+
+                    // Rotational velocity
+                    if (struct_param.getStructureIsSelfRotating())
+                    {
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            R[d] = X[d] - d_center_of_mass_new[location_struct_handle][d];
+                        }
+                        WxR[0] = R[2] * (d_rigid_rot_vel_new[location_struct_handle][1] -
+                                         d_omega_com_def_new[location_struct_handle][1]) -
+                                 R[1] * (d_rigid_rot_vel_new[location_struct_handle][2] -
+                                         d_omega_com_def_new[location_struct_handle][2]);
+
+                        WxR[1] = -R[2] * (d_rigid_rot_vel_new[location_struct_handle][0] -
+                                          d_omega_com_def_new[location_struct_handle][0]) +
+                                 R[0] * (d_rigid_rot_vel_new[location_struct_handle][2] -
+                                         d_omega_com_def_new[location_struct_handle][2]);
+
+                        WxR[2] = R[1] * (d_rigid_rot_vel_new[location_struct_handle][0] -
+                                         d_omega_com_def_new[location_struct_handle][0]) -
+                                 R[0] * (d_rigid_rot_vel_new[location_struct_handle][1] -
+                                         d_omega_com_def_new[location_struct_handle][1]);
+
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            U_new[d] += WxR[d];
+                        }
+                    }
+
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        U_corr[d] = (U_new[d] - U[d]) * d_vol_element[location_struct_handle];
+                    }
 
                 } // choose a struct
             }     // all nodes on a level
