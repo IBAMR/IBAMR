@@ -91,7 +91,7 @@ EXTRA_PROGRAMS = $(am__EXEEXT_5)
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
 @GTEST_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_2 = test2d
 @SAMRAI2D_ENABLED_TRUE@am__append_3 = $(GTESTS) $(EXAMPLES) cylinderGen
-subdir = examples/multiphase_flow/ex9
+subdir = examples/multiphase_flow/ex10
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
 	$(top_srcdir)/m4/ax_prefix_config_h.m4 \
@@ -558,7 +558,7 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 EXAMPLE_DRIVER = ex_main.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp LSLocateCircularInterface.cpp LSLocateGasInterface.cpp RigidBodyKinematics.cpp TagLSRefinementCells.cpp SetLSProperties.cpp GravityForcing.cpp FlowGravityForcing.cpp
 GTEST_DRIVER = test_main.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp LSLocateCircularInterface.cpp LSLocateGasInterface.cpp RigidBodyKinematics.cpp TagLSRefinementCells.cpp SetLSProperties.cpp GravityForcing.cpp FlowGravityForcing.cpp
-EXTRA_DIST = input2d.flow input2d.full input2d.test
+EXTRA_DIST = input2d input2d.test
 EXAMPLES = $(am__append_1)
 GTESTS = $(am__append_2)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -583,9 +583,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/multiphase_flow/ex9/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/multiphase_flow/ex10/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign examples/multiphase_flow/ex9/Makefile
+	  $(AUTOMAKE) --foreign examples/multiphase_flow/ex10/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -1257,11 +1257,10 @@ clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input2d.test ; \
-	  rm -f $(builddir)/input2d.flow ; \
-	  rm -f $(builddir)/input2d.full ; \
+	  rm -f $(builddir)/input2d ; \
 	  rm -f $(builddir)/cylinder2d.vertex ; \
-	  rm -f $(builddir)/cylinderGen ; \
 	  rm -f $(builddir)/Cylinder2d_cubic.m ; \
+	  rm -f $(builddir)/cylinderGen ; \
 	fi ;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

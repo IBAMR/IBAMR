@@ -4,7 +4,7 @@ include $(top_srcdir)/config/Make-rules
 ## Dimension-dependent testers
 EXAMPLE_DRIVER = ex_main.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp LSLocateCircularInterface.cpp LSLocateGasInterface.cpp RigidBodyKinematics.cpp TagLSRefinementCells.cpp SetLSProperties.cpp GravityForcing.cpp FlowGravityForcing.cpp
 GTEST_DRIVER   = test_main.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp LSLocateCircularInterface.cpp LSLocateGasInterface.cpp RigidBodyKinematics.cpp TagLSRefinementCells.cpp SetLSProperties.cpp GravityForcing.cpp FlowGravityForcing.cpp
-EXTRA_DIST     = input2d.flow input2d.full input2d.test
+EXTRA_DIST     = input2d input2d.test
 
 EXAMPLES =
 GTESTS   =
@@ -63,9 +63,8 @@ clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input2d.test ; \
-	  rm -f $(builddir)/input2d.flow ; \
-	  rm -f $(builddir)/input2d.full ; \
+	  rm -f $(builddir)/input2d ; \
 	  rm -f $(builddir)/cylinder2d.vertex ; \
-	  rm -f $(builddir)/cylinderGen ; \
 	  rm -f $(builddir)/Cylinder2d_cubic.m ; \
+	  rm -f $(builddir)/cylinderGen ; \
 	fi ;
