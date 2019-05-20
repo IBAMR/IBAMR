@@ -72,14 +72,6 @@
 #include "SetLSProperties.h"
 #include "TagLSRefinementCells.h"
 
-// Function prototypes
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                 Pointer<INSVCStaggeredHierarchyIntegrator> navier_stokes_integrator,
-                 LDataManager* l_data_manager,
-                 const int iteration_num,
-                 const double loop_time,
-                 const string& data_dump_dirname);
-
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
  * be given on the command line.  For non-restarted case, command line is:     *
@@ -152,29 +144,6 @@ main(int argc, char* argv[])
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
-
-        // Whether or not it is from a restarted run
-        const bool is_from_restart = app_initializer->isFromRestart();
-
-        // Get various standard options set in the input file.
-        const bool dump_viz_data = app_initializer->dumpVizData();
-        const int viz_dump_interval = app_initializer->getVizDumpInterval();
-        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
-
-        const bool dump_restart_data = app_initializer->dumpRestartData();
-        const int restart_dump_interval = app_initializer->getRestartDumpInterval();
-        const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
-
-        const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
-        const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
-        const string postproc_data_dump_dirname = app_initializer->getPostProcessingDataDumpDirectory();
-        if (dump_postproc_data && (postproc_data_dump_interval > 0) && !postproc_data_dump_dirname.empty())
-        {
-            Utilities::recursiveMkdir(postproc_data_dump_dirname);
-        }
-
-        const bool dump_timer_data = app_initializer->dumpTimerData();
-        const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -272,16 +241,6 @@ main(int argc, char* argv[])
         barge.length = input_db->getDouble("BARGE_LENGTH");
         barge.width = input_db->getDouble("BARGE_WIDTH");
 
-        // Get the center of mass of the barge
-        if (!is_from_restart)
-        {
-            barge.COM(0) = input_db->getDouble("BARGE_X");
-            barge.COM(1) = input_db->getDouble("BARGE_Y");
-#if (NDIM == 3)
-            barge.COM(2) = input_db->getDouble("BARGE_Z");
-#endif
-        }
-        else
         {
             const std::vector<std::vector<double> >& structure_COM = ib_method_ops->getCurrentStructureCOM();
             barge.COM(0) = structure_COM[0][0];
@@ -490,16 +449,6 @@ main(int argc, char* argv[])
         eul_forces->addFunction(surface_tension_force);
         time_integrator->registerBodyForceFunction(eul_forces);
 
-        // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
-        Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
-        if (uses_visit)
-        {
-            ib_initializer->registerLSiloDataWriter(silo_data_writer);
-            ib_method_ops->registerLSiloDataWriter(silo_data_writer);
-            time_integrator->registerVisItDataWriter(visit_data_writer);
-        }
-
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
@@ -534,13 +483,6 @@ main(int argc, char* argv[])
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
-        if (dump_viz_data && uses_visit)
-        {
-            pout << "\n\nWriting visualization files...\n\n";
-            time_integrator->setupPlotData();
-            visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-            silo_data_writer->writePlotData(iteration_num, loop_time);
-        }
 
         // File to write for barge angle.
         ofstream output_file;
@@ -587,33 +529,6 @@ main(int argc, char* argv[])
             // print out timer data, and store hierarchy data for post
             // processing.
             iteration_num += 1;
-            const bool last_step = !time_integrator->stepsRemaining();
-            if (dump_viz_data && uses_visit && (iteration_num % viz_dump_interval == 0 || last_step))
-            {
-                pout << "\nWriting visualization files...\n\n";
-                time_integrator->setupPlotData();
-                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-                silo_data_writer->writePlotData(iteration_num, loop_time);
-            }
-            if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
-            {
-                pout << "\nWriting restart files...\n\n";
-                RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
-            }
-            if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
-            {
-                pout << "\nWriting timer data...\n\n";
-                TimerManager::getManager()->print(plog);
-            }
-            if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
-            {
-                output_data(patch_hierarchy,
-                            navier_stokes_integrator,
-                            ib_method_ops->getLDataManager(),
-                            iteration_num,
-                            loop_time,
-                            postproc_data_dump_dirname);
-            }
         }
 
         // Close file
@@ -637,50 +552,3 @@ main(int argc, char* argv[])
     PetscFinalize();
     return 0;
 } // main
-
-void
-output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-            Pointer<INSVCStaggeredHierarchyIntegrator> navier_stokes_integrator,
-            LDataManager* l_data_manager,
-            const int iteration_num,
-            const double loop_time,
-            const string& data_dump_dirname)
-{
-    plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
-    plog << "simulation time is " << loop_time << endl;
-
-    // Write Cartesian data.
-    string file_name = data_dump_dirname + "/" + "hier_data.";
-    char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
-    file_name += temp_buf;
-    Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
-    hier_db->create(file_name);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    ComponentSelector hier_data;
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
-                                                           navier_stokes_integrator->getCurrentContext()));
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(),
-                                                           navier_stokes_integrator->getCurrentContext()));
-    patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
-    hier_db->putDouble("loop_time", loop_time);
-    hier_db->putInteger("iteration_num", iteration_num);
-    hier_db->close();
-
-    // Write Lagrangian data.
-    const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-    Pointer<LData> X_data = l_data_manager->getLData("X", finest_hier_level);
-    Vec X_petsc_vec = X_data->getVec();
-    Vec X_lag_vec;
-    VecDuplicate(X_petsc_vec, &X_lag_vec);
-    l_data_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
-    file_name = data_dump_dirname + "/" + "X.";
-    sprintf(temp_buf, "%05d", iteration_num);
-    file_name += temp_buf;
-    PetscViewer viewer;
-    PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
-    VecView(X_lag_vec, viewer);
-    PetscViewerDestroy(&viewer);
-    VecDestroy(&X_lag_vec);
-    return;
-} // output_data
