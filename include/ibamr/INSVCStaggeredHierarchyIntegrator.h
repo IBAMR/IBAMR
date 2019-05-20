@@ -561,6 +561,14 @@ protected:
     std::string d_N_coarsen_type = "CONSERVATIVE_COARSEN";
     std::string d_N_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
+    std::string d_mu_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_mu_refine_type = "CONSERVATIVE_LINEAR_REFINE";
+    std::string d_mu_bdry_extrap_type = "CONSTANT";
+
+    std::string d_rho_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_rho_refine_type = "CONSERVATIVE_LINEAR_REFINE";
+    std::string d_rho_bdry_extrap_type = "CONSTANT";
+
     /*!
      * Interpolated material property variables.
      */
