@@ -32,7 +32,7 @@ bargeGen_SOURCES = bargeGen.cpp
 barge2d.vertex: bargeGen
 	./bargeGen
 
-examples: $(EXAMPLES)
+examples: $(EXAMPLES) barge2d.vertex
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[2]d* $(PWD) ; \
 	  cp -f $(srcdir)/Barge2d.m $(PWD) ; \
