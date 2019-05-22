@@ -274,8 +274,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
                          d_rho_scratch_idx,
                          d_rho_var,
                          cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
+                         d_rho_coarsen_type,
+                         d_rho_refine_type,
                          d_rho_init_fcn);
     }
     else
@@ -555,8 +555,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
         {
             Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
             Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-            Pointer<CoarsenOperator<NDIM> > coarsen_op =
-                grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
+            Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
             coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
             coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
             getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]->coarsenData();
@@ -954,10 +953,10 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetHierarchyConfigurationSpe
     {
         // These options are chosen to ensure that information is propagated conservatively from the coarse cells only
         InterpolationTransactionComponent rho_bc_component(d_rho_scratch_idx,
-                                                           "CONSERVATIVE_LINEAR_REFINE",
+                                                           d_rho_refine_type,
                                                            false,
-                                                           "CONSERVATIVE_COARSEN",
-                                                           "CONSTANT",
+                                                           d_rho_refine_type,
+                                                           d_rho_bdry_extrap_type,
                                                            false,
                                                            d_rho_bc_coef);
         d_rho_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
@@ -1096,7 +1095,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
         d_side_synch_op->resetTransactionComponent(p_coef_synch_transaction);
         d_side_synch_op->synchronizeData(d_integrator_time);
         SynchronizationTransactionComponent default_synch_transaction =
-            SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+            SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
         d_side_synch_op->resetTransactionComponent(default_synch_transaction);
         regrid_projection_spec.setDPatchDataId(d_pressure_D_idx);
     }
@@ -1153,7 +1152,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
                                                        DATA_REFINE_TYPE,
                                                        USE_CF_INTERPOLATION,
                                                        DATA_COARSEN_TYPE,
-                                                       d_bdry_extrap_type,
+                                                       d_bdry_extrap_type, // TODO: update variable name
                                                        CONSISTENT_TYPE_2_BDRY,
                                                        &Phi_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
@@ -1341,7 +1340,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
         d_side_synch_op->resetTransactionComponent(p_coef_synch_transaction);
         d_side_synch_op->synchronizeData(d_integrator_time);
         SynchronizationTransactionComponent default_synch_transaction =
-            SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+            SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
         d_side_synch_op->resetTransactionComponent(default_synch_transaction);
         P_problem_coefs.setDPatchDataId(d_pressure_D_idx);
     }
@@ -1544,7 +1543,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
                 Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
                 Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
                 Pointer<CoarsenOperator<NDIM> > coarsen_op =
-                    grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
+                    grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
                 coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
                 coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
                 getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]->coarsenData();
@@ -1659,15 +1658,15 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
     // Synchronize solution and right-hand-side data before solve.
     using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent sol_synch_transaction =
-        SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), d_U_coarsen_type);
     d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
     d_side_synch_op->synchronizeData(current_time);
     SynchronizationTransactionComponent rhs_synch_transaction =
-        SynchronizationTransactionComponent(rhs_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(rhs_vec->getComponentDescriptorIndex(0), d_F_coarsen_type);
     d_side_synch_op->resetTransactionComponent(rhs_synch_transaction);
     d_side_synch_op->synchronizeData(current_time);
     SynchronizationTransactionComponent default_synch_transaction =
-        SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
     d_side_synch_op->resetTransactionComponent(default_synch_transaction);
     return;
 } // setupSolverVectors
@@ -1688,10 +1687,10 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetSolverVectors(
     // Synchronize solution data after solve.
     using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent sol_synch_transaction =
-        SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), d_U_coarsen_type);
     d_side_synch_op->synchronizeData(current_time);
     SynchronizationTransactionComponent default_synch_transaction =
-        SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
     d_side_synch_op->resetTransactionComponent(default_synch_transaction);
 
     // Pull out solution components.
