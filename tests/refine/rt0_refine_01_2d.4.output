@@ -1,0 +1,24 @@
+test results for constant_function
+max norm of u_sc: 4
+max norm of exact - refined: 0
+test results for linear_x
+max norm of u_sc: 1
+max norm of exact - refined: 0
+test results for linear_y
+max norm of u_sc: 1
+max norm of exact - refined: 0
+test results for both_linear
+max norm of u_sc: 3
+max norm of exact - refined: 0
+test results for non_rt
+max norm of u_sc: 1.76562
+max norm of exact - refined: 0.272461
+test results for non_rt
+max norm of u_sc: 1.93848
+max norm of exact - refined: 0.0697632
+test results for non_rt
+max norm of u_sc: 1.93848
+max norm of exact - refined: 0.0175438
+test results for non_rt
+max norm of u_sc: 1.93848
+max norm of exact - refined: 0.00439239
