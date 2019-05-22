@@ -86,12 +86,19 @@
 int
 main(int argc, char* argv[])
 {
+    // Initialize PETSc, MPI, and SAMRAI.
+    PetscInitialize(&argc, &argv, NULL, NULL);
+    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
+    SAMRAIManager::startup();
+
     // Several parts of the code (such as LDataManager) expect mesh files,
     // specified in the input file, to exist in the current working
     // directory. Since tests are run in temporary directories we need to
     // regenerate these input files first.
     //
     // The following is simply the bargeGen executable:
+    if (SAMRAI_MPI::getRank() == 0)
     {
         const double Lx = 5.0;
         const double Ly = 2.5;
@@ -127,12 +134,6 @@ main(int argc, char* argv[])
             }
         }
     }
-
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
 
     // Increase maximum patch data component indices
     SAMRAIManager::setMaxNumberPatchDataEntries(2500);

@@ -75,20 +75,22 @@
 int
 main(int argc, char* argv[])
 {
-    // Several parts of the code (such as LDataManager) expect mesh files,
-    // specified in the input file, to exist in the current working
-    // directory. Since tests are run in temporary directories we need to regenerate these input
-    // to work.
-    {
-        std::ifstream structure_vertex_stream(SOURCE_DIR "/cylinder2d_free_fall.vertex");
-        std::ofstream structure_cwd("cylinder2d_free_fall.vertex");
-        structure_cwd << structure_vertex_stream.rdbuf();
-    }
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
+
+    // Several parts of the code (such as LDataManager) expect mesh files,
+    // specified in the input file, to exist in the current working
+    // directory. Since tests are run in temporary directories we need to regenerate these input
+    // to work.
+    if (SAMRAI_MPI::getRank() == 0)
+    {
+        std::ifstream structure_vertex_stream(SOURCE_DIR "/cylinder2d_free_fall.vertex");
+        std::ofstream structure_cwd("cylinder2d_free_fall.vertex");
+        structure_cwd << structure_vertex_stream.rdbuf();
+    }
 
     // Increase maximum patch data component indices
     SAMRAIManager::setMaxNumberPatchDataEntries(2500);
