@@ -1,0 +1,17 @@
+Number of elements: 7
+
+IBFEMethod: mesh part 0 is using FIRST order LAGRANGE finite elements.
+
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+patch number 0
+Array side normal = 0
+Array depth = 0
+Array side normal = 1
+Array depth = 0
+array(0,2,0) = 0.0908051348327255
+array(0,3,0) = 11.8705458836542
+array(0,4,0) = 20.00366486125426
+array(0,5,0) = 10.195577468961
+array(0,6,0) = 0.06533499038641058
+Array side normal = 2
+Array depth = 0

@@ -1,7 +1,7 @@
 include $(top_srcdir)/config/Make-rules
 
 EXTRA_PROGRAMS = interpolate_velocity_01 interpolate_velocity_02 explicit_ex4_2d \
-explicit_ex4_3d spread_01
+explicit_ex4_3d
 
 interpolate_velocity_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 interpolate_velocity_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -18,11 +18,6 @@ explicit_ex4_2d_SOURCES = explicit_ex4.cpp
 explicit_ex4_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 explicit_ex4_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 explicit_ex4_3d_SOURCES = explicit_ex4.cpp
-
-spread_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-spread_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-spread_01_SOURCES = spread_01.cpp
-
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \

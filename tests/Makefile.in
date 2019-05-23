@@ -440,7 +440,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-TEST_DIRECTORIES = advect IB IBTK IBFE multiphase_flow refine
+TEST_DIRECTORIES = advect IB IBTK IBFE multiphase_flow refine spread
 all: all-am
 
 .SUFFIXES:
