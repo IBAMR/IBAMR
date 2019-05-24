@@ -327,7 +327,26 @@ int main(int argc, char** argv)
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_ghost_idx);
                 const Box<NDIM> patch_box = patch->getBox();
-                f_data->print(patch_box, plog, 16);
+
+                // same as SideData::print, but elides zero values
+                plog.precision(16);
+                for (int axis = 0; axis < NDIM; ++axis)
+                {
+                    plog << "Array side normal = " << axis << std::endl;
+                    for (int d = 0; d < f_data->getDepth(); ++d)
+                    {
+                        plog << "Array depth = " << d << std::endl;
+                        const ArrayData<NDIM, double> &data = f_data->getArrayData(axis);
+                        for (SideIterator<NDIM> i(patch_box, axis); i; i++)
+                        {
+                            const double value = data(i(), d);
+                            if (value != 0.0)
+                                plog << "array" << i() << " = "
+                                     << value << '\n';
+                        }
+                    }
+                }
+                // f_data->print(patch_box, plog, 16);
             }
         }
     } // cleanup dynamically allocated objects prior to shutdown

@@ -228,6 +228,7 @@ AC_CONFIG_FILES([
   tests/IBTK/Makefile
   tests/multiphase_flow/Makefile
   tests/refine/Makefile
+  tests/spread/Makefile
 ])
 AC_CONFIG_SUBDIRS([ibtk])
 AC_OUTPUT
