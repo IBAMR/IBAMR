@@ -126,7 +126,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovLinearSolverStaggeredStokesSolverInterface(const KrylovLinearSolverStaggeredStokesSolverInterface& from) = delete;
+    KrylovLinearSolverStaggeredStokesSolverInterface(const KrylovLinearSolverStaggeredStokesSolverInterface& from) =
+        delete;
 
     /*!
      * \brief Assignment operator.

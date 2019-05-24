@@ -332,9 +332,14 @@ run_example(int argc, char* argv[])
                                                       VCSCViscousOpPointRelaxationFACOperator::allocate_solver);
         solver_manager->registerSolverFactoryFunction("VC_VELOCITY_PETSC_LEVEL_SOLVER",
                                                       VCSCViscousPETScLevelSolver::allocate_solver);
-        Pointer<PoissonSolver> poisson_solver = solver_manager->allocateSolver(
-            solver_type, "vc_velocity_solver", solver_db, "vc_velocity_", precond_type, "vc_velocity_precond",
-           precond_db, "vc_velocity_pc_");
+        Pointer<PoissonSolver> poisson_solver = solver_manager->allocateSolver(solver_type,
+                                                                               "vc_velocity_solver",
+                                                                               solver_db,
+                                                                               "vc_velocity_",
+                                                                               precond_type,
+                                                                               "vc_velocity_precond",
+                                                                               precond_db,
+                                                                               "vc_velocity_pc_");
         /*Pointer<PoissonSolver> poisson_solver = solver_manager->allocateSolver(solver_type,
                                                                                "vc_velocity_solver",
                                                                                solver_db,
@@ -451,13 +456,13 @@ run_example(int argc, char* argv[])
                     double avg_mu = 0.0;
                     for (int axis = 0; axis < NDIM; ++axis)
                     {
-                        for(EdgeIterator<NDIM> e(edge_box, axis); e; e++)
+                        for (EdgeIterator<NDIM> e(edge_box, axis); e; e++)
                         {
                             EdgeIndex<NDIM> ei(e());
                             avg_mu += (*mu_ec_data)(ei);
                         }
                     }
-                    (*mu_cc_data)(ci) = avg_mu/12.0;
+                    (*mu_cc_data)(ci) = avg_mu / 12.0;
                 }
             }
         }

@@ -108,7 +108,7 @@ allocate_petsc_krylov_solver(const std::string& object_name,
     krylov_solver->setOperator(new SCLaplaceOperator(object_name + "::laplace_operator"));
     return krylov_solver;
 } // allocate_petsc_krylov_solver
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -122,9 +122,7 @@ SCPoissonSolverManager::allocateSolver(const std::string& solver_type,
     if (it == d_solver_maker_map.end())
     {
         TBOX_ERROR("CCPoissonSolverManager::allocateSolver():\n"
-                   << "  unrecognized solver type: "
-                   << solver_type
-                   << "\n");
+                   << "  unrecognized solver type: " << solver_type << "\n");
     }
     return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
 } // allocateSolver

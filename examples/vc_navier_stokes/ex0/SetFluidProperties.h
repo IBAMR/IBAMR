@@ -16,7 +16,7 @@ namespace IBTK
 {
 class HierarchyMathOps;
 class CartGridFunction;
-}
+} // namespace IBTK
 
 /*!
  * Pre processing call back function to be hooked into IBAMR::INSVCStaggeredHierarchyIntegrator class.

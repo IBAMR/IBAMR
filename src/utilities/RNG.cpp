@@ -219,7 +219,7 @@ InvNormDist(double p)
 
     return x;
 }
-}
+} // namespace
 
 void
 RNG::genrandn(double* result)

@@ -70,10 +70,9 @@ run_example(int argc, char* argv[], std::vector<double>& U_err)
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
-    
-    //resize U_err to hold error data
-    U_err.resize(3);
 
+    // resize U_err to hold error data
+    U_err.resize(3);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -288,15 +287,13 @@ run_example(int argc, char* argv[], std::vector<double>& U_err)
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(U_idx, U_idx, U_cloned_idx);
         pout << "Error in U at time " << loop_time << ":\n"
-             << "  L1-norm:  " 
-             << std::setprecision(10) << hier_cc_data_ops.L1Norm(U_idx, wgt_cc_idx) << "\n"
+             << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(U_idx, wgt_cc_idx) << "\n"
              << "  L2-norm:  " << hier_cc_data_ops.L2Norm(U_idx, wgt_cc_idx) << "\n"
              << "  max-norm: " << hier_cc_data_ops.maxNorm(U_idx, wgt_cc_idx) << "\n";
 
-             U_err[0] = hier_cc_data_ops.L1Norm(U_idx, wgt_cc_idx);
-             U_err[1] = hier_cc_data_ops.L2Norm(U_idx, wgt_cc_idx);
-             U_err[2] = hier_cc_data_ops.maxNorm(U_idx, wgt_cc_idx);
-
+        U_err[0] = hier_cc_data_ops.L1Norm(U_idx, wgt_cc_idx);
+        U_err[1] = hier_cc_data_ops.L2Norm(U_idx, wgt_cc_idx);
+        U_err[2] = hier_cc_data_ops.maxNorm(U_idx, wgt_cc_idx);
 
         if (dump_viz_data && uses_visit)
         {

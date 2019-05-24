@@ -45,8 +45,8 @@
 #include <libmesh/boundary_info.h>
 #include <libmesh/boundary_mesh.h>
 #include <libmesh/equation_systems.h>
-#include <libmesh/explicit_system.h>
 #include <libmesh/exodusII_io.h>
+#include <libmesh/explicit_system.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_triangle_interface.h>
@@ -72,12 +72,12 @@ namespace ModelData
 // Tether (penalty) force functions.
 static double kappa_s = 1.0e6;
 static double eta_s = 0.0;
-System* x_solid_system, * u_solid_system;
+System *x_solid_system, *u_solid_system;
 void
 tether_force_function(VectorValue<double>& F,
                       const TensorValue<double>& /*FF*/,
-                      const libMesh::Point& x_bndry,  // x_bndry gives current   coordinates on the boundary mesh
-                      const libMesh::Point& X_bndry,  // X_bndry gives reference coordinates on the boundary mesh
+                      const libMesh::Point& x_bndry, // x_bndry gives current   coordinates on the boundary mesh
+                      const libMesh::Point& X_bndry, // X_bndry gives reference coordinates on the boundary mesh
                       Elem* const elem,
                       const vector<const vector<double>*>& var_data,
                       const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
@@ -109,7 +109,7 @@ tether_force_function(VectorValue<double>& F,
     }
     return;
 } // tether_force_function
-}
+} // namespace ModelData
 using namespace ModelData;
 
 /*******************************************************************************
@@ -124,7 +124,8 @@ using namespace ModelData;
  *                                                                             *
  *******************************************************************************/
 
-bool run_example(int argc, char** argv)
+bool
+run_example(int argc, char** argv)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -502,10 +503,14 @@ bool run_example(int argc, char** argv)
                 }
                 if (uses_exodus)
                 {
-                    exodus_solid_io->write_timestep(
-                        exodus_solid_filename, *solid_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
-                    exodus_bndry_io->write_timestep(
-                        exodus_bndry_filename, *bndry_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                    exodus_solid_io->write_timestep(exodus_solid_filename,
+                                                    *solid_equation_systems,
+                                                    iteration_num / viz_dump_interval + 1,
+                                                    loop_time);
+                    exodus_bndry_io->write_timestep(exodus_bndry_filename,
+                                                    *bndry_equation_systems,
+                                                    iteration_num / viz_dump_interval + 1,
+                                                    loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))

@@ -91,8 +91,7 @@ public:
      * @param quad_key a tuple of enums that completely describes
      * a libMesh quadrature rule.
      */
-    value_type &
-    operator[](const key_type &quad_key);
+    value_type& operator[](const key_type& quad_key);
 
 protected:
     /**
@@ -103,17 +102,14 @@ protected:
     /**
      * Managed libMesh::Quadrature objects.
      */
-    std::map<key_type, std::unique_ptr<libMesh::QBase>> quadratures;
+    std::map<key_type, std::unique_ptr<libMesh::QBase> > quadratures;
 };
 
-inline
-QuadratureCache::QuadratureCache(const unsigned int dim)
-    : dim(dim)
-{}
+inline QuadratureCache::QuadratureCache(const unsigned int dim) : dim(dim)
+{
+}
 
-inline
-QuadratureCache::value_type &
-QuadratureCache::operator[](const QuadratureCache::key_type &quad_key)
+inline QuadratureCache::value_type& QuadratureCache::operator[](const QuadratureCache::key_type& quad_key)
 {
     auto it = quadratures.find(quad_key);
     if (it == quadratures.end())
@@ -122,9 +118,8 @@ QuadratureCache::operator[](const QuadratureCache::key_type &quad_key)
         const libMesh::QuadratureType quad_type = std::get<1>(quad_key);
         const libMesh::Order order = std::get<2>(quad_key);
 
-        libMesh::QBase &new_quad = *(
-            *quadratures.emplace(
-                quad_key, libMesh::QBase::build(quad_type, dim, order)).first).second;
+        libMesh::QBase& new_quad =
+            *(*quadratures.emplace(quad_key, libMesh::QBase::build(quad_type, dim, order)).first).second;
         new_quad.init(elem_type);
         return new_quad;
     }

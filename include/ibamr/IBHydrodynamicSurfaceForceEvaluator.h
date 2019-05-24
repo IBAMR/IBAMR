@@ -147,7 +147,7 @@ private:
     /*!
      * \brief Level set variable for the immersed body
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >  d_ls_solid_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_solid_var;
 
     /*!
      * \brief Pointer to advection-diffusion solver.

@@ -98,8 +98,7 @@ public:
      * \brief Constructor.
      */
     template <typename InputIterator>
-    IBStrategySet(InputIterator first, InputIterator last)
-        : d_strategy_set(first, last)
+    IBStrategySet(InputIterator first, InputIterator last) : d_strategy_set(first, last)
     {
         // intentionally blank
         return;

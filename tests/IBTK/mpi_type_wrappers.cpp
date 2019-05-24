@@ -35,17 +35,17 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTK_MPI.h>
 
-#include <tbox/SAMRAI_MPI.h>
 #include <tbox/SAMRAIManager.h>
+#include <tbox/SAMRAI_MPI.h>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
 
 #include <boost/core/demangle.hpp>
 
-#include <utility>
 #include <fstream>
 #include <iostream>
+#include <utility>
 
 // Verify that the correspondence between MPI and C++ types in IBTK_MPI works.
 
@@ -66,7 +66,11 @@ void
 size_check_pair()
 {
     // Check the size against the official C type too
-    struct {U a;T b;} x;
+    struct
+    {
+        U a;
+        T b;
+    } x;
     using pair_type = std::pair<U, T>;
     static_assert(sizeof(pair_type) == sizeof(x), "unequal sizes");
     int size = 0;
@@ -80,7 +84,8 @@ size_check_pair()
     plog << "sizeof(struct {" << u_str << " a; " << t_str << " b;}) = " << sizeof(x) << '\n';
 }
 
-int main(int argc, char** argv)
+int
+main(int argc, char** argv)
 {
     MPI_Init(&argc, &argv);
     SAMRAI_MPI::setCommunicator(MPI_COMM_WORLD);

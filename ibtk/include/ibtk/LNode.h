@@ -199,7 +199,8 @@ public:
     /*!
      * \brief Unpack data from the input stream.
      */
-    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset) override;
+    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                              const SAMRAI::hier::IntVector<NDIM>& offset) override;
 
 private:
     /*!

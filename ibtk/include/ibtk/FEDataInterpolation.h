@@ -349,8 +349,8 @@ private:
     std::vector<libMesh::FEType> d_fe_types;
     std::vector<SAMRAI::tbox::Pointer<libMesh::FEBase> > d_fe, d_fe_face;
     std::vector<bool> d_eval_phi, d_eval_dphi;
-    std::vector<const std::vector<std::vector<double> > *> d_phi, d_phi_face;
-    std::vector<const std::vector<std::vector<libMesh::VectorValue<double> > > *> d_dphi, d_dphi_face;
+    std::vector<const std::vector<std::vector<double> >*> d_phi, d_phi_face;
+    std::vector<const std::vector<std::vector<libMesh::VectorValue<double> > >*> d_dphi, d_dphi_face;
 
     // Data associated with the current element.
     const libMesh::Elem* d_current_elem = nullptr;

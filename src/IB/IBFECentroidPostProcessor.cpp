@@ -103,7 +103,7 @@ get_x_and_FF(libMesh::VectorValue<double>& x,
     }
     return;
 }
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -226,9 +226,9 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
     const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
         fe.getGradVarInterpolation();
 
-    std::vector<std::vector<const std::vector<double> *> > scalar_var_data(num_scalar_vars),
+    std::vector<std::vector<const std::vector<double>*> > scalar_var_data(num_scalar_vars),
         vector_var_data(num_vector_vars), tensor_var_data(num_tensor_vars);
-    std::vector<std::vector<const std::vector<VectorValue<double> > *> > scalar_grad_var_data(num_scalar_vars),
+    std::vector<std::vector<const std::vector<VectorValue<double> >*> > scalar_grad_var_data(num_scalar_vars),
         vector_grad_var_data(num_vector_vars), tensor_grad_var_data(num_tensor_vars);
 
     // Reconstruct the variables via simple function evaluation.

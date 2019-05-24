@@ -80,288 +80,166 @@
     IBAMR_FC_FUNC_(advect_predict_ppm_with_source3d, ADVECT_PREDICT_PPM_WITH_SOURCE3D)
 #endif
 
-extern "C" {
-void ADVECT_DERIVATIVE_FC(const double*,
+extern "C"
+{
+    void ADVECT_DERIVATIVE_FC(const double*,
 #if (NDIM == 2)
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const int&,
-                          const int&,
-                          double*
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const int&,
+                              const int&,
+                              double*
 #endif
 #if (NDIM == 3)
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const int&,
-                          const int&,
-                          const int&,
-                          double*
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const int&,
+                              const int&,
+                              const int&,
+                              double*
 #endif
-                          );
+    );
 
-void ADVECT_FLUX_FC(const double&,
+    void ADVECT_FLUX_FC(const double&,
 #if (NDIM == 2)
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const double*,
-                    const double*,
-                    const double*,
-                    const double*,
-                    double*,
-                    double*
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const double*,
+                        const double*,
+                        const double*,
+                        const double*,
+                        double*,
+                        double*
 #endif
 #if (NDIM == 3)
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const double*,
-                    const double*,
-                    const double*,
-                    const double*,
-                    const double*,
-                    const double*,
-                    double*,
-                    double*,
-                    double*
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const double*,
+                        const double*,
+                        const double*,
+                        const double*,
+                        const double*,
+                        const double*,
+                        double*,
+                        double*,
+                        double*
 #endif
-                    );
+    );
 
-void ADVECT_STABLEDT_FC(const double*,
+    void ADVECT_STABLEDT_FC(const double*,
 #if (NDIM == 2)
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const double*,
-                        const double*,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const double*,
+                            const double*,
 #endif
 #if (NDIM == 3)
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const double*,
-                        const double*,
-                        const double*,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const double*,
+                            const double*,
+                            const double*,
 #endif
-                        double&);
+                            double&);
 
 #if ((NDIM == 2) || (NDIM == 3))
-void GODUNOV_INCOMPRESSIBILITY_FIX_FC(const int&,
+    void GODUNOV_INCOMPRESSIBILITY_FIX_FC(const int&,
 #if (NDIM == 2)
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const double*,
-                                      const double*,
-                                      double*,
-                                      double*
+                                          const int&,
+                                          const int&,
+                                          const int&,
+                                          const int&,
+                                          const int&,
+                                          const int&,
+                                          const int&,
+                                          const int&,
+                                          const double*,
+                                          const double*,
+                                          double*,
+                                          double*
 #endif
 #if (NDIM == 3)
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const double*,
-                                      const double*,
-                                      const double*,
-                                      double*,
-                                      double*,
-                                      double*
+                                          const int&,
+                                          const int&,
+                                          const int&,
+                                          const int&,
+                                          const int&,
+                                          const int&,
+                                          const int&,
+                                          const int&,
+                                          const int&,
+                                          const int&,
+                                          const int&,
+                                          const int&,
+                                          const double*,
+                                          const double*,
+                                          const double*,
+                                          double*,
+                                          double*,
+                                          double*
 #endif
-                                      );
+    );
 #endif
 
-void ADVECT_PREDICT_FC(const double*,
-                       const double&,
-                       const int&,
-#if (NDIM == 3)
-                       const unsigned int&,
-#endif
-#if (NDIM == 2)
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const double*,
-                       double*,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const double*,
-                       const double*,
-                       double*,
-                       double*,
-                       double*,
-                       double*
-#endif
-#if (NDIM == 3)
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const double*,
-                       double*,
-                       double*,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const double*,
-                       const double*,
-                       const double*,
-                       double*,
-                       double*,
-                       double*,
-                       double*,
-                       double*,
-                       double*
-#endif
-                       );
-
-void ADVECT_PREDICT_WITH_SOURCE_FC(const double*,
-                                   const double&,
-                                   const int&,
-#if (NDIM == 3)
-                                   const unsigned int&,
-#endif
-#if (NDIM == 2)
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const double*,
-                                   double*,
-                                   const double*,
-                                   double*,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const double*,
-                                   const double*,
-                                   double*,
-                                   double*,
-                                   double*,
-                                   double*
-#endif
-#if (NDIM == 3)
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const double*,
-                                   double*,
-                                   double*,
-                                   const double*,
-                                   double*,
-                                   double*,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const double*,
-                                   const double*,
-                                   const double*,
-                                   double*,
-                                   double*,
-                                   double*,
-                                   double*,
-                                   double*,
-                                   double*
-#endif
-                                   );
-void ADVECT_PREDICT_PPM_FC(const double*,
+    void ADVECT_PREDICT_FC(const double*,
                            const double&,
                            const int&,
 #if (NDIM == 3)
@@ -376,9 +254,6 @@ void ADVECT_PREDICT_PPM_FC(const double*,
                            const int&,
                            const double*,
                            double*,
-                           double*,
-                           double*,
-                           double*,
                            const int&,
                            const int&,
                            const int&,
@@ -403,9 +278,6 @@ void ADVECT_PREDICT_PPM_FC(const double*,
                            const double*,
                            double*,
                            double*,
-                           double*,
-                           double*,
-                           double*,
                            const int&,
                            const int&,
                            const int&,
@@ -422,9 +294,9 @@ void ADVECT_PREDICT_PPM_FC(const double*,
                            double*,
                            double*
 #endif
-                           );
+    );
 
-void ADVECT_PREDICT_PPM_WITH_SOURCE_FC(const double*,
+    void ADVECT_PREDICT_WITH_SOURCE_FC(const double*,
                                        const double&,
                                        const int&,
 #if (NDIM == 3)
@@ -441,9 +313,6 @@ void ADVECT_PREDICT_PPM_WITH_SOURCE_FC(const double*,
                                        const int&,
                                        const double*,
                                        double*,
-                                       double*,
-                                       double*,
-                                       double*,
                                        const double*,
                                        double*,
                                        const int&,
@@ -473,9 +342,6 @@ void ADVECT_PREDICT_PPM_WITH_SOURCE_FC(const double*,
                                        const double*,
                                        double*,
                                        double*,
-                                       double*,
-                                       double*,
-                                       double*,
                                        const double*,
                                        double*,
                                        double*,
@@ -495,7 +361,142 @@ void ADVECT_PREDICT_PPM_WITH_SOURCE_FC(const double*,
                                        double*,
                                        double*
 #endif
-                                       );
+    );
+    void ADVECT_PREDICT_PPM_FC(const double*,
+                               const double&,
+                               const int&,
+#if (NDIM == 3)
+                               const unsigned int&,
+#endif
+#if (NDIM == 2)
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const double*,
+                               double*,
+                               double*,
+                               double*,
+                               double*,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const double*,
+                               const double*,
+                               double*,
+                               double*,
+                               double*,
+                               double*
+#endif
+#if (NDIM == 3)
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const double*,
+                               double*,
+                               double*,
+                               double*,
+                               double*,
+                               double*,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const double*,
+                               const double*,
+                               const double*,
+                               double*,
+                               double*,
+                               double*,
+                               double*,
+                               double*,
+                               double*
+#endif
+    );
+
+    void ADVECT_PREDICT_PPM_WITH_SOURCE_FC(const double*,
+                                           const double&,
+                                           const int&,
+#if (NDIM == 3)
+                                           const unsigned int&,
+#endif
+#if (NDIM == 2)
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           double*,
+                                           double*,
+                                           double*,
+                                           double*,
+                                           const double*,
+                                           double*,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const double*,
+                                           double*,
+                                           double*,
+                                           double*,
+                                           double*
+#endif
+#if (NDIM == 3)
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           double*,
+                                           double*,
+                                           double*,
+                                           double*,
+                                           double*,
+                                           const double*,
+                                           double*,
+                                           double*,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const double*,
+                                           const double*,
+                                           double*,
+                                           double*,
+                                           double*,
+                                           double*,
+                                           double*,
+                                           double*
+#endif
+    );
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -512,7 +513,7 @@ static const int FACEG = 1;
 // Version of AdvectorExplicitPredictorPatchOps restart file data
 // TODO: get rid of this ?
 static const int GODUNOV_ADVECTOR_VERSION = 1;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -908,8 +909,7 @@ AdvectorExplicitPredictorPatchOps::getNumberCellGhosts() const
         return 4;
     default:
         TBOX_ERROR(d_object_name << "::getNumberCellGhosts():\n"
-                                 << "  Limiter corresponding to d_limiter_type = "
-                                 << d_limiter_type
+                                 << "  Limiter corresponding to d_limiter_type = " << d_limiter_type
                                  << " not implemented");
         break;
     }
@@ -1111,8 +1111,7 @@ AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
             break;
         default:
             TBOX_ERROR(d_object_name << "::predict(q_half, u_ADV, Q, patch, dt):\n"
-                                     << "  Limiter corresponding to d_limiter_type = "
-                                     << d_limiter_type
+                                     << "  Limiter corresponding to d_limiter_type = " << d_limiter_type
                                      << " not implemented");
             break;
         }
@@ -1317,8 +1316,7 @@ AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>&
             break;
         default:
             TBOX_ERROR(d_object_name << "::predictWithSourceTerm(q_half, u_ADV, Q, F, patch, dt):\n"
-                                     << "  Limiter corresponding to d_limiter_type = "
-                                     << d_limiter_type
+                                     << "  Limiter corresponding to d_limiter_type = " << d_limiter_type
                                      << " not implemented");
             break;
         }
@@ -1357,8 +1355,7 @@ AdvectorExplicitPredictorPatchOps::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << "::getFromRestart():\n"
-                                 << "  Restart database corresponding to "
-                                 << d_object_name
+                                 << "  Restart database corresponding to " << d_object_name
                                  << " not found in restart file.");
     }
 

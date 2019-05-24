@@ -99,51 +99,52 @@
     IBAMR_FC_FUNC_(navier_stokes_stochastic_stress_div3d, NAVIER_STOKES_STOCHASTIC_STRESS_DIV3D)
 #endif
 
-extern "C" {
-void NAVIER_STOKES_STOCHASTIC_STRESS_DIV_FC(
+extern "C"
+{
+    void NAVIER_STOKES_STOCHASTIC_STRESS_DIV_FC(
 #if (NDIM == 2)
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double&,
-    const int&,
-    const int&,
-    const double*,
-    const int&,
-    const int&,
-    const double*,
-    const int&,
-    const int&,
-    double*,
-    double*
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double&,
+        const int&,
+        const int&,
+        const double*,
+        const int&,
+        const int&,
+        const double*,
+        const int&,
+        const int&,
+        double*,
+        double*
 #endif
 #if (NDIM == 3)
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*
 #endif
     );
 }
@@ -176,7 +177,7 @@ genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
     }
     return;
 } // genrandn
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -411,7 +412,8 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                             }
                             for (int d = 0; d < NDIM; ++d)
                             {
-                                (*W_cc_data)(i, d) = std::sqrt(2.0) * ((*W_cc_data)(i, d) - trace / static_cast<double>(NDIM));
+                                (*W_cc_data)(i, d) =
+                                    std::sqrt(2.0) * ((*W_cc_data)(i, d) - trace / static_cast<double>(NDIM));
                             }
                         }
                     }
@@ -420,8 +422,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 {
                     TBOX_ERROR(d_object_name << "::setDataOnPatchHierarchy():\n"
                                              << "  unrecognized stress tensor type: "
-                                             << enum_to_string<StochasticStressTensorType>(d_stress_tensor_type)
-                                             << "."
+                                             << enum_to_string<StochasticStressTensorType>(d_stress_tensor_type) << "."
                                              << std::endl);
                 }
 

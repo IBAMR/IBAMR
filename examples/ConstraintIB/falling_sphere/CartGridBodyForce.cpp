@@ -103,8 +103,7 @@ CartGridBodyForce::setDataOnPatch(const int data_idx,
     else
     {
         TBOX_ERROR("CartGridBodyForce::setDataOnPatch() "
-                   << "UNKNOWN DATA TYPE ENCOUNTERED"
-                   << std::endl);
+                   << "UNKNOWN DATA TYPE ENCOUNTERED" << std::endl);
     }
 
     return;

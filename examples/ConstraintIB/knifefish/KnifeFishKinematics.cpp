@@ -77,7 +77,7 @@ discard_comments(const std::string& input_string)
     return output_string;
 } // discard_comments
 
-} // namespace anonymous
+} // namespace
 
 KnifeFishKinematics::KnifeFishKinematics(const std::string& object_name,
                                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
@@ -180,9 +180,7 @@ KnifeFishKinematics::KnifeFishKinematics(const std::string& object_name,
     if (!coord_file_stream.is_open())
     {
         TBOX_ERROR("KnifeFishKinemtics::KnifeFishKinematics() "
-                   << "could not open file"
-                   << filename
-                   << std::endl);
+                   << "could not open file" << filename << std::endl);
     }
 
     for (int k = 0; k < number_fin_points; ++k)
@@ -192,11 +190,8 @@ KnifeFishKinematics::KnifeFishKinematics(const std::string& object_name,
         if (!std::getline(coord_file_stream, line_string))
         {
             TBOX_ERROR("KnifeFishKinemtics::KnifeFishKinematics() "
-                       << ":\n  Premature end to input file encountered before line "
-                       << k + 1
-                       << " of file "
-                       << filename
-                       << std::endl);
+                       << ":\n  Premature end to input file encountered before line " << k + 1 << " of file "
+                       << filename << std::endl);
         }
         else
         {
@@ -206,40 +201,23 @@ KnifeFishKinematics::KnifeFishKinematics(const std::string& object_name,
             if (!(line_stream >> d_vec_coord[k]))
             {
                 TBOX_ERROR("KnifeFishKinemtics::KnifeFishKinematics() "
-                           << ":\n Invalid entry in input file encountered on line "
-                           << k + 2
-                           << " of file "
-                           << filename
-                           << " . Lagrangian X co-ordinate of material point at "
-                           << NDIM + 1
-                           << "expected."
+                           << ":\n Invalid entry in input file encountered on line " << k + 2 << " of file " << filename
+                           << " . Lagrangian X co-ordinate of material point at " << NDIM + 1 << "expected."
                            << std::endl);
             }
 
             if (!(line_stream >> d_vec_radius[k]))
             {
                 TBOX_ERROR("KnifeFishKinemtics::KnifeFishKinematics() "
-                           << ":\n Invalid entry in input file encountered on line "
-                           << k + 2
-                           << " of file "
-                           << filename
-                           << " .Radius of material point at "
-                           << NDIM + 1
-                           << "expected."
-                           << std::endl);
+                           << ":\n Invalid entry in input file encountered on line " << k + 2 << " of file " << filename
+                           << " .Radius of material point at " << NDIM + 1 << "expected." << std::endl);
             }
 
             if (!(line_stream >> d_vec_theta[k]))
             {
                 TBOX_ERROR("KnifeFishKinemtics::KnifeFishKinematics() "
-                           << ":\n Invalid entry in input file encountered on line "
-                           << k + 2
-                           << " of file "
-                           << filename
-                           << " .Angle of excursion at "
-                           << NDIM + 1
-                           << "expected."
-                           << std::endl);
+                           << ":\n Invalid entry in input file encountered on line " << k + 2 << " of file " << filename
+                           << " .Angle of excursion at " << NDIM + 1 << "expected." << std::endl);
             }
         }
     } // end of k for loop
@@ -268,8 +246,7 @@ KnifeFishKinematics::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
     d_current_time = db->getDouble("d_current_time");
 

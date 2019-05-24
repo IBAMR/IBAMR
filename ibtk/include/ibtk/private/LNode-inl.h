@@ -88,7 +88,8 @@ inline LNode::~LNode()
     return;
 } // ~LNode
 
-inline LNode& LNode::operator=(const LNode& that)
+inline LNode&
+LNode::operator=(const LNode& that)
 {
     if (this != &that)
     {

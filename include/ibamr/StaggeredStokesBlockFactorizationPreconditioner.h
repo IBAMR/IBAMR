@@ -115,7 +115,8 @@ public:
     /*!
      * \brief Compute the action of the preconditioner.
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -184,7 +185,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesBlockFactorizationPreconditioner(const StaggeredStokesBlockFactorizationPreconditioner& from) = delete;
+    StaggeredStokesBlockFactorizationPreconditioner(const StaggeredStokesBlockFactorizationPreconditioner& from) =
+        delete;
 
     /*!
      * \brief Assignment operator.

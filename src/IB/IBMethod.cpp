@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstring>
 #include <functional>
@@ -137,7 +137,7 @@ cos_kernel(const double x, const double eps)
 
 // Version of IBMethod restart file data.
 static const int IB_METHOD_VERSION = 1;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -655,7 +655,7 @@ IBMethod::interpolateVelocity(const int u_data_idx,
                               const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                               const double data_time)
 {
-    std::vector<Pointer<LData> > *U_data, *X_LE_data;
+    std::vector<Pointer<LData> >*U_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getVelocityData(&U_data, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -680,7 +680,7 @@ IBMethod::interpolateLinearizedVelocity(const int u_data_idx,
                                         const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                         const double data_time)
 {
-    std::vector<Pointer<LData> > *U_jac_data, *X_LE_data;
+    std::vector<Pointer<LData> >*U_jac_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getLinearizedVelocityData(&U_jac_data);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -776,7 +776,7 @@ IBMethod::trapezoidalStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> > *U_current_data, *U_new_data;
+    std::vector<Pointer<LData> >*U_current_data, *U_new_data;
     getVelocityData(&U_current_data, current_time);
     getVelocityData(&U_new_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -811,7 +811,7 @@ IBMethod::computeLagrangianForce(const double data_time)
     int ierr;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> > *F_data, *X_data, *U_data;
+    std::vector<Pointer<LData> >*F_data, *X_data, *U_data;
     bool *F_needs_ghost_fill, *X_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
@@ -923,20 +923,8 @@ IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type, const doubl
         else
         {
             TBOX_ERROR(d_object_name + "::getLagrangianForceJacobian()."
-                       << "Matrix of the type "
-                       << mat_type
-                       << " given. Supported types are "
-                       << MATSHELL
-                       << "/"
-                       << MATMFFD
-                       << " , "
-                       << MATBAIJ
-                       << "/"
-                       << MATMPIBAIJ
-                       << " , "
-                       << MATAIJ
-                       << "/"
-                       << MATMPIAIJ
+                       << "Matrix of the type " << mat_type << " given. Supported types are " << MATSHELL << "/"
+                       << MATMFFD << " , " << MATBAIJ << "/" << MATMPIBAIJ << " , " << MATAIJ << "/" << MATMPIAIJ
                        << std::endl);
         }
         ierr = MatSetBlockSize(A, NDIM);
@@ -961,7 +949,7 @@ IBMethod::spreadForce(const int f_data_idx,
                       const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
                       const double data_time)
 {
-    std::vector<Pointer<LData> > *F_data, *X_LE_data;
+    std::vector<Pointer<LData> >*F_data, *X_LE_data;
     bool *F_needs_ghost_fill, *X_LE_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -987,7 +975,7 @@ IBMethod::spreadLinearizedForce(const int f_data_idx,
                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
                                 const double data_time)
 {
-    std::vector<Pointer<LData> > *F_jac_data, *X_LE_data;
+    std::vector<Pointer<LData> >*F_jac_data, *X_LE_data;
     bool *F_jac_needs_ghost_fill, *X_LE_needs_ghost_fill;
     getLinearizedForceData(&F_jac_data, &F_jac_needs_ghost_fill);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -1147,22 +1135,14 @@ IBMethod::spreadFluidSource(const int q_data_idx,
 #if (NDIM == 2)
         TBOX_ERROR(d_object_name << "::spreadFluidSource():\n"
                                  << "  Lagrangian and Eulerian source/sink strengths are inconsistent:\n"
-                                 << "    Sum_{i,j} q_{i,j} h^2     = "
-                                 << q_total
-                                 << "\n"
-                                 << "    Sum_{l=1,...,n_src} Q_{l} = "
-                                 << Q_sum
-                                 << "\n");
+                                 << "    Sum_{i,j} q_{i,j} h^2     = " << q_total << "\n"
+                                 << "    Sum_{l=1,...,n_src} Q_{l} = " << Q_sum << "\n");
 #endif
 #if (NDIM == 3)
         TBOX_ERROR(d_object_name << "::spreadFluidSource():\n"
                                  << "  Lagrangian and Eulerian source/sink strengths are inconsistent:\n"
-                                 << "    Sum_{i,j,k} q_{i,j,k} h^3 = "
-                                 << q_total
-                                 << "\n"
-                                 << "    Sum_{l=1,...,n_src} Q_{l} = "
-                                 << Q_sum
-                                 << "\n");
+                                 << "    Sum_{i,j,k} q_{i,j,k} h^3 = " << q_total << "\n"
+                                 << "    Sum_{l=1,...,n_src} Q_{l} = " << Q_sum << "\n");
 #endif
     }
 
@@ -1212,9 +1192,7 @@ IBMethod::spreadFluidSource(const int q_data_idx,
             TBOX_ERROR(d_object_name << "::spreadFluidSource():\n"
                                      << "  ``external' source/sink does not correctly offset net "
                                         "inflow/outflow into domain.\n"
-                                     << "  integral{q} = "
-                                     << integral_q
-                                     << " != 0.\n");
+                                     << "  integral{q} = " << integral_q << " != 0.\n");
         }
     }
     return;
@@ -2043,8 +2021,7 @@ IBMethod::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
     int ver = db->getInteger("IB_METHOD_VERSION");
     if (ver != IB_METHOD_VERSION)
@@ -2114,7 +2091,7 @@ PetscErrorCode
 IBMethod::computeForce(Vec X, Vec F)
 {
     PetscErrorCode ierr;
-    std::vector<Pointer<LData> > *F_data, *X_data;
+    std::vector<Pointer<LData> >*F_data, *X_data;
     bool *F_needs_ghost_fill, *X_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, d_force_jac_data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, d_force_jac_data_time);

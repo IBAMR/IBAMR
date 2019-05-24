@@ -122,8 +122,8 @@ public:
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                                 double data_time,
                                 bool initial_time = false,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >
-                                    patch_level = SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) = 0;
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) = 0;
 
     //\}
 

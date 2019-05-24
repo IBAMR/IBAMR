@@ -105,184 +105,185 @@
 #endif
 
 // Function interfaces
-extern "C" {
-void VC_GS_SMOOTH_FC(double* U0,
-                     double* U1,
+extern "C"
+{
+    void VC_GS_SMOOTH_FC(double* U0,
+                         double* U1,
 #if (NDIM == 3)
-                     double* U2,
+                         double* U2,
 #endif
-                     const int& U_gcw,
-                     const double* F0,
-                     const double* F1,
+                         const int& U_gcw,
+                         const double* F0,
+                         const double* F1,
 #if (NDIM == 3)
-                     const double* F2,
+                         const double* F2,
 #endif
-                     const int& F_gcw,
-                     const double* C0,
-                     const double* C1,
+                         const int& F_gcw,
+                         const double* C0,
+                         const double* C1,
 #if (NDIM == 3)
-                     const double* C2,
+                         const double* C2,
 #endif
-                     const int& C_gcw,
+                         const int& C_gcw,
 #if (NDIM == 2)
-                     const double* mu,
+                         const double* mu,
 #endif
 #if (NDIM == 3)
-                     const double* mu0,
-                     const double* mu1,
-                     const double* mu2,
+                         const double* mu0,
+                         const double* mu1,
+                         const double* mu2,
 #endif
-                     const int& mu_gcw,
-                     const double& alpha,
-                     const double& beta,
-                     const int& ilower0,
-                     const int& iupper0,
-                     const int& ilower1,
-                     const int& iupper1,
+                         const int& mu_gcw,
+                         const double& alpha,
+                         const double& beta,
+                         const int& ilower0,
+                         const int& iupper0,
+                         const int& ilower1,
+                         const int& iupper1,
 #if (NDIM == 3)
-                     const int& ilower2,
-                     const int& iupper2,
+                         const int& ilower2,
+                         const int& iupper2,
 #endif
-                     const double* dx,
-                     const int& var_c,
-                     const int& use_harmonic_interp);
+                         const double* dx,
+                         const int& var_c,
+                         const int& use_harmonic_interp);
 
-void VC_GS_SMOOTH_MASK_FC(double* U0,
-                          double* U1,
+    void VC_GS_SMOOTH_MASK_FC(double* U0,
+                              double* U1,
 #if (NDIM == 3)
-                          double* U2,
+                              double* U2,
 #endif
-                          const int& U_gcw,
-                          const double* F0,
-                          const double* F1,
+                              const int& U_gcw,
+                              const double* F0,
+                              const double* F1,
 #if (NDIM == 3)
-                          const double* F2,
+                              const double* F2,
 #endif
-                          const int& F_gcw,
-                          const int* mask0,
-                          const int* mask1,
+                              const int& F_gcw,
+                              const int* mask0,
+                              const int* mask1,
 #if (NDIM == 3)
-                          const int* mask2,
+                              const int* mask2,
 #endif
-                          const int& mask_gcw,
-                          const double* C0,
-                          const double* C1,
+                              const int& mask_gcw,
+                              const double* C0,
+                              const double* C1,
 #if (NDIM == 3)
-                          const double* C2,
+                              const double* C2,
 #endif
-                          const int& C_gcw,
+                              const int& C_gcw,
 #if (NDIM == 2)
-                          const double* mu,
+                              const double* mu,
 #endif
 #if (NDIM == 3)
-                          const double* mu0,
-                          const double* mu1,
-                          const double* mu2,
+                              const double* mu0,
+                              const double* mu1,
+                              const double* mu2,
 #endif
-                          const int& mu_gcw,
-                          const double& alpha,
-                          const double& beta,
-                          const int& ilower0,
-                          const int& iupper0,
-                          const int& ilower1,
-                          const int& iupper1,
+                              const int& mu_gcw,
+                              const double& alpha,
+                              const double& beta,
+                              const int& ilower0,
+                              const int& iupper0,
+                              const int& ilower1,
+                              const int& iupper1,
 #if (NDIM == 3)
-                          const int& ilower2,
-                          const int& iupper2,
+                              const int& ilower2,
+                              const int& iupper2,
 #endif
-                          const double* dx,
-                          const int& var_c,
-                          const int& use_harmonic_interp);
+                              const double* dx,
+                              const int& var_c,
+                              const int& use_harmonic_interp);
 
-void VC_RB_GS_SMOOTH_FC(double* U0,
-                        double* U1,
+    void VC_RB_GS_SMOOTH_FC(double* U0,
+                            double* U1,
 #if (NDIM == 3)
-                        double* U2,
+                            double* U2,
 #endif
-                        const int& U_gcw,
-                        const double* F0,
-                        const double* F1,
+                            const int& U_gcw,
+                            const double* F0,
+                            const double* F1,
 #if (NDIM == 3)
-                        const double* F2,
+                            const double* F2,
 #endif
-                        const int& F_gcw,
-                        const double* C0,
-                        const double* C1,
+                            const int& F_gcw,
+                            const double* C0,
+                            const double* C1,
 #if (NDIM == 3)
-                        const double* C2,
+                            const double* C2,
 #endif
-                        const int& C_gcw,
+                            const int& C_gcw,
 #if (NDIM == 2)
-                        const double* mu,
+                            const double* mu,
 #endif
 #if (NDIM == 3)
-                        const double* mu0,
-                        const double* mu1,
-                        const double* mu2,
+                            const double* mu0,
+                            const double* mu1,
+                            const double* mu2,
 #endif
-                        const int& mu_gcw,
-                        const double& alpha,
-                        const double& beta,
-                        const int& ilower0,
-                        const int& iupper0,
-                        const int& ilower1,
-                        const int& iupper1,
+                            const int& mu_gcw,
+                            const double& alpha,
+                            const double& beta,
+                            const int& ilower0,
+                            const int& iupper0,
+                            const int& ilower1,
+                            const int& iupper1,
 #if (NDIM == 3)
-                        const int& ilower2,
-                        const int& iupper2,
+                            const int& ilower2,
+                            const int& iupper2,
 #endif
-                        const double* dx,
-                        const int& var_c,
-                        const int& use_harmonic_interp,
-                        const int& red_or_black);
+                            const double* dx,
+                            const int& var_c,
+                            const int& use_harmonic_interp,
+                            const int& red_or_black);
 
-void VC_RB_GS_SMOOTH_MASK_FC(double* U0,
-                             double* U1,
+    void VC_RB_GS_SMOOTH_MASK_FC(double* U0,
+                                 double* U1,
 #if (NDIM == 3)
-                             double* U2,
+                                 double* U2,
 #endif
-                             const int& U_gcw,
-                             const double* F0,
-                             const double* F1,
+                                 const int& U_gcw,
+                                 const double* F0,
+                                 const double* F1,
 #if (NDIM == 3)
-                             const double* F2,
+                                 const double* F2,
 #endif
-                             const int& F_gcw,
-                             const int* mask0,
-                             const int* mask1,
+                                 const int& F_gcw,
+                                 const int* mask0,
+                                 const int* mask1,
 #if (NDIM == 3)
-                             const int* mask2,
+                                 const int* mask2,
 #endif
-                             const int& mask_gcw,
-                             const double* C0,
-                             const double* C1,
+                                 const int& mask_gcw,
+                                 const double* C0,
+                                 const double* C1,
 #if (NDIM == 3)
-                             const double* C2,
+                                 const double* C2,
 #endif
-                             const int& C_gcw,
+                                 const int& C_gcw,
 #if (NDIM == 2)
-                             const double* mu,
+                                 const double* mu,
 #endif
 #if (NDIM == 3)
-                             const double* mu0,
-                             const double* mu1,
-                             const double* mu2,
+                                 const double* mu0,
+                                 const double* mu1,
+                                 const double* mu2,
 #endif
-                             const int& mu_gcw,
-                             const double& alpha,
-                             const double& beta,
-                             const int& ilower0,
-                             const int& iupper0,
-                             const int& ilower1,
-                             const int& iupper1,
+                                 const int& mu_gcw,
+                                 const double& alpha,
+                                 const double& beta,
+                                 const int& ilower0,
+                                 const int& iupper0,
+                                 const int& ilower1,
+                                 const int& iupper1,
 #if (NDIM == 3)
-                             const int& ilower2,
-                             const int& iupper2,
+                                 const int& ilower2,
+                                 const int& iupper2,
 #endif
-                             const double* dx,
-                             const int& var_c,
-                             const int& use_harmonic_interp,
-                             const int& red_or_black);
+                                 const double* dx,
+                                 const int& var_c,
+                                 const int& use_harmonic_interp,
+                                 const int& red_or_black);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -357,7 +358,7 @@ do_local_data_update(SmootherType smoother_type)
         return false;
     }
 } // do_local_data_update
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -872,7 +873,10 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
     if (!d_level_math_ops[finest_level_num])
     {
         d_level_math_ops[finest_level_num] =
-            new HierarchyMathOps(d_object_name + "::hier_math_ops_" + std::to_string(finest_level_num), d_hierarchy, coarsest_level_num, finest_level_num);
+            new HierarchyMathOps(d_object_name + "::hier_math_ops_" + std::to_string(finest_level_num),
+                                 d_hierarchy,
+                                 coarsest_level_num,
+                                 finest_level_num);
     }
 
     double alpha = 1.0;

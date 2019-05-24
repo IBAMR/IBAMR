@@ -107,7 +107,7 @@ namespace IBAMR
 {
 class IBHierarchyIntegrator;
 class INSHierarchyIntegrator;
-}
+} // namespace IBAMR
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -351,7 +351,6 @@ public:
      */
     virtual void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                      const int workload_data_idx);
-
 
     /*!
      * Begin redistributing Lagrangian data prior to regridding the patch

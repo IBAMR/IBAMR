@@ -111,7 +111,7 @@ PK1_dil_stress_function(TensorValue<double>& PP,
     PP = 2.0 * (-p0_s + beta_s * log(FF.det())) * tensor_inverse_transpose(FF, NDIM);
     return;
 } // PK1_dil_stress_function
-}
+} // namespace ModelData
 using namespace ModelData;
 
 /*******************************************************************************
@@ -126,7 +126,8 @@ using namespace ModelData;
  *                                                                             *
  *******************************************************************************/
 
-int main(int argc, char** argv)
+int
+main(int argc, char** argv)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);

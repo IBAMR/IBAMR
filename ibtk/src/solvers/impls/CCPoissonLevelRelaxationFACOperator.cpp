@@ -129,7 +129,7 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells; used only to evaluate composite grid residuals.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -209,8 +209,7 @@ CCPoissonLevelRelaxationFACOperator::setSmootherType(const std::string& level_so
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setSmootherType():\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
     if (d_level_solver_type != level_solver_type)
     {
@@ -226,8 +225,7 @@ CCPoissonLevelRelaxationFACOperator::setCoarseSolverType(const std::string& coar
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setCoarseSolverType():\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
@@ -435,7 +433,10 @@ CCPoissonLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
     if (!d_level_math_ops[finest_level_num])
     {
         d_level_math_ops[finest_level_num] =
-            new HierarchyMathOps(d_object_name + "::hier_math_ops_" + std::to_string(finest_level_num), d_hierarchy, coarsest_level_num, finest_level_num);
+            new HierarchyMathOps(d_object_name + "::hier_math_ops_" + std::to_string(finest_level_num),
+                                 d_hierarchy,
+                                 coarsest_level_num,
+                                 finest_level_num);
     }
     d_level_math_ops[finest_level_num]->laplace(
         res_idx, res_var, d_poisson_spec, sol_idx, sol_var, nullptr, d_solution_time);
@@ -472,12 +473,8 @@ CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     {
         TBOX_ERROR("CCPoissonLevelRelaxationFACOperator::initializeOperatorState()\n"
                    << "  solution and rhs vectors must have the same data depths\n"
-                   << "  solution data depth = "
-                   << solution_pdat_fac->getDefaultDepth()
-                   << "\n"
-                   << "  rhs      data depth = "
-                   << rhs_pdat_fac->getDefaultDepth()
-                   << std::endl);
+                   << "  solution data depth = " << solution_pdat_fac->getDefaultDepth() << "\n"
+                   << "  rhs      data depth = " << rhs_pdat_fac->getDefaultDepth() << std::endl);
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -492,8 +489,11 @@ CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
         Pointer<PoissonSolver>& level_solver = d_level_solvers[ln];
         if (!level_solver)
         {
-            level_solver = CCPoissonSolverManager::getManager()->allocateSolver(
-                d_level_solver_type, d_object_name + "::level_solver", d_level_solver_db, d_level_solver_default_options_prefix + std::to_string(ln) + "_");
+            level_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_level_solver_type,
+                                                                                d_object_name + "::level_solver",
+                                                                                d_level_solver_db,
+                                                                                d_level_solver_default_options_prefix +
+                                                                                    std::to_string(ln) + "_");
         }
 
         level_solver->setSolutionTime(d_solution_time);

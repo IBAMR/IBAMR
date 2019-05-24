@@ -77,7 +77,7 @@ namespace
 {
 // Version of PenaltyIBMethod restart file data.
 static const int PENALTY_IB_METHOD_VERSION = 1;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -185,9 +185,8 @@ PenaltyIBMethod::forwardEulerStep(const double current_time, const double new_ti
             for (d = 0; d < NDIM; ++d)
             {
                 Y_new[NDIM * i + d] = Y[NDIM * i + d] + dt * V[NDIM * i + d];
-                V_new[NDIM * i + d] =
-                    V[NDIM * i + d] +
-                    dt * (-K[i] * (Y[NDIM * i + d] - X[NDIM * i + d]) / M[i] + d_gravitational_acceleration[d]);
+                V_new[NDIM * i + d] = V[NDIM * i + d] + dt * (-K[i] * (Y[NDIM * i + d] - X[NDIM * i + d]) / M[i] +
+                                                              d_gravitational_acceleration[d]);
             }
         }
     }
@@ -403,7 +402,6 @@ PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarc
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-
             Pointer<LData> X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
             Pointer<LData> U_data = d_l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
             Pointer<LData> Y_data = d_l_data_manager->createLData("Y", ln, NDIM, /*manage_data*/ true);
@@ -427,20 +425,15 @@ PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarc
 
 void
 PenaltyIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                         int level_number,
-                                         double init_data_time,
-                                         bool can_be_refined,
-                                         bool initial_time,
-                                         Pointer<BasePatchLevel<NDIM> > old_level,
-                                         bool allocate_data)
+                                     int level_number,
+                                     double init_data_time,
+                                     bool can_be_refined,
+                                     bool initial_time,
+                                     Pointer<BasePatchLevel<NDIM> > old_level,
+                                     bool allocate_data)
 {
-    IBMethod::initializeLevelData(hierarchy,
-                                  level_number,
-                                  init_data_time,
-                                  can_be_refined,
-                                  initial_time,
-                                  old_level,
-                                  allocate_data);
+    IBMethod::initializeLevelData(
+        hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
 
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
@@ -520,8 +513,7 @@ PenaltyIBMethod::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
     int ver = db->getInteger("PENALTY_IB_METHOD_VERSION");
     if (ver != PENALTY_IB_METHOD_VERSION)

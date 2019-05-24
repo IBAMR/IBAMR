@@ -134,7 +134,8 @@ Wall::Wall(const Wall& other_wall)
     return;
 }
 
-Wall& Wall::operator=(const Wall& other_wall)
+Wall&
+Wall::operator=(const Wall& other_wall)
 {
     if (&other_wall != this)
     {

@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
 #include <algorithm>
+#include <array>
 #include <numeric>
 #include <ostream>
 #include <set>
@@ -92,7 +92,7 @@ compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
     extended_box.upper()(data_axis) += 1;
     return extended_box;
 } // compute_tangential_extension
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

@@ -147,7 +147,7 @@ compute_quadratic_extrap(D& patch_data,
     }
     return 0.0; // this statement should not be reached
 } // compute_quadratic_extrap
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -212,20 +212,15 @@ CartExtrapPhysBdryOp::setExtrapolationType(const std::string& extrap_type)
     if (extrap_type != "CONSTANT" && extrap_type != "LINEAR" && extrap_type != "QUADRATIC")
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setExtrapolationType():\n"
-                   << "  unknown extrapolation type: "
-                   << extrap_type
-                   << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC"
-                   << std::endl);
+                   << "  unknown extrapolation type: " << extrap_type << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
     }
 
     if (extrap_type == "QUADRATIC")
     {
         IBTK_DO_ONCE(TBOX_WARNING("CartExtrapPhysBdryOp::setExtrapolationType():\n"
-                                  << "  extrapolation type "
-                                  << extrap_type
-                                  << " generally requires large ghost cell widths"
-                                  << std::endl););
+                                  << "  extrapolation type " << extrap_type
+                                  << " generally requires large ghost cell widths" << std::endl););
     }
 
     d_extrap_type = extrap_type;
@@ -337,11 +332,8 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
     if (extrap_type != 0 && extrap_type != 1 && extrap_type != 2)
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
-                   << "  unknown extrapolation type: "
-                   << d_extrap_type
-                   << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC"
-                   << std::endl);
+                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
     }
 
     // Set the physical boundary conditions for the specified patch data
@@ -365,21 +357,21 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
             const int codim = bdry_fill_box_pair.second.second;
 #if (NDIM == 2)
             const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isLower(
-                                                              location_index, codim, 1) } };
+                                                        PhysicalBoundaryUtilities::isLower(
+                                                            location_index, codim, 1) } };
             const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isUpper(
-                                                              location_index, codim, 1) } };
+                                                        PhysicalBoundaryUtilities::isUpper(
+                                                            location_index, codim, 1) } };
 #endif
 #if (NDIM == 3)
             const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
-                                                          PhysicalBoundaryUtilities::isLower(
-                                                              location_index, codim, 2) } };
+                                                        PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
+                                                        PhysicalBoundaryUtilities::isLower(
+                                                            location_index, codim, 2) } };
             const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
-                                                          PhysicalBoundaryUtilities::isUpper(
-                                                              location_index, codim, 2) } };
+                                                        PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
+                                                        PhysicalBoundaryUtilities::isUpper(
+                                                            location_index, codim, 2) } };
 #endif
             // Loop over the boundary box indices and compute the nearest
             // interior index.
@@ -439,11 +431,8 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
     if (extrap_type != 0 && extrap_type != 1 && extrap_type != 2)
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
-                   << "  unknown extrapolation type: "
-                   << d_extrap_type
-                   << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC"
-                   << std::endl);
+                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
     }
 
     // Set the physical boundary conditions for the specified patch data
@@ -466,21 +455,21 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
             const int codim = bdry_fill_box_pair.second.second;
 #if (NDIM == 2)
             const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isLower(
-                                                              location_index, codim, 1) } };
+                                                        PhysicalBoundaryUtilities::isLower(
+                                                            location_index, codim, 1) } };
             const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isUpper(
-                                                              location_index, codim, 1) } };
+                                                        PhysicalBoundaryUtilities::isUpper(
+                                                            location_index, codim, 1) } };
 #endif
 #if (NDIM == 3)
             const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
-                                                          PhysicalBoundaryUtilities::isLower(
-                                                              location_index, codim, 2) } };
+                                                        PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
+                                                        PhysicalBoundaryUtilities::isLower(
+                                                            location_index, codim, 2) } };
             const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
-                                                          PhysicalBoundaryUtilities::isUpper(
-                                                              location_index, codim, 2) } };
+                                                        PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
+                                                        PhysicalBoundaryUtilities::isUpper(
+                                                            location_index, codim, 2) } };
 #endif
             for (int depth = 0; depth < patch_data->getDepth(); ++depth)
             {
@@ -548,11 +537,8 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
     if (extrap_type != 0 && extrap_type != 1 && extrap_type != 2)
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
-                   << "  unknown extrapolation type: "
-                   << d_extrap_type
-                   << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC"
-                   << std::endl);
+                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
     }
 
     // Set the physical boundary conditions for the specified patch data
@@ -575,21 +561,21 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
             const int codim = bdry_fill_box_pair.second.second;
 #if (NDIM == 2)
             const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isLower(
-                                                              location_index, codim, 1) } };
+                                                        PhysicalBoundaryUtilities::isLower(
+                                                            location_index, codim, 1) } };
             const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isUpper(
-                                                              location_index, codim, 1) } };
+                                                        PhysicalBoundaryUtilities::isUpper(
+                                                            location_index, codim, 1) } };
 #endif
 #if (NDIM == 3)
             const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
-                                                          PhysicalBoundaryUtilities::isLower(
-                                                              location_index, codim, 2) } };
+                                                        PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
+                                                        PhysicalBoundaryUtilities::isLower(
+                                                            location_index, codim, 2) } };
             const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
-                                                          PhysicalBoundaryUtilities::isUpper(
-                                                              location_index, codim, 2) } };
+                                                        PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
+                                                        PhysicalBoundaryUtilities::isUpper(
+                                                            location_index, codim, 2) } };
 #endif
             // Loop over the boundary box indices and compute the
             // nearest interior index.
@@ -649,11 +635,8 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
     if (extrap_type != 0 && extrap_type != 1 && extrap_type != 2)
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
-                   << "  unknown extrapolation type: "
-                   << d_extrap_type
-                   << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC"
-                   << std::endl);
+                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
     }
 
     // Set the physical boundary conditions for the specified patch data
@@ -676,21 +659,21 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
             const int codim = bdry_fill_box_map.second.second;
 #if (NDIM == 2)
             const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isLower(
-                                                              location_index, codim, 1) } };
+                                                        PhysicalBoundaryUtilities::isLower(
+                                                            location_index, codim, 1) } };
             const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isUpper(
-                                                              location_index, codim, 1) } };
+                                                        PhysicalBoundaryUtilities::isUpper(
+                                                            location_index, codim, 1) } };
 #endif
 #if (NDIM == 3)
             const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
-                                                          PhysicalBoundaryUtilities::isLower(
-                                                              location_index, codim, 2) } };
+                                                        PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
+                                                        PhysicalBoundaryUtilities::isLower(
+                                                            location_index, codim, 2) } };
             const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
-                                                          PhysicalBoundaryUtilities::isUpper(
-                                                              location_index, codim, 2) } };
+                                                        PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
+                                                        PhysicalBoundaryUtilities::isUpper(
+                                                            location_index, codim, 2) } };
 #endif
             for (int depth = 0; depth < patch_data->getDepth(); ++depth)
             {

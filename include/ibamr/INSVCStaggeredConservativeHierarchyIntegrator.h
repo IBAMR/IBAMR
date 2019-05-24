@@ -38,8 +38,8 @@
 #include <string>
 #include <vector>
 
-#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 
 namespace IBTK
 {
@@ -102,8 +102,9 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    void
+    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Initialize the AMR patch hierarchy and data defined on the hierarchy at
@@ -246,7 +247,8 @@ private:
      *
      * \return A reference to this object.
      */
-    INSVCStaggeredConservativeHierarchyIntegrator& operator=(const INSVCStaggeredConservativeHierarchyIntegrator& that) = delete;
+    INSVCStaggeredConservativeHierarchyIntegrator&
+    operator=(const INSVCStaggeredConservativeHierarchyIntegrator& that) = delete;
 
     /*!
      * Update the operators and solvers to account for changes due to time-dependent coefficients

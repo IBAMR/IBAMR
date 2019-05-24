@@ -42,10 +42,10 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <LocationIndexRobinBcCoefs.h>
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibtk/AppInitializer.h>
-#include <LocationIndexRobinBcCoefs.h>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -72,8 +72,8 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
-    
-    //resize Q_err to hold error data
+
+    // resize Q_err to hold error data
     Q_err.resize(3);
 
     { // cleanup dynamically allocated objects prior to shutdown
@@ -265,15 +265,14 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(Q_idx, Q_idx, Q_cloned_idx);
         pout << "Error in " << Q_var->getName() << " at time " << loop_time << ":\n"
-             << "  L1-norm:  " 
-             << std::setprecision(10) << hier_cc_data_ops.L1Norm(Q_idx, wgt_idx) << "\n"
+             << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(Q_idx, wgt_idx) << "\n"
              << "  L2-norm:  " << hier_cc_data_ops.L2Norm(Q_idx, wgt_idx) << "\n"
              << "  max-norm: " << hier_cc_data_ops.maxNorm(Q_idx, wgt_idx) << "\n"
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-             
-             Q_err[0] = hier_cc_data_ops.L1Norm(Q_idx, wgt_idx);
-             Q_err[1] = hier_cc_data_ops.L2Norm(Q_idx, wgt_idx);
-             Q_err[2] = hier_cc_data_ops.maxNorm(Q_idx, wgt_idx);
+
+        Q_err[0] = hier_cc_data_ops.L1Norm(Q_idx, wgt_idx);
+        Q_err[1] = hier_cc_data_ops.L2Norm(Q_idx, wgt_idx);
+        Q_err[2] = hier_cc_data_ops.maxNorm(Q_idx, wgt_idx);
 
         if (dump_viz_data)
         {

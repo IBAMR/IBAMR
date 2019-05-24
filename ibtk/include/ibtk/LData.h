@@ -314,7 +314,7 @@ private:
      * Convenience method for doing in-place destruction of array references.
      */
     template <std::size_t dim>
-    void destroy_ref(boost::multi_array_ref<double, dim> &ref);
+    void destroy_ref(boost::multi_array_ref<double, dim>& ref);
 
     /*
      * Extract the array data.
@@ -363,10 +363,10 @@ private:
     Vec d_global_vec = nullptr;
     bool d_managing_petsc_vec = true;
     double* d_array = nullptr;
-    boost::multi_array_ref<double, 1> d_boost_array {nullptr, std::vector<int>{0}};
-    boost::multi_array_ref<double, 1> d_boost_local_array {nullptr, std::vector<int>{0}};
-    boost::multi_array_ref<double, 2> d_boost_vec_array {nullptr, std::vector<int>{0, 0}};
-    boost::multi_array_ref<double, 2> d_boost_local_vec_array {nullptr, std::vector<int>{0, 0}};
+    boost::multi_array_ref<double, 1> d_boost_array{ nullptr, std::vector<int>{ 0 } };
+    boost::multi_array_ref<double, 1> d_boost_local_array{ nullptr, std::vector<int>{ 0 } };
+    boost::multi_array_ref<double, 2> d_boost_vec_array{ nullptr, std::vector<int>{ 0, 0 } };
+    boost::multi_array_ref<double, 2> d_boost_local_vec_array{ nullptr, std::vector<int>{ 0, 0 } };
 
     /*
      * The array corresponding to the PETSc Vec object in local form, its
@@ -375,8 +375,8 @@ private:
      */
     Vec d_ghosted_local_vec = nullptr;
     double* d_ghosted_local_array = nullptr;
-    boost::multi_array_ref<double, 1> d_boost_ghosted_local_array {nullptr, std::vector<int>{0}};
-    boost::multi_array_ref<double, 2> d_boost_vec_ghosted_local_array {nullptr, std::vector<int>{0, 0}};
+    boost::multi_array_ref<double, 1> d_boost_ghosted_local_array{ nullptr, std::vector<int>{ 0 } };
+    boost::multi_array_ref<double, 2> d_boost_vec_ghosted_local_array{ nullptr, std::vector<int>{ 0, 0 } };
 };
 } // namespace IBTK
 

@@ -94,7 +94,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 static Timer* t_apply;
 static Timer* t_initialize_operator_state;
 static Timer* t_deallocate_operator_state;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -134,8 +134,7 @@ SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
         if (!x_sc_var || !y_sc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
-                                     << "  encountered non-side centered vector components"
-                                     << std::endl);
+                                     << "  encountered non-side centered vector components" << std::endl);
         }
         Pointer<SideDataFactory<NDIM, double> > x_factory = x_sc_var->getPatchDataFactory();
         Pointer<SideDataFactory<NDIM, double> > y_factory = y_sc_var->getPatchDataFactory();
@@ -147,8 +146,7 @@ SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
         if (x_depth != 1 || y_depth != 1)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
-                                     << "  each vector component must have data depth == 1"
-                                     << std::endl);
+                                     << "  each vector component must have data depth == 1" << std::endl);
         }
     }
 #endif

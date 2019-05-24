@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <map>
 #include <numeric>
@@ -87,7 +87,6 @@
 #include "boost/math/special_functions/round.hpp"
 #include "boost/multi_array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/ibtk_utilities.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
@@ -171,7 +170,7 @@ static const double TOL = std::sqrt(std::numeric_limits<double>::epsilon());
 
 // Version of LDataManager restart file data.
 static const int LDATA_MANAGER_VERSION = 1;
-}
+} // namespace
 
 const std::string LDataManager::POSN_DATA_NAME = "X";
 const std::string LDataManager::INIT_POSN_DATA_NAME = "X0";
@@ -1541,9 +1540,7 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
         {
             TBOX_WARNING("LDataManager::endDataRedistribution():\n"
                          << "\tLData is already synchronized with LNodeSetData.\n"
-                         << "\tlevel = "
-                         << level_number
-                         << "\n");
+                         << "\tlevel = " << level_number << "\n");
         }
     }
 
@@ -1897,7 +1894,8 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
         {
             ghost_nodes[k] = &(*d_local_and_ghost_nodes[level_number])[num_local_nodes + k];
         }
-        d_lag_mesh[level_number] = new LMesh(d_object_name + "::mesh::level_" + std::to_string(level_number), local_nodes, ghost_nodes);
+        d_lag_mesh[level_number] =
+            new LMesh(d_object_name + "::mesh::level_" + std::to_string(level_number), local_nodes, ghost_nodes);
     }
 
     // End scattering data, reset LData objects, and destroy the VecScatter
@@ -1966,8 +1964,10 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
 } // endDataRedistribution
 
 void
-LDataManager::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM>> hierarchy, const int workload_data_idx,
-                                  const int coarsest_ln_in, const int finest_ln_in)
+LDataManager::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                  const int workload_data_idx,
+                                  const int coarsest_ln_in,
+                                  const int finest_ln_in)
 {
     IBTK_TIMER_START(t_update_workload_estimates);
 
@@ -2087,9 +2087,7 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hiera
         if (patch_overlaps[k])
         {
             TBOX_ERROR(d_object_name << "::initializeLevelData()\n"
-                                     << "  patch "
-                                     << k
-                                     << " overlaps another patch!\n");
+                                     << "  patch " << k << " overlaps another patch!\n");
         }
     }
 #endif
@@ -2164,12 +2162,8 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hiera
         {
             TBOX_ERROR("LDataManager::initializeLevelData()"
                        << "\n"
-                       << "  num_global_nodes    = "
-                       << num_global_nodes
-                       << "\n"
-                       << "  sum num_local_nodes = "
-                       << sum_num_local_nodes
-                       << "\n");
+                       << "  num_global_nodes    = " << num_global_nodes << "\n"
+                       << "  sum num_local_nodes = " << sum_num_local_nodes << "\n");
         }
 
         d_local_lag_indices[level_number].resize(num_local_nodes, -1);
@@ -2195,7 +2189,6 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hiera
         {
             createLData(cit->first, level_number, cit->second, maintain_data);
         }
-
 
         // 3. Initialize the Lagrangian data.
         d_lag_init->initializeStructureIndexingOnPatchLevel(d_strct_id_to_strct_name_map[level_number],
@@ -2248,18 +2241,14 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hiera
         {
             TBOX_ERROR("LDataManager::initializeLevelData()"
                        << "\n"
-                       << "  num_local_nodes             = "
-                       << num_local_nodes
-                       << "\n"
-                       << "  num_initialized_local_nodes = "
-                       << num_initialized_local_nodes
-                       << "\n");
+                       << "  num_local_nodes             = " << num_local_nodes << "\n"
+                       << "  num_initialized_local_nodes = " << num_initialized_local_nodes << "\n");
         }
 
         // 4. Compute the initial distribution (indexing) data.
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
         const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-        std::set<LNode *, LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
+        std::set<LNode*, LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -2290,12 +2279,8 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hiera
                     {
                         TBOX_ERROR("LDataManager::initializeLevelData()"
                                    << "\n"
-                                   << "  local_idx       = "
-                                   << local_idx
-                                   << "\n"
-                                   << "  num_local_nodes = "
-                                   << num_local_nodes
-                                   << "\n");
+                                   << "  local_idx       = " << local_idx << "\n"
+                                   << "  num_local_nodes = " << num_local_nodes << "\n");
                     }
                     d_local_lag_indices[level_number][local_idx] = lag_idx;
                     d_local_petsc_indices[level_number][local_idx] = local_idx + d_node_offset[level_number];
@@ -2309,12 +2294,8 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hiera
         {
             TBOX_ERROR("LDataManager::initializeLevelData()"
                        << "\n"
-                       << "  num_nodes[level_number] = "
-                       << d_num_nodes[level_number]
-                       << "\n"
-                       << "  num_initialized_global_nodes = "
-                       << num_initialized_global_nodes
-                       << "\n");
+                       << "  num_nodes[level_number] = " << d_num_nodes[level_number] << "\n"
+                       << "  num_initialized_global_nodes = " << num_initialized_global_nodes << "\n");
         }
 
         d_lag_mesh[level_number] = new LMesh(d_object_name + "::mesh::level_" + std::to_string(level_number),
@@ -2613,8 +2594,7 @@ LDataManager::putToDatabase(Pointer<Database> db)
 } // putToDatabase
 
 void
-LDataManager::registerUserDefinedLData(const std::string& data_name,
-                                       int depth)
+LDataManager::registerUserDefinedLData(const std::string& data_name, int depth)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!data_name.empty());
@@ -2991,15 +2971,9 @@ LDataManager::computeNodeDistribution(AO& ao,
     {
         TBOX_ERROR("LDataManager::computeNodeDistribution()"
                    << "\n"
-                   << "  local_offset       = "
-                   << local_offset
-                   << "\n"
-                   << "  num_local_nodes    = "
-                   << num_local_nodes
-                   << "\n"
-                   << "  num_nonlocal_nodes = "
-                   << num_nonlocal_nodes
-                   << "\n");
+                   << "  local_offset       = " << local_offset << "\n"
+                   << "  num_local_nodes    = " << num_local_nodes << "\n"
+                   << "  num_nonlocal_nodes = " << num_nonlocal_nodes << "\n");
     }
 
     computeNodeOffsets(num_nodes, node_offset, num_local_nodes);

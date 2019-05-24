@@ -51,29 +51,30 @@
 #define FAST_SWEEP_1ST_ORDER_FC IBAMR_FC_FUNC(fastsweep1storder3d, FASTSWEEP1STORDER3D)
 #endif
 
-extern "C" {
-void FAST_SWEEP_1ST_ORDER_FC(double* U,
-                             const int& U_gcw,
-                             const int& ilower0,
-                             const int& iupper0,
-                             const int& ilower1,
-                             const int& iupper1,
+extern "C"
+{
+    void FAST_SWEEP_1ST_ORDER_FC(double* U,
+                                 const int& U_gcw,
+                                 const int& ilower0,
+                                 const int& iupper0,
+                                 const int& ilower1,
+                                 const int& iupper1,
 #if (NDIM == 3)
-                             const int& ilower2,
-                             const int& iupper2,
+                                 const int& ilower2,
+                                 const int& iupper2,
 #endif
-                             const int& dlower0,
-                             const int& dupper0,
-                             const int& dlower1,
-                             const int& dupper1,
+                                 const int& dlower0,
+                                 const int& dupper0,
+                                 const int& dlower1,
+                                 const int& dupper1,
 #if (NDIM == 3)
 
-                             const int& dlower2,
-                             const int& dupper2,
+                                 const int& dlower2,
+                                 const int& dupper2,
 #endif
-                             const double* dx,
-                             const int& patch_touches_bdry,
-                             const int* touches_wall_loc_idx);
+                                 const double* dx,
+                                 const int& patch_touches_bdry,
+                                 const int* touches_wall_loc_idx);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

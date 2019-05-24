@@ -147,10 +147,10 @@ IndexUtilities::mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
 
 #if (NDIM == 1)
     return (idx(0) - domain_lower(0) + depth * n_cells(0) + offset);
-#elif(NDIM == 2)
+#elif (NDIM == 2)
     return (idx(0) - domain_lower(0) + (idx(1) - domain_lower(1)) * n_cells(0) + depth * n_cells(0) * n_cells(1) +
             offset);
-#elif(NDIM == 3)
+#elif (NDIM == 3)
     return (idx(0) - domain_lower(0) + (idx(1) - domain_lower(1)) * n_cells(0) +
             (idx(2) - domain_lower(2)) * n_cells(0) * n_cells(1) + depth * n_cells(0) * n_cells(1) * n_cells(2) +
             offset);

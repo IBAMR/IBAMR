@@ -248,7 +248,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSVCStaggeredConservativeMassMomentumIntegrator(const INSVCStaggeredConservativeMassMomentumIntegrator& from) = delete;
+    INSVCStaggeredConservativeMassMomentumIntegrator(const INSVCStaggeredConservativeMassMomentumIntegrator& from) =
+        delete;
 
     /*!
      * \brief Assignment operator.
@@ -265,12 +266,12 @@ private:
     /*!
      * \brief Compute the advection velocity using simple averages
      */
-    void computeAdvectionVelocity(
-        std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > U_data,
-        const SAMRAI::hier::IntVector<NDIM>& patch_lower,
-        const SAMRAI::hier::IntVector<NDIM>& patch_upper,
-        const std::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes);
+    void
+    computeAdvectionVelocity(std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
+                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > U_data,
+                             const SAMRAI::hier::IntVector<NDIM>& patch_lower,
+                             const SAMRAI::hier::IntVector<NDIM>& patch_upper,
+                             const std::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes);
 
     /*!
      * \brief Compute the interpolation of a quantity Q onto Q_half, faces of the velocity DOF centered control volumes

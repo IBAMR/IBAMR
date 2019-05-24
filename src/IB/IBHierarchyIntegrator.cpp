@@ -100,7 +100,7 @@ namespace
 {
 // Version of IBHierarchyIntegrator restart file data.
 static const int IB_HIERARCHY_INTEGRATOR_VERSION = 2;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -194,8 +194,7 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
         if (d_error_on_dt_change)
         {
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():  Time step size change encountered.\n"
-                                     << "Aborting."
-                                     << std::endl);
+                                     << "Aborting." << std::endl);
         }
         if (d_warn_on_dt_change)
         {
@@ -640,7 +639,7 @@ IBHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 } // putToDatabaseSpecialized
 
 void
-IBHierarchyIntegrator::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM>> hierarchy, const int workload_data_idx)
+IBHierarchyIntegrator::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
 {
     d_ib_method_ops->addWorkloadEstimate(hierarchy, workload_data_idx);
     return;
@@ -684,8 +683,7 @@ IBHierarchyIntegrator::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
     int ver = db->getInteger("IB_HIERARCHY_INTEGRATOR_VERSION");
     if (ver != IB_HIERARCHY_INTEGRATOR_VERSION)

@@ -69,8 +69,7 @@ struct StructureCtx
     double rho_excess, R;
     IBTK::Vector F;
 
-};// StructureCtx
-
+}; // StructureCtx
 
 // Center of mass velocity
 void
@@ -86,7 +85,6 @@ ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d&
 void
 NetExternalForceTorque(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext, void* ctx)
 {
-
     StructureCtx& struct_ctx = *static_cast<StructureCtx*>(ctx);
 
     F_ext << struct_ctx.F(0), struct_ctx.F(1), 0.0;
@@ -218,20 +216,19 @@ run_example(int argc, char* argv[], double& end_time, double& end_u)
             "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
         ib_method_ops->registerLInitStrategy(ib_initializer);
 
-       
         // Specify structure kinematics
         FreeRigidDOFVector struct_0_free_dofs;
         struct_0_free_dofs << 1, 1, 1, 1, 1, 1;
         ib_method_ops->setSolveRigidBodyVelocity(0, struct_0_free_dofs);
-        
+
         const double rho_excess = input_db->getDouble("RHO_EXCESS");
         const double R = input_db->getDouble("R");
         const double G = input_db->getDouble("G");
 
         StructureCtx struct0;
         struct0.name = "sphere0";
-        struct0.R  = R;
-        struct0.rho_excess  = rho_excess;
+        struct0.R = R;
+        struct0.rho_excess = rho_excess;
 
         ib_method_ops->registerExternalForceTorqueFunction(&NetExternalForceTorque, &struct0, 0);
         ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMVel, &struct0, 0);
@@ -300,7 +297,7 @@ run_example(int argc, char* argv[], double& end_time, double& end_u)
             const int num_similar_structs = 1;
             for (int i = 0; i < num_similar_structs; ++i)
             {
-                struct_ids.push_back(std::vector<unsigned>(1,i));
+                struct_ids.push_back(std::vector<unsigned>(1, i));
             }
 
             // Register the dense matrix with direct solver
@@ -360,7 +357,6 @@ run_example(int argc, char* argv[], double& end_time, double& end_u)
             pout << "At beginning of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
 
-
             dt = time_integrator->getMaximumTimeStepSize();
 
             pout << "Advancing hierarchy by timestep size dt = " << dt << "\n";
@@ -373,19 +369,18 @@ run_example(int argc, char* argv[], double& end_time, double& end_u)
 
             RDV U0;
             ib_method_ops->getCurrentRigidBodyVelocity(0, U0);
-            U_stream << loop_time << "\t" << U0(0) << "\t" << U0(1) << "\t" << U0(2) 
-                     << "\t" << U0(3) << "\t" << U0(4) << "\t" << U0(5) << std::endl;
-            
+            U_stream << loop_time << "\t" << U0(0) << "\t" << U0(1) << "\t" << U0(2) << "\t" << U0(3) << "\t" << U0(4)
+                     << "\t" << U0(5) << std::endl;
+
             // store velocity and loop time in variables passed to run_example as reference
             // used to test accuracy relative to past preformance in test_main.cpp
             end_u = std::abs(U0(1));
             end_time = loop_time;
-            pout << "Velocity of rigid body is " << std::setprecision(10) 
-            << end_u << "\n";
-            
+            pout << "Velocity of rigid body is " << std::setprecision(10) << end_u << "\n";
+
             // Compute external gravity force on structure
             struct0.F.setZero();
-            struct0.F(1) = - struct0.rho_excess *(4.0/3.0)* M_PI* std::pow(struct0.R,3) * G;
+            struct0.F(1) = -struct0.rho_excess * (4.0 / 3.0) * M_PI * std::pow(struct0.R, 3) * G;
 
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
@@ -428,11 +423,11 @@ run_example(int argc, char* argv[], double& end_time, double& end_u)
             }
         }
 
-         if (SAMRAI_MPI::getRank() == 0)
-         {
-             U_stream.close();
-         }
-          
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            U_stream.close();
+        }
+
         // Cleanup boundary condition specification objects (when necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 

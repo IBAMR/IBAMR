@@ -71,7 +71,7 @@ namespace IBAMR
 /*!
  * \brief Class StaggeredStokesFACPreconditioner is a FACPreconditioner that has
  * been specialized for Stokes problems.
-*/
+ */
 class StaggeredStokesFACPreconditioner : public IBTK::FACPreconditioner, public StaggeredStokesSolver
 {
 public:

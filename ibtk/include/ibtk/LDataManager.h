@@ -811,7 +811,9 @@ public:
      * in which alpha and beta are parameters that each default to the value 1.
      */
     void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                             const int workload_data_idx, const int coarsest_ln = -1, const int finest_ln = -1);
+                             const int workload_data_idx,
+                             const int coarsest_ln = -1,
+                             const int finest_ln = -1);
 
     /*!
      * \brief Update the count of nodes per cell.
@@ -912,8 +914,7 @@ public:
      * Register user defined Lagrangian data to be maintained
      *
      */
-    void registerUserDefinedLData(const std::string& data_name,
-                                  int depth);
+    void registerUserDefinedLData(const std::string& data_name, int depth);
 
 protected:
     /*!

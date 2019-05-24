@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 #include <functional>
 #include <numeric>
 #include <vector>
@@ -41,7 +41,6 @@
 #include "CellData.h"
 #include "CellVariable.h"
 #include "IntVector.h"
-#include "ibtk/NormOps.h"
 #include "Patch.h"
 #include "PatchCellDataNormOpsReal.h"
 #include "PatchData.h"
@@ -51,6 +50,7 @@
 #include "SAMRAIVectorReal.h"
 #include "SideData.h"
 #include "SideVariable.h"
+#include "ibtk/NormOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
@@ -91,7 +91,7 @@ accurate_sum_of_squares(std::vector<double>& vec)
     std::sort(vec.begin(), vec.end(), std::less<double>());
     return std::inner_product(vec.begin(), vec.end(), vec.begin(), 0.0);
 } // accurate_sum_of_squares
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

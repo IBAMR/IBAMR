@@ -33,7 +33,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <utility>
 
-#include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
 #include "ArrayDataBasicOps.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
@@ -43,6 +42,7 @@
 #include "PatchHierarchy.h"
 #include "SideData.h"
 #include "SideIndex.h"
+#include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/INSStaggeredPressureBcCoef.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
@@ -70,7 +70,7 @@ sign(const double X)
 {
     return ((X > 0) ? 1 : ((X < 0) ? -1 : 0));
 } // sign
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -130,7 +130,8 @@ IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
         d_mu_is_const = p_vc_ins_hier_integrator->muIsConstant();
         if (!d_mu_is_const)
         {
-            Pointer<CellVariable<NDIM, double> > mu_adv_diff_var = p_vc_ins_hier_integrator->getTransportedViscosityVariable();
+            Pointer<CellVariable<NDIM, double> > mu_adv_diff_var =
+                p_vc_ins_hier_integrator->getTransportedViscosityVariable();
             Pointer<CellVariable<NDIM, double> > mu_ins_var = p_vc_ins_hier_integrator->getViscosityVariable();
             Pointer<VariableContext> mu_ctx = var_db->getContext(d_object_name + "::mu_ctx");
             if (mu_adv_diff_var)
@@ -301,7 +302,7 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForce()
                                      (*u_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Upper)) -
                                      (*u_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Lower))
 
-                                         );
+                                    );
                         }
                     }
 
@@ -391,7 +392,8 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
 #if !defined(NDEBUG)
         TBOX_ASSERT(p_vc_ins_hier_integrator);
 #endif
-        Pointer<CellVariable<NDIM, double> > mu_adv_diff_var = p_vc_ins_hier_integrator->getTransportedViscosityVariable();
+        Pointer<CellVariable<NDIM, double> > mu_adv_diff_var =
+            p_vc_ins_hier_integrator->getTransportedViscosityVariable();
         Pointer<CellVariable<NDIM, double> > mu_ins_var = p_vc_ins_hier_integrator->getViscosityVariable();
         RobinBcCoefStrategy<NDIM>* mu_bc_coef = nullptr;
         int mu_current_idx = -1;

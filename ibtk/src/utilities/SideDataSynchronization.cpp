@@ -158,8 +158,7 @@ SideDataSynchronization::initializeOperatorState(
         if (!sc_var)
         {
             TBOX_ERROR("SideDataSynchronization::initializeOperatorState():\n"
-                       << "  only double-precision side-centered data is supported."
-                       << std::endl);
+                       << "  only double-precision side-centered data is supported." << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = nullptr;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();
@@ -260,8 +259,7 @@ SideDataSynchronization::resetTransactionComponents(
         if (!sc_var)
         {
             TBOX_ERROR("SideDataSynchronization::resetTransactionComponents():\n"
-                       << "  only double-precision side-centered data is supported."
-                       << std::endl);
+                       << "  only double-precision side-centered data is supported." << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = nullptr;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();

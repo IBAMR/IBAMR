@@ -43,12 +43,12 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h>
-#include <ibamr/AdvectorExplicitPredictorPatchOps.h>
-#include <ibtk/AppInitializer.h>
-#include <ibtk/HierarchyMathOps.h>
 #include <LocationIndexRobinBcCoefs.h>
 #include <TimeRefinementIntegrator.h>
+#include <ibamr/AdvectorExplicitPredictorPatchOps.h>
+#include <ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h>
+#include <ibtk/AppInitializer.h>
+#include <ibtk/HierarchyMathOps.h>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -67,13 +67,14 @@
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-bool run_example(int argc, char* argv[], std::vector<double>& Q_err)
+bool
+run_example(int argc, char* argv[], std::vector<double>& Q_err)
 {
     // Initialize MPI and SAMRAI.
     SAMRAI_MPI::init(&argc, &argv);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
-    
+
     // Resize Q_err to hold error norms
     Q_err.resize(3);
 
@@ -286,15 +287,14 @@ bool run_example(int argc, char* argv[], std::vector<double>& Q_err)
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(Q_idx, Q_idx, Q_cloned_idx);
         pout << "Error in " << Q_var->getName() << " at time " << loop_time << ":\n"
-             << "  L1-norm:  "
-             << std::setprecision(10) << hier_cc_data_ops.L1Norm(Q_idx, wgt_idx) << "\n"
+             << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(Q_idx, wgt_idx) << "\n"
              << "  L2-norm:  " << hier_cc_data_ops.L2Norm(Q_idx, wgt_idx) << "\n"
              << "  max-norm: " << hier_cc_data_ops.maxNorm(Q_idx, wgt_idx) << "\n"
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-             
-             Q_err[0] = hier_cc_data_ops.L1Norm(Q_idx, wgt_idx);  //L1norm
-             Q_err[1] = hier_cc_data_ops.L2Norm(Q_idx, wgt_idx);  //L2norm
-             Q_err[2] = hier_cc_data_ops.maxNorm(Q_idx, wgt_idx); //MaxNorm
+
+        Q_err[0] = hier_cc_data_ops.L1Norm(Q_idx, wgt_idx);  // L1norm
+        Q_err[1] = hier_cc_data_ops.L2Norm(Q_idx, wgt_idx);  // L2norm
+        Q_err[2] = hier_cc_data_ops.maxNorm(Q_idx, wgt_idx); // MaxNorm
 
         if (dump_viz_data && uses_visit)
         {

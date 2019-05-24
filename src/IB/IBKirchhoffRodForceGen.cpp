@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
 #include <algorithm>
+#include <array>
 #include <ostream>
 #include <vector>
 
@@ -72,7 +72,7 @@ namespace
 // Timers.
 static Timer* t_compute_lagrangian_force_and_torque;
 static Timer* t_initialize_level_data;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

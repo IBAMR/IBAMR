@@ -267,7 +267,6 @@ private:
      * \return A reference to this object.
      */
     SCPoissonPointRelaxationFACOperator& operator=(const SCPoissonPointRelaxationFACOperator& that) = delete;
-
 };
 } // namespace IBTK
 

@@ -460,8 +460,8 @@ private:
      * FE data vectors.
      */
     std::vector<libMesh::System*> d_U_constrained_systems;
-    std::vector<libMesh::PetscVector<double> *> d_U_constrained_current_vecs, d_U_constrained_half_vecs;
-    std::vector<libMesh::PetscVector<double> *> d_F_current_vecs, d_F_new_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_U_constrained_current_vecs, d_U_constrained_half_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_F_current_vecs, d_F_new_vecs;
 
     /*!
      * Booleans to control spreading constraint force and interpolating

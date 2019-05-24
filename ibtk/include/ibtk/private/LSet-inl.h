@@ -46,16 +46,14 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-inline LSet<T>::LSet()
-    : d_set(), d_offset(0)
+inline LSet<T>::LSet() : d_set(), d_offset(0)
 {
     // intentionally blank
     return;
 } // LSet
 
 template <class T>
-inline LSet<T>::LSet(const LSet<T>& from)
-    : d_set(from.d_set), d_offset(from.d_offset)
+inline LSet<T>::LSet(const LSet<T>& from) : d_set(from.d_set), d_offset(from.d_offset)
 {
     // intentionally blank
     return;
@@ -69,7 +67,8 @@ inline LSet<T>::~LSet()
 } // ~LSet
 
 template <class T>
-inline LSet<T>& LSet<T>::operator=(const LSet<T>& that)
+inline LSet<T>&
+LSet<T>::operator=(const LSet<T>& that)
 {
     if (this == &that) return *this; // check for self-assignment
 

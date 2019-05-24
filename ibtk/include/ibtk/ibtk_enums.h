@@ -166,7 +166,7 @@ enum_to_string<VariableContextType>(VariableContextType val)
 } // enum_to_string
 
 /*!
- * \brief Enumerated type for different interpolation types for 
+ * \brief Enumerated type for different interpolation types for
  * the material properties of the viscous solver.
  */
 enum VCInterpType

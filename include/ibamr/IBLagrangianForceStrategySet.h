@@ -71,8 +71,7 @@ public:
      * \brief Constructor.
      */
     template <typename InputIterator>
-    IBLagrangianForceStrategySet(InputIterator first, InputIterator last)
-        : d_strategy_set(first, last)
+    IBLagrangianForceStrategySet(InputIterator first, InputIterator last) : d_strategy_set(first, last)
     {
         // intentionally blank
         return;

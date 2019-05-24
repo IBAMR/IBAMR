@@ -109,8 +109,7 @@ public:
      * @param quad_key a tuple of enums that completely describes
      * a libMesh quadrature rule.
      */
-    libMesh::FEMap &
-    operator[](const key_type &quad_key);
+    libMesh::FEMap& operator[](const key_type& quad_key);
 
 protected:
     /**
@@ -130,21 +129,17 @@ protected:
     std::map<key_type, libMesh::FEMap> fe_maps;
 };
 
-inline
-FEMapCache::FEMapCache(const unsigned int dim)
-    : dim(dim)
-    , quadrature_cache(dim)
-{}
+inline FEMapCache::FEMapCache(const unsigned int dim) : dim(dim), quadrature_cache(dim)
+{
+}
 
-inline
-libMesh::FEMap &
-FEMapCache::operator[](const FEMapCache::key_type &quad_key)
+inline libMesh::FEMap& FEMapCache::operator[](const FEMapCache::key_type& quad_key)
 {
     auto it = fe_maps.find(quad_key);
     if (it == fe_maps.end())
     {
-        libMesh::QBase &quad = quadrature_cache[quad_key];
-        libMesh::FEMap &fe_map = fe_maps[quad_key];
+        libMesh::QBase& quad = quadrature_cache[quad_key];
+        libMesh::FEMap& fe_map = fe_maps[quad_key];
         // Calling this function enables JxW calculations
         fe_map.get_JxW();
 
@@ -180,8 +175,6 @@ FEMapCache::operator[](const FEMapCache::key_type &quad_key)
         return it->second;
     }
 }
-
-
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

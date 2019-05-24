@@ -75,7 +75,7 @@ namespace
 {
 // Number of ghosts cells used for each variable quantity.
 static const int SIDEG = 1;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

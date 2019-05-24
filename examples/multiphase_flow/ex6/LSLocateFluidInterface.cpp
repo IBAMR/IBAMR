@@ -101,8 +101,7 @@ LSLocateFluidInterface::setLevelSetPatchData(int D_idx,
                 const double distance_bubble =
                     std::sqrt(std::pow((coord[0] - X0(0)), 2.0) + std::pow((coord[1] - X0(1)), 2.0)
 #if (NDIM == 3)
-                              +
-                              std::pow((coord[2] - X0(2)), 2.0)
+                              + std::pow((coord[2] - X0(2)), 2.0)
 #endif
                                   ) -
                     R;

@@ -365,8 +365,8 @@ BGaussSeidelPreconditioner::getComponentVectors(const ConstPointer<SAMRAIVectorR
     std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > > x_comps(ncomps);
     for (int comp = 0; comp < ncomps; ++comp)
     {
-        x_comps[comp] =
-            new SAMRAIVectorReal<NDIM, double>(x_name + "_component_" + std::to_string(comp), hierarchy, coarsest_ln, finest_ln);
+        x_comps[comp] = new SAMRAIVectorReal<NDIM, double>(
+            x_name + "_component_" + std::to_string(comp), hierarchy, coarsest_ln, finest_ln);
         x_comps[comp]->addComponent(
             x->getComponentVariable(comp), x->getComponentDescriptorIndex(comp), x->getControlVolumeIndex(comp));
     }

@@ -58,10 +58,10 @@
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/BoxPartitioner.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
-#include <ibtk/BoxPartitioner.h>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -75,34 +75,28 @@
 class ParsedFunction
 {
 public:
-    ParsedFunction(std::vector<std::string> expressions,
-                   const unsigned int n_vars = 0)
-        :
-        string_functions(std::move(expressions)),
-        vars(n_vars == 0 ? string_functions.size() : n_vars, 0.0),
-        parsers(string_functions.size())
+    ParsedFunction(std::vector<std::string> expressions, const unsigned int n_vars = 0)
+        : string_functions(std::move(expressions)),
+          vars(n_vars == 0 ? string_functions.size() : n_vars, 0.0),
+          parsers(string_functions.size())
     {
         for (unsigned int var_n = 0; var_n < vars.size(); ++var_n)
-            for (mu::Parser &parser : parsers)
-                parser.DefineVar("X_" + std::to_string(var_n), &vars[var_n]);
+            for (mu::Parser& parser : parsers) parser.DefineVar("X_" + std::to_string(var_n), &vars[var_n]);
 
-        for (unsigned int p_n = 0; p_n < string_functions.size(); ++p_n)
-            parsers[p_n].SetExpr(string_functions[p_n]);
+        for (unsigned int p_n = 0; p_n < string_functions.size(); ++p_n) parsers[p_n].SetExpr(string_functions[p_n]);
     }
 
     // Evaluate a single component.
-    double
-    value(const libMesh::Point &p, const unsigned int component_n) const
+    double value(const libMesh::Point& p, const unsigned int component_n) const
     {
         TBOX_ASSERT(component_n < parsers.size());
-        for (unsigned int var_n = 0; var_n < vars.size(); ++var_n)
-            vars[var_n] = p(var_n);
+        for (unsigned int var_n = 0; var_n < vars.size(); ++var_n) vars[var_n] = p(var_n);
 
         try
         {
             return parsers[component_n].Eval();
         }
-        catch (mu::ParserError &e)
+        catch (mu::ParserError& e)
         {
             std::cerr << "Message:  <" << e.GetMsg() << ">\n";
             std::cerr << "Formula:  <" << e.GetExpr() << ">\n";
@@ -116,12 +110,10 @@ public:
 
     // Evaluate all components. Only makes sense if the number of variables is
     // equal to the number of functions.
-    libMesh::Point
-    value(const libMesh::Point &p) const
+    libMesh::Point value(const libMesh::Point& p) const
     {
         TBOX_ASSERT(vars.size() == parsers.size());
-        for (unsigned int var_n = 0; var_n < vars.size(); ++var_n)
-            vars[var_n] = p(var_n);
+        for (unsigned int var_n = 0; var_n < vars.size(); ++var_n) vars[var_n] = p(var_n);
 
         libMesh::Point out;
         for (unsigned int component_n = 0; component_n < parsers.size(); ++component_n)
@@ -136,8 +128,6 @@ private:
     std::vector<mu::Parser> parsers;
 };
 
-
-
 // Coordinate mapping function.
 void
 coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
@@ -150,8 +140,8 @@ coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*
     return;
 } // coordinate_mapping_function
 
-
-int main(int argc, char** argv)
+int
+main(int argc, char** argv)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -214,8 +204,8 @@ int main(int argc, char** argv)
         // and, if this is a restarted run, from the restart database.
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"), false);
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
-            "PatchHierarchy", grid_geometry, false);
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
+            new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry, false);
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
@@ -226,13 +216,15 @@ int main(int argc, char** argv)
         {
             navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
                 "INSStaggeredHierarchyIntegrator",
-                app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"), false);
+                app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"),
+                false);
         }
         else if (solver_type == "COLLOCATED")
         {
             navier_stokes_integrator = new INSCollocatedHierarchyIntegrator(
                 "INSCollocatedHierarchyIntegrator",
-                app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"), false);
+                app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"),
+                false);
         }
         else
         {
@@ -301,23 +293,22 @@ int main(int argc, char** argv)
                                                                      nullptr);
         HierarchyGhostCellInterpolation ghost_fill_op;
         ghost_fill_op.initializeOperatorState(ghost_cell_components, patch_hierarchy);
-        ghost_fill_op.fillData(/*time*/0.0);
+        ghost_fill_op.fillData(/*time*/ 0.0);
 
         const double dt = time_integrator->getMaximumTimeStepSize();
-        time_integrator->preprocessIntegrateHierarchy(time_integrator->getIntegratorTime(),
-                                                      time_integrator->getIntegratorTime() + dt,
-                                                      1/*???*/);
-        auto &fe_data_manager = *ib_method_ops->getFEDataManager();
-        auto &equation_systems = *fe_data_manager.getEquationSystems();
-        auto &force_system = equation_systems.get_system(IBFEMethod::FORCE_SYSTEM_NAME);
-        auto &half_f_vector = dynamic_cast<libMesh::PetscVector<double> &>(*force_system.current_local_solution);
+        time_integrator->preprocessIntegrateHierarchy(
+            time_integrator->getIntegratorTime(), time_integrator->getIntegratorTime() + dt, 1 /*???*/);
+        auto& fe_data_manager = *ib_method_ops->getFEDataManager();
+        auto& equation_systems = *fe_data_manager.getEquationSystems();
+        auto& force_system = equation_systems.get_system(IBFEMethod::FORCE_SYSTEM_NAME);
+        auto& half_f_vector = dynamic_cast<libMesh::PetscVector<double>&>(*force_system.current_local_solution);
         for (unsigned int i = half_f_vector.first_local_index(); i < half_f_vector.last_local_index(); ++i)
         {
             half_f_vector.set(i, i % 10);
         }
         half_f_vector.close();
 
-        ib_method_ops->spreadForce(f_ghost_idx, nullptr, {}, time_integrator->getIntegratorTime() + dt/2);
+        ib_method_ops->spreadForce(f_ghost_idx, nullptr, {}, time_integrator->getIntegratorTime() + dt / 2);
         {
             const int ln = patch_hierarchy->getFinestLevelNumber();
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
@@ -336,13 +327,11 @@ int main(int argc, char** argv)
                     for (int d = 0; d < f_data->getDepth(); ++d)
                     {
                         plog << "Array depth = " << d << std::endl;
-                        const ArrayData<NDIM, double> &data = f_data->getArrayData(axis);
+                        const ArrayData<NDIM, double>& data = f_data->getArrayData(axis);
                         for (SideIterator<NDIM> i(patch_box, axis); i; i++)
                         {
                             const double value = data(i(), d);
-                            if (value != 0.0)
-                                plog << "array" << i() << " = "
-                                     << value << '\n';
+                            if (value != 0.0) plog << "array" << i() << " = " << value << '\n';
                         }
                     }
                 }

@@ -161,8 +161,7 @@ OscillatingCylinderKinematics::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
 
     d_current_time = db->getDouble("d_current_time");

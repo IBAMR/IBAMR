@@ -70,23 +70,9 @@
 #define APPLY_LS_VOLUME_SHIFT_FC IBAMR_FC_FUNC(applylsvolumeshift3d, APPLYLSVOLUMESHIFT3D)
 #endif
 
-extern "C" {
-void RELAXATION_LS_1ST_ORDER_FC(double* U,
-                                const int& U_gcw,
-                                const double* V,
-                                const int& V_gcw,
-                                const int& ilower0,
-                                const int& iupper0,
-                                const int& ilower1,
-                                const int& iupper1,
-#if (NDIM == 3)
-                                const int& ilower2,
-                                const int& iupper2,
-#endif
-                                const double* dx,
-                                const int& dir);
-
-void RELAXATION_LS_3RD_ORDER_ENO_FC(double* U,
+extern "C"
+{
+    void RELAXATION_LS_1ST_ORDER_FC(double* U,
                                     const int& U_gcw,
                                     const double* V,
                                     const int& V_gcw,
@@ -99,119 +85,134 @@ void RELAXATION_LS_3RD_ORDER_ENO_FC(double* U,
                                     const int& iupper2,
 #endif
                                     const double* dx,
-                                    const int& dir,
-                                    const int& use_subcell,
-                                    const int& use_sign_fix);
+                                    const int& dir);
 
-void GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC(double* U,
-                                          const int& U_gcw,
-                                          const double* V,
-                                          const int& V_gcw,
-                                          const int& ilower0,
-                                          const int& iupper0,
-                                          const int& ilower1,
-                                          const int& iupper1,
+    void RELAXATION_LS_3RD_ORDER_ENO_FC(double* U,
+                                        const int& U_gcw,
+                                        const double* V,
+                                        const int& V_gcw,
+                                        const int& ilower0,
+                                        const int& iupper0,
+                                        const int& ilower1,
+                                        const int& iupper1,
 #if (NDIM == 3)
-                                          const int& ilower2,
-                                          const int& iupper2,
+                                        const int& ilower2,
+                                        const int& iupper2,
 #endif
-                                          const double* dx,
-                                          const int& use_subcell);
+                                        const double* dx,
+                                        const int& dir,
+                                        const int& use_subcell,
+                                        const int& use_sign_fix);
 
-void RELAXATION_LS_3RD_ORDER_WENO_FC(double* U,
-                                     const int& U_gcw,
-                                     const double* V,
-                                     const int& V_gcw,
-                                     const int& ilower0,
-                                     const int& iupper0,
-                                     const int& ilower1,
-                                     const int& iupper1,
+    void GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC(double* U,
+                                              const int& U_gcw,
+                                              const double* V,
+                                              const int& V_gcw,
+                                              const int& ilower0,
+                                              const int& iupper0,
+                                              const int& ilower1,
+                                              const int& iupper1,
 #if (NDIM == 3)
-                                     const int& ilower2,
-                                     const int& iupper2,
+                                              const int& ilower2,
+                                              const int& iupper2,
 #endif
-                                     const double* dx,
-                                     const int& dir,
-                                     const int& use_subcell,
-                                     const int& use_sign_fix);
+                                              const double* dx,
+                                              const int& use_subcell);
 
-void GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC(double* U,
-                                           const int& U_gcw,
-                                           const double* V,
-                                           const int& V_gcw,
-                                           const int& ilower0,
-                                           const int& iupper0,
-                                           const int& ilower1,
-                                           const int& iupper1,
+    void RELAXATION_LS_3RD_ORDER_WENO_FC(double* U,
+                                         const int& U_gcw,
+                                         const double* V,
+                                         const int& V_gcw,
+                                         const int& ilower0,
+                                         const int& iupper0,
+                                         const int& ilower1,
+                                         const int& iupper1,
 #if (NDIM == 3)
-                                           const int& ilower2,
-                                           const int& iupper2,
+                                         const int& ilower2,
+                                         const int& iupper2,
 #endif
-                                           const double* dx,
-                                           const int& use_subcell);
+                                         const double* dx,
+                                         const int& dir,
+                                         const int& use_subcell,
+                                         const int& use_sign_fix);
 
-void RELAXATION_LS_5TH_ORDER_WENO_FC(double* U,
-                                     const int& U_gcw,
-                                     const double* V,
-                                     const int& V_gcw,
-                                     const int& ilower0,
-                                     const int& iupper0,
-                                     const int& ilower1,
-                                     const int& iupper1,
+    void GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC(double* U,
+                                               const int& U_gcw,
+                                               const double* V,
+                                               const int& V_gcw,
+                                               const int& ilower0,
+                                               const int& iupper0,
+                                               const int& ilower1,
+                                               const int& iupper1,
 #if (NDIM == 3)
-                                     const int& ilower2,
-                                     const int& iupper2,
+                                               const int& ilower2,
+                                               const int& iupper2,
 #endif
-                                     const double* dx,
-                                     const int& dir,
-                                     const int& use_sign_fix);
+                                               const double* dx,
+                                               const int& use_subcell);
 
-void GODUNOV_HAMILTONIAN_5TH_ORDER_WENO_FC(double* U,
-                                           const int& U_gcw,
-                                           const double* V,
-                                           const int& V_gcw,
-                                           const int& ilower0,
-                                           const int& iupper0,
-                                           const int& ilower1,
-                                           const int& iupper1,
+    void RELAXATION_LS_5TH_ORDER_WENO_FC(double* U,
+                                         const int& U_gcw,
+                                         const double* V,
+                                         const int& V_gcw,
+                                         const int& ilower0,
+                                         const int& iupper0,
+                                         const int& ilower1,
+                                         const int& iupper1,
 #if (NDIM == 3)
-                                           const int& ilower2,
-                                           const int& iupper2,
+                                         const int& ilower2,
+                                         const int& iupper2,
 #endif
-                                           const double* dx);
+                                         const double* dx,
+                                         const int& dir,
+                                         const int& use_sign_fix);
 
-void PROJECT_LS_MASS_CONSTRAINT_FC(double* U,
-                                   const int& U_gcw,
-                                   const double* C,
-                                   const int& C_gcw,
-                                   const double* V,
-                                   const int& V_gcw,
-                                   const double* H,
-                                   const int& H_gcw,
-                                   const int& ilower0,
-                                   const int& iupper0,
-                                   const int& ilower1,
-                                   const int& iupper1,
+    void GODUNOV_HAMILTONIAN_5TH_ORDER_WENO_FC(double* U,
+                                               const int& U_gcw,
+                                               const double* V,
+                                               const int& V_gcw,
+                                               const int& ilower0,
+                                               const int& iupper0,
+                                               const int& ilower1,
+                                               const int& iupper1,
 #if (NDIM == 3)
-                                   const int& ilower2,
-                                   const int& iupper2,
+                                               const int& ilower2,
+                                               const int& iupper2,
 #endif
-                                   const double* dx);
+                                               const double* dx);
 
-void APPLY_LS_VOLUME_SHIFT_FC(double* U,
-                              const int& U_gcw,
-                              const double* C,
-                              const int& C_gcw,
-                              const double& dV,
-                              const int& ilower0,
-                              const int& iupper0,
-                              const int& ilower1,
-                              const int& iupper1,
+    void PROJECT_LS_MASS_CONSTRAINT_FC(double* U,
+                                       const int& U_gcw,
+                                       const double* C,
+                                       const int& C_gcw,
+                                       const double* V,
+                                       const int& V_gcw,
+                                       const double* H,
+                                       const int& H_gcw,
+                                       const int& ilower0,
+                                       const int& iupper0,
+                                       const int& ilower1,
+                                       const int& iupper1,
 #if (NDIM == 3)
-                              const int& ilower2,
-                              const int& iupper2,
+                                       const int& ilower2,
+                                       const int& iupper2,
 #endif
-                              const double* dx);
+                                       const double* dx);
+
+    void APPLY_LS_VOLUME_SHIFT_FC(double* U,
+                                  const int& U_gcw,
+                                  const double* C,
+                                  const int& C_gcw,
+                                  const double& dV,
+                                  const int& ilower0,
+                                  const int& iupper0,
+                                  const int& ilower1,
+                                  const int& iupper1,
+#if (NDIM == 3)
+                                  const int& ilower2,
+                                  const int& iupper2,
+#endif
+                                  const double* dx);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -274,8 +275,7 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     {
         TBOX_WARNING(d_object_name << "::initializeLSData():\n"
                                    << " First order relxation is known to cause significant interface volume loss \n"
-                                   << " consider trying THIRD_ORDER_ENO or THIRD_ORDER_WENO."
-                                   << std::endl);
+                                   << " consider trying THIRD_ORDER_ENO or THIRD_ORDER_WENO." << std::endl);
         cell_ghosts = std::max(1, d_D_gcw);
     }
     else if (d_ls_order == THIRD_ORDER_ENO_LS || d_ls_order == THIRD_ORDER_WENO_LS)

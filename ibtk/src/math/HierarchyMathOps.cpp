@@ -110,30 +110,31 @@
 #endif
 
 // Function interfaces
-extern "C" {
-void S_TO_C_INTERP_SPECIAL_FC(const int& direction,
-                              double* U,
-                              const int& U_gcw,
-                              const double& alpha,
-                              const double* v0,
-                              const double* v1,
+extern "C"
+{
+    void S_TO_C_INTERP_SPECIAL_FC(const int& direction,
+                                  double* U,
+                                  const int& U_gcw,
+                                  const double& alpha,
+                                  const double* v0,
+                                  const double* v1,
 #if (NDIM == 3)
-                              const double* v2,
+                                  const double* v2,
 #endif
-                              const int& v_gcw,
-                              const double& beta,
-                              const double* W,
-                              const int& W_gcw,
-                              const int& ilower0,
-                              const int& iupper0,
-                              const int& ilower1,
-                              const int& iupper1
+                                  const int& v_gcw,
+                                  const double& beta,
+                                  const double* W,
+                                  const int& W_gcw,
+                                  const int& ilower0,
+                                  const int& iupper0,
+                                  const int& ilower1,
+                                  const int& iupper1
 #if (NDIM == 3)
-                              ,
-                              const int& ilower2,
-                              const int& iupper2
+                                  ,
+                                  const int& ilower2,
+                                  const int& iupper2
 #endif
-                              );
+    );
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -708,8 +709,7 @@ HierarchyMathOps::curl(const int dst_idx,
 {
 #if (NDIM != 2)
     TBOX_ERROR("HierarchyMathOps::curl():\n"
-               << "  not implemented for NDIM != 2"
-               << std::endl);
+               << "  not implemented for NDIM != 2" << std::endl);
 #endif
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
@@ -741,8 +741,7 @@ HierarchyMathOps::curl(const int dst_idx,
 {
 #if (NDIM != 3)
     TBOX_ERROR("HierarchyMathOps::curl():\n"
-               << "  not implemented for NDIM != 3"
-               << std::endl);
+               << "  not implemented for NDIM != 3" << std::endl);
 #endif
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
@@ -775,8 +774,7 @@ HierarchyMathOps::rot(int dst_idx,
 {
 #if (NDIM != 2)
     TBOX_ERROR("HierarchyMathOps::rot():\n"
-               << "  not implemented for NDIM != 2"
-               << std::endl);
+               << "  not implemented for NDIM != 2" << std::endl);
 #endif
     CartSideRobinPhysBdryOp robin_bc_op;
     const bool has_bc_coefs = !bc_coefs.empty();
@@ -818,8 +816,7 @@ HierarchyMathOps::rot(int dst_idx,
 {
 #if (NDIM != 2)
     TBOX_ERROR("HierarchyMathOps::rot():\n"
-               << "  not implemented for NDIM != 2"
-               << std::endl);
+               << "  not implemented for NDIM != 2" << std::endl);
 #endif
     CartSideRobinPhysBdryOp robin_bc_op;
     const bool has_bc_coefs = !bc_coefs.empty();
@@ -861,8 +858,7 @@ HierarchyMathOps::rot(int dst_idx,
 {
 #if (NDIM != 3)
     TBOX_ERROR("HierarchyMathOps::rot():\n"
-               << "  not implemented for NDIM != 3"
-               << std::endl);
+               << "  not implemented for NDIM != 3" << std::endl);
 #endif
     CartSideRobinPhysBdryOp robin_bc_op;
     const bool has_bc_coefs = !bc_coefs.empty();
@@ -2346,8 +2342,7 @@ HierarchyMathOps::laplace(const int dst_idx,
     {
         TBOX_WARNING("HierarchyMathOps::laplace():\n"
                      << "  recommended usage for side-centered Laplace operator is\n"
-                     << "  src1_var->fineBoundaryRepresentsVariable() == true"
-                     << std::endl);
+                     << "  src1_var->fineBoundaryRepresentsVariable() == true" << std::endl);
     }
 
     Pointer<SideDataFactory<NDIM, double> > dst_factory = dst_var->getPatchDataFactory();
@@ -2355,8 +2350,7 @@ HierarchyMathOps::laplace(const int dst_idx,
     if (dst_factory->getDefaultDepth() != 1 || src1_factory->getDefaultDepth() != 1)
     {
         TBOX_ERROR("HierarchyMathOps::laplace():\n"
-                   << "  side-centered Laplacian requires scalar-valued data"
-                   << std::endl);
+                   << "  side-centered Laplacian requires scalar-valued data" << std::endl);
     }
     if (src2_var)
     {
@@ -2364,8 +2358,7 @@ HierarchyMathOps::laplace(const int dst_idx,
         if (src2_factory->getDefaultDepth() != 1)
         {
             TBOX_ERROR("HierarchyMathOps::laplace():\n"
-                       << "  side-centered Laplacian requires scalar-valued data"
-                       << std::endl);
+                       << "  side-centered Laplacian requires scalar-valued data" << std::endl);
         }
     }
 
@@ -2446,8 +2439,7 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
     if (dst_factory->getDefaultDepth() != 1 || src1_factory->getDefaultDepth() != 1)
     {
         TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
-                   << "  side-centered variable-coefficient Laplacian requires scalar-valued data"
-                   << std::endl);
+                   << "  side-centered variable-coefficient Laplacian requires scalar-valued data" << std::endl);
     }
     if (src2_var)
     {
@@ -2455,16 +2447,14 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
         if (src2_factory->getDefaultDepth() != 1)
         {
             TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
-                       << "  side-centered variable-coefficient Laplacian requires scalar-valued data"
-                       << std::endl);
+                       << "  side-centered variable-coefficient Laplacian requires scalar-valued data" << std::endl);
         }
     }
     if (coef1_interp_type != VC_HARMONIC_INTERP && coef1_interp_type != VC_AVERAGE_INTERP)
     {
         TBOX_ERROR("HierarchyMathOps()::vc_laplace\n"
                    << "  unsupported variable coefficient interpolation type: "
-                   << enum_to_string<VCInterpType>(coef1_interp_type)
-                   << " \n"
+                   << enum_to_string<VCInterpType>(coef1_interp_type) << " \n"
                    << "  valid choices are: VC_HARMONIC_INTERP, VC_AVERAGE_INTERP\n");
     }
     const bool use_harmonic_interp = (coef1_interp_type == VC_HARMONIC_INTERP);
@@ -2551,8 +2541,7 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
     if (dst_factory->getDefaultDepth() != 1 || src1_factory->getDefaultDepth() != 1)
     {
         TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
-                   << "  side-centered variable-coefficient Laplacian requires scalar-valued data"
-                   << std::endl);
+                   << "  side-centered variable-coefficient Laplacian requires scalar-valued data" << std::endl);
     }
     if (src2_var)
     {
@@ -2560,16 +2549,14 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
         if (src2_factory->getDefaultDepth() != 1)
         {
             TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
-                       << "  side-centered variable-coefficient Laplacian requires scalar-valued data"
-                       << std::endl);
+                       << "  side-centered variable-coefficient Laplacian requires scalar-valued data" << std::endl);
         }
     }
     if (coef1_interp_type != VC_HARMONIC_INTERP && coef1_interp_type != VC_AVERAGE_INTERP)
     {
         TBOX_ERROR("HierarchyMathOps()::vc_laplace\n"
                    << "  unsupported variable coefficient interpolation type: "
-                   << enum_to_string<VCInterpType>(coef1_interp_type)
-                   << " \n"
+                   << enum_to_string<VCInterpType>(coef1_interp_type) << " \n"
                    << "  valid choices are: VC_HARMONIC_INTERP, VC_AVERAGE_INTERP\n");
     }
     const bool use_harmonic_interp = (coef1_interp_type == VC_HARMONIC_INTERP);

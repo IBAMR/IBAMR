@@ -117,7 +117,7 @@ static const std::string RT0 = "RT0";
 static const std::string LINEAR = "LINEAR";
 
 #define SCD(a) static_cast<double>(a)
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -604,7 +604,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
     IBTK_CHKERRQ(ierr);
 
     using StencilMapType = std::map<Index<NDIM>, int, IndexFortranOrder>;
-    static std::vector< StencilMapType > stencil_map_vec;
+    static std::vector<StencilMapType> stencil_map_vec;
     static const int stencil_sz = (2 * NDIM + 1) + 4 * (NDIM - 1);
     static const Index<NDIM> ORIGIN(0);
 
@@ -624,9 +624,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
         X = 0,
         Y = 1
     };
-    IBTK_DO_ONCE(static StencilMapType sm;
-                 sm[ORIGIN] = CENTER; sm[get_shift(X, 1)] = EAST;
-                 sm[get_shift(X, -1)] = WEST;
+    IBTK_DO_ONCE(static StencilMapType sm; sm[ORIGIN] = CENTER; sm[get_shift(X, 1)] = EAST; sm[get_shift(X, -1)] = WEST;
                  sm[get_shift(Y, 1)] = NORTH;
                  sm[get_shift(Y, -1)] = SOUTH;
                  sm[get_shift(Y, 1) + get_shift(X, 1)] = NORTHEAST;
@@ -650,33 +648,33 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
         Y = 1,
         Z = 2
     };
-    IBTK_DO_ONCE(for (int axis = 0; axis < NDIM; ++axis)
-                 {
-                     static StencilMapType sm;
-                     // Common to all axes
-                     sm[ORIGIN] = CENTER; sm[get_shift(X, 1)] = EAST;
-                     sm[get_shift(X, -1)] = WEST;
-                     sm[get_shift(Y, 1)] = NORTH;
-                     sm[get_shift(Y, -1)] = SOUTH;
-                     sm[get_shift(Z, 1)] = TOP;
-                     sm[get_shift(Z, -1)] = BOTTOM;
+    IBTK_DO_ONCE(for (int axis = 0; axis < NDIM; ++axis) {
+        static StencilMapType sm;
+        // Common to all axes
+        sm[ORIGIN] = CENTER;
+        sm[get_shift(X, 1)] = EAST;
+        sm[get_shift(X, -1)] = WEST;
+        sm[get_shift(Y, 1)] = NORTH;
+        sm[get_shift(Y, -1)] = SOUTH;
+        sm[get_shift(Z, 1)] = TOP;
+        sm[get_shift(Z, -1)] = BOTTOM;
 
-                     // Specific to certain axes
-                     int idx = BOTTOM;
-                     for (int d = 0; d < NDIM; ++d)
-                     {
-                         if (d == axis) continue;
-                         idx += 1;
-                         sm[get_shift(axis, 1) + get_shift(d, 1)] = idx;
-                         idx += 1;
-                         sm[get_shift(axis, -1) + get_shift(d, 1)] = idx;
-                         idx += 1;
-                         sm[get_shift(axis, 1) + get_shift(d, -1)] = idx;
-                         idx += 1;
-                         sm[get_shift(axis, -1) + get_shift(d, -1)] = idx;
-                     }
-                     stencil_map_vec.push_back(sm);
-                });
+        // Specific to certain axes
+        int idx = BOTTOM;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            if (d == axis) continue;
+            idx += 1;
+            sm[get_shift(axis, 1) + get_shift(d, 1)] = idx;
+            idx += 1;
+            sm[get_shift(axis, -1) + get_shift(d, 1)] = idx;
+            idx += 1;
+            sm[get_shift(axis, 1) + get_shift(d, -1)] = idx;
+            idx += 1;
+            sm[get_shift(axis, -1) + get_shift(d, -1)] = idx;
+        }
+        stencil_map_vec.push_back(sm);
+    });
 #endif
 
     // Set the matrix coefficients to correspond to the standard finite
@@ -1059,10 +1057,7 @@ PETScMatUtilities::constructProlongationOp(Mat& mat,
             TBOX_ERROR(
                 "PETScMatUtilities::constructProlongationOp(): Unsupported prolongation operator for cc-variable. "
                 "Given operator is "
-                << op_type
-                << ". Supported ops are: "
-                << CONSERVATIVE
-                << std::endl);
+                << op_type << ". Supported ops are: " << CONSERVATIVE << std::endl);
         }
     }
     else if (dof_index_sc_var)
@@ -1094,20 +1089,13 @@ PETScMatUtilities::constructProlongationOp(Mat& mat,
             TBOX_ERROR(
                 "PETScMatUtilities::constructProlongationOp(): Unsupported prolongation operator for sc-variable. "
                 "Given operator is "
-                << op_type
-                << ". Supported ops are: "
-                << RT0
-                << " and "
-                << LINEAR
-                << std::endl);
+                << op_type << ". Supported ops are: " << RT0 << " and " << LINEAR << std::endl);
         }
     }
     else
     {
         TBOX_ERROR("PETScVecUtilities::constructPatchLevelProlongationOp():\n"
-                   << "  unsupported data centering type for variable "
-                   << dof_index_var->getName()
-                   << "\n");
+                   << "  unsupported data centering type for variable " << dof_index_var->getName() << "\n");
     }
 
 } // constructPatchLevelProlongationOp
@@ -1230,9 +1218,7 @@ PETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<IS>& is_overlap,
     else
     {
         TBOX_ERROR("PETScVecUtilities::constructPatchLevelASMSubdomains():\n"
-                   << "  unsupported data centering type for variable "
-                   << dof_index_var->getName()
-                   << "\n");
+                   << "  unsupported data centering type for variable " << dof_index_var->getName() << "\n");
     }
     return;
 } // constructPatchLevelASMSubdomains
@@ -1510,18 +1496,12 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
                                                                        d,
                                                                        coarse_ao_offset + data_offset,
                                                                        coarse_periodic_shift);
-                        TBOX_ERROR("Component axis = " << axis << " with coarse grid index " << I_L
-                                                       << " and SAMRAI mapping "
-                                                       << domain
-                                                       << " is mapped to "
-                                                       << samrai_petsc_map[d * n_interpolants]
-                                                       << " by AO object constructed for level "
-                                                       << coarse_patch_level->getLevelNumber()
-                                                       << ". Index "
-                                                       << I
-                                                       << " contained in coarse domain = "
-                                                       << coarse_domain_side_boxes[axis].contains(I_L)
-                                                       << std::endl);
+                        TBOX_ERROR("Component axis = "
+                                   << axis << " with coarse grid index " << I_L << " and SAMRAI mapping " << domain
+                                   << " is mapped to " << samrai_petsc_map[d * n_interpolants]
+                                   << " by AO object constructed for level " << coarse_patch_level->getLevelNumber()
+                                   << ". Index " << I << " contained in coarse domain = "
+                                   << coarse_domain_side_boxes[axis].contains(I_L) << std::endl);
                     }
                 }
 #endif
@@ -1640,10 +1620,9 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
                     TBOX_ASSERT(col_size >= 1);
 
                     // w_L = 1 - [i(axis) - refine(I_L,ratio)(axis)]/ratio(axis)
-                    double w_L = 1.0 -
-                                 (static_cast<double>(i(axis)) -
-                                  static_cast<double>(IndexUtilities::refine(I_L, fine_coarse_ratio)(axis))) /
-                                     static_cast<double>(fine_coarse_ratio(axis));
+                    double w_L = 1.0 - (static_cast<double>(i(axis)) -
+                                        static_cast<double>(IndexUtilities::refine(I_L, fine_coarse_ratio)(axis))) /
+                                           static_cast<double>(fine_coarse_ratio(axis));
 
                     col_val[0] = w_L;
                     col_val[1] = 1.0 - w_L;
@@ -1893,18 +1872,12 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                                                                        d,
                                                                        coarse_ao_offset + data_offset,
                                                                        coarse_periodic_shift);
-                        TBOX_ERROR("Component axis = " << axis << " with coarse grid index " << I
-                                                       << " and SAMRAI mapping "
-                                                       << domain
-                                                       << " is mapped to "
-                                                       << samrai_petsc_map[d * n_interpolants]
-                                                       << " by AO object constructed for level "
-                                                       << coarse_patch_level->getLevelNumber()
-                                                       << ". Index "
-                                                       << I
-                                                       << " contained in coarse domain = "
-                                                       << coarse_domain_side_boxes[axis].contains(interpolants[0])
-                                                       << std::endl);
+                        TBOX_ERROR("Component axis = "
+                                   << axis << " with coarse grid index " << I << " and SAMRAI mapping " << domain
+                                   << " is mapped to " << samrai_petsc_map[d * n_interpolants]
+                                   << " by AO object constructed for level " << coarse_patch_level->getLevelNumber()
+                                   << ". Index " << I << " contained in coarse domain = "
+                                   << coarse_domain_side_boxes[axis].contains(interpolants[0]) << std::endl);
                     }
                 }
 #endif
@@ -2103,68 +2076,59 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                     double w[NDIM];
                     if (axis == 0)
                     {
-                        w[0] = 1.0 -
-                               (SCD(i(0)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(0))) /
-                                   SCD(fine_coarse_ratio(0));
+                        w[0] = 1.0 - (SCD(i(0)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(0))) /
+                                         SCD(fine_coarse_ratio(0));
 
-                        w[1] = 1.0 -
-                               (0.5 + SCD(i(1)) -
-                                SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
-                                                           fine_coarse_ratio)(1)) -
-                                SCD(fine_coarse_ratio(1) / 2.0)) /
-                                   SCD(fine_coarse_ratio(1));
+                        w[1] = 1.0 - (0.5 + SCD(i(1)) -
+                                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
+                                                                 fine_coarse_ratio)(1)) -
+                                      SCD(fine_coarse_ratio(1) / 2.0)) /
+                                         SCD(fine_coarse_ratio(1));
 #if (NDIM == 3)
 
-                        w[2] = 1.0 -
-                               (0.5 + SCD(i(2)) -
-                                SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
-                                                           fine_coarse_ratio)(2)) -
-                                SCD(fine_coarse_ratio(2) / 2.0)) /
-                                   SCD(fine_coarse_ratio(2));
+                        w[2] = 1.0 - (0.5 + SCD(i(2)) -
+                                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
+                                                                 fine_coarse_ratio)(2)) -
+                                      SCD(fine_coarse_ratio(2) / 2.0)) /
+                                         SCD(fine_coarse_ratio(2));
 #endif
                     }
                     else if (axis == 1)
                     {
-                        w[1] = 1.0 -
-                               (SCD(i(1)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(1))) /
-                                   SCD(fine_coarse_ratio(1));
+                        w[1] = 1.0 - (SCD(i(1)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(1))) /
+                                         SCD(fine_coarse_ratio(1));
 
-                        w[0] = 1.0 -
-                               (0.5 + SCD(i(0)) -
-                                SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
-                                                           fine_coarse_ratio)(0)) -
-                                SCD(fine_coarse_ratio(0) / 2.0)) /
-                                   SCD(fine_coarse_ratio(0));
+                        w[0] = 1.0 - (0.5 + SCD(i(0)) -
+                                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
+                                                                 fine_coarse_ratio)(0)) -
+                                      SCD(fine_coarse_ratio(0) / 2.0)) /
+                                         SCD(fine_coarse_ratio(0));
 #if (NDIM == 3)
 
-                        w[2] = 1.0 -
-                               (0.5 + SCD(i(2)) -
-                                SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
-                                                           fine_coarse_ratio)(2)) -
-                                SCD(fine_coarse_ratio(2) / 2.0)) /
-                                   SCD(fine_coarse_ratio(2));
+                        w[2] = 1.0 - (0.5 + SCD(i(2)) -
+                                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
+                                                                 fine_coarse_ratio)(2)) -
+                                      SCD(fine_coarse_ratio(2) / 2.0)) /
+                                         SCD(fine_coarse_ratio(2));
 #endif
                     }
 #if (NDIM == 3)
                     else if (axis == 2)
                     {
-                        w[2] = 1.0 -
-                               (SCD(i(2)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(2))) /
-                                   SCD(fine_coarse_ratio(2));
+                        w[2] = 1.0 - (SCD(i(2)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(2))) /
+                                         SCD(fine_coarse_ratio(2));
 
-                        w[0] = 1.0 -
-                               (0.5 + SCD(i(0)) -
-                                SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
-                                                           fine_coarse_ratio)(0)) -
-                                SCD(fine_coarse_ratio(0) / 2.0)) /
-                                   SCD(fine_coarse_ratio(0));
+                        w[0] = 1.0 - (0.5 + SCD(i(0)) -
+                                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
+                                                                 fine_coarse_ratio)(0)) -
+                                      SCD(fine_coarse_ratio(0) / 2.0)) /
+                                         SCD(fine_coarse_ratio(0));
 
-                        w[1] = 1.0 -
-                               (0.5 + SCD(i(1)) -
-                                SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
-                                                           fine_coarse_ratio)(1)) -
-                                SCD(fine_coarse_ratio(1) / 2.0)) /
-                                   SCD(fine_coarse_ratio(1));
+                        w[1] = 1.0 - (0.5 + SCD(i(1)) -
+                                      SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
+                                                                 fine_coarse_ratio)(1)) -
+                                      SCD(fine_coarse_ratio(1) / 2.0)) /
+                                         SCD(fine_coarse_ratio(1));
                     }
 #endif
 

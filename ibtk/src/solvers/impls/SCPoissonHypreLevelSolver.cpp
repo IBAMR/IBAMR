@@ -87,7 +87,7 @@ enum HypreSStructRelaxType
     RELAX_TYPE_RB_GAUSS_SEIDEL = 2,
     RELAX_TYPE_RB_GAUSS_SEIDEL_NONSYMMETRIC = 3
 };
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -99,8 +99,7 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(const std::string& object_n
     if (NDIM == 1 || NDIM > 3)
     {
         TBOX_ERROR(d_object_name << "::SCPoissonHypreLevelSolver()"
-                                 << "  hypre solvers are only provided for 2D and 3D problems"
-                                 << std::endl);
+                                 << "  hypre solvers are only provided for 2D and 3D problems" << std::endl);
     }
 
     // Setup default options.
@@ -210,44 +209,38 @@ SCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, do
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have the same number of components"
-                                 << std::endl);
+                                 << "  vectors must have the same number of components" << std::endl);
     }
 
     const Pointer<PatchHierarchy<NDIM> >& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have the same hierarchy"
-                                 << std::endl);
+                                 << "  vectors must have the same hierarchy" << std::endl);
     }
 
     const int coarsest_ln = x.getCoarsestLevelNumber();
     if (coarsest_ln < 0)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  coarsest level number must not be negative"
-                                 << std::endl);
+                                 << "  coarsest level number must not be negative" << std::endl);
     }
     if (coarsest_ln != b.getCoarsestLevelNumber())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have same coarsest level number"
-                                 << std::endl);
+                                 << "  vectors must have same coarsest level number" << std::endl);
     }
 
     const int finest_ln = x.getFinestLevelNumber();
     if (finest_ln < coarsest_ln)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  finest level number must be >= coarsest level number"
-                                 << std::endl);
+                                 << "  finest level number must be >= coarsest level number" << std::endl);
     }
     if (finest_ln != b.getFinestLevelNumber())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have same finest level number"
-                                 << std::endl);
+                                 << "  vectors must have same finest level number" << std::endl);
     }
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -255,18 +248,14 @@ SCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, do
         if (!patch_hierarchy->getPatchLevel(ln))
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                     << "  hierarchy level "
-                                     << ln
-                                     << " does not exist"
-                                     << std::endl);
+                                     << "  hierarchy level " << ln << " does not exist" << std::endl);
         }
     }
 
     if (coarsest_ln != finest_ln)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  coarsest_ln != finest_ln in SCPoissonHypreLevelSolver"
-                                 << std::endl);
+                                 << "  coarsest_ln != finest_ln in SCPoissonHypreLevelSolver" << std::endl);
     }
 #else
     NULL_USE(b);
@@ -471,9 +460,7 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
         else
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                     << "  unknown split solver type: "
-                                     << d_split_solver_type
-                                     << std::endl);
+                                     << "  unknown split solver type: " << d_split_solver_type << std::endl);
         }
     }
 
@@ -562,9 +549,7 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
         else
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                     << "  unknown preconditioner type: "
-                                     << d_precond_type
-                                     << std::endl);
+                                     << "  unknown preconditioner type: " << d_precond_type << std::endl);
         }
         HYPRE_SStructPCGSetup(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
     }
@@ -589,9 +574,7 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
         else
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                     << "  unknown preconditioner type: "
-                                     << d_precond_type
-                                     << std::endl);
+                                     << "  unknown preconditioner type: " << d_precond_type << std::endl);
         }
         HYPRE_SStructGMRESSetup(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
     }
@@ -616,9 +599,7 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
         else
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                     << "  unknown preconditioner type: "
-                                     << d_precond_type
-                                     << std::endl);
+                                     << "  unknown preconditioner type: " << d_precond_type << std::endl);
         }
         HYPRE_SStructFlexGMRESSetup(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
     }
@@ -643,9 +624,7 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
         else
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                     << "  unknown preconditioner type: "
-                                     << d_precond_type
-                                     << std::endl);
+                                     << "  unknown preconditioner type: " << d_precond_type << std::endl);
         }
         HYPRE_SStructLGMRESSetup(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
     }
@@ -670,18 +649,14 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
         else
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                     << "  unknown preconditioner type: "
-                                     << d_precond_type
-                                     << std::endl);
+                                     << "  unknown preconditioner type: " << d_precond_type << std::endl);
         }
         HYPRE_SStructBiCGSTABSetup(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
     }
     else
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  unknown solver type: "
-                                 << d_solver_type
-                                 << std::endl);
+                                 << "  unknown solver type: " << d_solver_type << std::endl);
     }
     return;
 } // setupHypreSolver

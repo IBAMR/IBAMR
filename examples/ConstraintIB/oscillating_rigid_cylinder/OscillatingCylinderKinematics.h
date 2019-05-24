@@ -136,8 +136,8 @@ private:
     void setOscillatingCylinderSpecificVelocity(const double time);
 
     /*!
-    * New and current kinematics velocity. New shape of the body.
-    */
+     * New and current kinematics velocity. New shape of the body.
+     */
     std::vector<std::vector<std::vector<double> > > d_new_kinematics_vel, d_current_kinematics_vel;
     std::vector<std::vector<double> > d_new_shape;
 
@@ -158,6 +158,6 @@ private:
 
 }; // OscillatingCylinderKinematics
 
-} // IBAMR
+} // namespace IBAMR
 
 #endif // included_OscillatingCylinderKinematics

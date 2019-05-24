@@ -49,7 +49,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ParallelSet& ParallelSet::operator=(const ParallelSet& that)
+ParallelSet&
+ParallelSet::operator=(const ParallelSet& that)
 {
     if (this != &that)
     {

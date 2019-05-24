@@ -123,147 +123,148 @@
     IBAMR_FC_FUNC_(navier_stokes_skew_sym_source3d, NAVIER_STOKES_SKEW_SYM_SOURCE3D)
 #endif
 
-extern "C" {
-void ADVECT_STABLEDT_FC(const double*,
+extern "C"
+{
+    void ADVECT_STABLEDT_FC(const double*,
 #if (NDIM == 2)
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const double*,
-                        const double*,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const double*,
+                            const double*,
 #endif
 #if (NDIM == 3)
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const double*,
-                        const double*,
-                        const double*,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const double*,
+                            const double*,
+                            const double*,
 #endif
-                        double&);
+                            double&);
 
-void NAVIER_STOKES_ADV_SOURCE_FC(
+    void NAVIER_STOKES_ADV_SOURCE_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
 #endif
-    const double*,
-    double*);
+        const double*,
+        double*);
 
-void NAVIER_STOKES_CONS_SOURCE_FC(
+    void NAVIER_STOKES_CONS_SOURCE_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
 #endif
-    const double*,
-    double*);
+        const double*,
+        double*);
 
-void NAVIER_STOKES_SKEW_SYM_SOURCE_FC(
+    void NAVIER_STOKES_SKEW_SYM_SOURCE_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
 #endif
-    const double*,
-    double*);
+        const double*,
+        double*);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -287,7 +288,7 @@ static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -320,8 +321,7 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(std::string o
     default:
         TBOX_ERROR(d_object_name << "::INSCollocatedHierarchyIntegrator():\n"
                                  << "  unsupported viscous time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type)
-                                 << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << " \n"
                                  << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
     switch (d_convective_time_stepping_type)
@@ -334,8 +334,7 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(std::string o
     default:
         TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                  << "  unsupported convective time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
-                                 << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " \n"
                                  << "  valid choices are: ADAMS_BASHFORTH, FORWARD_EULER, "
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
@@ -350,8 +349,7 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(std::string o
         default:
             TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                      << "  unsupported initial convective time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type)
-                                     << " \n"
+                                     << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type) << " \n"
                                      << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
     }
@@ -905,9 +903,7 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
                                  << "  time stepping type: "
                                  << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
                                  << " requires num_cycles > 1.\n"
-                                 << "  at current time step, num_cycles = "
-                                 << d_current_num_cycles
-                                 << "\n");
+                                 << "  at current time step, num_cycles = " << d_current_num_cycles << "\n");
     }
 
     // Allocate the scratch and new data.
@@ -987,12 +983,10 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
         if (adv_diff_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
         {
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                     << "  attempting to perform "
-                                     << d_current_num_cycles
+                                     << "  attempting to perform " << d_current_num_cycles
                                      << " cycles of fixed point iteration.\n"
                                      << "  number of cycles required by coupled advection-diffusion solver = "
-                                     << adv_diff_num_cycles
-                                     << ".\n"
+                                     << adv_diff_num_cycles << ".\n"
                                      << "  current implementation requires either that both solvers use the same "
                                         "number of cycles,\n"
                                      << "  or that the Navier-Stokes solver use only a single cycle.\n");
@@ -1088,12 +1082,11 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
     const int expected_num_cycles = getNumberOfCycles();
     if (d_current_num_cycles != expected_num_cycles)
     {
-        IBAMR_DO_ONCE(
-            {
-                pout << "INSCollocatedHierarchyIntegrator::integrateHierarchy():\n"
-                     << "  WARNING: num_cycles = " << d_current_num_cycles
-                     << " but expected num_cycles = " << expected_num_cycles << ".\n";
-            });
+        IBAMR_DO_ONCE({
+            pout << "INSCollocatedHierarchyIntegrator::integrateHierarchy():\n"
+                 << "  WARNING: num_cycles = " << d_current_num_cycles
+                 << " but expected num_cycles = " << expected_num_cycles << ".\n";
+        });
     }
 
     // Perform a single step of fixed point iteration.
@@ -1119,8 +1112,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
         default:
             TBOX_ERROR("INSCollocatedHierarchyIntegrator::integrateHierarchy():\n"
                        << "  unsupported projection method type: "
-                       << enum_to_string<ProjectionMethodType>(d_projection_method_type)
-                       << " \n"
+                       << enum_to_string<ProjectionMethodType>(d_projection_method_type) << " \n"
                        << "  valid choices are: PRESSURE_INCREMENT, PRESSURE_UPDATE\n");
         }
     }
@@ -1146,17 +1138,16 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
         else if (cycle_num > 0)
         {
             convective_time_stepping_type = MIDPOINT_RULE;
-            IBAMR_DO_ONCE(
-                {
-                    pout << "INSStaggeredHierarchyIntegrator::integrateHierarchy():\n"
-                         << "  WARNING: convective_time_stepping_type = "
-                         << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
-                         << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
-                         << "           using " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
-                         << " only for the first cycle in each time step;\n"
-                         << "           using " << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
-                         << " for subsequent cycles.\n";
-                });
+            IBAMR_DO_ONCE({
+                pout << "INSStaggeredHierarchyIntegrator::integrateHierarchy():\n"
+                     << "  WARNING: convective_time_stepping_type = "
+                     << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
+                     << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
+                     << "           using " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
+                     << " only for the first cycle in each time step;\n"
+                     << "           using " << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
+                     << " for subsequent cycles.\n";
+            });
         }
     }
     if (!d_creeping_flow && convective_time_stepping_type != FORWARD_EULER)
@@ -2159,8 +2150,9 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
         if (d_velocity_solver_needs_init)
         {
             if (d_enable_logging)
-                plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing "
-                                         "velocity subdomain solver"
+                plog << d_object_name
+                     << "::preprocessIntegrateHierarchy(): initializing "
+                        "velocity subdomain solver"
                      << std::endl;
             if (p_velocity_solver)
             {
@@ -2182,8 +2174,9 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
         if (d_pressure_solver_needs_init)
         {
             if (d_enable_logging)
-                plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing "
-                                         "pressure subdomain solver"
+                plog << d_object_name
+                     << "::preprocessIntegrateHierarchy(): initializing "
+                        "pressure subdomain solver"
                      << std::endl;
             if (p_pressure_solver)
             {

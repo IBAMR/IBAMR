@@ -91,7 +91,7 @@ namespace
 {
 // Version of GeneralizedIBMethod restart file data.
 static const int GENERALIZED_IB_METHOD_VERSION = 1;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -146,8 +146,7 @@ GeneralizedIBMethod::registerEulerianVariables()
     else
     {
         TBOX_ERROR(d_object_name << "::registerEulerianVariables():\n"
-                                 << "  unsupported velocity data centering"
-                                 << std::endl);
+                                 << "  unsupported velocity data centering" << std::endl);
     }
     registerVariable(d_f_idx, d_f_var, no_ghosts, d_ib_solver->getScratchContext());
     registerVariable(d_w_idx, d_w_var, ib_ghosts, d_ib_solver->getScratchContext());
@@ -296,8 +295,7 @@ GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
     else
     {
         TBOX_ERROR(d_object_name << "::interpolateVelocity():\n"
-                                 << "  unsupported velocity data centering"
-                                 << std::endl);
+                                 << "  unsupported velocity data centering" << std::endl);
     }
     std::vector<Pointer<LData> >* X_LE_data;
     bool* X_LE_needs_ghost_fill;
@@ -569,8 +567,7 @@ GeneralizedIBMethod::spreadForce(const int f_data_idx,
     else
     {
         TBOX_ERROR(d_object_name << "::spreadForce():\n"
-                                 << "  unsupported velocity data centering"
-                                 << std::endl);
+                                 << "  unsupported velocity data centering" << std::endl);
     }
     getVelocityHierarchyDataOps()->axpy(f_data_idx, 0.5, d_f_idx, f_data_idx);
     return;
@@ -629,8 +626,7 @@ GeneralizedIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hie
         else
         {
             TBOX_ERROR(d_object_name << "::initializePatchHierarchy():\n"
-                                     << "  unsupported velocity data centering"
-                                     << std::endl);
+                                     << "  unsupported velocity data centering" << std::endl);
         }
         getVelocityHierarchyDataOps()->scale(d_w_idx, 0.5, d_w_idx);
         d_l_data_manager->interp(d_w_idx,
@@ -736,8 +732,7 @@ GeneralizedIBMethod::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
     int ver = db->getInteger("GENERALIZED_IB_METHOD_VERSION");
     if (ver != GENERALIZED_IB_METHOD_VERSION)

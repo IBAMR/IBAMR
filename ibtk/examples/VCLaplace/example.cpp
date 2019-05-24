@@ -285,13 +285,13 @@ run_example(int argc, char* argv[])
                     double avg_mu = 0.0;
                     for (int axis = 0; axis < NDIM; ++axis)
                     {
-                        for(EdgeIterator<NDIM> e(edge_box, axis); e; e++)
+                        for (EdgeIterator<NDIM> e(edge_box, axis); e; e++)
                         {
                             EdgeIndex<NDIM> ei(e());
                             avg_mu += (*mu_ec_data)(ei);
                         }
                     }
-                    (*mu_cc_data)(ci) = avg_mu/12.0;
+                    (*mu_cc_data)(ci) = avg_mu / 12.0;
                 }
             }
         }

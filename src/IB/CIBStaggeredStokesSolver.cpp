@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/CIBSaddlePointSolver.h"
 #include "ibamr/CIBStaggeredStokesSolver.h"
+#include "ibamr/CIBSaddlePointSolver.h"
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/IBStrategy.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
@@ -310,7 +310,8 @@ CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIV
     double half_time = 0.5 * (d_new_time + d_current_time);
     pout << "\n"
          << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
-         << "Interpolating velocity on structure at time  " << half_time << "....\n" << std::endl;
+         << "Interpolating velocity on structure at time  " << half_time << "....\n"
+         << std::endl;
 
     RefineAlgorithm<NDIM> ghost_fill_alg;
     ghost_fill_alg.registerRefine(d_wide_u_idx, d_wide_u_idx, d_wide_u_idx, nullptr);

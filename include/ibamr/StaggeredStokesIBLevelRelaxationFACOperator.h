@@ -284,7 +284,8 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesIBLevelRelaxationFACOperator& operator=(const StaggeredStokesIBLevelRelaxationFACOperator& that) = delete;
+    StaggeredStokesIBLevelRelaxationFACOperator&
+    operator=(const StaggeredStokesIBLevelRelaxationFACOperator& that) = delete;
 
     /*
      * Whether we re-discretize the Stokes operator on coarser level or are
@@ -349,7 +350,7 @@ private:
     std::vector<std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
 };
-} // namespace IBTK
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

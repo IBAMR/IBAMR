@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 #include <ios>
 #include <iosfwd>
 #include <istream>
@@ -124,7 +124,7 @@ discard_comments(const std::string& input_string)
     string_stream.clear();
     return output_string;
 } // discard_comments
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -156,8 +156,7 @@ LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init_posns,
                 TBOX_ERROR(
                     "LMarkerUtilities::readMarkerPositions():\n  Premature end to input file "
                     "encountered before line 1 of file "
-                    << mark_input_file_name
-                    << "\n");
+                    << mark_input_file_name << "\n");
             }
             else
             {
@@ -169,8 +168,7 @@ LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init_posns,
                         "LMarkerUtilities::readMarkerPositions():\n  Invalid entry in input "
                         "file "
                         "encountered on line 1 of file "
-                        << mark_input_file_name
-                        << "\n");
+                        << mark_input_file_name << "\n");
                 }
             }
 
@@ -179,8 +177,7 @@ LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init_posns,
                 TBOX_ERROR(
                     "LMarkerUtilities::readMarkerPositions():\n  Invalid entry in input file "
                     "encountered on line 1 of file "
-                    << mark_input_file_name
-                    << "\n");
+                    << mark_input_file_name << "\n");
             }
 
             // Each successive line provides the initial position of each
@@ -194,10 +191,7 @@ LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init_posns,
                         "LMarkerUtilities::readMarkerPositions():\n  Premature end to input "
                         "file "
                         "encountered before line "
-                        << k + 2
-                        << " of file "
-                        << mark_input_file_name
-                        << "\n");
+                        << k + 2 << " of file " << mark_input_file_name << "\n");
                 }
                 else
                 {
@@ -210,10 +204,7 @@ LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init_posns,
                             TBOX_ERROR(
                                 "LMarkerUtilities::readMarkerPositions():\n  Invalid entry in "
                                 "input file encountered on line "
-                                << k + 2
-                                << " of file "
-                                << mark_input_file_name
-                                << "\n");
+                                << k + 2 << " of file " << mark_input_file_name << "\n");
                         }
                     }
 
@@ -549,17 +540,13 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<Pat
         TBOX_ERROR("LMarkerUtilities::collectMarkersOnPatchHierarchy()\n"
                    << "  number of marker particles changed during collection to coarsest level\n"
                    << "  number of markers in hierarchy before collection to coarsest level = "
-                   << num_marks_before_coarsening
-                   << "\n"
+                   << num_marks_before_coarsening << "\n"
                    << "  number of markers on level 0   before collection to coarsest level = "
-                   << num_marks_before_coarsening_level_0
-                   << "\n"
+                   << num_marks_before_coarsening_level_0 << "\n"
                    << "  number of markers in hierarchy after  collection to coarsest level = "
-                   << num_marks_after_coarsening
-                   << "\n"
+                   << num_marks_after_coarsening << "\n"
                    << "  number of markers on level 0   after  collection to coarsest level = "
-                   << num_marks_after_coarsening_level_0
-                   << "\n");
+                   << num_marks_after_coarsening_level_0 << "\n");
     }
 
     // Reset the assignment of markers to Cartesian grid cells on the coarsest
@@ -630,14 +617,11 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<Pat
         TBOX_ERROR("LMarkerUtilities::collectMarkersOnPatchHierarchy()\n"
                    << "  number of marker particles changed during position reset on coarsest level\n"
                    << "  number of markers in hierarchy before position reset on coarsest level = "
-                   << num_marks_before_coarsening
-                   << "\n"
+                   << num_marks_before_coarsening << "\n"
                    << "  number of markers in hierarchy after  position reset on coarsest level = "
-                   << num_marks_after_posn_reset
-                   << "\n"
+                   << num_marks_after_posn_reset << "\n"
                    << "  number of markers on level 0   after  position reset on coarsest level = "
-                   << num_marks_after_posn_reset_level_0
-                   << "\n");
+                   << num_marks_after_posn_reset_level_0 << "\n");
     }
     return;
 } // collectMarkersOnPatchHierarchy

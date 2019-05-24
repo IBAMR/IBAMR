@@ -32,16 +32,16 @@
 
 /////////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include "tbox/Utilities.h"
-#include "ibamr/namespaces.h"
 #include "ibamr/ConstraintIBKinematics.h"
+#include "ibamr/namespaces.h"
+#include "tbox/Utilities.h"
+#include <string>
 
 namespace IBAMR
 {
 namespace
 {
-} // namespace anonymous
+} // namespace
 
 ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Database> input_db,
                                                                  LDataManager* l_data_manager)
@@ -71,10 +71,8 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Databas
         }
         else
         {
-            TBOX_ERROR("StructureParameters::StructureParameters() Structure " << struct_names[i]
-                                                                               << " does not exist on level "
-                                                                               << level
-                                                                               << std::endl);
+            TBOX_ERROR("StructureParameters::StructureParameters() Structure "
+                       << struct_names[i] << " does not exist on level " << level << std::endl);
         }
     }
 
@@ -157,6 +155,6 @@ void ConstraintIBKinematics::putToDatabase(Pointer<Database> /*db*/)
     return;
 }
 
-} // IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

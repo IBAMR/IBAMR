@@ -210,7 +210,7 @@ run_example(int argc, char* argv[])
         {
             rho_var = new CellVariable<NDIM, double>("rho");
         }
-        
+
         time_integrator->registerMassDensityVariable(rho_var);
 
         Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");

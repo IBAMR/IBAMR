@@ -139,8 +139,8 @@ private:
     std::vector<double> d_vec_radius, d_vec_theta, d_vec_coord;
 
     /*!
-    * Name of the object.
-    */
+     * Name of the object.
+     */
     std::string d_body_name;
 
     /*!
@@ -160,6 +160,6 @@ private:
 
 }; // KnifeFishKinematics
 
-} // IBAMR
+} // namespace IBAMR
 
 #endif // included_KnifeFishKinematics

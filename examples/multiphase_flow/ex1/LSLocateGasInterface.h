@@ -83,8 +83,8 @@ private:
     SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
 
     /*!
- * Level set variable
- */
+     * Level set variable
+     */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
 
     /*!

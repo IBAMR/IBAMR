@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <ios>
 #include <iosfwd>
@@ -122,7 +122,7 @@ discard_comments(const std::string& input_string)
     string_stream.clear();
     return output_string;
 } // discard_comments
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -261,8 +261,7 @@ IBStandardInitializer::readVertexFiles(const std::string& extension)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
                                                 "before line 1 of file "
-                                             << vertex_filename
-                                             << std::endl);
+                                             << vertex_filename << std::endl);
                 }
                 else
                 {
@@ -272,16 +271,14 @@ IBStandardInitializer::readVertexFiles(const std::string& extension)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
                                                     "encountered on line 1 of file "
-                                                 << vertex_filename
-                                                 << std::endl);
+                                                 << vertex_filename << std::endl);
                     }
                 }
 
                 if (d_num_vertex[ln][j] <= 0)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file "
-                                             << vertex_filename
-                                             << std::endl);
+                                             << vertex_filename << std::endl);
                 }
 
                 // Each successive line provides the initial position of each
@@ -293,9 +290,7 @@ IBStandardInitializer::readVertexFiles(const std::string& extension)
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k + 2
-                                                 << " of file "
-                                                 << vertex_filename
-                                                 << std::endl);
+                                                 << " of file " << vertex_filename << std::endl);
                     }
                     else
                     {
@@ -306,10 +301,7 @@ IBStandardInitializer::readVertexFiles(const std::string& extension)
                             if (!(line_stream >> X[d]))
                             {
                                 TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
-                                                         << k + 2
-                                                         << " of file "
-                                                         << vertex_filename
-                                                         << std::endl);
+                                                         << k + 2 << " of file " << vertex_filename << std::endl);
                             }
                             X[d] = d_length_scale_factor * (X[d] + d_posn_shift[d]);
                         }
@@ -383,8 +375,7 @@ IBStandardInitializer::readSpringFiles(const std::string& extension, const bool 
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
                                                 "before line 1 of file "
-                                             << spring_filename
-                                             << std::endl);
+                                             << spring_filename << std::endl);
                 }
                 else
                 {
@@ -394,16 +385,14 @@ IBStandardInitializer::readSpringFiles(const std::string& extension, const bool 
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
                                                     "encountered on line 1 of file "
-                                                 << spring_filename
-                                                 << std::endl);
+                                                 << spring_filename << std::endl);
                     }
                 }
 
                 if (num_edges <= 0)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file "
-                                             << spring_filename
-                                             << std::endl);
+                                             << spring_filename << std::endl);
                 }
 
                 // Each successive line provides the connectivity and material parameter
@@ -416,9 +405,7 @@ IBStandardInitializer::readSpringFiles(const std::string& extension, const bool 
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k + 2
-                                                 << " of file "
-                                                 << spring_filename
-                                                 << std::endl);
+                                                 << " of file " << spring_filename << std::endl);
                     }
                     else
                     {
@@ -427,73 +414,51 @@ IBStandardInitializer::readSpringFiles(const std::string& extension, const bool 
                         if (!(line_stream >> e.first))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << spring_filename
-                                                     << std::endl);
+                                                     << " of file " << spring_filename << std::endl);
                         }
                         else if ((e.first < min_idx) || (e.first >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << spring_filename
-                                                     << std::endl
-                                                     << "  vertex index "
-                                                     << e.first
-                                                     << " is out of range"
+                                                     << " of file " << spring_filename << std::endl
+                                                     << "  vertex index " << e.first << " is out of range"
                                                      << std::endl);
                         }
 
                         if (!(line_stream >> e.second))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << spring_filename
-                                                     << std::endl);
+                                                     << " of file " << spring_filename << std::endl);
                         }
                         else if ((e.second < min_idx) || (e.second >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << spring_filename
-                                                     << std::endl
-                                                     << "  vertex index "
-                                                     << e.second
-                                                     << " is out of range"
+                                                     << " of file " << spring_filename << std::endl
+                                                     << "  vertex index " << e.second << " is out of range"
                                                      << std::endl);
                         }
 
                         if (!(line_stream >> parameters[0]))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << spring_filename
-                                                     << std::endl);
+                                                     << " of file " << spring_filename << std::endl);
                         }
                         else if (parameters[0] < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << spring_filename
-                                                     << std::endl
-                                                     << "  spring constant is negative"
-                                                     << std::endl);
+                                                     << " of file " << spring_filename << std::endl
+                                                     << "  spring constant is negative" << std::endl);
                         }
 
                         if (!(line_stream >> parameters[1]))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << spring_filename
-                                                     << std::endl);
+                                                     << " of file " << spring_filename << std::endl);
                         }
                         else if (parameters[1] < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << spring_filename
-                                                     << std::endl
-                                                     << "  spring resting length is negative"
-                                                     << std::endl);
+                                                     << " of file " << spring_filename << std::endl
+                                                     << "  spring resting length is negative" << std::endl);
                         }
                         parameters[1] *= d_length_scale_factor;
 
@@ -531,9 +496,7 @@ IBStandardInitializer::readSpringFiles(const std::string& extension, const bool 
                     {
                         TBOX_WARNING(d_object_name << ":\n  Spring with zero spring constant "
                                                       "encountered in ASCII input file named "
-                                                   << spring_filename
-                                                   << "."
-                                                   << std::endl);
+                                                   << spring_filename << "." << std::endl);
                         warned = true;
                     }
 
@@ -641,8 +604,7 @@ IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
                                                 "before line 1 of file "
-                                             << xspring_filename
-                                             << std::endl);
+                                             << xspring_filename << std::endl);
                 }
                 else
                 {
@@ -652,16 +614,14 @@ IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
                                                     "encountered on line 1 of file "
-                                                 << xspring_filename
-                                                 << std::endl);
+                                                 << xspring_filename << std::endl);
                     }
                 }
 
                 if (num_edges <= 0)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file "
-                                             << xspring_filename
-                                             << std::endl);
+                                             << xspring_filename << std::endl);
                 }
 
                 // Each successive line provides the connectivity and material parameter
@@ -674,9 +634,7 @@ IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k + 2
-                                                 << " of file "
-                                                 << xspring_filename
-                                                 << std::endl);
+                                                 << " of file " << xspring_filename << std::endl);
                     }
                     else
                     {
@@ -685,73 +643,51 @@ IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool
                         if (!(line_stream >> e.first))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << xspring_filename
-                                                     << std::endl);
+                                                     << " of file " << xspring_filename << std::endl);
                         }
                         else if ((e.first < min_idx) || (e.first >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << xspring_filename
-                                                     << std::endl
-                                                     << "  vertex index "
-                                                     << e.first
-                                                     << " is out of range"
+                                                     << " of file " << xspring_filename << std::endl
+                                                     << "  vertex index " << e.first << " is out of range"
                                                      << std::endl);
                         }
 
                         if (!(line_stream >> e.second))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << xspring_filename
-                                                     << std::endl);
+                                                     << " of file " << xspring_filename << std::endl);
                         }
                         else if ((e.second < min_idx) || (e.second >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << xspring_filename
-                                                     << std::endl
-                                                     << "  vertex index "
-                                                     << e.second
-                                                     << " is out of range"
+                                                     << " of file " << xspring_filename << std::endl
+                                                     << "  vertex index " << e.second << " is out of range"
                                                      << std::endl);
                         }
 
                         if (!(line_stream >> parameters[0]))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << xspring_filename
-                                                     << std::endl);
+                                                     << " of file " << xspring_filename << std::endl);
                         }
                         else if (parameters[0] < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << xspring_filename
-                                                     << std::endl
-                                                     << "  spring constant is negative"
-                                                     << std::endl);
+                                                     << " of file " << xspring_filename << std::endl
+                                                     << "  spring constant is negative" << std::endl);
                         }
 
                         if (!(line_stream >> parameters[1]))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << xspring_filename
-                                                     << std::endl);
+                                                     << " of file " << xspring_filename << std::endl);
                         }
                         else if (parameters[1] < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << xspring_filename
-                                                     << std::endl
-                                                     << "  spring resting length is negative"
-                                                     << std::endl);
+                                                     << " of file " << xspring_filename << std::endl
+                                                     << "  spring resting length is negative" << std::endl);
                         }
                         parameters[1] *= d_length_scale_factor;
 
@@ -790,9 +726,7 @@ IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool
                         TBOX_WARNING(d_object_name << ":\n  Crosslink spring with zero spring "
                                                       "constant encountered in ASCII input file "
                                                       "named "
-                                                   << xspring_filename
-                                                   << "."
-                                                   << std::endl);
+                                                   << xspring_filename << "." << std::endl);
                         warned = true;
                     }
 
@@ -898,8 +832,7 @@ IBStandardInitializer::readBeamFiles(const std::string& extension, const bool in
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
                                                 "before line 1 of file "
-                                             << beam_filename
-                                             << std::endl);
+                                             << beam_filename << std::endl);
                 }
                 else
                 {
@@ -909,16 +842,14 @@ IBStandardInitializer::readBeamFiles(const std::string& extension, const bool in
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
                                                     "encountered on line 1 of file "
-                                                 << beam_filename
-                                                 << std::endl);
+                                                 << beam_filename << std::endl);
                     }
                 }
 
                 if (num_beams <= 0)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file "
-                                             << beam_filename
-                                             << std::endl);
+                                             << beam_filename << std::endl);
                 }
 
                 // Each successive line provides the connectivity and material
@@ -932,9 +863,7 @@ IBStandardInitializer::readBeamFiles(const std::string& extension, const bool in
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k + 2
-                                                 << " of file "
-                                                 << beam_filename
-                                                 << std::endl);
+                                                 << " of file " << beam_filename << std::endl);
                     }
                     else
                     {
@@ -943,75 +872,52 @@ IBStandardInitializer::readBeamFiles(const std::string& extension, const bool in
                         if (!(line_stream >> prev_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << beam_filename
-                                                     << std::endl);
+                                                     << " of file " << beam_filename << std::endl);
                         }
                         else if ((prev_idx < min_idx) || (prev_idx >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << beam_filename
-                                                     << std::endl
-                                                     << "  vertex index "
-                                                     << prev_idx
-                                                     << " is out of range"
+                                                     << " of file " << beam_filename << std::endl
+                                                     << "  vertex index " << prev_idx << " is out of range"
                                                      << std::endl);
                         }
 
                         if (!(line_stream >> curr_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << beam_filename
-                                                     << std::endl);
+                                                     << " of file " << beam_filename << std::endl);
                         }
                         else if ((curr_idx < min_idx) || (curr_idx >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << beam_filename
-                                                     << std::endl
-                                                     << "  vertex index "
-                                                     << curr_idx
-                                                     << " is out of range"
+                                                     << " of file " << beam_filename << std::endl
+                                                     << "  vertex index " << curr_idx << " is out of range"
                                                      << std::endl);
                         }
 
                         if (!(line_stream >> next_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << beam_filename
-                                                     << std::endl);
+                                                     << " of file " << beam_filename << std::endl);
                         }
                         else if ((next_idx < min_idx) || (next_idx >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << beam_filename
-                                                     << std::endl
-                                                     << "  vertex index "
-                                                     << next_idx
-                                                     << " is out of range"
+                                                     << " of file " << beam_filename << std::endl
+                                                     << "  vertex index " << next_idx << " is out of range"
                                                      << std::endl);
                         }
 
                         if (!(line_stream >> bend))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << beam_filename
-                                                     << std::endl);
+                                                     << " of file " << beam_filename << std::endl);
                         }
                         else if (bend < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << beam_filename
-                                                     << std::endl
-                                                     << "  beam constant is negative"
-                                                     << std::endl);
+                                                     << " of file " << beam_filename << std::endl
+                                                     << "  beam constant is negative" << std::endl);
                         }
 
                         bool curv_found_in_input = false;
@@ -1024,10 +930,7 @@ IBStandardInitializer::readBeamFiles(const std::string& extension, const bool in
                                 {
                                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
                                                                 "encountered on line "
-                                                             << k + 2
-                                                             << " of file "
-                                                             << beam_filename
-                                                             << std::endl
+                                                             << k + 2 << " of file " << beam_filename << std::endl
                                                              << "  incomplete beam curvature specification"
                                                              << std::endl);
                                 }
@@ -1057,9 +960,7 @@ IBStandardInitializer::readBeamFiles(const std::string& extension, const bool in
                     {
                         TBOX_WARNING(d_object_name << ":\n  Beam with zero bending rigidity "
                                                       "encountered in ASCII input file named "
-                                                   << beam_filename
-                                                   << "."
-                                                   << std::endl);
+                                                   << beam_filename << "." << std::endl);
                         warned = true;
                     }
 
@@ -1164,8 +1065,7 @@ IBStandardInitializer::readRodFiles(const std::string& extension, const bool inp
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
                                                 "before line 1 of file "
-                                             << rod_filename
-                                             << std::endl);
+                                             << rod_filename << std::endl);
                 }
                 else
                 {
@@ -1175,16 +1075,14 @@ IBStandardInitializer::readRodFiles(const std::string& extension, const bool inp
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
                                                     "encountered on line 1 of file "
-                                                 << rod_filename
-                                                 << std::endl);
+                                                 << rod_filename << std::endl);
                     }
                 }
 
                 if (num_rods <= 0)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file "
-                                             << rod_filename
-                                             << std::endl);
+                                             << rod_filename << std::endl);
                 }
 
                 // Each successive line provides the connectivity and material
@@ -1207,9 +1105,7 @@ IBStandardInitializer::readRodFiles(const std::string& extension, const bool inp
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k + 2
-                                                 << " of file "
-                                                 << rod_filename
-                                                 << std::endl);
+                                                 << " of file " << rod_filename << std::endl);
                     }
                     else
                     {
@@ -1219,158 +1115,111 @@ IBStandardInitializer::readRodFiles(const std::string& extension, const bool inp
                         if (!(line_stream >> curr_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl);
+                                                     << " of file " << rod_filename << std::endl);
                         }
                         else if ((curr_idx < min_idx) || (curr_idx >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl
-                                                     << "  vertex index "
-                                                     << curr_idx
-                                                     << " is out of range"
+                                                     << " of file " << rod_filename << std::endl
+                                                     << "  vertex index " << curr_idx << " is out of range"
                                                      << std::endl);
                         }
 
                         if (!(line_stream >> next_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl);
+                                                     << " of file " << rod_filename << std::endl);
                         }
                         else if ((next_idx < min_idx) || (next_idx >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl
-                                                     << "  vertex index "
-                                                     << next_idx
-                                                     << " is out of range"
+                                                     << " of file " << rod_filename << std::endl
+                                                     << "  vertex index " << next_idx << " is out of range"
                                                      << std::endl);
                         }
 
                         if (!(line_stream >> ds))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl);
+                                                     << " of file " << rod_filename << std::endl);
                         }
                         else if (ds < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl
-                                                     << "  rod material constant ds is negative"
-                                                     << std::endl);
+                                                     << " of file " << rod_filename << std::endl
+                                                     << "  rod material constant ds is negative" << std::endl);
                         }
 
                         if (!(line_stream >> a1))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl);
+                                                     << " of file " << rod_filename << std::endl);
                         }
                         else if (a1 < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl
-                                                     << "  rod material constant a1 is negative"
-                                                     << std::endl);
+                                                     << " of file " << rod_filename << std::endl
+                                                     << "  rod material constant a1 is negative" << std::endl);
                         }
 
                         if (!(line_stream >> a2))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl);
+                                                     << " of file " << rod_filename << std::endl);
                         }
                         else if (a2 < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl
-                                                     << "  rod material constant a2 is negative"
-                                                     << std::endl);
+                                                     << " of file " << rod_filename << std::endl
+                                                     << "  rod material constant a2 is negative" << std::endl);
                         }
 
                         if (!(line_stream >> a3))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl);
+                                                     << " of file " << rod_filename << std::endl);
                         }
                         else if (a3 < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl
-                                                     << "  rod material constant a3 is negative"
-                                                     << std::endl);
+                                                     << " of file " << rod_filename << std::endl
+                                                     << "  rod material constant a3 is negative" << std::endl);
                         }
 
                         if (!(line_stream >> b1))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl);
+                                                     << " of file " << rod_filename << std::endl);
                         }
                         else if (b1 < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl
-                                                     << "  rod material constant b1 is negative"
-                                                     << std::endl);
+                                                     << " of file " << rod_filename << std::endl
+                                                     << "  rod material constant b1 is negative" << std::endl);
                         }
 
                         if (!(line_stream >> b2))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl);
+                                                     << " of file " << rod_filename << std::endl);
                         }
                         else if (b2 < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl
-                                                     << "  rod material constant b2 is negative"
-                                                     << std::endl);
+                                                     << " of file " << rod_filename << std::endl
+                                                     << "  rod material constant b2 is negative" << std::endl);
                         }
 
                         if (!(line_stream >> b3))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl);
+                                                     << " of file " << rod_filename << std::endl);
                         }
                         else if (b3 < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << rod_filename
-                                                     << std::endl
-                                                     << "  rod material constant b3 is negative"
-                                                     << std::endl);
+                                                     << " of file " << rod_filename << std::endl
+                                                     << "  rod material constant b3 is negative" << std::endl);
                         }
 
                         bool curvature_data_found_in_input = false;
@@ -1391,10 +1240,7 @@ IBStandardInitializer::readRodFiles(const std::string& extension, const bool inp
                             {
                                 TBOX_WARNING(d_object_name << ":\n  Potentially invalid entry in input file "
                                                               "encountered on line "
-                                                           << k + 2
-                                                           << " of file "
-                                                           << rod_filename
-                                                           << std::endl
+                                                           << k + 2 << " of file " << rod_filename << std::endl
                                                            << "  intrinsic curvature kappa1 was specified "
                                                               "but kappa2 was not"
                                                            << std::endl);
@@ -1412,10 +1258,7 @@ IBStandardInitializer::readRodFiles(const std::string& extension, const bool inp
                             {
                                 TBOX_WARNING(d_object_name << ":\n  Potentially invalid entry in input file "
                                                               "encountered on line "
-                                                           << k + 2
-                                                           << " of file "
-                                                           << rod_filename
-                                                           << std::endl
+                                                           << k + 2 << " of file " << rod_filename << std::endl
                                                            << "  intrinsic curvatures kappa1 and kappa2 "
                                                               "were specified but intrinsic twist tau was "
                                                               "not"
@@ -1540,8 +1383,7 @@ IBStandardInitializer::readTargetPointFiles(const std::string& extension)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
                                                 "before line 1 of file "
-                                             << target_point_stiffness_filename
-                                             << std::endl);
+                                             << target_point_stiffness_filename << std::endl);
                 }
                 else
                 {
@@ -1551,16 +1393,14 @@ IBStandardInitializer::readTargetPointFiles(const std::string& extension)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
                                                     "encountered on line 1 of file "
-                                                 << target_point_stiffness_filename
-                                                 << std::endl);
+                                                 << target_point_stiffness_filename << std::endl);
                     }
                 }
 
                 if (num_target_points <= 0)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file "
-                                             << target_point_stiffness_filename
-                                             << std::endl);
+                                             << target_point_stiffness_filename << std::endl);
                 }
 
                 // Each successive line indicates the vertex number and spring
@@ -1571,9 +1411,7 @@ IBStandardInitializer::readTargetPointFiles(const std::string& extension)
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k + 2
-                                                 << " of file "
-                                                 << target_point_stiffness_filename
-                                                 << std::endl);
+                                                 << " of file " << target_point_stiffness_filename << std::endl);
                     }
                     else
                     {
@@ -1582,20 +1420,13 @@ IBStandardInitializer::readTargetPointFiles(const std::string& extension)
                         if (!(line_stream >> n))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << target_point_stiffness_filename
-                                                     << std::endl);
+                                                     << " of file " << target_point_stiffness_filename << std::endl);
                         }
                         else if ((n < min_idx) || (n >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << target_point_stiffness_filename
-                                                     << std::endl
-                                                     << "  vertex index "
-                                                     << n
-                                                     << " is out of range"
-                                                     << std::endl);
+                                                     << " of file " << target_point_stiffness_filename << std::endl
+                                                     << "  vertex index " << n << " is out of range" << std::endl);
                         }
 
                         if (target_point_idxs.count(n))
@@ -1742,8 +1573,7 @@ IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
                                                 "before line 1 of file "
-                                             << anchor_point_filename
-                                             << std::endl);
+                                             << anchor_point_filename << std::endl);
                 }
                 else
                 {
@@ -1753,16 +1583,14 @@ IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
                                                     "encountered on line 1 of file "
-                                                 << anchor_point_filename
-                                                 << std::endl);
+                                                 << anchor_point_filename << std::endl);
                     }
                 }
 
                 if (num_anchor_pts <= 0)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file "
-                                             << anchor_point_filename
-                                             << std::endl);
+                                             << anchor_point_filename << std::endl);
                 }
 
                 // Each successive line indicates the vertex number of the
@@ -1773,9 +1601,7 @@ IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k + 2
-                                                 << " of file "
-                                                 << anchor_point_filename
-                                                 << std::endl);
+                                                 << " of file " << anchor_point_filename << std::endl);
                     }
                     else
                     {
@@ -1784,20 +1610,13 @@ IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
                         if (!(line_stream >> n))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << anchor_point_filename
-                                                     << std::endl);
+                                                     << " of file " << anchor_point_filename << std::endl);
                         }
                         else if ((n < min_idx) || (n >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << anchor_point_filename
-                                                     << std::endl
-                                                     << "  vertex index "
-                                                     << n
-                                                     << " is out of range"
-                                                     << std::endl);
+                                                     << " of file " << anchor_point_filename << std::endl
+                                                     << "  vertex index " << n << " is out of range" << std::endl);
                         }
 
                         if (anchor_point_idxs.count(n))
@@ -1875,8 +1694,7 @@ IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
                                                 "before line 1 of file "
-                                             << bdry_mass_filename
-                                             << std::endl);
+                                             << bdry_mass_filename << std::endl);
                 }
                 else
                 {
@@ -1886,16 +1704,14 @@ IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
                                                     "encountered on line 1 of file "
-                                                 << bdry_mass_filename
-                                                 << std::endl);
+                                                 << bdry_mass_filename << std::endl);
                     }
                 }
 
                 if (num_bdry_mass_pts <= 0)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file "
-                                             << bdry_mass_filename
-                                             << std::endl);
+                                             << bdry_mass_filename << std::endl);
                 }
 
                 // Each successive line indicates the vertex number, mass, and
@@ -1907,9 +1723,7 @@ IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k + 2
-                                                 << " of file "
-                                                 << bdry_mass_filename
-                                                 << std::endl);
+                                                 << " of file " << bdry_mass_filename << std::endl);
                     }
                     else
                     {
@@ -1918,20 +1732,13 @@ IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
                         if (!(line_stream >> n))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << bdry_mass_filename
-                                                     << std::endl);
+                                                     << " of file " << bdry_mass_filename << std::endl);
                         }
                         else if ((n < min_idx) || (n >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << bdry_mass_filename
-                                                     << std::endl
-                                                     << "  vertex index "
-                                                     << n
-                                                     << " is out of range"
-                                                     << std::endl);
+                                                     << " of file " << bdry_mass_filename << std::endl
+                                                     << "  vertex index " << n << " is out of range" << std::endl);
                         }
 
                         if (mass_point_idxs.count(n))
@@ -2053,8 +1860,7 @@ IBStandardInitializer::readDirectorFiles(const std::string& extension)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
                                                 "before line 1 of file "
-                                             << directors_filename
-                                             << std::endl);
+                                             << directors_filename << std::endl);
                 }
                 else
                 {
@@ -2064,16 +1870,14 @@ IBStandardInitializer::readDirectorFiles(const std::string& extension)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
                                                     "encountered on line 1 of file "
-                                                 << directors_filename
-                                                 << std::endl);
+                                                 << directors_filename << std::endl);
                     }
                 }
 
                 if (num_directors_pts != d_num_vertex[ln][j])
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file "
-                                             << directors_filename
-                                             << std::endl);
+                                             << directors_filename << std::endl);
                 }
 
                 // Each successive set of three lines indicates the initial
@@ -2085,9 +1889,7 @@ IBStandardInitializer::readDirectorFiles(const std::string& extension)
                         if (!std::getline(file_stream, line_string))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line "
-                                                     << 3 * k + n + 2
-                                                     << " of file "
-                                                     << directors_filename
+                                                     << 3 * k + n + 2 << " of file " << directors_filename
                                                      << std::endl);
                         }
                         else
@@ -2101,9 +1903,7 @@ IBStandardInitializer::readDirectorFiles(const std::string& extension)
                                 {
                                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input "
                                                                 "file encountered on line "
-                                                             << 3 * k + n + 2
-                                                             << " of file "
-                                                             << directors_filename
+                                                             << 3 * k + n + 2 << " of file " << directors_filename
                                                              << std::endl);
                                 }
                                 D_norm_squared += d_directors[ln][j][k][3 * n + d] * d_directors[ln][j][k][3 * n + d];
@@ -2112,11 +1912,8 @@ IBStandardInitializer::readDirectorFiles(const std::string& extension)
                             if (!MathUtilities<double>::equalEps(D_norm, 1.0))
                             {
                                 TBOX_WARNING(d_object_name << ":\n  Director vector on line " << 3 * k + n + 2
-                                                           << " of file "
-                                                           << directors_filename
-                                                           << " is not normalized; norm = "
-                                                           << D_norm
-                                                           << std::endl);
+                                                           << " of file " << directors_filename
+                                                           << " is not normalized; norm = " << D_norm << std::endl);
                                 for (int d = 0; d < 3; ++d)
                                 {
                                     d_directors[ln][j][k][3 * n + d] /= D_norm;
@@ -2182,8 +1979,7 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
                                                 "before line 1 of file "
-                                             << inst_filename
-                                             << std::endl);
+                                             << inst_filename << std::endl);
                 }
                 else
                 {
@@ -2193,16 +1989,14 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
                                                     "encountered on line 1 of file "
-                                                 << inst_filename
-                                                 << std::endl);
+                                                 << inst_filename << std::endl);
                     }
                 }
 
                 if (num_inst <= 0)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file "
-                                             << inst_filename
-                                             << std::endl);
+                                             << inst_filename << std::endl);
                 }
 
                 // The next several lines in the file indicate the names of the
@@ -2212,9 +2006,7 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << m + 2
-                                                 << " of file "
-                                                 << inst_filename
-                                                 << std::endl);
+                                                 << " of file " << inst_filename << std::endl);
                     }
                     else
                     {
@@ -2238,10 +2030,7 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line "
-                                             << num_inst + 2
-                                             << " of file "
-                                             << inst_filename
-                                             << std::endl);
+                                             << num_inst + 2 << " of file " << inst_filename << std::endl);
                 }
                 else
                 {
@@ -2250,19 +2039,14 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
                     if (!(line_stream >> num_inst_pts))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
-                                                 << num_inst + 2
-                                                 << " of file "
-                                                 << inst_filename
-                                                 << std::endl);
+                                                 << num_inst + 2 << " of file " << inst_filename << std::endl);
                     }
                 }
 
                 if (num_inst_pts <= 0)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << num_inst + 2
-                                             << " of file "
-                                             << inst_filename
-                                             << std::endl);
+                                             << " of file " << inst_filename << std::endl);
                 }
 
                 // Each successive line indicates the vertex number, meter
@@ -2276,10 +2060,7 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line "
-                                                 << num_inst + k + 3
-                                                 << " of file "
-                                                 << inst_filename
-                                                 << std::endl);
+                                                 << num_inst + k + 3 << " of file " << inst_filename << std::endl);
                     }
                     else
                     {
@@ -2288,22 +2069,13 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
                         if (!(line_stream >> n))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
-                                                     << num_inst + k + 3
-                                                     << " of file "
-                                                     << inst_filename
-                                                     << std::endl);
+                                                     << num_inst + k + 3 << " of file " << inst_filename << std::endl);
                         }
                         else if ((n < min_idx) || (n >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
-                                                     << num_inst + k + 3
-                                                     << " of file "
-                                                     << inst_filename
-                                                     << std::endl
-                                                     << "  vertex index "
-                                                     << n
-                                                     << " is out of range"
-                                                     << std::endl);
+                                                     << num_inst + k + 3 << " of file " << inst_filename << std::endl
+                                                     << "  vertex index " << n << " is out of range" << std::endl);
                         }
 
                         std::pair<int, int>& idx = d_instrument_idx[ln][j][n];
@@ -2311,21 +2083,13 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
                         if (!(line_stream >> idx.first))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
-                                                     << num_inst + k + 3
-                                                     << " of file "
-                                                     << inst_filename
-                                                     << std::endl);
+                                                     << num_inst + k + 3 << " of file " << inst_filename << std::endl);
                         }
                         else if (idx.first < 0 || idx.first >= num_inst)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
-                                                     << num_inst + k + 3
-                                                     << " of file "
-                                                     << inst_filename
-                                                     << std::endl
-                                                     << "  meter index "
-                                                     << idx.first
-                                                     << " is out of range"
+                                                     << num_inst + k + 3 << " of file " << inst_filename << std::endl
+                                                     << "  meter index " << idx.first << " is out of range"
                                                      << std::endl);
                         }
 
@@ -2338,20 +2102,13 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
                         if (!(line_stream >> idx.second))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
-                                                     << num_inst + k + 3
-                                                     << " of file "
-                                                     << inst_filename
-                                                     << std::endl);
+                                                     << num_inst + k + 3 << " of file " << inst_filename << std::endl);
                         }
                         else if (idx.second < 0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
-                                                     << num_inst + k + 3
-                                                     << " of file "
-                                                     << inst_filename
-                                                     << std::endl
-                                                     << "  meter node index is negative"
-                                                     << std::endl);
+                                                     << num_inst + k + 3 << " of file " << inst_filename << std::endl
+                                                     << "  meter node index is negative" << std::endl);
                         }
 
                         if (idx.second >= static_cast<int>(encountered_node_idx[idx.first].size()))
@@ -2375,11 +2132,8 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
                     if ((*meter_it) == false)
                     {
                         TBOX_ERROR(d_object_name << ":\n  "
-                                                 << "  Instrument index "
-                                                 << meter_idx
-                                                 << " not found in input file "
-                                                 << inst_filename
-                                                 << std::endl);
+                                                 << "  Instrument index " << meter_idx << " not found in input file "
+                                                 << inst_filename << std::endl);
                     }
 
                     std::vector<bool>& meter_node_idxs = encountered_node_idx[meter_idx];
@@ -2389,12 +2143,8 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
                         if ((*node_it) == false)
                         {
                             TBOX_ERROR(d_object_name << ":\n  "
-                                                     << "  Node index "
-                                                     << node_idx
-                                                     << " associated with meter index "
-                                                     << meter_idx
-                                                     << " not found in input file "
-                                                     << inst_filename
+                                                     << "  Node index " << node_idx << " associated with meter index "
+                                                     << meter_idx << " not found in input file " << inst_filename
                                                      << std::endl);
                         }
                     }
@@ -2404,11 +2154,8 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
                 {
                     TBOX_ERROR(d_object_name << ":\n  "
                                              << "  Not all anticipated instrument indices were found in input file "
-                                             << inst_filename
-                                             << "  Expected to find "
-                                             << num_inst
-                                             << " distinct meter indices in input file"
-                                             << std::endl);
+                                             << inst_filename << "  Expected to find " << num_inst
+                                             << " distinct meter indices in input file" << std::endl);
                 }
 
                 // Increment the meter offset.
@@ -2472,8 +2219,7 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
                                                 "before line 1 of file "
-                                             << source_filename
-                                             << std::endl);
+                                             << source_filename << std::endl);
                 }
                 else
                 {
@@ -2483,16 +2229,14 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
                                                     "encountered on line 1 of file "
-                                                 << source_filename
-                                                 << std::endl);
+                                                 << source_filename << std::endl);
                     }
                 }
 
                 if (num_source <= 0)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file "
-                                             << source_filename
-                                             << std::endl);
+                                             << source_filename << std::endl);
                 }
 
                 // The next several lines in the file indicate the names of the
@@ -2502,9 +2246,7 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << m + 2
-                                                 << " of file "
-                                                 << source_filename
-                                                 << std::endl);
+                                                 << " of file " << source_filename << std::endl);
                     }
                     else
                     {
@@ -2529,9 +2271,7 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << m + 2
-                                                 << " of file "
-                                                 << source_filename
-                                                 << std::endl);
+                                                 << " of file " << source_filename << std::endl);
                     }
                     else
                     {
@@ -2541,9 +2281,7 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
                         if (!(line_stream >> r) || r <= 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
-                                                     << num_source + m + 2
-                                                     << " of file "
-                                                     << source_filename
+                                                     << num_source + m + 2 << " of file " << source_filename
                                                      << std::endl);
                         }
                         source_radii.push_back(r);
@@ -2556,10 +2294,7 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line "
-                                             << 2 * num_source + 2
-                                             << " of file "
-                                             << source_filename
-                                             << std::endl);
+                                             << 2 * num_source + 2 << " of file " << source_filename << std::endl);
                 }
                 else
                 {
@@ -2568,10 +2303,7 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
                     if (!(line_stream >> num_source_pts) || (num_source_pts <= 0))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
-                                                 << 2 * num_source + 2
-                                                 << " of file "
-                                                 << source_filename
-                                                 << std::endl);
+                                                 << 2 * num_source + 2 << " of file " << source_filename << std::endl);
                     }
                 }
 
@@ -2583,9 +2315,7 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line "
-                                                 << 2 * num_source + k + 3
-                                                 << " of file "
-                                                 << source_filename
+                                                 << 2 * num_source + k + 3 << " of file " << source_filename
                                                  << std::endl);
                     }
                     else
@@ -2595,22 +2325,15 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
                         if (!(line_stream >> n))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
-                                                     << 2 * num_source + k + 3
-                                                     << " of file "
-                                                     << source_filename
+                                                     << 2 * num_source + k + 3 << " of file " << source_filename
                                                      << std::endl);
                         }
                         else if ((n < min_idx) || (n >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
-                                                     << 2 * num_source + k + 3
-                                                     << " of file "
-                                                     << source_filename
+                                                     << 2 * num_source + k + 3 << " of file " << source_filename
                                                      << std::endl
-                                                     << "  vertex index "
-                                                     << n
-                                                     << " is out of range"
-                                                     << std::endl);
+                                                     << "  vertex index " << n << " is out of range" << std::endl);
                         }
 
                         int& source_idx = d_source_idx[ln][j][n];
@@ -2618,22 +2341,15 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
                         if (!(line_stream >> source_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
-                                                     << 2 * num_source + k + 3
-                                                     << " of file "
-                                                     << source_filename
+                                                     << 2 * num_source + k + 3 << " of file " << source_filename
                                                      << std::endl);
                         }
                         else if (source_idx < 0 || source_idx >= num_source)
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
-                                                     << 2 * num_source + k + 3
-                                                     << " of file "
-                                                     << source_filename
-                                                     << std::endl
-                                                     << "  meter index "
-                                                     << source_idx
-                                                     << " is out of range"
-                                                     << std::endl);
+                            TBOX_ERROR(d_object_name
+                                       << ":\n  Invalid entry in input file encountered on line "
+                                       << 2 * num_source + k + 3 << " of file " << source_filename << std::endl
+                                       << "  meter index " << source_idx << " is out of range" << std::endl);
                         }
 
                         // Correct the source index to account for source
@@ -2959,35 +2675,29 @@ IBStandardInitializer::getFromInput(Pointer<Database> db)
                     if (ln < 0)
                     {
                         TBOX_ERROR(d_object_name << ":  "
-                                                 << "Key data `level_number' associated with structure `"
-                                                 << strct_name
+                                                 << "Key data `level_number' associated with structure `" << strct_name
                                                  << "' is negative.");
                     }
                     else if (ln > d_max_levels)
                     {
                         TBOX_ERROR(d_object_name << ":  "
-                                                 << "Key data `level_number' associated with structure `"
-                                                 << strct_name
+                                                 << "Key data `level_number' associated with structure `" << strct_name
                                                  << "' is greater than the expected maximum level number "
-                                                 << d_max_levels
-                                                 << ".");
+                                                 << d_max_levels << ".");
                     }
                     d_base_filename[ln].push_back(strct_name);
                 }
                 else
                 {
                     TBOX_ERROR(d_object_name << ":  "
-                                             << "Key data `level_number' not found in structure `"
-                                             << strct_name
+                                             << "Key data `level_number' not found in structure `" << strct_name
                                              << "' input.");
                 }
             }
             else
             {
                 TBOX_ERROR(d_object_name << ":  "
-                                         << "Key data `"
-                                         << strct_name
-                                         << "' not found in input.");
+                                         << "Key data `" << strct_name << "' not found in input.");
             }
         }
     }
@@ -3025,9 +2735,7 @@ IBStandardInitializer::getFromInput(Pointer<Database> db)
             else
             {
                 TBOX_WARNING(d_object_name << ":  "
-                                           << "Key data `"
-                                           << db_key_name
-                                           << "' not found in input.");
+                                           << "Key data `" << db_key_name << "' not found in input.");
             }
         }
     }
@@ -3149,10 +2857,8 @@ IBStandardInitializer::getFromInput(Pointer<Database> db)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_spring_stiffness' "
                                                     "in database "
-                                                 << base_filename
-                                                 << std::endl
-                                                 << "  spring constant is negative"
-                                                 << std::endl);
+                                                 << base_filename << std::endl
+                                                 << "  spring constant is negative" << std::endl);
                     }
                 }
                 if (sub_db->keyExists("uniform_spring_rest_length"))
@@ -3163,10 +2869,8 @@ IBStandardInitializer::getFromInput(Pointer<Database> db)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key "
                                                     "`uniform_spring_rest_length' in database "
-                                                 << base_filename
-                                                 << std::endl
-                                                 << "  spring resting length is negative"
-                                                 << std::endl);
+                                                 << base_filename << std::endl
+                                                 << "  spring resting length is negative" << std::endl);
                     }
                 }
                 if (sub_db->keyExists("uniform_spring_force_fcn_idx"))
@@ -3183,10 +2887,8 @@ IBStandardInitializer::getFromInput(Pointer<Database> db)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_xspring_stiffness' "
                                                     "in database "
-                                                 << base_filename
-                                                 << std::endl
-                                                 << "  spring constant is negative"
-                                                 << std::endl);
+                                                 << base_filename << std::endl
+                                                 << "  spring constant is negative" << std::endl);
                     }
                 }
                 if (sub_db->keyExists("uniform_xspring_rest_length"))
@@ -3197,10 +2899,8 @@ IBStandardInitializer::getFromInput(Pointer<Database> db)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key "
                                                     "`uniform_xspring_rest_length' in database "
-                                                 << base_filename
-                                                 << std::endl
-                                                 << "  spring resting length is negative"
-                                                 << std::endl);
+                                                 << base_filename << std::endl
+                                                 << "  spring resting length is negative" << std::endl);
                     }
                 }
                 if (sub_db->keyExists("uniform_xspring_force_fcn_idx"))
@@ -3217,10 +2917,8 @@ IBStandardInitializer::getFromInput(Pointer<Database> db)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key "
                                                     "`uniform_beam_bend_rigidity' in database "
-                                                 << base_filename
-                                                 << std::endl
-                                                 << "  beam bending rigidity is negative"
-                                                 << std::endl);
+                                                 << base_filename << std::endl
+                                                 << "  beam bending rigidity is negative" << std::endl);
                     }
                 }
                 if (sub_db->keyExists("uniform_beam_curvature"))
@@ -3245,10 +2943,8 @@ IBStandardInitializer::getFromInput(Pointer<Database> db)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_target_stiffness' "
                                                     "in database "
-                                                 << base_filename
-                                                 << std::endl
-                                                 << "  target point spring constant is negative"
-                                                 << std::endl);
+                                                 << base_filename << std::endl
+                                                 << "  target point spring constant is negative" << std::endl);
                     }
                 }
                 if (sub_db->keyExists("uniform_target_damping"))
@@ -3259,10 +2955,8 @@ IBStandardInitializer::getFromInput(Pointer<Database> db)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_target_damping' in "
                                                     "database "
-                                                 << base_filename
-                                                 << std::endl
-                                                 << "  target point spring constant is negative"
-                                                 << std::endl);
+                                                 << base_filename << std::endl
+                                                 << "  target point spring constant is negative" << std::endl);
                     }
                 }
 
@@ -3274,10 +2968,8 @@ IBStandardInitializer::getFromInput(Pointer<Database> db)
                     if (d_uniform_bdry_mass[ln][j] < 0.0)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_bdry_mass' in database "
-                                                 << base_filename
-                                                 << std::endl
-                                                 << "  boundary mass is negative"
-                                                 << std::endl);
+                                                 << base_filename << std::endl
+                                                 << "  boundary mass is negative" << std::endl);
                     }
                 }
                 if (sub_db->keyExists("uniform_bdry_mass_stiffness"))
@@ -3289,10 +2981,8 @@ IBStandardInitializer::getFromInput(Pointer<Database> db)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key "
                                                     "`uniform_bdry_mass_stiffness' in database "
-                                                 << base_filename
-                                                 << std::endl
-                                                 << "  boundary mass spring constant is negative"
-                                                 << std::endl);
+                                                 << base_filename << std::endl
+                                                 << "  boundary mass spring constant is negative" << std::endl);
                     }
                 }
             }

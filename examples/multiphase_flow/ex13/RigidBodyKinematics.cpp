@@ -55,7 +55,7 @@ namespace
 {
 static const double PII = 3.14159265358979323846264338327950288419716939937510;
 
-} // namespace anonymous
+} // namespace
 
 RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
                                          Pointer<Database> input_db,
@@ -87,12 +87,8 @@ RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
         {
             d_kinematicsvel_function_strings.push_back("0.0");
             TBOX_WARNING("RigidBodyKinematics::RigidBodyKinematics() :\n"
-                         << "  no function corresponding to key "
-                         << key_name
-                         << "found for dimension = "
-                         << d
-                         << "; using kinematics_vel = 0.0. "
-                         << std::endl);
+                         << "  no function corresponding to key " << key_name << "found for dimension = " << d
+                         << "; using kinematics_vel = 0.0. " << std::endl);
         }
 
         d_kinematicsvel_parsers.push_back(new mu::Parser());
@@ -190,8 +186,7 @@ RigidBodyKinematics::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
 
     d_current_time = db->getDouble("d_current_time");

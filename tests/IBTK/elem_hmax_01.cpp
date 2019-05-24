@@ -49,29 +49,30 @@
 // same result as the old get_elem_hmax function (that was internal to
 // FEDataManager). Test with several 2D meshes.
 
-void log_max_edge_length(const ReplicatedMesh &mesh)
+void
+log_max_edge_length(const ReplicatedMesh& mesh)
 {
-  const unsigned int dim = mesh.mesh_dimension();
-  boost::multi_array<double, 2> X_node;
-  for (auto elem_iter = mesh.active_local_elements_begin();
-       elem_iter != mesh.active_local_elements_end(); ++elem_iter)
+    const unsigned int dim = mesh.mesh_dimension();
+    boost::multi_array<double, 2> X_node;
+    for (auto elem_iter = mesh.active_local_elements_begin(); elem_iter != mesh.active_local_elements_end();
+         ++elem_iter)
     {
-      auto elem = *elem_iter;
-      // Don't bother with deformation: just use the material coordinates
-      boost::multi_array<double, 2>::extent_gen extent;
-      const unsigned int n_nodes = elem->n_nodes();
-      X_node.resize(extent[n_nodes][dim]);
+        auto elem = *elem_iter;
+        // Don't bother with deformation: just use the material coordinates
+        boost::multi_array<double, 2>::extent_gen extent;
+        const unsigned int n_nodes = elem->n_nodes();
+        X_node.resize(extent[n_nodes][dim]);
 
-      const Node * const * nodes = elem->get_nodes();
-      for (unsigned int node_n = 0; node_n < n_nodes; ++node_n)
-        for (unsigned int d = 0; d < dim; ++d)
-          X_node[node_n][d] = (*nodes[node_n])(d);
+        const Node* const* nodes = elem->get_nodes();
+        for (unsigned int node_n = 0; node_n < n_nodes; ++node_n)
+            for (unsigned int d = 0; d < dim; ++d) X_node[node_n][d] = (*nodes[node_n])(d);
 
-      plog << std::setprecision(12) << get_max_edge_length(elem, X_node) << std::endl;
+        plog << std::setprecision(12) << get_max_edge_length(elem, X_node) << std::endl;
     }
 }
 
-int main(int argc, char** argv)
+int
+main(int argc, char** argv)
 {
     LibMeshInit init(argc, argv);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
@@ -79,39 +80,39 @@ int main(int argc, char** argv)
     SAMRAIManager::startup();
 
     {
-      Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
 
-      Pointer<Database> input_db = app_initializer->getInputDatabase();
-      const double radius = 2.0;
-      const unsigned int n_refinements = 1;
+        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        const double radius = 2.0;
+        const unsigned int n_refinements = 1;
 
-      {
-        plog << "Test 1: tri3" << std::endl;
-        ReplicatedMesh mesh(init.comm(), 2);
-        MeshTools::Generation::build_sphere(mesh, radius, n_refinements, TRI3);
-        log_max_edge_length(mesh);
-      }
+        {
+            plog << "Test 1: tri3" << std::endl;
+            ReplicatedMesh mesh(init.comm(), 2);
+            MeshTools::Generation::build_sphere(mesh, radius, n_refinements, TRI3);
+            log_max_edge_length(mesh);
+        }
 
-      {
-        plog << "Test 1: tri6" << std::endl;
-        ReplicatedMesh mesh(init.comm(), 2);
-        MeshTools::Generation::build_sphere(mesh, radius, n_refinements, TRI6);
-        log_max_edge_length(mesh);
-      }
+        {
+            plog << "Test 1: tri6" << std::endl;
+            ReplicatedMesh mesh(init.comm(), 2);
+            MeshTools::Generation::build_sphere(mesh, radius, n_refinements, TRI6);
+            log_max_edge_length(mesh);
+        }
 
-      {
-        plog << std::endl << "Test 2: quad4" << std::endl;
-        ReplicatedMesh mesh(init.comm(), 2);
-        MeshTools::Generation::build_sphere(mesh, radius, n_refinements, QUAD4);
-        log_max_edge_length(mesh);
-      }
+        {
+            plog << std::endl << "Test 2: quad4" << std::endl;
+            ReplicatedMesh mesh(init.comm(), 2);
+            MeshTools::Generation::build_sphere(mesh, radius, n_refinements, QUAD4);
+            log_max_edge_length(mesh);
+        }
 
-      {
-        plog << std::endl << "Test 2: quad9" << std::endl;
-        ReplicatedMesh mesh(init.comm(), 2);
-        MeshTools::Generation::build_sphere(mesh, radius, n_refinements, QUAD9);
-        log_max_edge_length(mesh);
-      }
+        {
+            plog << std::endl << "Test 2: quad9" << std::endl;
+            ReplicatedMesh mesh(init.comm(), 2);
+            MeshTools::Generation::build_sphere(mesh, radius, n_refinements, QUAD9);
+            log_max_edge_length(mesh);
+        }
     }
 
     SAMRAIManager::shutdown();

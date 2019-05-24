@@ -89,7 +89,7 @@ static Timer* t_prolong_error;
 static Timer* t_prolong_error_and_correct;
 static Timer* t_initialize_operator_state;
 static Timer* t_deallocate_operator_state;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -172,8 +172,7 @@ PoissonFACPreconditionerStrategy::~PoissonFACPreconditionerStrategy()
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::~PoissonFACPreconditionerStrategy()\n"
-                                 << "  subclass must call deallocateOperatorState in subclass destructor"
-                                 << std::endl);
+                                 << "  subclass must call deallocateOperatorState in subclass destructor" << std::endl);
     }
     return;
 } // ~PoissonFACPreconditionerStrategy
@@ -251,8 +250,7 @@ PoissonFACPreconditionerStrategy::setProlongationMethod(const std::string& prolo
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setProlongationMethod()\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
     d_prolongation_method = prolongation_method;
     return;
@@ -264,8 +262,7 @@ PoissonFACPreconditionerStrategy::setRestrictionMethod(const std::string& restri
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setRestrictionMethod()\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
     d_restriction_method = restriction_method;
     return;

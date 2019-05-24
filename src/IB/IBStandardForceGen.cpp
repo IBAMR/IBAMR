@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 #include <functional>
 #include <iterator>
 #include <limits>
@@ -120,7 +120,7 @@ resetLocalOrNonlocalPETScIndices(std::vector<int>& inds,
     }
     return;
 } // resetLocalOrNonlocalPETScIndices
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -205,10 +205,12 @@ IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hie
         d_beam_data[level_number].petsc_prev_node_idxs, global_node_offset, num_local_nodes, nonlocal_petsc_idxs);
 
     const std::string level_number_str = std::to_string(level_number);
-    
-    d_X_ghost_data[level_number] = new LData("IBStandardForceGen::X_ghost_" + level_number_str, num_local_nodes, NDIM, nonlocal_petsc_idxs);
 
-    d_F_ghost_data[level_number] = new LData("IBStandardForceGen::F_ghost_" + level_number_str, num_local_nodes, NDIM, nonlocal_petsc_idxs);
+    d_X_ghost_data[level_number] =
+        new LData("IBStandardForceGen::X_ghost_" + level_number_str, num_local_nodes, NDIM, nonlocal_petsc_idxs);
+
+    d_F_ghost_data[level_number] =
+        new LData("IBStandardForceGen::F_ghost_" + level_number_str, num_local_nodes, NDIM, nonlocal_petsc_idxs);
 
     d_dX_data[level_number] = new LData("IBStandardForceGen::dX_" + level_number_str, num_local_nodes, NDIM);
 

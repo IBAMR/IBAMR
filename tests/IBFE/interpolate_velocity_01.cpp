@@ -58,10 +58,10 @@
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/BoxPartitioner.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
-#include <ibtk/BoxPartitioner.h>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -75,40 +75,33 @@
 // running several tests with different grid resolutions (e.g.,
 // interpolate_velocity_01.a, interpolate_velocity_01.b, etc.).
 
-
 // A scalar function parser that behaves similarly to our own
 // muParserCartGridFunction.
 class ParsedFunction
 {
 public:
-    ParsedFunction(std::vector<std::string> expressions,
-                   const unsigned int n_vars = 0)
-        :
-        string_functions(std::move(expressions)),
-        vars(n_vars == 0 ? string_functions.size() : n_vars, 0.0),
-        parsers(string_functions.size())
+    ParsedFunction(std::vector<std::string> expressions, const unsigned int n_vars = 0)
+        : string_functions(std::move(expressions)),
+          vars(n_vars == 0 ? string_functions.size() : n_vars, 0.0),
+          parsers(string_functions.size())
     {
         for (unsigned int var_n = 0; var_n < vars.size(); ++var_n)
-            for (mu::Parser &parser : parsers)
-                parser.DefineVar("X_" + std::to_string(var_n), &vars[var_n]);
+            for (mu::Parser& parser : parsers) parser.DefineVar("X_" + std::to_string(var_n), &vars[var_n]);
 
-        for (unsigned int p_n = 0; p_n < string_functions.size(); ++p_n)
-            parsers[p_n].SetExpr(string_functions[p_n]);
+        for (unsigned int p_n = 0; p_n < string_functions.size(); ++p_n) parsers[p_n].SetExpr(string_functions[p_n]);
     }
 
     // Evaluate a single component.
-    double
-    value(const libMesh::Point &p, const unsigned int component_n) const
+    double value(const libMesh::Point& p, const unsigned int component_n) const
     {
         TBOX_ASSERT(component_n < parsers.size());
-        for (unsigned int var_n = 0; var_n < vars.size(); ++var_n)
-            vars[var_n] = p(var_n);
+        for (unsigned int var_n = 0; var_n < vars.size(); ++var_n) vars[var_n] = p(var_n);
 
         try
         {
             return parsers[component_n].Eval();
         }
-        catch (mu::ParserError &e)
+        catch (mu::ParserError& e)
         {
             std::cerr << "Message:  <" << e.GetMsg() << ">\n";
             std::cerr << "Formula:  <" << e.GetExpr() << ">\n";
@@ -122,12 +115,10 @@ public:
 
     // Evaluate all components. Only makes sense if the number of variables is
     // equal to the number of functions.
-    libMesh::Point
-    value(const libMesh::Point &p) const
+    libMesh::Point value(const libMesh::Point& p) const
     {
         TBOX_ASSERT(vars.size() == parsers.size());
-        for (unsigned int var_n = 0; var_n < vars.size(); ++var_n)
-            vars[var_n] = p(var_n);
+        for (unsigned int var_n = 0; var_n < vars.size(); ++var_n) vars[var_n] = p(var_n);
 
         libMesh::Point out;
         for (unsigned int component_n = 0; component_n < parsers.size(); ++component_n)
@@ -142,8 +133,6 @@ private:
     std::vector<mu::Parser> parsers;
 };
 
-
-
 // Coordinate mapping function.
 void
 coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
@@ -156,8 +145,8 @@ coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*
     return;
 } // coordinate_mapping_function
 
-
-int main(int argc, char** argv)
+int
+main(int argc, char** argv)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -220,8 +209,8 @@ int main(int argc, char** argv)
         // and, if this is a restarted run, from the restart database.
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"), false);
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
-            "PatchHierarchy", grid_geometry, false);
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
+            new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry, false);
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
@@ -232,13 +221,15 @@ int main(int argc, char** argv)
         {
             navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
                 "INSStaggeredHierarchyIntegrator",
-                app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"), false);
+                app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"),
+                false);
         }
         else if (solver_type == "COLLOCATED")
         {
             navier_stokes_integrator = new INSCollocatedHierarchyIntegrator(
                 "INSCollocatedHierarchyIntegrator",
-                app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"), false);
+                app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"),
+                false);
         }
         else
         {
@@ -277,7 +268,7 @@ int main(int argc, char** argv)
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
-                "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
+            "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
 
         // Now for the actual test. The stored velocity field does not contain
         // ghost data, so we set up a new context and velocity field that does:
@@ -306,15 +297,14 @@ int main(int argc, char** argv)
                                                                      nullptr);
         HierarchyGhostCellInterpolation ghost_fill_op;
         ghost_fill_op.initializeOperatorState(ghost_cell_components, patch_hierarchy);
-        ghost_fill_op.fillData(/*time*/0.0);
+        ghost_fill_op.fillData(/*time*/ 0.0);
 
         // TODO what is the best way to set the linear solver tolerance in the
         // L2 projection, besides, e.g., setting -ksp_rtol 1e-12 at the
         // command line?
         const double dt = time_integrator->getMaximumTimeStepSize();
-        time_integrator->preprocessIntegrateHierarchy(time_integrator->getIntegratorTime(),
-                                                      time_integrator->getIntegratorTime() + dt,
-                                                      1/*???*/);
+        time_integrator->preprocessIntegrateHierarchy(
+            time_integrator->getIntegratorTime(), time_integrator->getIntegratorTime() + dt, 1 /*???*/);
         ib_method_ops->interpolateVelocity(u_ghost_idx, {}, {}, 0.0);
 
         {
@@ -326,16 +316,16 @@ int main(int argc, char** argv)
 
             const unsigned int n_vars = velocity_system.n_vars();
             const DofMap& dof_map = velocity_system.get_dof_map();
-            FEDataManager::SystemDofMapCache& X_dof_map_cache = *(ib_method_ops->getFEDataManager()
-                ->getDofMapCache(displacement_name));
-            FEDataManager::SystemDofMapCache& velocity_dof_map_cache = *(ib_method_ops->getFEDataManager()
-                ->getDofMapCache(velocity_name));
+            FEDataManager::SystemDofMapCache& X_dof_map_cache =
+                *(ib_method_ops->getFEDataManager()->getDofMapCache(displacement_name));
+            FEDataManager::SystemDofMapCache& velocity_dof_map_cache =
+                *(ib_method_ops->getFEDataManager()->getDofMapCache(velocity_name));
             FEType fe_type = dof_map.variable_type(0);
 
-            PetscVector<double> &current_velocity =
-                *dynamic_cast<PetscVector<double> *>(velocity_system.current_local_solution.get());
-            PetscVector<double> &current_X =
-                *dynamic_cast<PetscVector<double> *>(displacement_system.current_local_solution.get());
+            PetscVector<double>& current_velocity =
+                *dynamic_cast<PetscVector<double>*>(velocity_system.current_local_solution.get());
+            PetscVector<double>& current_X =
+                *dynamic_cast<PetscVector<double>*>(displacement_system.current_local_solution.get());
 
             std::unique_ptr<FEBase> v_fe(FEBase::build(NDIM, fe_type));
             std::unique_ptr<FEBase> X_fe(FEBase::build(NDIM, fe_type));
@@ -343,8 +333,8 @@ int main(int argc, char** argv)
             QGauss X_qrule(NDIM, FIFTH);
             v_fe->attach_quadrature_rule(&v_qrule);
             X_fe->attach_quadrature_rule(&X_qrule);
-            const std::vector<std::vector<Real>>& v_phi = v_fe->get_phi();
-            const std::vector<std::vector<Real>>& X_phi = X_fe->get_phi();
+            const std::vector<std::vector<Real> >& v_phi = v_fe->get_phi();
+            const std::vector<std::vector<Real> >& X_phi = X_fe->get_phi();
             std::vector<dof_id_type> v_dof_indices;
             std::array<double, NDIM> max_norm_errors;
             std::fill(max_norm_errors.begin(), max_norm_errors.end(), 0.0);
@@ -360,8 +350,8 @@ int main(int argc, char** argv)
 
             std::vector<libMesh::Point> mapped_q_points;
             double max_vertex_distance = 0.0;
-            for (auto elem_iter = mesh.active_local_elements_begin();
-                 elem_iter != mesh.active_local_elements_end(); ++elem_iter)
+            for (auto elem_iter = mesh.active_local_elements_begin(); elem_iter != mesh.active_local_elements_end();
+                 ++elem_iter)
             {
                 auto elem = *elem_iter;
                 max_vertex_distance = std::max(max_vertex_distance, elem->hmax());
@@ -383,8 +373,8 @@ int main(int argc, char** argv)
                     {
                         for (unsigned int i = 0; i < n_basis; ++i)
                         {
-                            mapped_q_points[q_point_n](var_n) += current_X(X_dof_indices[var_n][i])
-                                * X_phi[i][q_point_n];
+                            mapped_q_points[q_point_n](var_n) +=
+                                current_X(X_dof_indices[var_n][i]) * X_phi[i][q_point_n];
                         }
                     }
                 }
@@ -401,8 +391,8 @@ int main(int argc, char** argv)
                         {
                             fe_point_value += current_velocity(v_dof_indices[var_n][i]) * v_phi[i][q_point_n];
                         }
-                        max_norm_errors[var_n] = std::max(max_norm_errors[var_n],
-                                                          std::abs(fe_point_value - exact_point_value));
+                        max_norm_errors[var_n] =
+                            std::max(max_norm_errors[var_n], std::abs(fe_point_value - exact_point_value));
                     }
                 }
             }

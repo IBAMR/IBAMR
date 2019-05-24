@@ -149,7 +149,6 @@ public:
      */
     void registerInitStructureFunction(InitStructureOnLevel fcn);
 
-
     /*
      * Edge data structures.
      */
@@ -220,7 +219,6 @@ public:
      */
     void registerInitXSpringDataFunction(InitXSpringDataOnLevel fcn);
 
-
     /*
      * Struct for beam specifications.
      * Beam parameters should be structured as:
@@ -248,7 +246,6 @@ public:
      * \brief Register a function to initialize beam data structures on a given level.
      */
     void registerInitBeamDataFunction(InitBeamDataOnLevel fcn);
-
 
     /*!
      * Struct for rod specifications.
@@ -278,7 +275,6 @@ public:
      */
     void registerInitDirectorAndRodFunction(InitDirectorAndRodOnLevel fcn);
 
-
     /*
      * Struct for massive point specifications.
      * bdry_mass should be the mass of the point.
@@ -302,7 +298,6 @@ public:
      * \brief Register a function to initialize massive points on a given level.
      */
     void registerInitBoundaryMassFunction(InitBoundaryMassOnLevel fcn);
-
 
     /*!
      * Struct for target point specifications.
@@ -329,7 +324,6 @@ public:
      * \brief Register a function to initialize target points on a given level.
      */
     void registerInitTargetPtFunction(InitTargetPtOnLevel fcn);
-
 
     /*!
      * Struct for anchor point specifications.

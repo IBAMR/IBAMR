@@ -102,7 +102,7 @@ PK1_stress_function(TensorValue<double>& PP,
     }
     return;
 } // PK1_stress_function
-}
+} // namespace ModelData
 using namespace ModelData;
 
 // Function prototypes
@@ -112,7 +112,7 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  EquationSystems* equation_systems,
                  const int iteration_num,
                  const double loop_time,
-                const string& data_dump_dirname);
+                 const string& data_dump_dirname);
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -126,7 +126,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *                                                                             *
  *******************************************************************************/
 
-bool run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<double>& p_err)
+bool
+run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<double>& p_err)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -503,14 +504,14 @@ bool run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<
                 HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
                 hier_cc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
                 pout << "Error in u at time " << loop_time << ":\n"
-                     << "  L1-norm:  "
-                     << std::setprecision(10) << hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx) << "\n"
+                     << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx)
+                     << "\n"
                      << "  L2-norm:  " << hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx) << "\n"
                      << "  max-norm: " << hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx) << "\n";
 
-                     u_err[0] = hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx);
-                     u_err[1] = hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx);
-                     u_err[2] = hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx);
+                u_err[0] = hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx);
+                u_err[1] = hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx);
+                u_err[2] = hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx);
             }
 
             Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;

@@ -136,14 +136,12 @@ struct IndexComp
     {
         return ((lhs(0) < rhs(0))
 #if (NDIM > 1)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM > 2)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
-                    );
+        );
     } // operator()
 };
 
@@ -176,7 +174,7 @@ do_local_data_update(SmootherType smoother_type)
         return false;
     }
 } // do_local_data_update
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -276,8 +274,7 @@ CCPoissonBoxRelaxationFACOperator::setCoarseSolverType(const std::string& coarse
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setCoarseSolverType():\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
@@ -538,7 +535,10 @@ CCPoissonBoxRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double
     if (!d_level_math_ops[finest_level_num])
     {
         d_level_math_ops[finest_level_num] =
-            new HierarchyMathOps(d_object_name + "::hier_math_ops_" + std::to_string(finest_level_num), d_hierarchy, coarsest_level_num, finest_level_num);
+            new HierarchyMathOps(d_object_name + "::hier_math_ops_" + std::to_string(finest_level_num),
+                                 d_hierarchy,
+                                 coarsest_level_num,
+                                 finest_level_num);
     }
     d_level_math_ops[finest_level_num]->laplace(
         res_idx, res_var, d_poisson_spec, sol_idx, sol_var, nullptr, d_solution_time);
@@ -575,12 +575,8 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
     {
         TBOX_ERROR("CCPoissonBoxRelaxationFACOperator::initializeOperatorState()\n"
                    << "  solution and rhs vectors must have the same data depths\n"
-                   << "  solution data depth = "
-                   << solution_pdat_fac->getDefaultDepth()
-                   << "\n"
-                   << "  rhs      data depth = "
-                   << rhs_pdat_fac->getDefaultDepth()
-                   << std::endl);
+                   << "  solution data depth = " << solution_pdat_fac->getDefaultDepth() << "\n"
+                   << "  rhs      data depth = " << rhs_pdat_fac->getDefaultDepth() << std::endl);
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -784,8 +780,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
     if (ghost_cell_width.min() == 0)
     {
         TBOX_ERROR("CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator():\n"
-                   << "  ghost cells are required in all directions"
-                   << std::endl);
+                   << "  ghost cells are required in all directions" << std::endl);
     }
 #endif
 
@@ -801,8 +796,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
         {
             TBOX_ERROR("CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator()\n"
                        << "  to solve (C u + div D grad u) = f with non-constant C,\n"
-                       << "  C must be cell-centered double precision data"
-                       << std::endl);
+                       << "  C must be cell-centered double precision data" << std::endl);
         }
     }
     else
@@ -822,8 +816,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
         {
             TBOX_ERROR("CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator()\n"
                        << "  to solve C u + div D grad u = f with non-constant D,\n"
-                       << "  D must be side-centered double precision data"
-                       << std::endl);
+                       << "  D must be side-centered double precision data" << std::endl);
         }
     }
     else
@@ -846,8 +839,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
     else
     {
         TBOX_ERROR("CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator()\n"
-                   << "  D must be side-centered patch data with either 1 or NDIM components"
-                   << std::endl);
+                   << "  D must be side-centered patch data with either 1 or NDIM components" << std::endl);
     }
     return;
 } // buildPatchLaplaceOperator

@@ -59,14 +59,10 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "ibamr/StaggeredStokesLevelRelaxationFACOperator.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibamr/StaggeredStokesSolverManager.h"
-#include "ibamr/StaggeredStokesLevelRelaxationFACOperator.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
@@ -76,6 +72,10 @@
 #include "petscpc.h"
 #include "petscsys.h"
 #include "petscvec.h"
+#include "tbox/Array.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+#include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -88,7 +88,7 @@ namespace
 // Timers.
 static Timer* t_smooth_error;
 static const int GHOST_CELL_WIDTH = 1;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -222,10 +222,10 @@ StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, do
                     Pointer<SideData<NDIM, double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
-                        U_error_data->getArrayData(axis)
-                            .copy(U_scratch_data->getArrayData(axis),
-                                  d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
-                                  IntVector<NDIM>(0));
+                        U_error_data->getArrayData(axis).copy(
+                            U_scratch_data->getArrayData(axis),
+                            d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
+                            IntVector<NDIM>(0));
                     }
 
                     Pointer<CellData<NDIM, double> > P_error_data = error.getComponentPatchData(1, *patch);
@@ -299,8 +299,11 @@ StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         Pointer<StaggeredStokesSolver>& level_solver = d_level_solvers[ln];
         if (!level_solver)
         {
-            level_solver = StaggeredStokesSolverManager::getManager()->allocateSolver(
-                d_level_solver_type, d_object_name + "::level_solver", d_level_solver_db, d_level_solver_default_options_prefix);
+            level_solver =
+                StaggeredStokesSolverManager::getManager()->allocateSolver(d_level_solver_type,
+                                                                           d_object_name + "::level_solver",
+                                                                           d_level_solver_db,
+                                                                           d_level_solver_default_options_prefix);
         }
 
         level_solver->setSolutionTime(d_solution_time);

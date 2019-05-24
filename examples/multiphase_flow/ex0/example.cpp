@@ -202,7 +202,8 @@ run_example(int argc, char* argv[])
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateCircularInterfaceCallbackFunction,
                                                                 static_cast<void*>(ptr_LSLocateCircularInterface));
         SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", level_set_ops);
-        adv_diff_integrator->registerResetFunction(phi_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
+        adv_diff_integrator->registerResetFunction(
+            phi_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
 
         // Setup the INS maintained material properties.
         Pointer<Variable<NDIM> > rho_var;

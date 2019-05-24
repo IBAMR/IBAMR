@@ -835,7 +835,7 @@ protected:
      */
     std::vector<libMesh::MeshBase*> d_meshes;
     int d_max_level_number;
-    std::vector<std::unique_ptr<libMesh::EquationSystems>> d_equation_systems;
+    std::vector<std::unique_ptr<libMesh::EquationSystems> > d_equation_systems;
 
     /// Number of parts owned by the present object.
     const unsigned int d_num_parts = 1;
@@ -960,7 +960,8 @@ protected:
     std::vector<std::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2> >
         d_overlapping_elem_map;
     std::vector<double> d_overlap_force_part_kappa;
-    std::vector<std::array<libMesh::QBase*, 2> > d_overlap_force_part_qrule; // \todo let's try to fix this when we switch to C++11!
+    std::vector<std::array<libMesh::QBase*, 2> > d_overlap_force_part_qrule; // \todo let's try to fix this when we
+                                                                             // switch to C++11!
     std::vector<std::vector<double> > d_overlap_force_part_max_displacement;
 
     /*

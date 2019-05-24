@@ -53,7 +53,6 @@
 #include "Patch.h"
 #include "SideData.h"
 #include "SideGeometry.h"
-#include <Eigen/Dense>
 #include "boost/multi_array.hpp"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LData.h"
@@ -65,6 +64,7 @@
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+#include <Eigen/Dense>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -165,71 +165,133 @@
 #define LAGRANGIAN_BSPLINE_6_SPREAD_FC IBTK_FC_FUNC_(lagrangian_bspline_6_spread3d, LAGRANGIAN_BSPLINE_6_SPREAD3D)
 #endif
 
-extern "C" {
-void LAGRANGIAN_PIECEWISE_CONSTANT_INTERP_FC(const double*,
-                                             const double*,
-                                             const double*,
-                                             const int&,
+extern "C"
+{
+    void LAGRANGIAN_PIECEWISE_CONSTANT_INTERP_FC(const double*,
+                                                 const double*,
+                                                 const double*,
+                                                 const int&,
 #if (NDIM == 2)
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
 #endif
 #if (NDIM == 3)
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
 #endif
-                                             const double*,
-                                             const int*,
-                                             const double*,
-                                             const int&,
-                                             const double*,
-                                             double*);
+                                                 const double*,
+                                                 const int*,
+                                                 const double*,
+                                                 const int&,
+                                                 const double*,
+                                                 double*);
 
-void LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC(const double*,
-                                             const double*,
-                                             const double*,
-                                             const int&,
-                                             const int*,
-                                             const double*,
-                                             const int&,
-                                             const double*,
-                                             const double*,
+    void LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC(const double*,
+                                                 const double*,
+                                                 const double*,
+                                                 const int&,
+                                                 const int*,
+                                                 const double*,
+                                                 const int&,
+                                                 const double*,
+                                                 const double*,
 #if (NDIM == 2)
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
 #endif
 #if (NDIM == 3)
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
-                                             const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
+                                                 const int&,
 #endif
-                                             double*);
+                                                 double*);
 
-void LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC(const double*,
+    void LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC(const double*,
+                                                   const double*,
+                                                   const double*,
+                                                   const int&,
+                                                   const int&,
+#if (NDIM == 2)
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+#endif
+#if (NDIM == 3)
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+#endif
+                                                   const double*,
+                                                   const int*,
+                                                   const double*,
+                                                   const int&,
+                                                   const double*,
+                                                   double*);
+
+    void LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC(const double*,
+                                                   const double*,
+                                                   const double*,
+                                                   const int&,
+                                                   const int&,
+                                                   const int*,
+                                                   const double*,
+                                                   const int&,
+                                                   const double*,
+                                                   const double*,
+#if (NDIM == 2)
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+#endif
+#if (NDIM == 3)
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+#endif
+                                                   double*);
+
+    void LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC(const double*,
                                                const double*,
                                                const double*,
-                                               const int&,
                                                const int&,
 #if (NDIM == 2)
                                                const int&,
@@ -257,10 +319,9 @@ void LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC(const double*,
                                                const double*,
                                                double*);
 
-void LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC(const double*,
+    void LAGRANGIAN_PIECEWISE_LINEAR_SPREAD_FC(const double*,
                                                const double*,
                                                const double*,
-                                               const int&,
                                                const int&,
                                                const int*,
                                                const double*,
@@ -288,666 +349,605 @@ void LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC(const double*,
 #endif
                                                double*);
 
-void LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC(const double*,
-                                           const double*,
-                                           const double*,
-                                           const int&,
+    void LAGRANGIAN_PIECEWISE_CUBIC_INTERP_FC(const double*,
+                                              const double*,
+                                              const double*,
+                                              const int&,
 #if (NDIM == 2)
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
 #endif
 #if (NDIM == 3)
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
 #endif
-                                           const double*,
-                                           const int*,
-                                           const double*,
-                                           const int&,
-                                           const double*,
-                                           double*);
+                                              const double*,
+                                              const int*,
+                                              const double*,
+                                              const int&,
+                                              const double*,
+                                              double*);
 
-void LAGRANGIAN_PIECEWISE_LINEAR_SPREAD_FC(const double*,
-                                           const double*,
-                                           const double*,
-                                           const int&,
-                                           const int*,
-                                           const double*,
-                                           const int&,
-                                           const double*,
-                                           const double*,
+    void LAGRANGIAN_PIECEWISE_CUBIC_SPREAD_FC(const double*,
+                                              const double*,
+                                              const double*,
+                                              const int&,
+                                              const int*,
+                                              const double*,
+                                              const int&,
+                                              const double*,
+                                              const double*,
 #if (NDIM == 2)
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
 #endif
 #if (NDIM == 3)
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
-                                           const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
+                                              const int&,
 #endif
-                                           double*);
+                                              double*);
 
-void LAGRANGIAN_PIECEWISE_CUBIC_INTERP_FC(const double*,
-                                          const double*,
-                                          const double*,
-                                          const int&,
+    void LAGRANGIAN_IB_3_INTERP_FC(const double*,
+                                   const double*,
+                                   const double*,
+                                   const int&,
 #if (NDIM == 2)
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
 #endif
 #if (NDIM == 3)
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
 #endif
-                                          const double*,
-                                          const int*,
-                                          const double*,
-                                          const int&,
-                                          const double*,
-                                          double*);
+                                   const double*,
+                                   const int*,
+                                   const double*,
+                                   const int&,
+                                   const double*,
+                                   double*);
 
-void LAGRANGIAN_PIECEWISE_CUBIC_SPREAD_FC(const double*,
-                                          const double*,
-                                          const double*,
-                                          const int&,
-                                          const int*,
-                                          const double*,
-                                          const int&,
-                                          const double*,
-                                          const double*,
+    void LAGRANGIAN_IB_3_SPREAD_FC(const double*,
+                                   const double*,
+                                   const double*,
+                                   const int&,
+                                   const int*,
+                                   const double*,
+                                   const int&,
+                                   const double*,
+                                   const double*,
 #if (NDIM == 2)
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
 #endif
 #if (NDIM == 3)
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
-                                          const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
 #endif
-                                          double*);
+                                   double*);
 
-void LAGRANGIAN_IB_3_INTERP_FC(const double*,
-                               const double*,
-                               const double*,
-                               const int&,
+    void LAGRANGIAN_IB_4_INTERP_FC(const double*,
+                                   const double*,
+                                   const double*,
+                                   const int&,
 #if (NDIM == 2)
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
 #endif
 #if (NDIM == 3)
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
 #endif
-                               const double*,
-                               const int*,
-                               const double*,
-                               const int&,
-                               const double*,
-                               double*);
+                                   const double*,
+                                   const int*,
+                                   const double*,
+                                   const int&,
+                                   const double*,
+                                   double*);
 
-void LAGRANGIAN_IB_3_SPREAD_FC(const double*,
-                               const double*,
-                               const double*,
-                               const int&,
-                               const int*,
-                               const double*,
-                               const int&,
-                               const double*,
-                               const double*,
+    void LAGRANGIAN_IB_4_SPREAD_FC(const double*,
+                                   const double*,
+                                   const double*,
+                                   const int&,
+                                   const int*,
+                                   const double*,
+                                   const int&,
+                                   const double*,
+                                   const double*,
 #if (NDIM == 2)
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
 #endif
 #if (NDIM == 3)
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
 #endif
-                               double*);
+                                   double*);
 
-void LAGRANGIAN_IB_4_INTERP_FC(const double*,
-                               const double*,
-                               const double*,
-                               const int&,
+    void LAGRANGIAN_IB_4_W8_INTERP_FC(const double*,
+                                      const double*,
+                                      const double*,
+                                      const int&,
 #if (NDIM == 2)
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
 #endif
 #if (NDIM == 3)
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
 #endif
-                               const double*,
-                               const int*,
-                               const double*,
-                               const int&,
-                               const double*,
-                               double*);
+                                      const double*,
+                                      const int*,
+                                      const double*,
+                                      const int&,
+                                      const double*,
+                                      double*);
 
-void LAGRANGIAN_IB_4_SPREAD_FC(const double*,
-                               const double*,
-                               const double*,
-                               const int&,
-                               const int*,
-                               const double*,
-                               const int&,
-                               const double*,
-                               const double*,
+    void LAGRANGIAN_IB_4_W8_SPREAD_FC(const double*,
+                                      const double*,
+                                      const double*,
+                                      const int&,
+                                      const int*,
+                                      const double*,
+                                      const int&,
+                                      const double*,
+                                      const double*,
 #if (NDIM == 2)
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
 #endif
 #if (NDIM == 3)
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
 #endif
-                               double*);
+                                      double*);
 
-void LAGRANGIAN_IB_4_W8_INTERP_FC(const double*,
-                                  const double*,
-                                  const double*,
-                                  const int&,
+    void LAGRANGIAN_IB_5_INTERP_FC(const double*,
+                                   const double*,
+                                   const double*,
+                                   const int&,
 #if (NDIM == 2)
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
 #endif
 #if (NDIM == 3)
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
 #endif
-                                  const double*,
-                                  const int*,
-                                  const double*,
-                                  const int&,
-                                  const double*,
-                                  double*);
+                                   const double*,
+                                   const int*,
+                                   const double*,
+                                   const int&,
+                                   const double*,
+                                   double*);
 
-void LAGRANGIAN_IB_4_W8_SPREAD_FC(const double*,
-                                  const double*,
-                                  const double*,
-                                  const int&,
-                                  const int*,
-                                  const double*,
-                                  const int&,
-                                  const double*,
-                                  const double*,
+    void LAGRANGIAN_IB_5_SPREAD_FC(const double*,
+                                   const double*,
+                                   const double*,
+                                   const int&,
+                                   const int*,
+                                   const double*,
+                                   const int&,
+                                   const double*,
+                                   const double*,
 #if (NDIM == 2)
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
 #endif
 #if (NDIM == 3)
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
 #endif
-                                  double*);
+                                   double*);
 
-void LAGRANGIAN_IB_5_INTERP_FC(const double*,
-                               const double*,
-                               const double*,
-                               const int&,
+    void LAGRANGIAN_IB_6_INTERP_FC(const double*,
+                                   const double*,
+                                   const double*,
+                                   const int&,
 #if (NDIM == 2)
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
 #endif
 #if (NDIM == 3)
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
 #endif
-                               const double*,
-                               const int*,
-                               const double*,
-                               const int&,
-                               const double*,
-                               double*);
+                                   const double*,
+                                   const int*,
+                                   const double*,
+                                   const int&,
+                                   const double*,
+                                   double*);
 
-void LAGRANGIAN_IB_5_SPREAD_FC(const double*,
-                               const double*,
-                               const double*,
-                               const int&,
-                               const int*,
-                               const double*,
-                               const int&,
-                               const double*,
-                               const double*,
+    void LAGRANGIAN_IB_6_SPREAD_FC(const double*,
+                                   const double*,
+                                   const double*,
+                                   const int&,
+                                   const int*,
+                                   const double*,
+                                   const int&,
+                                   const double*,
+                                   const double*,
 #if (NDIM == 2)
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
 #endif
 #if (NDIM == 3)
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
 #endif
-                               double*);
+                                   double*);
 
-void LAGRANGIAN_IB_6_INTERP_FC(const double*,
-                               const double*,
-                               const double*,
-                               const int&,
+    void LAGRANGIAN_BSPLINE_3_INTERP_FC(const double*,
+                                        const double*,
+                                        const double*,
+                                        const int&,
 #if (NDIM == 2)
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
 #endif
 #if (NDIM == 3)
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
 #endif
-                               const double*,
-                               const int*,
-                               const double*,
-                               const int&,
-                               const double*,
-                               double*);
+                                        const double*,
+                                        const int*,
+                                        const double*,
+                                        const int&,
+                                        const double*,
+                                        double*);
 
-void LAGRANGIAN_IB_6_SPREAD_FC(const double*,
-                               const double*,
-                               const double*,
-                               const int&,
-                               const int*,
-                               const double*,
-                               const int&,
-                               const double*,
-                               const double*,
+    void LAGRANGIAN_BSPLINE_3_SPREAD_FC(const double*,
+                                        const double*,
+                                        const double*,
+                                        const int&,
+                                        const int*,
+                                        const double*,
+                                        const int&,
+                                        const double*,
+                                        const double*,
 #if (NDIM == 2)
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
 #endif
 #if (NDIM == 3)
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
-                               const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
 #endif
-                               double*);
+                                        double*);
 
-void LAGRANGIAN_BSPLINE_3_INTERP_FC(const double*,
-                                    const double*,
-                                    const double*,
-                                    const int&,
+    void LAGRANGIAN_BSPLINE_4_INTERP_FC(const double*,
+                                        const double*,
+                                        const double*,
+                                        const int&,
 #if (NDIM == 2)
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
 #endif
 #if (NDIM == 3)
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
 #endif
-                                    const double*,
-                                    const int*,
-                                    const double*,
-                                    const int&,
-                                    const double*,
-                                    double*);
+                                        const double*,
+                                        const int*,
+                                        const double*,
+                                        const int&,
+                                        const double*,
+                                        double*);
 
-void LAGRANGIAN_BSPLINE_3_SPREAD_FC(const double*,
-                                    const double*,
-                                    const double*,
-                                    const int&,
-                                    const int*,
-                                    const double*,
-                                    const int&,
-                                    const double*,
-                                    const double*,
+    void LAGRANGIAN_BSPLINE_4_SPREAD_FC(const double*,
+                                        const double*,
+                                        const double*,
+                                        const int&,
+                                        const int*,
+                                        const double*,
+                                        const int&,
+                                        const double*,
+                                        const double*,
 #if (NDIM == 2)
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
 #endif
 #if (NDIM == 3)
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
 #endif
-                                    double*);
+                                        double*);
 
-void LAGRANGIAN_BSPLINE_4_INTERP_FC(const double*,
-                                    const double*,
-                                    const double*,
-                                    const int&,
+    void LAGRANGIAN_BSPLINE_5_INTERP_FC(const double*,
+                                        const double*,
+                                        const double*,
+                                        const int&,
 #if (NDIM == 2)
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
 #endif
 #if (NDIM == 3)
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
 #endif
-                                    const double*,
-                                    const int*,
-                                    const double*,
-                                    const int&,
-                                    const double*,
-                                    double*);
+                                        const double*,
+                                        const int*,
+                                        const double*,
+                                        const int&,
+                                        const double*,
+                                        double*);
 
-void LAGRANGIAN_BSPLINE_4_SPREAD_FC(const double*,
-                                    const double*,
-                                    const double*,
-                                    const int&,
-                                    const int*,
-                                    const double*,
-                                    const int&,
-                                    const double*,
-                                    const double*,
+    void LAGRANGIAN_BSPLINE_5_SPREAD_FC(const double*,
+                                        const double*,
+                                        const double*,
+                                        const int&,
+                                        const int*,
+                                        const double*,
+                                        const int&,
+                                        const double*,
+                                        const double*,
 #if (NDIM == 2)
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
 #endif
 #if (NDIM == 3)
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
 #endif
-                                    double*);
+                                        double*);
 
-void LAGRANGIAN_BSPLINE_5_INTERP_FC(const double*,
-                                    const double*,
-                                    const double*,
-                                    const int&,
+    void LAGRANGIAN_BSPLINE_6_INTERP_FC(const double*,
+                                        const double*,
+                                        const double*,
+                                        const int&,
 #if (NDIM == 2)
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
 #endif
 #if (NDIM == 3)
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
 #endif
-                                    const double*,
-                                    const int*,
-                                    const double*,
-                                    const int&,
-                                    const double*,
-                                    double*);
+                                        const double*,
+                                        const int*,
+                                        const double*,
+                                        const int&,
+                                        const double*,
+                                        double*);
 
-void LAGRANGIAN_BSPLINE_5_SPREAD_FC(const double*,
-                                    const double*,
-                                    const double*,
-                                    const int&,
-                                    const int*,
-                                    const double*,
-                                    const int&,
-                                    const double*,
-                                    const double*,
+    void LAGRANGIAN_BSPLINE_6_SPREAD_FC(const double*,
+                                        const double*,
+                                        const double*,
+                                        const int&,
+                                        const int*,
+                                        const double*,
+                                        const int&,
+                                        const double*,
+                                        const double*,
 #if (NDIM == 2)
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
 #endif
 #if (NDIM == 3)
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
 #endif
-                                    double*);
-
-void LAGRANGIAN_BSPLINE_6_INTERP_FC(const double*,
-                                    const double*,
-                                    const double*,
-                                    const int&,
-#if (NDIM == 2)
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-#endif
-#if (NDIM == 3)
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-#endif
-                                    const double*,
-                                    const int*,
-                                    const double*,
-                                    const int&,
-                                    const double*,
-                                    double*);
-
-void LAGRANGIAN_BSPLINE_6_SPREAD_FC(const double*,
-                                    const double*,
-                                    const double*,
-                                    const int&,
-                                    const int*,
-                                    const double*,
-                                    const int&,
-                                    const double*,
-                                    const double*,
-#if (NDIM == 2)
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-#endif
-#if (NDIM == 3)
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-                                    const int&,
-#endif
-                                    double*);
-
+                                        double*);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -1007,7 +1007,7 @@ perform_mls(const int stencil_sz,
 #if (NDIM == 2)
     T.resize(extents[stencil_sz][stencil_sz]);
     Psi.resize(extents[stencil_sz][stencil_sz]);
-#elif(NDIM == 3)
+#elif (NDIM == 3)
     T.resize(extents[stencil_sz][stencil_sz][stencil_sz]);
     Psi.resize(extents[stencil_sz][stencil_sz][stencil_sz]);
 #endif
@@ -1028,7 +1028,7 @@ perform_mls(const int stencil_sz,
 #if (NDIM == 2)
                 const Index<NDIM> idx(ic0, ic1);
                 T[i1][i0] = D[0][i0] * D[1][i1] * mask_data(idx, /*depth*/ 0);
-#elif(NDIM == 3)
+#elif (NDIM == 3)
             const Index<NDIM> idx(ic0, ic1, ic2);
             T[i2][i1][i0] = D[0][i0] * D[1][i1] * D[2][i2] * mask_data(idx, /*depth*/ 0);
 #endif
@@ -1071,7 +1071,7 @@ perform_mls(const int stencil_sz,
                         p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : x[1]);
                         p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : x[1]);
                         G(j, k) += p_j * p_k * T[i1][i0];
-#elif(NDIM == 3)
+#elif (NDIM == 3)
                     p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
                     p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : k == 2 ? x[1] : x[2]);
                     G(j, k) += p_j * p_k * T[i2][i1][i0];
@@ -1108,7 +1108,7 @@ perform_mls(const int stencil_sz,
                     Psi[i1][i0] += L[j] * p_j;
                 }
                 Psi[i1][i0] *= T[i1][i0];
-#elif(NDIM == 3)
+#elif (NDIM == 3)
             for (int j = 0; j <= 3; ++j)
             {
                 p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
@@ -1265,7 +1265,7 @@ interpolate_data(const int stencil_sz,
 #if (NDIM == 2)
                 const Index<NDIM> idx(ic0, ic1);
                 Q += q_data(idx, q_comp) * Psi[i1][i0];
-#elif(NDIM == 3)
+#elif (NDIM == 3)
             const Index<NDIM> idx(ic0, ic1, ic2);
             Q += q_data(idx, q_comp) * Psi[i2][i1][i0];
 #endif
@@ -1314,7 +1314,7 @@ spread_data(const int stencil_sz,
 #if (NDIM == 2)
                 const Index<NDIM> idx(ic0, ic1);
                 q_data(idx, q_comp) += Q * Psi[i1][i0] * fac;
-#elif(NDIM == 3)
+#elif (NDIM == 3)
             const Index<NDIM> idx(ic0, ic1, ic2);
             q_data(idx, q_comp) += Q * Psi[i2][i1][i0] * fac;
 #endif
@@ -1324,7 +1324,7 @@ spread_data(const int stencil_sz,
     }
 #endif
 } // spread_data
-}
+} // namespace
 
 double (*LEInteractor::s_kernel_fcn)(double r) = &ib4_kernel_fcn;
 int LEInteractor::s_kernel_fcn_stencil_size = 4;
@@ -1362,9 +1362,7 @@ LEInteractor::getStencilSize(const std::string& kernel_fcn)
     if (kernel_fcn == "BSPLINE_6") return 6;
     if (kernel_fcn == "USER_DEFINED") return s_kernel_fcn_stencil_size;
     TBOX_ERROR("LEInteractor::getStencilSize()\n"
-               << "  Unknown kernel function "
-               << kernel_fcn
-               << std::endl);
+               << "  Unknown kernel function " << kernel_fcn << std::endl);
     return -1;
 }
 
@@ -2089,34 +2087,18 @@ LEInteractor::interpolate(double* const Q_data,
     if (q_gcw_min < min_ghosts)
     {
         TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian field data:\n"
-                   << "  kernel function          = "
-                   << interp_fcn
-                   << "\n"
-                   << "  kernel stencil size      = "
-                   << stencil_size
-                   << "\n"
-                   << "  minimum ghost cell width = "
-                   << min_ghosts
-                   << "\n"
-                   << "  ghost cell width         = "
-                   << q_gcw_min
-                   << "\n");
+                   << "  kernel function          = " << interp_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << min_ghosts << "\n"
+                   << "  ghost cell width         = " << q_gcw_min << "\n");
     }
     if (mask_gcw_min < stencil_size)
     {
         TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian mask data:\n"
-                   << "  kernel function          = "
-                   << interp_fcn
-                   << "\n"
-                   << "  kernel stencil size      = "
-                   << stencil_size
-                   << "\n"
-                   << "  minimum ghost cell width = "
-                   << stencil_size
-                   << "\n"
-                   << "  ghost cell width         = "
-                   << mask_gcw_min
-                   << "\n");
+                   << "  kernel function          = " << interp_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << stencil_size << "\n"
+                   << "  ghost cell width         = " << mask_gcw_min << "\n");
     }
     const IntVector<NDIM> ig_lower = ilower - q_gcw;
     const IntVector<NDIM> ig_upper = iupper + q_gcw;
@@ -2379,34 +2361,18 @@ LEInteractor::interpolate(double* const Q_data,
     if (q_gcw_min < min_ghosts)
     {
         TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian field data:\n"
-                   << "  kernel function          = "
-                   << interp_fcn
-                   << "\n"
-                   << "  kernel stencil size      = "
-                   << stencil_size
-                   << "\n"
-                   << "  minimum ghost cell width = "
-                   << min_ghosts
-                   << "\n"
-                   << "  ghost cell width         = "
-                   << q_gcw_min
-                   << "\n");
+                   << "  kernel function          = " << interp_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << min_ghosts << "\n"
+                   << "  ghost cell width         = " << q_gcw_min << "\n");
     }
     if (mask_gcw_min < stencil_size)
     {
         TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian mask data:\n"
-                   << "  kernel function          = "
-                   << interp_fcn
-                   << "\n"
-                   << "  kernel stencil size      = "
-                   << stencil_size
-                   << "\n"
-                   << "  minimum ghost cell width = "
-                   << stencil_size
-                   << "\n"
-                   << "  ghost cell width         = "
-                   << mask_gcw_min
-                   << "\n");
+                   << "  kernel function          = " << interp_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << stencil_size << "\n"
+                   << "  ghost cell width         = " << mask_gcw_min << "\n");
     }
 
     // Get boundary info.
@@ -3285,34 +3251,18 @@ LEInteractor::spread(Pointer<CellData<NDIM, double> > mask_data,
     if (q_gcw_min < min_ghosts)
     {
         TBOX_ERROR("LEInteractor::spread(): insufficient ghost cells for Eulerian field data:\n"
-                   << "  kernel function          = "
-                   << spread_fcn
-                   << "\n"
-                   << "  kernel stencil size      = "
-                   << stencil_size
-                   << "\n"
-                   << "  minimum ghost cell width = "
-                   << min_ghosts
-                   << "\n"
-                   << "  ghost cell width         = "
-                   << q_gcw_min
-                   << "\n");
+                   << "  kernel function          = " << spread_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << min_ghosts << "\n"
+                   << "  ghost cell width         = " << q_gcw_min << "\n");
     }
     if (mask_gcw_min < stencil_size)
     {
         TBOX_ERROR("LEInteractor::spread(): insufficient ghost cells for Eulerian mask data:\n"
-                   << "  kernel function          = "
-                   << spread_fcn
-                   << "\n"
-                   << "  kernel stencil size      = "
-                   << stencil_size
-                   << "\n"
-                   << "  minimum ghost cell width = "
-                   << stencil_size
-                   << "\n"
-                   << "  ghost cell width         = "
-                   << mask_gcw_min
-                   << "\n");
+                   << "  kernel function          = " << spread_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << stencil_size << "\n"
+                   << "  ghost cell width         = " << mask_gcw_min << "\n");
     }
     const IntVector<NDIM> ig_lower = ilower - q_gcw;
     const IntVector<NDIM> ig_upper = iupper + q_gcw;
@@ -3570,34 +3520,18 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
     if (q_gcw_min < min_ghosts)
     {
         TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian field data:"
-                   << "  kernel function          = "
-                   << spread_fcn
-                   << "\n"
-                   << "  kernel stencil size      = "
-                   << stencil_size
-                   << "\n"
-                   << "  minimum ghost cell width = "
-                   << min_ghosts
-                   << "\n"
-                   << "  ghost cell width         = "
-                   << q_gcw_min
-                   << "\n");
+                   << "  kernel function          = " << spread_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << min_ghosts << "\n"
+                   << "  ghost cell width         = " << q_gcw_min << "\n");
     }
     if (mask_gcw_min < stencil_size)
     {
         TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian mask data:"
-                   << "  kernel function          = "
-                   << spread_fcn
-                   << "\n"
-                   << "  kernel stencil size      = "
-                   << stencil_size
-                   << "\n"
-                   << "  minimum ghost cell width = "
-                   << stencil_size
-                   << "\n"
-                   << "  ghost cell width         = "
-                   << mask_gcw_min
-                   << "\n");
+                   << "  kernel function          = " << spread_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << stencil_size << "\n"
+                   << "  ghost cell width         = " << mask_gcw_min << "\n");
     }
 
     // Determine the boundary info.
@@ -3783,18 +3717,10 @@ LEInteractor::interpolate(double* const Q_data,
     if (q_gcw_min < min_ghosts)
     {
         TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells:"
-                   << "  kernel function          = "
-                   << interp_fcn
-                   << "\n"
-                   << "  kernel stencil size      = "
-                   << stencil_size
-                   << "\n"
-                   << "  minimum ghost cell width = "
-                   << min_ghosts
-                   << "\n"
-                   << "  ghost cell width         = "
-                   << q_gcw_min
-                   << "\n");
+                   << "  kernel function          = " << interp_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << min_ghosts << "\n"
+                   << "  ghost cell width         = " << q_gcw_min << "\n");
     }
     if (local_indices.empty()) return;
     const int local_indices_size = static_cast<int>(local_indices.size());
@@ -4236,9 +4162,7 @@ LEInteractor::interpolate(double* const Q_data,
     else
     {
         TBOX_ERROR("LEInteractor::interpolate()\n"
-                   << "  Unknown interpolation kernel function "
-                   << interp_fcn
-                   << std::endl);
+                   << "  Unknown interpolation kernel function " << interp_fcn << std::endl);
     }
     return;
 }
@@ -4273,18 +4197,10 @@ LEInteractor::spread(double* const q_data,
     if (patch_touches_physical_bdry && q_gcw_min < min_ghosts)
     {
         TBOX_ERROR("LEInteractor::spread(): insufficient ghost cells at physical boundary:"
-                   << "  kernel function          = "
-                   << spread_fcn
-                   << "\n"
-                   << "  kernel stencil size      = "
-                   << stencil_size
-                   << "\n"
-                   << "  minimum ghost cell width = "
-                   << min_ghosts
-                   << "\n"
-                   << "  ghost cell width         = "
-                   << q_gcw_min
-                   << "\n");
+                   << "  kernel function          = " << spread_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << min_ghosts << "\n"
+                   << "  ghost cell width         = " << q_gcw_min << "\n");
     }
     if (local_indices.empty()) return;
     const int local_indices_size = static_cast<int>(local_indices.size());
@@ -4726,9 +4642,7 @@ LEInteractor::spread(double* const q_data,
     else
     {
         TBOX_ERROR("LEInteractor::spread()\n"
-                   << "  Unknown spreading kernel function "
-                   << spread_fcn
-                   << std::endl);
+                   << "  Unknown spreading kernel function " << spread_fcn << std::endl);
     }
     return;
 }
@@ -4857,8 +4771,8 @@ LEInteractor::userDefinedInterpolate(double* Q,
     using range = boost::multi_array_types::extent_range;
     boost::const_multi_array_ref<double, NDIM + 1> q_data(
         q,
-        (boost::extents[range(ilower[0] - q_gcw[0], iupper[0] + q_gcw[0] + 1)][range(ilower[1] - q_gcw[1],
-                                                                                     iupper[1] + q_gcw[1] + 1)]
+        (boost::extents[range(ilower[0] - q_gcw[0], iupper[0] + q_gcw[0] + 1)]
+                       [range(ilower[1] - q_gcw[1], iupper[1] + q_gcw[1] + 1)]
 #if (NDIM == 3)
                        [range(ilower[2] - q_gcw[2], iupper[2] + q_gcw[2] + 1)]
 #endif
@@ -4985,8 +4899,8 @@ LEInteractor::userDefinedSpread(double* q,
     using range = boost::multi_array_types::extent_range;
     boost::multi_array_ref<double, NDIM + 1> q_data(
         q,
-        (boost::extents[range(ilower[0] - q_gcw[0], iupper[0] + q_gcw[0] + 1)][range(ilower[1] - q_gcw[1],
-                                                                                     iupper[1] + q_gcw[1] + 1)]
+        (boost::extents[range(ilower[0] - q_gcw[0], iupper[0] + q_gcw[0] + 1)]
+                       [range(ilower[1] - q_gcw[1], iupper[1] + q_gcw[1] + 1)]
 #if (NDIM == 3)
                        [range(ilower[2] - q_gcw[2], iupper[2] + q_gcw[2] + 1)]
 #endif

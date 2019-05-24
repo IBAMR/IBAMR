@@ -72,8 +72,8 @@ public:
                    IBTK::LDataManager* const l_data_manager);
 
     /*!
- * \brief Destructor.
- */
+     * \brief Destructor.
+     */
     ~HydroForceEval();
 
     /*!
@@ -92,18 +92,18 @@ public:
     /////////////////////////////// PRIVATE //////////////////////////////////////
 private:
     /*!
- * \brief Get values from input file.
- */
+     * \brief Get values from input file.
+     */
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, IBTK::LDataManager* const l_data_manager);
 
     /*!
- * \brief Read the surface vertex data from one or more input files.
- */
+     * \brief Read the surface vertex data from one or more input files.
+     */
     void readVertexFiles(const std::string& extension);
 
     /*!
- * \brief Read the surface element data from one or more input files.
- */
+     * \brief Read the surface element data from one or more input files.
+     */
     void readElemFiles(const std::string& extension);
 
     /*!
@@ -112,8 +112,8 @@ private:
     void calcStructCOM(IBTK::LDataManager* const l_data_manager);
 
     /*!
- * \brief Get the finest level number and the finest mesh width.
- */
+     * \brief Get the finest level number and the finest mesh width.
+     */
     void getGridData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
 
     /*!
@@ -146,8 +146,8 @@ private:
     printData(const std::vector<std::set<Elem, elem_cmp> > surf_elem_set, const double time, const int iteration_num);
 
     /*!
- * \brief Object name.
- */
+     * \brief Object name.
+     */
     std::string d_object_name;
 
     /*!
@@ -161,10 +161,10 @@ private:
     int d_num_structs;
 
     /*!
- * \brief The base filenames of the lifted structures.
+     * \brief The base filenames of the lifted structures.
      *
      * \note The structure must lie on the finesest grid level.
- */
+     */
     std::vector<std::string> d_struct_names;
 
     /*!

@@ -116,7 +116,7 @@ public:
      *
      * \note A default empty implementation is provided.
      */
-    virtual void init() {};
+    virtual void init(){};
 
     /*!
      * \brief Initialize the structure indexing information on the patch level.
