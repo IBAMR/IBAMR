@@ -2450,6 +2450,7 @@ c
       INTEGER depth
       INTEGER nindices
       INTEGER ilower0,iupper0,ilower1,iupper1
+c     This assumes nugc0, nugc1, nugc2 are all positive, which *should* always be true.
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
@@ -2501,11 +2502,6 @@ c
             ic_upper(d) = ic_center(d)+1
          enddo
 
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
 c
 c     Compute the spreading weights.
 c

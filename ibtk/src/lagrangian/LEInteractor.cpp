@@ -4264,6 +4264,7 @@ LEInteractor::spread(double* const q_data,
     const int stencil_size = getStencilSize(spread_fcn);
     const int min_ghosts = getMinimumGhostWidth(spread_fcn);
     const int q_gcw_min = q_gcw.min();
+    TBOX_ASSERT(0 <= q_gcw_min);
     bool patch_touches_physical_bdry = false;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
