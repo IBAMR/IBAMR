@@ -57,10 +57,10 @@
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/BoxPartitioner.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
-#include <ibtk/BoxPartitioner.h>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -113,7 +113,7 @@ PK1_dil_stress_function(TensorValue<double>& PP,
     PP = 2.0 * (-p0_s + beta_s * log(FF.det())) * tensor_inverse_transpose(FF, NDIM);
     return;
 } // PK1_dil_stress_function
-}
+} // namespace ModelData
 using namespace ModelData;
 
 // Function prototypes
@@ -137,7 +137,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *                                                                             *
  *******************************************************************************/
 
-bool run_example(int argc, char** argv)
+bool
+run_example(int argc, char** argv)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -402,8 +403,7 @@ bool run_example(int argc, char** argv)
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
-            visit_data_writer->registerPlotQuantity("workload", "SCALAR",
-                                                    time_integrator->getWorkloadDataIndex());
+            visit_data_writer->registerPlotQuantity("workload", "SCALAR", time_integrator->getWorkloadDataIndex());
         }
         std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 

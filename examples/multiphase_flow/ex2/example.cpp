@@ -362,7 +362,7 @@ run_example(int argc, char* argv[])
         {
             rho_var = new CellVariable<NDIM, double>("rho");
         }
-        
+
         navier_stokes_integrator->registerMassDensityVariable(rho_var);
         navier_stokes_integrator->registerViscosityVariable(mu_var);
 

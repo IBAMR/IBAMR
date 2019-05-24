@@ -25,7 +25,8 @@ callSetFluidDensityCallbackFunction(int rho_idx,
 {
     // Set the density from the level set information
     static SetFluidProperties* ptr_SetFluidProperties = static_cast<SetFluidProperties*>(ctx);
-    ptr_SetFluidProperties->setDensityPatchData(rho_idx, rho_var, hier_math_ops, cycle_num, time, current_time, new_time);
+    ptr_SetFluidProperties->setDensityPatchData(
+        rho_idx, rho_var, hier_math_ops, cycle_num, time, current_time, new_time);
 
     return;
 
@@ -43,7 +44,8 @@ callSetFluidViscosityCallbackFunction(int mu_idx,
 {
     // Set the density from the level set information
     static SetFluidProperties* ptr_SetFluidProperties = static_cast<SetFluidProperties*>(ctx);
-    ptr_SetFluidProperties->setViscosityPatchData(mu_idx, mu_var, hier_math_ops, cycle_num, time, current_time, new_time);
+    ptr_SetFluidProperties->setViscosityPatchData(
+        mu_idx, mu_var, hier_math_ops, cycle_num, time, current_time, new_time);
 
     return;
 

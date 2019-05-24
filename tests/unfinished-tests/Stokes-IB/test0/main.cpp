@@ -51,21 +51,21 @@
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
-#include <ibamr/StaggeredStokesPETScVecUtilities.h>
-#include <ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesFACPreconditioner.h>
-#include <ibamr/StaggeredStokesSolver.h>
+#include <ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
+#include <ibamr/StaggeredStokesPETScVecUtilities.h>
+#include <ibamr/StaggeredStokesSolver.h>
 #include <ibamr/app_namespaces.h>
 #include <ibamr/ibamr_utilities.h>
+#include <ibtk/AppInitializer.h>
 #include <ibtk/CartSideDoubleRT0Coarsen.h>
 #include <ibtk/CartSideDoubleRT0Refine.h>
-#include <ibtk/PETScMatUtilities.h>
-#include <ibtk/PETScVecUtilities.h>
-#include <ibtk/PETScSAMRAIVectorReal.h>
-#include <ibtk/AppInitializer.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
+#include <ibtk/PETScMatUtilities.h>
+#include <ibtk/PETScSAMRAIVectorReal.h>
+#include <ibtk/PETScVecUtilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 #include <petscksp.h>
@@ -932,8 +932,7 @@ buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
     IBAMR_DO_ONCE(geometry->addSpatialCoarsenOperator(new CartSideDoubleRT0Coarsen(gcw));
                   geometry->addSpatialRefineOperator(new CartSideDoubleRT0Refine()));
 
-    Pointer<RefineOperator<NDIM> > prolongation_op =
-        geometry->lookupRefineOperator(u_var, "RT0_REFINE");
+    Pointer<RefineOperator<NDIM> > prolongation_op = geometry->lookupRefineOperator(u_var, "RT0_REFINE");
     Pointer<CoarsenOperator<NDIM> > restriction_op = geometry->lookupCoarsenOperator(u_var, "RT0_COARSEN");
 
     // Define the prolongation and refine algorithms

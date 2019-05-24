@@ -283,7 +283,8 @@ compute_inflow_flux(const Pointer<PatchHierarchy<NDIM> > hierarchy, const int U_
                         const hier::Index<NDIM>& i = b();
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            X[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_box.lower(d)) + (d == axis ? 0.0 : 0.5));
+                            X[d] = x_lower[d] +
+                                   dx[d] * (static_cast<double>(i(d) - patch_box.lower(d)) + (d == axis ? 0.0 : 0.5));
                         }
                         if (X[0] >= 0.5 && X[0] <= 1.5)
                         {
@@ -308,7 +309,7 @@ cheby(double t, double a, double b)
 {
     return 0.5 * (a + b) + 0.5 * (a - b) * cos(t * M_PI);
 }
-}
+} // namespace ModelData
 using namespace ModelData;
 
 /*******************************************************************************
@@ -323,7 +324,8 @@ using namespace ModelData;
  *                                                                             *
  *******************************************************************************/
 
-bool run_example(int argc, char** argv)
+bool
+run_example(int argc, char** argv)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);

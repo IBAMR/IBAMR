@@ -44,11 +44,11 @@
 namespace IBTK
 {
 /*!
-        * \brief CartGridBodyForce class.
-        *
-        * This class is a concrete implementation of IBTK::CartGridFunction class and is used to set the
-        * body force on patches for the fluid solver.
-        */
+ * \brief CartGridBodyForce class.
+ *
+ * This class is a concrete implementation of IBTK::CartGridFunction class and is used to set the
+ * body force on patches for the fluid solver.
+ */
 
 class CartGridBodyForce : public IBTK::CartGridFunction
 {

@@ -72,7 +72,7 @@ run_example(int argc, char* argv[])
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
-    // Initialize variable to store error in u to aid in testing 
+    // Initialize variable to store error in u to aid in testing
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -352,7 +352,6 @@ run_example(int argc, char* argv[])
                  << "  L1-norm:  " << hier_cc_data_ops.L1Norm(u_idx, wgt_cc_idx) << "\n"
                  << "  L2-norm:  " << hier_cc_data_ops.L2Norm(u_idx, wgt_cc_idx) << "\n"
                  << "  max-norm: " << hier_cc_data_ops.maxNorm(u_idx, wgt_cc_idx) << "\n";
-                
         }
 
         Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
@@ -363,7 +362,6 @@ run_example(int argc, char* argv[])
                  << "  L1-norm:  " << hier_sc_data_ops.L1Norm(u_idx, wgt_sc_idx) << "\n"
                  << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_idx, wgt_sc_idx) << "\n"
                  << "  max-norm: " << hier_sc_data_ops.maxNorm(u_idx, wgt_sc_idx) << "\n";
-                
         }
 
         hier_cc_data_ops.subtract(p_idx, p_idx, p_cloned_idx);

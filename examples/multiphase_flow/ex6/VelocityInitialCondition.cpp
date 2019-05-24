@@ -141,8 +141,7 @@ VelocityInitialCondition::setDataOnPatch(const int data_idx,
                 const double phi_lower =
                     std::sqrt(std::pow((coord_lower[0] - X0(0)), 2.0) + std::pow((coord_lower[1] - X0(1)), 2.0)
 #if (NDIM == 3)
-                              +
-                              std::pow((coord_lower[2] - X0(2)), 2.0)
+                              + std::pow((coord_lower[2] - X0(2)), 2.0)
 #endif
                                   ) -
                     R;
@@ -150,8 +149,7 @@ VelocityInitialCondition::setDataOnPatch(const int data_idx,
                 const double phi_upper =
                     std::sqrt(std::pow((coord_upper[0] - X0(0)), 2.0) + std::pow((coord_upper[1] - X0(1)), 2.0)
 #if (NDIM == 3)
-                              +
-                              std::pow((coord_upper[2] - X0(2)), 2.0)
+                              + std::pow((coord_upper[2] - X0(2)), 2.0)
 #endif
                                   ) -
                     R;

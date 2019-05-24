@@ -32,16 +32,16 @@
 
 //////////////////////////////////// INCLUDES ////////////////////////////////////////////
 
-#include <iostream>
-#include <fstream>
-#include <cmath>
 #include <cassert>
+#include <cmath>
+#include <fstream>
+#include <iostream>
 #include <numeric>
-#include <vector>
 #include <utility>
+#include <vector>
 
-#include "gsl/gsl_linalg.h"
 #include "gsl/gsl_integration.h"
+#include "gsl/gsl_linalg.h"
 
 // Set Fish Related Parameters.
 static const double PII = 3.1415926535897932384626433832795;

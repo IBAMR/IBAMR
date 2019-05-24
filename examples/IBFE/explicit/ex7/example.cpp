@@ -131,7 +131,7 @@ upper_tether_force_function(VectorValue<double>& F,
     }
     return;
 } // upper_tether_force_function
-}
+} // namespace ModelData
 using namespace ModelData;
 
 // Function prototypes
@@ -155,7 +155,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *                                                                             *
  *******************************************************************************/
 
-bool run_example(int argc, char* argv[])
+bool
+run_example(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);

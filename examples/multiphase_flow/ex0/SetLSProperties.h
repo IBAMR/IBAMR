@@ -40,8 +40,7 @@ public:
     /*!
      * The only constructor of this class.
      */
-    SetLSProperties(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<IBAMR::LSInitStrategy> ls_ops);
+    SetLSProperties(const std::string& object_name, SAMRAI::tbox::Pointer<IBAMR::LSInitStrategy> ls_ops);
 
     /*!
      * Destructor for this class.

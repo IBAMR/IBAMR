@@ -23,7 +23,8 @@ callSetLSCallbackFunction(int ls_idx,
 {
     // Set the density from the level set information
     static SetLSProperties* ptr_SetLSProperties = static_cast<SetLSProperties*>(ctx);
-    ptr_SetLSProperties->setLSPatchData(ls_idx, hier_math_ops, integrator_step, current_time, initial_time, regrid_time);
+    ptr_SetLSProperties->setLSPatchData(
+        ls_idx, hier_math_ops, integrator_step, current_time, initial_time, regrid_time);
 
     return;
 
@@ -31,10 +32,8 @@ callSetLSCallbackFunction(int ls_idx,
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
 
-SetLSProperties::SetLSProperties(const std::string& object_name,
-                                 Pointer<LSInitStrategy> ls_ops)
-    : d_object_name(object_name),
-      d_ls_ops(ls_ops)
+SetLSProperties::SetLSProperties(const std::string& object_name, Pointer<LSInitStrategy> ls_ops)
+    : d_object_name(object_name), d_ls_ops(ls_ops)
 {
     // intentionally left blank
     return;

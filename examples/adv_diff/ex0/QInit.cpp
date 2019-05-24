@@ -174,9 +174,7 @@ QInit::setDataOnPatch(const int data_idx,
     else
     {
         TBOX_ERROR(d_object_name << "::initializeDataOnPatch()\n"
-                                 << "  invalid initialization type "
-                                 << d_init_type
-                                 << "\n");
+                                 << "  invalid initialization type " << d_init_type << "\n");
     }
     return;
 } // setDataOnPatch
@@ -210,9 +208,7 @@ QInit::getFromInput(Pointer<Database> db)
         else
         {
             TBOX_ERROR(d_object_name << "::getFromInput()\n"
-                                     << "  invalid initialization type "
-                                     << d_init_type
-                                     << "\n");
+                                     << "  invalid initialization type " << d_init_type << "\n");
         }
     }
     return;

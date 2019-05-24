@@ -98,7 +98,7 @@ PK1_dil_stress_function(TensorValue<double>& PP,
     PP = -mu * tensor_inverse_transpose(FF, NDIM);
     return;
 } // PK1_dil_stress_function
-}
+} // namespace ModelData
 using namespace ModelData;
 
 // Function prototypes

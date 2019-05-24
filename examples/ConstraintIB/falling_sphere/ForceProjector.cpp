@@ -203,8 +203,7 @@ ForceProjector::calculateEulerianBodyForce(const double /*new_time*/, const doub
             else
             {
                 TBOX_ERROR("ForceProjector::calculateEulerianBodyForce() "
-                           << "UNKNOWN SOLVER ENCOUNTERED"
-                           << std::endl);
+                           << "UNKNOWN SOLVER ENCOUNTERED" << std::endl);
             }
 
         } // iterate over patches

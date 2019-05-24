@@ -121,9 +121,11 @@ HydroForceEval::HydroForceEval(const std::string& object_name,
         for (int struct_no = 0; struct_no < d_num_structs; ++struct_no)
         {
             if (from_restart)
-                d_force_stream[struct_no] = new std::ofstream(d_dir_name + '/' + d_struct_names[struct_no] + "_HF.txt", std::fstream::app);
+                d_force_stream[struct_no] =
+                    new std::ofstream(d_dir_name + '/' + d_struct_names[struct_no] + "_HF.txt", std::fstream::app);
             else
-                d_force_stream[struct_no] = new std::ofstream(d_dir_name + '/' + d_struct_names[struct_no] + "_HF.txt", std::fstream::out);
+                d_force_stream[struct_no] =
+                    new std::ofstream(d_dir_name + '/' + d_struct_names[struct_no] + "_HF.txt", std::fstream::out);
         }
     }
 
@@ -243,10 +245,11 @@ HydroForceEval::calcHydroForce(const int u_idx,
                             cell_lower_nbr_idx(axis) -= 1;
 
                             vel_grad_tensor(d, axis) =
-                                0.25 * (((*u_data)(SideIndex<NDIM>(cell_upper_nbr_idx, d, SideIndex<NDIM>::Lower)) +
-                                         (*u_data)(SideIndex<NDIM>(cell_upper_nbr_idx, d, SideIndex<NDIM>::Upper))) -
-                                        ((*u_data)(SideIndex<NDIM>(cell_lower_nbr_idx, d, SideIndex<NDIM>::Lower)) +
-                                         (*u_data)(SideIndex<NDIM>(cell_lower_nbr_idx, d, SideIndex<NDIM>::Upper)))) /
+                                0.25 *
+                                (((*u_data)(SideIndex<NDIM>(cell_upper_nbr_idx, d, SideIndex<NDIM>::Lower)) +
+                                  (*u_data)(SideIndex<NDIM>(cell_upper_nbr_idx, d, SideIndex<NDIM>::Upper))) -
+                                 ((*u_data)(SideIndex<NDIM>(cell_lower_nbr_idx, d, SideIndex<NDIM>::Lower)) +
+                                  (*u_data)(SideIndex<NDIM>(cell_lower_nbr_idx, d, SideIndex<NDIM>::Upper)))) /
                                 d_mesh_width[axis];
                         }
                     }
@@ -373,9 +376,7 @@ HydroForceEval::getFromInput(Pointer<Database> db, LDataManager* const l_data_ma
             if (struct_id == -1)
             {
                 TBOX_ERROR(d_object_name << ":  "
-                                         << "Structure `"
-                                         << struct_name
-                                         << "' not found on finest level.");
+                                         << "Structure `" << struct_name << "' not found on finest level.");
             }
             else
             {
@@ -446,8 +447,7 @@ HydroForceEval::readVertexFiles(const std::string& extension)
             {
                 TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
                                             "before line 1 of file "
-                                         << vertex_filename
-                                         << std::endl);
+                                         << vertex_filename << std::endl);
             }
             else
             {
@@ -457,16 +457,14 @@ HydroForceEval::readVertexFiles(const std::string& extension)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
                                                 "encountered on line 1 of file "
-                                             << vertex_filename
-                                             << std::endl);
+                                             << vertex_filename << std::endl);
                 }
             }
 
             if (d_num_vertex[j] <= 0)
             {
                 TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file "
-                                         << vertex_filename
-                                         << std::endl);
+                                         << vertex_filename << std::endl);
             }
 
             // Each successive line provides the initial position of each
@@ -478,9 +476,7 @@ HydroForceEval::readVertexFiles(const std::string& extension)
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k + 2
-                                             << " of file "
-                                             << vertex_filename
-                                             << std::endl);
+                                             << " of file " << vertex_filename << std::endl);
                 }
                 else
                 {
@@ -491,9 +487,7 @@ HydroForceEval::readVertexFiles(const std::string& extension)
                         if (!(line_stream >> X[d]))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << vertex_filename
-                                                     << std::endl);
+                                                     << " of file " << vertex_filename << std::endl);
                         }
                     }
                 }
@@ -554,8 +548,7 @@ HydroForceEval::readElemFiles(const std::string& extension)
             {
                 TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
                                             "before line 1 of file "
-                                         << elem_filename
-                                         << std::endl);
+                                         << elem_filename << std::endl);
             }
             else
             {
@@ -565,16 +558,14 @@ HydroForceEval::readElemFiles(const std::string& extension)
                 {
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
                                                 "encountered on line 1 of file "
-                                             << elem_filename
-                                             << std::endl);
+                                             << elem_filename << std::endl);
                 }
             }
 
             if (d_num_elem[j] <= 0)
             {
                 TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file "
-                                         << elem_filename
-                                         << std::endl);
+                                         << elem_filename << std::endl);
             }
 
             // Each successive line provides the initial position of each
@@ -586,9 +577,7 @@ HydroForceEval::readElemFiles(const std::string& extension)
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k + 2
-                                             << " of file "
-                                             << elem_filename
-                                             << std::endl);
+                                             << " of file " << elem_filename << std::endl);
                 }
                 else
                 {
@@ -597,30 +586,22 @@ HydroForceEval::readElemFiles(const std::string& extension)
                     if (!(line_stream >> elem.first))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                 << " of file "
-                                                 << elem_filename
-                                                 << std::endl);
+                                                 << " of file " << elem_filename << std::endl);
                     }
                     else if (elem.first < 0 || elem.first >= d_num_elem[j])
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                 << " of file "
-                                                 << elem_filename
-                                                 << std::endl);
+                                                 << " of file " << elem_filename << std::endl);
                     }
                     if (!(line_stream >> elem.second))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                 << " of file "
-                                                 << elem_filename
-                                                 << std::endl);
+                                                 << " of file " << elem_filename << std::endl);
                     }
                     else if (elem.second < 0 || elem.second >= d_num_elem[j])
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                 << " of file "
-                                                 << elem_filename
-                                                 << std::endl);
+                                                 << " of file " << elem_filename << std::endl);
                     }
                 }
             }

@@ -118,7 +118,7 @@ ConstrainedNodalVel(libMesh::NumericVector<double>& U_k,
 #if (NDIM == 2)
     W(0, 1) = -U[2];
     W(1, 0) = U[2];
-#elif(NDIM == 3)
+#elif (NDIM == 3)
     W(0, 1) = -U[5];
     W(1, 0) = U[5];
     W(0, 2) = U[4];
@@ -157,7 +157,7 @@ ConstrainedCOMVel(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_c
 
     return;
 } // ConstrainedCOMVel
-}
+} // namespace ModelData
 using namespace ModelData;
 
 // Function prototypes

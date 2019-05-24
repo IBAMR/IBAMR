@@ -190,6 +190,6 @@ private:
 
 }; // ForceProjector
 
-} // IBTK
+} // namespace IBTK
 
 #endif // #ifndef included_ForceProjector

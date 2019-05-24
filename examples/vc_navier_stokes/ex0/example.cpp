@@ -118,8 +118,8 @@ run_example(int argc, char* argv[])
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         Pointer<INSVCStaggeredHierarchyIntegrator> time_integrator;
-        const string discretization_form = 
-            app_initializer->getComponentDatabase("Main")->getStringWithDefault("discretization_form", "NON_CONSERVATIVE");
+        const string discretization_form = app_initializer->getComponentDatabase("Main")->getStringWithDefault(
+            "discretization_form", "NON_CONSERVATIVE");
         if (discretization_form == "NON_CONSERVATIVE")
         {
             time_integrator = new INSVCStaggeredNonConservativeHierarchyIntegrator(

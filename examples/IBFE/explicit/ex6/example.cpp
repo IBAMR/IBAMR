@@ -77,15 +77,14 @@ struct ElasticityData
     const double mu_s;
     const double lambda_s;
 
-    ElasticityData(Pointer<Database> input_db) :
-        c1_s(input_db->getDouble("C1_S")),
-        kappa_s(input_db->getDouble("KAPPA_S")),
-        mu_s(input_db->getDouble("MU_S")),
-        lambda_s(input_db->getDouble("LAMBDA_S"))
-        {}
+    ElasticityData(Pointer<Database> input_db)
+        : c1_s(input_db->getDouble("C1_S")),
+          kappa_s(input_db->getDouble("KAPPA_S")),
+          mu_s(input_db->getDouble("MU_S")),
+          lambda_s(input_db->getDouble("LAMBDA_S"))
+    {
+    }
 };
-
-
 
 // Tether (penalty) force function for the solid block.
 void
@@ -99,7 +98,7 @@ block_tether_force_function(VectorValue<double>& F,
                             double /*time*/,
                             void* ctx)
 {
-    const ElasticityData * const elasticity_data = reinterpret_cast<ElasticityData *>(ctx);
+    const ElasticityData* const elasticity_data = reinterpret_cast<ElasticityData*>(ctx);
 
     F = elasticity_data->kappa_s * (s - X);
     return;
@@ -120,7 +119,7 @@ beam_tether_force_function(VectorValue<double>& F,
     const double r = sqrt((s(0) - 0.2) * (s(0) - 0.2) + (s(1) - 0.2) * (s(1) - 0.2));
     if (r <= 0.05)
     {
-        const ElasticityData * const elasticity_data = reinterpret_cast<ElasticityData *>(ctx);
+        const ElasticityData* const elasticity_data = reinterpret_cast<ElasticityData*>(ctx);
         F = elasticity_data->kappa_s * (s - X);
     }
     else
@@ -142,7 +141,7 @@ block_PK1_stress_function(TensorValue<double>& PP,
                           double /*time*/,
                           void* ctx)
 {
-    const ElasticityData * const elasticity_data = reinterpret_cast<ElasticityData *>(ctx);
+    const ElasticityData* const elasticity_data = reinterpret_cast<ElasticityData*>(ctx);
 
     PP = 2.0 * elasticity_data->c1_s * (FF - tensor_inverse_transpose(FF, NDIM));
     return;
@@ -159,16 +158,15 @@ beam_PK1_stress_function(TensorValue<double>& PP,
                          double /*time*/,
                          void* ctx)
 {
-    const ElasticityData * const elasticity_data = reinterpret_cast<ElasticityData *>(ctx);
+    const ElasticityData* const elasticity_data = reinterpret_cast<ElasticityData*>(ctx);
     static const TensorValue<double> II(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
     const TensorValue<double> CC = FF.transpose() * FF;
     const TensorValue<double> EE = 0.5 * (CC - II);
-    const TensorValue<double> SS = elasticity_data->lambda_s * EE.tr() * II
-        + 2.0 * elasticity_data->mu_s * EE;
+    const TensorValue<double> SS = elasticity_data->lambda_s * EE.tr() * II + 2.0 * elasticity_data->mu_s * EE;
     PP = FF * SS;
     return;
 } // beam_PK1_stress_function
-}
+} // namespace ModelData
 using namespace ModelData;
 
 // Function prototypes
@@ -354,17 +352,14 @@ run_example(int argc, char* argv[])
 
         // Configure the IBFE solver.
         ElasticityData elasticity_data(input_db);
-        void * const elasticity_data_ptr = reinterpret_cast<void *>(&elasticity_data);
-        IBFEMethod::LagBodyForceFcnData block_tether_force_data(block_tether_force_function,
-                                                                std::vector<IBTK::SystemData>(),
-                                                                elasticity_data_ptr);
-        IBFEMethod::PK1StressFcnData block_PK1_stress_data(block_PK1_stress_function,
-                                                           std::vector<IBTK::SystemData>(),
-                                                           elasticity_data_ptr);
+        void* const elasticity_data_ptr = reinterpret_cast<void*>(&elasticity_data);
+        IBFEMethod::LagBodyForceFcnData block_tether_force_data(
+            block_tether_force_function, std::vector<IBTK::SystemData>(), elasticity_data_ptr);
+        IBFEMethod::PK1StressFcnData block_PK1_stress_data(
+            block_PK1_stress_function, std::vector<IBTK::SystemData>(), elasticity_data_ptr);
         ib_method_ops->registerLagBodyForceFunction(block_tether_force_data, 0);
         ib_method_ops->registerPK1StressFunction(block_PK1_stress_data, 0);
-        string block_kernel_fcn = input_db->getStringWithDefault("BLOCK_KERNEL_FUNCTION",
-                                                                 "PIECEWISE_LINEAR");
+        string block_kernel_fcn = input_db->getStringWithDefault("BLOCK_KERNEL_FUNCTION", "PIECEWISE_LINEAR");
         FEDataManager::InterpSpec block_interp_spec = ib_method_ops->getDefaultInterpSpec();
         block_interp_spec.kernel_fcn = block_kernel_fcn;
         ib_method_ops->setInterpSpec(block_interp_spec, 0);
@@ -372,12 +367,10 @@ run_example(int argc, char* argv[])
         block_spread_spec.kernel_fcn = block_kernel_fcn;
         ib_method_ops->setSpreadSpec(block_spread_spec, 0);
 
-        IBFEMethod::LagBodyForceFcnData beam_tether_force_data(beam_tether_force_function,
-                                                               std::vector<IBTK::SystemData>(),
-                                                               elasticity_data_ptr);
-        IBFEMethod::PK1StressFcnData beam_PK1_stress_data(beam_PK1_stress_function,
-                                                          std::vector<IBTK::SystemData>(),
-                                                          elasticity_data_ptr);
+        IBFEMethod::LagBodyForceFcnData beam_tether_force_data(
+            beam_tether_force_function, std::vector<IBTK::SystemData>(), elasticity_data_ptr);
+        IBFEMethod::PK1StressFcnData beam_PK1_stress_data(
+            beam_PK1_stress_function, std::vector<IBTK::SystemData>(), elasticity_data_ptr);
         ib_method_ops->registerLagBodyForceFunction(beam_tether_force_data, 1);
         ib_method_ops->registerPK1StressFunction(beam_PK1_stress_data, 1);
         string beam_kernel_fcn = input_db->getStringWithDefault("BEAM_KERNEL_FUNCTION", "IB_3");

@@ -256,8 +256,8 @@ SetFluidGasSolidDensity::setDensityPatchData(int rho_idx,
                             }
                             else
                             {
-                                h_solid = ( std::max(phi_solid_lower, 0.0) + std::max(phi_solid_upper, 0.0) )
-                                        / ( std::abs(phi_solid_lower) + std::abs(phi_solid_upper) );
+                                h_solid = (std::max(phi_solid_lower, 0.0) + std::max(phi_solid_upper, 0.0)) /
+                                          (std::abs(phi_solid_lower) + std::abs(phi_solid_upper));
                             }
                             if (phi_gas_lower >= 0.0 && phi_gas_upper >= 0.0)
                             {
@@ -269,8 +269,8 @@ SetFluidGasSolidDensity::setDensityPatchData(int rho_idx,
                             }
                             else
                             {
-                                h_gas = ( std::max(phi_gas_lower, 0.0) + std::max(phi_gas_upper, 0.0) )
-                                      / ( std::abs(phi_gas_lower) + std::abs(phi_gas_upper) );
+                                h_gas = (std::max(phi_gas_lower, 0.0) + std::max(phi_gas_upper, 0.0)) /
+                                        (std::abs(phi_gas_lower) + std::abs(phi_gas_upper));
                             }
 
                             // First, compute the density of the "flowing" phases
@@ -353,10 +353,10 @@ SetFluidGasSolidDensity::setDensityPatchData(int rho_idx,
                             // SETTING 3: Simple average of phi onto side centers and set rho_sc directly
                             double h_solid, h_gas;
                             const double* const patch_dx = patch_geom->getDx();
-                            const double alpha = d_num_solid_interface_cells*patch_dx[0];
-                            const double beta = d_num_gas_interface_cells*patch_dx[1];
-                            const double phi_solid = 0.5*(phi_solid_lower + phi_solid_upper);
-                            const double phi_gas = 0.5*(phi_gas_lower + phi_gas_upper);
+                            const double alpha = d_num_solid_interface_cells * patch_dx[0];
+                            const double beta = d_num_gas_interface_cells * patch_dx[1];
+                            const double phi_solid = 0.5 * (phi_solid_lower + phi_solid_upper);
+                            const double phi_gas = 0.5 * (phi_gas_lower + phi_gas_upper);
 
                             if (phi_solid < -alpha)
                             {
@@ -364,7 +364,8 @@ SetFluidGasSolidDensity::setDensityPatchData(int rho_idx,
                             }
                             else if (std::abs(phi_solid) <= alpha)
                             {
-                                h_solid = 0.5 + 0.5 * phi_solid/alpha + 1.0/(2.0*M_PI)*std::sin(M_PI*phi_solid/alpha);
+                                h_solid = 0.5 + 0.5 * phi_solid / alpha +
+                                          1.0 / (2.0 * M_PI) * std::sin(M_PI * phi_solid / alpha);
                             }
                             else
                             {
@@ -377,14 +378,15 @@ SetFluidGasSolidDensity::setDensityPatchData(int rho_idx,
                             }
                             else if (std::abs(phi_gas) <= beta)
                             {
-                                h_gas = 0.5 + 0.5 * phi_gas/beta + 1.0/(2.0*M_PI)*std::sin(M_PI*phi_gas/beta);
+                                h_gas =
+                                    0.5 + 0.5 * phi_gas / beta + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi_gas / beta);
                             }
                             else
                             {
                                 h_gas = 1.0;
                             }
-                            const double rho_flow = (d_rho_fluid - d_rho_gas)*h_gas + d_rho_gas;
-                            const double rho_full = (rho_flow - d_rho_solid)*h_solid + d_rho_solid;
+                            const double rho_flow = (d_rho_fluid - d_rho_gas) * h_gas + d_rho_gas;
+                            const double rho_full = (rho_flow - d_rho_solid) * h_solid + d_rho_solid;
 
                             (*rho_data)(si) = rho_full;
                         }

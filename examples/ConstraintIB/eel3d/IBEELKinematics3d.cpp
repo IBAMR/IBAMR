@@ -36,16 +36,16 @@
 #include <iostream>
 #include <sstream>
 
+#include "CartesianPatchGeometry.h"
 #include "IBEELKinematics3d.h"
 #include "PatchLevel.h"
-#include "CartesianPatchGeometry.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/Utilities.h"
+#include "gsl/gsl_integration.h"
+#include "gsl/gsl_linalg.h"
 #include "ibamr/namespaces.h"
 #include "muParser.h"
-#include "gsl/gsl_linalg.h"
-#include "gsl/gsl_integration.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
 
 namespace IBAMR
 {
@@ -104,7 +104,7 @@ yVelocity(double s, void* params)
               (-3 * a3 + 2 * PII * PII * (a1 + 2 * a2 * s + 3 * a3 * s * s) * tau * tau) *
                   std::sin((2 * PII * (t - s * T * tau)) / T))
 
-             );
+        );
 
     return dydt;
 
@@ -123,14 +123,14 @@ xVelocity(double s, void* params)
     double T = input[6];
 
     double dxdt =
-        -std::sin((1 / (8 * std::pow(PII * tau, 4))) * (std::tanh(PII * t / T)) *
-                  (2 * PII * tau * (a2 - 2 * a0 * std::pow(PII * tau, 2)) * std::cos((2 * PII * t) / T) +
-                   2 * PII * tau *
-                       (-a2 - 3 * a3 * s + 2 * PII * PII * (a0 + s * (a1 + s * (a2 + a3 * s))) * tau * tau) *
-                       cos((2 * PII * (t - s * T * tau)) / T) +
-                   (3 * a3 - 2 * a1 * std::pow(PII * tau, 2)) * sin((2 * PII * t) / T) +
-                   (-3 * a3 + 2 * PII * PII * (a1 + 2 * a2 * s + 3 * a3 * s * s) * tau * tau) *
-                       std::sin((2 * PII * (t - s * T * tau)) / T))) *
+        -std::sin(
+            (1 / (8 * std::pow(PII * tau, 4))) * (std::tanh(PII * t / T)) *
+            (2 * PII * tau * (a2 - 2 * a0 * std::pow(PII * tau, 2)) * std::cos((2 * PII * t) / T) +
+             2 * PII * tau * (-a2 - 3 * a3 * s + 2 * PII * PII * (a0 + s * (a1 + s * (a2 + a3 * s))) * tau * tau) *
+                 cos((2 * PII * (t - s * T * tau)) / T) +
+             (3 * a3 - 2 * a1 * std::pow(PII * tau, 2)) * sin((2 * PII * t) / T) +
+             (-3 * a3 + 2 * PII * PII * (a1 + 2 * a2 * s + 3 * a3 * s * s) * tau * tau) *
+                 std::sin((2 * PII * (t - s * T * tau)) / T))) *
         ((1 / (8 * std::pow(PII * tau, 4))) * ((2 * PII) / T) * (std::tanh(PII * t / T)) *
              (2 * PII * tau * (a2 - 2 * a0 * std::pow(PII * tau, 2)) * std::sin((2 * PII * t) / T) * (-1) +
               2 * PII * tau * (-a2 - 3 * a3 * s + 2 * PII * PII * (a0 + s * (a1 + s * (a2 + a3 * s))) * tau * tau) *
@@ -146,7 +146,7 @@ xVelocity(double s, void* params)
               (-3 * a3 + 2 * PII * PII * (a1 + 2 * a2 * s + 3 * a3 * s * s) * tau * tau) *
                   std::sin((2 * PII * (t - s * T * tau)) / T))
 
-             );
+        );
 
     return dxdt;
 
@@ -202,7 +202,7 @@ yPosition(double s, void* params)
 
 } // yPosition
 
-} // namespace anonymous
+} // namespace
 
 IBEELKinematics3d::IBEELKinematics3d(const std::string& object_name,
                                      Pointer<Database> input_db,
@@ -267,8 +267,7 @@ IBEELKinematics3d::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
 
     d_current_time = db->getDouble("d_current_time");
