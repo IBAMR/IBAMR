@@ -51,7 +51,7 @@ namespace
 {
 // Version of CIBFEMethod restart file data.
 static const int CIBFE_METHOD_VERSION = 1;
-}
+} // namespace
 
 const std::string CIBFEMethod::CONSTRAINT_VELOCITY_SYSTEM_NAME = "IB constrained velocity system";
 
@@ -207,7 +207,7 @@ CIBFEMethod::preprocessIntegrateData(double current_time, double new_time, int n
                 d_rot_vel_half[part][2] = rot_vel_half[2];
                 d_rot_vel_new[part][2] = rot_vel_new[2];
             }
-#elif(NDIM == 3)
+#elif (NDIM == 3)
             for (int d = 0; d < NDIM; ++d)
             {
                 if (!solve_dofs[3 + d])
@@ -523,8 +523,7 @@ void
 CIBFEMethod::trapezoidalStep(const double /*current_time*/, const double /*new_time*/)
 {
     TBOX_ERROR("CIBFEMethod does not support trapezoidal time-stepping rule for position update."
-               << " Only midpoint rule is supported for position update."
-               << std::endl);
+               << " Only midpoint rule is supported for position update." << std::endl);
 } // trapezoidalStep
 
 void
@@ -581,8 +580,7 @@ CIBFEMethod::getConstraintForce(Vec* L, const double data_time)
     else
     {
         TBOX_ERROR("Warning CIBFEMethod::getConstraintForce() : constraint force "
-                   << "enquired at some other time than current or new time."
-                   << std::endl);
+                   << "enquired at some other time than current or new time." << std::endl);
     }
 } // getConstraintForce
 
@@ -839,7 +837,7 @@ CIBFEMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rig
             }
 #if (NDIM == 2)
             F[NDIM] += (L_qp[1] * (X_qp[0] - X_com[0]) - L_qp[0] * (X_qp[1] - X_com[1])) * JxW_L[qp];
-#elif(NDIM == 3)
+#elif (NDIM == 3)
             F[NDIM] += (L_qp[2] * (X_qp[1] - X_com[1]) - L_qp[1] * (X_qp[2] - X_com[2])) * JxW_L[qp];
             F[NDIM + 1] += (L_qp[0] * (X_qp[2] - X_com[2]) - L_qp[2] * (X_qp[0] - X_com[0])) * JxW_L[qp];
             F[NDIM + 2] += (L_qp[1] * (X_qp[0] - X_com[0]) - L_qp[0] * (X_qp[1] - X_com[1])) * JxW_L[qp];
@@ -1021,7 +1019,7 @@ CIBFEMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector&
 #if (NDIM == 2)
         W(0, 1) = -U[2];
         W(1, 0) = U[2];
-#elif(NDIM == 3)
+#elif (NDIM == 3)
         W(0, 1) = -U[5];
         W(1, 0) = U[5];
         W(0, 2) = U[4];
@@ -1225,7 +1223,7 @@ CIBFEMethod::putToDatabase(Pointer<Database> db)
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         const std::string part_str = std::to_string(part);
-        
+
         double Q_coeffs[4] = { d_quaternion_current[part].w(),
                                d_quaternion_current[part].x(),
                                d_quaternion_current[part].y(),
@@ -1284,9 +1282,8 @@ CIBFEMethod::getFromRestart()
     }
     else
     {
-        TBOX_ERROR("CIBFEMethod::getFromRestart(): Restart database corresponding to " << d_object_name
-                                                                                       << " not found in restart file."
-                                                                                       << std::endl);
+        TBOX_ERROR("CIBFEMethod::getFromRestart(): Restart database corresponding to "
+                   << d_object_name << " not found in restart file." << std::endl);
     }
 
     int ver = db->getInteger("CIBFE_METHOD_VERSION");
@@ -1298,7 +1295,7 @@ CIBFEMethod::getFromRestart()
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
         const std::string part_str = std::to_string(part);
-        
+
         double Q_coeffs[4];
         db->getDoubleArray("U_" + part_str, &d_trans_vel_current[part][0], 3);
         db->getDoubleArray("W_" + part_str, &d_rot_vel_current[part][0], 3);

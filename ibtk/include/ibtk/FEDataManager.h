@@ -38,9 +38,9 @@
 #include <map>
 #include <ostream>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
-#include <unordered_map>
 
 #include "BasePatchLevel.h"
 #include "CellVariable.h"
@@ -144,9 +144,7 @@ public:
          * elem and @p var is much faster than the first.
          */
         inline void
-        dof_indices(const libMesh::Elem* const elem,
-                    std::vector<unsigned int>& dof_indices,
-                    const unsigned int var = 0)
+        dof_indices(const libMesh::Elem* const elem, std::vector<unsigned int>& dof_indices, const unsigned int var = 0)
         {
             dof_indices = this->dof_indices(elem)[var];
             return;
@@ -156,11 +154,9 @@ public:
          * Alternative indexing operation: retrieve all dof indices of all
          * variables in the given system at once by reference.
          */
-        inline
-        const std::vector<std::vector<libMesh::dof_id_type>>&
-        dof_indices(const libMesh::Elem* const elem)
+        inline const std::vector<std::vector<libMesh::dof_id_type> >& dof_indices(const libMesh::Elem* const elem)
         {
-            std::vector<std::vector<libMesh::dof_id_type>>& elem_dof_indices = d_dof_cache[elem->id()];
+            std::vector<std::vector<libMesh::dof_id_type> >& elem_dof_indices = d_dof_cache[elem->id()];
             if (elem_dof_indices.empty())
             {
                 elem_dof_indices.resize(d_dof_map.n_variables());
@@ -706,7 +702,9 @@ public:
      * computed) to the <code>d_workload_idx</code> cell variable.
      */
     void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                             const int workload_data_idx, const int coarsest_ln = -1, const int finest_ln = -1);
+                             const int workload_data_idx,
+                             const int coarsest_ln = -1,
+                             const int finest_ln = -1);
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -1010,7 +1008,7 @@ private:
     /*
      * Ghost vectors for the various equation systems.
      */
-    std::map<std::string, std::unique_ptr<libMesh::NumericVector<double>>> d_system_ghost_vec;
+    std::map<std::string, std::unique_ptr<libMesh::NumericVector<double> > > d_system_ghost_vec;
 
     /*
      * Exemplar relevant IB-ghosted vectors for the various equation
@@ -1023,9 +1021,9 @@ private:
      * Linear solvers and related data for performing interpolation in the IB-FE
      * framework.
      */
-    std::map<std::string, std::unique_ptr<libMesh::LinearSolver<double>>> d_L2_proj_solver;
-    std::map<std::string, std::unique_ptr<libMesh::SparseMatrix<double>>> d_L2_proj_matrix;
-    std::map<std::string, std::unique_ptr<libMesh::NumericVector<double>>> d_L2_proj_matrix_diag;
+    std::map<std::string, std::unique_ptr<libMesh::LinearSolver<double> > > d_L2_proj_solver;
+    std::map<std::string, std::unique_ptr<libMesh::SparseMatrix<double> > > d_L2_proj_matrix;
+    std::map<std::string, std::unique_ptr<libMesh::NumericVector<double> > > d_L2_proj_matrix_diag;
 };
 } // namespace IBTK
 

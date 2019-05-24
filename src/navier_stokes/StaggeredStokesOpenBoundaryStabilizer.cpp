@@ -81,7 +81,7 @@ smooth_kernel(const double r)
 {
     return std::abs(r) < 1.0 ? 0.5 * (std::cos(M_PI * r) + 1.0) : 0.0;
 } // smooth_kernel
-}
+} // namespace
 
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -123,9 +123,7 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
                     TBOX_ERROR(
                         "StaggeredStokesOpenBoundaryStabilizer::"
                         "StaggeredStokesOpenBoundaryStabilizer():\n"
-                        << "  unsupported stabilization type: ``"
-                        << stabilization_type
-                        << "''\n"
+                        << "  unsupported stabilization type: ``" << stabilization_type << "''\n"
                         << "  supported values are: ``INFLOW'', ``OUTFLOW'', or ``NONE''\n");
                 }
             }

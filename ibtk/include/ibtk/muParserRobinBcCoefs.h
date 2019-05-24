@@ -42,8 +42,8 @@
 #include "CartesianGridGeometry.h"
 #include "IntVector.h"
 #include "RobinBcCoefStrategy.h"
-#include "muParser.h"
 #include "ibtk/ibtk_utilities.h"
+#include "muParser.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI

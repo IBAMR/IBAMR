@@ -117,9 +117,7 @@ INSStaggeredConvectiveOperatorManager::allocateOperator(const std::string& opera
     if (it == d_operator_maker_map.end())
     {
         TBOX_ERROR("INSStaggeredConvectiveOperatorManager::allocateOperator():\n"
-                   << "  unrecognized operator type: "
-                   << operator_type
-                   << "\n");
+                   << "  unrecognized operator type: " << operator_type << "\n");
     }
     return (it->second)(operator_object_name, input_db, difference_form, bc_coefs);
 } // allocateOperator

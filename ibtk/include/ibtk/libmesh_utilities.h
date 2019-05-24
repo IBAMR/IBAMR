@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/IBTK_CHKERRQ.h"
 #include "libmesh/dof_map.h"
 #include "libmesh/dof_object.h"
 #include "libmesh/edge.h"
@@ -47,7 +48,6 @@
 #include "libmesh/type_tensor.h"
 #include "libmesh/type_vector.h"
 #include "libmesh/vector_value.h"
-#include "ibtk/IBTK_CHKERRQ.h"
 #include "tbox/Utilities.h"
 
 #include <boost/multi_array.hpp>
@@ -323,7 +323,6 @@ getQuadratureKey(const libMesh::QuadratureType quad_type,
                  const libMesh::Elem* const elem,
                  const boost::multi_array<double, 2>& X_node,
                  const double dx_min);
-
 
 template <class MultiArray, class Array>
 inline void
@@ -787,8 +786,7 @@ intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals
     default:
     {
         TBOX_ERROR("intersect_line_with_edge():"
-                   << "  element type "
-                   << libMesh::Utility::enum_to_string<libMesh::ElemType>(elem->type())
+                   << "  element type " << libMesh::Utility::enum_to_string<libMesh::ElemType>(elem->type())
                    << " is not supported at this time.\n");
     }
     }
@@ -959,8 +957,7 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
     default:
     {
         TBOX_ERROR("intersect_line_with_face():"
-                   << "  element type "
-                   << libMesh::Utility::enum_to_string<libMesh::ElemType>(elem->type())
+                   << "  element type " << libMesh::Utility::enum_to_string<libMesh::ElemType>(elem->type())
                    << " is not supported at this time.\n");
     }
     }
@@ -975,7 +972,6 @@ struct DofObjectComp
     }
 };
 
-
 /*!
  * Recent versions of libMesh acquired a useful function that lets us extract
  * the DoFs corresponding to basis functions with node value functionals. This
@@ -983,10 +979,10 @@ struct DofObjectComp
  * implementation if the present libMesh is too old.
  */
 inline void
-get_nodal_dof_indices(const libMesh::DofMap &dof_map,
+get_nodal_dof_indices(const libMesh::DofMap& dof_map,
                       const libMesh::Node* const node,
                       const unsigned int variable_n,
-                      std::vector<libMesh::dof_id_type> &nodal_indices)
+                      std::vector<libMesh::dof_id_type>& nodal_indices)
 {
 #if LIBMESH_MINOR_VERSION < 2
     // See dof_map.C, circa line 2208
@@ -999,7 +995,7 @@ get_nodal_dof_indices(const libMesh::DofMap &dof_map,
     const unsigned int system_n = dof_map.sys_number();
 
     // Get the dof numbers
-    const libMesh::Variable &var = dof_map.variable(variable_n);
+    const libMesh::Variable& var = dof_map.variable(variable_n);
     if (var.type().family == libMesh::SCALAR)
     {
         dof_map.SCALAR_dof_indices(nodal_indices, variable_n);
@@ -1018,7 +1014,6 @@ get_nodal_dof_indices(const libMesh::DofMap &dof_map,
     dof_map.dof_indices(node, nodal_indices, variable_n);
 #endif
 }
-
 
 /**
  * Return the maximum edge length of a given element with mapped nodes.
@@ -1129,8 +1124,7 @@ get_max_edge_length(const libMesh::Elem* const elem, const MultiArray& X_node)
  * communicator assigned to @p position_system, so it is an inherently serial
  * function.
  */
-void
-write_elem_partitioning(const std::string& file_name, const libMesh::System& position_system);
+void write_elem_partitioning(const std::string& file_name, const libMesh::System& position_system);
 
 /*!
  * Save, in a plain text file, the libMesh Node partitioning, with the format
@@ -1144,8 +1138,7 @@ write_elem_partitioning(const std::string& file_name, const libMesh::System& pos
  * communicator assigned to @p position_system, so it is an inherently serial
  * function.
  */
-void
-write_node_partitioning(const std::string& file_name, const libMesh::System& position_system);
+void write_node_partitioning(const std::string& file_name, const libMesh::System& position_system);
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

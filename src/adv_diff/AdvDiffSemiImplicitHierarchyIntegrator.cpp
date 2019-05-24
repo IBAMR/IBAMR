@@ -142,8 +142,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(c
     default:
         TBOX_ERROR(d_object_name << "::AdvDiffSemiImplicitHierarchyIntegrator():\n"
                                  << "  unsupported default diffusion time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type)
-                                 << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type) << " \n"
                                  << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
 
@@ -157,8 +156,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(c
     default:
         TBOX_ERROR(d_object_name << "::AdvDiffSemiImplicitHierarchyIntegrator():\n"
                                  << "  unsupported default convective time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_default_convective_time_stepping_type)
-                                 << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_default_convective_time_stepping_type) << " \n"
                                  << "  valid choices are: ADAMS_BASHFORTH, FORWARD_EULER, "
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
@@ -565,8 +563,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
         default:
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                                      << "  unsupported diffusion time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type)
-                                     << " \n"
+                                     << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
                                      << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
         }
         PoissonSpecifications solver_spec(d_object_name + "::solver_spec::" + Q_var->getName());
@@ -645,9 +642,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
                                          << "  time stepping type: "
                                          << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
                                          << " requires num_cycles > 1.\n"
-                                         << "  at current time step, num_cycles = "
-                                         << num_cycles
-                                         << "\n");
+                                         << "  at current time step, num_cycles = " << num_cycles << "\n");
             }
             if (d_Q_convective_op_needs_init[Q_var])
             {
@@ -697,12 +692,11 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_
     const int expected_num_cycles = getNumberOfCycles();
     if (d_current_num_cycles != expected_num_cycles)
     {
-        IBAMR_DO_ONCE(
-            {
-                pout << "AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy():\n"
-                     << "  WARNING: num_cycles = " << d_current_num_cycles
-                     << " but expected num_cycles = " << expected_num_cycles << ".\n";
-            });
+        IBAMR_DO_ONCE({
+            pout << "AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy():\n"
+                 << "  WARNING: num_cycles = " << d_current_num_cycles
+                 << " but expected num_cycles = " << expected_num_cycles << ".\n";
+        });
     }
 
     // Perform a single step of fixed point iteration.
@@ -756,21 +750,19 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_
                 else if (cycle_num > 0)
                 {
                     convective_time_stepping_type = MIDPOINT_RULE;
-                    IBAMR_DO_ONCE(
-                        {
-                            pout << "AdvDiffSemiImplicitHierarchyIntegrator::"
-                                    "integrateHierarchy():"
-                                    "\n"
-                                 << "  WARNING: convective_time_stepping_type = "
-                                 << enum_to_string<TimeSteppingType>(d_Q_convective_time_stepping_type[Q_var])
-                                 << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
-                                 << "           using "
-                                 << enum_to_string<TimeSteppingType>(d_Q_convective_time_stepping_type[Q_var])
-                                 << " only for the first cycle in each time step;\n"
-                                 << "           using "
-                                 << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
-                                 << " for subsequent cycles.\n";
-                        });
+                    IBAMR_DO_ONCE({
+                        pout << "AdvDiffSemiImplicitHierarchyIntegrator::"
+                                "integrateHierarchy():"
+                                "\n"
+                             << "  WARNING: convective_time_stepping_type = "
+                             << enum_to_string<TimeSteppingType>(d_Q_convective_time_stepping_type[Q_var])
+                             << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
+                             << "           using "
+                             << enum_to_string<TimeSteppingType>(d_Q_convective_time_stepping_type[Q_var])
+                             << " only for the first cycle in each time step;\n"
+                             << "           using " << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
+                             << " for subsequent cycles.\n";
+                    });
                 }
             }
             const int N_scratch_idx = var_db->mapVariableAndContextToIndex(N_var, getScratchContext());
@@ -1010,8 +1002,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
     d_default_convective_time_stepping_type =
         string_to_enum<TimeSteppingType>(db->getString("d_default_convective_time_stepping_type"));

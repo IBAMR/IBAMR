@@ -108,8 +108,10 @@ public:
      * Update solution variables by performing a conservative difference using
      * the fluxes calculated in computeFluxesOnPatch().
      */
-    void
-    conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time, double dt, bool at_synchronization) override;
+    void conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch,
+                                       double time,
+                                       double dt,
+                                       bool at_synchronization) override;
 
     /*!
      * Compute the values of any time-dependent source terms for use by the
@@ -175,7 +177,8 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffPredictorCorrectorHyperbolicPatchOps& operator=(const AdvDiffPredictorCorrectorHyperbolicPatchOps& that) = delete;
+    AdvDiffPredictorCorrectorHyperbolicPatchOps&
+    operator=(const AdvDiffPredictorCorrectorHyperbolicPatchOps& that) = delete;
 };
 } // namespace IBAMR
 

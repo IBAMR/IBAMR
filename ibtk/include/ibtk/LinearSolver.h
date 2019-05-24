@@ -76,10 +76,10 @@ public:
      * but should not assume the basis vectors to be orthonormal.  If the basis
      * vectors are not orthonormal, the solver may normalize them in place.
      */
-    virtual void setNullspace(bool nullspace_contains_constant_vec,
-                              const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >&
-                                  nullspace_basis_vecs = std::vector<
-                                      SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >());
+    virtual void setNullspace(
+        bool nullspace_contains_constant_vec,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs =
+            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >());
 
     /*!
      * \brief Get whether the nullspace of the linear system contains th

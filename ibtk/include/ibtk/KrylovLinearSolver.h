@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-
 #include "IntVector.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/LinearOperator.h"

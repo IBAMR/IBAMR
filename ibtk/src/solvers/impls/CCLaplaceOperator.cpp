@@ -84,7 +84,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 static Timer* t_apply;
 static Timer* t_initialize_operator_state;
 static Timer* t_deallocate_operator_state;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -123,8 +123,7 @@ CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
         if (!x_cc_var || !y_cc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
-                                     << "  encountered non-cell centered vector components"
-                                     << std::endl);
+                                     << "  encountered non-cell centered vector components" << std::endl);
         }
         Pointer<CellDataFactory<NDIM, double> > x_factory = x_cc_var->getPatchDataFactory();
         Pointer<CellDataFactory<NDIM, double> > y_factory = y_cc_var->getPatchDataFactory();
@@ -136,12 +135,8 @@ CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
         if (x_depth != d_bc_coefs.size() || y_depth != d_bc_coefs.size())
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
-                                     << "  each vector component must have data depth == "
-                                     << d_bc_coefs.size()
-                                     << "\n"
-                                     << "  since d_bc_coefs.size() == "
-                                     << d_bc_coefs.size()
-                                     << std::endl);
+                                     << "  each vector component must have data depth == " << d_bc_coefs.size() << "\n"
+                                     << "  since d_bc_coefs.size() == " << d_bc_coefs.size() << std::endl);
         }
     }
 #endif

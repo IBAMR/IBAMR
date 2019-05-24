@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-
+#include "ibtk/NewtonKrylovSolver.h"
 #include "IntVector.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"
@@ -40,7 +40,6 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/JacobianOperator.h"
 #include "ibtk/KrylovLinearSolver.h"
-#include "ibtk/NewtonKrylovSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 

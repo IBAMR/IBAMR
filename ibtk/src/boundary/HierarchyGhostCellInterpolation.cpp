@@ -106,7 +106,7 @@ static Timer* t_fill_data;
 static Timer* t_fill_data_coarsen;
 static Timer* t_fill_data_refine;
 static Timer* t_fill_data_set_physical_bcs;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

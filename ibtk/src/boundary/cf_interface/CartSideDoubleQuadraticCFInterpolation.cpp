@@ -76,76 +76,77 @@
 #endif
 
 // Function interfaces
-extern "C" {
-void SC_QUAD_TANGENTIAL_INTERPOLATION_FC(double* U_fine0,
-                                         double* U_fine1,
+extern "C"
+{
+    void SC_QUAD_TANGENTIAL_INTERPOLATION_FC(double* U_fine0,
+                                             double* U_fine1,
 #if (NDIM == 3)
-                                         double* U_fine2,
+                                             double* U_fine2,
 #endif
-                                         const int& U_fine_gcw,
-                                         const double* U_crse0,
-                                         const double* U_crse1,
+                                             const int& U_fine_gcw,
+                                             const double* U_crse0,
+                                             const double* U_crse1,
 #if (NDIM == 3)
-                                         const double* U_crse2,
+                                             const double* U_crse2,
 #endif
-                                         const int& U_crse_gcw,
+                                             const int& U_crse_gcw,
+                                             const int* sc_indicator0,
+                                             const int* sc_indicator1,
+#if (NDIM == 3)
+                                             const int* sc_indicator2,
+#endif
+                                             const int& sc_indicator_gcw,
+                                             const int& ilowerf0,
+                                             const int& iupperf0,
+                                             const int& ilowerf1,
+                                             const int& iupperf1,
+#if (NDIM == 3)
+                                             const int& ilowerf2,
+                                             const int& iupperf2,
+#endif
+                                             const int& ilowerc0,
+                                             const int& iupperc0,
+                                             const int& ilowerc1,
+                                             const int& iupperc1,
+#if (NDIM == 3)
+                                             const int& ilowerc2,
+                                             const int& iupperc2,
+#endif
+                                             const int& loc_index,
+                                             const int* ratio_to_coarser,
+                                             const int* blower,
+                                             const int* bupper);
+
+    void SC_QUAD_NORMAL_INTERPOLATION_FC(double* U0,
+                                         double* U1,
+#if (NDIM == 3)
+                                         double* U2,
+#endif
+                                         const int& U_gcw,
+                                         const double* W0,
+                                         const double* W1,
+#if (NDIM == 3)
+                                         const double* W2,
+#endif
+                                         const int& W_gcw,
                                          const int* sc_indicator0,
                                          const int* sc_indicator1,
 #if (NDIM == 3)
                                          const int* sc_indicator2,
 #endif
                                          const int& sc_indicator_gcw,
-                                         const int& ilowerf0,
-                                         const int& iupperf0,
-                                         const int& ilowerf1,
-                                         const int& iupperf1,
+                                         const int& ilower0,
+                                         const int& iupper0,
+                                         const int& ilower1,
+                                         const int& iupper1,
 #if (NDIM == 3)
-                                         const int& ilowerf2,
-                                         const int& iupperf2,
-#endif
-                                         const int& ilowerc0,
-                                         const int& iupperc0,
-                                         const int& ilowerc1,
-                                         const int& iupperc1,
-#if (NDIM == 3)
-                                         const int& ilowerc2,
-                                         const int& iupperc2,
+                                         const int& ilower2,
+                                         const int& iupper2,
 #endif
                                          const int& loc_index,
                                          const int* ratio_to_coarser,
                                          const int* blower,
                                          const int* bupper);
-
-void SC_QUAD_NORMAL_INTERPOLATION_FC(double* U0,
-                                     double* U1,
-#if (NDIM == 3)
-                                     double* U2,
-#endif
-                                     const int& U_gcw,
-                                     const double* W0,
-                                     const double* W1,
-#if (NDIM == 3)
-                                     const double* W2,
-#endif
-                                     const int& W_gcw,
-                                     const int* sc_indicator0,
-                                     const int* sc_indicator1,
-#if (NDIM == 3)
-                                     const int* sc_indicator2,
-#endif
-                                     const int& sc_indicator_gcw,
-                                     const int& ilower0,
-                                     const int& iupper0,
-                                     const int& ilower1,
-                                     const int& iupper1,
-#if (NDIM == 3)
-                                     const int& ilower2,
-                                     const int& iupper2,
-#endif
-                                     const int& loc_index,
-                                     const int* ratio_to_coarser,
-                                     const int* blower,
-                                     const int* bupper);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -158,7 +159,7 @@ namespace
 {
 static const int REFINE_OP_STENCIL_WIDTH = 1;
 static const int GHOST_WIDTH_TO_FILL = 1;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -270,14 +271,12 @@ CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch<NDIM>& fine,
         if (U_fine_ghosts != (fdata->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartSideDoubleQuadraticCFInterpolation::postprocessRefine():\n"
-                       << "   patch data does not have uniform ghost cell widths"
-                       << std::endl);
+                       << "   patch data does not have uniform ghost cell widths" << std::endl);
         }
         if (U_crse_ghosts != (cdata->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartSideDoubleQuadraticCFInterpolation::postprocessRefine():\n"
-                       << "   patch data does not have uniform ghost cell widths"
-                       << std::endl);
+                       << "   patch data does not have uniform ghost cell widths" << std::endl);
         }
         TBOX_ASSERT((indicator_data->getGhostCellWidth()).max() == GHOST_WIDTH_TO_FILL);
         TBOX_ASSERT((indicator_data->getGhostCellWidth()).min() == GHOST_WIDTH_TO_FILL);
@@ -499,14 +498,12 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch<NDIM>& patc
         if (U_ghosts != (data->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartSideDoubleQuadraticCFInterpolation::computeNormalExtension():\n"
-                       << "   patch data does not have uniform ghost cell widths"
-                       << std::endl);
+                       << "   patch data does not have uniform ghost cell widths" << std::endl);
         }
         if (W_ghosts != (data_copy.getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartSideDoubleQuadraticCFInterpolation::computeNormalExtension():\n"
-                       << "   patch data does not have uniform ghost cell widths"
-                       << std::endl);
+                       << "   patch data does not have uniform ghost cell widths" << std::endl);
         }
         TBOX_ASSERT((indicator_data->getGhostCellWidth()).max() == GHOST_WIDTH_TO_FILL);
         TBOX_ASSERT((indicator_data->getGhostCellWidth()).min() == GHOST_WIDTH_TO_FILL);

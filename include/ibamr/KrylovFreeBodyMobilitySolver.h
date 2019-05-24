@@ -49,7 +49,7 @@ class CIBStrategy;
 class CIBMobilitySolver;
 class StokesSpecifications;
 class DirectMobilitySolver;
-}
+} // namespace IBAMR
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

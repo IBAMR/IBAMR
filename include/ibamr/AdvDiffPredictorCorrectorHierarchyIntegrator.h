@@ -139,8 +139,9 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    void
+    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -237,7 +238,8 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffPredictorCorrectorHierarchyIntegrator& operator=(const AdvDiffPredictorCorrectorHierarchyIntegrator& that) = delete;
+    AdvDiffPredictorCorrectorHierarchyIntegrator&
+    operator=(const AdvDiffPredictorCorrectorHierarchyIntegrator& that) = delete;
 
     /*
      * The SAMRAI::algs::HyperbolicLevelIntegrator supplies generic operations

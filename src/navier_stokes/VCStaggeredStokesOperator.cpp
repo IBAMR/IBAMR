@@ -71,7 +71,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Timers.
 static Timer* t_apply;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

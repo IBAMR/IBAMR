@@ -37,8 +37,8 @@
 #include "IntVector.h"
 #include "Variable.h"
 #include "ibtk/LSet.h" // IWYU pragma: keep
-#include "ibtk/LSetVariable.h"
 #include "ibtk/LSetDataFactory.h"
+#include "ibtk/LSetVariable.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 

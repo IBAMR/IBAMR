@@ -79,7 +79,8 @@ public:
         /*!
          * \brief Default constructor.
          */
-        inline LTransactionComponent(const typename LSet<T>::value_type& item = nullptr, const Point& posn = Point::Zero())
+        inline LTransactionComponent(const typename LSet<T>::value_type& item = nullptr,
+                                     const Point& posn = Point::Zero())
             : item(item), posn(posn)
         {
             // intentionally blank

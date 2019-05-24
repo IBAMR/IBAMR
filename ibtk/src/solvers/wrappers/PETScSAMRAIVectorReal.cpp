@@ -32,8 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 #include <ostream>
 
 #include "IntVector.h"
@@ -123,7 +123,7 @@ static Timer* t_vec_dot_norm2;
 #define PSVR_CHECK3(v1, v2, v3)
 #define PSVR_CHECKN(v, N)
 #endif
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -365,10 +365,7 @@ PETScSAMRAIVectorReal::VecNorm_SAMRAI(Vec x, NormType type, PetscScalar* val)
     else
     {
         TBOX_ERROR("PETScSAMRAIVectorReal::norm()\n"
-                   << "  vector norm type "
-                   << static_cast<int>(type)
-                   << " unsupported"
-                   << std::endl);
+                   << "  vector norm type " << static_cast<int>(type) << " unsupported" << std::endl);
     }
     IBTK_TIMER_STOP(t_vec_norm);
     PetscFunctionReturn(0);
@@ -728,10 +725,7 @@ PETScSAMRAIVectorReal::VecNorm_local_SAMRAI(Vec x, NormType type, PetscScalar* v
     else
     {
         TBOX_ERROR("PETScSAMRAIVectorReal::norm()\n"
-                   << "  vector norm type "
-                   << static_cast<int>(type)
-                   << " unsupported"
-                   << std::endl);
+                   << "  vector norm type " << static_cast<int>(type) << " unsupported" << std::endl);
     }
     IBTK_TIMER_STOP(t_vec_norm_local);
     PetscFunctionReturn(0);

@@ -155,8 +155,7 @@ NodeDataSynchronization::initializeOperatorState(
             if (!nc_var)
             {
                 TBOX_ERROR("NodeDataSynchronization::initializeOperatorState():\n"
-                           << "  only double-precision node-centered data is supported."
-                           << std::endl);
+                           << "  only double-precision node-centered data is supported." << std::endl);
             }
             Pointer<RefineOperator<NDIM> > refine_op = nullptr;
             Pointer<VariableFillPattern<NDIM> > fill_pattern = new NodeSynchCopyFillPattern(axis);
@@ -260,8 +259,7 @@ NodeDataSynchronization::resetTransactionComponents(
             if (!nc_var)
             {
                 TBOX_ERROR("NodeDataSynchronization::resetTransactionComponents():\n"
-                           << "  only double-precision node-centered data is supported."
-                           << std::endl);
+                           << "  only double-precision node-centered data is supported." << std::endl);
             }
             Pointer<RefineOperator<NDIM> > refine_op = nullptr;
             Pointer<VariableFillPattern<NDIM> > fill_pattern = new NodeSynchCopyFillPattern(axis);

@@ -71,7 +71,7 @@ namespace IBAMR
  * \brief Class StaggeredStokesBoxRelaxationFACOperator is a concrete
  * StaggeredStokesFACPreconditionerStrategy implementing a box relaxation
  * (Vanka-type) smoother for use as a multigrid preconditioner.
-*/
+ */
 class StaggeredStokesBoxRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
 {
 public:
@@ -170,7 +170,7 @@ private:
     std::vector<std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
 };
-} // namespace IBTK
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

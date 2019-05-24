@@ -105,12 +105,14 @@ protected:
     /*!
      * \brief Generate IS/subdomains for Schwartz type preconditioners.
      */
-    void generateASMSubdomains(std::vector<std::set<int> >& overlap_is, std::vector<std::set<int> >& nonoverlap_is) override;
+    void generateASMSubdomains(std::vector<std::set<int> >& overlap_is,
+                               std::vector<std::set<int> >& nonoverlap_is) override;
 
     /*!
      * \brief Generate IS/subdomains for fieldsplit type preconditioners.
      */
-    void generateFieldSplitSubdomains(std::vector<std::string>& field_names, std::vector<std::set<int> >& field_is) override;
+    void generateFieldSplitSubdomains(std::vector<std::string>& field_names,
+                                      std::vector<std::set<int> >& field_is) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.

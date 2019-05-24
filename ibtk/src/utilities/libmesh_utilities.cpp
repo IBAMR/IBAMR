@@ -34,14 +34,14 @@
 
 #include "ibtk/libmesh_utilities.h"
 
-#include "libmesh/parallel.h"
-#include "libmesh/point.h"
+#include "libmesh/enum_elem_type.h"
+#include "libmesh/enum_order.h"
+#include "libmesh/enum_quadrature_type.h"
 #include "libmesh/mesh_base.h"
 #include "libmesh/numeric_vector.h"
+#include "libmesh/parallel.h"
+#include "libmesh/point.h"
 #include "libmesh/system.h"
-#include "libmesh/enum_quadrature_type.h"
-#include "libmesh/enum_order.h"
-#include "libmesh/enum_elem_type.h"
 
 #include <cstdlib>
 #include <fstream>
@@ -91,7 +91,7 @@ getQuadratureKey(const libMesh::QuadratureType quad_type,
         default:
             TBOX_ERROR("IBTK::getQuadratureKey():\n"
                        << "  adaptive quadrature rules are available only for quad_type = QGAUSS "
-                       "or QGRID\n");
+                          "or QGRID\n");
         }
     }
 
@@ -104,7 +104,7 @@ write_elem_partitioning(const std::string& file_name, const libMesh::System& pos
     const int current_rank = position_system.comm().rank();
     const unsigned int position_system_n = position_system.number();
     const libMesh::NumericVector<double>& local_position = *position_system.solution.get();
-    const libMesh::MeshBase &mesh = position_system.get_mesh();
+    const libMesh::MeshBase& mesh = position_system.get_mesh();
     const unsigned int spacedim = mesh.spatial_dimension();
     // TODO: there is something wrong with the way we set up the ghost data in
     // the position vectors: not all locally owned nodes are, in fact, locally
@@ -125,14 +125,14 @@ write_elem_partitioning(const std::string& file_name, const libMesh::System& pos
         // of the element. We should replace this with something more accurate.
         for (unsigned int node_n = 0; node_n < n_nodes; ++node_n)
         {
-            const libMesh::Node &node = (*elem)->node_ref(node_n);
+            const libMesh::Node& node = (*elem)->node_ref(node_n);
             TBOX_ASSERT(node.n_vars(position_system_n) == spacedim);
             for (unsigned int d = 0; d < spacedim; ++d)
             {
                 center(d) += position[node.dof_number(position_system_n, d, 0)];
             }
         }
-        center *= 1.0/n_nodes;
+        center *= 1.0 / n_nodes;
 
         for (unsigned int d = 0; d < spacedim; ++d)
         {
@@ -172,7 +172,7 @@ write_node_partitioning(const std::string& file_name, const libMesh::System& pos
     const int current_rank = position_system.comm().rank();
     const unsigned int position_system_n = position_system.number();
     const libMesh::NumericVector<double>& local_position = *position_system.solution.get();
-    const libMesh::MeshBase &mesh = position_system.get_mesh();
+    const libMesh::MeshBase& mesh = position_system.get_mesh();
     const unsigned int spacedim = mesh.spatial_dimension();
 
     // TODO: there is something wrong with the way we set up the ghost data in
@@ -193,8 +193,7 @@ write_node_partitioning(const std::string& file_name, const libMesh::System& pos
             TBOX_ASSERT(node->n_vars(position_system_n) == spacedim);
             for (unsigned int d = 0; d < spacedim; ++d)
             {
-                current_processor_output << position[node->dof_number(position_system_n, d, 0)]
-                                         << ',';
+                current_processor_output << position[node->dof_number(position_system_n, d, 0)] << ',';
             }
             if (spacedim == 2)
             {

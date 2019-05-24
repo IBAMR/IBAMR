@@ -101,128 +101,129 @@
 #define ADVECT_DETECTGRAD_FC IBAMR_FC_FUNC_(advect_detectgrad3d, ADVECT_DETECTGRAD3D)
 #endif
 
-extern "C" {
-void ADVECT_CONSDIFF_FC(const double*,
+extern "C"
+{
+    void ADVECT_CONSDIFF_FC(const double*,
 #if (NDIM == 2)
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const double*,
-                        const double*,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const double*,
+                            const double*,
 #endif
 #if (NDIM == 3)
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const double*,
-                        const double*,
-                        const double*,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const int&,
+                            const double*,
+                            const double*,
+                            const double*,
 #endif
-                        double*);
+                            double*);
 
-void ADVECT_CONSDIFFWITHDIVSOURCE_FC(const double*,
-                                     const double&,
+    void ADVECT_CONSDIFFWITHDIVSOURCE_FC(const double*,
+                                         const double&,
 #if (NDIM == 2)
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const double*,
-                                     const double*,
-                                     const double*,
-                                     const double*,
-                                     const double*,
-                                     const double*,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const double*,
+                                         const double*,
+                                         const double*,
+                                         const double*,
+                                         const double*,
+                                         const double*,
 #endif
 #if (NDIM == 3)
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
-                                     const double*,
-                                     const double*,
-                                     const double*,
-                                     const double*,
-                                     const double*,
-                                     const double*,
-                                     const double*,
-                                     const double*,
-                                     const double*,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
+                                         const double*,
+                                         const double*,
+                                         const double*,
+                                         const double*,
+                                         const double*,
+                                         const double*,
+                                         const double*,
+                                         const double*,
+                                         const double*,
 #endif
-                                     double*);
+                                         double*);
 
-void ADVECT_DETECTGRAD_FC(
+    void ADVECT_DETECTGRAD_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
 #endif
-    const double*,
-    const double&,
-    const int&,
-    const double*,
-    int*,
-    int*);
+        const double*,
+        const double&,
+        const int&,
+        const double*,
+        int*,
+        int*);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -236,7 +237,7 @@ namespace
 // Values for cell tagging routines.
 static const int TRUE_VAL = 1;
 static const int FALSE_VAL = 0;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -514,7 +515,8 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(HyperbolicL
                 }
                 for (int d = 0; d < depth; ++d)
                 {
-                    d_visit_writer->registerPlotQuantity(Q_var->getName() + "_" + std::to_string(d), "SCALAR", Q_idx, d);
+                    d_visit_writer->registerPlotQuantity(
+                        Q_var->getName() + "_" + std::to_string(d), "SCALAR", Q_idx, d);
                 }
             }
         }
@@ -869,8 +871,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patc
                 "AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch()"
                 ":\n"
                 << "  unsupported differencing form: "
-                << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var])
-                << " \n"
+                << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var]) << " \n"
                 << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
         }
         }
@@ -1379,11 +1380,8 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(Pointer<Database> db,
     if (!(d_extrap_type == "CONSTANT" || d_extrap_type == "LINEAR" || d_extrap_type == "QUADRATIC"))
     {
         TBOX_ERROR("AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput():\n"
-                   << "  unknown extrapolation type: "
-                   << d_extrap_type
-                   << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC"
-                   << std::endl);
+                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
     }
 
     if (db->keyExists("Refinement_data"))
@@ -1417,9 +1415,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(Pointer<Database> db,
                 if (!(error_key == "QVAL_DEVIATION" || error_key == "QVAL_GRADIENT"))
                 {
                     TBOX_ERROR(d_object_name << ":\n"
-                                             << "  Unknown refinement criteria: "
-                                             << error_key
-                                             << "\nin input.\n");
+                                             << "  Unknown refinement criteria: " << error_key << "\nin input.\n");
                 }
                 else
                 {
@@ -1437,9 +1433,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(Pointer<Database> db,
                     else
                     {
                         TBOX_ERROR(d_object_name << ":\n"
-                                                 << "  No key `dev_tol' found in data for "
-                                                 << error_key
-                                                 << "\n");
+                                                 << "  No key `dev_tol' found in data for " << error_key << "\n");
                     }
 
                     if (error_db->keyExists("qval_dev"))
@@ -1449,9 +1443,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(Pointer<Database> db,
                     else
                     {
                         TBOX_ERROR(d_object_name << ":\n"
-                                                 << "  No key `qval_dev' found in data for "
-                                                 << error_key
-                                                 << "\n");
+                                                 << "  No key `qval_dev' found in data for " << error_key << "\n");
                     }
 
                     if (error_db->keyExists("time_max"))
@@ -1484,9 +1476,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(Pointer<Database> db,
                     else
                     {
                         TBOX_ERROR(d_object_name << ":\n"
-                                                 << "  No key `grad_tol' found in data for "
-                                                 << error_key
-                                                 << "\n");
+                                                 << "  No key `grad_tol' found in data for " << error_key << "\n");
                     }
 
                     if (error_db->keyExists("time_max"))
@@ -1530,8 +1520,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(Pointer<Database> db,
             {
                 TBOX_ERROR(d_object_name << ":\n"
                                          << "  No input found for specified refine criteria: "
-                                         << d_refinement_criteria[k0]
-                                         << "\n");
+                                         << d_refinement_criteria[k0] << "\n");
             }
         }
     } // refine db entry exists
@@ -1552,8 +1541,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  "
-                                 << "Restart database corresponding to "
-                                 << d_object_name
+                                 << "Restart database corresponding to " << d_object_name
                                  << " not found in restart file.");
     }
 

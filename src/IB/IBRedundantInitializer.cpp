@@ -333,8 +333,8 @@ IBRedundantInitializer::initializeStructurePosition()
 #if !defined(NDEBUG)
             if (d_vertex_posn[ln][j].size() != std::size_t(d_num_vertex[ln][j]))
             {
-                TBOX_ERROR(d_object_name << ":\n Invalid number of vertices " << d_vertex_posn[ln][j].size() << " of structure "
-                                         << j << " on level " << ln << ".\n"
+                TBOX_ERROR(d_object_name << ":\n Invalid number of vertices " << d_vertex_posn[ln][j].size()
+                                         << " of structure " << j << " on level " << ln << ".\n"
                                          << "Expected " << d_num_vertex[ln][j] << " vertices.");
             }
 #endif

@@ -93,7 +93,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 static Timer* t_solve_system;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

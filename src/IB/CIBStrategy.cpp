@@ -116,14 +116,13 @@ CIBStrategy::getNumberOfRigidStructures() const
 void
 CIBStrategy::setInitialCenterOfMass(const unsigned int part, const Eigen::Vector3d& XCOM_0)
 {
-
 #if !defined(NDEBUG)
     TBOX_ASSERT(part < d_num_rigid_parts);
 #endif
     d_center_of_mass_initial[part] = XCOM_0;
     d_compute_center_of_mass_initial[part] = false;
 
-}// setInitialCenterOfMass
+} // setInitialCenterOfMass
 
 void
 CIBStrategy::setSolveRigidBodyVelocity(const unsigned int part, const FreeRigidDOFVector& solve_rigid_vel)
@@ -747,7 +746,7 @@ CIBStrategy::eigenToRDV(const Eigen::Vector3d& U, const Eigen::Vector3d& W, Rigi
 
 #if (NDIM == 2)
     UW[2] = W[2];
-#elif(NDIM == 3)
+#elif (NDIM == 3)
     for (unsigned d = 0; d < NDIM; ++d)
     {
         UW[3 + d] = W[d];
@@ -768,7 +767,7 @@ CIBStrategy::rdvToEigen(const RigidDOFVector& UW, Eigen::Vector3d& U, Eigen::Vec
 #if (NDIM == 2)
     W.setZero();
     W[2] = UW[2];
-#elif(NDIM == 3)
+#elif (NDIM == 3)
     for (unsigned d = 0; d < NDIM; ++d)
     {
         W[d] = UW[3 + d];

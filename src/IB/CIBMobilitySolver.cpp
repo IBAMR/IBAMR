@@ -58,7 +58,7 @@ static Timer* t_solve_mobility_system;
 static Timer* t_solve_body_mobility_system;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
-}
+} // namespace
 
 ////////////////////////////// PUBLIC ////////////////////////////////////////
 
@@ -342,8 +342,7 @@ CIBMobilitySolver::deallocateSolverState()
         else
         {
             TBOX_ERROR("CIBMobilitySolver::deallocateSolverState() Unknown mobility "
-                       << " solver type encountered."
-                       << std::endl);
+                       << " solver type encountered." << std::endl);
         }
 
         if (d_has_free_parts)

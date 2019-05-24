@@ -95,8 +95,7 @@ IBLagrangianForceStrategy::computeLagrangianForce(Pointer<LData> /*F_data*/,
                                                   LDataManager* const /*l_data_manager*/)
 {
     TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianForce():\n"
-               << "  not implemented for this IBLagrangianForceStrategy."
-               << std::endl);
+               << "  not implemented for this IBLagrangianForceStrategy." << std::endl);
     return;
 } // computeLagrangianForce
 
@@ -109,8 +108,7 @@ IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure(
     LDataManager* const /*l_data_manager*/)
 {
     TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure():\n"
-               << "  Jacobian functionality not implemented for this IBLagrangianForceStrategy."
-               << std::endl);
+               << "  Jacobian functionality not implemented for this IBLagrangianForceStrategy." << std::endl);
     return;
 } // computeLagrangianForceJacobianNonzeroStructure
 
@@ -127,8 +125,7 @@ IBLagrangianForceStrategy::computeLagrangianForceJacobian(Mat& /*J_mat*/,
                                                           LDataManager* const /*l_data_manager*/)
 {
     TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianForceJacobian():\n"
-               << "  Jacobian functionality not implemented for this IBLagrangianForceStrategy."
-               << std::endl);
+               << "  Jacobian functionality not implemented for this IBLagrangianForceStrategy." << std::endl);
     return;
 } // computeLagrangianForceJacobian
 

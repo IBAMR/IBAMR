@@ -109,7 +109,7 @@ namespace
 static const int SIDEG = 1;
 static const int CELLG = 1;
 static const int NOGHOST = 0;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -203,8 +203,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::setIBForceJacobian(Mat& A)
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setIBForceJacobian()\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(A);
@@ -219,8 +218,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::setIBInterpOp(Mat& J)
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setIBInterpOp()\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(J);
@@ -451,10 +449,10 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, 
                     Pointer<SideData<NDIM, double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
-                        U_error_data->getArrayData(axis)
-                            .copy(U_scratch_data->getArrayData(axis),
-                                  d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
-                                  IntVector<NDIM>(0));
+                        U_error_data->getArrayData(axis).copy(
+                            U_scratch_data->getArrayData(axis),
+                            d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
+                            IntVector<NDIM>(0));
                     }
 
                     Pointer<CellData<NDIM, double> > P_error_data = error.getComponentPatchData(1, *patch);
@@ -631,7 +629,10 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         if (!level_solver)
         {
             level_solver = StaggeredStokesSolverManager::getManager()->allocateSolver(
-                d_level_solver_type, d_object_name + "::level_solver", d_level_solver_db, d_level_solver_default_options_prefix + std::to_string(ln) + "_");
+                d_level_solver_type,
+                d_object_name + "::level_solver",
+                d_level_solver_db,
+                d_level_solver_default_options_prefix + std::to_string(ln) + "_");
         }
         level_solver->setSolutionTime(d_solution_time);
         level_solver->setTimeInterval(d_current_time, d_new_time);

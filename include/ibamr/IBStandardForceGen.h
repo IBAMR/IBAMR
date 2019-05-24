@@ -217,7 +217,7 @@ private:
     struct TargetPointData
     {
         std::vector<int> petsc_node_idxs, petsc_global_node_idxs;
-        std::vector<const double *> kappa, eta;
+        std::vector<const double*> kappa, eta;
         std::vector<const IBTK::Point*> X0;
     };
     std::vector<TargetPointData> d_target_point_data;

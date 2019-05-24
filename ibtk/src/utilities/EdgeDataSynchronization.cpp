@@ -155,8 +155,7 @@ EdgeDataSynchronization::initializeOperatorState(
             if (!ec_var)
             {
                 TBOX_ERROR("EdgeDataSynchronization::initializeOperatorState():\n"
-                           << "  only double-precision edge-centered data is supported."
-                           << std::endl);
+                           << "  only double-precision edge-centered data is supported." << std::endl);
             }
             Pointer<RefineOperator<NDIM> > refine_op = nullptr;
             Pointer<VariableFillPattern<NDIM> > fill_pattern = new EdgeSynchCopyFillPattern(axis);
@@ -260,8 +259,7 @@ EdgeDataSynchronization::resetTransactionComponents(
             if (!ec_var)
             {
                 TBOX_ERROR("EdgeDataSynchronization::resetTransactionComponents():\n"
-                           << "  only double-precision edge-centered data is supported."
-                           << std::endl);
+                           << "  only double-precision edge-centered data is supported." << std::endl);
             }
             Pointer<RefineOperator<NDIM> > refine_op = nullptr;
             Pointer<VariableFillPattern<NDIM> > fill_pattern = new EdgeSynchCopyFillPattern(axis);

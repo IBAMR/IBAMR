@@ -85,7 +85,7 @@ coarsen_index(const Index<NDIM>& i, const IntVector<NDIM>& ratio)
     }
     return coarse_i;
 } // coarsen_index
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

@@ -189,7 +189,8 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredStabilizedPPMConvectiveOperator& operator=(const INSStaggeredStabilizedPPMConvectiveOperator& that) = delete;
+    INSStaggeredStabilizedPPMConvectiveOperator&
+    operator=(const INSStaggeredStabilizedPPMConvectiveOperator& that) = delete;
 
     // Operator configuration.
     std::string d_stabilization_type = "UPWIND";

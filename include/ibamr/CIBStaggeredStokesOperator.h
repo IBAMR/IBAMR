@@ -151,7 +151,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CIBStaggeredStokesOperator(const CIBStaggeredStokesOperator& from)= delete;
+    CIBStaggeredStokesOperator(const CIBStaggeredStokesOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.

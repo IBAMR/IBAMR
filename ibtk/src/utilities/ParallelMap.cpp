@@ -56,7 +56,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ParallelMap& ParallelMap::operator=(const ParallelMap& that)
+ParallelMap&
+ParallelMap::operator=(const ParallelMap& that)
 {
     if (this != &that)
     {

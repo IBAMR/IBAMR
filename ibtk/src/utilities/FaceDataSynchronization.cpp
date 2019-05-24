@@ -153,8 +153,7 @@ FaceDataSynchronization::initializeOperatorState(
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::initializeOperatorState():\n"
-                       << "  only double-precision face-centered data is supported."
-                       << std::endl);
+                       << "  only double-precision face-centered data is supported." << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = nullptr;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new FaceSynchCopyFillPattern();
@@ -255,8 +254,7 @@ FaceDataSynchronization::resetTransactionComponents(
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::resetTransactionComponents():\n"
-                       << "  only double-precision face-centered data is supported."
-                       << std::endl);
+                       << "  only double-precision face-centered data is supported." << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = nullptr;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new FaceSynchCopyFillPattern();

@@ -35,7 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-
 #include "Box.h"
 #include "IntVector.h"
 #include "ibtk/LSetDataFactory.h"
@@ -96,7 +95,8 @@ public:
      * some default memory pool.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
-    allocate(const SAMRAI::hier::Patch<NDIM>& patch, SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = NULL) const override;
+    allocate(const SAMRAI::hier::Patch<NDIM>& patch,
+             SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = NULL) const override;
 
     /*!
      * Calculate the amount of memory needed to store the data object, including

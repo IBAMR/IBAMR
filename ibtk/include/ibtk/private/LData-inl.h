@@ -180,11 +180,10 @@ LData::endGhostUpdate()
  * Internal function for setting up a PETSc function of given size and
  * depth. See the documentation of LData for more information.
  */
-inline
-Vec
+inline Vec
 setup_petsc_vector(const unsigned int num_local_nodes,
                    const unsigned int depth,
-                   const std::vector<int> &nonlocal_petsc_indices)
+                   const std::vector<int>& nonlocal_petsc_indices)
 {
     int ierr;
     Vec global_vec;
@@ -214,7 +213,7 @@ setup_petsc_vector(const unsigned int num_local_nodes,
 
 template <std::size_t dim>
 void
-LData::destroy_ref(boost::multi_array_ref<double, dim> &ref)
+LData::destroy_ref(boost::multi_array_ref<double, dim>& ref)
 {
     // destructor calls have difficult name lookup rules
     using T = typename boost::multi_array_ref<double, dim>;
@@ -247,9 +246,11 @@ LData::getArrayCommon()
         // pointer, so destroy the current arrays and build new ones in their
         // place:
         destroy_ref(d_boost_vec_array);
-        new (&d_boost_vec_array) boost::multi_array_ref<double, 2>(d_array, extents[range(ilower / d_depth, iupper / d_depth)][d_depth]);
+        new (&d_boost_vec_array)
+            boost::multi_array_ref<double, 2>(d_array, extents[range(ilower / d_depth, iupper / d_depth)][d_depth]);
         destroy_ref(d_boost_local_vec_array);
-        new (&d_boost_local_vec_array) boost::multi_array_ref<double, 2>(d_array, extents[(iupper - ilower) / d_depth][d_depth]);
+        new (&d_boost_local_vec_array)
+            boost::multi_array_ref<double, 2>(d_array, extents[(iupper - ilower) / d_depth][d_depth]);
     }
     return;
 } // getArrayCommon
@@ -272,10 +273,12 @@ LData::getGhostedLocalFormArrayCommon()
         if (d_depth == 1)
         {
             destroy_ref(d_boost_ghosted_local_array);
-            new (&d_boost_ghosted_local_array) boost::multi_array_ref<double, 1>(d_ghosted_local_array, boost::extents[iupper - ilower]);
+            new (&d_boost_ghosted_local_array)
+                boost::multi_array_ref<double, 1>(d_ghosted_local_array, boost::extents[iupper - ilower]);
         }
         destroy_ref(d_boost_vec_ghosted_local_array);
-        new (&d_boost_vec_ghosted_local_array) boost::multi_array_ref<double, 2>(d_ghosted_local_array, boost::extents[(iupper - ilower) / d_depth][d_depth]);
+        new (&d_boost_vec_ghosted_local_array) boost::multi_array_ref<double, 2>(
+            d_ghosted_local_array, boost::extents[(iupper - ilower) / d_depth][d_depth]);
     }
     return;
 } // getGhostedLocalFormArrayCommon

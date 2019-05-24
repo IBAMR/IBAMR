@@ -34,7 +34,6 @@
 
 #include <utility>
 
-#include "ibamr/INSCollocatedWavePropConvectiveOperator.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "FaceData.h"
@@ -53,6 +52,7 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "ibamr/ConvectiveOperator.h"
+#include "ibamr/INSCollocatedWavePropConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

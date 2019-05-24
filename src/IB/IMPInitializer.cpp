@@ -100,7 +100,7 @@ namespace
 {
 static const double MIN_POINTS = 1.0;
 static const double POINT_FACTOR = 2.0;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

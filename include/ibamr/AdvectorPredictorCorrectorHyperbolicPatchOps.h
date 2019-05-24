@@ -301,8 +301,10 @@ public:
      * \brief Update solution variables by performing a conservative difference
      * using the fluxes calculated by computeFluxesOnPatch().
      */
-    virtual void
-    conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time, double dt, bool at_synchronization) override;
+    virtual void conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch,
+                                               double time,
+                                               double dt,
+                                               bool at_synchronization) override;
 
     /*!
      * \brief Compute the values of any time-dependent source terms for use by
@@ -450,7 +452,8 @@ protected:
      * the time integral of the advective flux corresponding to that quantity.
      */
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_flux_integral_var;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > >
+        d_flux_integral_var;
 
     /*
      * When non-conservative differencing is employed for a quantity Q, we
@@ -461,9 +464,11 @@ protected:
      * velocity is not discretely divergence free.
      */
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_q_integral_var;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > >
+        d_q_integral_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_u_integral_var;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > >
+        d_u_integral_var;
 
     /*
      * Boolean indicating whether or not to overwrite tag data (default is
@@ -497,7 +502,8 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvectorPredictorCorrectorHyperbolicPatchOps& operator=(const AdvectorPredictorCorrectorHyperbolicPatchOps& that) = delete;
+    AdvectorPredictorCorrectorHyperbolicPatchOps&
+    operator=(const AdvectorPredictorCorrectorHyperbolicPatchOps& that) = delete;
 
     /*
      * Set physical boundary conditions at inflow boundaries for predicted

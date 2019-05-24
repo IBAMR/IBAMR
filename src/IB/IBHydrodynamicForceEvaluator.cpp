@@ -33,7 +33,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <array>
 
-#include "ibamr/IBHydrodynamicForceEvaluator.h"
 #include "ArrayDataBasicOps.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
@@ -43,6 +42,7 @@
 #include "PatchHierarchy.h"
 #include "SideData.h"
 #include "SideIndex.h"
+#include "ibamr/IBHydrodynamicForceEvaluator.h"
 #include "ibamr/INSStaggeredPressureBcCoef.h"
 #include "ibamr/namespaces.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
@@ -192,7 +192,7 @@ IBHydrodynamicForceEvaluator::registerStructure(IBTK::Vector3d& box_X_lower,
         }
 
         const std::string strct_id_str = std::to_string(strct_id);
-        
+
         db->getDoubleArray("F_" + strct_id_str, force_obj.F_current.data(), 3);
         db->getDoubleArray("T_" + strct_id_str, force_obj.T_current.data(), 3);
         db->getDoubleArray("P_" + strct_id_str, force_obj.P_current.data(), 3);
@@ -209,7 +209,7 @@ IBHydrodynamicForceEvaluator::registerStructure(IBTK::Vector3d& box_X_lower,
     if (SAMRAI_MPI::getRank() == 0)
     {
         const std::string strct_id_str = std::to_string(strct_id);
-        
+
         if (from_restart)
         {
             force_obj.drag_CV_stream = new std::ofstream("Drag_CV_strct_id_" + strct_id_str, std::fstream::app);
@@ -813,7 +813,7 @@ IBHydrodynamicForceEvaluator::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::
         const IBHydrodynamicForceObject& force_obj = hydro_obj.second;
 
         const std::string strct_id_str = std::to_string(strct_id);
-        
+
         db->putDoubleArray("F_" + strct_id_str, force_obj.F_current.data(), 3);
         db->putDoubleArray("T_" + strct_id_str, force_obj.T_current.data(), 3);
         db->putDoubleArray("P_" + strct_id_str, force_obj.P_current.data(), 3);

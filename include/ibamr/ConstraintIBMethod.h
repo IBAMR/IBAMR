@@ -213,7 +213,7 @@ public:
     inline void setVolumeElement(std::vector<double> vol_element)
     {
 #if !defined(NDEBUG)
-        TBOX_ASSERT(vol_element.size() == ((size_t) d_no_structures)) ;
+        TBOX_ASSERT(vol_element.size() == ((size_t)d_no_structures));
 #endif
         d_vol_element = vol_element;
         d_vol_element_is_set = std::vector<bool>(d_no_structures, true);
@@ -611,9 +611,9 @@ private:
      *
      * TODO: Update these to use std::function.
      */
-    std::vector<void (*)(const double, const double, const int, void *)> d_prefluidsolve_callback_fns,
+    std::vector<void (*)(const double, const double, const int, void*)> d_prefluidsolve_callback_fns,
         d_postfluidsolve_callback_fns;
-    std::vector<void *> d_prefluidsolve_callback_fns_ctx, d_postfluidsolve_callback_fns_ctx;
+    std::vector<void*> d_prefluidsolve_callback_fns_ctx, d_postfluidsolve_callback_fns_ctx;
 
     // Velocity boundary operator.
     IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op = nullptr;

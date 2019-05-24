@@ -73,7 +73,7 @@ namespace IBAMR
  * \brief Class StaggeredStokesLevelRelaxationFACOperator is a concrete
  * StaggeredStokesFACPreconditionerStrategy implementing a level relaxation
  * smoother for use as a multigrid preconditioner.
-*/
+ */
 class StaggeredStokesLevelRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
 {
 public:
@@ -177,7 +177,8 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesLevelRelaxationFACOperator& operator=(const StaggeredStokesLevelRelaxationFACOperator& that) = delete;
+    StaggeredStokesLevelRelaxationFACOperator&
+    operator=(const StaggeredStokesLevelRelaxationFACOperator& that) = delete;
 
     /*
      * Level solvers and solver parameters.
@@ -195,7 +196,7 @@ private:
     std::vector<std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
 };
-} // namespace IBTK
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

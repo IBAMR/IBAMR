@@ -32,12 +32,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
 #include <algorithm>
+#include <array>
+#include <cmath>
 #include <fstream>
 #include <limits>
 #include <map>
-#include <cmath>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -313,7 +313,6 @@ IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Dat
         d_flux_stream.precision(15);
     }
 }
-
 
 void
 IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_ops)

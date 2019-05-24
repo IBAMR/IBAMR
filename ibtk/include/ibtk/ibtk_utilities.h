@@ -35,8 +35,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
 #include <algorithm>
+#include <array>
 
 #include "Eigen/Core" // IWYU pragma: export
 #include "Eigen/StdVector"
@@ -62,56 +62,47 @@
     } while (0);
 
 #define IBTK_DEPRECATED_CLASS1(deprecated_class_name)                                                                  \
-    IBTK_DO_ONCE(                                                                                                      \
-        {                                                                                                              \
-            SAMRAI::tbox::pout << "WARNING: class " << deprecated_class_name                                           \
-                               << " is deprecated and may be removed in the future." << std::endl;                     \
-        });
+    IBTK_DO_ONCE({                                                                                                     \
+        SAMRAI::tbox::pout << "WARNING: class " << deprecated_class_name                                               \
+                           << " is deprecated and may be removed in the future." << std::endl;                         \
+    });
 
 #define IBTK_DEPRECATED_CLASS2(deprecated_class_name, new_class_name)                                                  \
-    IBTK_DO_ONCE(                                                                                                      \
-        {                                                                                                              \
-            SAMRAI::tbox::pout << "WARNING: class " << deprecated_class_name                                           \
-                               << " is deprecated and may be removed in the future.\n"                                 \
-                               << "Please update your code to use class " << new_class_name << "." << std::endl;       \
-        });
+    IBTK_DO_ONCE({                                                                                                     \
+        SAMRAI::tbox::pout << "WARNING: class " << deprecated_class_name                                               \
+                           << " is deprecated and may be removed in the future.\n"                                     \
+                           << "Please update your code to use class " << new_class_name << "." << std::endl;           \
+    });
 
 #define IBTK_DEPRECATED_FUNCTION1(deprecated_function_name)                                                            \
-    IBTK_DO_ONCE(                                                                                                      \
-        {                                                                                                              \
-            SAMRAI::tbox::pout << "WARNING: function " << deprecated_function_name                                     \
-                               << " is deprecated and may be removed in the future." << std::endl;                     \
-        });
+    IBTK_DO_ONCE({                                                                                                     \
+        SAMRAI::tbox::pout << "WARNING: function " << deprecated_function_name                                         \
+                           << " is deprecated and may be removed in the future." << std::endl;                         \
+    });
 
 #define IBTK_DEPRECATED_FUNCTION2(deprecated_function_name, new_function_name)                                         \
-    IBTK_DO_ONCE(                                                                                                      \
-        {                                                                                                              \
-            SAMRAI::tbox::pout << "WARNING: function " << deprecated_function_name                                     \
-                               << " is deprecated and may be removed in the future.\n"                                 \
-                               << "Please update your code to use function " << new_function_name << "." << std::endl; \
-        });
+    IBTK_DO_ONCE({                                                                                                     \
+        SAMRAI::tbox::pout << "WARNING: function " << deprecated_function_name                                         \
+                           << " is deprecated and may be removed in the future.\n"                                     \
+                           << "Please update your code to use function " << new_function_name << "." << std::endl;     \
+    });
 
 #define IBTK_DEPRECATED_MEMBER_FUNCTION1(class_name, deprecated_method_name)                                           \
-    IBTK_DO_ONCE(                                                                                                      \
-        {                                                                                                              \
-            SAMRAI::tbox::pout << "WARNING: member function " << deprecated_method_name << " of class " << class_name  \
-                               << " is deprecated and may be removed in the future." << std::endl;                     \
-        });
+    IBTK_DO_ONCE({                                                                                                     \
+        SAMRAI::tbox::pout << "WARNING: member function " << deprecated_method_name << " of class " << class_name      \
+                           << " is deprecated and may be removed in the future." << std::endl;                         \
+    });
 
 #define IBTK_DEPRECATED_MEMBER_FUNCTION2(class_name, deprecated_method_name, new_method_name)                          \
-    IBTK_DO_ONCE(                                                                                                      \
-        {                                                                                                              \
-            SAMRAI::tbox::pout << "WARNING: member function " << deprecated_method_name << " of class " << class_name  \
-                               << " is deprecated and may be removed in the future.\n"                                 \
-                               << "Please update your code to use member function " << new_method_name << "."          \
-                               << std::endl;                                                                           \
-        });
+    IBTK_DO_ONCE({                                                                                                     \
+        SAMRAI::tbox::pout << "WARNING: member function " << deprecated_method_name << " of class " << class_name      \
+                           << " is deprecated and may be removed in the future.\n"                                     \
+                           << "Please update your code to use member function " << new_method_name << "."              \
+                           << std::endl;                                                                               \
+    });
 
 #define IBTK_DEPRECATED_FUNCTIONALITY(message)                                                                         \
-    IBTK_DO_ONCE(                                                                                                      \
-        {                                                                                                              \
-            SAMRAI::tbox::pout << "WARNING: " << message << "." << std::endl;                                          \
-        });
+    IBTK_DO_ONCE({ SAMRAI::tbox::pout << "WARNING: " << message << "." << std::endl; });
 
 namespace IBTK
 {
@@ -174,7 +165,7 @@ level_can_be_refined(int level_number, int max_levels)
  * <code>std::vector</code> with the correct allocator.
  */
 template <typename T>
-using EigenAlignedVector = std::vector<T, Eigen::aligned_allocator<T>>;
+using EigenAlignedVector = std::vector<T, Eigen::aligned_allocator<T> >;
 
 using Matrix2d = Eigen::Matrix<double, 2, 2>;
 using Vector2d = Eigen::Matrix<double, 2, 1>;
@@ -208,7 +199,7 @@ using FRDV = FreeRigidDOFVector;
 
 static const int invalid_level_number = -1;
 static const int invalid_index = -1;
-}
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

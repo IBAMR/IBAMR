@@ -76,7 +76,7 @@ namespace
 static const int CELLG = 1;
 static const int SIDEG = 1;
 static const int NOGHOST = 0;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -193,7 +193,6 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
                                                                      d_p_dof_index_idx,
                                                                      d_level);
     d_petsc_pc = d_petsc_mat;
-
 
     // Set pressure nullspace if the level covers the entire domain.
     if (d_has_pressure_nullspace)

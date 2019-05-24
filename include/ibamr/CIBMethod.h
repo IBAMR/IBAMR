@@ -226,9 +226,9 @@ public:
         bool initial_time) override;
 
     /*!
-    * \brief Interpolate the Eulerian velocity to the curvilinear mesh at the
-    * specified time within the current time interval.
-    */
+     * \brief Interpolate the Eulerian velocity to the curvilinear mesh at the
+     * specified time within the current time interval.
+     */
     void interpolateVelocity(
         int u_data_idx,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,

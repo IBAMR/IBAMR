@@ -35,9 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <unistd.h>
 #include <ostream>
 #include <string>
+#include <unistd.h>
 #include <vector>
 
 #include "SAMRAI_config.h"

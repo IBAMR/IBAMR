@@ -73,7 +73,8 @@ inline LMarker::~LMarker()
     return;
 } // ~LMarker
 
-inline LMarker& LMarker::operator=(const LMarker& that)
+inline LMarker&
+LMarker::operator=(const LMarker& that)
 {
     if (this == &that) return *this; // check for self-assignment
     d_idx = that.d_idx;

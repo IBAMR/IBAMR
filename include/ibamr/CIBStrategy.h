@@ -50,7 +50,6 @@
 
 namespace IBAMR
 {
-
 /*!
  * \brief Class CIBStrategy is a lightweight abstract strategy class which
  * provides support for constraint based IB methods for rigid bodies.

@@ -82,97 +82,98 @@ class PatchLevel;
 #define SC_SURFACE_TENSION_FORCE_FC IBAMR_FC_FUNC(sc_surface_tension_force_3d, SC_SURFACE_TENSION_FORCE_3D)
 #endif
 
-extern "C" {
-void MOLLIFY_IB_4_FC(double* V,
-                     const int& V_gcw,
-                     const double* U,
-                     const int& U_gcw,
-                     const int& ilower0,
-                     const int& iupper0,
-                     const int& ilower1,
-                     const int& iupper1
+extern "C"
+{
+    void MOLLIFY_IB_4_FC(double* V,
+                         const int& V_gcw,
+                         const double* U,
+                         const int& U_gcw,
+                         const int& ilower0,
+                         const int& iupper0,
+                         const int& ilower1,
+                         const int& iupper1
 #if (NDIM == 3)
-                     ,
-                     const int& ilower2,
-                     const int& iupper2
+                         ,
+                         const int& ilower2,
+                         const int& iupper2
 #endif
-                     );
+    );
 
-void SC_NORMAL_FC(double* N00,
-                  double* N01,
+    void SC_NORMAL_FC(double* N00,
+                      double* N01,
 #if (NDIM == 3)
-                  double* N02,
+                      double* N02,
 #endif
-                  double* N10,
-                  double* N11,
+                      double* N10,
+                      double* N11,
 #if (NDIM == 3)
-                  double* N12,
-                  double* N20,
-                  double* N21,
-                  double* N22,
+                      double* N12,
+                      double* N20,
+                      double* N21,
+                      double* N22,
 #endif
-                  const int& N_gcw,
-                  const double* U,
-                  const int& U_gcw,
-                  const int& ilower0,
-                  const int& iupper0,
-                  const int& ilower1,
-                  const int& iupper1,
+                      const int& N_gcw,
+                      const double* U,
+                      const int& U_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1,
 #if (NDIM == 3)
-                  const int& ilower2,
-                  const int& iupper2,
+                      const int& ilower2,
+                      const int& iupper2,
 #endif
-                  const double* dx);
+                      const double* dx);
 
-void CC_CURVATURE_FC(double* K,
-                     const int& K_gcw,
-                     const double* N00,
-                     const double* N01,
+    void CC_CURVATURE_FC(double* K,
+                         const int& K_gcw,
+                         const double* N00,
+                         const double* N01,
 #if (NDIM == 3)
-                     const double* N02,
+                         const double* N02,
 #endif
-                     const double* N10,
-                     const double* N11,
+                         const double* N10,
+                         const double* N11,
 #if (NDIM == 3)
-                     const double* N12,
-                     const double* N20,
-                     const double* N21,
-                     const double* N22,
+                         const double* N12,
+                         const double* N20,
+                         const double* N21,
+                         const double* N22,
 #endif
-                     const int& N_gcw,
-                     const int& ilower0,
-                     const int& iupper0,
-                     const int& ilower1,
-                     const int& iupper1,
+                         const int& N_gcw,
+                         const int& ilower0,
+                         const int& iupper0,
+                         const int& ilower1,
+                         const int& iupper1,
 #if (NDIM == 3)
-                     const int& ilower2,
-                     const int& iupper2,
+                         const int& ilower2,
+                         const int& iupper2,
 #endif
-                     const double* dx);
+                         const double* dx);
 
-void SC_SURFACE_TENSION_FORCE_FC(double* F0,
-                                 double* F1,
+    void SC_SURFACE_TENSION_FORCE_FC(double* F0,
+                                     double* F1,
 #if (NDIM == 3)
-                                 double* F2,
+                                     double* F2,
 #endif
-                                 const int& F_gcw,
-                                 const double* K,
-                                 const int& K_gcw,
-                                 const double* N00,
-                                 const double* N11,
+                                     const int& F_gcw,
+                                     const double* K,
+                                     const int& K_gcw,
+                                     const double* N00,
+                                     const double* N11,
 #if (NDIM == 3)
-                                 const double* N22,
+                                     const double* N22,
 #endif
-                                 const int& N_gcw,
-                                 const int& ilower0,
-                                 const int& iupper0,
-                                 const int& ilower1,
-                                 const int& iupper1,
+                                     const int& N_gcw,
+                                     const int& ilower0,
+                                     const int& iupper0,
+                                     const int& ilower1,
+                                     const int& iupper1,
 #if (NDIM == 3)
-                                 const int& ilower2,
-                                 const int& iupper2,
+                                     const int& ilower2,
+                                     const int& iupper2,
 #endif
-                                 const double& sigma);
+                                     const double& sigma);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -457,7 +458,7 @@ SurfaceTensionForceFunction::mollifyData(int smooth_C_idx,
                                 patch_box.lower(2),
                                 patch_box.upper(2)
 #endif
-                                    );
+                );
             }
             else
             {
@@ -619,9 +620,7 @@ SurfaceTensionForceFunction::getStencilSize(const std::string& kernel_fcn)
 {
     if (kernel_fcn == "IB_4") return 4;
     TBOX_ERROR("SurfaceTensionForceFunction::getStencilSize()\n"
-               << "  Unknown kernel function "
-               << kernel_fcn
-               << std::endl);
+               << "  Unknown kernel function " << kernel_fcn << std::endl);
     return -1;
 
 } // getStencilSize

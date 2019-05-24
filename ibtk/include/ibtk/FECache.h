@@ -40,7 +40,6 @@
 #include <libmesh/enum_quadrature_type.h>
 #include <libmesh/fe.h>
 
-
 #include <map>
 #include <memory>
 #include <tuple>
@@ -96,7 +95,7 @@ public:
      * @param fe_type The libMesh FEType object describing the relevant finite
      * element.
      */
-    FECache(const unsigned int dim, const libMesh::FEType &fe_type);
+    FECache(const unsigned int dim, const libMesh::FEType& fe_type);
 
     /**
      * Return a reference to an FE object that matches the specified
@@ -105,14 +104,12 @@ public:
      * @param quad_key a tuple of enums that completely describes
      * a libMesh quadrature rule.
      */
-    value_type &
-    operator[](const key_type &quad_key);
+    value_type& operator[](const key_type& quad_key);
 
     /**
      * Return the FEType stored by the current FECache.
      */
-    libMesh::FEType
-    getFEType() const;
+    libMesh::FEType getFEType() const;
 
 protected:
     /**
@@ -134,34 +131,27 @@ protected:
     /**
      * Managed libMesh::FE objects of specified dimension and family.
      */
-    std::map<key_type, std::unique_ptr<libMesh::FEBase>> fes;
+    std::map<key_type, std::unique_ptr<libMesh::FEBase> > fes;
 };
 
-inline
-FECache::FECache(const unsigned int dim, const libMesh::FEType &fe_type)
-    : dim(dim)
-    , fe_type(fe_type)
-    , quadrature_cache(dim)
-{}
+inline FECache::FECache(const unsigned int dim, const libMesh::FEType& fe_type)
+    : dim(dim), fe_type(fe_type), quadrature_cache(dim)
+{
+}
 
-inline
-libMesh::FEType
+inline libMesh::FEType
 FECache::getFEType() const
 {
     return fe_type;
 }
 
-inline
-FECache::value_type &
-FECache::operator[](const FECache::key_type &quad_key)
+inline FECache::value_type& FECache::operator[](const FECache::key_type& quad_key)
 {
     auto it = fes.find(quad_key);
     if (it == fes.end())
     {
-        libMesh::QBase &quad = quadrature_cache[quad_key];
-        libMesh::FEBase &fe = *(
-            *fes.emplace(
-                quad_key, libMesh::FEBase::build(dim, fe_type)).first).second;
+        libMesh::QBase& quad = quadrature_cache[quad_key];
+        libMesh::FEBase& fe = *(*fes.emplace(quad_key, libMesh::FEBase::build(dim, fe_type)).first).second;
 
         fe.attach_quadrature_rule(&quad);
         return fe;

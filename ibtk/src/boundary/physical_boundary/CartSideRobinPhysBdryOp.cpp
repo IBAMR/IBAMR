@@ -82,202 +82,203 @@
 #define SC_ROBIN_PHYS_BDRY_OP_3_FC IBTK_FC_FUNC(scrobinphysbdryop33d, SCROBINPHYSBDRYOP32D)
 #endif // if (NDIM == 3)
 
-extern "C" {
-void CC_ROBIN_PHYS_BDRY_OP_1_X_FC(double* u,
-                                  const int& u_gcw,
-                                  const double* acoef,
-                                  const double* bcoef,
-                                  const double* gcoef,
-                                  const int& location_index,
-                                  const int& ilower0,
-                                  const int& iupper0,
-                                  const int& ilower1,
-                                  const int& iupper1,
+extern "C"
+{
+    void CC_ROBIN_PHYS_BDRY_OP_1_X_FC(double* u,
+                                      const int& u_gcw,
+                                      const double* acoef,
+                                      const double* bcoef,
+                                      const double* gcoef,
+                                      const int& location_index,
+                                      const int& ilower0,
+                                      const int& iupper0,
+                                      const int& ilower1,
+                                      const int& iupper1,
 #if (NDIM == 3)
-                                  const int& ilower2,
-                                  const int& iupper2,
+                                      const int& ilower2,
+                                      const int& iupper2,
 #endif
-                                  const int& blower1,
-                                  const int& bupper1,
+                                      const int& blower1,
+                                      const int& bupper1,
 #if (NDIM == 3)
-                                  const int& blower2,
-                                  const int& bupper2,
+                                      const int& blower2,
+                                      const int& bupper2,
 #endif
-                                  const double* dx,
-                                  const int& adjoint_op);
+                                      const double* dx,
+                                      const int& adjoint_op);
 
-void CC_ROBIN_PHYS_BDRY_OP_1_Y_FC(double* u,
-                                  const int& u_gcw,
-                                  const double* acoef,
-                                  const double* bcoef,
-                                  const double* gcoef,
-                                  const int& location_index,
-                                  const int& ilower0,
-                                  const int& iupper0,
-                                  const int& ilower1,
-                                  const int& iupper1,
+    void CC_ROBIN_PHYS_BDRY_OP_1_Y_FC(double* u,
+                                      const int& u_gcw,
+                                      const double* acoef,
+                                      const double* bcoef,
+                                      const double* gcoef,
+                                      const int& location_index,
+                                      const int& ilower0,
+                                      const int& iupper0,
+                                      const int& ilower1,
+                                      const int& iupper1,
 #if (NDIM == 3)
-                                  const int& ilower2,
-                                  const int& iupper2,
+                                      const int& ilower2,
+                                      const int& iupper2,
 #endif
-                                  const int& blower0,
-                                  const int& bupper0,
+                                      const int& blower0,
+                                      const int& bupper0,
 #if (NDIM == 3)
-                                  const int& blower2,
-                                  const int& bupper2,
+                                      const int& blower2,
+                                      const int& bupper2,
 #endif
-                                  const double* dx,
-                                  const int& adjoint_op);
-
-#if (NDIM == 3)
-void CC_ROBIN_PHYS_BDRY_OP_1_Z_FC(double* U,
-                                  const int& U_gcw,
-                                  const double* acoef,
-                                  const double* bcoef,
-                                  const double* gcoef,
-                                  const int& location_index,
-                                  const int& ilower0,
-                                  const int& iupper0,
-                                  const int& ilower1,
-                                  const int& iupper1,
-                                  const int& ilower2,
-                                  const int& iupper2,
-                                  const int& blower0,
-                                  const int& bupper0,
-                                  const int& blower1,
-                                  const int& bupper1,
-                                  const double* dx,
-                                  const int& adjoint_op);
-#endif
-
-void SC_ROBIN_PHYS_BDRY_OP_1_X_FC(double* u0,
-                                  const int& u_gcw,
-                                  const double* acoef,
-                                  const double* bcoef,
-                                  const double* gcoef,
-                                  const int& location_index,
-                                  const int& ilower0,
-                                  const int& iupper0,
-                                  const int& ilower1,
-                                  const int& iupper1,
-#if (NDIM == 3)
-                                  const int& ilower2,
-                                  const int& iupper2,
-#endif
-                                  const int& blower1,
-                                  const int& bupper1,
-#if (NDIM == 3)
-                                  const int& blower2,
-                                  const int& bupper2,
-#endif
-                                  const double* dx,
-                                  const int& adjoint_op);
-
-void SC_ROBIN_PHYS_BDRY_OP_1_Y_FC(double* u1,
-                                  const int& u_gcw,
-                                  const double* acoef,
-                                  const double* bcoef,
-                                  const double* gcoef,
-                                  const int& location_index,
-                                  const int& ilower0,
-                                  const int& iupper0,
-                                  const int& ilower1,
-                                  const int& iupper1,
-#if (NDIM == 3)
-                                  const int& ilower2,
-                                  const int& iupper2,
-#endif
-                                  const int& blower0,
-                                  const int& bupper0,
-#if (NDIM == 3)
-                                  const int& blower2,
-                                  const int& bupper2,
-#endif
-                                  const double* dx,
-                                  const int& adjoint_op);
+                                      const double* dx,
+                                      const int& adjoint_op);
 
 #if (NDIM == 3)
-void SC_ROBIN_PHYS_BDRY_OP_1_Z_FC(double* u2,
-                                  const int& u_gcw,
-                                  const double* acoef,
-                                  const double* bcoef,
-                                  const double* gcoef,
-                                  const int& location_index,
-                                  const int& ilower0,
-                                  const int& iupper0,
-                                  const int& ilower1,
-                                  const int& iupper1,
-                                  const int& ilower2,
-                                  const int& iupper2,
-                                  const int& blower0,
-                                  const int& bupper0,
-                                  const int& blower1,
-                                  const int& bupper1,
-                                  const double* dx,
-                                  const int& adjoint_op);
+    void CC_ROBIN_PHYS_BDRY_OP_1_Z_FC(double* U,
+                                      const int& U_gcw,
+                                      const double* acoef,
+                                      const double* bcoef,
+                                      const double* gcoef,
+                                      const int& location_index,
+                                      const int& ilower0,
+                                      const int& iupper0,
+                                      const int& ilower1,
+                                      const int& iupper1,
+                                      const int& ilower2,
+                                      const int& iupper2,
+                                      const int& blower0,
+                                      const int& bupper0,
+                                      const int& blower1,
+                                      const int& bupper1,
+                                      const double* dx,
+                                      const int& adjoint_op);
 #endif
 
-void SC_ROBIN_PHYS_BDRY_OP_2_FC(double* u0,
-                                double* u1,
+    void SC_ROBIN_PHYS_BDRY_OP_1_X_FC(double* u0,
+                                      const int& u_gcw,
+                                      const double* acoef,
+                                      const double* bcoef,
+                                      const double* gcoef,
+                                      const int& location_index,
+                                      const int& ilower0,
+                                      const int& iupper0,
+                                      const int& ilower1,
+                                      const int& iupper1,
 #if (NDIM == 3)
-                                double* u2,
+                                      const int& ilower2,
+                                      const int& iupper2,
 #endif
-                                const int& u_gcw,
-                                const int& location_index,
-                                const int& ilower0,
-                                const int& iupper0,
-                                const int& ilower1,
-                                const int& iupper1,
+                                      const int& blower1,
+                                      const int& bupper1,
 #if (NDIM == 3)
-                                const int& ilower2,
-                                const int& iupper2,
+                                      const int& blower2,
+                                      const int& bupper2,
 #endif
-                                const int& blower0,
-                                const int& bupper0,
-                                const int& blower1,
-                                const int& bupper1,
+                                      const double* dx,
+                                      const int& adjoint_op);
+
+    void SC_ROBIN_PHYS_BDRY_OP_1_Y_FC(double* u1,
+                                      const int& u_gcw,
+                                      const double* acoef,
+                                      const double* bcoef,
+                                      const double* gcoef,
+                                      const int& location_index,
+                                      const int& ilower0,
+                                      const int& iupper0,
+                                      const int& ilower1,
+                                      const int& iupper1,
 #if (NDIM == 3)
-                                const int& blower2,
-                                const int& bupper2,
+                                      const int& ilower2,
+                                      const int& iupper2,
 #endif
-                                const int& adjoint_op);
+                                      const int& blower0,
+                                      const int& bupper0,
+#if (NDIM == 3)
+                                      const int& blower2,
+                                      const int& bupper2,
+#endif
+                                      const double* dx,
+                                      const int& adjoint_op);
 
 #if (NDIM == 3)
-void CC_ROBIN_PHYS_BDRY_OP_2_FC(double* U,
-                                const int& U_gcw,
-                                const int& location_index,
-                                const int& ilower0,
-                                const int& iupper0,
-                                const int& ilower1,
-                                const int& iupper1,
-                                const int& ilower2,
-                                const int& iupper2,
-                                const int& blower0,
-                                const int& bupper0,
-                                const int& blower1,
-                                const int& bupper1,
-                                const int& blower2,
-                                const int& bupper2,
-                                const int& adjoint_op);
+    void SC_ROBIN_PHYS_BDRY_OP_1_Z_FC(double* u2,
+                                      const int& u_gcw,
+                                      const double* acoef,
+                                      const double* bcoef,
+                                      const double* gcoef,
+                                      const int& location_index,
+                                      const int& ilower0,
+                                      const int& iupper0,
+                                      const int& ilower1,
+                                      const int& iupper1,
+                                      const int& ilower2,
+                                      const int& iupper2,
+                                      const int& blower0,
+                                      const int& bupper0,
+                                      const int& blower1,
+                                      const int& bupper1,
+                                      const double* dx,
+                                      const int& adjoint_op);
+#endif
 
-void SC_ROBIN_PHYS_BDRY_OP_3_FC(double* u0,
-                                double* u1,
-                                double* u2,
-                                const int& u_gcw,
-                                const int& location_index,
-                                const int& ilower0,
-                                const int& iupper0,
-                                const int& ilower1,
-                                const int& iupper1,
-                                const int& ilower2,
-                                const int& iupper2,
-                                const int& blower0,
-                                const int& bupper0,
-                                const int& blower1,
-                                const int& bupper1,
-                                const int& blower2,
-                                const int& bupper2,
-                                const int& adjoint_op);
+    void SC_ROBIN_PHYS_BDRY_OP_2_FC(double* u0,
+                                    double* u1,
+#if (NDIM == 3)
+                                    double* u2,
+#endif
+                                    const int& u_gcw,
+                                    const int& location_index,
+                                    const int& ilower0,
+                                    const int& iupper0,
+                                    const int& ilower1,
+                                    const int& iupper1,
+#if (NDIM == 3)
+                                    const int& ilower2,
+                                    const int& iupper2,
+#endif
+                                    const int& blower0,
+                                    const int& bupper0,
+                                    const int& blower1,
+                                    const int& bupper1,
+#if (NDIM == 3)
+                                    const int& blower2,
+                                    const int& bupper2,
+#endif
+                                    const int& adjoint_op);
+
+#if (NDIM == 3)
+    void CC_ROBIN_PHYS_BDRY_OP_2_FC(double* U,
+                                    const int& U_gcw,
+                                    const int& location_index,
+                                    const int& ilower0,
+                                    const int& iupper0,
+                                    const int& ilower1,
+                                    const int& iupper1,
+                                    const int& ilower2,
+                                    const int& iupper2,
+                                    const int& blower0,
+                                    const int& bupper0,
+                                    const int& blower1,
+                                    const int& bupper1,
+                                    const int& blower2,
+                                    const int& bupper2,
+                                    const int& adjoint_op);
+
+    void SC_ROBIN_PHYS_BDRY_OP_3_FC(double* u0,
+                                    double* u1,
+                                    double* u2,
+                                    const int& u_gcw,
+                                    const int& location_index,
+                                    const int& ilower0,
+                                    const int& iupper0,
+                                    const int& ilower1,
+                                    const int& iupper1,
+                                    const int& ilower2,
+                                    const int& iupper2,
+                                    const int& blower0,
+                                    const int& bupper0,
+                                    const int& blower1,
+                                    const int& bupper1,
+                                    const int& blower2,
+                                    const int& bupper2,
+                                    const int& adjoint_op);
 #endif
 }
 
@@ -298,7 +299,7 @@ compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
     extended_box.upper()(data_axis) += 1;
     return extended_box;
 } // compute_tangential_extension
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -371,21 +372,15 @@ CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
         if (!patch_data)
         {
             TBOX_ERROR("CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
-                       << "  patch data index "
-                       << patch_data_idx
-                       << " does not correspond to a side-centered double precision variable."
-                       << std::endl);
+                       << "  patch data index " << patch_data_idx
+                       << " does not correspond to a side-centered double precision variable." << std::endl);
         }
         if (NDIM * patch_data->getDepth() != static_cast<int>(d_bc_coefs.size()))
         {
             TBOX_ERROR("CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
-                       << "  data depth for patch data index "
-                       << patch_data_idx
-                       << " is "
-                       << patch_data->getDepth()
+                       << "  data depth for patch data index " << patch_data_idx << " is " << patch_data->getDepth()
                        << "\n"
-                       << "  but "
-                       << d_bc_coefs.size()
+                       << "  but " << d_bc_coefs.size()
                        << " boundary condition coefficient objects were provided to the class "
                           "constructor."
                        << std::endl);
@@ -446,21 +441,15 @@ CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch<NDIM>& patch,
         if (!patch_data)
         {
             TBOX_ERROR("CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData():\n"
-                       << "  patch data index "
-                       << patch_data_idx
-                       << " does not correspond to a side-centered double precision variable."
-                       << std::endl);
+                       << "  patch data index " << patch_data_idx
+                       << " does not correspond to a side-centered double precision variable." << std::endl);
         }
         if (NDIM * patch_data->getDepth() != static_cast<int>(d_bc_coefs.size()))
         {
             TBOX_ERROR("CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData():\n"
-                       << "  data depth for patch data index "
-                       << patch_data_idx
-                       << " is "
-                       << patch_data->getDepth()
+                       << "  data depth for patch data index " << patch_data_idx << " is " << patch_data->getDepth()
                        << "\n"
-                       << "  but "
-                       << d_bc_coefs.size()
+                       << "  but " << d_bc_coefs.size()
                        << " boundary condition coefficient objects were provided to the class "
                           "constructor."
                        << std::endl);
@@ -530,9 +519,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Normal(const int patch_data_id
         TBOX_ERROR(
             "CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Normal():\n"
             "  patch data for patch data index "
-            << patch_data_idx
-            << " does not have uniform ghost cell widths."
-            << std::endl);
+            << patch_data_idx << " does not have uniform ghost cell widths." << std::endl);
     }
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
@@ -669,9 +656,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
         TBOX_ERROR(
             "CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse():\n"
             "  patch data for patch data index "
-            << patch_data_idx
-            << " does not have uniform ghost cell widths."
-            << std::endl);
+            << patch_data_idx << " does not have uniform ghost cell widths." << std::endl);
     }
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
@@ -852,9 +837,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx,
         TBOX_ERROR(
             "CartSideRobinPhysBdryOp::fillGhostCellValuesCodim2():\n"
             "  patch data for patch data index "
-            << patch_data_idx
-            << " does not have uniform ghost cell widths."
-            << std::endl);
+            << patch_data_idx << " does not have uniform ghost cell widths." << std::endl);
     }
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
@@ -990,9 +973,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx,
         TBOX_ERROR(
             "CartSideRobinPhysBdryOp::fillGhostCellValuesCodim3():\n"
             "  patch data for patch data index "
-            << patch_data_idx
-            << " does not have uniform ghost cell widths."
-            << std::endl);
+            << patch_data_idx << " does not have uniform ghost cell widths." << std::endl);
     }
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);

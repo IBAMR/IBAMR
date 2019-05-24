@@ -79,7 +79,7 @@ namespace IBAMR
  * \brief Class IMPInitializer is a concrete LInitStrategy that initializes the
  * configuration of one or more Lagrangian structures that are described using
  * the immersed material point method from FE meshes.
-*/
+ */
 class IMPInitializer : public IBTK::LInitStrategy
 {
 public:

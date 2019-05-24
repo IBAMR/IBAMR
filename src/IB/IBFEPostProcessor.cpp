@@ -150,7 +150,9 @@ IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
     {
         for (unsigned int j = 0; j < var_dim; ++j)
         {
-            if (!is_from_restart) system.add_variable(var_name + "_" + std::to_string(i) + std::to_string(j), var_fe_order, var_fe_family);
+            if (!is_from_restart)
+                system.add_variable(
+                    var_name + "_" + std::to_string(i) + std::to_string(j), var_fe_order, var_fe_family);
         }
     }
     d_tensor_var_systems.push_back(&system);

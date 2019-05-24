@@ -67,31 +67,32 @@
 #define DIV_PRESERVING_CORRECTION_FC IBTK_FC_FUNC_(div_preserving_correction3d, DIV_PRESERVING_CORRECTION3D)
 #endif
 
-extern "C" {
-void DIV_PRESERVING_CORRECTION_FC(double* u0,
-                                  double* u1,
+extern "C"
+{
+    void DIV_PRESERVING_CORRECTION_FC(double* u0,
+                                      double* u1,
 #if (NDIM == 3)
-                                  double* u2,
+                                      double* u2,
 #endif
-                                  const int& u_gcw,
-                                  const int& ilower0,
-                                  const int& iupper0,
-                                  const int& ilower1,
-                                  const int& iupper1,
+                                      const int& u_gcw,
+                                      const int& ilower0,
+                                      const int& iupper0,
+                                      const int& ilower1,
+                                      const int& iupper1,
 #if (NDIM == 3)
-                                  const int& ilower2,
-                                  const int& iupper2,
+                                      const int& ilower2,
+                                      const int& iupper2,
 #endif
-                                  const int& correction_box_ilower0,
-                                  const int& correction_box_iupper0,
-                                  const int& correction_box_ilower1,
-                                  const int& correction_box_iupper1,
+                                      const int& correction_box_ilower0,
+                                      const int& correction_box_iupper0,
+                                      const int& correction_box_ilower1,
+                                      const int& correction_box_iupper1,
 #if (NDIM == 3)
-                                  const int& correction_box_ilower2,
-                                  const int& correction_box_iupper2,
+                                      const int& correction_box_ilower2,
+                                      const int& correction_box_iupper2,
 #endif
-                                  const int* ratio,
-                                  const double* dx_fine);
+                                      const int* ratio,
+                                      const double* dx_fine);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -253,7 +254,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
                         const SideIndex<NDIM> i_s_upper(i_upper, axis, 0);
                         for (int depth = 0; depth < fdata_depth; ++depth)
                         {
-                            (*fdata)(i_s, depth) = w0 * (*fdata)(i_s_lower, depth) + w1* (*fdata)(i_s_upper, depth);
+                            (*fdata)(i_s, depth) = w0 * (*fdata)(i_s_lower, depth) + w1 * (*fdata)(i_s_upper, depth);
                         }
                     }
                 }

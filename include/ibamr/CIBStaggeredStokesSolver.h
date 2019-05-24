@@ -135,7 +135,8 @@ public:
      * \brief Set the StaggeredStokesPhysicalBoundaryHelper object to be used
      * in the StokesOperator.
      */
-    virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
+    virtual void
+    setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.

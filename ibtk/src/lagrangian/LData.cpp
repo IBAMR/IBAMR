@@ -118,9 +118,7 @@ LData::LData(Pointer<Database> db) : d_name(db->getString("d_name")), d_depth(db
     d_nonlocal_petsc_indices.resize(num_ghost_nodes);
     if (num_ghost_nodes > 0)
     {
-        db->getIntegerArray("d_nonlocal_petsc_indices",
-                            d_nonlocal_petsc_indices.data(),
-                            num_ghost_nodes);
+        db->getIntegerArray("d_nonlocal_petsc_indices", d_nonlocal_petsc_indices.data(), num_ghost_nodes);
     }
 
     d_global_vec = setup_petsc_vector(num_local_nodes, d_depth, d_nonlocal_petsc_indices);

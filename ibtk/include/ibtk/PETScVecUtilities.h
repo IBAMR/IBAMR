@@ -37,8 +37,8 @@
 
 #include <vector>
 
-#include "petscvec.h"
 #include "petscao.h"
+#include "petscvec.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI

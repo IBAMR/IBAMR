@@ -520,7 +520,7 @@ HierarchyIntegrator::updateWorkloadEstimates()
         hier_cc_data_ops.setToScalar(d_workload_idx, 1.0, /*interior_only*/ false);
 
         addWorkloadEstimate(d_hierarchy, d_workload_idx);
-        for (HierarchyIntegrator *child : d_child_integrators)
+        for (HierarchyIntegrator* child : d_child_integrators)
         {
             child->addWorkloadEstimate(d_hierarchy, d_workload_idx);
         }
@@ -1354,13 +1354,12 @@ void HierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> /*db*/)
     return;
 } // putToDatabaseSpecialized
 
-void HierarchyIntegrator::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> >,
-                                              const int)
+void
+HierarchyIntegrator::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> >, const int)
 {
     // intentionally blank
     return;
 } // addWorkloadEstimate
-
 
 void
 HierarchyIntegrator::executePreprocessIntegrateHierarchyCallbackFcns(double current_time,

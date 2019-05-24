@@ -93,117 +93,118 @@ class RobinBcCoefStrategy;
     IBAMR_FC_FUNC_(navier_stokes_staggered_skew_sym_derivative3d, NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE3D)
 #endif
 
-extern "C" {
-void NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE_FC(const double*,
+extern "C"
+{
+    void NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE_FC(const double*,
 #if (NDIM == 2)
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const double*,
-                                               const double*,
-                                               const int&,
-                                               const int&,
-                                               double*,
-                                               double*
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const double*,
+                                                   const double*,
+                                                   const int&,
+                                                   const int&,
+                                                   double*,
+                                                   double*
 #endif
 #if (NDIM == 3)
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const double*,
-                                               const double*,
-                                               const double*,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               double*,
-                                               double*,
-                                               double*
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const double*,
+                                                   const double*,
+                                                   const double*,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   double*,
+                                                   double*,
+                                                   double*
 #endif
-                                               );
+    );
 
-void NAVIER_STOKES_STAGGERED_DIV_DERIVATIVE_FC(const double*,
+    void NAVIER_STOKES_STAGGERED_DIV_DERIVATIVE_FC(const double*,
 #if (NDIM == 2)
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const double*,
-                                               const double*,
-                                               const int&,
-                                               const int&,
-                                               double*,
-                                               double*
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const double*,
+                                                   const double*,
+                                                   const int&,
+                                                   const int&,
+                                                   double*,
+                                                   double*
 #endif
 #if (NDIM == 3)
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const double*,
-                                               const double*,
-                                               const double*,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               double*,
-                                               double*,
-                                               double*
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const double*,
+                                                   const double*,
+                                                   const double*,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   double*,
+                                                   double*,
+                                                   double*
 #endif
-                                               );
+    );
 
-void NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE_FC(const double*,
+    void NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE_FC(const double*,
 #if (NDIM == 2)
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const double*,
-                                                    const double*,
-                                                    const int&,
-                                                    const int&,
-                                                    double*,
-                                                    double*
+                                                        const int&,
+                                                        const int&,
+                                                        const int&,
+                                                        const int&,
+                                                        const int&,
+                                                        const int&,
+                                                        const double*,
+                                                        const double*,
+                                                        const int&,
+                                                        const int&,
+                                                        double*,
+                                                        double*
 #endif
 #if (NDIM == 3)
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const double*,
-                                                    const double*,
-                                                    const double*,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    double*,
-                                                    double*,
-                                                    double*
+                                                        const int&,
+                                                        const int&,
+                                                        const int&,
+                                                        const int&,
+                                                        const int&,
+                                                        const int&,
+                                                        const int&,
+                                                        const int&,
+                                                        const int&,
+                                                        const double*,
+                                                        const double*,
+                                                        const double*,
+                                                        const int&,
+                                                        const int&,
+                                                        const int&,
+                                                        double*,
+                                                        double*,
+                                                        double*
 #endif
-                                                    );
+    );
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -222,7 +223,7 @@ static Timer* t_apply_convective_operator;
 static Timer* t_apply;
 static Timer* t_initialize_operator_state;
 static Timer* t_deallocate_operator_state;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -238,8 +239,7 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
         TBOX_ERROR(
             "INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator():"
             "\n"
-            << "  unsupported differencing form: "
-            << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+            << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
             << " \n"
             << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
@@ -386,7 +386,7 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx,
                                                           N_data->getPointer(1),
                                                           N_data->getPointer(2)
 #endif
-                                                              );
+                );
                 break;
             case ADVECTIVE:
                 NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE_FC(dx,
@@ -424,7 +424,7 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx,
                                                           N_data->getPointer(1),
                                                           N_data->getPointer(2)
 #endif
-                                                              );
+                );
                 break;
             case SKEW_SYMMETRIC:
                 NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE_FC(dx,
@@ -462,13 +462,12 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx,
                                                                N_data->getPointer(1),
                                                                N_data->getPointer(2)
 #endif
-                                                                   );
+                );
                 break;
             default:
                 TBOX_ERROR("INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator():\n"
                            << "  unsupported differencing form: "
-                           << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
-                           << " \n"
+                           << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
                            << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
             }
         }

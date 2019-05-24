@@ -105,7 +105,8 @@ public:
     /*!
      * \brief Compute the action of the preconditioner.
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -192,7 +193,8 @@ private:
      *
      * \return A reference to this object.
      */
-    VCStaggeredStokesProjectionPreconditioner& operator=(const VCStaggeredStokesProjectionPreconditioner& that) = delete;
+    VCStaggeredStokesProjectionPreconditioner&
+    operator=(const VCStaggeredStokesProjectionPreconditioner& that) = delete;
 
     // Boundary condition objects.
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;

@@ -70,7 +70,7 @@ namespace IBTK
 /*!
  * \brief Class PoissonFACPreconditioner is a FACPreconditioner that has been
  * specialized for Poisson problems.
-*/
+ */
 class PoissonFACPreconditioner : public FACPreconditioner, public PoissonSolver
 {
 public:
