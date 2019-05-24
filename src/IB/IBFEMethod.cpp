@@ -991,7 +991,15 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                                  /*close_F*/ false,
                                                  /*close_X*/ false);
     }
-    batch_vec_assembly(d_U_rhs_vecs);
+    if (d_use_ghosted_velocity_rhs)
+    {
+        batch_vec_ghost_update(d_U_rhs_vecs, ADD_VALUES, SCATTER_REVERSE);
+        batch_vec_ghost_update(d_U_rhs_vecs, INSERT_VALUES, SCATTER_FORWARD);
+    }
+    else
+    {
+        batch_vec_assembly(d_U_rhs_vecs);
+    }
 
     // Solve for the interpolated data.
     for (unsigned int part = 0; part < d_num_parts; ++part)
