@@ -6,8 +6,6 @@ echo "===================================="
 echo "Configuring optional package libMesh"
 echo "===================================="
 
-PACKAGE_SETUP_ENVIRONMENT
-
 AC_ARG_ENABLE([libmesh],
   AS_HELP_STRING(--enable-libmesh,enable support for the optional libMesh library @<:@default=yes@:>@),
                  [case "$enableval" in
@@ -91,8 +89,13 @@ dnl
     AC_MSG_ERROR([invalid libMesh installation detected: please compile libMesh with PETSc])
   fi
 dnl
-dnl 4. Make sure that libMesh's PETSc matches the one specified:
+dnl 4. Make sure that libMesh's PETSc matches the one specified. The linker can
+dnl    sometimes get confused by this (the linker claims it cannot find
+dnl    libpetsc.so.3.10, which is utterly irrelevant to looking at the
+dnl    configuration file), so clear LIBS for the moment:
 dnl
+  _old_libs="${LIBS}"
+  LIBS=""
   AC_RUN_IFELSE([AC_LANG_SOURCE([
 #include "libmesh/libmesh_config.h"
 #include <iostream>
@@ -123,6 +126,10 @@ int main()
   fi
   ],[
   AC_MSG_ERROR([could not execute program to examine settings in libmesh_config.h])])
+dnl
+dnl 4a. Reset LIBS to its previous value:
+dnl
+  LIBS="${_old_libs}"
 
   AC_PATH_PROG(LIBMESH_CONFIG, libmesh-config, , [$PATH$PATH_SEPARATOR$LIBMESH_BIN])
   if test -z "$LIBMESH_CONFIG" ; then
@@ -213,16 +220,8 @@ dnl
       AC_MSG_ERROR("unknown libMesh METHOD=$METHOD; options are: opt, devel, dbg, prof, oprof") ;;
   esac
   AC_DEFINE([HAVE_LIBMESH],1,[Define if you have the libmesh library.])
-
-  PACKAGE_CPPFLAGS_PREPEND($LIBMESH_CPPFLAGS)
-  PACKAGE_CXXFLAGS_PREPEND($LIBMESH_CXXFLAGS)
-  PACKAGE_CFLAGS_PREPEND($LIBMESH_CFLAGS)
-  PACKAGE_FCFLAGS_PREPEND($LIBMESH_FCFLAGS)
-  PACKAGE_LIBS_PREPEND($LIBMESH_LIBS)
 else
   AC_MSG_NOTICE([Optional package libMesh is DISABLED])
 fi
-
-PACKAGE_RESTORE_ENVIRONMENT
 
 ])

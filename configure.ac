@@ -98,17 +98,24 @@ AC_MSG_NOTICE([first check for a system Boost library; if not found, revert to b
 BOOST_REQUIRE([1.57.0],[
   AC_MSG_WARN([could not find system Boost library, using bundled Boost library])
   USING_BUNDLED_BOOST=yes])
-CONFIGURE_BOOST("$ABSOLUTE_SRCDIR/ibtk/contrib/boost","\$(abs_top_builddir)/ibtk/contrib/boost")
+
+# Configure libraries that manage other dependencies of IBAMR:
+dnl libMesh must be first since it will override PETSc settings (in the case
+dnl that libMesh uses one version of PETSc and another version of PETSc was
+dnl provided by argument)
 CONFIGURE_LIBMESH
+CONFIGURE_PETSC
+# Configure other libraries that are not themselves dependencies:
+CONFIGURE_BOOST("$ABSOLUTE_SRCDIR/ibtk/contrib/boost","\$(abs_top_builddir)/ibtk/contrib/boost")
 CONFIGURE_EIGEN("$ABSOLUTE_SRCDIR/ibtk/contrib/eigen","\$(abs_top_builddir)/ibtk/contrib/eigen")
+CONFIGURE_GSL
+CONFIGURE_GTEST
 CONFIGURE_HDF5
 CONFIGURE_HYPRE
 CONFIGURE_MUPARSER("$ABSOLUTE_SRCDIR/ibtk/contrib/muparser","\$(abs_top_builddir)/ibtk/contrib/muparser")
-CONFIGURE_PETSC
-CONFIGURE_SAMRAI
+# configure dependencies of dependencies:
 CONFIGURE_SILO
-CONFIGURE_GSL
-CONFIGURE_GTEST
+CONFIGURE_SAMRAI
 PACKAGE_SETUP_ENVIRONMENT
 LIBS="$LIBS $PACKAGE_CONTRIB_LIBS"
 

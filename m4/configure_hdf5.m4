@@ -6,12 +6,9 @@ echo "================================="
 echo "Configuring required package HDF5"
 echo "================================="
 
-PACKAGE_SETUP_ENVIRONMENT
-
 if test `grep -c HDF5 "${PETSC_DIR}/${PETSC_ARCH}/lib/petsc/conf/petscvariables"` != 0 ; then
   AC_MSG_NOTICE([PETSc appears to provide HDF5; using PETSc HDF5 library])
   PETSC_BUNDLES_HDF5=yes
-  CPPFLAGS_PREPEND("-I${PETSC_DIR}/${PETSC_ARCH}/include")
 else
   PETSC_BUNDLES_HDF5=no
 
@@ -35,20 +32,10 @@ else
   AC_CHECK_HEADER([hdf5.h],,AC_MSG_ERROR([could not find header file hdf5.h]))
 
   LDFLAGS_PREPEND($HDF5_LDFLAGS)
-  AC_LIB_HAVE_LINKFLAGS([hdf5],[z,sz])
-  if test "$HAVE_LIBHDF5" = no ; then
-    AC_MSG_ERROR([could not find working libhdf5])
-  fi
-
-  LIBS_PREPEND($LIBHDF5)
-  AC_LIB_HAVE_LINKFLAGS([hdf5_hl],[z,sz])
-
-  PACKAGE_CPPFLAGS_PREPEND($HDF5_CPPFLAGS)
-  PACKAGE_LDFLAGS_PREPEND($HDF5_LDFLAGS)
-  PACKAGE_LIBS_PREPEND("$LIBHDF5")
-  if test "$HAVE_LIBHDF5_HL" = yes ; then
-    PACKAGE_LIBS_PREPEND("$LIBHDF5_HL")
-  fi
+  AC_CHECK_LIB([hdf5], H5open, [],
+               [AC_MSG_ERROR([could not find working libhdf5])])
+  AC_CHECK_LIB([hdf5_hl], H5LTfind_dataset, [],
+               [AC_MSG_ERROR([could not find working libhdf5_hl])])
 fi
 
 AC_MSG_CHECKING([for HDF5 version >= 1.8.7])
@@ -64,7 +51,5 @@ AC_MSG_RESULT([${HDF5_VERSION_VALID}])
 if test "$HDF5_VERSION_VALID" = no; then
   AC_MSG_WARN([HDF5 versions prior to 1.8.7 are likely to be usable but are not officially supported])
 fi
-
-PACKAGE_RESTORE_ENVIRONMENT
 
 ])
