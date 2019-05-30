@@ -989,7 +989,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     if (d_k_var)
     {
         registerVariable(
-            d_k_current_idx, d_k_new_idx, d_k_scratch_idx, d_k_var, cell_ghosts, d_k_refine_type, d_k_coarsen_type);
+            d_k_current_idx, d_k_new_idx, d_k_scratch_idx, d_k_var, cell_ghosts, d_k_coarsen_type, d_k_refine_type);
     }
 
     // Register variables for plotting.
