@@ -248,4 +248,5 @@ main(int argc, char** argv)
     }
 
     SAMRAIManager::shutdown();
+    PetscFinalize();
 } // main
