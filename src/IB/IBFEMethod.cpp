@@ -3438,7 +3438,6 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     if (!d_split_normal_force && !d_split_tangential_force) return;
 
     // Check to see if we need to integrate the surface forces.
-
     const bool integrate_normal_force =
         d_split_normal_force && !d_use_jump_conditions && !d_is_stress_normalization_part[part];
     const bool integrate_tangential_force = d_split_tangential_force;
@@ -4456,7 +4455,7 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     d_ipdg_beta0 = db->getDoubleWithDefault("ipdg_beta0", 2.0);
     d_ipdg_beta1 = db->getDoubleWithDefault("ipdg_beta1", 2.0);
     d_cg_penalty = db->getDoubleWithDefault("cg_penalty", 1.0e10);
-    d_phi_fe_order = static_cast<Order>(db->getIntegerWithDefault("Phi_fe_order", 2)); // TODO: We should read in the
+    d_phi_fe_order = Utility::string_to_enum<Order>(db->getStringWithDefault("Phi_fe_order", "SECOND")); // TODO: We should read in the
                                                                                        // string for the Order
     d_dt_previous = db->getDouble("Phi_dt"); // TODO: We should not be reading this in from input
 
