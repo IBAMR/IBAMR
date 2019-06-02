@@ -2581,14 +2581,8 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                                                            PK1_grad_var_data[k],
                                                            data_time,
                                                            d_PK1_stress_fcn_data[part][k].ctx);
-                        if (d_phi_current_config)
-                        {
-                            Phi += n * ((PP * FF_trans) * n) / J;
-                        }
-                        else
-                        {
-                            Phi += n * ((PP * FF_trans) * n);
-                        }
+                        double volume_scale = (d_phi_current_config ? 1.0 / J : 1.0); 
+                        Phi += n * ((PP * FF_trans) * n) * volume_scale;
                     }
                 }
 
@@ -2611,14 +2605,8 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                                                            surface_force_grad_var_data,
                                                            data_time,
                                                            d_lag_surface_force_fcn_data[part].ctx);
-                    if (d_phi_current_config)
-                    {
-                        Phi -= n * F_s * dA_da;
-                    }
-                    else
-                    {
-                        Phi -= J * n * F_s * dA_da;
-                    }
+                    double volume_scale = (d_phi_current_config ? 1.0 : J); 
+                    Phi -= n * F_s * dA_da * volume_scale;
                 }
 
                 if (d_lag_surface_pressure_fcn_data[part].fcn)
@@ -2644,14 +2632,8 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                                                               surface_pressure_grad_var_data,
                                                               data_time,
                                                               d_lag_surface_pressure_fcn_data[part].ctx);
-                    if (d_phi_current_config)
-                    {
-                        Phi += P;
-                    }
-                    else
-                    {
-                        Phi += J * P;
-                    }
+                    double volume_scale = (d_phi_current_config ? 1.0 : J);
+                    Phi += P * volume_scale;                  
                 }
 
                 // Add the boundary forces to the right-hand-side vector.
@@ -3021,15 +3003,9 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
                 // Compute the value of the first Piola-Kirchhoff stress tensor
                 // at the quadrature point and add the corresponding forces to
                 // the right-hand-side vector.
-                if (d_phi_current_config)
-                {
-                    Phi_vol = -J * Phi * FF_inv_trans;
-                }
-                else
-                {
-                    Phi_vol = -Phi * FF_inv_trans;
-                }
-
+                double volume_scale = (d_phi_current_config ? J : 1.0);
+                Phi_vol = -volume_scale * Phi * FF_inv_trans;
+             
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
                     F_qp = -Phi_vol * dphi[k][qp] * JxW[qp];
@@ -3164,14 +3140,8 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
                         (d_split_normal_force && !at_dirichlet_bdry) || (!d_split_normal_force && at_dirichlet_bdry);
                     const bool integrate_tangential_force = (d_split_tangential_force && !at_dirichlet_bdry) ||
                                                             (!d_split_tangential_force && at_dirichlet_bdry);
-                    if (d_phi_current_config)
-                    {
-                        PP = -J * Phi * FF_inv_trans;
-                    }
-                    else
-                    {
-                        PP = -Phi * FF_inv_trans;
-                    }
+                    double volume_scale = (d_phi_current_config ? J : 1.0);
+                    PP = -volume_scale * Phi * FF_inv_trans;
                     T = PP * normal_face[qp];
                     if (integrate_normal_force) F += (T * n) * n;
                     if (integrate_tangential_force) F += (T - (T * n) * n);
@@ -3647,14 +3617,8 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                         // Compute the value of the first Piola-Kirchhoff stress tensor
                         // at the quadrature point and add the corresponding forces to
                         // the right-hand-side vector.
-                        if (d_phi_current_config)
-                        {
-                            F += J * Phi * FF_inv_trans * normal_face[qp] * JxW_face[qp];
-                        }
-                        else
-                        {
-                            F += Phi * FF_inv_trans * normal_face[qp] * JxW_face[qp];
-                        }
+                        double volume_scale = (d_phi_current_config ? J : 1.0);
+                        F += volume_scale * Phi * FF_inv_trans * normal_face[qp] * JxW_face[qp];
                     }
 
                     for (unsigned int k = 0; k < num_PK1_fcns; ++k)
