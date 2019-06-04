@@ -505,7 +505,19 @@ main(int argc, char* argv[])
             pout << "\n";
 
             // Compute and print the hydrodynamic force
-            hydro_force_evaluator->computeHydrodynamicForce();
+            IBTK::Vector3d pressure_force, viscous_force, pressure_torque, viscous_torque;
+            hydro_force_evaluator->computeHydrodynamicForceTorque(
+                pressure_force, viscous_force, pressure_torque, viscous_torque, circle.X0);
+            if (SAMRAI_MPI::getRank() == 0)
+            {
+                plog << "hyro forces: " << loop_time << '\t' << pressure_force[0] << '\t' << pressure_force[1] << '\t'
+                              << pressure_force[2] << '\t' << viscous_force[0] << '\t' << viscous_force[1] << '\t'
+                              << viscous_force[2] << std::endl;
+                plog << "hyro torques: " << loop_time << '\t' << pressure_torque[0] << '\t' << pressure_torque[1] << '\t'
+                               << pressure_torque[2] << '\t' << viscous_torque[0] << '\t' << viscous_torque[1] << '\t'
+                               << viscous_torque[2] << std::endl;
+            }
+
 
             // Write the center of mass vertical position and velocity to a file
             if (!SAMRAI_MPI::getRank())

@@ -74,6 +74,7 @@ public:
                              const bool regrid_time)
     {
         // If at the regrid time, force reinitialization
+        TBOX_ASSERT(d_ls_solid_ops);
         d_ls_solid_ops->setReinitializeLSData(regrid_time);
         d_ls_solid_ops->initializeLSData(ls_solid_idx, hier_math_ops, integrator_step, current_time, initial_time);
 
@@ -91,6 +92,7 @@ public:
                            const bool regrid_time)
     {
         // If at the regrid time, force reinitialization
+        TBOX_ASSERT(d_ls_gas_ops);
         d_ls_gas_ops->setReinitializeLSData(regrid_time);
         d_ls_gas_ops->initializeLSData(ls_gas_idx, hier_math_ops, integrator_step, current_time, initial_time);
 
