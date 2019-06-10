@@ -457,7 +457,8 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
     const int ls_solid_idx =
         use_current_ctx ?
             var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getCurrentContext()) :
-            use_new_ctx ? var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext()) : -1;
+            use_new_ctx ? var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext()) :
+                          IBTK::invalid_index;
     InterpolationTransactionComponent ls_solid_transaction(d_ls_solid_idx,
                                                            ls_solid_idx,
                                                            /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
@@ -474,10 +475,10 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
 
     // Fill ghost cells for velocity
     Pointer<SideVariable<NDIM, double> > u_var = d_fluid_solver->getVelocityVariable();
-    const int u_idx =
-        use_current_ctx ?
-            var_db->mapVariableAndContextToIndex(u_var, d_fluid_solver->getCurrentContext()) :
-            use_new_ctx ? var_db->mapVariableAndContextToIndex(u_var, d_fluid_solver->getNewContext()) : -1;
+    const int u_idx = use_current_ctx ?
+                          var_db->mapVariableAndContextToIndex(u_var, d_fluid_solver->getCurrentContext()) :
+                          use_new_ctx ? var_db->mapVariableAndContextToIndex(u_var, d_fluid_solver->getNewContext()) :
+                                        IBTK::invalid_index;
     InterpolationTransactionComponent u_transaction(d_u_idx,
                                                     u_idx,
                                                     /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
@@ -504,14 +505,14 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
             p_vc_ins_hier_integrator->getTransportedViscosityVariable();
         Pointer<CellVariable<NDIM, double> > mu_ins_var = p_vc_ins_hier_integrator->getViscosityVariable();
         RobinBcCoefStrategy<NDIM>* mu_bc_coef = nullptr;
-        int mu_idx = -1;
+        int mu_idx = IBTK::invalid_index;
         if (mu_adv_diff_var)
         {
             mu_idx = use_current_ctx ?
                          var_db->mapVariableAndContextToIndex(mu_adv_diff_var, d_adv_diff_solver->getCurrentContext()) :
                          use_new_ctx ?
                          var_db->mapVariableAndContextToIndex(mu_adv_diff_var, d_adv_diff_solver->getNewContext()) :
-                         -1;
+                         IBTK::invalid_index;
             mu_bc_coef = (d_adv_diff_solver->getPhysicalBcCoefs(mu_adv_diff_var)).front();
         }
         else if (mu_ins_var)
@@ -520,7 +521,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
                          var_db->mapVariableAndContextToIndex(mu_ins_var, d_fluid_solver->getCurrentContext()) :
                          use_new_ctx ?
                          var_db->mapVariableAndContextToIndex(mu_ins_var, d_fluid_solver->getNewContext()) :
-                         -1;
+                         IBTK::invalid_index;
             auto p_vc_ins_hier_integrator =
                 dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
             mu_bc_coef = p_vc_ins_hier_integrator->getViscosityBoundaryConditions();
@@ -547,10 +548,10 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
 
     // Fill ghost cells for pressure
     Pointer<CellVariable<NDIM, double> > p_var = d_fluid_solver->getPressureVariable();
-    const int p_idx =
-        use_current_ctx ?
-            var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getCurrentContext()) :
-            use_new_ctx ? var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getNewContext()) : -1;
+    const int p_idx = use_current_ctx ?
+                          var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getCurrentContext()) :
+                          use_new_ctx ? var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getNewContext()) :
+                                        IBTK::invalid_index;
     auto p_ins_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
     auto p_vc_ins_bc_coef =
         dynamic_cast<INSVCStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
