@@ -800,6 +800,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 
         UniquePtr<FEBase> fe_DU_jump = FEBase::build(dim, DU_jump_fe_type);
         const std::vector<std::vector<double> >& phi_DU_jump = fe_DU_jump->get_phi();
+ 	const std::vector<double>& JxW_DU_jump = fe_DU_jump->get_JxW();
 
         // Communicate any unsynchronized ghost data and extract the underlying
         // solution data.
@@ -1239,9 +1240,16 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                 if (qrule_changed) fe_U->attach_quadrature_rule(qrule.get());
 
                 fe_U->reinit(elem);
+                
+                if (qrule_changed)
+				{
+					fe_DU_jump->attach_quadrature_rule(qrule.get());
+				}
+				fe_DU_jump->reinit(elem);
+
                 const unsigned int n_qpoints = qrule->n_points();
                 const size_t n_basis = U_dof_indices[0].size();
-
+				const size_t n_basis_DU_jump = WSS_dof_indices[0].size();
                 for (unsigned int qp = 0; qp < n_qpoints; ++qp)
                 {
                     for (unsigned int k = 0; k < NDIM - 1; ++k)
@@ -1263,12 +1271,20 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                     }
                     U_n = (U * n) * n;
                     U_t = U - U_n;
-                    for (unsigned int k = 0; k < n_basis; ++k)
+                   for (unsigned int k = 0; k < n_basis; ++k)
                     {
                         const double p_JxW = phi_U[k][qp] * JxW[qp];
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             U_rhs_e[d](k) += U(d) * p_JxW;
+                        }
+                    }
+                    
+                    for (unsigned int k = 0; k < n_basis_DU_jump; ++k)
+                    {
+                        const double p_JxW = phi_DU_jump[k][qp] * JxW_DU_jump[qp];
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
                             U_n_rhs_e[d](k) += U_n(d) * p_JxW;
                             U_t_rhs_e[d](k) += U_t(d) * p_JxW;
                             if (d_use_velocity_jump_conditions)
@@ -1314,6 +1330,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
     }
     return;
 } // interpolateVelocity
+
 
 void
 IBFESurfaceMethod::forwardEulerStep(const double current_time, const double new_time)
@@ -1958,11 +1975,11 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                     os << "WSS_" << d;
                     if (d_use_l2_lagrange_family)
 					{
-						WSS_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
+						WSS_system.add_variable(os.str(), d_fe_order[part], L2_LAGRANGE);
 					}
 					else
 					{
-						WSS_system.add_variable(os.str(), d_fe_order[part], L2_LAGRANGE);
+						WSS_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
 					}
                 }
             }
@@ -2337,6 +2354,14 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx,
    // TBOX_ASSERT(P_dof_map.variable_type(0) == X_fe_type);
     std::vector<unsigned int> P_dof_indices;
 
+    FEType P_fe_type;
+    P_fe_type = P_dof_map.variable_type(0);
+    FEType fe2_type = P_fe_type;
+    UniquePtr<FEBase> fe2 = FEBase::build(dim, fe2_type);
+    
+    const std::vector<std::vector<double> >& phi2 = fe2->get_phi();
+    const std::vector<double>& JxW2 = fe2->get_JxW();
+
     const std::vector<std::vector<Elem*> >& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
 
@@ -2450,6 +2475,12 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx,
             }
             fe_X->reinit(elem);
 
+           if (qrule_changed)
+            {
+                fe2->attach_quadrature_rule(qrule.get());
+            }
+            fe2->reinit(elem);
+
             const unsigned int n_node = elem->n_nodes();
             const unsigned int n_qp = qrule->n_points();
 
@@ -2493,14 +2524,14 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx,
                     N_qp[NDIM * (qp_offset + qp) + i] = n(i);
                     // Note that here we calculate the pressure on one side as the jump plus the pressure on the other
                     // side
-                    x_io_qp[NDIM * (qp_offset + qp) + i] += (CALCULATE_INTERIOR_SIDE ? 1.0 : -1.0) * n(i) * dh;
+                    x_io_qp[NDIM * (qp_offset + qp) + i] += (CALCULATE_INTERIOR_SIDE ? -1.0 : 1.0) * n(i) * dh;
                 }
 
                 for (unsigned int k = 0; k < n_node; ++k)
                 {
-                    const double& p_X = phi[k][qp];
+                    const double& p2 = phi2[k][qp];
 
-                    P_jump_qp[qp_offset + qp] += P_jump_node[k] * p_X;
+                    P_jump_qp[qp_offset + qp] += P_jump_node[k] * p2;
                 }
             }
             qp_offset += n_qp;
@@ -2571,15 +2602,20 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx,
             if (qrule_changed) fe_X->attach_quadrature_rule(qrule.get());
 
             fe_X->reinit(elem);
-
+           if (qrule_changed)
+            {
+                fe2->attach_quadrature_rule(qrule.get());
+            }
+            fe2->reinit(elem);
             const unsigned int n_qp = qrule->n_points();
             const size_t n_basis = X_dof_indices[0].size();
+			const size_t n_basis2 = P_dof_indices.size();
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = qp_offset + qp;
-                for (unsigned int k = 0; k < n_basis; ++k)
+                for (unsigned int k = 0; k < n_basis2; ++k)
                 {
-                    const double p_JxW = phi[k][qp] * JxW[qp];
+                    const double p_JxW = phi2[k][qp] * JxW2[qp];
                     P_rhs_e(k) += P_qp[idx] * p_JxW;
                 }
             }
@@ -2725,6 +2761,17 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     // TBOX_ASSERT(P_jump_dof_map.variable_type(0) == X_fe_type);
     std::vector<unsigned int> P_jump_dof_indices;
 
+    FEType P_fe_type;
+   if (d_use_pressure_jump_conditions)
+    {
+        P_fe_type = P_dof_map.variable_type(0);
+    }
+    
+	FEType fe2_type = P_fe_type;
+    UniquePtr<FEBase> fe2 = FEBase::build(dim, fe2_type);
+    const std::vector<std::vector<double> >& phi2 = fe2->get_phi();
+    const std::vector<double>& JxW2 = fe2->get_JxW();
+
     boost::array<DofMap*, NDIM> DU_jump_dof_map;
     boost::array<FEDataManager::SystemDofMapCache*, NDIM> DU_jump_dof_map_cache;
     boost::array<std::vector<std::vector<unsigned int> >, NDIM> DU_jump_dof_indices;
@@ -2864,6 +2911,12 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
                 fe_X->attach_quadrature_rule(qrule.get());
             }
             fe_X->reinit(elem);
+
+            if (qrule_changed)
+            {
+                fe2->attach_quadrature_rule(qrule.get());
+            }
+            fe2->reinit(elem);
             const unsigned int n_node = elem->n_nodes();
             const unsigned int n_qp = qrule->n_points();
 
@@ -2921,16 +2974,17 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
                     for (unsigned int k = 0; k < n_node; ++k)
                     {
                         const double& p_X = phi[k][qp];
+			const double& p_X2 = phi2[k][qp];
 
                         x_qp[NDIM * (qp_offset + qp) + i] += x_node[k][i] * p_X;
-                        WSS_qp[NDIM * (qp_offset + qp) + i] += WSS_node[k][i] * p_X;
+                        WSS_qp[NDIM * (qp_offset + qp) + i] += (da / dA) * WSS_node[k][i] * p_X;
                     }
                     N_qp[NDIM * (qp_offset + qp) + i] = n(i);
                 }
 
                 for (unsigned int k = 0; k < n_node; ++k)
                 {
-                    const double& p = phi[k][qp];
+                    const double& p = phi2[k][qp];
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
                         for (unsigned int d = 0; d < NDIM; ++d)
@@ -2942,9 +2996,9 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
 
                 for (unsigned int k = 0; k < n_node; ++k)
                 {
-                    const double& p_X = phi[k][qp];
-                    P_qp[qp_offset + qp] += P_node[k] * p_X;
-                    P_jump_qp[qp_offset + qp] += P_jump_node[k] * p_X;
+                    const double& p_X2 = phi2[k][qp];
+                    P_qp[qp_offset + qp] += (da / dA) *P_node[k] * p_X2;
+                    P_jump_qp[qp_offset + qp] += P_jump_node[k] * p_X2;
                 }
             }
             qp_offset += n_qp;
@@ -2976,7 +3030,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
                     // Using the exterior traciton tau_e
 
                     TAU_qp[NDIM * local_indices[k] + axis] =
-                        (da / dA) * (WSS_qp[NDIM * local_indices[k] + axis] -
+                         (WSS_qp[NDIM * local_indices[k] + axis] -
                                      P_qp[local_indices[k]] * N_qp[NDIM * local_indices[k] + axis]);
                 }
             }
@@ -3005,14 +3059,20 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
                 fe_X->attach_quadrature_rule(qrule.get());
             }
             fe_X->reinit(elem);
+           if (qrule_changed)
+            {
+                fe2->attach_quadrature_rule(qrule.get());
+            }
+            fe2->reinit(elem);
             const unsigned int n_qp = qrule->n_points();
             const size_t n_basis = X_dof_indices[0].size();
+	    const size_t n_basis2 = WSS_dof_indices[0].size();
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = NDIM * (qp_offset + qp);
-                for (unsigned int k = 0; k < n_basis; ++k)
+                for (unsigned int k = 0; k < n_basis2; ++k)
                 {
-                    const double p_JxW = phi[k][qp] * JxW[qp];
+                    const double p_JxW = phi2[k][qp] * JxW2[qp];
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
                         TAU_rhs_e[i](k) += TAU_qp[idx + i] * p_JxW;
@@ -3647,6 +3707,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 
     return;
 } // imposeJumpConditions
+
 
 void
 IBFESurfaceMethod::checkDoubleCountingIntersection(int axis,
