@@ -145,6 +145,10 @@
 /* Define if you have the MPI library. */
 #undef HAVE_MPI
 
+/* Boolean value indicating whether the C++ compiler supports the C99 _Pragma
+   keyword */
+#undef HAVE_PRAGMA_KEYWORD
+
 /* Define if you have the silo library. */
 #undef HAVE_SILO
 
@@ -206,3 +210,6 @@
 
 /* Version number of package */
 #undef VERSION
+
+/* Define IBTK-specific macros. */
+#include <ibtk/ibtk_macros.h>

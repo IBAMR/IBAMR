@@ -55,6 +55,7 @@ AC_PROG_GREP
 AC_PROG_SED
 CHECK_BUILTIN_EXPECT
 CHECK_BUILTIN_PREFETCH
+CHECK_PRAGMA_KEYWORD
 CONFIGURE_DOXYGEN
 CONFIGURE_DOT
 
@@ -90,6 +91,14 @@ CONFIGURE_SILO
 CONFIGURE_SAMRAI
 PACKAGE_SETUP_ENVIRONMENT
 LIBS="$LIBS $PACKAGE_CONTRIB_LIBS"
+
+###########################################################################
+# Additional header configuration.
+###########################################################################
+dnl We have to use a funny name for the key to guarantee that it comes after
+dnl all constant definitions.
+AH_VERBATIM(Z_INCLUDE_MACRO_HEADER, [/* Define IBTK-specific macros. */
+#include <ibtk/ibtk_macros.h>])
 
 ###########################################################################
 # Output files.
