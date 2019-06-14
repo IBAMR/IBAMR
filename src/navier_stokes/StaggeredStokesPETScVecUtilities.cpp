@@ -32,12 +32,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <array>
-#include <numeric>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/StaggeredStokesPETScVecUtilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/SideSynchCopyFillPattern.h"
+#include "ibtk/compiler_hints.h"
 
 #include "Box.h"
 #include "BoxList.h"
@@ -46,7 +49,6 @@
 #include "CellGeometry.h"
 #include "CellIndex.h"
 #include "CellVariable.h"
-#include "IBAMR_config.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
@@ -62,17 +64,19 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "ibamr/StaggeredStokesPETScVecUtilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/SideSynchCopyFillPattern.h"
-#include "ibtk/compiler_hints.h"
-#include "petscsys.h"
-#include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include <algorithm>
+#include <array>
+#include <numeric>
+#include <ostream>
+#include <string>
+#include <vector>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

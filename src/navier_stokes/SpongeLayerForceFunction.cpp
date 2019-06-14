@@ -32,10 +32,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
-#include <iosfwd>
-#include <ostream>
-#include <string>
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/SpongeLayerForceFunction.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "Box.h"
 #include "BoxArray.h"
@@ -52,16 +55,15 @@
 #include "SideIndex.h"
 #include "Variable.h"
 #include "VariableContext.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/SpongeLayerForceFunction.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <cmath>
+#include <iosfwd>
+#include <ostream>
+#include <string>
 
 namespace SAMRAI
 {

@@ -32,31 +32,34 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
-#include <iosfwd>
-#include <ostream>
-#include <string>
+#include "IBAMR_config.h"
+
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/SurfaceTensionForceFunction.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
-#include "IBAMR_config.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchData.h"
 #include "SideData.h"
 #include "Variable.h"
 #include "VariableContext.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/SurfaceTensionForceFunction.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <cmath>
+#include <iosfwd>
+#include <ostream>
+#include <string>
 
 namespace SAMRAI
 {
