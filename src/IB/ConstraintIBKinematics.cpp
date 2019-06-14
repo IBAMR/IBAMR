@@ -34,7 +34,9 @@
 
 #include "ibamr/ConstraintIBKinematics.h"
 #include "ibamr/namespaces.h"
+
 #include "tbox/Utilities.h"
+
 #include <string>
 
 namespace IBAMR

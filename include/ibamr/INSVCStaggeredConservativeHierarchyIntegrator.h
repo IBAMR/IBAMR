@@ -35,11 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
-
 #include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+
+#include <string>
+#include <vector>
 
 namespace IBTK
 {

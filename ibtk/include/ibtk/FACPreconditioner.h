@@ -35,14 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
+#include "ibtk/LinearSolver.h"
+#include "ibtk/ibtk_enums.h"
 
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/ibtk_enums.h"
 #include "tbox/Pointer.h"
+
+#include <string>
 
 namespace SAMRAI
 {

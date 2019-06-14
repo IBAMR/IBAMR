@@ -35,8 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibamr/IBStrategy.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/LMarkerSetVariable.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CellVariable.h"
 #include "CoarsenAlgorithm.h"
@@ -50,14 +56,10 @@
 #include "RefineOperator.h"
 #include "Variable.h"
 #include "VariableContext.h"
-#include "ibamr/IBStrategy.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/LMarkerSetVariable.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace IBTK
 {

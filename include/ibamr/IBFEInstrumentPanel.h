@@ -35,21 +35,25 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <fstream>
-#include <memory>
-
-#include "boost/multi_array.hpp"
 #include "ibamr/IBFEMethod.h"
+
 #include "ibtk/FEDataManager.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/mesh.h"
 #include "libmesh/point.h"
 #include "libmesh/serial_mesh.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+
+#include "boost/multi_array.hpp"
+
+#include <fstream>
+#include <memory>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

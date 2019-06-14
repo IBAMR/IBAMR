@@ -32,10 +32,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/ExtendedRobinBcCoefStrategy.h"
+#include "ibtk/FACPreconditionerStrategy.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/PoissonFACPreconditionerStrategy.h"
+#include "ibtk/RefinePatchStrategySet.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
@@ -59,21 +65,16 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "ibtk/ExtendedRobinBcCoefStrategy.h"
-#include "ibtk/FACPreconditionerStrategy.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/PoissonFACPreconditionerStrategy.h"
-#include "ibtk/RefinePatchStrategySet.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

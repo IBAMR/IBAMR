@@ -35,13 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/LinearSolver.h"
+
+#include "tbox/ConstPointer.h"
+#include "tbox/Pointer.h"
+
 #include <map>
 #include <string>
 #include <vector>
-
-#include "ibtk/LinearSolver.h"
-#include "tbox/ConstPointer.h"
-#include "tbox/Pointer.h"
 
 namespace IBTK
 {

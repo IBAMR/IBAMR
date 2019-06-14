@@ -35,10 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
+#include "ibtk/IndexUtilities.h"
 
 #include "boost/math/special_functions/round.hpp"
-#include "ibtk/IndexUtilities.h"
+
+#include <cmath>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

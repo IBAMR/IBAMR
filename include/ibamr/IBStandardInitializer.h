@@ -35,20 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/IBRedundantInitializer.h"
+#include "ibamr/IBRodForceSpec.h"
+
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_utilities.h"
+
+#include "IntVector.h"
+#include "tbox/Pointer.h"
+
 #include <array>
 #include <functional>
 #include <map>
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "IntVector.h"
-#include "ibamr/IBRedundantInitializer.h"
-#include "ibamr/IBRodForceSpec.h"
-#include "ibtk/LInitStrategy.h"
-#include "ibtk/LSiloDataWriter.h"
-#include "ibtk/ibtk_utilities.h"
-#include "tbox/Pointer.h"
 
 namespace IBTK
 {

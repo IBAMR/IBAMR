@@ -32,18 +32,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <functional>
-#include <limits>
-#include <map>
-#include <memory>
-#include <ostream>
-#include <set>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibtk/FECache.h"
+#include "ibtk/FEDataManager.h"
+#include "ibtk/FEMapCache.h"
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/LEInteractor.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/libmesh_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -78,17 +76,16 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "boost/multi_array.hpp"
-#include "ibtk/FECache.h"
-#include "ibtk/FEDataManager.h"
-#include "ibtk/FEMapCache.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/LEInteractor.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/libmesh_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Database.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+#include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/ShutdownRegistry.h"
+#include "tbox/Timer.h"
+#include "tbox/TimerManager.h"
+#include "tbox/Utilities.h"
+
 #include "libmesh/dense_matrix.h"
 #include "libmesh/dense_vector.h"
 #include "libmesh/dof_map.h"
@@ -117,19 +114,26 @@
 #include "libmesh/tensor_value.h"
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
+
 #include "petscksp.h"
 #include "petscoptions.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/ShutdownRegistry.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+
+#include "boost/multi_array.hpp"
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <functional>
+#include <limits>
+#include <map>
+#include <memory>
+#include <ostream>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace libMesh
 {

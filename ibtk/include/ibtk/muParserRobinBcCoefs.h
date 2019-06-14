@@ -35,16 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <string>
-#include <vector>
+#include "ibtk/ibtk_utilities.h"
 
 #include "CartesianGridGeometry.h"
 #include "IntVector.h"
 #include "RobinBcCoefStrategy.h"
-#include "ibtk/ibtk_utilities.h"
-#include "muParser.h"
 #include "tbox/Pointer.h"
+
+#include "muParser.h"
+
+#include <map>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

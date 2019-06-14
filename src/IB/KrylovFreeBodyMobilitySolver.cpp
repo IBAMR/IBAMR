@@ -34,8 +34,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <limits>
-
 #include "ibamr/CIBMobilitySolver.h"
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/DirectMobilitySolver.h"
@@ -43,9 +41,13 @@
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h"
+
 #include "ibtk/ibtk_utilities.h"
+
 #include "petsc/private/petscimpl.h"
 #include "tbox/TimerManager.h"
+
+#include <limits>
 
 namespace IBAMR
 {

@@ -32,9 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <ostream>
-#include <string>
+#include "ibtk/SideNoCornersFillPattern.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "BoxGeometry.h"
@@ -44,10 +43,12 @@
 #include "IntVector.h"
 #include "SideGeometry.h"
 #include "SideOverlap.h"
-#include "ibtk/SideNoCornersFillPattern.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <array>
+#include <ostream>
+#include <string>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

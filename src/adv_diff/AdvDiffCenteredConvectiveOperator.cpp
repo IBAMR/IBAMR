@@ -32,10 +32,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/AdvDiffCenteredConvectiveOperator.h"
+#include "ibamr/AdvDiffPhysicalBoundaryUtilities.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartExtrapPhysBdryOp.h"
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
@@ -48,7 +54,6 @@
 #include "CoarsenSchedule.h"
 #include "FaceData.h"
 #include "FaceVariable.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -63,18 +68,16 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/AdvDiffCenteredConvectiveOperator.h"
-#include "ibamr/AdvDiffPhysicalBoundaryUtilities.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartExtrapPhysBdryOp.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {

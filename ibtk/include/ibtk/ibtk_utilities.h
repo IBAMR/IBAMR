@@ -35,13 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <array>
+#include "tbox/PIO.h"
+#include "tbox/Utilities.h"
 
 #include "Eigen/Core" // IWYU pragma: export
 #include "Eigen/StdVector"
-#include "tbox/PIO.h"
-#include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <array>
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 

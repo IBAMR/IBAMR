@@ -35,9 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/FACPreconditionerStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
@@ -50,14 +54,12 @@
 #include "SAMRAIVectorReal.h"
 #include "VariableContext.h"
 #include "VariableFillPattern.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibtk/CartCellRobinPhysBdryOp.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "ibtk/FACPreconditionerStrategy.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace IBAMR
 {

@@ -32,14 +32,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <vector>
-
 #include "ibamr/IBLagrangianForceStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "petscmat.h"
+
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include "petscmat.h"
+
+#include <ostream>
+#include <vector>
 
 namespace IBTK
 {

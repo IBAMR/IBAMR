@@ -35,17 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/LaplaceOperator.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
 #include "VariableFillPattern.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/LaplaceOperator.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

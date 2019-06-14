@@ -36,7 +36,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/IBAnchorPointSpec.h"
+
 #include "ibtk/StreamableManager.h"
+
 #include "tbox/PIO.h"
 #include "tbox/Utilities.h"
 

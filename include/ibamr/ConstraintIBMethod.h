@@ -35,24 +35,27 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <fstream>
-#include <string>
-#include <vector>
-
-#include "Eigen/Dense"
-#include "LocationIndexRobinBcCoefs.h"
-#include "PoissonSpecifications.h"
-#include "VariableContext.h"
 #include "ibamr/ConstraintIBKinematics.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBMethod.h"
+
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/FACPreconditioner.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/PETScKrylovPoissonSolver.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "LocationIndexRobinBcCoefs.h"
+#include "PoissonSpecifications.h"
+#include "VariableContext.h"
 #include "tbox/Pointer.h"
+
+#include "Eigen/Dense"
+
+#include <fstream>
+#include <string>
+#include <vector>
 
 namespace IBAMR
 {

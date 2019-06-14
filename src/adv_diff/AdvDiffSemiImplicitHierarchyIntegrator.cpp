@@ -32,14 +32,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <deque>
-#include <map>
-#include <ostream>
-#include <set>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibamr/AdvDiffConvectiveOperatorManager.h"
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/LaplaceOperator.h"
+#include "ibtk/PoissonSolver.h"
 
 #include "BasePatchHierarchy.h"
 #include "CartesianGridGeometry.h"
@@ -64,16 +67,6 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/AdvDiffConvectiveOperatorManager.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/LaplaceOperator.h"
-#include "ibtk/PoissonSolver.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/MemoryDatabase.h"
@@ -82,6 +75,15 @@
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <deque>
+#include <map>
+#include <ostream>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {

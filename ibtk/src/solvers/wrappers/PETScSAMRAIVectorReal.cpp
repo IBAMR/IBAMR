@@ -32,30 +32,33 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <cmath>
-#include <ostream>
-
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/NormOps.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "mpi.h"
-#include "petscerror.h"
-#include "petscis.h"
-#include "petscmath.h"
-#include "petscsys.h"
-#include "petscvec.h"
+
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include "petscerror.h"
+#include "petscis.h"
+#include "petscmath.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include <mpi.h>
+
+#include <algorithm>
+#include <cmath>
+#include <ostream>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

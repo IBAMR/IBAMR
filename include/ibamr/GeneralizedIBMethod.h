@@ -35,13 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
-
-#include "Variable.h"
 #include "ibamr/IBKirchhoffRodForceGen.h"
 #include "ibamr/IBMethod.h"
+
+#include "Variable.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace IBTK
 {

@@ -32,13 +32,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <array>
-#include <map>
-#include <numeric>
-#include <ostream>
-#include <set>
-#include <vector>
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/PETScMatUtilities.h"
+#include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/PoissonUtilities.h"
+#include "ibtk/SideSynchCopyFillPattern.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "BoxArray.h"
@@ -57,21 +58,22 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/PETScMatUtilities.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
-#include "ibtk/PoissonUtilities.h"
-#include "ibtk/SideSynchCopyFillPattern.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "petscmat.h"
-#include "petscsys.h"
-#include "petscvec.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include "petscmat.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include <algorithm>
+#include <array>
+#include <map>
+#include <numeric>
+#include <ostream>
+#include <set>
+#include <vector>
 
 namespace SAMRAI
 {

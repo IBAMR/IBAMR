@@ -32,34 +32,38 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <array>
-#include <ostream>
-#include <vector>
-
-#include "Eigen/Geometry"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
 #include "ibamr/IBKirchhoffRodForceGen.h"
 #include "ibamr/IBRodForceSpec.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
 #include "ibtk/ibtk_utilities.h"
-#include "petscmat.h"
-#include "petscsys.h"
-#include "petscvec.h"
+
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include "petscmat.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include "Eigen/Geometry"
 #include "unsupported/Eigen/MatrixFunctions"
+
+#include <algorithm>
+#include <array>
+#include <ostream>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

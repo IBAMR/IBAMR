@@ -32,11 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <cmath>
-#include <functional>
-#include <numeric>
-#include <vector>
+#include "ibtk/NormOps.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "CellData.h"
 #include "CellVariable.h"
@@ -50,10 +47,14 @@
 #include "SAMRAIVectorReal.h"
 #include "SideData.h"
 #include "SideVariable.h"
-#include "ibtk/NormOps.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
+
+#include <algorithm>
+#include <cmath>
+#include <functional>
+#include <numeric>
+#include <vector>
 
 namespace SAMRAI
 {

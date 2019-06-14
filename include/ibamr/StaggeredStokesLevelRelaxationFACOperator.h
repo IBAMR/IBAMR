@@ -35,17 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <string>
-#include <vector>
-
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
+
+#include "tbox/Pointer.h"
+
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+
+#include <array>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

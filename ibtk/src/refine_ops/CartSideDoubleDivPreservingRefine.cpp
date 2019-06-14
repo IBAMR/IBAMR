@@ -32,14 +32,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
-#include <limits>
-#include <ostream>
+#include "IBTK_config.h"
+
+#include "ibtk/CartSideDoubleDivPreservingRefine.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "CoarsenOperator.h"
-#include "IBTK_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
@@ -50,13 +51,14 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "ibtk/CartSideDoubleDivPreservingRefine.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <cmath>
+#include <limits>
+#include <ostream>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

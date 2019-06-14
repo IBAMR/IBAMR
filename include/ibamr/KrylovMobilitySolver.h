@@ -35,16 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 
 #include "PoissonSpecifications.h"
 #include "RobinBcCoefStrategy.h"
 #include "SAMRAIVectorReal.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "petscksp.h"
 #include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include "petscksp.h"
+
+#include <vector>
 
 namespace IBAMR
 {

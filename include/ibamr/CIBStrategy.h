@@ -35,16 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <vector>
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/ibtk_utilities.h"
+
+#include "tbox/DescribedClass.h"
+
+#include "petscmat.h"
+#include "petscvec.h"
 
 #include "Eigen/Core"
 #include "Eigen/Geometry"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/ibtk_utilities.h"
-#include "petscmat.h"
-#include "petscvec.h"
-#include "tbox/DescribedClass.h"
+
+#include <map>
+#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

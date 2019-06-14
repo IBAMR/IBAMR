@@ -35,12 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
+#include "ibtk/LSetData.h"
 
 #include "Box.h"
 #include "IntVector.h"
-#include "ibtk/LSetData.h"
 #include "tbox/Pointer.h"
+
+#include <vector>
 
 namespace SAMRAI
 {

@@ -35,23 +35,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <iosfwd>
-#include <string>
-#include <vector>
+#include "ibtk/KrylovLinearSolver.h"
+#include "ibtk/LinearSolver.h"
 
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "SAMRAIVectorReal.h"
-#include "ibtk/KrylovLinearSolver.h"
-#include "ibtk/LinearSolver.h"
-#include "mpi.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscpc.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+
+#include <mpi.h>
+
+#include <iosfwd>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {

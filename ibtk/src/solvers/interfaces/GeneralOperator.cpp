@@ -32,16 +32,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
-#include <utility>
-
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
+#include "IntVector.h"
+#include "SAMRAIVectorReal.h"
 #include "tbox/Pointer.h"
+
+#include <ostream>
+#include <string>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

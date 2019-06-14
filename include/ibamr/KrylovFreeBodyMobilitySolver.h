@@ -36,12 +36,13 @@
 #define included_IBAMR_KrylovFreeBodyMobilitySolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include <vector>
-
-#include "petscksp.h"
 #include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include "petscksp.h"
+
+#include <vector>
 
 namespace IBAMR
 {

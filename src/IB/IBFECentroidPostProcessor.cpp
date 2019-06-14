@@ -32,20 +32,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <memory>
-#include <ostream>
-#include <set>
-#include <string>
-#include <vector>
-
-#include "boost/multi_array.hpp"
 #include "ibamr/IBFECentroidPostProcessor.h"
 #include "ibamr/IBFEMethod.h"
 #include "ibamr/IBFEPostProcessor.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/libmesh_utilities.h"
+
+#include "tbox/Utilities.h"
+
 #include "libmesh/dof_map.h"
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
@@ -63,7 +60,14 @@
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
-#include "tbox/Utilities.h"
+
+#include "boost/multi_array.hpp"
+
+#include <memory>
+#include <ostream>
+#include <set>
+#include <string>
+#include <vector>
 
 namespace libMesh
 {

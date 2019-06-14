@@ -35,19 +35,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CellVariable.h"
 #include "IntVector.h"
 #include "PatchLevel.h"
 #include "SideVariable.h"
 #include "VariableContext.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/ibtk_utilities.h"
-#include "muParser.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
+
+#include "muParser.h"
+
+#include <string>
+#include <vector>
 
 namespace IBAMR
 {

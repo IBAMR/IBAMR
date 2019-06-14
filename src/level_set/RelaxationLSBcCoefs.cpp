@@ -32,7 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <utility>
+#include "ibamr/RelaxationLSBcCoefs.h"
+
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -43,13 +46,12 @@
 #include "IntVector.h"
 #include "Patch.h"
 #include "VariableDatabase.h"
-#include "ibamr/RelaxationLSBcCoefs.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

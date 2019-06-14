@@ -33,6 +33,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/SAMRAIDataCache.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
+
 #include "CellDataFactory.h"
 #include "CellVariable.h"
 #include "EdgeDataFactory.h"
@@ -52,8 +55,6 @@
 #include "SideDataFactory.h"
 #include "SideVariable.h"
 #include "VariableDatabase.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

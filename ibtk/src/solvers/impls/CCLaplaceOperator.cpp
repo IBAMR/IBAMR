@@ -32,9 +32,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibtk/CCLaplaceOperator.h"
+#include "ibtk/CellNoCornersFillPattern.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/LaplaceOperator.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "CellDataFactory.h"
 #include "CellVariable.h"
@@ -44,17 +48,14 @@
 #include "PoissonSpecifications.h"
 #include "SAMRAIVectorReal.h"
 #include "VariableFillPattern.h"
-#include "ibtk/CCLaplaceOperator.h"
-#include "ibtk/CellNoCornersFillPattern.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/LaplaceOperator.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

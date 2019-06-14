@@ -35,18 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <set>
-#include <string>
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
 
 #include "HierarchyFaceDataOpsReal.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <map>
+#include <set>
+#include <string>
 
 namespace IBAMR
 {

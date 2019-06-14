@@ -35,8 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibtk/LinearSolver.h"
+#include "ibtk/PoissonSolver.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "Box.h"
 #include "CoarseFineBoundary.h"
@@ -45,11 +46,11 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/PoissonSolver.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

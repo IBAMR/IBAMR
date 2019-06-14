@@ -35,8 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/ibtk_utilities.h"
 
 #include "CellVariable.h"
 #include "CoarsenAlgorithm.h"
@@ -45,11 +47,11 @@
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
 #include "RefinePatchStrategy.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

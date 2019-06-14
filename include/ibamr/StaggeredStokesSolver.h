@@ -35,13 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+
+#include "ibtk/GeneralSolver.h"
 
 #include "LocationIndexRobinBcCoefs.h"
 #include "PoissonSpecifications.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibtk/GeneralSolver.h"
 #include "tbox/Pointer.h"
+
+#include <vector>
 
 namespace SAMRAI
 {

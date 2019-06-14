@@ -35,23 +35,25 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <ostream>
-#include <set>
-#include <string>
-#include <vector>
+#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+
+#include "ibtk/CartExtrapPhysBdryOp.h"
 
 #include "CartesianGridGeometry.h"
 #include "HyperbolicPatchStrategy.h"
 #include "IntVector.h"
 #include "VisItDataWriter.h"
-#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibtk/CartExtrapPhysBdryOp.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
+
+#include <map>
+#include <ostream>
+#include <set>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {

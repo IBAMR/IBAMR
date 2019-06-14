@@ -32,16 +32,30 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <cmath>
-#include <limits>
-#include <map>
-#include <numeric>
-#include <ostream>
-#include <set>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/LData.h"
+#include "ibtk/LDataManager.h"
+#include "ibtk/LEInteractor.h"
+#include "ibtk/LIndexSetData.h"
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LMesh.h"
+#include "ibtk/LNode.h"
+#include "ibtk/LNodeIndex.h"
+#include "ibtk/LNodeSet.h"
+#include "ibtk/LNodeSetData.h"
+#include "ibtk/LNodeSetVariable.h"
+#include "ibtk/LNodeTransaction.h"
+#include "ibtk/LSet.h"
+#include "ibtk/LSetData.h"
+#include "ibtk/LSetDataIterator.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "ibtk/LTransaction.h"
+#include "ibtk/ParallelSet.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/compiler_hints.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -84,36 +98,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
-#include "boost/math/special_functions/round.hpp"
-#include "boost/multi_array.hpp"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/LData.h"
-#include "ibtk/LDataManager.h"
-#include "ibtk/LEInteractor.h"
-#include "ibtk/LIndexSetData.h"
-#include "ibtk/LInitStrategy.h"
-#include "ibtk/LMesh.h"
-#include "ibtk/LNode.h"
-#include "ibtk/LNodeIndex.h"
-#include "ibtk/LNodeSet.h"
-#include "ibtk/LNodeSetData.h"
-#include "ibtk/LNodeSetVariable.h"
-#include "ibtk/LNodeTransaction.h"
-#include "ibtk/LSet.h"
-#include "ibtk/LSetData.h"
-#include "ibtk/LSetDataIterator.h"
-#include "ibtk/LSiloDataWriter.h"
-#include "ibtk/LTransaction.h"
-#include "ibtk/ParallelSet.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/compiler_hints.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "petscao.h"
-#include "petscis.h"
-#include "petscsys.h"
-#include "petscvec.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -126,6 +110,25 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Transaction.h"
 #include "tbox/Utilities.h"
+
+#include "petscao.h"
+#include "petscis.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include "boost/math/special_functions/round.hpp"
+#include "boost/multi_array.hpp"
+
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <ostream>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {

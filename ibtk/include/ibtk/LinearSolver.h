@@ -35,13 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <iosfwd>
-#include <vector>
+#include "ibtk/GeneralSolver.h"
 
 #include "IntVector.h"
 #include "SAMRAIVectorReal.h"
-#include "ibtk/GeneralSolver.h"
 #include "tbox/Pointer.h"
+
+#include <iosfwd>
+#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

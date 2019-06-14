@@ -35,14 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/HierarchyMathOps.h"
+
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
 #include <iosfwd>
 #include <limits>
 #include <string>
 #include <utility>
-
-#include "ibtk/HierarchyMathOps.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
 
 namespace SAMRAI
 {

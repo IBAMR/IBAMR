@@ -35,19 +35,19 @@
 #include <ibtk/PartitioningBox.h>
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
+#include <tbox/PIO.h>
+#include <tbox/SAMRAI_MPI.h>
+
 #include <libmesh/elem.h>
 #include <libmesh/mesh_base.h>
 #include <libmesh/node.h>
 #include <libmesh/numeric_vector.h>
 #include <libmesh/point.h>
 
-#include <tbox/PIO.h>
-#include <tbox/SAMRAI_MPI.h>
+#include <mpi.h>
 
 #include <algorithm>
 #include <vector>
-
-#include <mpi.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

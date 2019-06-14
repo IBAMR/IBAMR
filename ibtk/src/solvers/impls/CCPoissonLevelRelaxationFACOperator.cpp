@@ -32,42 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <cstring>
-#include <functional>
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include "ArrayData.h"
-#include "Box.h"
-#include "BoxList.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellDataFactory.h"
-#include "CellIndex.h"
-#include "CellVariable.h"
-#include "CoarsenOperator.h"
-#include "HierarchyCellDataOpsReal.h"
 #include "IBTK_config.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "Patch.h"
-#include "PatchDescriptor.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "PoissonSpecifications.h"
-#include "ProcessorMapping.h"
-#include "SAMRAIVectorReal.h"
-#include "SideData.h"
-#include "SideIndex.h"
-#include "Variable.h"
-#include "VariableDatabase.h"
-#include "VariableFillPattern.h"
+
 #include "ibtk/CCPoissonLevelRelaxationFACOperator.h"
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartCellDoubleCubicCoarsen.h"
@@ -85,9 +51,33 @@
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "petscmat.h"
-#include "petscsys.h"
-#include "petscvec.h"
+
+#include "ArrayData.h"
+#include "Box.h"
+#include "BoxList.h"
+#include "CartesianGridGeometry.h"
+#include "CartesianPatchGeometry.h"
+#include "CellData.h"
+#include "CellDataFactory.h"
+#include "CellIndex.h"
+#include "CellVariable.h"
+#include "CoarsenOperator.h"
+#include "HierarchyCellDataOpsReal.h"
+#include "Index.h"
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "Patch.h"
+#include "PatchDescriptor.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "PoissonSpecifications.h"
+#include "ProcessorMapping.h"
+#include "SAMRAIVectorReal.h"
+#include "SideData.h"
+#include "SideIndex.h"
+#include "Variable.h"
+#include "VariableDatabase.h"
+#include "VariableFillPattern.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MemoryDatabase.h"
@@ -96,6 +86,19 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include "petscmat.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include <algorithm>
+#include <cstring>
+#include <functional>
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

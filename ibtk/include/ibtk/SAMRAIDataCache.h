@@ -35,15 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "PatchHierarchy.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
 #include <map>
 #include <memory>
 #include <set>
 #include <tuple>
 #include <typeindex>
-
-#include "PatchHierarchy.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

@@ -34,13 +34,14 @@
 #define included_IBAMR_RelaxationLSBcCoefs
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include <string>
+#include "ibtk/ibtk_utilities.h"
 
 #include "CartesianGridGeometry.h"
 #include "IntVector.h"
 #include "RobinBcCoefStrategy.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
+
+#include <string>
 
 namespace SAMRAI
 {

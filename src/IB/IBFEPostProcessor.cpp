@@ -32,12 +32,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <memory>
-#include <ostream>
-#include <set>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibamr/IBFEPostProcessor.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/FEDataManager.h"
+#include "ibtk/LEInteractor.h"
+#include "ibtk/libmesh_utilities.h"
 
 #include "IntVector.h"
 #include "PatchHierarchy.h"
@@ -48,18 +48,21 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/IBFEPostProcessor.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/FEDataManager.h"
-#include "ibtk/LEInteractor.h"
-#include "ibtk/libmesh_utilities.h"
+#include "tbox/Pointer.h"
+#include "tbox/RestartManager.h"
+#include "tbox/Utilities.h"
+
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/system.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/Utilities.h"
+
+#include <memory>
+#include <ostream>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace libMesh
 {

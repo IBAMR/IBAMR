@@ -35,15 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/IBLagrangianForceStrategy.h"
+#include "ibamr/IBSpringForceFunctions.h"
+
+#include "ibtk/ibtk_utilities.h"
+
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+#include "petscmat.h"
+
 #include <map>
 #include <set>
 #include <vector>
-
-#include "ibamr/IBLagrangianForceStrategy.h"
-#include "ibamr/IBSpringForceFunctions.h"
-#include "ibtk/ibtk_utilities.h"
-#include "petscmat.h"
-#include "tbox/Pointer.h"
 
 namespace IBTK
 {

@@ -32,9 +32,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <set>
-#include <vector>
+#include "IBTK_config.h"
+
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/ExtendedRobinBcCoefStrategy.h"
+#include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -42,20 +46,18 @@
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "ComponentSelector.h"
-#include "IBTK_config.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "RobinBcCoefStrategy.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
-#include "ibtk/CartCellRobinPhysBdryOp.h"
-#include "ibtk/ExtendedRobinBcCoefStrategy.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <ostream>
+#include <set>
+#include <vector>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

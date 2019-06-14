@@ -32,8 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <limits>
-
 #include "ibamr/CIBMobilitySolver.h"
 #include "ibamr/CIBSaddlePointSolver.h"
 #include "ibamr/CIBStaggeredStokesOperator.h"
@@ -45,6 +43,7 @@
 #include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h"
+
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/LinearSolver.h"
@@ -52,8 +51,11 @@
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/ibtk_utilities.h"
+
 #include "petsc/private/petscimpl.h"
 #include "tbox/TimerManager.h"
+
+#include <limits>
 
 namespace IBAMR
 {

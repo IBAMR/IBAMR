@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
-
-#include "petscmat.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include "petscmat.h"
+
+#include <vector>
 
 namespace IBTK
 {

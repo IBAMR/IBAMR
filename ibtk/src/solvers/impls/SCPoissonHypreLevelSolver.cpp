@@ -32,10 +32,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibtk/GeneralSolver.h"
+#include "ibtk/PoissonUtilities.h"
+#include "ibtk/SCPoissonHypreLevelSolver.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
@@ -51,12 +52,6 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "ibtk/GeneralSolver.h"
-#include "ibtk/PoissonUtilities.h"
-#include "ibtk/SCPoissonHypreLevelSolver.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "mpi.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
@@ -64,6 +59,13 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <mpi.h>
+
+#include <algorithm>
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

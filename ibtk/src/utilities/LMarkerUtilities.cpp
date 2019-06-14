@@ -32,14 +32,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <cmath>
-#include <ios>
-#include <iosfwd>
-#include <istream>
-#include <limits>
-#include <string>
-#include <vector>
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/LEInteractor.h"
+#include "ibtk/LMarker.h"
+#include "ibtk/LMarkerCoarsen.h"
+#include "ibtk/LMarkerRefine.h"
+#include "ibtk/LMarkerSet.h"
+#include "ibtk/LMarkerSetData.h"
+#include "ibtk/LMarkerUtilities.h"
+#include "ibtk/LSet.h"
+#include "ibtk/LSetData.h"
+#include "ibtk/LSetDataIterator.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BasePatchLevel.h"
 #include "Box.h"
@@ -63,23 +68,19 @@
 #include "SideData.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/LEInteractor.h"
-#include "ibtk/LMarker.h"
-#include "ibtk/LMarkerCoarsen.h"
-#include "ibtk/LMarkerRefine.h"
-#include "ibtk/LMarkerSet.h"
-#include "ibtk/LMarkerSetData.h"
-#include "ibtk/LMarkerUtilities.h"
-#include "ibtk/LSet.h"
-#include "ibtk/LSetData.h"
-#include "ibtk/LSetDataIterator.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <cmath>
+#include <ios>
+#include <iosfwd>
+#include <istream>
+#include <limits>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

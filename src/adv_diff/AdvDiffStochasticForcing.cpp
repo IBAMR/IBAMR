@@ -32,12 +32,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
+#include "ibamr/AdvDiffStochasticForcing.h"
+#include "ibamr/RNG.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/SideDataSynchronization.h"
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -63,19 +66,19 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
-#include "ibamr/AdvDiffStochasticForcing.h"
-#include "ibamr/RNG.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
-#include "ibtk/SideDataSynchronization.h"
-#include "muParser.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include "muParser.h"
+
+#include <cmath>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

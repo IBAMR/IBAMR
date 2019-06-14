@@ -33,12 +33,15 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/CIBFEMethod.h"
-#include "VisItDataWriter.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h"
+
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "VisItDataWriter.h"
+
 #include "libmesh/equation_systems.h"
 #include "libmesh/petsc_matrix.h"
 #include "libmesh/system.h"

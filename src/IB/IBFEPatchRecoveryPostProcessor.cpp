@@ -32,17 +32,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/IBFEPatchRecoveryPostProcessor.h"
-#include "Eigen/Dense"
 #include "IBAMR_config.h"
-#include "SAMRAI_config.h"
-#include "boost/multi_array.hpp"
+
+#include "ibamr/IBFEPatchRecoveryPostProcessor.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/libmesh_utilities.h"
+
+#include "SAMRAI_config.h"
+
 #include "libmesh/boundary_info.h"
 #include "libmesh/dense_vector.h"
 #include "libmesh/dof_map.h"
@@ -55,6 +57,10 @@
 #include "libmesh/petsc_vector.h"
 #include "libmesh/quadrature.h"
 #include "libmesh/string_to_enum.h"
+
+#include "boost/multi_array.hpp"
+
+#include "Eigen/Dense"
 
 using namespace libMesh;
 

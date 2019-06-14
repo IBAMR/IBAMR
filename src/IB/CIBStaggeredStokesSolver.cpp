@@ -32,13 +32,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/CIBStaggeredStokesSolver.h"
 #include "ibamr/CIBSaddlePointSolver.h"
+#include "ibamr/CIBStaggeredStokesSolver.h"
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/IBStrategy.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+
 #include "ibtk/PETScSAMRAIVectorReal.h"
+
 #include "tbox/Database.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

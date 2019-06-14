@@ -35,10 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibamr/StaggeredStokesFACPreconditioner.h"
+#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/FACPreconditionerStrategy.h"
 
 #include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
@@ -51,18 +56,16 @@
 #include "SAMRAIVectorReal.h"
 #include "VariableContext.h"
 #include "VariableFillPattern.h"
-#include "ibamr/StaggeredStokesFACPreconditioner.h"
-#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/CartCellRobinPhysBdryOp.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "ibtk/FACPreconditionerStrategy.h"
-#include "petscao.h"
-#include "petscmat.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include "petscao.h"
+#include "petscmat.h"
+
+#include <array>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace IBAMR
 {

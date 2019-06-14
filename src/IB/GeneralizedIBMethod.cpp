@@ -32,11 +32,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibamr/GeneralizedIBMethod.h"
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBKirchhoffRodForceGen.h"
+#include "ibamr/IBMethod.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/LData.h"
+#include "ibtk/LDataManager.h"
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -55,26 +64,21 @@
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableContext.h"
-#include "boost/multi_array.hpp"
-#include "ibamr/GeneralizedIBMethod.h"
-#include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/IBKirchhoffRodForceGen.h"
-#include "ibamr/IBMethod.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/LData.h"
-#include "ibtk/LDataManager.h"
-#include "ibtk/LInitStrategy.h"
-#include "ibtk/LSiloDataWriter.h"
-#include "ibtk/ibtk_utilities.h"
-#include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
+
+#include "petscvec.h"
+
+#include "boost/multi_array.hpp"
+
+#include <cmath>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {

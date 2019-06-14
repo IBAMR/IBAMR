@@ -35,9 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
-
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
+
+#include <vector>
 
 namespace SAMRAI
 {

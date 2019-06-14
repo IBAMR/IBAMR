@@ -32,10 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <utility>
-
 #include "ibtk/LMesh.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
+#include <utility>
 
 namespace IBTK
 {

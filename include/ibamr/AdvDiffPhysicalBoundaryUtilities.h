@@ -35,9 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
-
 #include "tbox/Pointer.h"
+
+#include <vector>
 
 namespace SAMRAI
 {

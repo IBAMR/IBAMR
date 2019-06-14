@@ -35,20 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibtk/PETScLevelSolver.h"
+#include "ibtk/PoissonSolver.h"
+#include "ibtk/SAMRAIDataCache.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CellVariable.h"
 #include "IntVector.h"
 #include "RefineSchedule.h"
 #include "VariableContext.h"
-#include "ibtk/PETScLevelSolver.h"
-#include "ibtk/PoissonSolver.h"
-#include "ibtk/SAMRAIDataCache.h"
-#include "ibtk/ibtk_utilities.h"
-#include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include "petscvec.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

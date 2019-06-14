@@ -35,24 +35,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/PoissonSolver.h"
 
 #include "FaceVariable.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "Variable.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/PoissonSolver.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

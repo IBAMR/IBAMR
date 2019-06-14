@@ -35,9 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/LSet.h"
+
 #include "Box.h"
 #include "IndexData.h"
-#include "ibtk/LSet.h"
 #include "tbox/DescribedClass.h"
 
 namespace SAMRAI

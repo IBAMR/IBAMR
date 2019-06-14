@@ -35,16 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <string>
-#include <vector>
-
 #include "ibtk/PoissonFACPreconditioner.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
+
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <map>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

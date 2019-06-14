@@ -32,11 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"
@@ -48,11 +43,17 @@
 #include "ibtk/SCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Utilities.h"
+
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

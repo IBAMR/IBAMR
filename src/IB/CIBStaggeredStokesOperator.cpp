@@ -37,7 +37,9 @@
 #include "ibamr/IBStrategy.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+
 #include "ibtk/PETScSAMRAIVectorReal.h"
+
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 

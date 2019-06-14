@@ -32,23 +32,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
-
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "SAMRAIVectorReal.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScPCLSWrapper.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "mpi.h"
-#include "petscpc.h"
-#include "petscsys.h"
+
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "SAMRAIVectorReal.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include "petscpc.h"
+#include "petscsys.h"
+
+#include <mpi.h>
+
+#include <ostream>
+#include <string>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

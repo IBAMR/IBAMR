@@ -35,11 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
 #include "ibamr/StaggeredStokesOperator.h"
-#include "petscvec.h"
+
 #include "tbox/Pointer.h"
+
+#include "petscvec.h"
+
+#include <string>
 
 namespace IBAMR
 {

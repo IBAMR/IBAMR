@@ -35,17 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/JacobianOperator.h"
 #include "ibtk/PETScNewtonKrylovSolver.h"
+
+#include "IntVector.h"
+#include "SAMRAIVectorReal.h"
+#include "tbox/Pointer.h"
+
 #include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+
+#include <string>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

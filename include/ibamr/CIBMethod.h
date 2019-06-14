@@ -35,12 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "RobinBcCoefStrategy.h"
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/IBMethod.h"
+
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "RobinBcCoefStrategy.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

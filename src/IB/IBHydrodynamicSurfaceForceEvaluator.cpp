@@ -31,7 +31,15 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include <utility>
+#include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
+#include "ibamr/INSStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSStaggeredPressureBcCoef.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredPressureBcCoef.h"
+#include "ibamr/namespaces.h"
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/IndexUtilities.h"
 
 #include "ArrayDataBasicOps.h"
 #include "CartesianPatchGeometry.h"
@@ -42,16 +50,10 @@
 #include "PatchHierarchy.h"
 #include "SideData.h"
 #include "SideIndex.h"
-#include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
-#include "ibamr/INSStaggeredHierarchyIntegrator.h"
-#include "ibamr/INSStaggeredPressureBcCoef.h"
-#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredPressureBcCoef.h"
-#include "ibamr/namespaces.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/IndexUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
+
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
