@@ -360,6 +360,27 @@ run_example(int argc, char* argv[])
         plog << "Input database:\n";
         input_db->printClassData(plog);
 
+        // Visualization of Phi field on Cartesian grid
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+        const Pointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
+        const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
+        visit_data_writer->registerPlotQuantity("Eulerian Phi", "SCALAR", ib_method_ops->phi_current_idx);
+        const int phi_cloned_idx =
+            var_db->registerClonedPatchDataIndex(ib_method_ops->phi_var, ib_method_ops->phi_current_idx);
+        // The sum of the pressure-like variable P and stress normalization Phi
+        const int p_plus_phi_idx =
+            var_db->registerClonedPatchDataIndex(ib_method_ops->phi_var, ib_method_ops->phi_current_idx);
+        visit_data_writer->registerPlotQuantity("P plus Phi", "SCALAR", p_plus_phi_idx);
+
+        const int coarsest_ln = 0;
+        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(phi_cloned_idx);
+            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(p_plus_phi_idx);
+        }
+
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
@@ -409,6 +430,34 @@ run_example(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
 
+            // get a representation of the stress normalization function Phi on the Cartesian grid.
+            System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+            NumericVector<double>* X_vec = X_system.solution.get();
+            NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
+            X_vec->localize(*X_ghost_vec);
+
+            HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
+            hier_math_ops.setPatchHierarchy(patch_hierarchy);
+            hier_math_ops.resetLevels(coarsest_ln, finest_ln);
+            const double volume = hier_math_ops.getVolumeOfPhysicalDomain();
+            const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
+
+            if (input_db->getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
+            {
+                HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+                System& Phi_system = equation_systems->get_system<System>(IBFEMethod::PHI_SYSTEM_NAME);
+                NumericVector<double>* Phi_vec = Phi_system.solution.get();
+                NumericVector<double>* Phi_ghost_vec = Phi_system.current_local_solution.get();
+                Phi_vec->localize(*Phi_ghost_vec);
+                const int phi_idx = ib_method_ops->phi_current_idx;
+                fe_data_manager->prolongData(
+                    phi_idx, *Phi_ghost_vec, *X_ghost_vec, IBFEMethod::PHI_SYSTEM_NAME, false, false);
+
+                const double phi_mean = (1.0 / volume) * hier_cc_data_ops.integral(phi_idx, wgt_cc_idx);
+                hier_cc_data_ops.addScalar(phi_cloned_idx, phi_idx, -phi_mean);
+                hier_cc_data_ops.add(p_plus_phi_idx, phi_idx, p_idx);
+            }
+
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
             // processing.
@@ -454,10 +503,6 @@ run_example(int argc, char* argv[])
 
             // Compute the volume of the structure.
             double J_integral = 0.0;
-            System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
-            NumericVector<double>* X_vec = X_system.solution.get();
-            NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
-            X_vec->localize(*X_ghost_vec);
             DofMap& X_dof_map = X_system.get_dof_map();
             std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
             std::unique_ptr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
@@ -491,6 +536,15 @@ run_example(int argc, char* argv[])
                 volume_stream.precision(12);
                 volume_stream.setf(ios::fixed, ios::floatfield);
                 volume_stream << loop_time << " " << J_integral << endl;
+            }
+
+            const int coarsest_ln = 0;
+            const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                if (!level->checkAllocated(phi_cloned_idx)) level->allocatePatchData(phi_cloned_idx);
+                if (!level->checkAllocated(p_plus_phi_idx)) level->allocatePatchData(p_plus_phi_idx);
             }
         }
 
