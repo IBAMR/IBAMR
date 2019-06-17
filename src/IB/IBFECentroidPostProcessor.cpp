@@ -39,6 +39,7 @@
 
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
 
 #include "tbox/Utilities.h"
@@ -61,7 +62,9 @@
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "boost/multi_array.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <memory>
 #include <ostream>

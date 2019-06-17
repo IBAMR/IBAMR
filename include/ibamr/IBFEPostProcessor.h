@@ -39,6 +39,7 @@
 
 #include "ibtk/FEDataManager.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
 
 #include "libmesh/mesh.h"
@@ -49,8 +50,6 @@
 #include "libmesh/vector_value.h"
 
 #include "petscsys.h"
-
-#include "boost/tuple/tuple.hpp"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

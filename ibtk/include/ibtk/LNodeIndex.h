@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "IntVector.h"
@@ -42,7 +43,9 @@
 #include "tbox/MathUtilities.h"
 #include "tbox/Utilities.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "boost/multi_array.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <functional>
 #include <ostream>

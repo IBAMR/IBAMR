@@ -35,12 +35,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/ibtk_macros.h"
+
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
 #include "petscvec.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <string>
 #include <vector>

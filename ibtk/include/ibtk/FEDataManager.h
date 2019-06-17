@@ -37,6 +37,7 @@
 
 #include "ibtk/QuadratureCache.h"
 #include "ibtk/SAMRAIDataCache.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchLevel.h"
@@ -58,7 +59,9 @@
 #include "libmesh/petsc_vector.h"
 #include "libmesh/system.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "boost/multi_array.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <map>
 #include <ostream>

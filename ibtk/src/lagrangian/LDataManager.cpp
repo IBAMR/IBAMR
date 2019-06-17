@@ -54,6 +54,7 @@
 #include "ibtk/ParallelSet.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/compiler_hints.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
@@ -116,8 +117,10 @@
 #include "petscsys.h"
 #include "petscvec.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "boost/math/special_functions/round.hpp"
 #include "boost/multi_array.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <cmath>

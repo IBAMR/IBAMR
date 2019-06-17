@@ -60,7 +60,9 @@
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "boost/multi_array.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <Eigen/Dense>
