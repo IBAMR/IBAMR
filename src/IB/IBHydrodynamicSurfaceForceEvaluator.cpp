@@ -153,25 +153,6 @@ IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
     d_mu =
         d_mu_is_const ? d_fluid_solver->getStokesSpecifications()->getMu() : std::numeric_limits<double>::quiet_NaN();
 
-    // Output data stream
-    // Set up the streams for printing drag and torque
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-        bool from_restart = RestartManager::getManager()->isFromRestart();
-        if (from_restart)
-        {
-            d_hydro_force_stream.reset(
-                new std::ofstream("Hydro_Force_" + d_ls_solid_var->getName(), std::fstream::app));
-            d_hydro_force_stream->precision(10);
-        }
-        else
-        {
-            d_hydro_force_stream.reset(
-                new std::ofstream("Hydro_Force_" + d_ls_solid_var->getName(), std::fstream::out));
-            d_hydro_force_stream->precision(10);
-        }
-    }
-
     return;
 } // IBHydrodynamicSurfaceForceEvaluator
 
@@ -199,19 +180,7 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
     const double time = d_fluid_solver->getIntegratorTime();
     computeHydrodynamicForceTorque(
         pressure_force, viscous_force, pressure_torque, viscous_torque, X0, time, time, time);
-
-    if (d_write_to_file && SAMRAI_MPI::getRank() == 0)
-    {
-        *d_hydro_force_stream << time << '\t' << pressure_force[0] << '\t' << pressure_force[1] << '\t'
-                              << pressure_force[2] << '\t' << viscous_force[0] << '\t' << viscous_force[1] << '\t'
-                              << viscous_force[2] << std::endl;
-
-        *d_hydro_torque_stream << time << '\t' << pressure_torque[0] << '\t' << pressure_torque[1] << '\t'
-                               << pressure_torque[2] << '\t' << viscous_torque[0] << '\t' << viscous_torque[1] << '\t'
-                               << viscous_torque[2] << std::endl;
-    }
     return;
-
 } // computeHydrodynamicForce
 
 void
@@ -402,44 +371,6 @@ IBHydrodynamicSurfaceForceEvaluator::setSurfaceContourLevel(double s)
     return;
 } // setSurfaceContourLevel
 
-void
-IBHydrodynamicSurfaceForceEvaluator::writeToFile(bool write_to_file)
-{
-    d_write_to_file = write_to_file;
-
-    // Set up the streams for printing force and torque
-    if (d_write_to_file && SAMRAI_MPI::getRank() == 0)
-    {
-        std::string force;
-        force = "Hydro_Force_" + d_ls_solid_var->getName();
-        bool from_restart = RestartManager::getManager()->isFromRestart();
-        if (from_restart)
-        {
-            d_hydro_force_stream.reset(new std::ofstream(force.c_str(), std::fstream::app));
-            d_hydro_force_stream->precision(10);
-        }
-        else
-        {
-            d_hydro_force_stream.reset(new std::ofstream(force.c_str(), std::fstream::out));
-            d_hydro_force_stream->precision(10);
-        }
-
-        std::string torque;
-        torque = "Hydro_Torque_" + d_ls_solid_var->getName();
-        if (from_restart)
-        {
-            d_hydro_torque_stream.reset(new std::ofstream(torque.c_str(), std::fstream::app));
-            d_hydro_torque_stream->precision(10);
-        }
-        else
-        {
-            d_hydro_torque_stream.reset(new std::ofstream(torque.c_str(), std::fstream::out));
-            d_hydro_torque_stream->precision(10);
-        }
-    }
-    return;
-} // writeToFile
-
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
@@ -607,11 +538,6 @@ IBHydrodynamicSurfaceForceEvaluator::getFromInput(Pointer<Database> input_db)
     if (input_db->keyExists("surface_contour_value"))
     {
         d_surface_contour_value = input_db->getDouble("surface_contour_value");
-    }
-
-    if (input_db->keyExists("write_to_file"))
-    {
-        d_write_to_file = input_db->getBool("write_to_file");
     }
 
     return;
