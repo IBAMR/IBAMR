@@ -41,6 +41,7 @@
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
 
 #include "SAMRAI_config.h"
@@ -60,7 +61,9 @@
 
 #include "boost/multi_array.hpp"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Dense"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 using namespace libMesh;
 

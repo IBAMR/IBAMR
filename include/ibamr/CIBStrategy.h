@@ -37,6 +37,7 @@
 
 #include "ibamr/ibamr_enums.h"
 
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "tbox/DescribedClass.h"
@@ -44,8 +45,10 @@
 #include "petscmat.h"
 #include "petscvec.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Core"
 #include "Eigen/Geometry"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <map>
 #include <vector>

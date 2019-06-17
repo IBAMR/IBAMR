@@ -42,6 +42,7 @@
 #include "ibtk/LDataManager.h"
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "IntVector.h"
@@ -57,8 +58,10 @@
 #include "petscsys.h"
 #include "petscvec.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Geometry"
 #include "unsupported/Eigen/MatrixFunctions"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <array>

@@ -35,8 +35,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "PoissonSpecifications.h"
 #include "IntVector.h"
+#include "PoissonSpecifications.h"
 #include "tbox/Pointer.h"
 
 #include "petscao.h"
