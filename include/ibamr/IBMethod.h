@@ -35,26 +35,29 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <set>
-#include <string>
-#include <vector>
-
-#include "GriddingAlgorithm.h"
-#include "IntVector.h"
-#include "LoadBalancer.h"
-#include "PatchHierarchy.h"
 #include "ibamr/IBImplicitStrategy.h"
 #include "ibamr/IBInstrumentPanel.h"
 #include "ibamr/IBLagrangianForceStrategy.h"
 #include "ibamr/IBLagrangianSourceStrategy.h"
 #include "ibamr/IBMethodPostProcessStrategy.h"
+
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "GriddingAlgorithm.h"
+#include "IntVector.h"
+#include "LoadBalancer.h"
+#include "PatchHierarchy.h"
+#include "tbox/Pointer.h"
+
 #include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+
+#include <set>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {

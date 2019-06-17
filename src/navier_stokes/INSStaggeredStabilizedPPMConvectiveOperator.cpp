@@ -32,12 +32,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <cmath>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/INSStaggeredStabilizedPPMConvectiveOperator.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "ArrayData.h"
 #include "Box.h"
@@ -47,7 +52,6 @@
 #include "FaceIndex.h"
 #include "FaceIterator.h"
 #include "GridGeometry.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -62,19 +66,18 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/INSStaggeredStabilizedPPMConvectiveOperator.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <array>
+#include <cmath>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {

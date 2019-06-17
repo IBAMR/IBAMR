@@ -32,9 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <utility>
-
 #include "ibamr/AdvDiffWavePropConvectiveOperator.h"
+
+#include <utility>
 
 extern "C"
 {

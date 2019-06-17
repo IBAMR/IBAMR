@@ -32,15 +32,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/MobilityFunctions.h"
+
+#include "tbox/Utilities.h"
+
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-
-#include "ibamr/MobilityFunctions.h"
-
-#include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

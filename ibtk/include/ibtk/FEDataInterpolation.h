@@ -35,10 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "boost/multi_array.hpp"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/libmesh_utilities.h"
+
 #include "libmesh/equation_systems.h"
+
+#include "boost/multi_array.hpp"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

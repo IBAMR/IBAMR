@@ -32,12 +32,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/INSStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSStaggeredStochasticForcing.h"
+#include "ibamr/RNG.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/PhysicalBoundaryUtilities.h"
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -51,7 +56,6 @@
 #include "EdgeIndex.h"    // IWYU pragma: keep
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
@@ -69,18 +73,17 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/INSStaggeredHierarchyIntegrator.h"
-#include "ibamr/INSStaggeredStochasticForcing.h"
-#include "ibamr/RNG.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <cmath>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 #if (NDIM == 2)
 #include "ibtk/NodeDataSynchronization.h"

@@ -35,7 +35,9 @@
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h"
+
 #include "ibtk/ibtk_utilities.h"
+
 #include "tbox/MathUtilities.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"

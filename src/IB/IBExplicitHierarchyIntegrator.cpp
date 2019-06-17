@@ -32,10 +32,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <deque>
-#include <ostream>
-#include <string>
+#include "ibamr/IBExplicitHierarchyIntegrator.h"
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBStrategy.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_enums.h"
 
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
@@ -51,16 +58,6 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/IBExplicitHierarchyIntegrator.h"
-#include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/IBStrategy.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/ibtk_enums.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
@@ -68,6 +65,11 @@
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <deque>
+#include <ostream>
+#include <string>
 
 namespace SAMRAI
 {

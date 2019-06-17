@@ -32,20 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <cmath>
-#include <limits>
-#include <sstream>
-#include <utility>
-
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "HierarchyDataOpsManager.h"
-#include "PatchHierarchy.h"
-#include "VariableDatabase.h"
 #include "ibamr/ConstraintIBMethod.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/namespaces.h"
+
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/FACPreconditioner.h"
@@ -54,10 +44,22 @@
 #include "ibtk/PETScKrylovLinearSolver.h"
 #include "ibtk/SideDataSynchronization.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "CartesianGridGeometry.h"
+#include "CartesianPatchGeometry.h"
+#include "HierarchyDataOpsManager.h"
+#include "PatchHierarchy.h"
+#include "VariableDatabase.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <sstream>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

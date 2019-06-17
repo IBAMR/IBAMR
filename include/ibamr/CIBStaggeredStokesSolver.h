@@ -35,13 +35,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
+#include "ibamr/StaggeredStokesSolver.h"
+
+#include "ibtk/ibtk_utilities.h"
 
 #include "IntVector.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibtk/ibtk_utilities.h"
-#include "petscvec.h"
 #include "tbox/Pointer.h"
+
+#include "petscvec.h"
+
+#include <string>
 
 namespace SAMRAI
 {

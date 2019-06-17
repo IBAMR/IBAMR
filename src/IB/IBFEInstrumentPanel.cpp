@@ -32,38 +32,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <fstream>
-#include <limits>
-#include <map>
-#include <sstream>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include "BasePatchLevel.h"
-#include "Box.h"
-#include "BoxArray.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIndex.h"
-#include "Eigen/Geometry" // IWYU pragma: keep
 #include "IBAMR_config.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "SideData.h"
-#include "SideIndex.h"
-#include "boost/multi_array.hpp"
+
 #include "ibamr/IBFEInstrumentPanel.h"
 #include "ibamr/IBFEMethod.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+
 #include "ibtk/FEDataManager.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
@@ -72,6 +47,29 @@
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "BasePatchLevel.h"
+#include "Box.h"
+#include "BoxArray.h"
+#include "CartesianGridGeometry.h"
+#include "CartesianPatchGeometry.h"
+#include "CellData.h"
+#include "CellIndex.h"
+#include "Index.h"
+#include "IntVector.h"
+#include "Patch.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "SideData.h"
+#include "SideIndex.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+#include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Timer.h"
+#include "tbox/TimerManager.h"
+#include "tbox/Utilities.h"
+
 #include "libmesh/boundary_info.h"
 #include "libmesh/dense_vector.h"
 #include "libmesh/enum_quadrature_type.h"
@@ -85,14 +83,23 @@
 #include "libmesh/quadrature_grid.h"
 #include "libmesh/serial_mesh.h"
 #include "libmesh/string_to_enum.h"
+
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+
+#include "boost/multi_array.hpp"
+
+#include "Eigen/Geometry" // IWYU pragma: keep
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <fstream>
+#include <limits>
+#include <map>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 using namespace libMesh;
 

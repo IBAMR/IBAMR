@@ -32,13 +32,52 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <cmath>
-#include <deque>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/INSIntermediateVelocityBcCoef.h"
+#include "ibamr/INSProjectionBcCoef.h"
+#include "ibamr/INSStaggeredConvectiveOperatorManager.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredPressureBcCoef.h"
+#include "ibamr/INSVCStaggeredVelocityBcCoef.h"
+#include "ibamr/PETScKrylovStaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesBlockPreconditioner.h"
+#include "ibamr/StaggeredStokesFACPreconditioner.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/VCStaggeredStokesOperator.h"
+#include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CCPoissonSolverManager.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/CartSideDoubleDivPreservingRefine.h"
+#include "ibtk/CartSideDoubleRT0Refine.h"
+#include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/CellNoCornersFillPattern.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/KrylovLinearSolver.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/NewtonKrylovSolver.h"
+#include "ibtk/PETScKrylovPoissonSolver.h"
+#include "ibtk/PoissonSolver.h"
+#include "ibtk/SCPoissonSolverManager.h"
+#include "ibtk/SideDataSynchronization.h"
+#include "ibtk/VCSCViscousOpPointRelaxationFACOperator.h"
+#include "ibtk/VCSCViscousOperator.h"
+#include "ibtk/ibtk_enums.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "ArrayData.h"
 #include "BasePatchHierarchy.h"
@@ -66,7 +105,6 @@
 #include "HierarchyFaceDataOpsReal.h"
 #include "HierarchyNodeDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
@@ -90,49 +128,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/INSIntermediateVelocityBcCoef.h"
-#include "ibamr/INSProjectionBcCoef.h"
-#include "ibamr/INSStaggeredConvectiveOperatorManager.h"
-#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredPressureBcCoef.h"
-#include "ibamr/INSVCStaggeredVelocityBcCoef.h"
-#include "ibamr/PETScKrylovStaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesBlockPreconditioner.h"
-#include "ibamr/StaggeredStokesFACPreconditioner.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesSolverManager.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/VCStaggeredStokesOperator.h"
-#include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CCPoissonSolverManager.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/CartSideDoubleDivPreservingRefine.h"
-#include "ibtk/CartSideDoubleRT0Refine.h"
-#include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/CellNoCornersFillPattern.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/KrylovLinearSolver.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/NewtonKrylovSolver.h"
-#include "ibtk/PETScKrylovPoissonSolver.h"
-#include "ibtk/PoissonSolver.h"
-#include "ibtk/SCPoissonSolverManager.h"
-#include "ibtk/SideDataSynchronization.h"
-#include "ibtk/VCSCViscousOpPointRelaxationFACOperator.h"
-#include "ibtk/VCSCViscousOperator.h"
-#include "ibtk/ibtk_enums.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -141,6 +136,14 @@
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <cmath>
+#include <deque>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

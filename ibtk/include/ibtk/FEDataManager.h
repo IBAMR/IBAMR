@@ -35,12 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <ostream>
-#include <string>
-#include <unordered_map>
-#include <utility>
-#include <vector>
+#include "ibtk/QuadratureCache.h"
+#include "ibtk/SAMRAIDataCache.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchLevel.h"
 #include "CellVariable.h"
@@ -51,18 +48,24 @@
 #include "SideVariable.h"
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
-#include "boost/multi_array.hpp"
-#include "ibtk/QuadratureCache.h"
-#include "ibtk/SAMRAIDataCache.h"
-#include "ibtk/ibtk_utilities.h"
+#include "tbox/Pointer.h"
+#include "tbox/Serializable.h"
+
 #include "libmesh/dof_map.h"
 #include "libmesh/elem.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/petsc_vector.h"
 #include "libmesh/system.h"
-#include "tbox/Pointer.h"
-#include "tbox/Serializable.h"
+
+#include "boost/multi_array.hpp"
+
+#include <map>
+#include <ostream>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace IBTK
 {

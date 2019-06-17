@@ -35,13 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
-
-#include "IntVector.h"
 #include "ibamr/StokesBcCoefStrategy.h"
 #include "ibamr/ibamr_enums.h"
+
 #include "ibtk/ibtk_enums.h"
+
+#include "IntVector.h"
 #include "tbox/Pointer.h"
+
+#include <vector>
 
 namespace IBAMR
 {

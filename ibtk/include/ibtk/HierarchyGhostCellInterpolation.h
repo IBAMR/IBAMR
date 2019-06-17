@@ -35,10 +35,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <memory>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "BoxGeometryFillPattern.h"
 #include "CartesianGridGeometry.h"
@@ -48,10 +46,13 @@
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
 #include "VariableFillPattern.h"
-#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include <memory>
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {

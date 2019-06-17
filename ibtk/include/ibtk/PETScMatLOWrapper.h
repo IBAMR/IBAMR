@@ -35,14 +35,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
+#include "ibtk/LinearOperator.h"
 
 #include "IntVector.h"
 #include "SAMRAIVectorReal.h"
-#include "ibtk/LinearOperator.h"
+#include "tbox/Pointer.h"
+
 #include "petscmat.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+
+#include <string>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

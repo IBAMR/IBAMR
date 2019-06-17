@@ -35,8 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IntVector.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "IntVector.h"
 #include "tbox/DescribedClass.h"
 
 namespace SAMRAI

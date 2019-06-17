@@ -32,14 +32,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/FastSweepingLSMethod.h"
-#include "CellVariable.h"
-#include "HierarchyCellDataOpsReal.h"
 #include "IBAMR_config.h"
-#include "VariableDatabase.h"
+
+#include "ibamr/FastSweepingLSMethod.h"
 #include "ibamr/namespaces.h"
+
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
+
+#include "CellVariable.h"
+#include "HierarchyCellDataOpsReal.h"
+#include "VariableDatabase.h"
 #include "tbox/RestartManager.h"
 
 // FORTRAN ROUTINES

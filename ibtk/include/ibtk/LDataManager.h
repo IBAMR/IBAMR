@@ -35,11 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LNodeSet.h"
+#include "ibtk/LNodeSetVariable.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ParallelSet.h"
+#include "ibtk/SAMRAIDataCache.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchLevel.h"
 #include "CartesianGridGeometry.h"
@@ -55,17 +57,17 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "VisItDataWriter.h"
-#include "ibtk/LInitStrategy.h"
-#include "ibtk/LNodeSet.h"
-#include "ibtk/LNodeSetVariable.h"
-#include "ibtk/LSiloDataWriter.h"
-#include "ibtk/ParallelSet.h"
-#include "ibtk/SAMRAIDataCache.h"
-#include "ibtk/ibtk_utilities.h"
-#include "petscao.h"
-#include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
+
+#include "petscao.h"
+#include "petscvec.h"
+
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace IBTK
 {

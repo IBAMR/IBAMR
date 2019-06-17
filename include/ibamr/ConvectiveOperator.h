@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
 #include "ibamr/ibamr_enums.h"
+
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include <string>
 
 namespace SAMRAI
 {

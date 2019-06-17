@@ -35,10 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
-
 #include "CoarsenPatchStrategy.h"
 #include "IntVector.h"
+
+#include <vector>
 
 namespace SAMRAI
 {

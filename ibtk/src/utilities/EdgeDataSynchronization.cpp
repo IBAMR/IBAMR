@@ -32,9 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibtk/EdgeDataSynchronization.h"
+#include "ibtk/EdgeSynchCopyFillPattern.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
@@ -50,11 +50,12 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "ibtk/EdgeDataSynchronization.h"
-#include "ibtk/EdgeSynchCopyFillPattern.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

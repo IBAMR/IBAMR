@@ -32,12 +32,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <array>
-#include <numeric>
-#include <ostream>
-#include <set>
-#include <vector>
+#include "ibamr/StaggeredStokesPETScMatUtilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/ExtendedRobinBcCoefStrategy.h"
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/PETScMatUtilities.h"
+#include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/SideSynchCopyFillPattern.h"
+#include "ibtk/compiler_hints.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -59,23 +64,21 @@
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "Variable.h"
-#include "ibamr/StaggeredStokesPETScMatUtilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/ExtendedRobinBcCoefStrategy.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/PETScMatUtilities.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
-#include "ibtk/SideSynchCopyFillPattern.h"
-#include "ibtk/compiler_hints.h"
-#include "ibtk/ibtk_utilities.h"
-#include "petscmat.h"
-#include "petscsys.h"
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include "petscmat.h"
+#include "petscsys.h"
+
+#include <algorithm>
+#include <array>
+#include <numeric>
+#include <ostream>
+#include <set>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

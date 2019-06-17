@@ -35,14 +35,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
+#include "ibtk/LinearSolver.h"
 
 #include "IntVector.h"
 #include "SAMRAIVectorReal.h"
-#include "ibtk/LinearSolver.h"
+#include "tbox/Pointer.h"
+
 #include "petscpc.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+
+#include <string>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

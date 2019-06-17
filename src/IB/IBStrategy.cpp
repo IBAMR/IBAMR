@@ -32,10 +32,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBStrategy.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyMathOps.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -47,15 +49,15 @@
 #include "RefineAlgorithm.h"
 #include "Variable.h"
 #include "VariableContext.h"
-#include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/IBStrategy.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/HierarchyMathOps.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace IBAMR
 {

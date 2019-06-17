@@ -32,11 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/muParserCartGridFunction.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
@@ -57,16 +56,19 @@
 #include "SideData.h"
 #include "SideIndex.h"
 #include "SideIterator.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/muParserCartGridFunction.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "muParser.h"
-#include "muParserError.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include "muParser.h"
+#include "muParserError.h"
+
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {

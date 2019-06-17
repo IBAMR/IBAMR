@@ -32,12 +32,31 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <cstring>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartCellDoubleCubicCoarsen.h"
+#include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/CartSideDoubleCubicCoarsen.h"
+#include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
+#include "ibtk/CartSideDoubleRT0Coarsen.h"
+#include "ibtk/CartSideDoubleRT0Refine.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/CellNoCornersFillPattern.h"
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/FACPreconditionerStrategy.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/PETScKrylovLinearSolver.h"
+#include "ibtk/PETScLevelSolver.h"
+#include "ibtk/RefinePatchStrategySet.h"
+#include "ibtk/SideNoCornersFillPattern.h"
+#include "ibtk/SideSynchCopyFillPattern.h"
 
 #include "CartesianGridGeometry.h"
 #include "CellVariable.h"
@@ -63,35 +82,18 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesSolverManager.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartCellDoubleCubicCoarsen.h"
-#include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
-#include "ibtk/CartCellRobinPhysBdryOp.h"
-#include "ibtk/CartSideDoubleCubicCoarsen.h"
-#include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
-#include "ibtk/CartSideDoubleRT0Coarsen.h"
-#include "ibtk/CartSideDoubleRT0Refine.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/CellNoCornersFillPattern.h"
-#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "ibtk/FACPreconditionerStrategy.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/PETScKrylovLinearSolver.h"
-#include "ibtk/PETScLevelSolver.h"
-#include "ibtk/RefinePatchStrategySet.h"
-#include "ibtk/SideNoCornersFillPattern.h"
-#include "ibtk/SideSynchCopyFillPattern.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <cstring>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

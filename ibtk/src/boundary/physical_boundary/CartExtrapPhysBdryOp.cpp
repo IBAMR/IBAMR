@@ -32,12 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <ostream>
-#include <set>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibtk/CartExtrapPhysBdryOp.h"
+#include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BoundaryBox.h"
 #include "Box.h"
@@ -64,13 +62,16 @@
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
-#include "ibtk/CartExtrapPhysBdryOp.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <array>
+#include <ostream>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

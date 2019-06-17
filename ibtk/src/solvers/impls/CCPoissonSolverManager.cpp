@@ -32,11 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonBoxRelaxationFACOperator.h"
 #include "ibtk/CCPoissonHypreLevelSolver.h"
@@ -50,11 +45,17 @@
 #include "ibtk/PETScKrylovPoissonSolver.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Utilities.h"
+
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

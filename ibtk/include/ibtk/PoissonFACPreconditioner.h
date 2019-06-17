@@ -35,13 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
-
-#include "PoissonSpecifications.h"
 #include "ibtk/FACPreconditioner.h"
 #include "ibtk/PoissonSolver.h"
+
+#include "PoissonSpecifications.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

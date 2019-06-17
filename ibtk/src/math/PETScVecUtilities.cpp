@@ -32,12 +32,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <array>
-#include <numeric>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/PETScVecUtilities.h"
+#include "ibtk/SideSynchCopyFillPattern.h"
+#include "ibtk/compiler_hints.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "BoxList.h"
@@ -60,17 +60,19 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/PETScVecUtilities.h"
-#include "ibtk/SideSynchCopyFillPattern.h"
-#include "ibtk/compiler_hints.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "petscsys.h"
-#include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include <algorithm>
+#include <array>
+#include <numeric>
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

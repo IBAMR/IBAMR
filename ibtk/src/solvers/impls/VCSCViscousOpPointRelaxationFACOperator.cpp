@@ -32,38 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include "ArrayData.h"
-#include "Box.h"
-#include "BoxList.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CoarsenOperator.h"
-#include "HierarchySideDataOpsReal.h"
 #include "IBTK_config.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "Patch.h"
-#include "PatchDescriptor.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "PoissonSpecifications.h"
-#include "ProcessorMapping.h"
-#include "SAMRAIVectorReal.h"
-#include "SideData.h"
-#include "SideDataFactory.h"
-#include "SideGeometry.h"
-#include "SideVariable.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "VariableFillPattern.h"
+
 #include "ibtk/CartSideDoubleCubicCoarsen.h"
 #include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
@@ -81,6 +51,31 @@
 #include "ibtk/VCSCViscousOpPointRelaxationFACOperator.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
+#include "ArrayData.h"
+#include "Box.h"
+#include "BoxList.h"
+#include "CartesianGridGeometry.h"
+#include "CartesianPatchGeometry.h"
+#include "CoarsenOperator.h"
+#include "HierarchySideDataOpsReal.h"
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "Patch.h"
+#include "PatchDescriptor.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "PoissonSpecifications.h"
+#include "ProcessorMapping.h"
+#include "SAMRAIVectorReal.h"
+#include "SideData.h"
+#include "SideDataFactory.h"
+#include "SideGeometry.h"
+#include "SideVariable.h"
+#include "Variable.h"
+#include "VariableContext.h"
+#include "VariableDatabase.h"
+#include "VariableFillPattern.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MemoryDatabase.h"
@@ -89,6 +84,13 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

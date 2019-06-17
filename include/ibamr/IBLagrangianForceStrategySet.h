@@ -35,11 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
-
 #include "ibamr/IBLagrangianForceStrategy.h"
-#include "petscmat.h"
+
 #include "tbox/Pointer.h"
+
+#include "petscmat.h"
+
+#include <vector>
 
 namespace IBTK
 {

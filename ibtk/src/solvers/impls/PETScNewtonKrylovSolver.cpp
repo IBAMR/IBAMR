@@ -32,13 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
-
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -53,19 +46,29 @@
 #include "ibtk/PETScSNESJacobianJOWrapper.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "mpi.h"
-#include "petscerror.h"
-#include "petscksp.h"
-#include "petscmat.h"
-#include "petscsnes.h"
-#include "petscsys.h"
-#include "petscvec.h"
+
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include "petscerror.h"
+#include "petscksp.h"
+#include "petscmat.h"
+#include "petscsnes.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include <mpi.h>
+
+#include <ostream>
+#include <string>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

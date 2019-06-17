@@ -32,12 +32,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <deque>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/INSIntermediateVelocityBcCoef.h"
+#include "ibamr/INSProjectionBcCoef.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/CartGridFunctionSet.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/PoissonSolver.h"
 
 #include "FaceVariable.h"
 #include "IntVector.h"
@@ -48,19 +56,6 @@
 #include "PatchLevel.h"
 #include "RobinBcCoefStrategy.h"
 #include "Variable.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/INSIntermediateVelocityBcCoef.h"
-#include "ibamr/INSProjectionBcCoef.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/CartGridFunctionSet.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/PoissonSolver.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -70,6 +65,13 @@
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <deque>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

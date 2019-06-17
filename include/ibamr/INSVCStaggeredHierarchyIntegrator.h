@@ -35,8 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/SideDataSynchronization.h"
+#include "ibtk/ibtk_enums.h"
 
 #include "CellVariable.h"
 #include "EdgeVariable.h"
@@ -50,15 +56,11 @@
 #include "NodeVariable.h"
 #include "SAMRAIVectorReal.h"
 #include "SideVariable.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesSolverManager.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/SideDataSynchronization.h"
-#include "ibtk/ibtk_enums.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace IBAMR
 {

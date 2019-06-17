@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
 #include "ibtk/KrylovLinearSolverPoissonSolverInterface.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
+
 #include "tbox/Pointer.h"
+
+#include <string>
 
 namespace SAMRAI
 {

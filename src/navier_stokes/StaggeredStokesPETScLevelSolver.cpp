@@ -32,9 +32,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibamr/StaggeredStokesPETScLevelSolver.h"
+#include "ibamr/StaggeredStokesPETScMatUtilities.h"
+#include "ibamr/StaggeredStokesPETScVecUtilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/GeneralSolver.h"
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/PETScLevelSolver.h"
+#include "ibtk/PoissonUtilities.h"
 
 #include "CellVariable.h"
 #include "HierarchyDataOpsInteger.h"
@@ -49,20 +55,17 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/StaggeredStokesPETScLevelSolver.h"
-#include "ibamr/StaggeredStokesPETScMatUtilities.h"
-#include "ibamr/StaggeredStokesPETScVecUtilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/GeneralSolver.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/PETScLevelSolver.h"
-#include "ibtk/PoissonUtilities.h"
-#include "petscmat.h"
-#include "petscsys.h"
-#include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
+
+#include "petscmat.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

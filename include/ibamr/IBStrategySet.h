@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
+#include "ibamr/IBStrategy.h"
 
 #include "IntVector.h"
-#include "ibamr/IBStrategy.h"
 #include "tbox/Pointer.h"
+
+#include <vector>
 
 namespace IBTK
 {

@@ -35,14 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
-
-#include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
+#include "petscvec.h"
+
 #include <boost/multi_array.hpp>
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

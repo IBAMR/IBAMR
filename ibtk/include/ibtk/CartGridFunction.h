@@ -35,11 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
 #include "PatchLevel.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include <string>
 
 namespace SAMRAI
 {

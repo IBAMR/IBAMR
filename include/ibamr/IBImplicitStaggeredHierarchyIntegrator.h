@@ -35,23 +35,25 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBImplicitStrategy.h"
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
 #include "ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h"
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/StaggeredStokesSolver.h"
+
+#include "IntVector.h"
+#include "SAMRAIVectorReal.h"
+#include "tbox/Pointer.h"
+
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscpc.h"
 #include "petscsnes.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+
+#include <string>
 
 namespace IBAMR
 {

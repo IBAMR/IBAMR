@@ -35,8 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibtk/PatchMathOps.h"
+#include "ibtk/SAMRAIDataCache.h"
+#include "ibtk/ibtk_enums.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CartesianGridGeometry.h"
 #include "CellVariable.h"
@@ -56,12 +58,11 @@
 #include "RobinBcCoefStrategy.h"
 #include "SideVariable.h"
 #include "VariableContext.h"
-#include "ibtk/PatchMathOps.h"
-#include "ibtk/SAMRAIDataCache.h"
-#include "ibtk/ibtk_enums.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

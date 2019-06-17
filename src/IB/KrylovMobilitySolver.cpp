@@ -32,8 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <limits>
-
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/IBStrategy.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
@@ -42,6 +40,7 @@
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/namespaces.h"
+
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/NewtonKrylovSolver.h"
@@ -49,8 +48,11 @@
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/ibtk_utilities.h"
+
 #include "petsc/private/petscimpl.h"
 #include "tbox/TimerManager.h"
+
+#include <limits>
 
 namespace IBAMR
 {

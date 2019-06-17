@@ -35,10 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
+#include "ibtk/GeneralSolver.h"
 
 #include "PoissonSpecifications.h"
-#include "ibtk/GeneralSolver.h"
+
+#include <vector>
 
 namespace SAMRAI
 {

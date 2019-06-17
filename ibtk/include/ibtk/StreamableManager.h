@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/StreamableFactory.h"
+
+#include "tbox/Pointer.h"
+
 #include <map>
 #include <vector>
-
-#include "ibtk/StreamableFactory.h"
-#include "tbox/Pointer.h"
 
 namespace IBTK
 {

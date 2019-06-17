@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/LinearSolver.h"
+
+#include "tbox/Pointer.h"
+
 #include <map>
 #include <string>
-
-#include "ibtk/LinearSolver.h"
-#include "tbox/Pointer.h"
 
 namespace SAMRAI
 {

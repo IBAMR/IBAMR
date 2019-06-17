@@ -34,8 +34,10 @@
 
 #include "ibamr/IBSourceSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
+
 #include "tbox/AbstractStream.h"
 #include "tbox/Pointer.h"
 

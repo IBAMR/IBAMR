@@ -32,16 +32,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <limits>
-#include <memory>
-#include <ostream>
-#include <set>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibamr/IBFEMethod.h"
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/BoxPartitioner.h"
+#include "ibtk/FEDataInterpolation.h"
+#include "ibtk/FEDataManager.h"
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/LEInteractor.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/libmesh_utilities.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -62,21 +67,15 @@
 #include "SideIndex.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
-#include "boost/multi_array.hpp"
-#include "ibamr/IBFEMethod.h"
-#include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/BoxPartitioner.h"
-#include "ibtk/FEDataInterpolation.h"
-#include "ibtk/FEDataManager.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/LEInteractor.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/libmesh_utilities.h"
+#include "tbox/Array.h"
+#include "tbox/Database.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+#include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
+
 #include "libmesh/boundary_info.h"
 #include "libmesh/compare_types.h"
 #include "libmesh/dense_vector.h"
@@ -110,15 +109,21 @@
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
+
 #include "petscvec.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+
+#include "boost/multi_array.hpp"
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <limits>
+#include <memory>
+#include <ostream>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {

@@ -32,18 +32,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <limits>
-#include <ostream>
-#include <vector>
+#include "ibamr/INSIntermediateVelocityBcCoef.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/ExtendedRobinBcCoefStrategy.h"
 
 #include "ArrayData.h"
 #include "IntVector.h"
 #include "RobinBcCoefStrategy.h"
-#include "ibamr/INSIntermediateVelocityBcCoef.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <limits>
+#include <ostream>
+#include <vector>
 
 namespace SAMRAI
 {

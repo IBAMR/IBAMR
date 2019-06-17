@@ -35,12 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
-
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
 #include "ibtk/ibtk_utilities.h"
+
 #include "tbox/Pointer.h"
+
+#include <vector>
 
 namespace SAMRAI
 {

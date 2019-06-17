@@ -32,12 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <functional>
-#include <limits>
-#include <map>
-#include <ostream>
-#include <vector>
+#include "ibtk/ExtendedRobinBcCoefStrategy.h"
+#include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/PoissonUtilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
 #include "ArrayDataBasicOps.h"
@@ -60,14 +58,17 @@
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "Variable.h"
-#include "ibtk/ExtendedRobinBcCoefStrategy.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
-#include "ibtk/PoissonUtilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <array>
+#include <functional>
+#include <limits>
+#include <map>
+#include <ostream>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

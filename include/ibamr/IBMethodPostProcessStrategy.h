@@ -33,9 +33,9 @@
 #ifndef included_IBAMR_IBMethodPostProcessStrategy
 #define included_IBAMR_IBMethodPostProcessStrategy
 
-#include <vector>
-
 #include "tbox/DescribedClass.h"
+
+#include <vector>
 
 namespace IBTK
 {

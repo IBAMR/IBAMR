@@ -35,6 +35,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/QuadratureCache.h>
+
 #include <libmesh/enum_elem_type.h>
 #include <libmesh/enum_order.h>
 #include <libmesh/enum_quadrature_type.h>
@@ -43,8 +45,6 @@
 #include <map>
 #include <memory>
 #include <tuple>
-
-#include <ibtk/QuadratureCache.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -32,10 +32,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <ostream>
-#include <set>
-#include <string>
+#include "IBAMR_config.h"
+
+#include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
+#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
+#include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartGridFunction.h"
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
@@ -45,7 +51,6 @@
 #include "FaceData.h"
 #include "FaceVariable.h"
 #include "HyperbolicLevelIntegrator.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
@@ -55,16 +60,14 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
-#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
-#include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartGridFunction.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <map>
+#include <ostream>
+#include <set>
+#include <string>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

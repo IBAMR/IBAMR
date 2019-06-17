@@ -32,13 +32,30 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <cmath>
-#include <deque>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/INSCollocatedConvectiveOperatorManager.h"
+#include "ibamr/INSCollocatedHierarchyIntegrator.h"
+#include "ibamr/INSCollocatedVelocityBcCoef.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/INSIntermediateVelocityBcCoef.h"
+#include "ibamr/INSProjectionBcCoef.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CCPoissonSolverManager.h"
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/PoissonSolver.h"
+#include "ibtk/ibtk_enums.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -60,7 +77,6 @@
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
 #include "HierarchyFaceDataOpsReal.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
@@ -77,27 +93,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/INSCollocatedConvectiveOperatorManager.h"
-#include "ibamr/INSCollocatedHierarchyIntegrator.h"
-#include "ibamr/INSCollocatedVelocityBcCoef.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/INSIntermediateVelocityBcCoef.h"
-#include "ibamr/INSProjectionBcCoef.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CCPoissonSolverManager.h"
-#include "ibtk/CartCellRobinPhysBdryOp.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/PoissonSolver.h"
-#include "ibtk/ibtk_enums.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -105,6 +100,14 @@
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <cmath>
+#include <deque>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <vector>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

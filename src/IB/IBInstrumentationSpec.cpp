@@ -32,16 +32,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/IBInstrumentationSpec.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/StreamableFactory.h"
+#include "ibtk/StreamableManager.h"
+
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
+
 #include <ostream>
 #include <string>
 #include <vector>
-
-#include "ibamr/IBInstrumentationSpec.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/StreamableFactory.h"
-#include "ibtk/StreamableManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

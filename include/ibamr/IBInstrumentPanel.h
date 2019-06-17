@@ -35,18 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/ibtk_utilities.h"
+
+#include "Index.h"
+#include "IntVector.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+#include "boost/multi_array.hpp"
+
 #include <functional>
 #include <iosfwd>
 #include <map>
 #include <string>
 #include <vector>
-
-#include "Index.h"
-#include "IntVector.h"
-#include "boost/multi_array.hpp"
-#include "ibtk/ibtk_utilities.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
 
 namespace IBTK
 {

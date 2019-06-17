@@ -35,10 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
 #include "ibtk/LinearOperator.h"
+
 #include "tbox/Pointer.h"
+
+#include <string>
 
 namespace SAMRAI
 {

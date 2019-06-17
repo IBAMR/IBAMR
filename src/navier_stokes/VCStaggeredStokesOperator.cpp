@@ -32,21 +32,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibamr/VCStaggeredStokesOperator.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 
 #include "CellVariable.h"
 #include "SAMRAIVectorReal.h"
 #include "SideVariable.h"
-#include "ibamr/VCStaggeredStokesOperator.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
+
+#include <algorithm>
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

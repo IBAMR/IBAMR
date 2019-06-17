@@ -32,13 +32,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibamr/IMPMethod.h"
+#include "ibamr/MaterialPointSpec.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/LData.h"
+#include "ibtk/LDataManager.h"
+#include "ibtk/LEInteractor.h"
+#include "ibtk/LIndexSetData.h"
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LMesh.h"
+#include "ibtk/LNode.h"
+#include "ibtk/LNodeSet.h"
+#include "ibtk/LNodeSetData.h"
+#include "ibtk/LSet.h"
+#include "ibtk/LSetData.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/libmesh_utilities.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -65,32 +78,6 @@
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
-#include "boost/math/special_functions/round.hpp"
-#include "boost/multi_array.hpp"
-#include "ibamr/IMPMethod.h"
-#include "ibamr/MaterialPointSpec.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/LData.h"
-#include "ibtk/LDataManager.h"
-#include "ibtk/LEInteractor.h"
-#include "ibtk/LIndexSetData.h"
-#include "ibtk/LInitStrategy.h"
-#include "ibtk/LMesh.h"
-#include "ibtk/LNode.h"
-#include "ibtk/LNodeSet.h"
-#include "ibtk/LNodeSetData.h"
-#include "ibtk/LSet.h"
-#include "ibtk/LSetData.h"
-#include "ibtk/LSiloDataWriter.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/libmesh_utilities.h"
-#include "libmesh/tensor_value.h"
-#include "libmesh/type_tensor.h"
-#include "libmesh/type_vector.h"
-#include "libmesh/vector_value.h"
-#include "petscvec.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -98,6 +85,24 @@
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
+
+#include "libmesh/tensor_value.h"
+#include "libmesh/type_tensor.h"
+#include "libmesh/type_vector.h"
+#include "libmesh/vector_value.h"
+
+#include "petscvec.h"
+
+#include "boost/math/special_functions/round.hpp"
+#include "boost/multi_array.hpp"
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {

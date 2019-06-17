@@ -34,14 +34,16 @@
 #define included_IBAMR_CIBSaddlePointSolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+#include "petscksp.h"
+
 #include <limits>
 #include <string>
 #include <vector>
-
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "petscksp.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
 
 namespace SAMRAI
 {

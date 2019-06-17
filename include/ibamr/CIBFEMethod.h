@@ -35,21 +35,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <set>
-#include <string>
-#include <vector>
+#include "ibamr/CIBStrategy.h"
+#include "ibamr/IBFEMethod.h"
+
+#include "ibtk/FEDataManager.h"
+#include "ibtk/libmesh_utilities.h"
 
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
-#include "ibamr/CIBStrategy.h"
-#include "ibamr/IBFEMethod.h"
-#include "ibtk/FEDataManager.h"
-#include "ibtk/libmesh_utilities.h"
+#include "tbox/Pointer.h"
+
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
-#include "tbox/Pointer.h"
+
+#include <set>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {

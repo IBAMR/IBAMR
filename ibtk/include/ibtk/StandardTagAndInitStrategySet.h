@@ -35,13 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <vector>
-
 #include "BasePatchLevel.h"
 #include "IntVector.h"
 #include "StandardTagAndInitStrategy.h"
 #include "tbox/Pointer.h"
+
+#include <ostream>
+#include <vector>
 
 namespace SAMRAI
 {

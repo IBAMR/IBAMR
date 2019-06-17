@@ -35,19 +35,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibtk/LinearSolver.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CoarseFineBoundary.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/ibtk_utilities.h"
+#include "tbox/Pointer.h"
+
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

@@ -32,9 +32,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <ostream>
-#include <string>
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBImplicitStaggeredHierarchyIntegrator.h"
+#include "ibamr/IBImplicitStrategy.h"
+#include "ibamr/IBStrategy.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/INSStaggeredHierarchyIntegrator.h"
+#include "ibamr/StaggeredStokesOperator.h"
+#include "ibamr/StaggeredStokesPETScVecUtilities.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/KrylovLinearSolver.h"
+#include "ibtk/PETScSAMRAIVectorReal.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_enums.h"
 
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
@@ -52,23 +67,13 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/IBImplicitStaggeredHierarchyIntegrator.h"
-#include "ibamr/IBImplicitStrategy.h"
-#include "ibamr/IBStrategy.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/INSStaggeredHierarchyIntegrator.h"
-#include "ibamr/StaggeredStokesOperator.h"
-#include "ibamr/StaggeredStokesPETScVecUtilities.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/KrylovLinearSolver.h"
-#include "ibtk/PETScSAMRAIVectorReal.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/ibtk_enums.h"
+#include "tbox/Database.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+#include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
+
 #include "petscerror.h"
 #include "petscksp.h"
 #include "petscmat.h"
@@ -76,12 +81,10 @@
 #include "petscsnes.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <ostream>
+#include <string>
 
 namespace IBAMR
 {

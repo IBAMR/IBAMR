@@ -32,17 +32,28 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <cstring>
-#include <functional>
-#include <limits>
-#include <numeric>
-#include <ostream>
-#include <set>
-#include <string>
-#include <vector>
+#include "ibamr/IBAnchorPointSpec.h"
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBInstrumentPanel.h"
+#include "ibamr/IBInstrumentationSpec.h"
+#include "ibamr/IBLagrangianForceStrategy.h"
+#include "ibamr/IBLagrangianSourceStrategy.h"
+#include "ibamr/IBMethod.h"
+#include "ibamr/IBMethodPostProcessStrategy.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/LData.h"
+#include "ibtk/LDataManager.h"
+#include "ibtk/LEInteractor.h"
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LMesh.h"
+#include "ibtk/LNode.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "ibtk/PETScMatUtilities.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -66,31 +77,6 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "boost/multi_array.hpp"
-#include "ibamr/IBAnchorPointSpec.h"
-#include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/IBInstrumentPanel.h"
-#include "ibamr/IBInstrumentationSpec.h"
-#include "ibamr/IBLagrangianForceStrategy.h"
-#include "ibamr/IBLagrangianSourceStrategy.h"
-#include "ibamr/IBMethod.h"
-#include "ibamr/IBMethodPostProcessStrategy.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/LData.h"
-#include "ibtk/LDataManager.h"
-#include "ibtk/LEInteractor.h"
-#include "ibtk/LInitStrategy.h"
-#include "ibtk/LMesh.h"
-#include "ibtk/LNode.h"
-#include "ibtk/LSiloDataWriter.h"
-#include "ibtk/PETScMatUtilities.h"
-#include "ibtk/ibtk_utilities.h"
-#include "petscmat.h"
-#include "petscsys.h"
-#include "petscvec.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -99,6 +85,24 @@
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include "petscmat.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include "boost/multi_array.hpp"
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <cstring>
+#include <functional>
+#include <limits>
+#include <numeric>
+#include <ostream>
+#include <set>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {

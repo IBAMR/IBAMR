@@ -35,10 +35,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "SAMRAI_config.h"
+#include "tbox/Utilities.h"
 
 #include <mpi.h>
-
-#include "tbox/Utilities.h"
 
 #include <type_traits>
 #include <utility>

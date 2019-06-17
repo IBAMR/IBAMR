@@ -35,18 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LSiloDataWriter.h"
 
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
-#include "ibtk/LInitStrategy.h"
-#include "ibtk/LSiloDataWriter.h"
-#include "libmesh/id_types.h"
 #include "tbox/Pointer.h"
+
+#include "libmesh/id_types.h"
+
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace IBTK
 {

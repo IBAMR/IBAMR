@@ -31,14 +31,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
-
-#include "tbox/SAMRAI_MPI.h"
-
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/app_namespaces.h"
+
+#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include <string>
+#include <vector>
 
 namespace IBTK
 {

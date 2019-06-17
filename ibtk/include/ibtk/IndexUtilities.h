@@ -35,15 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <functional>
-#include <vector>
-
 #include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellIndex.h"
 #include "Index.h"
 #include "IntVector.h"
+
+#include <functional>
+#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

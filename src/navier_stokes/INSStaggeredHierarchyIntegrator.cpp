@@ -32,13 +32,44 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <cmath>
-#include <deque>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/INSIntermediateVelocityBcCoef.h"
+#include "ibamr/INSProjectionBcCoef.h"
+#include "ibamr/INSStaggeredConvectiveOperatorManager.h"
+#include "ibamr/INSStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSStaggeredPressureBcCoef.h"
+#include "ibamr/INSStaggeredVelocityBcCoef.h"
+#include "ibamr/StaggeredStokesBlockPreconditioner.h"
+#include "ibamr/StaggeredStokesFACPreconditioner.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CCPoissonSolverManager.h"
+#include "ibtk/CartCellDoubleBoundsPreservingConservativeLinearRefine.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/CartSideDoubleDivPreservingRefine.h"
+#include "ibtk/CartSideDoubleRT0Refine.h"
+#include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/KrylovLinearSolver.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/NewtonKrylovSolver.h"
+#include "ibtk/PoissonSolver.h"
+#include "ibtk/SCPoissonSolverManager.h"
+#include "ibtk/SideDataSynchronization.h"
+#include "ibtk/ibtk_enums.h"
 
 #include "ArrayData.h"
 #include "BasePatchHierarchy.h"
@@ -62,7 +93,6 @@
 #include "HierarchyDataOpsReal.h"
 #include "HierarchyFaceDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
@@ -84,41 +114,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/INSIntermediateVelocityBcCoef.h"
-#include "ibamr/INSProjectionBcCoef.h"
-#include "ibamr/INSStaggeredConvectiveOperatorManager.h"
-#include "ibamr/INSStaggeredHierarchyIntegrator.h"
-#include "ibamr/INSStaggeredPressureBcCoef.h"
-#include "ibamr/INSStaggeredVelocityBcCoef.h"
-#include "ibamr/StaggeredStokesBlockPreconditioner.h"
-#include "ibamr/StaggeredStokesFACPreconditioner.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesSolverManager.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CCPoissonSolverManager.h"
-#include "ibtk/CartCellDoubleBoundsPreservingConservativeLinearRefine.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/CartSideDoubleDivPreservingRefine.h"
-#include "ibtk/CartSideDoubleRT0Refine.h"
-#include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/KrylovLinearSolver.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/NewtonKrylovSolver.h"
-#include "ibtk/PoissonSolver.h"
-#include "ibtk/SCPoissonSolverManager.h"
-#include "ibtk/SideDataSynchronization.h"
-#include "ibtk/ibtk_enums.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -127,6 +122,14 @@
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <cmath>
+#include <deque>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <vector>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

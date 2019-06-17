@@ -35,10 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
 #include "ibamr/IBHierarchyIntegrator.h"
+
 #include "tbox/Pointer.h"
+
+#include <string>
 
 namespace IBAMR
 {

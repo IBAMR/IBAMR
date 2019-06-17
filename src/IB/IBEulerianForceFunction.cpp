@@ -32,8 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartGridFunction.h"
 
 #include "CellData.h"
 #include "HierarchyDataOpsReal.h"
@@ -46,11 +48,11 @@
 #include "PatchSideDataBasicOps.h"
 #include "SideData.h"
 #include "Variable.h"
-#include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartGridFunction.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <ostream>
+#include <string>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

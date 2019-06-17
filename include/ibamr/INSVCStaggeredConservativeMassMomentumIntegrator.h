@@ -35,24 +35,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <string>
-#include <vector>
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CoarseFineBoundary.h"
 #include "HierarchySideDataOpsReal.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SideVariable.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include <array>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
