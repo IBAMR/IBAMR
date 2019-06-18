@@ -87,7 +87,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = interpolate_velocity_01$(EXEEXT) \
+EXTRA_PROGRAMS = interpolate_velocity_01_2d$(EXEEXT) \
+	interpolate_velocity_01_3d$(EXEEXT) \
 	interpolate_velocity_02$(EXEEXT) explicit_ex4_2d$(EXEEXT) \
 	explicit_ex4_3d$(EXEEXT)
 subdir = tests/IBFE
@@ -139,15 +140,26 @@ explicit_ex4_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(explicit_ex4_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_interpolate_velocity_01_OBJECTS =  \
-	interpolate_velocity_01-interpolate_velocity_01.$(OBJEXT)
-interpolate_velocity_01_OBJECTS =  \
-	$(am_interpolate_velocity_01_OBJECTS)
-interpolate_velocity_01_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-interpolate_velocity_01_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+am_interpolate_velocity_01_2d_OBJECTS =  \
+	interpolate_velocity_01_2d-interpolate_velocity_01.$(OBJEXT)
+interpolate_velocity_01_2d_OBJECTS =  \
+	$(am_interpolate_velocity_01_2d_OBJECTS)
+interpolate_velocity_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
+interpolate_velocity_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(interpolate_velocity_01_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
+	$(interpolate_velocity_01_2d_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_interpolate_velocity_01_3d_OBJECTS =  \
+	interpolate_velocity_01_3d-interpolate_velocity_01.$(OBJEXT)
+interpolate_velocity_01_3d_OBJECTS =  \
+	$(am_interpolate_velocity_01_3d_OBJECTS)
+interpolate_velocity_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) \
+	$(IBAMR_LIBS)
+interpolate_velocity_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(interpolate_velocity_01_3d_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_interpolate_velocity_02_OBJECTS =  \
 	interpolate_velocity_02-interpolate_velocity_02.$(OBJEXT)
 interpolate_velocity_02_OBJECTS =  \
@@ -174,7 +186,8 @@ depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/explicit_ex4_2d-explicit_ex4.Po \
 	./$(DEPDIR)/explicit_ex4_3d-explicit_ex4.Po \
-	./$(DEPDIR)/interpolate_velocity_01-interpolate_velocity_01.Po \
+	./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po \
+	./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po \
 	./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -196,10 +209,12 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(explicit_ex4_2d_SOURCES) $(explicit_ex4_3d_SOURCES) \
-	$(interpolate_velocity_01_SOURCES) \
+	$(interpolate_velocity_01_2d_SOURCES) \
+	$(interpolate_velocity_01_3d_SOURCES) \
 	$(interpolate_velocity_02_SOURCES)
 DIST_SOURCES = $(explicit_ex4_2d_SOURCES) $(explicit_ex4_3d_SOURCES) \
-	$(interpolate_velocity_01_SOURCES) \
+	$(interpolate_velocity_01_2d_SOURCES) \
+	$(interpolate_velocity_01_3d_SOURCES) \
 	$(interpolate_velocity_02_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -500,9 +515,12 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-interpolate_velocity_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-interpolate_velocity_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-interpolate_velocity_01_SOURCES = interpolate_velocity_01.cpp
+interpolate_velocity_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+interpolate_velocity_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+interpolate_velocity_01_2d_SOURCES = interpolate_velocity_01.cpp
+interpolate_velocity_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+interpolate_velocity_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+interpolate_velocity_01_3d_SOURCES = interpolate_velocity_01.cpp
 interpolate_velocity_02_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 interpolate_velocity_02_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 interpolate_velocity_02_SOURCES = interpolate_velocity_02.cpp
@@ -555,9 +573,13 @@ explicit_ex4_3d$(EXEEXT): $(explicit_ex4_3d_OBJECTS) $(explicit_ex4_3d_DEPENDENC
 	@rm -f explicit_ex4_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(explicit_ex4_3d_LINK) $(explicit_ex4_3d_OBJECTS) $(explicit_ex4_3d_LDADD) $(LIBS)
 
-interpolate_velocity_01$(EXEEXT): $(interpolate_velocity_01_OBJECTS) $(interpolate_velocity_01_DEPENDENCIES) $(EXTRA_interpolate_velocity_01_DEPENDENCIES) 
-	@rm -f interpolate_velocity_01$(EXEEXT)
-	$(AM_V_CXXLD)$(interpolate_velocity_01_LINK) $(interpolate_velocity_01_OBJECTS) $(interpolate_velocity_01_LDADD) $(LIBS)
+interpolate_velocity_01_2d$(EXEEXT): $(interpolate_velocity_01_2d_OBJECTS) $(interpolate_velocity_01_2d_DEPENDENCIES) $(EXTRA_interpolate_velocity_01_2d_DEPENDENCIES) 
+	@rm -f interpolate_velocity_01_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(interpolate_velocity_01_2d_LINK) $(interpolate_velocity_01_2d_OBJECTS) $(interpolate_velocity_01_2d_LDADD) $(LIBS)
+
+interpolate_velocity_01_3d$(EXEEXT): $(interpolate_velocity_01_3d_OBJECTS) $(interpolate_velocity_01_3d_DEPENDENCIES) $(EXTRA_interpolate_velocity_01_3d_DEPENDENCIES) 
+	@rm -f interpolate_velocity_01_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(interpolate_velocity_01_3d_LINK) $(interpolate_velocity_01_3d_OBJECTS) $(interpolate_velocity_01_3d_LDADD) $(LIBS)
 
 interpolate_velocity_02$(EXEEXT): $(interpolate_velocity_02_OBJECTS) $(interpolate_velocity_02_DEPENDENCIES) $(EXTRA_interpolate_velocity_02_DEPENDENCIES) 
 	@rm -f interpolate_velocity_02$(EXEEXT)
@@ -571,7 +593,8 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex4_2d-explicit_ex4.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex4_3d-explicit_ex4.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolate_velocity_01-interpolate_velocity_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -632,19 +655,33 @@ explicit_ex4_3d-explicit_ex4.obj: explicit_ex4.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex4_3d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex4_3d-explicit_ex4.obj `if test -f 'explicit_ex4.cpp'; then $(CYGPATH_W) 'explicit_ex4.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex4.cpp'; fi`
 
-interpolate_velocity_01-interpolate_velocity_01.o: interpolate_velocity_01.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_01_CXXFLAGS) $(CXXFLAGS) -MT interpolate_velocity_01-interpolate_velocity_01.o -MD -MP -MF $(DEPDIR)/interpolate_velocity_01-interpolate_velocity_01.Tpo -c -o interpolate_velocity_01-interpolate_velocity_01.o `test -f 'interpolate_velocity_01.cpp' || echo '$(srcdir)/'`interpolate_velocity_01.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/interpolate_velocity_01-interpolate_velocity_01.Tpo $(DEPDIR)/interpolate_velocity_01-interpolate_velocity_01.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='interpolate_velocity_01.cpp' object='interpolate_velocity_01-interpolate_velocity_01.o' libtool=no @AMDEPBACKSLASH@
+interpolate_velocity_01_2d-interpolate_velocity_01.o: interpolate_velocity_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_01_2d_CXXFLAGS) $(CXXFLAGS) -MT interpolate_velocity_01_2d-interpolate_velocity_01.o -MD -MP -MF $(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Tpo -c -o interpolate_velocity_01_2d-interpolate_velocity_01.o `test -f 'interpolate_velocity_01.cpp' || echo '$(srcdir)/'`interpolate_velocity_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Tpo $(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='interpolate_velocity_01.cpp' object='interpolate_velocity_01_2d-interpolate_velocity_01.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_01_CXXFLAGS) $(CXXFLAGS) -c -o interpolate_velocity_01-interpolate_velocity_01.o `test -f 'interpolate_velocity_01.cpp' || echo '$(srcdir)/'`interpolate_velocity_01.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o interpolate_velocity_01_2d-interpolate_velocity_01.o `test -f 'interpolate_velocity_01.cpp' || echo '$(srcdir)/'`interpolate_velocity_01.cpp
 
-interpolate_velocity_01-interpolate_velocity_01.obj: interpolate_velocity_01.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_01_CXXFLAGS) $(CXXFLAGS) -MT interpolate_velocity_01-interpolate_velocity_01.obj -MD -MP -MF $(DEPDIR)/interpolate_velocity_01-interpolate_velocity_01.Tpo -c -o interpolate_velocity_01-interpolate_velocity_01.obj `if test -f 'interpolate_velocity_01.cpp'; then $(CYGPATH_W) 'interpolate_velocity_01.cpp'; else $(CYGPATH_W) '$(srcdir)/interpolate_velocity_01.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/interpolate_velocity_01-interpolate_velocity_01.Tpo $(DEPDIR)/interpolate_velocity_01-interpolate_velocity_01.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='interpolate_velocity_01.cpp' object='interpolate_velocity_01-interpolate_velocity_01.obj' libtool=no @AMDEPBACKSLASH@
+interpolate_velocity_01_2d-interpolate_velocity_01.obj: interpolate_velocity_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_01_2d_CXXFLAGS) $(CXXFLAGS) -MT interpolate_velocity_01_2d-interpolate_velocity_01.obj -MD -MP -MF $(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Tpo -c -o interpolate_velocity_01_2d-interpolate_velocity_01.obj `if test -f 'interpolate_velocity_01.cpp'; then $(CYGPATH_W) 'interpolate_velocity_01.cpp'; else $(CYGPATH_W) '$(srcdir)/interpolate_velocity_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Tpo $(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='interpolate_velocity_01.cpp' object='interpolate_velocity_01_2d-interpolate_velocity_01.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_01_CXXFLAGS) $(CXXFLAGS) -c -o interpolate_velocity_01-interpolate_velocity_01.obj `if test -f 'interpolate_velocity_01.cpp'; then $(CYGPATH_W) 'interpolate_velocity_01.cpp'; else $(CYGPATH_W) '$(srcdir)/interpolate_velocity_01.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o interpolate_velocity_01_2d-interpolate_velocity_01.obj `if test -f 'interpolate_velocity_01.cpp'; then $(CYGPATH_W) 'interpolate_velocity_01.cpp'; else $(CYGPATH_W) '$(srcdir)/interpolate_velocity_01.cpp'; fi`
+
+interpolate_velocity_01_3d-interpolate_velocity_01.o: interpolate_velocity_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_01_3d_CXXFLAGS) $(CXXFLAGS) -MT interpolate_velocity_01_3d-interpolate_velocity_01.o -MD -MP -MF $(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Tpo -c -o interpolate_velocity_01_3d-interpolate_velocity_01.o `test -f 'interpolate_velocity_01.cpp' || echo '$(srcdir)/'`interpolate_velocity_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Tpo $(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='interpolate_velocity_01.cpp' object='interpolate_velocity_01_3d-interpolate_velocity_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o interpolate_velocity_01_3d-interpolate_velocity_01.o `test -f 'interpolate_velocity_01.cpp' || echo '$(srcdir)/'`interpolate_velocity_01.cpp
+
+interpolate_velocity_01_3d-interpolate_velocity_01.obj: interpolate_velocity_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_01_3d_CXXFLAGS) $(CXXFLAGS) -MT interpolate_velocity_01_3d-interpolate_velocity_01.obj -MD -MP -MF $(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Tpo -c -o interpolate_velocity_01_3d-interpolate_velocity_01.obj `if test -f 'interpolate_velocity_01.cpp'; then $(CYGPATH_W) 'interpolate_velocity_01.cpp'; else $(CYGPATH_W) '$(srcdir)/interpolate_velocity_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Tpo $(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='interpolate_velocity_01.cpp' object='interpolate_velocity_01_3d-interpolate_velocity_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o interpolate_velocity_01_3d-interpolate_velocity_01.obj `if test -f 'interpolate_velocity_01.cpp'; then $(CYGPATH_W) 'interpolate_velocity_01.cpp'; else $(CYGPATH_W) '$(srcdir)/interpolate_velocity_01.cpp'; fi`
 
 interpolate_velocity_02-interpolate_velocity_02.o: interpolate_velocity_02.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_02_CXXFLAGS) $(CXXFLAGS) -MT interpolate_velocity_02-interpolate_velocity_02.o -MD -MP -MF $(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Tpo -c -o interpolate_velocity_02-interpolate_velocity_02.o `test -f 'interpolate_velocity_02.cpp' || echo '$(srcdir)/'`interpolate_velocity_02.cpp
@@ -793,7 +830,8 @@ clean-am: clean-generic clean-libtool mostlyclean-am
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/explicit_ex4_2d-explicit_ex4.Po
 	-rm -f ./$(DEPDIR)/explicit_ex4_3d-explicit_ex4.Po
-	-rm -f ./$(DEPDIR)/interpolate_velocity_01-interpolate_velocity_01.Po
+	-rm -f ./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po
+	-rm -f ./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -842,7 +880,8 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/explicit_ex4_2d-explicit_ex4.Po
 	-rm -f ./$(DEPDIR)/explicit_ex4_3d-explicit_ex4.Po
-	-rm -f ./$(DEPDIR)/interpolate_velocity_01-interpolate_velocity_01.Po
+	-rm -f ./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po
+	-rm -f ./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
