@@ -843,20 +843,10 @@ c
 c
 c     Interpolate u onto V.
 c
-         do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic2 = ic_lower(2),ic_upper(2)
-               do ic1 = ic_lower(1),ic_upper(1)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w(0,ic0-ic_lower(0))
-     &                    *w(1,ic1-ic_lower(1))
-     &                    *w(2,ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
-                  enddo
-               enddo
-            enddo
-         enddo
+         INTERPOLATE_3D_SPECIALIZE_FIXED_WIDTH(ic_lower(2), ic_upper(2),
+                                               ic_lower(1), ic_upper(1),
+                                               ic_lower(0), ic_upper(0),
+                                               4)
 c
 c     End loop over points.
 c
@@ -1126,20 +1116,10 @@ c
 c
 c     Interpolate u onto V.
 c
-         do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic2 = ic_lower(2),ic_upper(2)
-               do ic1 = ic_lower(1),ic_upper(1)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w(0,ic0-ic_lower(0))
-     &                    *w(1,ic1-ic_lower(1))
-     &                    *w(2,ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
-                  enddo
-               enddo
-            enddo
-         enddo
+         INTERPOLATE_3D_SPECIALIZE_FIXED_WIDTH(ic_lower(2), ic_upper(2),
+                                               ic_lower(1), ic_upper(1),
+                                               ic_lower(0), ic_upper(0),
+                                               3)
 c
 c     End loop over points.
 c
@@ -2050,20 +2030,10 @@ c
 c
 c     Interpolate u onto V.
 c
-         do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic2 = ic_lower(2),ic_upper(2)
-               do ic1 = ic_lower(1),ic_upper(1)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w(0,ic0-ic_lower(0))
-     &                    *w(1,ic1-ic_lower(1))
-     &                    *w(2,ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
-                  enddo
-               enddo
-            enddo
-         enddo
+         INTERPOLATE_3D_SPECIALIZE_FIXED_WIDTH(ic_lower(2), ic_upper(2),
+                                               ic_lower(1), ic_upper(1),
+                                               ic_lower(0), ic_upper(0),
+                                               5)
 c
 c     End loop over points.
 c
@@ -2786,20 +2756,10 @@ c
 c
 c     Interpolate u onto V.
 c
-         do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic2 = ic_lower(2),ic_upper(2)
-               do ic1 = ic_lower(1),ic_upper(1)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w0(ic0-ic_lower(0))
-     &                    *w1(ic1-ic_lower(1))
-     &                    *w2(ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
-                  enddo
-               enddo
-            enddo
-         enddo
+         INTERPOLATE_3D_SPECIALIZE_FIXED_WIDTH(ic_lower(2), ic_upper(2),
+                                               ic_lower(1), ic_upper(1),
+                                               ic_lower(0), ic_upper(0),
+                                               3)
 c
 c     End loop over points.
 c
@@ -3069,20 +3029,10 @@ c
 c
 c     Interpolate u onto V.
 c
-         do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic2 = ic_lower(2),ic_upper(2)
-               do ic1 = ic_lower(1),ic_upper(1)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w(0,ic0-ic_lower(0))
-     &                    *w(1,ic1-ic_lower(1))
-     &                    *w(2,ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
-                  enddo
-               enddo
-            enddo
-         enddo
+         INTERPOLATE_3D_SPECIALIZE_FIXED_WIDTH(ic_lower(2), ic_upper(2),
+                                               ic_lower(1), ic_upper(1),
+                                               ic_lower(0), ic_upper(0),
+                                               4)
 c
 c     End loop over points.
 c
@@ -3352,20 +3302,10 @@ c
 c
 c     Interpolate u onto V.
 c
-         do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic2 = ic_lower(2),ic_upper(2)
-               do ic1 = ic_lower(1),ic_upper(1)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w(0,ic0-ic_lower(0))
-     &                    *w(1,ic1-ic_lower(1))
-     &                    *w(2,ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
-                  enddo
-               enddo
-            enddo
-         enddo
+         INTERPOLATE_3D_SPECIALIZE_FIXED_WIDTH(ic_lower(2), ic_upper(2),
+                                               ic_lower(1), ic_upper(1),
+                                               ic_lower(0), ic_upper(0),
+                                               5)
 c
 c     End loop over points.
 c
@@ -3635,20 +3575,10 @@ c
 c
 c     Interpolate u onto V.
 c
-         do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic2 = ic_lower(2),ic_upper(2)
-               do ic1 = ic_lower(1),ic_upper(1)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w(0,ic0-ic_lower(0))
-     &                    *w(1,ic1-ic_lower(1))
-     &                    *w(2,ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
-                  enddo
-               enddo
-            enddo
-         enddo
+         INTERPOLATE_3D_SPECIALIZE_FIXED_WIDTH(ic_lower(2), ic_upper(2),
+                                               ic_lower(1), ic_upper(1),
+                                               ic_lower(0), ic_upper(0),
+                                               6)
 c
 c     End loop over points.
 c
