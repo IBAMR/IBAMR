@@ -37,6 +37,45 @@ c
 define(NDIM,3)dnl
 define(REAL,`double precision')dnl
 define(INTEGER,`integer')dnl
+dnl Define some macros that help us unroll interpolation loops. These assume
+dnl that we are accumulating into a 2D array V from a 4D array u which are both
+dnl indexed first by depth (and then by point number s, which is specified in an
+dnl outer loop). Assume d, ic0, ic1, and ic2 are available as inner loop indicies.
+dnl
+dnl The arguments are the lower and upper bounds in z, lower and upper bounds in
+dnl y, and lower and upper bounds in x.
+define(INTERPOLATE_INNER_3D,
+          ` do d = 0,depth-1
+               V(d, s) = 0.d0
+               do ic2 = $1,$2
+                  do ic1 = $3,$4
+                     do ic0 = $5,$6
+                        V(d,s) = V(d,s)
+     &                       +w(0,ic0-$5)
+     &                       *w(1,ic1-$3)
+     &                       *w(2,ic2-$1)
+     &                       *u(ic0,ic1,ic2,d)
+                     enddo
+                  enddo
+               enddo
+            enddo')
+dnl Same arguments as before, but the seventh argument is the width of the
+dnl stencil (e.g., 3 for bspline 3). The first branch is a hotter code path
+dnl since when we are not at a boundary the number of inner loop iterations
+dnl is known. Exposing this to the compiler helps generate code which speeds
+dnl up the subroutine by about 25%.
+define(INTERPOLATE_3D_SPECIALIZE_FIXED_WIDTH,
+`   if ($2 - $1 == ($7 - 1) .and.
+     &       $4 - $3 == ($7 - 1) .and.
+     &       $6 - $5 == ($7 - 1)) then
+           INTERPOLATE_INNER_3D($1, ($1 + $7 - 1),
+                                $3, ($3 + $7 - 1),
+                                $5, ($5 + $7 - 1))
+         else
+           INTERPOLATE_INNER_3D($1, $2,
+                                $3, $4,
+                                $5, $6)
+         endif')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
