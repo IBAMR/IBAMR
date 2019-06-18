@@ -1,7 +1,7 @@
-Number of elements: 10870
+Number of elements: 40960
 
 IBFEMethod: mesh part 0 is using FIRST order LAGRANGE finite elements.
 
 IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 1 3
-max vertex distance: 0.00892356
-max norm errors: 2.7548414943678878331e-05   3.9301631085009169908e-05
+max vertex distance: 0.00668694
+max norm errors: 1.2820255439471850423e-05   1.923231781031375931e-05
