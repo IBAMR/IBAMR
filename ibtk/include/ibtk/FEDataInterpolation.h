@@ -36,11 +36,14 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/FEDataManager.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
 
 #include "libmesh/equation_systems.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "boost/multi_array.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

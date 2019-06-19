@@ -39,12 +39,15 @@
 
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "IntVector.h"
 #include "tbox/Pointer.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/concept_check.hpp>
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <array>
 #include <functional>

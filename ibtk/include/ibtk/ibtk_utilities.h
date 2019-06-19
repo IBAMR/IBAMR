@@ -35,11 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/ibtk_macros.h"
+
 #include "tbox/PIO.h"
 #include "tbox/Utilities.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Core" // IWYU pragma: export
 #include "Eigen/StdVector"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <array>

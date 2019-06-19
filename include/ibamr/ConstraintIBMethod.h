@@ -44,6 +44,7 @@
 #include "ibtk/FACPreconditioner.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/PETScKrylovPoissonSolver.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "LocationIndexRobinBcCoefs.h"
@@ -51,7 +52,9 @@
 #include "VariableContext.h"
 #include "tbox/Pointer.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Dense"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <fstream>
 #include <string>
