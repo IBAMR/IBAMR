@@ -675,8 +675,6 @@ c
 c
 c     Functions.
 c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
       REAL lagrangian_piecewise_cubic_delta
 c
 c     Input.
@@ -718,10 +716,10 @@ c
 c     Determine the Cartesian cell in which X(s) is located.
 c
          ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
      &        + ilower0
          ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
      &        + ilower1
 
          X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
@@ -803,8 +801,6 @@ c
 c
 c     Functions.
 c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
       REAL lagrangian_piecewise_cubic_delta
 c
 c     Input.
@@ -846,10 +842,10 @@ c
 c     Determine the Cartesian cell in which X(s) is located.
 c
          ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
      &        + ilower0
          ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
      &        + ilower1
 
          X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
@@ -929,8 +925,6 @@ c
 c
 c     Functions.
 c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
       REAL lagrangian_ib_3_delta
 c
 c     Input.
@@ -972,10 +966,10 @@ c
 c     Determine the Cartesian cell in which X(s) is located.
 c
          ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
      &        + ilower0
          ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
      &        + ilower1
 
          X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
@@ -1052,8 +1046,6 @@ c
 c
 c     Functions.
 c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
       REAL lagrangian_ib_3_delta
 c
 c     Input.
@@ -1095,10 +1087,10 @@ c
 c     Determine the Cartesian cell in which X(s) is located.
 c
          ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
      &        + ilower0
          ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
      &        + ilower1
 
          X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
@@ -1680,8 +1672,6 @@ c
 c
 c     Functions.
 c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
 c
 c     Input.
 c
@@ -1728,10 +1718,10 @@ c
 c     Determine the Cartesian cell in which X(s) is located.
 c
          ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
      &        + ilower0
          ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
      &        + ilower1
 
          X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
@@ -1836,8 +1826,6 @@ c
 c
 c     Functions.
 c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
 c
 c     Input.
 c
@@ -1883,10 +1871,10 @@ c
 c     Determine the Cartesian cell in which X(s) is located.
 c
          ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
      &        + ilower0
          ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
      &        + ilower1
 
          X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
@@ -2318,8 +2306,6 @@ c
 c
 c     Functions.
 c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
       REAL lagrangian_bspline_3_delta
 c
 c     Input.
@@ -2361,10 +2347,10 @@ c
 c     Determine the Cartesian cell in which X(s) is located.
 c
          ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
      &        + ilower0
          ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
      &        + ilower1
 
          X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
@@ -2441,8 +2427,6 @@ c
 c
 c     Functions.
 c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
       REAL lagrangian_bspline_3_delta
 c
 c     Input.
@@ -2484,10 +2468,10 @@ c
 c     Determine the Cartesian cell in which X(s) is located.
 c
          ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
      &        + ilower0
          ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
      &        + ilower1
 
          X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
@@ -2562,8 +2546,6 @@ c
 c
 c     Functions.
 c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
       REAL lagrangian_bspline_4_delta
 c
 c     Input.
@@ -2605,10 +2587,10 @@ c
 c     Determine the Cartesian cell in which X(s) is located.
 c
          ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
      &        + ilower0
          ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
      &        + ilower1
 
          X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
@@ -2690,8 +2672,6 @@ c
 c
 c     Functions.
 c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
       REAL lagrangian_bspline_4_delta
 c
 c     Input.
@@ -2733,10 +2713,10 @@ c
 c     Determine the Cartesian cell in which X(s) is located.
 c
          ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
      &        + ilower0
          ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
      &        + ilower1
 
          X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
@@ -2816,8 +2796,6 @@ c
 c
 c     Functions.
 c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
       REAL lagrangian_bspline_5_delta
 c
 c     Input.
@@ -2859,10 +2837,10 @@ c
 c     Determine the Cartesian cell in which X(s) is located.
 c
          ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
      &        + ilower0
          ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
      &        + ilower1
 
          X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
@@ -2939,8 +2917,6 @@ c
 c
 c     Functions.
 c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
       REAL lagrangian_bspline_5_delta
 c
 c     Input.
@@ -2982,10 +2958,10 @@ c
 c     Determine the Cartesian cell in which X(s) is located.
 c
          ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
      &        + ilower0
          ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
      &        + ilower1
 
          X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
@@ -3060,8 +3036,6 @@ c
 c
 c     Functions.
 c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
       REAL lagrangian_bspline_6_delta
 c
 c     Input.
@@ -3103,10 +3077,10 @@ c
 c     Determine the Cartesian cell in which X(s) is located.
 c
          ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
      &        + ilower0
          ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
      &        + ilower1
 
          X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
@@ -3188,8 +3162,6 @@ c
 c
 c     Functions.
 c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
       REAL lagrangian_bspline_6_delta
 c
 c     Input.
@@ -3231,10 +3203,10 @@ c
 c     Determine the Cartesian cell in which X(s) is located.
 c
          ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
      &        + ilower0
          ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
      &        + ilower1
 
          X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
