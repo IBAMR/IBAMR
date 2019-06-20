@@ -266,7 +266,13 @@ main(int argc, char** argv)
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const Pointer<SAMRAI::hier::Variable<NDIM> > f_var = time_integrator->getBodyForceVariable();
         const Pointer<VariableContext> f_ghost_ctx = var_db->getContext("f_ghost");
-        const int f_ghost_idx = var_db->registerVariableAndContext(f_var, f_ghost_ctx, 3);
+
+        int n_ghosts = 3;
+        if (app_initializer->getComponentDatabase("IBFEMethod")->keyExists("min_ghost_cell_width"))
+        {
+            n_ghosts = app_initializer->getComponentDatabase("IBFEMethod")->getInteger("min_ghost_cell_width");
+        }
+        const int f_ghost_idx = var_db->registerVariableAndContext(f_var, f_ghost_ctx, n_ghosts);
 
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
