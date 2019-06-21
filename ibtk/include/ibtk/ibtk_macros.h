@@ -35,21 +35,28 @@
 #include <IBTK_config.h>
 
 #ifdef IBTK_HAVE_PRAGMA_KEYWORD
+// Prevent clang-format from doing strange things to this very long macro:
+// clang-format off
 
-// The first three warnings here should be left in that order: new warnings
+// The first four warnings here should be left in that order: new warnings
 // should be placed at the end.
-#define IBTK_DISABLE_EXTRA_WARNINGS                                                                                    \
-    _Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Wunknown-pragmas\"")                             \
-        _Pragma("GCC diagnostic ignored \"-Wpragmas\"") _Pragma("GCC diagnostic ignored \"-Wunknown-warning\"")        \
-            _Pragma("GCC diagnostic ignored \"-Wunused-variable\"")                                                    \
-                _Pragma("GCC diagnostic ignored \"-Wignored-attributes\"")                                             \
-                    _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")                                    \
-                        _Pragma("GCC diagnostic ignored \"-Wmisleading-indentation\"")                                 \
-                            _Pragma("GCC diagnostic ignored \"-Wint-in-bool-context\"")                                \
-                                _Pragma("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")
+#define IBTK_DISABLE_EXTRA_WARNINGS                             \
+_Pragma("GCC diagnostic push")                                  \
+_Pragma("GCC diagnostic ignored \"-Wunknown-pragmas\"")         \
+_Pragma("GCC diagnostic ignored \"-Wpragmas\"")                 \
+_Pragma("GCC diagnostic ignored \"-Wunknown-warning-option\"")  \
+_Pragma("GCC diagnostic ignored \"-Wunknown-warning\"")         \
+_Pragma("GCC diagnostic ignored \"-Wunused-variable\"")         \
+_Pragma("GCC diagnostic ignored \"-Wignored-attributes\"")      \
+_Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"") \
+_Pragma("GCC diagnostic ignored \"-Wmisleading-indentation\"")  \
+_Pragma("GCC diagnostic ignored \"-Wint-in-bool-context\"")     \
+_Pragma("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")     \
+_Pragma("GCC diagnostic ignored \"-Wunneeded-internal-declaration\"")
 
 #define IBTK_ENABLE_EXTRA_WARNINGS _Pragma("GCC diagnostic pop")
 
+// clang-format on
 #else
 
 #define IBTK_DISABLE_EXTRA_WARNINGS
