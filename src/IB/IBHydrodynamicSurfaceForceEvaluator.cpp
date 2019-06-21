@@ -281,14 +281,10 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
 
                     // Get the relative coordinate from X0
                     const IBTK::VectorNd side_center = IndexUtilities::getSideCenter(*patch, s_i);
-                    IBTK::Vector3d r_vec;
+                    IBTK::Vector3d r_vec = IBTK::Vector3d::Zero();
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         r_vec[d] = side_center[d] - X0[d];
-                    }
-                    if (NDIM == 2)
-                    {
-                        r_vec[2] = 0.0;
                     }
 
                     // Compute pressure on the face using simple averaging (n. -p I) * dA
