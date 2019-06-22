@@ -29,7 +29,7 @@ void callLSLocateCircularInterfaceCallbackFunction(int D_idx,
 // Struct to maintain the properties of the circular interface
 struct CircularInterface
 {
-    IBTK::Vector X0;
+    IBTK::Vector3d X0;
     double R;
 };
 

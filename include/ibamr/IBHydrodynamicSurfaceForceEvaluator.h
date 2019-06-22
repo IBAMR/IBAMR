@@ -33,16 +33,13 @@
 #ifndef included_IBHydrodynamicSurfaceForceEvaluator
 #define included_IBHydrodynamicSurfaceForceEvaluator
 
-#include <ibamr/AdvDiffHierarchyIntegrator.h>
-#include <ibamr/INSHierarchyIntegrator.h>
-
 #include "ibtk/ibtk_macros.h"
-#include <ibtk/LData.h>
-#include <ibtk/LDataManager.h>
-#include <ibtk/ibtk_utilities.h>
+#include "ibtk/ibtk_utilities.h"
 
 #include "Box.h"
+#include "CellVariable.h"
 #include "RobinBcCoefStrategy.h"
+#include "tbox/DescribedClass.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Core"
@@ -52,10 +49,12 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <map>
 #include <vector>
 
-namespace IBTK
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+namespace IBAMR
 {
-class LData;
-} // namespace IBTK
+class AdvDiffHierarchyIntegrator;
+class INSHierarchyIntegrator;
+} // namespace IBAMR
 namespace SAMRAI
 {
 namespace hier
@@ -91,7 +90,7 @@ namespace IBAMR
  *
  * \note  This class will work with both the constant and variable viscosity
  */
-class IBHydrodynamicSurfaceForceEvaluator
+class IBHydrodynamicSurfaceForceEvaluator : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -109,9 +108,39 @@ public:
     virtual ~IBHydrodynamicSurfaceForceEvaluator();
 
     /*!
-     * \brief Compute the hydrodynamic force via surface integration.
+     * \brief Compute the hydrodynamic force via surface integration after all the hierarchy
+     * variables have been integrated.
+     *
+     * \note The users should call this routine if the hydrodynamic forces need to be computed just
+     * as a postprocessing step.
+     *
+     * @note This function uses 3D vectors even in 2D so that the torque makes sense.
      */
-    virtual void computeHydrodynamicForce();
+    virtual void computeHydrodynamicForceTorque(IBTK::Vector3d& pressure_force,
+                                                IBTK::Vector3d& viscous_force,
+                                                IBTK::Vector3d& pressure_torque,
+                                                IBTK::Vector3d& viscous_torque,
+                                                const IBTK::Vector3d& X0);
+
+    /*!
+     * \brief Compute the hydrodynamic force via surface integration while the integration of
+     * variables is happening during a given timestep.
+     *
+     * @note This function uses 3D vectors even in 2D so that the torque makes sense.
+     */
+    virtual void computeHydrodynamicForceTorque(IBTK::Vector3d& pressure_force,
+                                                IBTK::Vector3d& viscous_force,
+                                                IBTK::Vector3d& pressure_torque,
+                                                IBTK::Vector3d& viscous_torque,
+                                                const IBTK::Vector3d& X0,
+                                                double time,
+                                                double current_time,
+                                                double new_time);
+    /*!
+     * \brief Set the surface contour value <em> s <\em> of the level set field, such that \f$ \phi(s) = \partial \Omega
+     * \f$.
+     */
+    virtual void setSurfaceContourLevel(double s = 0);
 
 private:
     /*!
@@ -143,7 +172,9 @@ private:
      * Fill required patch data and ghost cells.
      */
     void fillPatchData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
-                       const double fill_time);
+                       double fill_time,
+                       bool use_current_ctx,
+                       bool use_new_ctx);
 
     /*!
      * \brief Object name.
@@ -194,14 +225,6 @@ private:
      * \brief The contour level that describes the surface of the solid object.
      */
     double d_surface_contour_value = 0.0;
-
-    /*!
-     * \brief File streams associated for the output.
-     *
-     * \note Columns 1-3 represent sum of -p.n dA. Columns 4-6 represent sum of n.(grad U + grad U^T) dA.
-     *
-     */
-    std::unique_ptr<std::ofstream> d_hydro_force_stream;
 };
 } // namespace IBAMR
 

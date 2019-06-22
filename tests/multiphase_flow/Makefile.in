@@ -88,7 +88,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 EXTRA_PROGRAMS = free_falling_cyl_cib$(EXEEXT) \
-	rotating_barge_cib$(EXEEXT)
+	rotating_barge_cib$(EXEEXT) check_hydro_force$(EXEEXT)
 subdir = tests/multiphase_flow
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
@@ -120,14 +120,22 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am_free_falling_cyl_cib_OBJECTS =  \
-	free_falling_cyl_cib-free_falling_cyl_cib.$(OBJEXT)
-free_falling_cyl_cib_OBJECTS = $(am_free_falling_cyl_cib_OBJECTS)
-free_falling_cyl_cib_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+am_check_hydro_force_OBJECTS =  \
+	check_hydro_force-check_hydro_force.$(OBJEXT)
+check_hydro_force_OBJECTS = $(am_check_hydro_force_OBJECTS)
+check_hydro_force_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+check_hydro_force_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(check_hydro_force_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_free_falling_cyl_cib_OBJECTS =  \
+	free_falling_cyl_cib-free_falling_cyl_cib.$(OBJEXT)
+free_falling_cyl_cib_OBJECTS = $(am_free_falling_cyl_cib_OBJECTS)
+free_falling_cyl_cib_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 free_falling_cyl_cib_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(free_falling_cyl_cib_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
@@ -156,6 +164,7 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade =  \
+	./$(DEPDIR)/check_hydro_force-check_hydro_force.Po \
 	./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po \
 	./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po
 am__mv = mv -f
@@ -177,10 +186,10 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(free_falling_cyl_cib_SOURCES) \
+SOURCES = $(check_hydro_force_SOURCES) $(free_falling_cyl_cib_SOURCES) \
 	$(rotating_barge_cib_SOURCES)
-DIST_SOURCES = $(free_falling_cyl_cib_SOURCES) \
-	$(rotating_barge_cib_SOURCES)
+DIST_SOURCES = $(check_hydro_force_SOURCES) \
+	$(free_falling_cyl_cib_SOURCES) $(rotating_barge_cib_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -488,6 +497,9 @@ free_falling_cyl_cib_SOURCES = free_falling_cyl_cib.cpp
 rotating_barge_cib_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 rotating_barge_cib_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 rotating_barge_cib_SOURCES = rotating_barge_cib.cpp
+check_hydro_force_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+check_hydro_force_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+check_hydro_force_SOURCES = check_hydro_force.cpp
 all: all-am
 
 .SUFFIXES:
@@ -523,6 +535,10 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
+check_hydro_force$(EXEEXT): $(check_hydro_force_OBJECTS) $(check_hydro_force_DEPENDENCIES) $(EXTRA_check_hydro_force_DEPENDENCIES) 
+	@rm -f check_hydro_force$(EXEEXT)
+	$(AM_V_CXXLD)$(check_hydro_force_LINK) $(check_hydro_force_OBJECTS) $(check_hydro_force_LDADD) $(LIBS)
+
 free_falling_cyl_cib$(EXEEXT): $(free_falling_cyl_cib_OBJECTS) $(free_falling_cyl_cib_DEPENDENCIES) $(EXTRA_free_falling_cyl_cib_DEPENDENCIES) 
 	@rm -f free_falling_cyl_cib$(EXEEXT)
 	$(AM_V_CXXLD)$(free_falling_cyl_cib_LINK) $(free_falling_cyl_cib_OBJECTS) $(free_falling_cyl_cib_LDADD) $(LIBS)
@@ -537,6 +553,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_hydro_force-check_hydro_force.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po@am__quote@ # am--include-marker
 
@@ -569,6 +586,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
+
+check_hydro_force-check_hydro_force.o: check_hydro_force.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_hydro_force_CXXFLAGS) $(CXXFLAGS) -MT check_hydro_force-check_hydro_force.o -MD -MP -MF $(DEPDIR)/check_hydro_force-check_hydro_force.Tpo -c -o check_hydro_force-check_hydro_force.o `test -f 'check_hydro_force.cpp' || echo '$(srcdir)/'`check_hydro_force.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/check_hydro_force-check_hydro_force.Tpo $(DEPDIR)/check_hydro_force-check_hydro_force.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='check_hydro_force.cpp' object='check_hydro_force-check_hydro_force.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_hydro_force_CXXFLAGS) $(CXXFLAGS) -c -o check_hydro_force-check_hydro_force.o `test -f 'check_hydro_force.cpp' || echo '$(srcdir)/'`check_hydro_force.cpp
+
+check_hydro_force-check_hydro_force.obj: check_hydro_force.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_hydro_force_CXXFLAGS) $(CXXFLAGS) -MT check_hydro_force-check_hydro_force.obj -MD -MP -MF $(DEPDIR)/check_hydro_force-check_hydro_force.Tpo -c -o check_hydro_force-check_hydro_force.obj `if test -f 'check_hydro_force.cpp'; then $(CYGPATH_W) 'check_hydro_force.cpp'; else $(CYGPATH_W) '$(srcdir)/check_hydro_force.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/check_hydro_force-check_hydro_force.Tpo $(DEPDIR)/check_hydro_force-check_hydro_force.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='check_hydro_force.cpp' object='check_hydro_force-check_hydro_force.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_hydro_force_CXXFLAGS) $(CXXFLAGS) -c -o check_hydro_force-check_hydro_force.obj `if test -f 'check_hydro_force.cpp'; then $(CYGPATH_W) 'check_hydro_force.cpp'; else $(CYGPATH_W) '$(srcdir)/check_hydro_force.cpp'; fi`
 
 free_falling_cyl_cib-free_falling_cyl_cib.o: free_falling_cyl_cib.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(free_falling_cyl_cib_CXXFLAGS) $(CXXFLAGS) -MT free_falling_cyl_cib-free_falling_cyl_cib.o -MD -MP -MF $(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Tpo -c -o free_falling_cyl_cib-free_falling_cyl_cib.o `test -f 'free_falling_cyl_cib.cpp' || echo '$(srcdir)/'`free_falling_cyl_cib.cpp
@@ -729,7 +760,8 @@ clean: clean-am
 clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po
+		-rm -f ./$(DEPDIR)/check_hydro_force-check_hydro_force.Po
+	-rm -f ./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po
 	-rm -f ./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -776,7 +808,8 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po
+		-rm -f ./$(DEPDIR)/check_hydro_force-check_hydro_force.Po
+	-rm -f ./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po
 	-rm -f ./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic

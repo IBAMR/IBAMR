@@ -35,6 +35,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/ibtk_utilities.h"
+
 #include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
@@ -139,6 +141,17 @@ public:
     getCellIndex(const DoubleArray& X,
                  const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
                  const SAMRAI::hier::IntVector<NDIM>& ratio);
+
+    /*!
+     * \return The spatial coordinate of the given side center.
+     *
+     * @param patch The patch on which the cell lives.
+     *
+     * @param side_idx The SideIndex describing the current side.
+     */
+    static IBTK::VectorNd
+    getSideCenter(const SAMRAI::hier::Patch<NDIM> &patch,
+                  const SAMRAI::pdat::SideIndex<NDIM> &side_idx);
 
     /*!
      * \brief Map (i,j,k,d) index for a DOF defined for a SAMRAI variable

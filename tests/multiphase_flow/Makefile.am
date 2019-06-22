@@ -1,6 +1,6 @@
 include $(top_srcdir)/config/Make-rules
 
-EXTRA_PROGRAMS = free_falling_cyl_cib rotating_barge_cib
+EXTRA_PROGRAMS = free_falling_cyl_cib rotating_barge_cib check_hydro_force
 
 # this test needs some extra input files, so make SOURCE_DIR available:
 free_falling_cyl_cib_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
@@ -10,6 +10,10 @@ free_falling_cyl_cib_SOURCES = free_falling_cyl_cib.cpp
 rotating_barge_cib_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 rotating_barge_cib_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 rotating_barge_cib_SOURCES = rotating_barge_cib.cpp
+
+check_hydro_force_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+check_hydro_force_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+check_hydro_force_SOURCES = check_hydro_force.cpp
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \

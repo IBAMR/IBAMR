@@ -526,6 +526,18 @@ run_example(int argc, char* argv[])
                                                     adv_diff_integrator,
                                                     navier_stokes_integrator,
                                                     input_db->getDatabase("IBHydrodynamicSurfaceForceEvaluator"));
+        IBTK::Vector3d pressure_force, viscous_force, pressure_torque, viscous_torque;
+        std::ofstream hydro_force_stream;
+        std::ofstream hydro_torque_stream;
+        const bool is_from_restart = RestartManager::getManager()->isFromRestart();
+        const auto file_mode = is_from_restart ? std::fstream::app : std::fstream::out;
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            hydro_force_stream.open("Hydro_Force_" + phi_var_solid->getName(), file_mode);
+            hydro_force_stream.precision(10);
+            hydro_torque_stream.open("Hydro_Torque_" + phi_var_solid->getName(), file_mode);
+            hydro_torque_stream.precision(10);
+        }
 
         // Configure the IBFE solver.
         ib_method_ops->initializeFEEquationSystems();
@@ -605,7 +617,17 @@ run_example(int argc, char* argv[])
             pout << "\n";
 
             // Compute and print the hydrodynamic force
-            hydro_force_evaluator->computeHydrodynamicForce();
+            hydro_force_evaluator->computeHydrodynamicForceTorque(
+                pressure_force, viscous_force, pressure_torque, viscous_torque, circle.X0);
+            if (SAMRAI_MPI::getRank() == 0)
+            {
+                hydro_force_stream << loop_time << '\t' << pressure_force[0] << '\t' << pressure_force[1] << '\t'
+                              << pressure_force[2] << '\t' << viscous_force[0] << '\t' << viscous_force[1] << '\t'
+                              << viscous_force[2] << std::endl;
+                hydro_torque_stream << loop_time << '\t' << pressure_torque[0] << '\t' << pressure_torque[1] << '\t'
+                               << pressure_torque[2] << '\t' << viscous_torque[0] << '\t' << viscous_torque[1] << '\t'
+                               << viscous_torque[2] << std::endl;
+            }
 
             // Compute the fluid mass in the domain from interpolated density
             const int rho_ins_idx = navier_stokes_integrator->getLinearOperatorRhoPatchDataIndex();
