@@ -146,7 +146,7 @@
 #undef HAVE_MPI
 
 /* Boolean value indicating whether the C++ compiler supports the C99 _Pragma
-   keyword */
+   syntax for disabling warnings */
 #undef HAVE_PRAGMA_KEYWORD
 
 /* Define if you have the silo library. */
