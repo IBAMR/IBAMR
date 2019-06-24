@@ -1,0 +1,4 @@
+Fixed: IBAMR now correctly normalizes quaternions in CIBFEMethod, CIBMethod, and
+IBFEDirectForcingKinematics.
+<br>
+(Amneet Bhalla, 2018/12/10)
