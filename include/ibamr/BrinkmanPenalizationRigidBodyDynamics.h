@@ -68,6 +68,22 @@ namespace IBAMR
 /*!
  * \brief BrinkmanPenalizationRigidBodyDynamics provides an implementation of Brinkman penalization
  * body force for a rigid body motion in the momentum equation.
+ *
+ * The penalization force is taken to be \f$ \frac{\chi}{\kappa}(\bm{u}^{n+1}
+ * - \bm{u}_b) \f$. The class computes the coefficient \f$
+ * \frac{\chi}{\kappa}$ of the fluid velocity \f$ \bm{u}^{n+1} \f$ for the
+ * variable-coefficient INS solvers of INSVCStaggeredHierarchyIntegrator. This
+ * is done in the BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone
+ * method. Here \f$ \chi \f$ is the body indicator function and \f$\kappa \sim
+ * \Delta t/ \rho \ll 1 \f$ is the vanishing permeability of the body. The
+ * rigid body velocity \f$\bm{u}_b\f$ is computed through Newton's law of
+ * motion by netting the hydrodynamic and external forces and torques on the
+ * body in the BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity
+ * method. A simple forward-Euler scheme is imployed for the second-law of
+ * motion.
+ *
+ * For further information on applications of this class see
+ * https://arxiv.org/abs/1904.04078.
  */
 class BrinkmanPenalizationRigidBodyDynamics : public BrinkmanPenalizationStrategy
 {
