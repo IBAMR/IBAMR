@@ -108,12 +108,6 @@ BrinkmanPenalizationRigidBodyDynamics::BrinkmanPenalizationRigidBodyDynamics(
     return;
 } // BrinkmanPenalizationRigidBodyDynamics
 
-BrinkmanPenalizationRigidBodyDynamics::~BrinkmanPenalizationRigidBodyDynamics()
-{
-    // intentionally left blank.
-    return;
-} // ~BrinkmanPenalizationStrategy
-
 void
 BrinkmanPenalizationRigidBodyDynamics::setInitialConditions(const Eigen::Vector3d& X_com,
                                                             const Eigen::Vector3d& U_com,

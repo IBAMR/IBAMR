@@ -50,7 +50,6 @@ namespace IBAMR
  */
 class BrinkmanPenalizationStrategy : public SAMRAI::tbox::Serializable
 {
-    ////////////////////////////// PUBLIC ////////////////////////////////////////
 public:
     /*
      * \brief Constructor of the class.
@@ -119,8 +118,6 @@ public:
         return d_chi;
     } // getBrinkmanPenaltyFactor
 
-    /////////////////////////////// PROTECTED ////////////////////////////////////
-
 protected:
     /*!
      * Book-keeping.
@@ -143,8 +140,6 @@ protected:
      * Brinkman coefficient.
      */
     double d_chi = 1e8;
-
-    /////////////////////////////// PROTECTED ////////////////////////////////////
 
 private:
     /*!

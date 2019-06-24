@@ -69,8 +69,8 @@ namespace IBAMR
  * \brief BrinkmanPenalizationRigidBodyDynamics provides an implementation of Brinkman penalization
  * body force for a rigid body motion in the momentum equation.
  *
- * The penalization force is taken to be \f$ \frac{\chi}{\kappa}(\bm{u}^{n+1}
- * - \bm{u}_b) \f$. The class computes the coefficient \f$
+ * The penalization force is taken to be \f$ \frac{\chi}{\kappa}(\bm{u}_b
+ * - \bm{u}^{n+1}) \f$. The class computes the coefficient \f$
  * \frac{\chi}{\kappa}$ of the fluid velocity \f$ \bm{u}^{n+1} \f$ for the
  * variable-coefficient INS solvers of INSVCStaggeredHierarchyIntegrator. This
  * is done in the BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone
@@ -79,7 +79,7 @@ namespace IBAMR
  * rigid body velocity \f$\bm{u}_b\f$ is computed through Newton's law of
  * motion by netting the hydrodynamic and external forces and torques on the
  * body in the BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity
- * method. A simple forward-Euler scheme is imployed for the second-law of
+ * method. A simple forward-Euler scheme is employed for the second-law of
  * motion.
  *
  * For further information on applications of this class see
@@ -87,8 +87,6 @@ namespace IBAMR
  */
 class BrinkmanPenalizationRigidBodyDynamics : public BrinkmanPenalizationStrategy
 {
-    ////////////////////////////// PUBLIC ////////////////////////////////////////
-
 public:
     /*
      * \brief Constructor of the class.
@@ -103,7 +101,7 @@ public:
     /*
      * \brief Destructor of the class.
      */
-    ~BrinkmanPenalizationRigidBodyDynamics();
+    ~BrinkmanPenalizationRigidBodyDynamics() = default;
 
     /*!
      * \brief Set initial conditions for the rigid body.
@@ -284,8 +282,6 @@ public:
         return;
     } // getHydrodynamicForceTorque
 
-    /////////////////////////////// PROTECTED ////////////////////////////////////
-
 protected:
     // Center of mass.
     Eigen::Vector3d d_center_of_mass_initial = Eigen::Vector3d::Zero(),
@@ -326,8 +322,6 @@ protected:
     // Routines to get prescribed kinematics and additional external forces and torques.
     KinematicsFcnData d_kinematics_fcn_data;
     ExternalForceTorqueFcnData d_ext_force_torque_fcn_data;
-
-    /////////////////////////////// PROTECTED ////////////////////////////////////
 
 private:
     /*!
