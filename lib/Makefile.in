@@ -196,8 +196,10 @@ am_libIBAMR_a_OBJECTS =  \
 libIBAMR_a_OBJECTS = $(am_libIBAMR_a_OBJECTS)
 libIBAMR2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR2d_a_LIBADD =
-am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
-	../src/IB/CIBMobilitySolver.cpp \
+am__libIBAMR2d_a_SOURCES_DIST =  \
+	../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
+	../src/IB/BrinkmanPenalizationStrategy.cpp \
+	../src/IB/CIBMethod.cpp ../src/IB/CIBMobilitySolver.cpp \
 	../src/IB/CIBSaddlePointSolver.cpp \
 	../src/IB/CIBStaggeredStokesOperator.cpp \
 	../src/IB/CIBStaggeredStokesSolver.cpp \
@@ -340,7 +342,9 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IMPMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-MaterialPointSpec.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-MaterialPointSpecFactory.$(OBJEXT)
-am__objects_3 = ../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT) \
+am__objects_3 = ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBMobilitySolver.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBSaddlePointSolver.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBStaggeredStokesOperator.$(OBJEXT) \
@@ -476,8 +480,10 @@ am_libIBAMR2d_a_OBJECTS = $(am__objects_3) \
 libIBAMR2d_a_OBJECTS = $(am_libIBAMR2d_a_OBJECTS)
 libIBAMR3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR3d_a_LIBADD =
-am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
-	../src/IB/CIBMobilitySolver.cpp \
+am__libIBAMR3d_a_SOURCES_DIST =  \
+	../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
+	../src/IB/BrinkmanPenalizationStrategy.cpp \
+	../src/IB/CIBMethod.cpp ../src/IB/CIBMobilitySolver.cpp \
 	../src/IB/CIBSaddlePointSolver.cpp \
 	../src/IB/CIBStaggeredStokesOperator.cpp \
 	../src/IB/CIBStaggeredStokesSolver.cpp \
@@ -620,7 +626,9 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IMPMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-MaterialPointSpec.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-MaterialPointSpecFactory.$(OBJEXT)
-am__objects_5 = ../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT) \
+am__objects_5 = ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBMobilitySolver.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBSaddlePointSolver.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBStaggeredStokesOperator.$(OBJEXT) \
@@ -769,7 +777,9 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po \
+am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMobilitySolver.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBSaddlePointSolver.Po \
@@ -831,6 +841,8 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-Wall.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-WallForceEvaluator.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBFEMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMobilitySolver.Po \
@@ -1108,6 +1120,8 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/AdvDiffStochasticForcing.h \
 	../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 	../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+	../include/ibamr/BrinkmanPenalizationStrategy.h \
+	../include/ibamr/BrinkmanPenalizationRigidBodyDynamics.h \
 	../include/ibamr/CIBMethod.h \
 	../include/ibamr/CIBMobilitySolver.h \
 	../include/ibamr/CIBSaddlePointSolver.h \
@@ -1529,6 +1543,8 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/AdvDiffStochasticForcing.h \
 	../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 	../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+	../include/ibamr/BrinkmanPenalizationStrategy.h \
+	../include/ibamr/BrinkmanPenalizationRigidBodyDynamics.h \
 	../include/ibamr/CIBMethod.h \
 	../include/ibamr/CIBMobilitySolver.h \
 	../include/ibamr/CIBSaddlePointSolver.h \
@@ -1624,8 +1640,10 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
 	../include/ibamr/Wall.h ../include/ibamr/WallForceEvaluator.h \
 	$(am__append_6)
-DIM_INDEPENDENT_SOURCES = ../src/IB/CIBMethod.cpp \
-	../src/IB/CIBMobilitySolver.cpp \
+DIM_INDEPENDENT_SOURCES =  \
+	../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
+	../src/IB/BrinkmanPenalizationStrategy.cpp \
+	../src/IB/CIBMethod.cpp ../src/IB/CIBMobilitySolver.cpp \
 	../src/IB/CIBSaddlePointSolver.cpp \
 	../src/IB/CIBStaggeredStokesOperator.cpp \
 	../src/IB/CIBStaggeredStokesSolver.cpp \
@@ -1874,6 +1892,10 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/IB/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ../src/IB/$(DEPDIR)
 	@: > ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-CIBMobilitySolver.$(OBJEXT):  \
@@ -2279,6 +2301,10 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	$(AM_V_at)-rm -f libIBAMR2d.a
 	$(AM_V_AR)$(libIBAMR2d_a_AR) libIBAMR2d.a $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libIBAMR2d.a
+../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-CIBMobilitySolver.$(OBJEXT):  \
@@ -2665,6 +2691,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMobilitySolver.Po@am__quote@ # am--include-marker
@@ -2727,6 +2755,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-Wall.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-WallForceEvaluator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBFEMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMobilitySolver.Po@am__quote@ # am--include-marker
@@ -2951,6 +2981,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
+
+../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.o: ../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Tpo -c -o ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.o `test -f '../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp' object='../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.o `test -f '../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp
+
+../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.obj: ../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Tpo -c -o ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.obj `if test -f '../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp' object='../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.obj `if test -f '../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp'; fi`
+
+../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.o: ../src/IB/BrinkmanPenalizationStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Tpo -c -o ../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.o `test -f '../src/IB/BrinkmanPenalizationStrategy.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanPenalizationStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanPenalizationStrategy.cpp' object='../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.o `test -f '../src/IB/BrinkmanPenalizationStrategy.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanPenalizationStrategy.cpp
+
+../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.obj: ../src/IB/BrinkmanPenalizationStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Tpo -c -o ../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.obj `if test -f '../src/IB/BrinkmanPenalizationStrategy.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanPenalizationStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanPenalizationStrategy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanPenalizationStrategy.cpp' object='../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.obj `if test -f '../src/IB/BrinkmanPenalizationStrategy.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanPenalizationStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanPenalizationStrategy.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-CIBMethod.o: ../src/IB/CIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-CIBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-CIBMethod.o `test -f '../src/IB/CIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/CIBMethod.cpp
@@ -4729,6 +4787,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/MaterialPointSpecFactory.cpp' object='../src/IB/libIBAMR2d_a-MaterialPointSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-MaterialPointSpecFactory.obj `if test -f '../src/IB/MaterialPointSpecFactory.cpp'; then $(CYGPATH_W) '../src/IB/MaterialPointSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/MaterialPointSpecFactory.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.o: ../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Tpo -c -o ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.o `test -f '../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp' object='../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.o `test -f '../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp
+
+../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.obj: ../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Tpo -c -o ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.obj `if test -f '../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp' object='../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.obj `if test -f '../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.o: ../src/IB/BrinkmanPenalizationStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Tpo -c -o ../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.o `test -f '../src/IB/BrinkmanPenalizationStrategy.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanPenalizationStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanPenalizationStrategy.cpp' object='../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.o `test -f '../src/IB/BrinkmanPenalizationStrategy.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanPenalizationStrategy.cpp
+
+../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.obj: ../src/IB/BrinkmanPenalizationStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Tpo -c -o ../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.obj `if test -f '../src/IB/BrinkmanPenalizationStrategy.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanPenalizationStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanPenalizationStrategy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanPenalizationStrategy.cpp' object='../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.obj `if test -f '../src/IB/BrinkmanPenalizationStrategy.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanPenalizationStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanPenalizationStrategy.cpp'; fi`
 
 ../src/IB/libIBAMR3d_a-CIBMethod.o: ../src/IB/CIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-CIBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-CIBMethod.o `test -f '../src/IB/CIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/CIBMethod.cpp
@@ -6693,7 +6779,9 @@ clean-am: clean-generic clean-libLIBRARIES clean-libtool clean-local \
 	mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po
+		-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMobilitySolver.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBSaddlePointSolver.Po
@@ -6755,6 +6843,8 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-WallForceEvaluator.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBFEMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMobilitySolver.Po
@@ -6994,7 +7084,9 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po
+		-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMobilitySolver.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBSaddlePointSolver.Po
@@ -7056,6 +7148,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-WallForceEvaluator.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBFEMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMobilitySolver.Po
