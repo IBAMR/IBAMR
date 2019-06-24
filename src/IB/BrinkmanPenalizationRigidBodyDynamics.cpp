@@ -37,6 +37,8 @@
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/namespaces.h"
 
+#include "ibtk/IndexUtilities.h"
+
 #include "tbox/RestartManager.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -74,56 +76,9 @@ set_rotation_matrix(const Eigen::Vector3d& rot_vel,
 inline Eigen::Vector3d
 solve_3x3_system(const Eigen::Vector3d& L, const Eigen::Matrix3d& T)
 {
-    const double a1 = T(0, 0);
-    const double a2 = T(0, 1);
-    const double a3 = T(0, 2);
-    const double b1 = T(1, 0);
-    const double b2 = T(1, 1);
-    const double b3 = T(1, 2);
-    const double c1 = T(2, 0);
-    const double c2 = T(2, 1);
-    const double c3 = T(2, 2);
-
-    const double d1 = L[0];
-    const double d2 = L[1];
-    const double d3 = L[2];
-
-    const double dnr = (a3 * b2 * c1 - a2 * b3 * c1 - a3 * b1 * c2 + a1 * b3 * c2 + a2 * b1 * c3 - a1 * b2 * c3);
-
-    Eigen::Vector3d W;
-
-    W[0] = (b3 * c2 * d1 - b2 * c3 * d1 - a3 * c2 * d2 + a2 * c3 * d2 + a3 * b2 * d3 - a2 * b3 * d3) / dnr;
-    W[1] = -(b3 * c1 * d1 - b1 * c3 * d1 - a3 * c1 * d2 + a1 * c3 * d2 + a3 * b1 * d3 - a1 * b3 * d3) / dnr;
-    W[2] = (b2 * c1 * d1 - b1 * c2 * d1 - a2 * c1 * d2 + a1 * c2 * d2 + a2 * b1 * d3 - a1 * b2 * d3) / dnr;
-
-    return W;
+    Eigen::FullPivLU<Eigen::Matrix3d> lu(T);
+    return lu.solve(L);
 } // solve_3x3_system
-
-inline void
-get_physical_coordinate(Eigen::Vector3d& side_coord, Pointer<Patch<NDIM> > patch, const SideIndex<NDIM>& side_idx)
-{
-    const int axis = side_idx.getAxis();
-    Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-    const double* patch_X_lower = patch_geom->getXLower();
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Index<NDIM>& patch_lower_idx = patch_box.lower();
-    const double* const patch_dx = patch_geom->getDx();
-
-    for (int d = 0; d < NDIM; ++d)
-    {
-        if (d == axis)
-        {
-            side_coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(side_idx(d) - patch_lower_idx(d)));
-        }
-        else
-        {
-            side_coord[d] =
-                patch_X_lower[d] + patch_dx[d] * (static_cast<double>(side_idx(d) - patch_lower_idx(d)) + 0.5);
-        }
-    }
-    return;
-} // get_physical_coordinate
-
 } // namespace
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
@@ -295,7 +250,7 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     }
     else if (NDIM == 3)
     {
-        Eigen::Vector3d T0_rigid = solve_3x3_system((R.transpose()) * T_rigid, d_inertia_tensor_initial);
+        const Eigen::Vector3d T0_rigid = solve_3x3_system((R.transpose()) * T_rigid, d_inertia_tensor_initial);
         d_rot_vel_new = d_rot_vel_current + dt * R * T0_rigid;
     }
     for (unsigned s = NDIM; s < s_max_free_dofs; ++s)
@@ -327,9 +282,6 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     ghost_fill_alg->createSchedule(finest_level)->fillData(time);
 
     // Set the rigid body velocity in u_idx
-    Eigen::Vector3d r = Eigen::Vector3d::Zero();
-    Eigen::Vector3d dr = Eigen::Vector3d::Zero();
-    Eigen::Vector3d Wxdr = Eigen::Vector3d::Zero();
     for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
@@ -367,9 +319,14 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
                 }
                 if (phi <= alpha)
                 {
-                    get_physical_coordinate(r, patch, s_i);
-                    dr = r - d_center_of_mass_new;
-                    Wxdr = d_rot_vel_new.cross(dr);
+                    const IBTK::VectorNd side_center = IndexUtilities::getSideCenter(*patch, s_i);
+                    IBTK::Vector3d dr = IBTK::Vector3d::Zero();
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        dr[d] = side_center[d] - d_center_of_mass_new[d];
+                    }
+
+                    const Eigen::Vector3d Wxdr = d_rot_vel_new.cross(dr);
                     const double penalty = (*rho_data)(s_i) / dt;
                     (*u_data)(s_i) = d_trans_vel_new(axis) + Wxdr(axis);
                     (*u_data)(s_i) *= (1.0 - Hphi) * penalty;
