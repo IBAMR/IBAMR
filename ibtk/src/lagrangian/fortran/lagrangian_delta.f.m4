@@ -36,23 +36,6 @@ c     SUCH DAMAGE.
 c
 define(REAL,`double precision')dnl
 define(INTEGER,`integer')dnl
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c     Returns the greatest integer less than or equal to x.
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      function lagrangian_floor(x)
-c
-      implicit none
-      integer lagrangian_floor
-      double precision x
-c
-      lagrangian_floor = int(x)
-      if ( x.lt.0.d0 ) lagrangian_floor = lagrangian_floor - 1
-c
-      return
-      end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
