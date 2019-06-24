@@ -37,6 +37,45 @@ c
 define(NDIM,3)dnl
 define(REAL,`double precision')dnl
 define(INTEGER,`integer')dnl
+dnl Define some macros that help us unroll interpolation loops. These assume
+dnl that we are accumulating into a 2D array V from a 4D array u which are both
+dnl indexed first by depth (and then by point number s, which is specified in an
+dnl outer loop). Assume d, ic0, ic1, and ic2 are available as inner loop indicies.
+dnl
+dnl The arguments are the lower and upper bounds in z, lower and upper bounds in
+dnl y, and lower and upper bounds in x.
+define(INTERPOLATE_INNER_3D,
+          ` do d = 0,depth-1
+               V(d, s) = 0.d0
+               do ic2 = $1,$2
+                  do ic1 = $3,$4
+                     do ic0 = $5,$6
+                        V(d,s) = V(d,s)
+     &                       +w(0,ic0-$5)
+     &                       *w(1,ic1-$3)
+     &                       *w(2,ic2-$1)
+     &                       *u(ic0,ic1,ic2,d)
+                     enddo
+                  enddo
+               enddo
+            enddo')
+dnl Same arguments as before, but the seventh argument is the width of the
+dnl stencil (e.g., 3 for bspline 3). The first branch is a hotter code path
+dnl since when we are not at a boundary the number of inner loop iterations
+dnl is known. Exposing this to the compiler helps generate code which speeds
+dnl up the subroutine by about 25%.
+define(INTERPOLATE_3D_SPECIALIZE_FIXED_WIDTH,
+`   if ($2 - $1 == ($7 - 1) .and.
+     &       $4 - $3 == ($7 - 1) .and.
+     &       $6 - $5 == ($7 - 1)) then
+           INTERPOLATE_INNER_3D($1, ($1 + $7 - 1),
+                                $3, ($3 + $7 - 1),
+                                $5, ($5 + $7 - 1))
+         else
+           INTERPOLATE_INNER_3D($1, $2,
+                                $3, $4,
+                                $5, $6)
+         endif')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -728,7 +767,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w0(0:3),w1(0:3),w2(0:3)
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
 c
 c     Prevent compiler warning about unused variables.
 c
@@ -781,41 +820,31 @@ c     Compute the interpolation weights.
 c
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
+            w(0,ic0-ic_lower(0)) =
      &           lagrangian_piecewise_cubic_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
 
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
+            w(1,ic1-ic_lower(1)) =
      &           lagrangian_piecewise_cubic_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
          enddo
 
          do ic2 = ic_lower(2),ic_upper(2)
             X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
+            w(2,ic2-ic_lower(2)) =
      &           lagrangian_piecewise_cubic_delta(
      &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
          enddo
 c
 c     Interpolate u onto V.
 c
-         do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic2 = ic_lower(2),ic_upper(2)
-               do ic1 = ic_lower(1),ic_upper(1)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w0(ic0-ic_lower(0))
-     &                    *w1(ic1-ic_lower(1))
-     &                    *w2(ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
-                  enddo
-               enddo
-            enddo
-         enddo
+         INTERPOLATE_3D_SPECIALIZE_FIXED_WIDTH(ic_lower(2), ic_upper(2),
+                                               ic_lower(1), ic_upper(1),
+                                               ic_lower(0), ic_upper(0),
+                                               4)
 c
 c     End loop over points.
 c
@@ -871,7 +900,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w0(0:3),w1(0:3),w2(0:3)
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
 c
 c     Prevent compiler warning about unused variables.
 c
@@ -924,21 +953,21 @@ c     Compute the spreading weights.
 c
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
+            w(0,ic0-ic_lower(0)) =
      &           lagrangian_piecewise_cubic_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
 
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
+            w(1,ic1-ic_lower(1)) =
      &           lagrangian_piecewise_cubic_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
          enddo
 
          do ic2 = ic_lower(2),ic_upper(2)
             X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
+            w(2,ic2-ic_lower(2)) =
      &           lagrangian_piecewise_cubic_delta(
      &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
          enddo
@@ -950,9 +979,9 @@ c
                do ic1 = ic_lower(1),ic_upper(1)
                   do ic0 = ic_lower(0),ic_upper(0)
                      u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
-     &                    w0(ic0-ic_lower(0))*
-     &                    w1(ic1-ic_lower(1))*
-     &                    w2(ic2-ic_lower(2))*
+     &                    w(0,ic0-ic_lower(0))*
+     &                    w(1,ic1-ic_lower(1))*
+     &                    w(2,ic2-ic_lower(2))*
      &                    V(d,s)/(dx(0)*dx(1)*dx(2)))
                   enddo
                enddo
@@ -1012,7 +1041,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w0(0:2),w1(0:2),w2(0:2)
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:2)
 c
 c     Prevent compiler warning about unused variables.
 c
@@ -1060,41 +1089,31 @@ c     Compute the interpolation weights.
 c
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
+            w(0,ic0-ic_lower(0)) =
      &           lagrangian_ib_3_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
 
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
+            w(1,ic1-ic_lower(1)) =
      &           lagrangian_ib_3_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
          enddo
 
          do ic2 = ic_lower(2),ic_upper(2)
             X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
+            w(2,ic2-ic_lower(2)) =
      &           lagrangian_ib_3_delta(
      &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
          enddo
 c
 c     Interpolate u onto V.
 c
-         do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic2 = ic_lower(2),ic_upper(2)
-               do ic1 = ic_lower(1),ic_upper(1)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w0(ic0-ic_lower(0))
-     &                    *w1(ic1-ic_lower(1))
-     &                    *w2(ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
-                  enddo
-               enddo
-            enddo
-         enddo
+         INTERPOLATE_3D_SPECIALIZE_FIXED_WIDTH(ic_lower(2), ic_upper(2),
+                                               ic_lower(1), ic_upper(1),
+                                               ic_lower(0), ic_upper(0),
+                                               3)
 c
 c     End loop over points.
 c
@@ -1150,7 +1169,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w0(0:2),w1(0:2),w2(0:2)
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:2)
 c
 c     Prevent compiler warning about unused variables.
 c
@@ -1198,21 +1217,21 @@ c     Compute the spreading weights.
 c
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
+            w(0,ic0-ic_lower(0)) =
      &           lagrangian_ib_3_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
 
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
+            w(1,ic1-ic_lower(1)) =
      &           lagrangian_ib_3_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
          enddo
 
          do ic2 = ic_lower(2),ic_upper(2)
             X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
+            w(2,ic2-ic_lower(2)) =
      &           lagrangian_ib_3_delta(
      &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
          enddo
@@ -1224,9 +1243,9 @@ c
                do ic1 = ic_lower(1),ic_upper(1)
                   do ic0 = ic_lower(0),ic_upper(0)
                      u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
-     &                    w0(ic0-ic_lower(0))*
-     &                    w1(ic1-ic_lower(1))*
-     &                    w2(ic2-ic_lower(2))*
+     &                    w(0,ic0-ic_lower(0))*
+     &                    w(1,ic1-ic_lower(1))*
+     &                    w(2,ic2-ic_lower(2))*
      &                    V(d,s)/(dx(0)*dx(1)*dx(2)))
                   enddo
                enddo
@@ -1890,7 +1909,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w0(0:4),w1(0:4),w2(0:4)
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
 
       PARAMETER (K = (38.0d0 - sqrt(69.0d0))/60.0d0)
 c
@@ -1948,14 +1967,14 @@ c
      &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
      &          /280.0d0
 
-         w0(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+         w(0,0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
      &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
-         w0(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+         w(0,1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
      &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
-         w0(2) = phi
-         w0(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+         w(0,2) = phi
+         w(0,3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
      &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
-         w0(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+         w(0,4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
          ic1 = ic_center(1)
@@ -1968,14 +1987,14 @@ c
      &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
      &          /280.0d0
 
-         w1(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+         w(1,0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
      &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
-         w1(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+         w(1,1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
      &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
-         w1(2) = phi
-         w1(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+         w(1,2) = phi
+         w(1,3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
      &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
-         w1(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+         w(1,4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
          ic2 = ic_center(2)
@@ -1988,33 +2007,23 @@ c
      &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
      &          /280.0d0
 
-         w2(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+         w(2,0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
      &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
-         w2(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+         w(2,1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
      &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
-         w2(2) = phi
-         w2(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+         w(2,2) = phi
+         w(2,3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
      &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
-         w2(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+         w(2,4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
 c
 c     Interpolate u onto V.
 c
-         do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic2 = ic_lower(2),ic_upper(2)
-               do ic1 = ic_lower(1),ic_upper(1)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w0(ic0-ic_lower(0))
-     &                    *w1(ic1-ic_lower(1))
-     &                    *w2(ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
-                  enddo
-               enddo
-            enddo
-         enddo
+         INTERPOLATE_3D_SPECIALIZE_FIXED_WIDTH(ic_lower(2), ic_upper(2),
+                                               ic_lower(1), ic_upper(1),
+                                               ic_lower(0), ic_upper(0),
+                                               5)
 c
 c     End loop over points.
 c
@@ -2073,7 +2082,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w0(0:4),w1(0:4),w2(0:4)
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
 
       PARAMETER (K = (38.0d0 - sqrt(69.0d0))/60.0d0)
 c
@@ -2131,14 +2140,14 @@ c
      &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
      &          /280.0d0
 
-         w0(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+         w(0,0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
      &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
-         w0(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+         w(0,1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
      &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
-         w0(2) = phi
-         w0(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+         w(0,2) = phi
+         w(0,3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
      &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
-         w0(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+         w(0,4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
          ic1 = ic_center(1)
@@ -2151,14 +2160,14 @@ c
      &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
      &          /280.0d0
 
-         w1(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+         w(1,0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
      &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
-         w1(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+         w(1,1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
      &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
-         w1(2) = phi
-         w1(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+         w(1,2) = phi
+         w(1,3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
      &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
-         w1(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+         w(1,4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
          ic2 = ic_center(2)
@@ -2171,14 +2180,14 @@ c
      &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
      &          /280.0d0
 
-         w2(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+         w(2,0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
      &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
-         w2(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+         w(2,1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
      &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
-         w2(2) = phi
-         w2(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+         w(2,2) = phi
+         w(2,3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
      &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
-         w2(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+         w(2,4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
 c
@@ -2189,9 +2198,9 @@ c
                do ic1 = ic_lower(1),ic_upper(1)
                   do ic0 = ic_lower(0),ic_upper(0)
                      u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
-     &                    w0(ic0-ic_lower(0))*
-     &                    w1(ic1-ic_lower(1))*
-     &                    w2(ic2-ic_lower(2))*
+     &                    w(0,ic0-ic_lower(0))*
+     &                    w(1,ic1-ic_lower(1))*
+     &                    w(2,ic2-ic_lower(2))*
      &                    V(d,s)/(dx(0)*dx(1)*dx(2)))
                   enddo
                enddo
@@ -2664,7 +2673,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w0(0:2),w1(0:2),w2(0:2)
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:2)
 c
 c     Prevent compiler warning about unused variables.
 c
@@ -2712,41 +2721,31 @@ c     Compute the interpolation weights.
 c
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
+            w(0,ic0-ic_lower(0)) =
      &           lagrangian_bspline_3_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
 
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
+            w(1,ic1-ic_lower(1)) =
      &           lagrangian_bspline_3_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
          enddo
 
          do ic2 = ic_lower(2),ic_upper(2)
             X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
+            w(2,ic2-ic_lower(2)) =
      &           lagrangian_bspline_3_delta(
      &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
          enddo
 c
 c     Interpolate u onto V.
 c
-         do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic2 = ic_lower(2),ic_upper(2)
-               do ic1 = ic_lower(1),ic_upper(1)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w0(ic0-ic_lower(0))
-     &                    *w1(ic1-ic_lower(1))
-     &                    *w2(ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
-                  enddo
-               enddo
-            enddo
-         enddo
+         INTERPOLATE_3D_SPECIALIZE_FIXED_WIDTH(ic_lower(2), ic_upper(2),
+                                               ic_lower(1), ic_upper(1),
+                                               ic_lower(0), ic_upper(0),
+                                               3)
 c
 c     End loop over points.
 c
@@ -2802,7 +2801,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w0(0:2),w1(0:2),w2(0:2)
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:2)
 c
 c     Prevent compiler warning about unused variables.
 c
@@ -2850,21 +2849,21 @@ c     Compute the spreading weights.
 c
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
+            w(0,ic0-ic_lower(0)) =
      &           lagrangian_bspline_3_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
 
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
+            w(1,ic1-ic_lower(1)) =
      &           lagrangian_bspline_3_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
          enddo
 
          do ic2 = ic_lower(2),ic_upper(2)
             X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
+            w(2,ic2-ic_lower(2)) =
      &           lagrangian_bspline_3_delta(
      &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
          enddo
@@ -2876,9 +2875,9 @@ c
                do ic1 = ic_lower(1),ic_upper(1)
                   do ic0 = ic_lower(0),ic_upper(0)
                      u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
-     &                    w0(ic0-ic_lower(0))*
-     &                    w1(ic1-ic_lower(1))*
-     &                    w2(ic2-ic_lower(2))*
+     &                    w(0,ic0-ic_lower(0))*
+     &                    w(1,ic1-ic_lower(1))*
+     &                    w(2,ic2-ic_lower(2))*
      &                    V(d,s)/(dx(0)*dx(1)*dx(2)))
                   enddo
                enddo
@@ -2938,7 +2937,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w0(0:3),w1(0:3),w2(0:3)
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
 c
 c     Prevent compiler warning about unused variables.
 c
@@ -2991,41 +2990,31 @@ c     Compute the interpolation weights.
 c
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
+            w(0,ic0-ic_lower(0)) =
      &           lagrangian_bspline_4_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
 
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
+            w(1,ic1-ic_lower(1)) =
      &           lagrangian_bspline_4_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
          enddo
 
          do ic2 = ic_lower(2),ic_upper(2)
             X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
+            w(2,ic2-ic_lower(2)) =
      &           lagrangian_bspline_4_delta(
      &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
          enddo
 c
 c     Interpolate u onto V.
 c
-         do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic2 = ic_lower(2),ic_upper(2)
-               do ic1 = ic_lower(1),ic_upper(1)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w0(ic0-ic_lower(0))
-     &                    *w1(ic1-ic_lower(1))
-     &                    *w2(ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
-                  enddo
-               enddo
-            enddo
-         enddo
+         INTERPOLATE_3D_SPECIALIZE_FIXED_WIDTH(ic_lower(2), ic_upper(2),
+                                               ic_lower(1), ic_upper(1),
+                                               ic_lower(0), ic_upper(0),
+                                               4)
 c
 c     End loop over points.
 c
@@ -3081,7 +3070,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w0(0:3),w1(0:3),w2(0:3)
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
 c
 c     Prevent compiler warning about unused variables.
 c
@@ -3134,21 +3123,21 @@ c     Compute the spreading weights.
 c
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
+            w(0,ic0-ic_lower(0)) =
      &           lagrangian_bspline_4_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
 
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
+            w(1,ic1-ic_lower(1)) =
      &           lagrangian_bspline_4_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
          enddo
 
          do ic2 = ic_lower(2),ic_upper(2)
             X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
+            w(2,ic2-ic_lower(2)) =
      &           lagrangian_bspline_4_delta(
      &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
          enddo
@@ -3160,9 +3149,9 @@ c
                do ic1 = ic_lower(1),ic_upper(1)
                   do ic0 = ic_lower(0),ic_upper(0)
                      u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
-     &                    w0(ic0-ic_lower(0))*
-     &                    w1(ic1-ic_lower(1))*
-     &                    w2(ic2-ic_lower(2))*
+     &                    w(0,ic0-ic_lower(0))*
+     &                    w(1,ic1-ic_lower(1))*
+     &                    w(2,ic2-ic_lower(2))*
      &                    V(d,s)/(dx(0)*dx(1)*dx(2)))
                   enddo
                enddo
@@ -3222,7 +3211,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w0(0:4),w1(0:4),w2(0:4)
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
 c
 c     Prevent compiler warning about unused variables.
 c
@@ -3270,41 +3259,31 @@ c     Compute the interpolation weights.
 c
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
+            w(0,ic0-ic_lower(0)) =
      &           lagrangian_bspline_5_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
 
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
+            w(1,ic1-ic_lower(1)) =
      &           lagrangian_bspline_5_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
          enddo
 
          do ic2 = ic_lower(2),ic_upper(2)
             X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
+            w(2,ic2-ic_lower(2)) =
      &           lagrangian_bspline_5_delta(
      &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
          enddo
 c
 c     Interpolate u onto V.
 c
-         do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic2 = ic_lower(2),ic_upper(2)
-               do ic1 = ic_lower(1),ic_upper(1)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w0(ic0-ic_lower(0))
-     &                    *w1(ic1-ic_lower(1))
-     &                    *w2(ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
-                  enddo
-               enddo
-            enddo
-         enddo
+         INTERPOLATE_3D_SPECIALIZE_FIXED_WIDTH(ic_lower(2), ic_upper(2),
+                                               ic_lower(1), ic_upper(1),
+                                               ic_lower(0), ic_upper(0),
+                                               5)
 c
 c     End loop over points.
 c
@@ -3360,7 +3339,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w0(0:4),w1(0:4),w2(0:4)
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
 c
 c     Prevent compiler warning about unused variables.
 c
@@ -3408,21 +3387,21 @@ c     Compute the spreading weights.
 c
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
+            w(0,ic0-ic_lower(0)) =
      &           lagrangian_bspline_5_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
 
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
+            w(1,ic1-ic_lower(1)) =
      &           lagrangian_bspline_5_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
          enddo
 
          do ic2 = ic_lower(2),ic_upper(2)
             X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
+            w(2,ic2-ic_lower(2)) =
      &           lagrangian_bspline_5_delta(
      &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
          enddo
@@ -3434,9 +3413,9 @@ c
                do ic1 = ic_lower(1),ic_upper(1)
                   do ic0 = ic_lower(0),ic_upper(0)
                      u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
-     &                    w0(ic0-ic_lower(0))*
-     &                    w1(ic1-ic_lower(1))*
-     &                    w2(ic2-ic_lower(2))*
+     &                    w(0,ic0-ic_lower(0))*
+     &                    w(1,ic1-ic_lower(1))*
+     &                    w(2,ic2-ic_lower(2))*
      &                    V(d,s)/(dx(0)*dx(1)*dx(2)))
                   enddo
                enddo
@@ -3496,7 +3475,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w0(0:5),w1(0:5),w2(0:5)
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
 c
 c     Prevent compiler warning about unused variables.
 c
@@ -3549,41 +3528,31 @@ c     Compute the interpolation weights.
 c
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
+            w(0,ic0-ic_lower(0)) =
      &           lagrangian_bspline_6_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
 
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
+            w(1,ic1-ic_lower(1)) =
      &           lagrangian_bspline_6_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
          enddo
 
          do ic2 = ic_lower(2),ic_upper(2)
             X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
+            w(2,ic2-ic_lower(2)) =
      &           lagrangian_bspline_6_delta(
      &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
          enddo
 c
 c     Interpolate u onto V.
 c
-         do d = 0,depth-1
-            V(d,s) = 0.d0
-            do ic2 = ic_lower(2),ic_upper(2)
-               do ic1 = ic_lower(1),ic_upper(1)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w0(ic0-ic_lower(0))
-     &                    *w1(ic1-ic_lower(1))
-     &                    *w2(ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
-                  enddo
-               enddo
-            enddo
-         enddo
+         INTERPOLATE_3D_SPECIALIZE_FIXED_WIDTH(ic_lower(2), ic_upper(2),
+                                               ic_lower(1), ic_upper(1),
+                                               ic_lower(0), ic_upper(0),
+                                               6)
 c
 c     End loop over points.
 c
@@ -3639,7 +3608,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w0(0:5),w1(0:5),w2(0:5)
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
 c
 c     Prevent compiler warning about unused variables.
 c
@@ -3692,21 +3661,21 @@ c     Compute the spreading weights.
 c
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
+            w(0,ic0-ic_lower(0)) =
      &           lagrangian_bspline_6_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
 
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
+            w(1,ic1-ic_lower(1)) =
      &           lagrangian_bspline_6_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
          enddo
 
          do ic2 = ic_lower(2),ic_upper(2)
             X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
+            w(2,ic2-ic_lower(2)) =
      &           lagrangian_bspline_6_delta(
      &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
          enddo
@@ -3718,9 +3687,9 @@ c
                do ic1 = ic_lower(1),ic_upper(1)
                   do ic0 = ic_lower(0),ic_upper(0)
                      u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
-     &                    w0(ic0-ic_lower(0))*
-     &                    w1(ic1-ic_lower(1))*
-     &                    w2(ic2-ic_lower(2))*
+     &                    w(0,ic0-ic_lower(0))*
+     &                    w(1,ic1-ic_lower(1))*
+     &                    w(2,ic2-ic_lower(2))*
      &                    V(d,s)/(dx(0)*dx(1)*dx(2)))
                   enddo
                enddo
