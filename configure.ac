@@ -229,6 +229,7 @@ AC_CONFIG_FILES([
   src/utilities/Makefile
   src/tools/Makefile
   tests/Makefile
+  tests/adv_diff/Makefile
   tests/advect/Makefile
   tests/IB/Makefile
   tests/IBFE/Makefile
