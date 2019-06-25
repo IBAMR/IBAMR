@@ -34,14 +34,15 @@
 
 ///////////////////////////////////////// INCLUDES //////////////////////////////////////////
 
-#include <map>
-#include <vector>
+#include "ibamr/ConstraintIBKinematics.h"
 
 #include "PatchHierarchy.h"
-#include "ibamr/ConstraintIBKinematics.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <map>
+#include <vector>
 
 namespace IBAMR
 {

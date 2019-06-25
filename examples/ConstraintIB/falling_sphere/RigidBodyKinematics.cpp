@@ -31,15 +31,16 @@
 
 /////////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
 #include "ibamr/namespaces.h"
-#include "muParser.h"
+
+#include "RigidBodyKinematics.h"
 #include "tbox/PIO.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
-#include "RigidBodyKinematics.h"
+#include "muParser.h"
+
+#include <string>
 
 namespace IBAMR
 {

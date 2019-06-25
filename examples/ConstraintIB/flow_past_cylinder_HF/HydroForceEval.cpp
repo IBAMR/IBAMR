@@ -32,7 +32,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/IndexUtilities.h>
+
 #include "HydroForceEval.h"
+#include <tbox/Array.h>
+#include <tbox/RestartManager.h>
+#include <tbox/Utilities.h>
 
 #include <Box.h>
 #include <CartesianGridGeometry.h>
@@ -40,13 +45,10 @@
 #include <IntVector.h>
 #include <Patch.h>
 #include <PatchLevel.h>
+
 #include <fstream>
-#include <ibtk/IndexUtilities.h>
 #include <set>
 #include <sstream>
-#include <tbox/Array.h>
-#include <tbox/RestartManager.h>
-#include <tbox/Utilities.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 using namespace SAMRAI::geom;

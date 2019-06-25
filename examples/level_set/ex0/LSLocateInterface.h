@@ -2,6 +2,7 @@
 // Created on Oct 1, 2017 by Amneet Bhalla
 
 #include <ibtk/ibtk_utilities.h>
+
 #include <tbox/Pointer.h>
 
 namespace IBTK

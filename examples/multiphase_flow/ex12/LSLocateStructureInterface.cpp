@@ -1,11 +1,13 @@
 // Filename LSLocateStructureInterface.cpp
 // Created on Jan 29, 2018 by Nishant Nangia and Amneet Bhalla
 
+#include <ibamr/app_namespaces.h>
+
+#include <ibtk/HierarchyMathOps.h>
+
 #include "LSLocateStructureInterface.h"
 
 #include <CartesianGridGeometry.h>
-#include <ibamr/app_namespaces.h>
-#include <ibtk/HierarchyMathOps.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

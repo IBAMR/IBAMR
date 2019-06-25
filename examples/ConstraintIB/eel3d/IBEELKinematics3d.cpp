@@ -32,20 +32,22 @@
 
 //////////////////////////////////// INCLUDES ////////////////////////////////////////////
 
-#include <cmath>
-#include <iostream>
-#include <sstream>
+#include "ibamr/namespaces.h"
 
 #include "CartesianPatchGeometry.h"
 #include "IBEELKinematics3d.h"
 #include "PatchLevel.h"
 #include "gsl/gsl_integration.h"
 #include "gsl/gsl_linalg.h"
-#include "ibamr/namespaces.h"
-#include "muParser.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include "muParser.h"
+
+#include <cmath>
+#include <iostream>
+#include <sstream>
 
 namespace IBAMR
 {

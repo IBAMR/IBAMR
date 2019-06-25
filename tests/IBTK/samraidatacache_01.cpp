@@ -38,6 +38,9 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <ibtk/AppInitializer.h>
+#include <ibtk/SAMRAIDataCache.h>
+
 #include <CellVariable.h>
 #include <EdgeVariable.h>
 #include <FaceVariable.h>
@@ -47,8 +50,6 @@
 #include <OuternodeVariable.h>
 #include <OutersideVariable.h>
 #include <SideVariable.h>
-#include <ibtk/AppInitializer.h>
-#include <ibtk/SAMRAIDataCache.h>
 
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>

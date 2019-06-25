@@ -31,17 +31,19 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 //////////////////////////// INCLUDES /////////////////////////////////////////
-#include <cmath>
-#include <fstream>
-#include <iostream>
+#include "ibamr/namespaces.h"
 
 #include "CartesianPatchGeometry.h"
 #include "IBEELKinematics.h"
 #include "PatchLevel.h"
-#include "ibamr/namespaces.h"
-#include "muParser.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/SAMRAI_MPI.h"
+
+#include "muParser.h"
+
+#include <cmath>
+#include <fstream>
+#include <iostream>
 
 namespace IBAMR
 {

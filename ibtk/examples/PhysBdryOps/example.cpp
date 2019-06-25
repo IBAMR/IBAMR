@@ -29,6 +29,7 @@
 
 // Config files
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc objects
@@ -42,10 +43,11 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <LocationIndexRobinBcCoefs.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartExtrapPhysBdryOp.h>
+
+#include <LocationIndexRobinBcCoefs.h>
 
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>

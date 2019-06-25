@@ -30,6 +30,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -42,10 +43,12 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <LocationIndexRobinBcCoefs.h>
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
+
 #include <ibtk/AppInitializer.h>
+
+#include <LocationIndexRobinBcCoefs.h>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>

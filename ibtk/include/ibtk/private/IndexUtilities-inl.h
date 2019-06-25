@@ -94,10 +94,8 @@ IndexUtilities::getCellIndex(const DoubleArray& X,
     return idx;
 } // getCellIndex
 
-
 inline IBTK::VectorNd
-IndexUtilities::getSideCenter(const SAMRAI::hier::Patch<NDIM> &patch,
-                              const SAMRAI::pdat::SideIndex<NDIM> &side_idx)
+IndexUtilities::getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::pdat::SideIndex<NDIM>& side_idx)
 {
     const int axis = side_idx.getAxis();
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
@@ -115,8 +113,7 @@ IndexUtilities::getSideCenter(const SAMRAI::hier::Patch<NDIM> &patch,
         }
         else
         {
-            side_coord[d] =
-                patch_X_lower[d] + patch_dx[d] * (double(side_idx(d) - patch_lower_idx(d)) + 0.5);
+            side_coord[d] = patch_X_lower[d] + patch_dx[d] * (double(side_idx(d) - patch_lower_idx(d)) + 0.5);
         }
     }
     return side_coord;

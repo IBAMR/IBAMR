@@ -1,11 +1,13 @@
 // Filename LSLocateInterface.cpp
 // Created on Oct 10, 2017 by Nishant Nangia
 
+#include <ibamr/app_namespaces.h>
+
+#include <ibtk/HierarchyMathOps.h>
+
 #include "LSLocateInterface.h"
 
 #include <CartesianGridGeometry.h>
-#include <ibamr/app_namespaces.h>
-#include <ibtk/HierarchyMathOps.h>
 
 // Initialize the neighborhood of a circular interface.
 void

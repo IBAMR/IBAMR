@@ -149,9 +149,8 @@ public:
      *
      * @param side_idx The SideIndex describing the current side.
      */
-    static IBTK::VectorNd
-    getSideCenter(const SAMRAI::hier::Patch<NDIM> &patch,
-                  const SAMRAI::pdat::SideIndex<NDIM> &side_idx);
+    static IBTK::VectorNd getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch,
+                                        const SAMRAI::pdat::SideIndex<NDIM>& side_idx);
 
     /*!
      * \brief Map (i,j,k,d) index for a DOF defined for a SAMRAI variable

@@ -7,13 +7,14 @@
 #define included_TagLSRefinementCells
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
-#include <string>
+#include <ibamr/AdvDiffHierarchyIntegrator.h>
 
 #include "BasePatchHierarchy.h"
 #include "PatchHierarchy.h"
-#include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <tbox/DescribedClass.h>
 #include <tbox/Pointer.h>
+
+#include <string>
 
 /*!
  * Pre processing call back function to be hooked into IBAMR::HierarchyIntegrator class.

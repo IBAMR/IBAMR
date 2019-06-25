@@ -32,6 +32,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic SAMRAI objects
@@ -41,6 +42,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+
 #include <ibtk/CartGridFunctionSet.h>
 
 #ifndef included_IBAMR_multiphase_flow_SetFluidGasSolidViscosity

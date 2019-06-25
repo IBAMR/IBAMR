@@ -32,6 +32,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -57,6 +58,7 @@
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/app_namespaces.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -511,13 +513,12 @@ main(int argc, char* argv[])
             if (SAMRAI_MPI::getRank() == 0)
             {
                 plog << "hyro forces: " << loop_time << '\t' << pressure_force[0] << '\t' << pressure_force[1] << '\t'
-                              << pressure_force[2] << '\t' << viscous_force[0] << '\t' << viscous_force[1] << '\t'
-                              << viscous_force[2] << std::endl;
-                plog << "hyro torques: " << loop_time << '\t' << pressure_torque[0] << '\t' << pressure_torque[1] << '\t'
-                               << pressure_torque[2] << '\t' << viscous_torque[0] << '\t' << viscous_torque[1] << '\t'
-                               << viscous_torque[2] << std::endl;
+                     << pressure_force[2] << '\t' << viscous_force[0] << '\t' << viscous_force[1] << '\t'
+                     << viscous_force[2] << std::endl;
+                plog << "hyro torques: " << loop_time << '\t' << pressure_torque[0] << '\t' << pressure_torque[1]
+                     << '\t' << pressure_torque[2] << '\t' << viscous_torque[0] << '\t' << viscous_torque[1] << '\t'
+                     << viscous_torque[2] << std::endl;
             }
-
 
             // Write the center of mass vertical position and velocity to a file
             if (!SAMRAI_MPI::getRank())
