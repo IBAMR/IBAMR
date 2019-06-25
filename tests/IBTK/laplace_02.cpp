@@ -44,13 +44,14 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
-#include <ibtk/CCLaplaceOperator.h>
+#include <ibtk/SCLaplaceOperator.h>
 #include <ibtk/muParserCartGridFunction.h>
 
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
 
-// test showing orders of accuracy for a cell-centered Laplace solver.
+// A test program to check that the side-centered Laplace operator
+// discretization yields the expected order of accuracy.
 
 /*******************************************************************************
  * For each run, the input filename must be given on the command line.  In all *
@@ -68,18 +69,15 @@ main(int argc, char* argv[])
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-    // prevent a warning about timer initializations
-    TimerManager::createManager(nullptr);
-    {
+    { // cleanup dynamically allocated objects prior to shutdown
+
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
+        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "sc_laplace.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
-        // application. These objects are configured from the input
-        // database. Nearly all SAMRAI applications (at least those in IBAMR)
-        // start by setting up the same half-dozen objects.
+        // application.  These objects are configured from the input database.
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
@@ -99,106 +97,105 @@ main(int argc, char* argv[])
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
 
-        // We create a variable for every vector we ultimately declare,
-        // instead of creating and then cloning vectors. The rationale for
-        // this is given below.
-        Pointer<CellVariable<NDIM, double> > u_cc_var = new CellVariable<NDIM, double>("u_cc");
-        Pointer<CellVariable<NDIM, double> > f_cc_var = new CellVariable<NDIM, double>("f_cc");
-        Pointer<CellVariable<NDIM, double> > e_cc_var = new CellVariable<NDIM, double>("e_cc");
-        Pointer<CellVariable<NDIM, double> > f_approx_cc_var = new CellVariable<NDIM, double>("f_approx_cc");
+        Pointer<SideVariable<NDIM, double> > u_sc_var = new SideVariable<NDIM, double>("u_sc");
+        Pointer<SideVariable<NDIM, double> > f_sc_var = new SideVariable<NDIM, double>("f_sc");
+        Pointer<SideVariable<NDIM, double> > e_sc_var = new SideVariable<NDIM, double>("e_sc");
 
-        // Internally, SAMRAI keeps track of variables (and their
-        // corresponding vectors, data, etc.) by converting them to
-        // indices. Here we get the indices after notifying the variable
-        // database about them.
-        const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector<NDIM>(1));
-        const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector<NDIM>(1));
-        const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector<NDIM>(1));
-        const int f_approx_cc_idx = var_db->registerVariableAndContext(f_approx_cc_var, ctx, IntVector<NDIM>(1));
+        const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVector<NDIM>(1));
+        const int f_sc_idx = var_db->registerVariableAndContext(f_sc_var, ctx, IntVector<NDIM>(1));
+        const int e_sc_idx = var_db->registerVariableAndContext(e_sc_var, ctx, IntVector<NDIM>(1));
 
+        Pointer<CellVariable<NDIM, double> > u_cc_var = new CellVariable<NDIM, double>("u_cc", NDIM);
+        Pointer<CellVariable<NDIM, double> > f_cc_var = new CellVariable<NDIM, double>("f_cc", NDIM);
+        Pointer<CellVariable<NDIM, double> > e_cc_var = new CellVariable<NDIM, double>("e_cc", NDIM);
+
+        const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector<NDIM>(0));
+        const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector<NDIM>(0));
+        const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector<NDIM>(0));
+
+        // Register variables for plotting.
+        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        TBOX_ASSERT(visit_data_writer);
+
+        visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "VECTOR", u_cc_idx);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            visit_data_writer->registerPlotQuantity(u_cc_var->getName() + std::to_string(d), "SCALAR", u_cc_idx, d);
+        }
+
+        visit_data_writer->registerPlotQuantity(f_cc_var->getName(), "VECTOR", f_cc_idx);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            visit_data_writer->registerPlotQuantity(f_cc_var->getName() + std::to_string(d), "SCALAR", f_cc_idx, d);
+        }
+
+        visit_data_writer->registerPlotQuantity(e_cc_var->getName(), "VECTOR", e_cc_idx);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            visit_data_writer->registerPlotQuantity(e_cc_var->getName() + std::to_string(d), "SCALAR", e_cc_idx, d);
+        }
+
+        // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
-        const int tag_buffer = std::numeric_limits<int>::max();
+        int tag_buffer = 1;
         int level_number = 0;
-        while ((gridding_algorithm->levelCanBeRefined(level_number)))
+        bool done = false;
+        while (!done && (gridding_algorithm->levelCanBeRefined(level_number)))
         {
             gridding_algorithm->makeFinerLevel(patch_hierarchy, 0.0, 0.0, tag_buffer);
+            done = !patch_hierarchy->finerLevelExists(level_number);
             ++level_number;
         }
 
-        const int finest_level = patch_hierarchy->getFinestLevelNumber();
-
-        // Allocate data for each variable on each level of the patch
-        // hierarchy.
-        for (int ln = 0; ln <= finest_level; ++ln)
+        // Allocate data on each level of the patch hierarchy.
+        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(u_sc_idx, 0.0);
+            level->allocatePatchData(f_sc_idx, 0.0);
+            level->allocatePatchData(e_sc_idx, 0.0);
             level->allocatePatchData(u_cc_idx, 0.0);
             level->allocatePatchData(f_cc_idx, 0.0);
             level->allocatePatchData(e_cc_idx, 0.0);
-            level->allocatePatchData(f_approx_cc_idx, 0.0);
         }
 
-        // By default, the norms defined on SAMRAI vectors are vectors in R^n:
-        // however, in IBAMR we almost always want to use a norm that
-        // corresponds to a numerical quadrature. To do this we have to
-        // associate each vector with a set of cell-centered volumes. Rather
-        // than set this up manually, we rely on an IBTK utility class that
-        // computes this (as well as many other things!). These values are
-        // known as `cell weights' in this context, so we get the ID of the
-        // associated data by asking for that. Behind the scenes
-        // HierarchyMathOps sets up the necessary cell-centered variables and
-        // registers them with the usual SAMRAI objects: all we need to do is
-        // ask for the ID. Due to the way SAMRAI works these calls must occur
+        // Setup vector objects.
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
-        const int cv_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
+        const int h_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
-        // SAMRAI patches do not store data as a single contiguous arrays;
-        // instead, each hierarchy contains several contiguous arrays. Hence,
-        // to do linear algebra, we rely on SAMRAI's own vector class which
-        // understands these relationships. We begin by initializing each
-        // vector with the patch hierarchy:
-        SAMRAIVectorReal<NDIM, double> u_vec("u", patch_hierarchy, 0, finest_level);
-        SAMRAIVectorReal<NDIM, double> f_vec("f", patch_hierarchy, 0, finest_level);
-        SAMRAIVectorReal<NDIM, double> f_approx_vec("f_approx", patch_hierarchy, 0, finest_level);
-        SAMRAIVectorReal<NDIM, double> e_vec("e", patch_hierarchy, 0, finest_level);
+        SAMRAIVectorReal<NDIM, double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<NDIM, double> f_vec("f", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<NDIM, double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 
-        u_vec.addComponent(u_cc_var, u_cc_idx, cv_cc_idx);
-        f_vec.addComponent(f_cc_var, f_cc_idx, cv_cc_idx);
-        f_approx_vec.addComponent(f_approx_cc_var, f_approx_cc_idx, cv_cc_idx);
-        e_vec.addComponent(e_cc_var, e_cc_idx, cv_cc_idx);
+        u_vec.addComponent(u_sc_var, u_sc_idx, h_sc_idx);
+        f_vec.addComponent(f_sc_var, f_sc_idx, h_sc_idx);
+        e_vec.addComponent(e_sc_var, e_sc_idx, h_sc_idx);
 
-        u_vec.setToScalar(0.0, false);
-        f_vec.setToScalar(0.0, false);
-        f_approx_vec.setToScalar(0.0, false);
-        e_vec.setToScalar(0.0, false);
+        u_vec.setToScalar(0.0);
+        f_vec.setToScalar(0.0);
+        e_vec.setToScalar(0.0);
 
-        // Next, we use functions defined with muParser to set up the right
-        // hand side and solution. These functions are read from the input
-        // database and can be changed without recompiling.
-        {
-            muParserCartGridFunction u_fcn("u", app_initializer->getComponentDatabase("u"), grid_geometry);
-            muParserCartGridFunction f_fcn("f", app_initializer->getComponentDatabase("f"), grid_geometry);
+        // Setup exact solutions.
+        muParserCartGridFunction u_fcn("u", app_initializer->getComponentDatabase("u"), grid_geometry);
+        muParserCartGridFunction f_fcn("f", app_initializer->getComponentDatabase("f"), grid_geometry);
 
-            u_fcn.setDataOnPatchHierarchy(u_cc_idx, u_cc_var, patch_hierarchy, 0.0);
-            f_fcn.setDataOnPatchHierarchy(f_cc_idx, f_cc_var, patch_hierarchy, 0.0);
-        }
+        u_fcn.setDataOnPatchHierarchy(u_sc_idx, u_sc_var, patch_hierarchy, 0.0);
+        f_fcn.setDataOnPatchHierarchy(e_sc_idx, e_sc_var, patch_hierarchy, 0.0);
 
         // Compute -L*u = f.
         PoissonSpecifications poisson_spec("poisson_spec");
         poisson_spec.setCConstant(0.0);
         poisson_spec.setDConstant(-1.0);
-        RobinBcCoefStrategy<NDIM>* bc_coef = NULL;
-        CCLaplaceOperator laplace_op("laplace op");
+        std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
+        SCLaplaceOperator laplace_op("laplace op");
         laplace_op.setPoissonSpecifications(poisson_spec);
-        laplace_op.setPhysicalBcCoef(bc_coef);
+        laplace_op.setPhysicalBcCoefs(bc_coefs);
         laplace_op.initializeOperatorState(u_vec, f_vec);
-        laplace_op.apply(u_vec, f_approx_vec);
+        laplace_op.apply(u_vec, f_vec);
 
-        // Compute error and print error norms. Here we create temporary smart
-        // pointers that will not delete the underlying object since the
-        // second argument to the constructor is false.
-        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false),
-                       Pointer<SAMRAIVectorReal<NDIM, double> >(&f_approx_vec, false));
+        // Compute error and print error norms.
+        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&e_vec, false),
+                       Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false));
         const double max_norm = e_vec.maxNorm();
         const double l2_norm = e_vec.L2Norm();
         const double l1_norm = e_vec.L1Norm();
@@ -211,24 +208,30 @@ main(int argc, char* argv[])
             out << "|e|_1  = " << l1_norm << "\n";
         }
 
-        // Finally, we clean up the output by setting error values on patches
-        // on coarser levels which are covered by finer levels to zero.
-        for (int ln = 0; ln < finest_level; ++ln)
+        // Interpolate the side-centered data to cell centers for output.
+        static const bool synch_cf_interface = true;
+        hier_math_ops.interp(u_cc_idx, u_cc_var, u_sc_idx, u_sc_var, NULL, 0.0, synch_cf_interface);
+        hier_math_ops.interp(f_cc_idx, f_cc_var, f_sc_idx, f_sc_var, NULL, 0.0, synch_cf_interface);
+        hier_math_ops.interp(e_cc_idx, e_cc_var, e_sc_idx, e_sc_var, NULL, 0.0, synch_cf_interface);
+
+        // Set invalid values on coarse levels (i.e., coarse-grid values that
+        // are covered by finer grid patches) to equal zero.
+        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber() - 1; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            BoxArray<NDIM> refined_region_boxes;
             Pointer<PatchLevel<NDIM> > next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
-            BoxArray<NDIM> refined_region_boxes = next_finer_level->getBoxes();
+            refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                const Patch<NDIM>& patch = *level->getPatch(p());
-                const Box<NDIM>& patch_box = patch.getBox();
-                Pointer<CellData<NDIM, double> > e_cc_data = patch.getPatchData(e_cc_idx);
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Box<NDIM>& patch_box = patch->getBox();
+                Pointer<CellData<NDIM, double> > e_cc_data = patch->getPatchData(e_cc_idx);
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
-                    const Box<NDIM>& refined_box = refined_region_boxes[i];
-                    // Box::operator* returns the intersection of two boxes.
-                    const Box<NDIM>& intersection = patch_box * refined_box;
+                    const Box<NDIM> refined_box = refined_region_boxes[i];
+                    const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
                     if (!intersection.empty())
                     {
                         e_cc_data->fillAll(0.0, intersection);
@@ -236,10 +239,12 @@ main(int argc, char* argv[])
                 }
             }
         }
-    }
 
-    // At this point all SAMRAI, PETSc, and IBAMR objects have been cleaned
-    // up, so we shut things down in the opposite order of initialization:
+        // Output data for plotting.
+        visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);
+
+    } // cleanup dynamically allocated objects prior to shutdown
+
     SAMRAIManager::shutdown();
     PetscFinalize();
 } // run_example

@@ -1,21 +1,26 @@
 u {
-   function = "sin(2*PI*(X_0-0.1234))*sin(2*PI*(X_1-0.1234))*sin(2*PI*(X_2-0.1234))"
+   function = "sin(2*PI*(X_0))*sin(2*PI*(X_1))*sin(2*PI*(X_2))"
 }
 
 f {
-   function = "(3*(2*PI)^2)*sin(2*PI*(X_0-0.1234))*sin(2*PI*(X_1-0.1234))*sin(2*PI*(X_2-0.1234))"
+   function = "(3*(2*PI)^2)*sin(2*PI*(X_0))*sin(2*PI*(X_1))*sin(2*PI*(X_2))"
 }
 
 Main {
 // log file parameters
-   log_file_name = "output"
+   log_file_name = "SCLaplaceTester3d.log"
    log_all_nodes = FALSE
+
+// visualization dump parameters
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz3d"
+   visit_number_procs_per_file = 1
 
 // timer dump parameters
    timer_enabled = TRUE
 }
 
-N = 128
+N = 8
 
 CartesianGeometry {
    domain_boxes       = [(0,0,0), (N - 1,N - 1,N - 1)]
@@ -25,10 +30,10 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   max_levels = 3                 // Maximum number of levels in hierarchy.
+   max_levels = 2                 // Maximum number of levels in hierarchy.
 
    ratio_to_coarser {
-      level_1 = 4, 4, 4           // vector ratio to next coarser level
+      level_1 = 2, 2, 2           // vector ratio to next coarser level
    }
 
    largest_patch_size {
@@ -56,4 +61,11 @@ StandardTagAndInitialize {
 LoadBalancer {
    bin_pack_method = "SPATIAL"
    max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 1.0
+   timer_list = "IBTK::main::*"
 }

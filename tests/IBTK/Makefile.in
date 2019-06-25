@@ -91,7 +91,12 @@ EXTRA_PROGRAMS = elem_hmax_01$(EXEEXT) elem_hmax_02$(EXEEXT) \
 	mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	poisson_01_3d$(EXEEXT) samraidatacache_01_2d$(EXEEXT) \
 	samraidatacache_01_3d$(EXEEXT) laplace_01_2d$(EXEEXT) \
-	laplace_01_3d$(EXEEXT) ldata_01$(EXEEXT)
+	laplace_01_3d$(EXEEXT) laplace_02_2d$(EXEEXT) \
+	laplace_02_3d$(EXEEXT) laplace_03_2d$(EXEEXT) \
+	laplace_03_3d$(EXEEXT) ldata_01$(EXEEXT) \
+	prolongation_mat_2d$(EXEEXT) prolongation_mat_3d$(EXEEXT) \
+	phys_boundary_ops_2d$(EXEEXT) phys_boundary_ops_3d$(EXEEXT) \
+	vc_viscous_solver_2d$(EXEEXT) vc_viscous_solver_3d$(EXEEXT)
 subdir = tests/IBTK
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -154,6 +159,34 @@ laplace_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(laplace_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
+am_laplace_02_2d_OBJECTS = laplace_02_2d-laplace_02.$(OBJEXT)
+laplace_02_2d_OBJECTS = $(am_laplace_02_2d_OBJECTS)
+laplace_02_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+laplace_02_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(laplace_02_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	-o $@
+am_laplace_02_3d_OBJECTS = laplace_02_3d-laplace_02.$(OBJEXT)
+laplace_02_3d_OBJECTS = $(am_laplace_02_3d_OBJECTS)
+laplace_02_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+laplace_02_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(laplace_02_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	-o $@
+am_laplace_03_2d_OBJECTS = laplace_03_2d-laplace_03.$(OBJEXT)
+laplace_03_2d_OBJECTS = $(am_laplace_03_2d_OBJECTS)
+laplace_03_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+laplace_03_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(laplace_03_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	-o $@
+am_laplace_03_3d_OBJECTS = laplace_03_3d-laplace_03.$(OBJEXT)
+laplace_03_3d_OBJECTS = $(am_laplace_03_3d_OBJECTS)
+laplace_03_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+laplace_03_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(laplace_03_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	-o $@
 am_ldata_01_OBJECTS = ldata_01-ldata_01.$(OBJEXT)
 ldata_01_OBJECTS = $(am_ldata_01_OBJECTS)
 ldata_01_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -167,6 +200,22 @@ mpi_type_wrappers_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 mpi_type_wrappers_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(mpi_type_wrappers_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_phys_boundary_ops_2d_OBJECTS =  \
+	phys_boundary_ops_2d-phys_boundary_ops.$(OBJEXT)
+phys_boundary_ops_2d_OBJECTS = $(am_phys_boundary_ops_2d_OBJECTS)
+phys_boundary_ops_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+phys_boundary_ops_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(phys_boundary_ops_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_phys_boundary_ops_3d_OBJECTS =  \
+	phys_boundary_ops_3d-phys_boundary_ops.$(OBJEXT)
+phys_boundary_ops_3d_OBJECTS = $(am_phys_boundary_ops_3d_OBJECTS)
+phys_boundary_ops_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+phys_boundary_ops_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(phys_boundary_ops_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 am_poisson_01_2d_OBJECTS = poisson_01_2d-poisson_01.$(OBJEXT)
 poisson_01_2d_OBJECTS = $(am_poisson_01_2d_OBJECTS)
@@ -182,6 +231,22 @@ poisson_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(poisson_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
+am_prolongation_mat_2d_OBJECTS =  \
+	prolongation_mat_2d-prolongation_mat.$(OBJEXT)
+prolongation_mat_2d_OBJECTS = $(am_prolongation_mat_2d_OBJECTS)
+prolongation_mat_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+prolongation_mat_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(prolongation_mat_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_prolongation_mat_3d_OBJECTS =  \
+	prolongation_mat_3d-prolongation_mat.$(OBJEXT)
+prolongation_mat_3d_OBJECTS = $(am_prolongation_mat_3d_OBJECTS)
+prolongation_mat_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+prolongation_mat_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(prolongation_mat_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_samraidatacache_01_2d_OBJECTS =  \
 	samraidatacache_01_2d-samraidatacache_01.$(OBJEXT)
 samraidatacache_01_2d_OBJECTS = $(am_samraidatacache_01_2d_OBJECTS)
@@ -197,6 +262,22 @@ samraidatacache_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 samraidatacache_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(samraidatacache_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_vc_viscous_solver_2d_OBJECTS =  \
+	vc_viscous_solver_2d-vc_viscous_solver.$(OBJEXT)
+vc_viscous_solver_2d_OBJECTS = $(am_vc_viscous_solver_2d_OBJECTS)
+vc_viscous_solver_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+vc_viscous_solver_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(vc_viscous_solver_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_vc_viscous_solver_3d_OBJECTS =  \
+	vc_viscous_solver_3d-vc_viscous_solver.$(OBJEXT)
+vc_viscous_solver_3d_OBJECTS = $(am_vc_viscous_solver_3d_OBJECTS)
+vc_viscous_solver_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+vc_viscous_solver_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(vc_viscous_solver_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -217,12 +298,22 @@ am__depfiles_remade = ./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po \
 	./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po \
 	./$(DEPDIR)/laplace_01_2d-laplace_01.Po \
 	./$(DEPDIR)/laplace_01_3d-laplace_01.Po \
+	./$(DEPDIR)/laplace_02_2d-laplace_02.Po \
+	./$(DEPDIR)/laplace_02_3d-laplace_02.Po \
+	./$(DEPDIR)/laplace_03_2d-laplace_03.Po \
+	./$(DEPDIR)/laplace_03_3d-laplace_03.Po \
 	./$(DEPDIR)/ldata_01-ldata_01.Po \
 	./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po \
+	./$(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Po \
+	./$(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Po \
 	./$(DEPDIR)/poisson_01_2d-poisson_01.Po \
 	./$(DEPDIR)/poisson_01_3d-poisson_01.Po \
+	./$(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po \
+	./$(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po \
 	./$(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po \
-	./$(DEPDIR)/samraidatacache_01_3d-samraidatacache_01.Po
+	./$(DEPDIR)/samraidatacache_01_3d-samraidatacache_01.Po \
+	./$(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po \
+	./$(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -244,16 +335,30 @@ am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(elem_hmax_01_SOURCES) $(elem_hmax_02_SOURCES) \
 	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
+	$(laplace_02_2d_SOURCES) $(laplace_02_3d_SOURCES) \
+	$(laplace_03_2d_SOURCES) $(laplace_03_3d_SOURCES) \
 	$(ldata_01_SOURCES) $(mpi_type_wrappers_SOURCES) \
-	$(poisson_01_2d_SOURCES) $(poisson_01_3d_SOURCES) \
+	$(phys_boundary_ops_2d_SOURCES) \
+	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
+	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
+	$(prolongation_mat_3d_SOURCES) \
 	$(samraidatacache_01_2d_SOURCES) \
-	$(samraidatacache_01_3d_SOURCES)
+	$(samraidatacache_01_3d_SOURCES) \
+	$(vc_viscous_solver_2d_SOURCES) \
+	$(vc_viscous_solver_3d_SOURCES)
 DIST_SOURCES = $(elem_hmax_01_SOURCES) $(elem_hmax_02_SOURCES) \
 	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
+	$(laplace_02_2d_SOURCES) $(laplace_02_3d_SOURCES) \
+	$(laplace_03_2d_SOURCES) $(laplace_03_3d_SOURCES) \
 	$(ldata_01_SOURCES) $(mpi_type_wrappers_SOURCES) \
-	$(poisson_01_2d_SOURCES) $(poisson_01_3d_SOURCES) \
+	$(phys_boundary_ops_2d_SOURCES) \
+	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
+	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
+	$(prolongation_mat_3d_SOURCES) \
 	$(samraidatacache_01_2d_SOURCES) \
-	$(samraidatacache_01_3d_SOURCES)
+	$(samraidatacache_01_3d_SOURCES) \
+	$(vc_viscous_solver_2d_SOURCES) \
+	$(vc_viscous_solver_3d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -568,6 +673,18 @@ laplace_01_2d_SOURCES = laplace_01.cpp
 laplace_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 laplace_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 laplace_01_3d_SOURCES = laplace_01.cpp
+laplace_02_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+laplace_02_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+laplace_02_2d_SOURCES = laplace_02.cpp
+laplace_02_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+laplace_02_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+laplace_02_3d_SOURCES = laplace_02.cpp
+laplace_03_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+laplace_03_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+laplace_03_2d_SOURCES = laplace_03.cpp
+laplace_03_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+laplace_03_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+laplace_03_3d_SOURCES = laplace_03.cpp
 poisson_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 poisson_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 poisson_01_2d_SOURCES = poisson_01.cpp
@@ -583,6 +700,24 @@ samraidatacache_01_3d_SOURCES = samraidatacache_01.cpp
 ldata_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 ldata_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 ldata_01_SOURCES = ldata_01.cpp
+prolongation_mat_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+prolongation_mat_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+prolongation_mat_2d_SOURCES = prolongation_mat.cpp
+prolongation_mat_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+prolongation_mat_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+prolongation_mat_3d_SOURCES = prolongation_mat.cpp
+phys_boundary_ops_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+phys_boundary_ops_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+phys_boundary_ops_2d_SOURCES = phys_boundary_ops.cpp
+phys_boundary_ops_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+phys_boundary_ops_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+phys_boundary_ops_3d_SOURCES = phys_boundary_ops.cpp
+vc_viscous_solver_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+vc_viscous_solver_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+vc_viscous_solver_2d_SOURCES = vc_viscous_solver.cpp
+vc_viscous_solver_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+vc_viscous_solver_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+vc_viscous_solver_3d_SOURCES = vc_viscous_solver.cpp
 all: all-am
 
 .SUFFIXES:
@@ -634,6 +769,22 @@ laplace_01_3d$(EXEEXT): $(laplace_01_3d_OBJECTS) $(laplace_01_3d_DEPENDENCIES) $
 	@rm -f laplace_01_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(laplace_01_3d_LINK) $(laplace_01_3d_OBJECTS) $(laplace_01_3d_LDADD) $(LIBS)
 
+laplace_02_2d$(EXEEXT): $(laplace_02_2d_OBJECTS) $(laplace_02_2d_DEPENDENCIES) $(EXTRA_laplace_02_2d_DEPENDENCIES) 
+	@rm -f laplace_02_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(laplace_02_2d_LINK) $(laplace_02_2d_OBJECTS) $(laplace_02_2d_LDADD) $(LIBS)
+
+laplace_02_3d$(EXEEXT): $(laplace_02_3d_OBJECTS) $(laplace_02_3d_DEPENDENCIES) $(EXTRA_laplace_02_3d_DEPENDENCIES) 
+	@rm -f laplace_02_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(laplace_02_3d_LINK) $(laplace_02_3d_OBJECTS) $(laplace_02_3d_LDADD) $(LIBS)
+
+laplace_03_2d$(EXEEXT): $(laplace_03_2d_OBJECTS) $(laplace_03_2d_DEPENDENCIES) $(EXTRA_laplace_03_2d_DEPENDENCIES) 
+	@rm -f laplace_03_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(laplace_03_2d_LINK) $(laplace_03_2d_OBJECTS) $(laplace_03_2d_LDADD) $(LIBS)
+
+laplace_03_3d$(EXEEXT): $(laplace_03_3d_OBJECTS) $(laplace_03_3d_DEPENDENCIES) $(EXTRA_laplace_03_3d_DEPENDENCIES) 
+	@rm -f laplace_03_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(laplace_03_3d_LINK) $(laplace_03_3d_OBJECTS) $(laplace_03_3d_LDADD) $(LIBS)
+
 ldata_01$(EXEEXT): $(ldata_01_OBJECTS) $(ldata_01_DEPENDENCIES) $(EXTRA_ldata_01_DEPENDENCIES) 
 	@rm -f ldata_01$(EXEEXT)
 	$(AM_V_CXXLD)$(ldata_01_LINK) $(ldata_01_OBJECTS) $(ldata_01_LDADD) $(LIBS)
@@ -641,6 +792,14 @@ ldata_01$(EXEEXT): $(ldata_01_OBJECTS) $(ldata_01_DEPENDENCIES) $(EXTRA_ldata_01
 mpi_type_wrappers$(EXEEXT): $(mpi_type_wrappers_OBJECTS) $(mpi_type_wrappers_DEPENDENCIES) $(EXTRA_mpi_type_wrappers_DEPENDENCIES) 
 	@rm -f mpi_type_wrappers$(EXEEXT)
 	$(AM_V_CXXLD)$(mpi_type_wrappers_LINK) $(mpi_type_wrappers_OBJECTS) $(mpi_type_wrappers_LDADD) $(LIBS)
+
+phys_boundary_ops_2d$(EXEEXT): $(phys_boundary_ops_2d_OBJECTS) $(phys_boundary_ops_2d_DEPENDENCIES) $(EXTRA_phys_boundary_ops_2d_DEPENDENCIES) 
+	@rm -f phys_boundary_ops_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(phys_boundary_ops_2d_LINK) $(phys_boundary_ops_2d_OBJECTS) $(phys_boundary_ops_2d_LDADD) $(LIBS)
+
+phys_boundary_ops_3d$(EXEEXT): $(phys_boundary_ops_3d_OBJECTS) $(phys_boundary_ops_3d_DEPENDENCIES) $(EXTRA_phys_boundary_ops_3d_DEPENDENCIES) 
+	@rm -f phys_boundary_ops_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(phys_boundary_ops_3d_LINK) $(phys_boundary_ops_3d_OBJECTS) $(phys_boundary_ops_3d_LDADD) $(LIBS)
 
 poisson_01_2d$(EXEEXT): $(poisson_01_2d_OBJECTS) $(poisson_01_2d_DEPENDENCIES) $(EXTRA_poisson_01_2d_DEPENDENCIES) 
 	@rm -f poisson_01_2d$(EXEEXT)
@@ -650,6 +809,14 @@ poisson_01_3d$(EXEEXT): $(poisson_01_3d_OBJECTS) $(poisson_01_3d_DEPENDENCIES) $
 	@rm -f poisson_01_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(poisson_01_3d_LINK) $(poisson_01_3d_OBJECTS) $(poisson_01_3d_LDADD) $(LIBS)
 
+prolongation_mat_2d$(EXEEXT): $(prolongation_mat_2d_OBJECTS) $(prolongation_mat_2d_DEPENDENCIES) $(EXTRA_prolongation_mat_2d_DEPENDENCIES) 
+	@rm -f prolongation_mat_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(prolongation_mat_2d_LINK) $(prolongation_mat_2d_OBJECTS) $(prolongation_mat_2d_LDADD) $(LIBS)
+
+prolongation_mat_3d$(EXEEXT): $(prolongation_mat_3d_OBJECTS) $(prolongation_mat_3d_DEPENDENCIES) $(EXTRA_prolongation_mat_3d_DEPENDENCIES) 
+	@rm -f prolongation_mat_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(prolongation_mat_3d_LINK) $(prolongation_mat_3d_OBJECTS) $(prolongation_mat_3d_LDADD) $(LIBS)
+
 samraidatacache_01_2d$(EXEEXT): $(samraidatacache_01_2d_OBJECTS) $(samraidatacache_01_2d_DEPENDENCIES) $(EXTRA_samraidatacache_01_2d_DEPENDENCIES) 
 	@rm -f samraidatacache_01_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(samraidatacache_01_2d_LINK) $(samraidatacache_01_2d_OBJECTS) $(samraidatacache_01_2d_LDADD) $(LIBS)
@@ -657,6 +824,14 @@ samraidatacache_01_2d$(EXEEXT): $(samraidatacache_01_2d_OBJECTS) $(samraidatacac
 samraidatacache_01_3d$(EXEEXT): $(samraidatacache_01_3d_OBJECTS) $(samraidatacache_01_3d_DEPENDENCIES) $(EXTRA_samraidatacache_01_3d_DEPENDENCIES) 
 	@rm -f samraidatacache_01_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(samraidatacache_01_3d_LINK) $(samraidatacache_01_3d_OBJECTS) $(samraidatacache_01_3d_LDADD) $(LIBS)
+
+vc_viscous_solver_2d$(EXEEXT): $(vc_viscous_solver_2d_OBJECTS) $(vc_viscous_solver_2d_DEPENDENCIES) $(EXTRA_vc_viscous_solver_2d_DEPENDENCIES) 
+	@rm -f vc_viscous_solver_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(vc_viscous_solver_2d_LINK) $(vc_viscous_solver_2d_OBJECTS) $(vc_viscous_solver_2d_LDADD) $(LIBS)
+
+vc_viscous_solver_3d$(EXEEXT): $(vc_viscous_solver_3d_OBJECTS) $(vc_viscous_solver_3d_DEPENDENCIES) $(EXTRA_vc_viscous_solver_3d_DEPENDENCIES) 
+	@rm -f vc_viscous_solver_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(vc_viscous_solver_3d_LINK) $(vc_viscous_solver_3d_OBJECTS) $(vc_viscous_solver_3d_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -668,12 +843,22 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/laplace_01_2d-laplace_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/laplace_01_3d-laplace_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/laplace_02_2d-laplace_02.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/laplace_02_3d-laplace_02.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/laplace_03_2d-laplace_03.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/laplace_03_3d-laplace_03.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ldata_01-ldata_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poisson_01_2d-poisson_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poisson_01_3d-poisson_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/samraidatacache_01_3d-samraidatacache_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -761,6 +946,62 @@ laplace_01_3d-laplace_01.obj: laplace_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o laplace_01_3d-laplace_01.obj `if test -f 'laplace_01.cpp'; then $(CYGPATH_W) 'laplace_01.cpp'; else $(CYGPATH_W) '$(srcdir)/laplace_01.cpp'; fi`
 
+laplace_02_2d-laplace_02.o: laplace_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_02_2d_CXXFLAGS) $(CXXFLAGS) -MT laplace_02_2d-laplace_02.o -MD -MP -MF $(DEPDIR)/laplace_02_2d-laplace_02.Tpo -c -o laplace_02_2d-laplace_02.o `test -f 'laplace_02.cpp' || echo '$(srcdir)/'`laplace_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/laplace_02_2d-laplace_02.Tpo $(DEPDIR)/laplace_02_2d-laplace_02.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='laplace_02.cpp' object='laplace_02_2d-laplace_02.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_02_2d_CXXFLAGS) $(CXXFLAGS) -c -o laplace_02_2d-laplace_02.o `test -f 'laplace_02.cpp' || echo '$(srcdir)/'`laplace_02.cpp
+
+laplace_02_2d-laplace_02.obj: laplace_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_02_2d_CXXFLAGS) $(CXXFLAGS) -MT laplace_02_2d-laplace_02.obj -MD -MP -MF $(DEPDIR)/laplace_02_2d-laplace_02.Tpo -c -o laplace_02_2d-laplace_02.obj `if test -f 'laplace_02.cpp'; then $(CYGPATH_W) 'laplace_02.cpp'; else $(CYGPATH_W) '$(srcdir)/laplace_02.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/laplace_02_2d-laplace_02.Tpo $(DEPDIR)/laplace_02_2d-laplace_02.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='laplace_02.cpp' object='laplace_02_2d-laplace_02.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_02_2d_CXXFLAGS) $(CXXFLAGS) -c -o laplace_02_2d-laplace_02.obj `if test -f 'laplace_02.cpp'; then $(CYGPATH_W) 'laplace_02.cpp'; else $(CYGPATH_W) '$(srcdir)/laplace_02.cpp'; fi`
+
+laplace_02_3d-laplace_02.o: laplace_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_02_3d_CXXFLAGS) $(CXXFLAGS) -MT laplace_02_3d-laplace_02.o -MD -MP -MF $(DEPDIR)/laplace_02_3d-laplace_02.Tpo -c -o laplace_02_3d-laplace_02.o `test -f 'laplace_02.cpp' || echo '$(srcdir)/'`laplace_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/laplace_02_3d-laplace_02.Tpo $(DEPDIR)/laplace_02_3d-laplace_02.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='laplace_02.cpp' object='laplace_02_3d-laplace_02.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_02_3d_CXXFLAGS) $(CXXFLAGS) -c -o laplace_02_3d-laplace_02.o `test -f 'laplace_02.cpp' || echo '$(srcdir)/'`laplace_02.cpp
+
+laplace_02_3d-laplace_02.obj: laplace_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_02_3d_CXXFLAGS) $(CXXFLAGS) -MT laplace_02_3d-laplace_02.obj -MD -MP -MF $(DEPDIR)/laplace_02_3d-laplace_02.Tpo -c -o laplace_02_3d-laplace_02.obj `if test -f 'laplace_02.cpp'; then $(CYGPATH_W) 'laplace_02.cpp'; else $(CYGPATH_W) '$(srcdir)/laplace_02.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/laplace_02_3d-laplace_02.Tpo $(DEPDIR)/laplace_02_3d-laplace_02.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='laplace_02.cpp' object='laplace_02_3d-laplace_02.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_02_3d_CXXFLAGS) $(CXXFLAGS) -c -o laplace_02_3d-laplace_02.obj `if test -f 'laplace_02.cpp'; then $(CYGPATH_W) 'laplace_02.cpp'; else $(CYGPATH_W) '$(srcdir)/laplace_02.cpp'; fi`
+
+laplace_03_2d-laplace_03.o: laplace_03.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_03_2d_CXXFLAGS) $(CXXFLAGS) -MT laplace_03_2d-laplace_03.o -MD -MP -MF $(DEPDIR)/laplace_03_2d-laplace_03.Tpo -c -o laplace_03_2d-laplace_03.o `test -f 'laplace_03.cpp' || echo '$(srcdir)/'`laplace_03.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/laplace_03_2d-laplace_03.Tpo $(DEPDIR)/laplace_03_2d-laplace_03.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='laplace_03.cpp' object='laplace_03_2d-laplace_03.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_03_2d_CXXFLAGS) $(CXXFLAGS) -c -o laplace_03_2d-laplace_03.o `test -f 'laplace_03.cpp' || echo '$(srcdir)/'`laplace_03.cpp
+
+laplace_03_2d-laplace_03.obj: laplace_03.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_03_2d_CXXFLAGS) $(CXXFLAGS) -MT laplace_03_2d-laplace_03.obj -MD -MP -MF $(DEPDIR)/laplace_03_2d-laplace_03.Tpo -c -o laplace_03_2d-laplace_03.obj `if test -f 'laplace_03.cpp'; then $(CYGPATH_W) 'laplace_03.cpp'; else $(CYGPATH_W) '$(srcdir)/laplace_03.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/laplace_03_2d-laplace_03.Tpo $(DEPDIR)/laplace_03_2d-laplace_03.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='laplace_03.cpp' object='laplace_03_2d-laplace_03.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_03_2d_CXXFLAGS) $(CXXFLAGS) -c -o laplace_03_2d-laplace_03.obj `if test -f 'laplace_03.cpp'; then $(CYGPATH_W) 'laplace_03.cpp'; else $(CYGPATH_W) '$(srcdir)/laplace_03.cpp'; fi`
+
+laplace_03_3d-laplace_03.o: laplace_03.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_03_3d_CXXFLAGS) $(CXXFLAGS) -MT laplace_03_3d-laplace_03.o -MD -MP -MF $(DEPDIR)/laplace_03_3d-laplace_03.Tpo -c -o laplace_03_3d-laplace_03.o `test -f 'laplace_03.cpp' || echo '$(srcdir)/'`laplace_03.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/laplace_03_3d-laplace_03.Tpo $(DEPDIR)/laplace_03_3d-laplace_03.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='laplace_03.cpp' object='laplace_03_3d-laplace_03.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_03_3d_CXXFLAGS) $(CXXFLAGS) -c -o laplace_03_3d-laplace_03.o `test -f 'laplace_03.cpp' || echo '$(srcdir)/'`laplace_03.cpp
+
+laplace_03_3d-laplace_03.obj: laplace_03.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_03_3d_CXXFLAGS) $(CXXFLAGS) -MT laplace_03_3d-laplace_03.obj -MD -MP -MF $(DEPDIR)/laplace_03_3d-laplace_03.Tpo -c -o laplace_03_3d-laplace_03.obj `if test -f 'laplace_03.cpp'; then $(CYGPATH_W) 'laplace_03.cpp'; else $(CYGPATH_W) '$(srcdir)/laplace_03.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/laplace_03_3d-laplace_03.Tpo $(DEPDIR)/laplace_03_3d-laplace_03.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='laplace_03.cpp' object='laplace_03_3d-laplace_03.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_03_3d_CXXFLAGS) $(CXXFLAGS) -c -o laplace_03_3d-laplace_03.obj `if test -f 'laplace_03.cpp'; then $(CYGPATH_W) 'laplace_03.cpp'; else $(CYGPATH_W) '$(srcdir)/laplace_03.cpp'; fi`
+
 ldata_01-ldata_01.o: ldata_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ldata_01_CXXFLAGS) $(CXXFLAGS) -MT ldata_01-ldata_01.o -MD -MP -MF $(DEPDIR)/ldata_01-ldata_01.Tpo -c -o ldata_01-ldata_01.o `test -f 'ldata_01.cpp' || echo '$(srcdir)/'`ldata_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ldata_01-ldata_01.Tpo $(DEPDIR)/ldata_01-ldata_01.Po
@@ -788,6 +1029,34 @@ mpi_type_wrappers-mpi_type_wrappers.obj: mpi_type_wrappers.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='mpi_type_wrappers.cpp' object='mpi_type_wrappers-mpi_type_wrappers.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mpi_type_wrappers_CXXFLAGS) $(CXXFLAGS) -c -o mpi_type_wrappers-mpi_type_wrappers.obj `if test -f 'mpi_type_wrappers.cpp'; then $(CYGPATH_W) 'mpi_type_wrappers.cpp'; else $(CYGPATH_W) '$(srcdir)/mpi_type_wrappers.cpp'; fi`
+
+phys_boundary_ops_2d-phys_boundary_ops.o: phys_boundary_ops.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(phys_boundary_ops_2d_CXXFLAGS) $(CXXFLAGS) -MT phys_boundary_ops_2d-phys_boundary_ops.o -MD -MP -MF $(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Tpo -c -o phys_boundary_ops_2d-phys_boundary_ops.o `test -f 'phys_boundary_ops.cpp' || echo '$(srcdir)/'`phys_boundary_ops.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Tpo $(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='phys_boundary_ops.cpp' object='phys_boundary_ops_2d-phys_boundary_ops.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(phys_boundary_ops_2d_CXXFLAGS) $(CXXFLAGS) -c -o phys_boundary_ops_2d-phys_boundary_ops.o `test -f 'phys_boundary_ops.cpp' || echo '$(srcdir)/'`phys_boundary_ops.cpp
+
+phys_boundary_ops_2d-phys_boundary_ops.obj: phys_boundary_ops.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(phys_boundary_ops_2d_CXXFLAGS) $(CXXFLAGS) -MT phys_boundary_ops_2d-phys_boundary_ops.obj -MD -MP -MF $(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Tpo -c -o phys_boundary_ops_2d-phys_boundary_ops.obj `if test -f 'phys_boundary_ops.cpp'; then $(CYGPATH_W) 'phys_boundary_ops.cpp'; else $(CYGPATH_W) '$(srcdir)/phys_boundary_ops.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Tpo $(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='phys_boundary_ops.cpp' object='phys_boundary_ops_2d-phys_boundary_ops.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(phys_boundary_ops_2d_CXXFLAGS) $(CXXFLAGS) -c -o phys_boundary_ops_2d-phys_boundary_ops.obj `if test -f 'phys_boundary_ops.cpp'; then $(CYGPATH_W) 'phys_boundary_ops.cpp'; else $(CYGPATH_W) '$(srcdir)/phys_boundary_ops.cpp'; fi`
+
+phys_boundary_ops_3d-phys_boundary_ops.o: phys_boundary_ops.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(phys_boundary_ops_3d_CXXFLAGS) $(CXXFLAGS) -MT phys_boundary_ops_3d-phys_boundary_ops.o -MD -MP -MF $(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Tpo -c -o phys_boundary_ops_3d-phys_boundary_ops.o `test -f 'phys_boundary_ops.cpp' || echo '$(srcdir)/'`phys_boundary_ops.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Tpo $(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='phys_boundary_ops.cpp' object='phys_boundary_ops_3d-phys_boundary_ops.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(phys_boundary_ops_3d_CXXFLAGS) $(CXXFLAGS) -c -o phys_boundary_ops_3d-phys_boundary_ops.o `test -f 'phys_boundary_ops.cpp' || echo '$(srcdir)/'`phys_boundary_ops.cpp
+
+phys_boundary_ops_3d-phys_boundary_ops.obj: phys_boundary_ops.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(phys_boundary_ops_3d_CXXFLAGS) $(CXXFLAGS) -MT phys_boundary_ops_3d-phys_boundary_ops.obj -MD -MP -MF $(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Tpo -c -o phys_boundary_ops_3d-phys_boundary_ops.obj `if test -f 'phys_boundary_ops.cpp'; then $(CYGPATH_W) 'phys_boundary_ops.cpp'; else $(CYGPATH_W) '$(srcdir)/phys_boundary_ops.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Tpo $(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='phys_boundary_ops.cpp' object='phys_boundary_ops_3d-phys_boundary_ops.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(phys_boundary_ops_3d_CXXFLAGS) $(CXXFLAGS) -c -o phys_boundary_ops_3d-phys_boundary_ops.obj `if test -f 'phys_boundary_ops.cpp'; then $(CYGPATH_W) 'phys_boundary_ops.cpp'; else $(CYGPATH_W) '$(srcdir)/phys_boundary_ops.cpp'; fi`
 
 poisson_01_2d-poisson_01.o: poisson_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(poisson_01_2d_CXXFLAGS) $(CXXFLAGS) -MT poisson_01_2d-poisson_01.o -MD -MP -MF $(DEPDIR)/poisson_01_2d-poisson_01.Tpo -c -o poisson_01_2d-poisson_01.o `test -f 'poisson_01.cpp' || echo '$(srcdir)/'`poisson_01.cpp
@@ -817,6 +1086,34 @@ poisson_01_3d-poisson_01.obj: poisson_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(poisson_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o poisson_01_3d-poisson_01.obj `if test -f 'poisson_01.cpp'; then $(CYGPATH_W) 'poisson_01.cpp'; else $(CYGPATH_W) '$(srcdir)/poisson_01.cpp'; fi`
 
+prolongation_mat_2d-prolongation_mat.o: prolongation_mat.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(prolongation_mat_2d_CXXFLAGS) $(CXXFLAGS) -MT prolongation_mat_2d-prolongation_mat.o -MD -MP -MF $(DEPDIR)/prolongation_mat_2d-prolongation_mat.Tpo -c -o prolongation_mat_2d-prolongation_mat.o `test -f 'prolongation_mat.cpp' || echo '$(srcdir)/'`prolongation_mat.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/prolongation_mat_2d-prolongation_mat.Tpo $(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='prolongation_mat.cpp' object='prolongation_mat_2d-prolongation_mat.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(prolongation_mat_2d_CXXFLAGS) $(CXXFLAGS) -c -o prolongation_mat_2d-prolongation_mat.o `test -f 'prolongation_mat.cpp' || echo '$(srcdir)/'`prolongation_mat.cpp
+
+prolongation_mat_2d-prolongation_mat.obj: prolongation_mat.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(prolongation_mat_2d_CXXFLAGS) $(CXXFLAGS) -MT prolongation_mat_2d-prolongation_mat.obj -MD -MP -MF $(DEPDIR)/prolongation_mat_2d-prolongation_mat.Tpo -c -o prolongation_mat_2d-prolongation_mat.obj `if test -f 'prolongation_mat.cpp'; then $(CYGPATH_W) 'prolongation_mat.cpp'; else $(CYGPATH_W) '$(srcdir)/prolongation_mat.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/prolongation_mat_2d-prolongation_mat.Tpo $(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='prolongation_mat.cpp' object='prolongation_mat_2d-prolongation_mat.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(prolongation_mat_2d_CXXFLAGS) $(CXXFLAGS) -c -o prolongation_mat_2d-prolongation_mat.obj `if test -f 'prolongation_mat.cpp'; then $(CYGPATH_W) 'prolongation_mat.cpp'; else $(CYGPATH_W) '$(srcdir)/prolongation_mat.cpp'; fi`
+
+prolongation_mat_3d-prolongation_mat.o: prolongation_mat.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(prolongation_mat_3d_CXXFLAGS) $(CXXFLAGS) -MT prolongation_mat_3d-prolongation_mat.o -MD -MP -MF $(DEPDIR)/prolongation_mat_3d-prolongation_mat.Tpo -c -o prolongation_mat_3d-prolongation_mat.o `test -f 'prolongation_mat.cpp' || echo '$(srcdir)/'`prolongation_mat.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/prolongation_mat_3d-prolongation_mat.Tpo $(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='prolongation_mat.cpp' object='prolongation_mat_3d-prolongation_mat.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(prolongation_mat_3d_CXXFLAGS) $(CXXFLAGS) -c -o prolongation_mat_3d-prolongation_mat.o `test -f 'prolongation_mat.cpp' || echo '$(srcdir)/'`prolongation_mat.cpp
+
+prolongation_mat_3d-prolongation_mat.obj: prolongation_mat.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(prolongation_mat_3d_CXXFLAGS) $(CXXFLAGS) -MT prolongation_mat_3d-prolongation_mat.obj -MD -MP -MF $(DEPDIR)/prolongation_mat_3d-prolongation_mat.Tpo -c -o prolongation_mat_3d-prolongation_mat.obj `if test -f 'prolongation_mat.cpp'; then $(CYGPATH_W) 'prolongation_mat.cpp'; else $(CYGPATH_W) '$(srcdir)/prolongation_mat.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/prolongation_mat_3d-prolongation_mat.Tpo $(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='prolongation_mat.cpp' object='prolongation_mat_3d-prolongation_mat.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(prolongation_mat_3d_CXXFLAGS) $(CXXFLAGS) -c -o prolongation_mat_3d-prolongation_mat.obj `if test -f 'prolongation_mat.cpp'; then $(CYGPATH_W) 'prolongation_mat.cpp'; else $(CYGPATH_W) '$(srcdir)/prolongation_mat.cpp'; fi`
+
 samraidatacache_01_2d-samraidatacache_01.o: samraidatacache_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(samraidatacache_01_2d_CXXFLAGS) $(CXXFLAGS) -MT samraidatacache_01_2d-samraidatacache_01.o -MD -MP -MF $(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Tpo -c -o samraidatacache_01_2d-samraidatacache_01.o `test -f 'samraidatacache_01.cpp' || echo '$(srcdir)/'`samraidatacache_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Tpo $(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po
@@ -844,6 +1141,34 @@ samraidatacache_01_3d-samraidatacache_01.obj: samraidatacache_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='samraidatacache_01.cpp' object='samraidatacache_01_3d-samraidatacache_01.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(samraidatacache_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o samraidatacache_01_3d-samraidatacache_01.obj `if test -f 'samraidatacache_01.cpp'; then $(CYGPATH_W) 'samraidatacache_01.cpp'; else $(CYGPATH_W) '$(srcdir)/samraidatacache_01.cpp'; fi`
+
+vc_viscous_solver_2d-vc_viscous_solver.o: vc_viscous_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_viscous_solver_2d_CXXFLAGS) $(CXXFLAGS) -MT vc_viscous_solver_2d-vc_viscous_solver.o -MD -MP -MF $(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Tpo -c -o vc_viscous_solver_2d-vc_viscous_solver.o `test -f 'vc_viscous_solver.cpp' || echo '$(srcdir)/'`vc_viscous_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Tpo $(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vc_viscous_solver.cpp' object='vc_viscous_solver_2d-vc_viscous_solver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_viscous_solver_2d_CXXFLAGS) $(CXXFLAGS) -c -o vc_viscous_solver_2d-vc_viscous_solver.o `test -f 'vc_viscous_solver.cpp' || echo '$(srcdir)/'`vc_viscous_solver.cpp
+
+vc_viscous_solver_2d-vc_viscous_solver.obj: vc_viscous_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_viscous_solver_2d_CXXFLAGS) $(CXXFLAGS) -MT vc_viscous_solver_2d-vc_viscous_solver.obj -MD -MP -MF $(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Tpo -c -o vc_viscous_solver_2d-vc_viscous_solver.obj `if test -f 'vc_viscous_solver.cpp'; then $(CYGPATH_W) 'vc_viscous_solver.cpp'; else $(CYGPATH_W) '$(srcdir)/vc_viscous_solver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Tpo $(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vc_viscous_solver.cpp' object='vc_viscous_solver_2d-vc_viscous_solver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_viscous_solver_2d_CXXFLAGS) $(CXXFLAGS) -c -o vc_viscous_solver_2d-vc_viscous_solver.obj `if test -f 'vc_viscous_solver.cpp'; then $(CYGPATH_W) 'vc_viscous_solver.cpp'; else $(CYGPATH_W) '$(srcdir)/vc_viscous_solver.cpp'; fi`
+
+vc_viscous_solver_3d-vc_viscous_solver.o: vc_viscous_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_viscous_solver_3d_CXXFLAGS) $(CXXFLAGS) -MT vc_viscous_solver_3d-vc_viscous_solver.o -MD -MP -MF $(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Tpo -c -o vc_viscous_solver_3d-vc_viscous_solver.o `test -f 'vc_viscous_solver.cpp' || echo '$(srcdir)/'`vc_viscous_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Tpo $(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vc_viscous_solver.cpp' object='vc_viscous_solver_3d-vc_viscous_solver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_viscous_solver_3d_CXXFLAGS) $(CXXFLAGS) -c -o vc_viscous_solver_3d-vc_viscous_solver.o `test -f 'vc_viscous_solver.cpp' || echo '$(srcdir)/'`vc_viscous_solver.cpp
+
+vc_viscous_solver_3d-vc_viscous_solver.obj: vc_viscous_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_viscous_solver_3d_CXXFLAGS) $(CXXFLAGS) -MT vc_viscous_solver_3d-vc_viscous_solver.obj -MD -MP -MF $(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Tpo -c -o vc_viscous_solver_3d-vc_viscous_solver.obj `if test -f 'vc_viscous_solver.cpp'; then $(CYGPATH_W) 'vc_viscous_solver.cpp'; else $(CYGPATH_W) '$(srcdir)/vc_viscous_solver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Tpo $(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vc_viscous_solver.cpp' object='vc_viscous_solver_3d-vc_viscous_solver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_viscous_solver_3d_CXXFLAGS) $(CXXFLAGS) -c -o vc_viscous_solver_3d-vc_viscous_solver.obj `if test -f 'vc_viscous_solver.cpp'; then $(CYGPATH_W) 'vc_viscous_solver.cpp'; else $(CYGPATH_W) '$(srcdir)/vc_viscous_solver.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -980,12 +1305,22 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
 	-rm -f ./$(DEPDIR)/laplace_01_2d-laplace_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_3d-laplace_01.Po
+	-rm -f ./$(DEPDIR)/laplace_02_2d-laplace_02.Po
+	-rm -f ./$(DEPDIR)/laplace_02_3d-laplace_02.Po
+	-rm -f ./$(DEPDIR)/laplace_03_2d-laplace_03.Po
+	-rm -f ./$(DEPDIR)/laplace_03_3d-laplace_03.Po
 	-rm -f ./$(DEPDIR)/ldata_01-ldata_01.Po
 	-rm -f ./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po
+	-rm -f ./$(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Po
+	-rm -f ./$(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Po
 	-rm -f ./$(DEPDIR)/poisson_01_2d-poisson_01.Po
 	-rm -f ./$(DEPDIR)/poisson_01_3d-poisson_01.Po
+	-rm -f ./$(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po
+	-rm -f ./$(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po
 	-rm -f ./$(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po
 	-rm -f ./$(DEPDIR)/samraidatacache_01_3d-samraidatacache_01.Po
+	-rm -f ./$(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po
+	-rm -f ./$(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1035,12 +1370,22 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
 	-rm -f ./$(DEPDIR)/laplace_01_2d-laplace_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_3d-laplace_01.Po
+	-rm -f ./$(DEPDIR)/laplace_02_2d-laplace_02.Po
+	-rm -f ./$(DEPDIR)/laplace_02_3d-laplace_02.Po
+	-rm -f ./$(DEPDIR)/laplace_03_2d-laplace_03.Po
+	-rm -f ./$(DEPDIR)/laplace_03_3d-laplace_03.Po
 	-rm -f ./$(DEPDIR)/ldata_01-ldata_01.Po
 	-rm -f ./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po
+	-rm -f ./$(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Po
+	-rm -f ./$(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Po
 	-rm -f ./$(DEPDIR)/poisson_01_2d-poisson_01.Po
 	-rm -f ./$(DEPDIR)/poisson_01_3d-poisson_01.Po
+	-rm -f ./$(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po
+	-rm -f ./$(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po
 	-rm -f ./$(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po
 	-rm -f ./$(DEPDIR)/samraidatacache_01_3d-samraidatacache_01.Po
+	-rm -f ./$(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po
+	-rm -f ./$(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
