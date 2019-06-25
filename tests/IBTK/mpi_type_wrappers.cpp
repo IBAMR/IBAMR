@@ -30,13 +30,14 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
-#include <SAMRAI_config.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTK_MPI.h>
 
 #include <tbox/SAMRAIManager.h>
 #include <tbox/SAMRAI_MPI.h>
+
+#include <SAMRAI_config.h>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>

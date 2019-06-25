@@ -33,6 +33,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -58,6 +59,7 @@
 #include <ibamr/StaggeredStokesSolver.h>
 #include <ibamr/app_namespaces.h>
 #include <ibamr/ibamr_utilities.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartSideDoubleRT0Coarsen.h>
 #include <ibtk/CartSideDoubleRT0Refine.h>
@@ -68,6 +70,7 @@
 #include <ibtk/PETScVecUtilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
 #include <petscksp.h>
 
 // StokesIBSolver class solves linearized StokesIB equations.

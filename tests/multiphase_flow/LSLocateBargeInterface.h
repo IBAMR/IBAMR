@@ -32,15 +32,18 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic SAMRAI objects
-#include <CartesianGridGeometry.h>
 #include <tbox/Pointer.h>
+
+#include <CartesianGridGeometry.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/ConstraintIBMethod.h>
+
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/ibtk_utilities.h>
 
