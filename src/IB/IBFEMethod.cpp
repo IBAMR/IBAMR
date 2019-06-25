@@ -441,7 +441,7 @@ assemble_ipdg_poisson(EquationSystems& es, const std::string& system_name)
                     const Elem* temp_elem =
                         neighbor->topological_neighbor(ss, mesh, point_locator, periodic_boundaries);
 
-                    if (!(temp_elem == libmesh_nullptr))
+                    if (!(temp_elem == nullptr))
                     {
                         if (temp_elem->id() == elem->id())
                         {
@@ -476,7 +476,7 @@ assemble_ipdg_poisson(EquationSystems& es, const std::string& system_name)
                     fe_elem_face->reinit(elem, side);
 
                     // if this is true, we are in fact on a periodic boundary
-                    if (elem->neighbor(side) == libmesh_nullptr)
+                    if (elem->neighbor(side) == nullptr)
                     {
                         // grab the boundary id (sideset id) of the neighbor side
                         const short int bdry_id = boundary_info.boundary_id(neighbor, neighbor_side);
