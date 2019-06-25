@@ -241,10 +241,10 @@ assemble_cg_diffusion(EquationSystems& es, const std::string& system_name)
     const DofMap& dof_map = system.get_dof_map();
     FEType fe_type = dof_map.variable_type(0);
 
-    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
     QGauss qrule(dim, FIFTH);
     fe->attach_quadrature_rule(&qrule);
-    UniquePtr<FEBase> fe_face(FEBase::build(dim, fe_type));
+    std::unique_ptr<FEBase> fe_face(FEBase::build(dim, fe_type));
     QGauss qface(dim - 1, FIFTH);
     fe_face->attach_quadrature_rule(&qface);
 
@@ -332,9 +332,9 @@ assemble_ipdg_poisson(EquationSystems& es, const std::string& system_name)
 
     FEType fe_type = system.variable_type(0);
 
-    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
-    UniquePtr<FEBase> fe_elem_face(FEBase::build(dim, fe_type));
-    UniquePtr<FEBase> fe_neighbor_face(FEBase::build(dim, fe_type));
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
+    std::unique_ptr<FEBase> fe_elem_face(FEBase::build(dim, fe_type));
+    std::unique_ptr<FEBase> fe_neighbor_face(FEBase::build(dim, fe_type));
 
     // Quadrature rules for numerical integration on volumes and faces
     QGauss qrule(dim, fe_type.default_quadrature_order());
@@ -404,7 +404,7 @@ assemble_ipdg_poisson(EquationSystems& es, const std::string& system_name)
                 // Pointer to the element face
                 fe_elem_face->reinit(elem, side);
 
-                UniquePtr<Elem> elem_side(elem->build_side(side));
+                std::unique_ptr<Elem> elem_side(elem->build_side(side));
                 const double h0_elem = pow(elem->volume() / elem_side->volume(), beta0);
 
                 for (unsigned int qp = 0; qp < qface.n_points(); qp++)
@@ -459,7 +459,7 @@ assemble_ipdg_poisson(EquationSystems& es, const std::string& system_name)
                     (neighbor->level() < elem->level()))
                 {
                     // Pointer to the element side
-                    UniquePtr<Elem> elem_side(elem->build_side(side));
+                    std::unique_ptr<Elem> elem_side(elem->build_side(side));
 
                     // penalty parameters
                     const double h0_elem = pow(elem->volume() / elem_side->volume(), beta0);
@@ -806,6 +806,7 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
     d_equation_systems[part]->parameters.set<Real>("cg_penalty") = d_cg_penalty;
     d_equation_systems[part]->parameters.set<std::string>("Phi_solver") = d_phi_solver;
     d_equation_systems[part]->parameters.set<Real>("Phi_diffusion") = d_phi_diffusion;
+    d_dt_previous = this->getINSHierarchyIntegrator()->getCurrentTimeStepSize();
     d_equation_systems[part]->parameters.set<Real>("dt") = d_dt_previous;
 
     // assign function for building Phi linear system.  defaults to CG discretization
@@ -2538,7 +2539,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
             const size_t n_basis = phi_face.size();
 
             // for the IPDG penalty parameter
-            UniquePtr<Elem> elem_side(elem->build_side(side));
+            std::unique_ptr<Elem> elem_side(elem->build_side(side));
             const double h0_elem = pow(elem->volume() / elem_side->volume(), ipdg_beta0);
 
             for (unsigned int qp = 0; qp < n_qp; ++qp)
@@ -4445,7 +4446,7 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     else if (db->keyExists("enable_logging"))
         d_do_log = db->getBool("enable_logging");
 
-    // Settings for stress normalization
+    // Settings for stress splitting
     if (db->isDouble("Phi_epsilon")) d_phi_epsilon = db->getDouble("Phi_epsilon");
     d_phi_diffusion = db->getDoubleWithDefault("Phi_diffusion", 1.0);
     d_phi_solver = db->getStringWithDefault("Phi_solver", CG_PHI_SOLVER_NAME);
@@ -4455,10 +4456,8 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     d_ipdg_beta0 = db->getDoubleWithDefault("ipdg_beta0", 2.0);
     d_ipdg_beta1 = db->getDoubleWithDefault("ipdg_beta1", 2.0);
     d_cg_penalty = db->getDoubleWithDefault("cg_penalty", 1.0e10);
-    d_phi_fe_order = Utility::string_to_enum<Order>(db->getStringWithDefault("Phi_fe_order", "SECOND")); // TODO: We should read in the
-                                                                                       // string for the Order
-    d_dt_previous = db->getDouble("Phi_dt"); // TODO: We should not be reading this in from input
-
+    d_phi_fe_order = Utility::string_to_enum<Order>(db->getStringWithDefault("Phi_fe_order", "FIRST")); 
+                                                                                      
     if (db->keyExists("libmesh_partitioner_type"))
     {
         d_libmesh_partitioner_type = string_to_enum<LibmeshPartitionerType>(
