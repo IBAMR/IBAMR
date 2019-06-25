@@ -79,13 +79,13 @@ dnl provided by argument)
 CONFIGURE_LIBMESH
 CONFIGURE_PETSC
 # Configure other libraries that are not themselves dependencies:
-CONFIGURE_BOOST("$ABSOLUTE_SRCDIR/contrib/boost","\$(abs_top_builddir)/ibtk/contrib/boost")
-CONFIGURE_EIGEN("$ABSOLUTE_SRCDIR/contrib/eigen","\$(abs_top_builddir)/ibtk/contrib/eigen")
+CONFIGURE_BOOST("$ABSOLUTE_SRCDIR/contrib/boost","\$(abs_top_builddir)/contrib/boost")
+CONFIGURE_EIGEN("$ABSOLUTE_SRCDIR/contrib/eigen","\$(abs_top_builddir)/contrib/eigen")
 CONFIGURE_HDF5
 CONFIGURE_HYPRE
 CONFIGURE_GSL
 CONFIGURE_GTEST
-CONFIGURE_MUPARSER("$ABSOLUTE_SRCDIR/contrib/muparser","\$(abs_top_builddir)/ibtk/contrib/muparser")
+CONFIGURE_MUPARSER("$ABSOLUTE_SRCDIR/contrib/muparser","\$(abs_top_builddir)/contrib/muparser")
 # configure dependencies of dependencies:
 CONFIGURE_SILO
 CONFIGURE_SAMRAI
