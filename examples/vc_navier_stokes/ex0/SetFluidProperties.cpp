@@ -2,12 +2,14 @@
 // Created on March 6, 2018 by Nishant Nangia
 
 // APPLICATION INCLUDES
+#include <ibamr/app_namespaces.h>
+
+#include <ibtk/CartGridFunction.h>
+#include <ibtk/HierarchyMathOps.h>
+
 #include "SetFluidProperties.h"
 
 #include <CartesianGridGeometry.h>
-#include <ibamr/app_namespaces.h>
-#include <ibtk/CartGridFunction.h>
-#include <ibtk/HierarchyMathOps.h>
 
 // C++ INCLUDES
 

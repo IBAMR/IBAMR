@@ -1,5 +1,6 @@
-#include "example.cpp"
 #include <vector>
+
+#include "example.cpp"
 
 int
 main(int argc, char** argv)

@@ -1,6 +1,8 @@
-#include "example.cpp"
-#include <cmath>
 #include <gtest/gtest.h>
+
+#include <cmath>
+
+#include "example.cpp"
 
 int ex_argc;
 char** ex_argv;

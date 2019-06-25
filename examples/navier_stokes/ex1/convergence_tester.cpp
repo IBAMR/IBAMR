@@ -30,8 +30,10 @@
 // GENERAL CONFIGURATION
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
-#include <SAMRAI_config.h>
+
 #include <petscsys.h>
+
+#include <SAMRAI_config.h>
 
 // IBAMR INCLUDES
 #include <ibamr/app_namespaces.h>

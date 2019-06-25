@@ -31,6 +31,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -44,7 +45,6 @@
 #include <VariableDatabase.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <boost/multi_array.hpp>
 #include <ibamr/CIBMethod.h>
 #include <ibamr/CIBMobilitySolver.h>
 #include <ibamr/CIBSaddlePointSolver.h>
@@ -55,11 +55,14 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/KrylovMobilitySolver.h>
 #include <ibamr/app_namespaces.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+#include <boost/multi_array.hpp>
 
 // Center of mass velocity
 void

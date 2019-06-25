@@ -34,10 +34,12 @@
 /////////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/namespaces.h"
-#include "muParser.h"
+
 #include "tbox/PIO.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include "muParser.h"
 
 #include <string>
 

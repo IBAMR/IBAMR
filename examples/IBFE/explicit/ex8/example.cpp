@@ -30,6 +30,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -49,15 +50,17 @@
 #include <libmesh/mesh_generation.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+#include <boost/multi_array.hpp>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>

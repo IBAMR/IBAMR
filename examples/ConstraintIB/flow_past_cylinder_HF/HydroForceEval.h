@@ -33,13 +33,15 @@
 #ifndef included_HydroForceEval
 #define included_HydroForceEval
 
-#include <PatchHierarchy.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/ibtk_utilities.h>
+
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
 #include <tbox/SAMRAI_MPI.h>
+
+#include <PatchHierarchy.h>
 
 #include <map>
 #include <string>

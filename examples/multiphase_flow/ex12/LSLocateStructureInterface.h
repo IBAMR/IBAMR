@@ -9,7 +9,9 @@
 ///////////////////////////// INCLUDES ///////////////////////////////////
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/ConstraintIBMethod.h>
+
 #include <ibtk/ibtk_utilities.h>
+
 #include <tbox/Pointer.h>
 
 namespace IBTK

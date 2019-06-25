@@ -35,10 +35,11 @@
 
 //////////////////////////////////INCLUDES///////////////////////////////////////////////
 
+#include "ibtk/CartGridFunction.h"
+
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "Variable.h"
-#include "ibtk/CartGridFunction.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK
