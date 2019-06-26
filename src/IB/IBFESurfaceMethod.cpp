@@ -182,7 +182,7 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
 {
     commonConstructor(object_name,
                       input_db,
-                      std::vector<MeshBase*>(1, mesh),
+                      std::vector<MeshBase*>(d_num_parts, mesh),
                       max_level_number,
                       register_for_restart,
                       restart_read_dirname,
@@ -773,6 +773,8 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 
         NumericVector<double>* WSS_in_vec = d_WSS_in_half_vecs[part];
         NumericVector<double>* WSS_out_vec = d_WSS_out_half_vecs[part];
+
+        NumericVector<double>* WSS_vec = d_WSS_half_vecs[part];
 
         NumericVector<double>* WSS_vec = d_WSS_half_vecs[part];
 
@@ -1388,6 +1390,20 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                             {
                                 WSS_in_rhs_e[d](k) +=  WSS_in(d) * p_JxW;
                                 WSS_out_rhs_e[d](k) += WSS_out(d) * p_JxW;
+                            }
+                        }
+                    }
+
+                    for (unsigned int k = 0; k < n_basis_DU_jump; ++k)
+                    {
+                        const double p_JxW = phi_DU_jump[k][qp] * JxW[qp];
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            U_n_rhs_e[d](k) += U_n(d) * p_JxW;
+                            U_t_rhs_e[d](k) += U_t(d) * p_JxW;
+                            if (d_use_velocity_jump_conditions)
+                            {
+                                WSS_rhs_e[d](k) += WSS(d) * p_JxW;
                             }
                         }
                     }
@@ -5329,6 +5345,65 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                     TBOX_ERROR(d_object_name << ":  Restart file version different than class version."
                                                              << std::endl);
                                 }
+                                else
+                                {
+                                    TBOX_ERROR(d_object_name << ":  Restart file version different than class version."
+                                                             << std::endl);
+                                }
+
+                                if (side_u_boxes[axis].contains(i_s_up) && side_u_boxes[axis].contains(i_s_um))
+                                {
+                                    std::vector<libMesh::Point> ref_coords(1, xui);
+                                    fe_X->reinit(elem, &ref_coords);
+                                    fe_P_jump->reinit(elem, &ref_coords);
+                                    for (unsigned int l = 0; l < NDIM - 1; ++l)
+                                    {
+                                        interpolate(dx_dxi[l], 0, x_node, *dphi_dxi[l]);
+                                    }
+                                    if (NDIM == 2)
+                                    {
+                                        dx_dxi[1] = VectorValue<double>(0.0, 0.0, 1.0);
+                                    }
+                                    n = (dx_dxi[0].cross(dx_dxi[1])).unit();
+
+                                    bool found_same_intersection_point = false;
+
+                                    for (int shift = -1; shift <= 1; ++shift)
+                                    {
+                                        SideIndex<NDIM> i_s_prime = i_s_um;
+                                        i_s_prime(SideDim[axis][j]) += shift;
+                                        const std::vector<libMesh::Point>& candidate_coords =
+                                            intersectionSide_u_points[j][axis][i_s_prime];
+                                        const std::vector<libMesh::Point>& candidate_ref_coords =
+                                            intersectionSide_u_ref_coords[j][axis][i_s_prime];
+                                        const std::vector<VectorValue<double> >& candidate_normals =
+                                            intersectionSide_u_normals[j][axis][i_s_prime];
+
+                                        checkDoubleCountingIntersection(axis,
+                                                                        dx,
+                                                                        n,
+                                                                        xu,
+                                                                        xui,
+                                                                        i_s_um,
+                                                                        i_s_prime,
+                                                                        candidate_coords,
+                                                                        candidate_ref_coords,
+                                                                        candidate_normals,
+                                                                        found_same_intersection_point);
+                                        if (found_same_intersection_point) break;
+                                    }
+
+                                    if (!found_same_intersection_point)
+                                    {
+                                        // Evaluate the jump conditions and apply them
+                                        // to the Eulerian grid.
+
+                                        // Evaluate the jump conditions and apply them
+                                        // to the Eulerian grid.
+                                        if (side_u_boxes[SideDim[axis][j]].contains(i_s_um) &&
+                                            side_u_boxes[SideDim[axis][j]].contains(i_s_up))
+                                        {
+                                            TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
 
                                 if (side_u_boxes[axis].contains(i_s_up) && side_u_boxes[axis].contains(i_s_um))
                                 {
@@ -5514,6 +5589,7 @@ IBFESurfaceMethod::initializeCoordinates(const unsigned int part)
         }
     }
     X_coords.close();
+
     X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
     copy_and_synch(X_coords, *X_system.current_local_solution);
     copy_and_synch(X_coords, X_system.get_vector("INITIAL_COORDINATES"));
@@ -5618,6 +5694,9 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     // Set some default values.
     const bool use_adaptive_quadrature = true;
     const int point_density = 2.0;
+    d_wss_calc_width = 0.0;
+    d_p_calc_width = 0.0;
+    d_traction_activation_time = 0.0;
     const bool use_nodal_quadrature = false;
     const bool interp_use_consistent_mass_matrix = true;
     d_default_interp_spec = FEDataManager::InterpSpec("IB_4",
@@ -5629,6 +5708,11 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
                                                       use_nodal_quadrature);
     d_default_spread_spec = FEDataManager::SpreadSpec(
         "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, use_nodal_quadrature);
+    d_ghosts = 0;
+    d_use_velocity_jump_conditions = false;
+    d_use_pressure_jump_conditions = false;
+    d_use_l2_lagrange_family = false;
+    d_compute_fluid_traction = false;
 
     d_fe_family.resize(d_num_parts, INVALID_FE);
     d_fe_order.resize(d_num_parts, INVALID_ORDER);
