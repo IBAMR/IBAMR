@@ -3176,34 +3176,18 @@ FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
 
     // Record the local DOFs associated with the active local elements.
     std::set<unsigned int> ghost_dof_set(constraint_dependency_dof_list.begin(), constraint_dependency_dof_list.end());
+    std::vector<unsigned int> dof_indices;
     for (const auto& elem : active_elems)
     {
         // DOFs associated with the element.
         for (unsigned int var_num = 0; var_num < elem->n_vars(sys_num); ++var_num)
         {
-            if (elem->n_dofs(sys_num, var_num) > 0)
+            dof_map.dof_indices(elem, dof_indices, var_num);
+            for (auto dof_index : dof_indices)
             {
-                const unsigned int dof_index = elem->dof_number(sys_num, var_num, 0);
                 if (dof_index < first_local_dof || dof_index >= end_local_dof)
                 {
                     ghost_dof_set.insert(dof_index);
-                }
-            }
-        }
-
-        // DOFs associated with the nodes of the element.
-        for (unsigned int k = 0; k < elem->n_nodes(); ++k)
-        {
-            const Node* const node = elem->node_ptr(k);
-            for (unsigned int var_num = 0; var_num < node->n_vars(sys_num); ++var_num)
-            {
-                if (node->n_dofs(sys_num, var_num) > 0)
-                {
-                    const unsigned int dof_index = node->dof_number(sys_num, var_num, 0);
-                    if (dof_index < first_local_dof || dof_index >= end_local_dof)
-                    {
-                        ghost_dof_set.insert(dof_index);
-                    }
                 }
             }
         }
