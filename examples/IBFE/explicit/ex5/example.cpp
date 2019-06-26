@@ -186,7 +186,8 @@ tether_force_function(VectorValue<double>& F,
 using namespace ModelData;
 
 // Function prototypes
-static ofstream drag_stream, lift_stream, drag_TAU_stream, lift_TAU_stream;
+static ofstream drag_F_stream, lift_F_stream, drag_TAU_stream, lift_TAU_stream, U_L1_norm_stream, U_L2_norm_stream,
+    U_max_norm_stream;
 
 void postprocess_data(Pointer<Database> input_db,
                       Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
@@ -209,8 +210,8 @@ void postprocess_data(Pointer<Database> input_db,
  *                                                                             *
  *******************************************************************************/
 
-int
-main(int argc, char* argv[])
+bool
+run_example(int argc, char** argv)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -320,7 +321,9 @@ main(int argc, char* argv[])
         boundary_mesh.prepare_for_use();
 
         use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
+
         compute_fluid_traction = input_db->getBoolWithDefault("COMPUTE_FLUID_TRACTION", false);
+
         Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
 
         // Create major algorithm and data objects that comprise the
@@ -385,6 +388,7 @@ main(int argc, char* argv[])
         EquationSystems* equation_systems;
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
+
         if (use_boundary_mesh)
         {
             vector<SystemData> sys_data(1, SystemData(IBFESurfaceMethod::VELOCITY_SYSTEM_NAME, vars));
@@ -516,21 +520,21 @@ main(int argc, char* argv[])
         // velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
-            lift_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
-            if (compute_fluid_traction)
-            {
-				drag_TAU_stream.open("C_T_D.curve", ios_base::out | ios_base::trunc);
-				lift_TAU_stream.open("C_T_L.curve", ios_base::out | ios_base::trunc);
-			}
+            drag_F_stream.open("C_F_D.curve", ios_base::out | ios_base::trunc);
+            lift_F_stream.open("C_F_L.curve", ios_base::out | ios_base::trunc);
+            drag_TAU_stream.open("C_T_D.curve", ios_base::out | ios_base::trunc);
+            lift_TAU_stream.open("C_T_L.curve", ios_base::out | ios_base::trunc);
+            U_L1_norm_stream.open("U_L1.curve", ios_base::out | ios_base::trunc);
+            U_L2_norm_stream.open("U_L2.curve", ios_base::out | ios_base::trunc);
+            U_max_norm_stream.open("U_max.curve", ios_base::out | ios_base::trunc);
 
-            drag_stream.precision(10);
-            lift_stream.precision(10);
-            if (compute_fluid_traction)
-            {
-				drag_TAU_stream.precision(10);
-				lift_TAU_stream.precision(10);
-			}
+            drag_F_stream.precision(10);
+            lift_F_stream.precision(10);
+            drag_TAU_stream.precision(10);
+            lift_TAU_stream.precision(10);
+            U_L1_norm_stream.precision(10);
+            U_L2_norm_stream.precision(10);
+            U_max_norm_stream.precision(10);
         }
 
         // Main time step loop.
@@ -601,13 +605,13 @@ main(int argc, char* argv[])
         // Close the logging streams.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_stream.close();
-            lift_stream.close();
-            if (compute_fluid_traction)
-			{
-				drag_TAU_stream.close();
-				lift_TAU_stream.close();
-			}
+            drag_F_stream.close();
+            lift_F_stream.close();
+            drag_TAU_stream.close();
+            lift_TAU_stream.close();
+            U_L1_norm_stream.close();
+            U_L2_norm_stream.close();
+            U_max_norm_stream.close();
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
@@ -617,7 +621,8 @@ main(int argc, char* argv[])
     } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
-} // main
+    return true;
+} // run_example
 
 void
 postprocess_data(Pointer<Database> input_db,
@@ -640,7 +645,6 @@ postprocess_data(Pointer<Database> input_db,
         F_integral[d] = 0.0;
         T_integral[d] = 0.0;
     }
-
     System* x_system;
     System* U_system;
 
@@ -667,12 +671,11 @@ postprocess_data(Pointer<Database> input_db,
 
     std::vector<std::vector<unsigned int> > WSS_o_dof_indices(NDIM);
     System* TAU_system;
-    NumericVector<double>* TAU_vec;
-    NumericVector<double>* TAU_ghost_vec;
+    NumericVector<double>* TAU_ghost_vec = NULL;
     if (compute_fluid_traction)
     {
-        TAU_system = &equation_systems->get_system(IBFESurfaceMethod::TAU_SYSTEM_NAME);
-        TAU_vec = TAU_system->solution.get();
+        TAU_system = &equation_systems->get_system(IBFESurfaceMethod::TAU_OUT_SYSTEM_NAME);
+
         TAU_ghost_vec = TAU_system->current_local_solution.get();
     }
 
@@ -700,6 +703,7 @@ postprocess_data(Pointer<Database> input_db,
 
     TensorValue<double> FF, FF_inv_trans;
     boost::multi_array<double, 2> x_node, X_node, U_node, TAU_node;
+
     VectorValue<double> F, N, U, n, x, X, TAU;
 
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
@@ -739,6 +743,7 @@ postprocess_data(Pointer<Database> input_db,
             {
                 F_integral[d] += F(d) * JxW[qp];
                 if (compute_fluid_traction) T_integral[d] += TAU(d) * JxW[qp];
+
             }
         }
         if (!use_boundary_mesh)
@@ -788,8 +793,8 @@ postprocess_data(Pointer<Database> input_db,
     static const double D = 1.0;
     if (SAMRAI_MPI::getRank() == 0)
     {
-        drag_stream << loop_time << " " << -F_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
-        lift_stream << loop_time << " " << -F_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
+        drag_F_stream << loop_time << " " << -F_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
+        lift_F_stream << loop_time << " " << -F_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
         if (compute_fluid_traction)
         {
             drag_TAU_stream << loop_time << " " << T_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
