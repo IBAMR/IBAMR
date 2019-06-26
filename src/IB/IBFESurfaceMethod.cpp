@@ -5589,7 +5589,6 @@ IBFESurfaceMethod::initializeCoordinates(const unsigned int part)
         }
     }
     X_coords.close();
-
     X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
     copy_and_synch(X_coords, *X_system.current_local_solution);
     copy_and_synch(X_coords, X_system.get_vector("INITIAL_COORDINATES"));
