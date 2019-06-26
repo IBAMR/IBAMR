@@ -3,6 +3,7 @@
 // Copyright (c) 2018 - 2019 by the IBAMR developers
 // Filename: IBFESurfaceMethod.h
 // Created on 19 May 2018 by Boyce Griffith
+//
 // Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
@@ -107,9 +108,12 @@ public:
     static const std::string TANGENTIAL_VELOCITY_SYSTEM_NAME;
     static const std::array<std::string, NDIM> VELOCITY_JUMP_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
-    static const std::string WSS_SYSTEM_NAME;
-    static const std::string P_SYSTEM_NAME;
-    static const std::string TAU_SYSTEM_NAME;
+    static const std::string WSS_IN_SYSTEM_NAME;
+    static const std::string WSS_OUT_SYSTEM_NAME;
+    static const std::string PRESSURE_IN_SYSTEM_NAME;
+    static const std::string PRESSURE_OUT_SYSTEM_NAME;
+    static const std::string TAU_IN_SYSTEM_NAME;
+    static const std::string TAU_OUT_SYSTEM_NAME;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > p_var;
     int p_scratch_idx, p_new_idx, p_current_idx;
@@ -310,9 +314,9 @@ public:
     void computeFluidTraction(double current_time, unsigned int part = 0);
 
     /*!
-     * Compute the pressure used in the calculation of the fluid traction (pressure jump condition needs to be applied).
+     * Compute the interior/exterior pressure used in the calculation of the fluid traction (pressure jump condition needs to be applied).
      */
-    void interpolatePressureForTraction(int p_data_idx, double data_time, unsigned int part = 0);
+    void extrapolatePressureForTraction(int p_data_idx, double data_time, unsigned int part = 0);
 
     /*!
      * A wrapper to compute the interfacial pressure and fluid traction from the jumps.
@@ -565,9 +569,12 @@ protected:
      * d_U_t_systems: tangential velocity system
      * d_P_jump_systems: pressure jump system [[p]] = - F(X,t).n(x,t)/J(X,t)
      * d_DU_jump_systems:
-     * d_WSS_systems: one sided interior/exterior shear stress system
-     * d_P_systems: one sided interior/exterior pressure system
-     * d_TAU_systems: fluid traction system
+     * d_WSS_in_systems: one sided interior shear stress system
+     * d_WSS_out_systems: one sided exterior shear stress system
+     * d_P_in_systems: one sided interior pressure system
+     * d_P_out_systems: one sided exterior pressure system
+     * d_TAU_in_systems: interior fluid traction system
+     * d_TAU_out_systems: exterior fluid traction system
      */
     std::vector<libMesh::MeshBase*> d_meshes;
     int d_max_level_number;
@@ -577,7 +584,7 @@ protected:
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
     std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_P_jump_systems,
-        d_WSS_systems, d_P_systems, d_TAU_systems;
+        d_WSS_in_systems, d_WSS_out_systems, d_P_in_systems, d_P_out_systems, d_TAU_in_systems, d_TAU_out_systems;
     std::vector<std::array<libMesh::System*, NDIM> > d_DU_jump_systems;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
         d_X_IB_ghost_vecs;
@@ -587,10 +594,13 @@ protected:
 
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_P_jump_half_vecs, d_P_jump_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_P_half_vecs, d_P_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_P_in_half_vecs, d_P_in_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_P_out_half_vecs, d_P_out_IB_ghost_vecs;
     std::vector<std::array<libMesh::PetscVector<double>*, NDIM> > d_DU_jump_half_vecs, d_DU_jump_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_WSS_half_vecs, d_WSS_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_TAU_half_vecs, d_TAU_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_WSS_in_half_vecs, d_WSS_in_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_WSS_out_half_vecs, d_WSS_out_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_TAU_in_half_vecs, d_TAU_in_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_TAU_out_half_vecs, d_TAU_out_IB_ghost_vecs;
 
     bool d_fe_equation_systems_initialized = false, d_fe_data_initialized = false;
 
