@@ -725,7 +725,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             U_t_vec = d_U_t_new_vecs[part];
             X_vec = d_X_new_vecs[part];
         }
-        X_vec->localize(*X_ghost_vec);
+        copy_and_synch(*X_vec, *X_ghost_vec);
 
         NumericVector<double>* WSS_vec = d_WSS_half_vecs[part];
 
@@ -814,8 +814,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         double* X_local_soln;
         VecGetArray(X_local_vec, &X_local_soln);
         std::unique_ptr<NumericVector<double> > X0_vec = X_petsc_vec->clone();
-        X_system.get_vector("INITIAL_COORDINATES").localize(*X0_vec);
-        X0_vec->close();
+        copy_and_synch(X_system.get_vector("INITIAL_COORDINATES"), *X0_vec);
 
         // Loop over the patches to interpolate values to the element quadrature
         // points from the grid, then use these values to compute the projection
@@ -1796,8 +1795,8 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
         PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* F_vec = d_F_half_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
-        X_vec->localize(*X_ghost_vec);
-        F_vec->localize(*F_ghost_vec);
+        copy_and_synch(*X_vec, *X_ghost_vec);
+        copy_and_synch(*F_vec, *F_ghost_vec);
         d_fe_data_managers[part]->spread(
             f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op, data_time);
         PetscVector<double>* P_jump_ghost_vec;
@@ -1807,7 +1806,7 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
         {
             PetscVector<double>* P_jump_vec = d_P_jump_half_vecs[part];
             P_jump_ghost_vec = d_P_jump_IB_ghost_vecs[part];
-            P_jump_vec->localize(*P_jump_ghost_vec);
+            copy_and_synch(*P_jump_vec, *P_jump_ghost_vec);
         }
         if (d_use_velocity_jump_conditions)
         {
@@ -1815,7 +1814,7 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
             DU_jump_vec = d_DU_jump_half_vecs[part];
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                DU_jump_vec[d]->localize(*DU_jump_ghost_vec[d]);
+                copy_and_synch(*DU_jump_vec[d], *DU_jump_vec[d]);
             }
         }
 
@@ -2306,7 +2305,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
     {
         X_vec = d_X_new_vecs[part];
     }
-    X_vec->localize(*X_ghost_vec);
+    copy_and_synch(*X_vec, *X_ghost_vec);
 
     // Extract the FE systems and DOF maps, and setup the FE object.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
@@ -2631,26 +2630,26 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
         X_vec = d_X_new_vecs[part];
     }
     NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-    X_vec->localize(*X_ghost_vec);
+    copy_and_synch(*X_vec, *X_ghost_vec);
 
     WSS_vec = d_WSS_half_vecs[part];
-    WSS_vec->localize(*WSS_ghost_vec);
+    copy_and_synch(*WSS_vec, *WSS_ghost_vec);
 
     P_vec = d_P_half_vecs[part];
-    P_vec->localize(*P_ghost_vec);
+    copy_and_synch(*P_vec, *P_ghost_vec);
 
     P_jump_vec = d_P_jump_half_vecs[part];
-    P_jump_vec->localize(*P_jump_ghost_vec);
+    copy_and_synch(*P_jump_vec, *P_jump_ghost_vec);
 
     DU_jump_ghost_vec = d_DU_jump_IB_ghost_vecs[part];
     DU_jump_vec = d_DU_jump_half_vecs[part];
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        DU_jump_vec[d]->localize(*DU_jump_ghost_vec[d]);
+        copy_and_synch(*DU_jump_vec[d], *DU_jump_vec[d]);
     }
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        DU_jump_vec[d]->localize(*DU_jump_ghost_vec[d]);
+        copy_and_synch(*DU_jump_vec[d], *DU_jump_vec[d]);
     }
 
     std::unique_ptr<NumericVector<double> > TAU_rhs_vec = TAU_vec->zero_clone();
@@ -2741,7 +2740,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     double* X_local_soln;
     VecGetArray(X_local_vec, &X_local_soln);
     std::unique_ptr<NumericVector<double> > X0_vec = X_petsc_vec->clone();
-    X_system.get_vector("INITIAL_COORDINATES").localize(*X0_vec);
+    copy_and_synch(X_system.get_vector("INITIAL_COORDINATES"), *X0_vec);
     X0_vec->close();
 
     const std::vector<std::vector<Elem*> >& active_patch_element_map =
@@ -3693,11 +3692,9 @@ IBFESurfaceMethod::initializeCoordinates(const unsigned int part)
         }
     }
     X_coords.close();
-
     X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
-    copy_and_synch(X_coords, *X_system.current_local_solution, /*close_v_in*/ false);
-    X_coords.localize(X_system.get_vector("INITIAL_COORDINATES"));
-
+    copy_and_synch(X_coords, *X_system.current_local_solution);
+    copy_and_synch(X_coords, X_system.get_vector("INITIAL_COORDINATES"));
     return;
 } // initializeCoordinates
 
@@ -3766,7 +3763,7 @@ IBFESurfaceMethod::initializeVelocity(const unsigned int part)
     }
     U_vec.close();
     U_system.get_dof_map().enforce_constraints_exactly(U_system, &U_vec);
-    U_vec.localize(*U_system.current_local_solution);
+    copy_and_synch(U_vec, *U_system.current_local_solution);
     return;
 } // initializeVelocity
 
