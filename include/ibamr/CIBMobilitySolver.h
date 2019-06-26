@@ -34,13 +34,15 @@
 #define included_IBAMR_CIBMobilitySolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include <vector>
-
 #include "ibamr/ibamr_enums.h"
-#include "petscksp.h"
+
 #include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include "petscksp.h"
+
+#include <vector>
 
 namespace SAMRAI
 {
@@ -253,7 +255,7 @@ private:
 
 }; // CIBMobilitySolver
 
-} // IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

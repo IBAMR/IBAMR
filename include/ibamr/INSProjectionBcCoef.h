@@ -35,10 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
+#include "ibtk/ExtendedRobinBcCoefStrategy.h"
 
 #include "IntVector.h"
-#include "ibtk/ExtendedRobinBcCoefStrategy.h"
+
+#include <vector>
 
 namespace SAMRAI
 {

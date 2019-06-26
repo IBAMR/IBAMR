@@ -30,6 +30,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -54,6 +55,7 @@
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/SpongeLayerForceFunction.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -131,7 +133,7 @@ upper_tether_force_function(VectorValue<double>& F,
     }
     return;
 } // upper_tether_force_function
-}
+} // namespace ModelData
 using namespace ModelData;
 
 // Function prototypes
@@ -155,7 +157,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *                                                                             *
  *******************************************************************************/
 
-bool run_example(int argc, char* argv[])
+bool
+run_example(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);

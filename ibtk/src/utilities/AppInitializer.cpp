@@ -32,18 +32,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <ostream>
-#include <string>
-#include <vector>
-
-#include "VisItDataWriter.h"
 #include "ibtk/AppInitializer.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
+#include "VisItDataWriter.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/InputDatabase.h"
@@ -55,6 +49,14 @@
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

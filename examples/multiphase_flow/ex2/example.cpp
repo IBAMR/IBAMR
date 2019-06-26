@@ -32,6 +32,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -66,6 +67,7 @@
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/app_namespaces.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
 #include <ibtk/LData.h>
@@ -362,7 +364,7 @@ run_example(int argc, char* argv[])
         {
             rho_var = new CellVariable<NDIM, double>("rho");
         }
-        
+
         navier_stokes_integrator->registerMassDensityVariable(rho_var);
         navier_stokes_integrator->registerViscosityVariable(mu_var);
 

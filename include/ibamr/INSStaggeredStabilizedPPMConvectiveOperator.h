@@ -35,19 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SideVariable.h"
-#include "boost/array.hpp"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include "boost/array.hpp"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

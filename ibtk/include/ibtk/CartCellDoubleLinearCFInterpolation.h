@@ -35,16 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <set>
-#include <vector>
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 
 #include "Box.h"
 #include "ComponentSelector.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "RefineOperator.h"
-#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "tbox/Pointer.h"
+
+#include <set>
+#include <vector>
 
 namespace SAMRAI
 {

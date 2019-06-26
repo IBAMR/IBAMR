@@ -32,11 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/muParserRobinBcCoefs.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -46,15 +44,19 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/muParserRobinBcCoefs.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "muParser.h"
-#include "muParserError.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include "muParser.h"
+#include "muParserError.h"
+
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -133,12 +135,8 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         {
             d_acoef_function_strings.push_back("0.0");
             TBOX_WARNING("muParserRobinBcCoefs::muParserRobinBcCoefs():\n"
-                         << "  no function corresponding to key ``"
-                         << key_name
-                         << "'' found for side = "
-                         << d
-                         << "; using acoef = 0.0."
-                         << std::endl);
+                         << "  no function corresponding to key ``" << key_name << "'' found for side = " << d
+                         << "; using acoef = 0.0." << std::endl);
         }
         try
         {
@@ -147,12 +145,8 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         catch (mu::ParserError& e)
         {
             TBOX_ERROR("muParserRobinBcCoefs::setDataOnPatch():\n"
-                       << "  error: "
-                       << e.GetMsg()
-                       << "\n"
-                       << "  in:    "
-                       << e.GetExpr()
-                       << "\n");
+                       << "  error: " << e.GetMsg() << "\n"
+                       << "  in:    " << e.GetExpr() << "\n");
         }
         catch (...)
         {
@@ -169,12 +163,8 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         {
             d_bcoef_function_strings.push_back("0.0");
             TBOX_WARNING("muParserRobinBcCoefs::muParserRobinBcCoefs():\n"
-                         << "  no function corresponding to key ``"
-                         << key_name
-                         << "'' found for side = "
-                         << d
-                         << "; using bcoef = 0.0."
-                         << std::endl);
+                         << "  no function corresponding to key ``" << key_name << "'' found for side = " << d
+                         << "; using bcoef = 0.0." << std::endl);
         }
         try
         {
@@ -183,12 +173,8 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         catch (mu::ParserError& e)
         {
             TBOX_ERROR("muParserRobinBcCoefs::setDataOnPatch():\n"
-                       << "  error: "
-                       << e.GetMsg()
-                       << "\n"
-                       << "  in:    "
-                       << e.GetExpr()
-                       << "\n");
+                       << "  error: " << e.GetMsg() << "\n"
+                       << "  in:    " << e.GetExpr() << "\n");
         }
         catch (...)
         {
@@ -205,12 +191,8 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         {
             d_gcoef_function_strings.push_back("0.0");
             TBOX_WARNING("muParserRobinBcCoefs::muParserRobinBcCoefs():\n"
-                         << "  no function corresponding to key ``"
-                         << key_name
-                         << "'' found for side = "
-                         << d
-                         << "; using gcoef = 0.0."
-                         << std::endl);
+                         << "  no function corresponding to key ``" << key_name << "'' found for side = " << d
+                         << "; using gcoef = 0.0." << std::endl);
         }
         try
         {
@@ -219,12 +201,8 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         catch (mu::ParserError& e)
         {
             TBOX_ERROR("muParserRobinBcCoefs::setDataOnPatch():\n"
-                       << "  error: "
-                       << e.GetMsg()
-                       << "\n"
-                       << "  in:    "
-                       << e.GetExpr()
-                       << "\n");
+                       << "  error: " << e.GetMsg() << "\n"
+                       << "  in:    " << e.GetExpr() << "\n");
         }
         catch (...)
         {
@@ -355,8 +333,8 @@ muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
     const unsigned int location_index = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis = location_index / 2;
     const Box<NDIM>& bc_coef_box =
-        (acoef_data ? acoef_data->getBox() : bcoef_data ? bcoef_data->getBox() : gcoef_data ? gcoef_data->getBox() :
-                                                                                              Box<NDIM>());
+        (acoef_data ? acoef_data->getBox() :
+                      bcoef_data ? bcoef_data->getBox() : gcoef_data ? gcoef_data->getBox() : Box<NDIM>());
 #if !defined(NDEBUG)
     TBOX_ASSERT(!acoef_data || bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(!bcoef_data || bc_coef_box == bcoef_data->getBox());
@@ -390,12 +368,8 @@ muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
         catch (mu::ParserError& e)
         {
             TBOX_ERROR("muParserRobinBcCoefs::setDataOnPatch():\n"
-                       << "  error: "
-                       << e.GetMsg()
-                       << "\n"
-                       << "  in:    "
-                       << e.GetExpr()
-                       << "\n");
+                       << "  error: " << e.GetMsg() << "\n"
+                       << "  in:    " << e.GetExpr() << "\n");
         }
         catch (...)
         {

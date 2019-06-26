@@ -32,12 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-
 #include "ibamr/PETScKrylovStaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesBlockFactorizationPreconditioner.h"
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
@@ -49,15 +43,24 @@
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"
+
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Utilities.h"
+
+#include <stddef.h>
+
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -118,7 +121,7 @@ allocate_petsc_krylov_solver(const std::string& object_name,
     krylov_solver->setOperator(new StaggeredStokesOperator(object_name + "::StokesOperator"));
     return krylov_solver;
 } // allocate_petsc_krylov_solver
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -132,9 +135,7 @@ StaggeredStokesSolverManager::allocateSolver(const std::string& solver_type,
     if (it == d_solver_maker_map.end())
     {
         TBOX_ERROR("CCPoissonSolverManager::allocateSolver():\n"
-                   << "  unrecognized solver type: "
-                   << solver_type
-                   << "\n");
+                   << "  unrecognized solver type: " << solver_type << "\n");
     }
     return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
 } // allocateSolver

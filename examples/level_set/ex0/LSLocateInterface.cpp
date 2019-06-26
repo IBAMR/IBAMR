@@ -1,11 +1,13 @@
 // Filename LSLocateInterface.cpp
 // Created on Oct 1, 2017 by Amneet Bhalla
 
+#include <ibamr/app_namespaces.h>
+
+#include <ibtk/HierarchyMathOps.h>
+
 #include "LSLocateInterface.h"
 
 #include <CartesianGridGeometry.h>
-#include <ibamr/app_namespaces.h>
-#include <ibtk/HierarchyMathOps.h>
 
 static const double init_positive = 1e8;
 static const double init_negative = -1e8;

@@ -35,19 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stdbool.h>
-#include <map>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LSiloDataWriter.h"
 
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
-#include "ibtk/LInitStrategy.h"
-#include "ibtk/LSiloDataWriter.h"
-#include "libmesh/id_types.h"
 #include "tbox/Pointer.h"
+
+#include "libmesh/id_types.h"
+
+#include <stdbool.h>
+
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace IBTK
 {
@@ -80,7 +83,7 @@ namespace IBAMR
  * \brief Class IMPInitializer is a concrete LInitStrategy that initializes the
  * configuration of one or more Lagrangian structures that are described using
  * the immersed material point method from FE meshes.
-*/
+ */
 class IMPInitializer : public IBTK::LInitStrategy
 {
 public:

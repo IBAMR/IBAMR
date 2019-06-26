@@ -32,9 +32,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <algorithm>
-#include <vector>
+#include "ibamr/AdvDiffPhysicalBoundaryUtilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/ExtendedRobinBcCoefStrategy.h"
+#include "ibtk/PhysicalBoundaryUtilities.h"
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -49,12 +51,13 @@
 #include "Patch.h"
 #include "RobinBcCoefStrategy.h"
 #include "Variable.h"
-#include "ibamr/AdvDiffPhysicalBoundaryUtilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/ExtendedRobinBcCoefStrategy.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
+
+#include <stddef.h>
+
+#include <algorithm>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

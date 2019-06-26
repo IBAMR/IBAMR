@@ -38,9 +38,10 @@
 #include "IntVector.h"
 #include "SAMRAIVectorReal.h"
 #include "mpi.h"
+#include "tbox/Pointer.h"
+
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
 // IWYU pragma: no_include "petscmath.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

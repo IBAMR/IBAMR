@@ -35,20 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <string>
-#include <vector>
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
 
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyIntegrator.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <map>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {
@@ -458,14 +460,17 @@ public:
     /*!
      * \brief Register a reset callback function for a specified variable.
      */
-    void registerResetFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var, ResetPropertiesFcnPtr callback, void* ctx);
+    void registerResetFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                               ResetPropertiesFcnPtr callback,
+                               void* ctx);
 
     /*
      * \brief Set a reset priority for a particular variable.
      *
      * \note Variables will be reset sequentially accordint to their priority, from lowest to highest.
-     * The reset functions registered to each variable will be called according to the order in which they were registered.
-     * If no priority is set for a variable, its reset functions will be called after those with priority, in no particular order.
+     * The reset functions registered to each variable will be called according to the order in which they were
+     * registered. If no priority is set for a variable, its reset functions will be called after those with priority,
+     * in no particular order.
      */
     void setResetPriority(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var, int priority);
 
@@ -501,9 +506,7 @@ protected:
      *
      * The method initializes variables that may require the full grid hierarchy to be already created.
      */
-    void initializeCompositeHierarchyDataSpecialized(
-        double init_data_time,
-        bool initial_time);
+    void initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time);
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -549,14 +552,16 @@ protected:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_u_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >, bool> d_u_is_div_free;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_u_fcn;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_u_fcn;
 
     /*!
      * Source term data.
      */
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_F_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_F_fcn;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_F_fcn;
 
     /*!
      * Diffusion coefficient data
@@ -564,19 +569,22 @@ protected:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > > d_diffusion_coef_var,
         d_diffusion_coef_rhs_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_diffusion_coef_fcn;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_diffusion_coef_fcn;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > > d_diffusion_coef_rhs_map;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > >
+        d_diffusion_coef_rhs_map;
 
     /*!
      * Transported quantities.
      */
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_Q_var, d_Q_rhs_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_Q_u_map;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > >
+        d_Q_u_map;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_Q_F_map,
-        d_Q_Q_rhs_map;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > >
+        d_Q_F_map, d_Q_Q_rhs_map;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, TimeSteppingType>
         d_Q_diffusion_time_stepping_type;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, ConvectiveDifferencingType>
@@ -584,20 +592,24 @@ protected:
 
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, double> d_Q_diffusion_coef;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > > d_Q_diffusion_coef_variable;
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > >
+        d_Q_diffusion_coef_variable;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, bool> d_Q_is_diffusion_coef_variable;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, double> d_Q_damping_coef;
 
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_Q_init;
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+        d_Q_init;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coef;
+             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> >
+        d_Q_bc_coef;
 
     /*!
      * Objects to keep track of the resetting functions.
      */
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<ResetPropertiesFcnPtr> > d_Q_reset_fcns;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<void *> > d_Q_reset_fcns_ctx;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<ResetPropertiesFcnPtr> >
+        d_Q_reset_fcns;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<void*> > d_Q_reset_fcns_ctx;
     std::vector<int> d_Q_reset_priority;
 
     /*

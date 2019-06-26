@@ -33,6 +33,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/IBHydrodynamicForceEvaluator.h"
+#include "ibamr/INSStaggeredPressureBcCoef.h"
+#include "ibamr/namespaces.h"
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/IndexUtilities.h"
+
 #include "ArrayDataBasicOps.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
@@ -42,13 +48,10 @@
 #include "PatchHierarchy.h"
 #include "SideData.h"
 #include "SideIndex.h"
-#include "boost/array.hpp"
-#include "ibamr/INSStaggeredPressureBcCoef.h"
-#include "ibamr/namespaces.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/IndexUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
+
+#include "boost/array.hpp"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

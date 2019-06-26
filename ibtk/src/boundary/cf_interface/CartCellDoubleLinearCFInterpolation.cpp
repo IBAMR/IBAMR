@@ -32,10 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <ostream>
-#include <set>
-#include <vector>
+#include "IBTK_config.h"
+
+#include "ibtk/CartCellDoubleLinearCFInterpolation.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BoundaryBox.h"
 #include "Box.h"
@@ -46,18 +46,21 @@
 #include "CoarseFineBoundary.h"
 #include "ComponentSelector.h"
 #include "GridGeometry.h"
-#include "IBTK_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "RefineOperator.h"
-#include "ibtk/CartCellDoubleLinearCFInterpolation.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <stddef.h>
+
+#include <ostream>
+#include <set>
+#include <vector>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -68,21 +71,22 @@
 #endif
 
 // Function interfaces
-extern "C" {
-void CC_LINEAR_NORMAL_INTERPOLATION_FC(double* U,
-                                       const int& U_gcw,
-                                       const int& ilower0,
-                                       const int& iupper0,
-                                       const int& ilower1,
-                                       const int& iupper1,
+extern "C"
+{
+    void CC_LINEAR_NORMAL_INTERPOLATION_FC(double* U,
+                                           const int& U_gcw,
+                                           const int& ilower0,
+                                           const int& iupper0,
+                                           const int& ilower1,
+                                           const int& iupper1,
 #if (NDIM == 3)
-                                       const int& ilower2,
-                                       const int& iupper2,
+                                           const int& ilower2,
+                                           const int& iupper2,
 #endif
-                                       const int& loc_index,
-                                       const int& ratio,
-                                       const int* blower,
-                                       const int* bupper);
+                                           const int& loc_index,
+                                           const int& ratio,
+                                           const int* blower,
+                                           const int* bupper);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -95,7 +99,7 @@ namespace
 {
 static const int REFINE_OP_STENCIL_WIDTH = 1;
 static const int GHOST_WIDTH_TO_FILL = 1;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -294,8 +298,7 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch<NDIM>& patch,
         if (U_ghosts != (data->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartCellDoubleLinearCFInterpolation::computeNormalExtension():\n"
-                       << "   patch data does not have uniform ghost cell widths"
-                       << std::endl);
+                       << "   patch data does not have uniform ghost cell widths" << std::endl);
         }
 #endif
         const int data_depth = data->getDepth();

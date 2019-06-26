@@ -35,18 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "tbox/Pointer.h"
+#include "tbox/Serializable.h"
+
+#include "petscao.h"
+#include "petscvec.h"
+
 #include <map>
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "petscao.h"
-#include "petscvec.h"
-#include "tbox/Pointer.h"
-#include "tbox/Serializable.h"
 
 namespace IBTK
 {

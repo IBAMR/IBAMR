@@ -35,18 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <map>
-#include <string>
-#include <vector>
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CartesianGridGeometry.h"
 #include "PatchLevel.h"
-#include "boost/array.hpp"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/ibtk_utilities.h"
-#include "muParser.h"
 #include "tbox/Pointer.h"
+
+#include "boost/array.hpp"
+
+#include "muParser.h"
+
+#include <stddef.h>
+
+#include <map>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

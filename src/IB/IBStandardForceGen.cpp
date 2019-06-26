@@ -32,8 +32,35 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/IBBeamForceSpec.h"
+#include "ibamr/IBSpringForceSpec.h"
+#include "ibamr/IBStandardForceGen.h"
+#include "ibamr/IBTargetPointForceSpec.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/LData.h"
+#include "ibtk/LDataManager.h"
+#include "ibtk/LMesh.h"
+#include "ibtk/LNode.h"
+#include "ibtk/compiler_hints.h"
+#include "ibtk/ibtk_utilities.h"
+
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "tbox/Pointer.h"
+#include "tbox/Utilities.h"
+
+#include "petscmat.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include "boost/multi_array.hpp"
+
 #include <math.h>
 #include <stddef.h>
+
 #include <algorithm>
 #include <functional>
 #include <iterator>
@@ -43,28 +70,6 @@
 #include <set>
 #include <utility>
 #include <vector>
-
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "boost/multi_array.hpp"
-#include "ibamr/IBBeamForceSpec.h"
-#include "ibamr/IBSpringForceSpec.h"
-#include "ibamr/IBStandardForceGen.h"
-#include "ibamr/IBTargetPointForceSpec.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/LData.h"
-#include "ibtk/LDataManager.h"
-#include "ibtk/LMesh.h"
-#include "ibtk/LNode.h"
-#include "ibtk/compiler_hints.h"
-#include "ibtk/ibtk_utilities.h"
-#include "petscmat.h"
-#include "petscsys.h"
-#include "petscvec.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -123,7 +128,7 @@ resetLocalOrNonlocalPETScIndices(std::vector<int>& inds,
     }
     return;
 } // resetLocalOrNonlocalPETScIndices
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

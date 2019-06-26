@@ -32,12 +32,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <algorithm>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibamr/INSStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSStaggeredPressureBcCoef.h"
+#include "ibamr/StokesBcCoefStrategy.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/ExtendedRobinBcCoefStrategy.h"
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -51,16 +53,17 @@
 #include "SideIndex.h"
 #include "Variable.h"
 #include "VariableContext.h"
-#include "ibamr/INSStaggeredHierarchyIntegrator.h"
-#include "ibamr/INSStaggeredPressureBcCoef.h"
-#include "ibamr/StokesBcCoefStrategy.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <stddef.h>
+
+#include <algorithm>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -345,8 +348,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
                 TBOX_ERROR(
                     "INSStaggeredPressureBcCoef::setBcCoefs(): unrecognized or unsupported "
                     "traction boundary condition type: "
-                    << enum_to_string<TractionBcType>(d_traction_bc_type)
-                    << "\n");
+                    << enum_to_string<TractionBcType>(d_traction_bc_type) << "\n");
             }
             }
         }

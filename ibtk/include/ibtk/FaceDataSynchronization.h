@@ -35,9 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
-
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
 #include "IntVector.h"
@@ -45,6 +42,9 @@
 #include "RefineAlgorithm.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

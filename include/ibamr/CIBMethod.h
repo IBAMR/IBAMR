@@ -35,12 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "RobinBcCoefStrategy.h"
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/IBMethod.h"
-#include "ibamr/IBMethod.h"
+
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
+
+#include "RobinBcCoefStrategy.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -226,9 +227,9 @@ public:
         bool initial_time);
 
     /*!
-    * \brief Interpolate the Eulerian velocity to the curvilinear mesh at the
-    * specified time within the current time interval.
-    */
+     * \brief Interpolate the Eulerian velocity to the curvilinear mesh at the
+     * specified time within the current time interval.
+     */
     void interpolateVelocity(
         int u_data_idx,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,

@@ -32,15 +32,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <vector>
-
-#include "IntVector.h"
 #include "ibtk/LSet.h"
 #include "ibtk/LTransaction.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
+#include "IntVector.h"
 #include "tbox/AbstractStream.h"
+
+#include <ostream>
+#include <vector>
 
 namespace IBTK
 {

@@ -32,10 +32,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <algorithm>
-#include <ostream>
-#include <string>
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBStrategy.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/CartExtrapPhysBdryOp.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/CartGridFunctionSet.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/LMarkerSetVariable.h"
+#include "ibtk/LMarkerUtilities.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -60,21 +72,6 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/IBStrategy.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartCellRobinPhysBdryOp.h"
-#include "ibtk/CartExtrapPhysBdryOp.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/CartGridFunctionSet.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/LMarkerSetVariable.h"
-#include "ibtk/LMarkerUtilities.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -82,6 +79,12 @@
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
+
+#include <stddef.h>
+
+#include <algorithm>
+#include <ostream>
+#include <string>
 
 namespace SAMRAI
 {
@@ -102,7 +105,7 @@ namespace
 {
 // Version of IBHierarchyIntegrator restart file data.
 static const int IB_HIERARCHY_INTEGRATOR_VERSION = 2;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -211,8 +214,7 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
         if (d_error_on_dt_change)
         {
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():  Time step size change encountered.\n"
-                                     << "Aborting."
-                                     << std::endl);
+                                     << "Aborting." << std::endl);
         }
         if (d_warn_on_dt_change)
         {
@@ -711,8 +713,7 @@ IBHierarchyIntegrator::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
     int ver = db->getInteger("IB_HIERARCHY_INTEGRATOR_VERSION");
     if (ver != IB_HIERARCHY_INTEGRATOR_VERSION)

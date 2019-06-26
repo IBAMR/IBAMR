@@ -32,9 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibtk/CartCellDoubleQuadraticRefine.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
@@ -44,12 +44,14 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
-#include "boost/array.hpp"
-#include "ibtk/CartCellDoubleQuadraticRefine.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include "boost/array.hpp"
+
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -89,7 +91,7 @@ coarsen(const Index<NDIM>& index, const IntVector<NDIM>& ratio)
     }
     return coarse_index;
 } // coarsen
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

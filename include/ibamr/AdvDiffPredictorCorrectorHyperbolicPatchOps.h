@@ -35,10 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
 #include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
+
 #include "tbox/Pointer.h"
+
+#include <string>
 
 namespace IBAMR
 {

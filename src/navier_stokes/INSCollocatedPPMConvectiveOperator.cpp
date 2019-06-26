@@ -32,10 +32,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/INSCollocatedPPMConvectiveOperator.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartExtrapPhysBdryOp.h"
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
@@ -47,7 +52,6 @@
 #include "CoarsenSchedule.h"
 #include "FaceData.h"
 #include "FaceVariable.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -62,17 +66,17 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/INSCollocatedPPMConvectiveOperator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartExtrapPhysBdryOp.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <stddef.h>
+
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -100,132 +104,104 @@ class RobinBcCoefStrategy;
 #define GODUNOV_EXTRAPOLATE_FC IBAMR_FC_FUNC_(godunov_extrapolate3d, GODUNOV_EXTRAPOLATE3D)
 #endif
 
-extern "C" {
-void ADVECT_DERIVATIVE_FC(const double*,
+extern "C"
+{
+    void ADVECT_DERIVATIVE_FC(const double*,
 #if (NDIM == 2)
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const int&,
-                          const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const int&,
+                              const int&,
 #endif
 #if (NDIM == 3)
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const int&,
-                          const int&,
-                          const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const int&,
+                              const int&,
+                              const int&,
 #endif
-                          double*);
+                              double*);
 
-void ADVECT_FLUX_FC(const double&,
+    void ADVECT_FLUX_FC(const double&,
 #if (NDIM == 2)
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const double*,
-                    const double*,
-                    const double*,
-                    const double*,
-                    double*,
-                    double*
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const double*,
+                        const double*,
+                        const double*,
+                        const double*,
+                        double*,
+                        double*
 #endif
 #if (NDIM == 3)
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const double*,
-                    const double*,
-                    const double*,
-                    const double*,
-                    const double*,
-                    const double*,
-                    double*,
-                    double*,
-                    double*
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const double*,
+                        const double*,
+                        const double*,
+                        const double*,
+                        const double*,
+                        const double*,
+                        double*,
+                        double*,
+                        double*
 #endif
-                    );
+    );
 
-void F_TO_C_DIV_FC(double*,
-                   const int&,
-                   const double&,
-#if (NDIM == 2)
-                   const double*,
-                   const double*,
-                   const int&,
-                   const int&,
-                   const int&,
-                   const int&,
-                   const int&,
-#endif
-#if (NDIM == 3)
-                   const double*,
-                   const double*,
-                   const double*,
-                   const int&,
-                   const int&,
-                   const int&,
-                   const int&,
-                   const int&,
-                   const int&,
-                   const int&,
-#endif
-                   const double*);
-
-void F_TO_C_DIV_ADD_FC(double*,
+    void F_TO_C_DIV_FC(double*,
                        const int&,
                        const double&,
 #if (NDIM == 2)
                        const double*,
                        const double*,
                        const int&,
-                       const double&,
-                       const double*,
-                       const int&,
                        const int&,
                        const int&,
                        const int&,
@@ -234,9 +210,6 @@ void F_TO_C_DIV_ADD_FC(double*,
 #if (NDIM == 3)
                        const double*,
                        const double*,
-                       const double*,
-                       const int&,
-                       const double&,
                        const double*,
                        const int&,
                        const int&,
@@ -248,56 +221,88 @@ void F_TO_C_DIV_ADD_FC(double*,
 #endif
                        const double*);
 
-void GODUNOV_EXTRAPOLATE_FC(
+    void F_TO_C_DIV_ADD_FC(double*,
+                           const int&,
+                           const double&,
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    double*,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    double*,
-    double*
+                           const double*,
+                           const double*,
+                           const int&,
+                           const double&,
+                           const double*,
+                           const int&,
+                           const int&,
+                           const int&,
+                           const int&,
+                           const int&,
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    double*,
-    double*,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    double*,
-    double*,
-    double*
+                           const double*,
+                           const double*,
+                           const double*,
+                           const int&,
+                           const double&,
+                           const double*,
+                           const int&,
+                           const int&,
+                           const int&,
+                           const int&,
+                           const int&,
+                           const int&,
+                           const int&,
+#endif
+                           const double*);
+
+    void GODUNOV_EXTRAPOLATE_FC(
+#if (NDIM == 2)
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        double*,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        double*,
+        double*
+#endif
+#if (NDIM == 3)
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        double*,
+        double*,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        double*,
+        double*,
+        double*
 #endif
     );
 }
@@ -321,7 +326,7 @@ static Timer* t_apply_convective_operator;
 static Timer* t_apply;
 static Timer* t_initialize_operator_state;
 static Timer* t_deallocate_operator_state;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -348,8 +353,7 @@ INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator(
     {
         TBOX_ERROR("INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator():\n"
                    << "  unsupported differencing form: "
-                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
-                   << " \n"
+                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
@@ -542,7 +546,7 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
                     u_extrap_data->getPointer(1, axis),
                     u_extrap_data->getPointer(2, axis)
 #endif
-                        );
+                );
             }
 
             // If we are using conservative or skew-symmetric differencing,
@@ -609,7 +613,7 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
                                    u_flux_data->getPointer(1, axis),
                                    u_flux_data->getPointer(2, axis)
 #endif
-                                       );
+                    );
                 }
             }
         }

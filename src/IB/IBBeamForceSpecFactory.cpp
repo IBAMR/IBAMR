@@ -32,16 +32,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <utility>
-#include <vector>
-
-#include "Eigen/Core"
 #include "ibamr/IBBeamForceSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
+
 #include "tbox/AbstractStream.h"
 #include "tbox/Pointer.h"
+
+#include "Eigen/Core"
+
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {

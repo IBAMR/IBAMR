@@ -32,8 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibamr/IBStrategy.h"
+#include "ibamr/IBStrategySet.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -41,11 +42,11 @@
 #include "IntVector.h"
 #include "LoadBalancer.h"
 #include "PatchHierarchy.h"
-#include "ibamr/IBStrategy.h"
-#include "ibamr/IBStrategySet.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace IBTK
 {

@@ -35,15 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-
-#include <deque>
-#include <list>
-#include <map>
-#include <ostream>
-#include <set>
-#include <string>
-#include <vector>
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/ibtk_enums.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -58,12 +52,19 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "VisItDataWriter.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/ibtk_enums.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
+
+#include <stddef.h>
+
+#include <deque>
+#include <list>
+#include <map>
+#include <ostream>
+#include <set>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

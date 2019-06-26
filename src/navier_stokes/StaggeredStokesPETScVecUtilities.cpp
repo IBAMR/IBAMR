@@ -32,12 +32,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <numeric>
-#include <ostream>
-#include <stddef.h>
-#include <string>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/StaggeredStokesPETScVecUtilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/SideSynchCopyFillPattern.h"
+#include "ibtk/compiler_hints.h"
 
 #include "Box.h"
 #include "BoxList.h"
@@ -46,7 +49,6 @@
 #include "CellGeometry.h"
 #include "CellIndex.h"
 #include "CellVariable.h"
-#include "IBAMR_config.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
@@ -62,18 +64,22 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "boost/array.hpp"
-#include "ibamr/StaggeredStokesPETScVecUtilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/SideSynchCopyFillPattern.h"
-#include "ibtk/compiler_hints.h"
-#include "petscsys.h"
-#include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include "boost/array.hpp"
+
+#include <stddef.h>
+
+#include <algorithm>
+#include <numeric>
+#include <ostream>
+#include <string>
+#include <vector>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -88,62 +94,63 @@
 #define COPY_FROM_PATCHLEVEL_VEC_MAC_FC IBAMR_FC_FUNC_(copy_from_patchlevel_vec_mac3d, COPY_FROM_PATCHLEVEL_VEC_MAC3D)
 #endif
 
-extern "C" {
-void COPY_TO_PATCHLEVEL_VEC_MAC_FC(const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
+extern "C"
+{
+    void COPY_TO_PATCHLEVEL_VEC_MAC_FC(const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
 #if (NDIM == 3)
-                                   const int&,
-                                   const int&,
+                                       const int&,
+                                       const int&,
 #endif
-                                   const int&,
-                                   const int&,
-                                   const double*,
-                                   const int&,
-                                   const double*,
-                                   const double*,
+                                       const int&,
+                                       const int&,
+                                       const double*,
+                                       const int&,
+                                       const double*,
+                                       const double*,
 #if (NDIM == 3)
-                                   const double*,
+                                       const double*,
 #endif
-                                   const int&,
-                                   const int*,
-                                   const int&,
-                                   const int*,
-                                   const int*,
+                                       const int&,
+                                       const int*,
+                                       const int&,
+                                       const int*,
+                                       const int*,
 #if (NDIM == 3)
-                                   const int*,
+                                       const int*,
 #endif
-                                   const int&,
-                                   double*);
+                                       const int&,
+                                       double*);
 
-void COPY_FROM_PATCHLEVEL_VEC_MAC_FC(const int&,
-                                     const int&,
-                                     const int&,
-                                     const int&,
+    void COPY_FROM_PATCHLEVEL_VEC_MAC_FC(const int&,
+                                         const int&,
+                                         const int&,
+                                         const int&,
 #if (NDIM == 3)
-                                     const int&,
-                                     const int&,
+                                         const int&,
+                                         const int&,
 #endif
-                                     const int&,
-                                     const int&,
-                                     double*,
-                                     const int&,
-                                     double*,
-                                     double*,
+                                         const int&,
+                                         const int&,
+                                         double*,
+                                         const int&,
+                                         double*,
+                                         double*,
 #if (NDIM == 3)
-                                     double*,
+                                         double*,
 #endif
-                                     const int&,
-                                     const int*,
-                                     const int&,
-                                     const int*,
-                                     const int*,
+                                         const int&,
+                                         const int*,
+                                         const int&,
+                                         const int*,
+                                         const int*,
 #if (NDIM == 3)
-                                     const int*,
+                                         const int*,
 #endif
-                                     const int&,
-                                     const double*);
+                                         const int&,
+                                         const double*);
 }
 
 namespace SAMRAI
@@ -195,11 +202,8 @@ StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(Vec& vec,
     else
     {
         TBOX_ERROR("StaggeredStokesPETScVecUtilities::copyToPatchLevelVec():\n"
-                   << "  unsupported data centering types for variables "
-                   << u_data_var->getName()
-                   << " and "
-                   << p_data_var->getName()
-                   << "\n");
+                   << "  unsupported data centering types for variables " << u_data_var->getName() << " and "
+                   << p_data_var->getName() << "\n");
     }
     return;
 } // copyToPatchLevelVec
@@ -247,11 +251,8 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     else
     {
         TBOX_ERROR("StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec():\n"
-                   << "  unsupported data centering types for variables "
-                   << u_data_var->getName()
-                   << " and "
-                   << p_data_var->getName()
-                   << "\n");
+                   << "  unsupported data centering types for variables " << u_data_var->getName() << " and "
+                   << p_data_var->getName() << "\n");
     }
     if (ghost_fill_sched)
     {
@@ -288,11 +289,8 @@ StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_id
     else
     {
         TBOX_ERROR("StaggeredStokesPETScVecUtilities::constructDataSynchSchedule():\n"
-                   << "  unsupported data centering types for variables "
-                   << u_data_var->getName()
-                   << " and "
-                   << p_data_var->getName()
-                   << "\n");
+                   << "  unsupported data centering types for variables " << u_data_var->getName() << " and "
+                   << p_data_var->getName() << "\n");
     }
     return data_synch_sched;
 } // constructDataSynchSchedule
@@ -328,11 +326,8 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>
     else
     {
         TBOX_ERROR("StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices():\n"
-                   << "  unsupported data centering types for variables "
-                   << u_dof_index_var->getName()
-                   << " and "
-                   << p_dof_index_var->getName()
-                   << "\n");
+                   << "  unsupported data centering types for variables " << u_dof_index_var->getName() << " and "
+                   << p_dof_index_var->getName() << "\n");
     }
     return;
 } // constructPatchLevelDOFIndices

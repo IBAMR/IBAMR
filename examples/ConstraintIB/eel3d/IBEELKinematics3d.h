@@ -34,14 +34,15 @@
 #define included_IBEELKinematics3d
 
 /////////////////////////////////////// INCLUDES ///////////////////////////////////////////
-#include <iostream>
-#include <vector>
+#include "ibamr/ConstraintIBKinematics.h"
 
+#include "PatchHierarchy.h"
+#include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
-#include "tbox/Array.h"
-#include "PatchHierarchy.h"
-#include "ibamr/ConstraintIBKinematics.h"
+
+#include <iostream>
+#include <vector>
 
 namespace mu
 {
@@ -207,6 +208,6 @@ private:
 
 }; // IBEELKinematics3d
 
-} // IBAMR
+} // namespace IBAMR
 
 #endif //#ifndef included_IBEELKinematics3d

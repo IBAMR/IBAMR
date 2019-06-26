@@ -35,10 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "tbox/DescribedClass.h"
+
 #include <string>
 #include <vector>
-
-#include "tbox/DescribedClass.h"
 
 namespace IBTK
 {

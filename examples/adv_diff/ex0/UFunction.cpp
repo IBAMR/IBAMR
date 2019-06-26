@@ -35,6 +35,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <IBAMR_config.h>
+
 #include <SAMRAI_config.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
@@ -138,9 +139,7 @@ UFunction::setDataOnPatch(const int data_idx,
     else
     {
         TBOX_ERROR(d_object_name << "::setDataOnPatch()\n"
-                                 << "  invalid initialization type "
-                                 << d_init_type
-                                 << "\n");
+                                 << "  invalid initialization type " << d_init_type << "\n");
     }
     return;
 } // setDataOnPatch
@@ -175,9 +174,7 @@ UFunction::getFromInput(Pointer<Database> db)
         else
         {
             TBOX_ERROR(d_object_name << "::getFromInput()\n"
-                                     << "  invalid initialization type "
-                                     << d_init_type
-                                     << "\n");
+                                     << "  invalid initialization type " << d_init_type << "\n");
         }
     }
     return;

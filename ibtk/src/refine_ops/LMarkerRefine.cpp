@@ -32,15 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
-
-#include "Box.h"
-#include "CartesianPatchGeometry.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "boost/array.hpp"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LMarker.h"
 #include "ibtk/LMarkerRefine.h"
@@ -51,7 +42,18 @@
 #include "ibtk/LSetData.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
+#include "Box.h"
+#include "CartesianPatchGeometry.h"
+#include "Index.h"
+#include "IntVector.h"
+#include "Patch.h"
 #include "tbox/Pointer.h"
+
+#include "boost/array.hpp"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -74,7 +76,7 @@ namespace
 {
 static const int REFINE_OP_PRIORITY = 0;
 static const int REFINE_OP_STENCIL_WIDTH = 0;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

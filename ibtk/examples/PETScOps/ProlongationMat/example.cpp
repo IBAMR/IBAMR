@@ -30,6 +30,7 @@
 
 // Config files
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // C++ includes

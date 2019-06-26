@@ -30,6 +30,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -44,6 +45,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -118,8 +120,8 @@ run_example(int argc, char* argv[])
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         Pointer<INSVCStaggeredHierarchyIntegrator> time_integrator;
-        const string discretization_form = 
-            app_initializer->getComponentDatabase("Main")->getStringWithDefault("discretization_form", "NON_CONSERVATIVE");
+        const string discretization_form = app_initializer->getComponentDatabase("Main")->getStringWithDefault(
+            "discretization_form", "NON_CONSERVATIVE");
         if (discretization_form == "NON_CONSERVATIVE")
         {
             time_integrator = new INSVCStaggeredNonConservativeHierarchyIntegrator(

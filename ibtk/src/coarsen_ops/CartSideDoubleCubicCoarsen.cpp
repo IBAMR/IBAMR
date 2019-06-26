@@ -32,22 +32,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
+#include "IBTK_config.h"
+
+#include "ibtk/CartSideDoubleCubicCoarsen.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianSideDoubleWeightedAverage.h"
-#include "IBTK_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "SideData.h"
 #include "SideVariable.h"
-#include "ibtk/CartSideDoubleCubicCoarsen.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <ostream>
+#include <string>
 
 namespace SAMRAI
 {
@@ -67,38 +69,39 @@ class Variable;
 #endif
 
 // Function interfaces
-extern "C" {
-void SC_CUBIC_COARSEN_FC(double* U_coarse0,
-                         double* U_coarse1,
+extern "C"
+{
+    void SC_CUBIC_COARSEN_FC(double* U_coarse0,
+                             double* U_coarse1,
 #if (NDIM == 3)
-                         double* U_coarse2,
+                             double* U_coarse2,
 #endif
-                         const int& U_crse_gcw,
-                         const double* U_fine0,
-                         const double* U_fine1,
+                             const int& U_crse_gcw,
+                             const double* U_fine0,
+                             const double* U_fine1,
 #if (NDIM == 3)
-                         const double* U_fine2,
+                             const double* U_fine2,
 #endif
-                         const int& U_fine_gcw,
-                         const int& ilowerc0,
-                         const int& iupperc0,
-                         const int& ilowerc1,
-                         const int& iupperc1,
+                             const int& U_fine_gcw,
+                             const int& ilowerc0,
+                             const int& iupperc0,
+                             const int& ilowerc1,
+                             const int& iupperc1,
 #if (NDIM == 3)
-                         const int& ilowerc2,
-                         const int& iupperc2,
+                             const int& ilowerc2,
+                             const int& iupperc2,
 #endif
-                         const int& ilowerf0,
-                         const int& iupperf0,
-                         const int& ilowerf1,
-                         const int& iupperf1,
+                             const int& ilowerf0,
+                             const int& iupperf0,
+                             const int& ilowerf1,
+                             const int& iupperf1,
 #if (NDIM == 3)
-                         const int& ilowerf2,
-                         const int& iupperf2,
+                             const int& ilowerf2,
+                             const int& iupperf2,
 #endif
-                         const int* ratio_to_coarser,
-                         const int* fblower,
-                         const int* fbupper);
+                             const int* ratio_to_coarser,
+                             const int* fblower,
+                             const int* fbupper);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -165,8 +168,7 @@ CartSideDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
     {
         IBTK_DO_ONCE(TBOX_WARNING("CartSideDoubleCubicCoarsen::coarsen():\n"
                                   << "  cubic coarsening requires a refinement ratio of 4 or larger.\n"
-                                  << "  reverting to weighted averaging."
-                                  << std::endl););
+                                  << "  reverting to weighted averaging." << std::endl););
         d_weighted_average_coarsen_op.coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
         return;
     }
@@ -178,22 +180,19 @@ CartSideDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
     if (U_fine_ghosts != (fdata->getGhostCellWidth()).min())
     {
         TBOX_ERROR("CartSideDoubleCubicCoarsen::coarsen():\n"
-                   << "   fine patch data does not have uniform ghost cell widths"
-                   << std::endl);
+                   << "   fine patch data does not have uniform ghost cell widths" << std::endl);
     }
     if (U_crse_ghosts != (cdata->getGhostCellWidth()).min())
     {
         TBOX_ERROR("CartSideDoubleCubicCoarsen::coarsen():\n"
-                   << "   coarse patch data does not have uniform ghost cell widths"
-                   << std::endl);
+                   << "   coarse patch data does not have uniform ghost cell widths" << std::endl);
     }
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (ratio(d) % 2 == 1)
         {
             TBOX_ERROR("CartSideDoubleCubicCoarsen::coarsen():\n"
-                       << "   refinement ratio between coarse and fine index spaces is odd"
-                       << std::endl);
+                       << "   refinement ratio between coarse and fine index spaces is odd" << std::endl);
         }
     }
 #endif

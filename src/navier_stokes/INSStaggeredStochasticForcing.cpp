@@ -32,12 +32,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stddef.h>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/INSStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSStaggeredStochasticForcing.h"
+#include "ibamr/RNG.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/PhysicalBoundaryUtilities.h"
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -51,7 +56,6 @@
 #include "EdgeIndex.h"    // IWYU pragma: keep
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
@@ -69,18 +73,18 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/INSStaggeredHierarchyIntegrator.h"
-#include "ibamr/INSStaggeredStochasticForcing.h"
-#include "ibamr/RNG.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <math.h>
+#include <stddef.h>
+
+#include <limits>
+#include <ostream>
+#include <string>
+#include <vector>
 
 #if (NDIM == 2)
 #include "ibtk/NodeDataSynchronization.h"
@@ -99,51 +103,52 @@
     IBAMR_FC_FUNC_(navier_stokes_stochastic_stress_div3d, NAVIER_STOKES_STOCHASTIC_STRESS_DIV3D)
 #endif
 
-extern "C" {
-void NAVIER_STOKES_STOCHASTIC_STRESS_DIV_FC(
+extern "C"
+{
+    void NAVIER_STOKES_STOCHASTIC_STRESS_DIV_FC(
 #if (NDIM == 2)
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double&,
-    const int&,
-    const int&,
-    const double*,
-    const int&,
-    const int&,
-    const double*,
-    const int&,
-    const int&,
-    double*,
-    double*
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double&,
+        const int&,
+        const int&,
+        const double*,
+        const int&,
+        const int&,
+        const double*,
+        const int&,
+        const int&,
+        double*,
+        double*
 #endif
 #if (NDIM == 3)
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*
 #endif
     );
 }
@@ -176,7 +181,7 @@ genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
     }
     return;
 } // genrandn
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -447,8 +452,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 {
                     TBOX_ERROR(d_object_name << "::setDataOnPatchHierarchy():\n"
                                              << "  unrecognized stress tensor type: "
-                                             << enum_to_string<StochasticStressTensorType>(d_stress_tensor_type)
-                                             << "."
+                                             << enum_to_string<StochasticStressTensorType>(d_stress_tensor_type) << "."
                                              << std::endl);
                 }
 

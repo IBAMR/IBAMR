@@ -35,14 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibtk/LSiloDataWriter.h"
 
 #include "VisItDataWriter.h"
-#include "ibtk/LSiloDataWriter.h"
 #include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

@@ -35,12 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LNodeSet.h"
+#include "ibtk/LNodeSetVariable.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ParallelSet.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchLevel.h"
 #include "CartesianGridGeometry.h"
@@ -56,16 +56,19 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "VisItDataWriter.h"
-#include "ibtk/LInitStrategy.h"
-#include "ibtk/LNodeSet.h"
-#include "ibtk/LNodeSetVariable.h"
-#include "ibtk/LSiloDataWriter.h"
-#include "ibtk/ParallelSet.h"
-#include "ibtk/ibtk_utilities.h"
-#include "petscao.h"
-#include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
+
+#include "petscao.h"
+#include "petscvec.h"
+
+#include <stddef.h>
+
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace IBTK
 {
@@ -903,8 +906,7 @@ public:
      * Register user defined Lagrangian data to be maintained
      *
      */
-    void registerUserDefinedLData(const std::string& data_name,
-                                  int depth);
+    void registerUserDefinedLData(const std::string& data_name, int depth);
 
 protected:
     /*!

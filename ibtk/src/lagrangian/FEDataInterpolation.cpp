@@ -76,7 +76,7 @@ FEDataInterpolation::registerSystem(const System& system,
 {
     TBOX_ASSERT(!d_initialized && (!phi_vars.empty() || !dphi_vars.empty()));
     const unsigned int sys_num = system.number();
-    for (std::vector<const System *>::iterator it = d_noninterp_systems.begin(), it_end = d_noninterp_systems.end();
+    for (std::vector<const System*>::iterator it = d_noninterp_systems.begin(), it_end = d_noninterp_systems.end();
          it != it_end;
          ++it)
     {
@@ -128,7 +128,7 @@ FEDataInterpolation::registerInterpolatedSystem(const System& system,
 {
     TBOX_ASSERT(!d_initialized && (!vars.empty() || !grad_vars.empty()));
     const unsigned int sys_num = system.number();
-    for (std::vector<const System *>::iterator it = d_systems.begin(), it_end = d_systems.end(); it != it_end; ++it)
+    for (std::vector<const System*>::iterator it = d_systems.begin(), it_end = d_systems.end(); it != it_end; ++it)
     {
         if ((*it)->number() == sys_num)
         {

@@ -1,11 +1,13 @@
 // Filename LSLocateCircularInterface.cpp
 // Created on Nov 15, 2017 by Nishant Nangia
 
+#include <ibamr/app_namespaces.h>
+
+#include <ibtk/HierarchyMathOps.h>
+
 #include "LSLocateCircularInterface.h"
 
 #include <CartesianGridGeometry.h>
-#include <ibamr/app_namespaces.h>
-#include <ibtk/HierarchyMathOps.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

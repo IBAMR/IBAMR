@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibtk/LinearOperator.h"
 
 #include "PoissonSpecifications.h"
-#include "ibtk/LinearOperator.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

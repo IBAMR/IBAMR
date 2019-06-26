@@ -35,16 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
+#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 
 #include "HyperbolicLevelIntegrator.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
-#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <string>
 
 namespace SAMRAI
 {

@@ -35,13 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <string>
-#include <vector>
-
-#include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
+
+#include "petscvec.h"
+
+#include <stddef.h>
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -357,8 +359,8 @@ private:
     Vec d_global_vec;
     bool d_managing_petsc_vec;
     double* d_array;
-    boost::multi_array_ref<double, 1> *d_boost_array, *d_boost_local_array;
-    boost::multi_array_ref<double, 2> *d_boost_vec_array, *d_boost_local_vec_array;
+    boost::multi_array_ref<double, 1>*d_boost_array, *d_boost_local_array;
+    boost::multi_array_ref<double, 2>*d_boost_vec_array, *d_boost_local_vec_array;
 
     /*
      * The array corresponding to the PETSc Vec object in local form, its

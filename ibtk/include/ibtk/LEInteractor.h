@@ -35,14 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <iosfwd>
-#include <string>
-#include <vector>
-
 #include "Box.h"
 #include "IntVector.h"
 #include "tbox/Pointer.h"
+
+#include <stddef.h>
+
+#include <iosfwd>
+#include <string>
+#include <vector>
 
 namespace boost
 {

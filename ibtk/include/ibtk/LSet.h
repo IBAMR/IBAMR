@@ -35,15 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <vector>
-
-#include "IntVector.h"
 #include "ibtk/LMarker.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
+
+#include "IntVector.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include <stddef.h>
+
+#include <vector>
 
 namespace SAMRAI
 {

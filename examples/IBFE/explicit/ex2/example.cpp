@@ -30,6 +30,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -54,6 +55,7 @@
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -98,7 +100,7 @@ PK1_dil_stress_function(TensorValue<double>& PP,
     PP = -mu * tensor_inverse_transpose(FF, NDIM);
     return;
 } // PK1_dil_stress_function
-}
+} // namespace ModelData
 using namespace ModelData;
 
 // Function prototypes

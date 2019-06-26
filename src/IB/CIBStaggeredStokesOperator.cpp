@@ -37,7 +37,9 @@
 #include "ibamr/IBStrategy.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+
 #include "ibtk/PETScSAMRAIVectorReal.h"
+
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 
@@ -65,7 +67,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 // Timers.
 static Timer* t_apply;
 static Timer* t_initialize_operator_state;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

@@ -35,17 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <iosfwd>
-#include <string>
-
 #include "ibtk/NewtonKrylovSolver.h"
+
 #include "mpi.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
 #include "petscmat.h"
 #include "petscsnes.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+
+#include <iosfwd>
+#include <string>
 
 namespace IBTK
 {

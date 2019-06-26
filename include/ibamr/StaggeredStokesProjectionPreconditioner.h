@@ -35,14 +35,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
-#include "CellVariable.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/StaggeredStokesSolver.h"
+
 #include "ibtk/HierarchyGhostCellInterpolation.h"
+
+#include "CellVariable.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <string>
 
 namespace SAMRAI
 {

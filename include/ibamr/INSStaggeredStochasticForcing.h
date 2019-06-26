@@ -33,9 +33,9 @@
 #ifndef included_IBAMR_INSStaggeredStochasticForcing
 #define included_IBAMR_INSStaggeredStochasticForcing
 
-#include <stddef.h>
-#include <string>
-#include <vector>
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/CartGridFunction.h"
 
 #include "CellVariable.h"
 #include "EdgeVariable.h" // IWYU pragma: keep
@@ -43,10 +43,13 @@
 #include "NodeVariable.h" // IWYU pragma: keep
 #include "PatchLevel.h"
 #include "VariableContext.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/CartGridFunction.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
+
+#include <stddef.h>
+
+#include <string>
+#include <vector>
 
 namespace IBAMR
 {

@@ -32,43 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <algorithm>
-#include <functional>
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include "ArrayData.h"
-#include "Box.h"
-#include "BoxList.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellDataFactory.h"
-#include "CellIndex.h"
-#include "CellVariable.h"
-#include "CoarsenOperator.h"
-#include "HierarchyCellDataOpsReal.h"
 #include "IBTK_config.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "Patch.h"
-#include "PatchDescriptor.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "PoissonSpecifications.h"
-#include "ProcessorMapping.h"
-#include "SAMRAIVectorReal.h"
-#include "SideData.h"
-#include "SideIndex.h"
-#include "Variable.h"
-#include "VariableDatabase.h"
-#include "VariableFillPattern.h"
-#include "boost/array.hpp"
+
 #include "ibtk/CCPoissonLevelRelaxationFACOperator.h"
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartCellDoubleCubicCoarsen.h"
@@ -86,9 +51,33 @@
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "petscmat.h"
-#include "petscsys.h"
-#include "petscvec.h"
+
+#include "ArrayData.h"
+#include "Box.h"
+#include "BoxList.h"
+#include "CartesianGridGeometry.h"
+#include "CartesianPatchGeometry.h"
+#include "CellData.h"
+#include "CellDataFactory.h"
+#include "CellIndex.h"
+#include "CellVariable.h"
+#include "CoarsenOperator.h"
+#include "HierarchyCellDataOpsReal.h"
+#include "Index.h"
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "Patch.h"
+#include "PatchDescriptor.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "PoissonSpecifications.h"
+#include "ProcessorMapping.h"
+#include "SAMRAIVectorReal.h"
+#include "SideData.h"
+#include "SideIndex.h"
+#include "Variable.h"
+#include "VariableDatabase.h"
+#include "VariableFillPattern.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MemoryDatabase.h"
@@ -97,6 +86,22 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include "petscmat.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include "boost/array.hpp"
+
+#include <stddef.h>
+
+#include <algorithm>
+#include <functional>
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -130,7 +135,7 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells; used only to evaluate composite grid residuals.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -221,8 +226,7 @@ CCPoissonLevelRelaxationFACOperator::setSmootherType(const std::string& level_so
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setSmootherType():\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
     if (d_level_solver_type != level_solver_type)
     {
@@ -238,8 +242,7 @@ CCPoissonLevelRelaxationFACOperator::setCoarseSolverType(const std::string& coar
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setCoarseSolverType():\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
@@ -486,12 +489,8 @@ CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     {
         TBOX_ERROR("CCPoissonLevelRelaxationFACOperator::initializeOperatorState()\n"
                    << "  solution and rhs vectors must have the same data depths\n"
-                   << "  solution data depth = "
-                   << solution_pdat_fac->getDefaultDepth()
-                   << "\n"
-                   << "  rhs      data depth = "
-                   << rhs_pdat_fac->getDefaultDepth()
-                   << std::endl);
+                   << "  solution data depth = " << solution_pdat_fac->getDefaultDepth() << "\n"
+                   << "  rhs      data depth = " << rhs_pdat_fac->getDefaultDepth() << std::endl);
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();

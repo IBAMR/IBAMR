@@ -30,6 +30,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -49,6 +50,7 @@
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/app_namespaces.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -218,7 +220,7 @@ run_example(int argc, char* argv[])
         {
             rho_var = new CellVariable<NDIM, double>("rho");
         }
-        
+
         time_integrator->registerMassDensityVariable(rho_var);
 
         Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");

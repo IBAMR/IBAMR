@@ -35,17 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/LinearOperator.h"
 
 #include "IntVector.h"
 #include "PoissonSpecifications.h"
 #include "SAMRAIVectorReal.h"
 #include "VariableFillPattern.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/LinearOperator.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

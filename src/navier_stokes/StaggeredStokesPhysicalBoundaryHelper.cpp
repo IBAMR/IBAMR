@@ -32,11 +32,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <map>
-#include <ostream>
-#include <utility>
-#include <vector>
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StokesBcCoefStrategy.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/ExtendedRobinBcCoefStrategy.h"
+#include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -52,15 +53,17 @@
 #include "SideData.h"
 #include "SideIndex.h"
 #include "Variable.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/StokesBcCoefStrategy.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/ExtendedRobinBcCoefStrategy.h"
-#include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <stddef.h>
+
+#include <map>
+#include <ostream>
+#include <utility>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

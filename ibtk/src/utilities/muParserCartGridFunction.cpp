@@ -32,11 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/muParserCartGridFunction.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
@@ -57,16 +56,19 @@
 #include "SideData.h"
 #include "SideIndex.h"
 #include "SideIterator.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/muParserCartGridFunction.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "muParser.h"
-#include "muParserError.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include "muParser.h"
+#include "muParserError.h"
+
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -141,12 +143,8 @@ muParserCartGridFunction::muParserCartGridFunction(const std::string& object_nam
         catch (mu::ParserError& e)
         {
             TBOX_ERROR("muParserCartGridFunction::setDataOnPatch():\n"
-                       << "  error: "
-                       << e.GetMsg()
-                       << "\n"
-                       << "  in:    "
-                       << e.GetExpr()
-                       << "\n");
+                       << "  error: " << e.GetMsg() << "\n"
+                       << "  in:    " << e.GetExpr() << "\n");
         }
         catch (...)
         {
@@ -170,12 +168,8 @@ muParserCartGridFunction::muParserCartGridFunction(const std::string& object_nam
             catch (mu::ParserError& e)
             {
                 TBOX_ERROR("muParserCartGridFunction::setDataOnPatch():\n"
-                           << "  error: "
-                           << e.GetMsg()
-                           << "\n"
-                           << "  in:    "
-                           << e.GetExpr()
-                           << "\n");
+                           << "  error: " << e.GetMsg() << "\n"
+                           << "  in:    " << e.GetExpr() << "\n");
             }
             catch (...)
             {
@@ -194,8 +188,7 @@ muParserCartGridFunction::muParserCartGridFunction(const std::string& object_nam
     {
         TBOX_ERROR("muParserCartGridFunction::muParserCartGridFunction():\n"
                    << "  no function keys found in input database.\n"
-                   << "  note that function specifications are assumed to be strings."
-                   << std::endl);
+                   << "  note that function specifications are assumed to be strings." << std::endl);
     }
 
     // Define the default and user-provided constants.
@@ -354,12 +347,8 @@ muParserCartGridFunction::setDataOnPatch(const int data_idx,
                 catch (mu::ParserError& e)
                 {
                     TBOX_ERROR("muParserCartGridFunction::setDataOnPatch():\n"
-                               << "  error: "
-                               << e.GetMsg()
-                               << "\n"
-                               << "  in:    "
-                               << e.GetExpr()
-                               << "\n");
+                               << "  error: " << e.GetMsg() << "\n"
+                               << "  in:    " << e.GetExpr() << "\n");
                 }
                 catch (...)
                 {
@@ -423,12 +412,8 @@ muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     catch (mu::ParserError& e)
                     {
                         TBOX_ERROR("muParserCartGridFunction::setDataOnPatch():\n"
-                                   << "  error: "
-                                   << e.GetMsg()
-                                   << "\n"
-                                   << "  in:    "
-                                   << e.GetExpr()
-                                   << "\n");
+                                   << "  error: " << e.GetMsg() << "\n"
+                                   << "  in:    " << e.GetExpr() << "\n");
                     }
                     catch (...)
                     {
@@ -461,12 +446,8 @@ muParserCartGridFunction::setDataOnPatch(const int data_idx,
                 catch (mu::ParserError& e)
                 {
                     TBOX_ERROR("muParserCartGridFunction::setDataOnPatch():\n"
-                               << "  error: "
-                               << e.GetMsg()
-                               << "\n"
-                               << "  in:    "
-                               << e.GetExpr()
-                               << "\n");
+                               << "  error: " << e.GetMsg() << "\n"
+                               << "  in:    " << e.GetExpr() << "\n");
                 }
                 catch (...)
                 {
@@ -528,12 +509,8 @@ muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     catch (mu::ParserError& e)
                     {
                         TBOX_ERROR("muParserCartGridFunction::setDataOnPatch():\n"
-                                   << "  error: "
-                                   << e.GetMsg()
-                                   << "\n"
-                                   << "  in:    "
-                                   << e.GetExpr()
-                                   << "\n");
+                                   << "  error: " << e.GetMsg() << "\n"
+                                   << "  in:    " << e.GetExpr() << "\n");
                     }
                     catch (...)
                     {
@@ -596,12 +573,8 @@ muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     catch (mu::ParserError& e)
                     {
                         TBOX_ERROR("muParserCartGridFunction::setDataOnPatch():\n"
-                                   << "  error: "
-                                   << e.GetMsg()
-                                   << "\n"
-                                   << "  in:    "
-                                   << e.GetExpr()
-                                   << "\n");
+                                   << "  error: " << e.GetMsg() << "\n"
+                                   << "  in:    " << e.GetExpr() << "\n");
                     }
                     catch (...)
                     {
@@ -615,8 +588,7 @@ muParserCartGridFunction::setDataOnPatch(const int data_idx,
     else
     {
         TBOX_ERROR("muParserCartGridFunction::setDataOnPatch():\n"
-                   << "  unsupported patch data type encountered."
-                   << std::endl);
+                   << "  unsupported patch data type encountered." << std::endl);
     }
     return;
 } // setDataOnPatch

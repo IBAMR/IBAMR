@@ -32,12 +32,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/LIndexSetData.h"
 #include "ibtk/LIndexSetDataFactory.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
+
 #include "Patch.h"
 #include "PatchData.h"
 #include "PatchDataFactory.h"
-#include "ibtk/LIndexSetData.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/ArenaManager.h"
 
 namespace IBTK
@@ -55,8 +56,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-LIndexSetDataFactory<T>::LIndexSetDataFactory(const IntVector<NDIM>& ghosts)
-    : LSetDataFactory<T>(ghosts)
+LIndexSetDataFactory<T>::LIndexSetDataFactory(const IntVector<NDIM>& ghosts) : LSetDataFactory<T>(ghosts)
 {
     // intentionally blank
     return;

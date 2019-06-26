@@ -32,8 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <limits>
-
 #include "ibamr/CIBMobilitySolver.h"
 #include "ibamr/CIBSaddlePointSolver.h"
 #include "ibamr/CIBStaggeredStokesOperator.h"
@@ -45,6 +43,7 @@
 #include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h"
+
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/LinearSolver.h"
@@ -52,8 +51,11 @@
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/ibtk_utilities.h"
+
 #include "petsc/private/petscimpl.h"
 #include "tbox/TimerManager.h"
+
+#include <limits>
 
 namespace IBAMR
 {
@@ -78,7 +80,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 static Timer* t_solve_system;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
-} // anonymous
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -822,13 +824,15 @@ CIBSaddlePointSolver::reportKSPConvergedReason(const KSPConvergedReason& reason,
         os << d_object_name << ": diverged: breakdown in the bi-congugate gradient method.\n";
         break;
     case KSP_DIVERGED_NONSYMMETRIC:
-        os << d_object_name << ": diverged: it appears the operator or preconditioner is not symmetric, but this "
-                               "Krylov method (KSPCG, KSPMINRES, KSPCR) requires symmetry\n";
+        os << d_object_name
+           << ": diverged: it appears the operator or preconditioner is not symmetric, but this "
+              "Krylov method (KSPCG, KSPMINRES, KSPCR) requires symmetry\n";
         break;
     case KSP_DIVERGED_INDEFINITE_PC:
-        os << d_object_name << ": diverged: it appears the preconditioner is indefinite (has both positive and "
-                               "negative eigenvalues), but this Krylov method (KSPCG) requires it to be positive "
-                               "definite.\n";
+        os << d_object_name
+           << ": diverged: it appears the preconditioner is indefinite (has both positive and "
+              "negative eigenvalues), but this Krylov method (KSPCG) requires it to be positive "
+              "definite.\n";
         break;
     case KSP_CONVERGED_ITERATING:
         os << d_object_name << ": iterating: KSPSolve() is still running.\n";
@@ -916,9 +920,7 @@ CIBSaddlePointSolver::resetKSPPC()
     if (!(pc_type == "none" || pc_type == "shell"))
     {
         TBOX_ERROR(d_object_name << "::resetKSPPC()\n"
-                                 << "  valid values for -"
-                                 << d_options_prefix
-                                 << "pc_type are: none, shell"
+                                 << "  valid values for -" << d_options_prefix << "pc_type are: none, shell"
                                  << std::endl);
     }
 
@@ -1144,6 +1146,6 @@ CIBSaddlePointSolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void* /*mctx*
 } // monitorKSP
 //////////////////////////////////////////////////////////////////////////////
 
-} // namespace IBTK
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

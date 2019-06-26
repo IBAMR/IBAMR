@@ -32,21 +32,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/KrylovLinearSolverManager.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Utilities.h"
+
+#include <stddef.h>
+
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -97,9 +99,7 @@ KrylovLinearSolverManager::allocateSolver(const std::string& solver_type,
     if (it == d_solver_maker_map.end())
     {
         TBOX_ERROR("KrylovLinearSolverManager::allocateSolver():\n"
-                   << "  unrecognized solver type: "
-                   << solver_type
-                   << "\n");
+                   << "  unrecognized solver type: " << solver_type << "\n");
     }
     return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
 } // allocateSolver

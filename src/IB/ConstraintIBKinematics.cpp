@@ -32,16 +32,18 @@
 
 /////////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include "tbox/Utilities.h"
-#include "ibamr/namespaces.h"
 #include "ibamr/ConstraintIBKinematics.h"
+#include "ibamr/namespaces.h"
+
+#include "tbox/Utilities.h"
+
+#include <string>
 
 namespace IBAMR
 {
 namespace
 {
-} // namespace anonymous
+} // namespace
 
 ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Database> input_db,
                                                                  LDataManager* l_data_manager)
@@ -71,10 +73,8 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Databas
         }
         else
         {
-            TBOX_ERROR("StructureParameters::StructureParameters() Structure " << struct_names[i]
-                                                                               << " does not exist on level "
-                                                                               << level
-                                                                               << std::endl);
+            TBOX_ERROR("StructureParameters::StructureParameters() Structure "
+                       << struct_names[i] << " does not exist on level " << level << std::endl);
         }
     }
 
@@ -91,8 +91,7 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Databas
     {
         TBOX_ERROR("ERROR:: StructureParameters::StructureParameters( ) "
                    << "\n"
-                   << "Only self translating/propelling bodies can be self rotating."
-                   << std::endl);
+                   << "Only self translating/propelling bodies can be self rotating." << std::endl);
     }
 
     d_lag_position_update_method = input_db->getString("lag_position_update_method");
@@ -166,6 +165,6 @@ void ConstraintIBKinematics::putToDatabase(Pointer<Database> /*db*/)
     return;
 }
 
-} // IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

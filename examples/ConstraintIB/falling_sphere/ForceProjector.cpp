@@ -31,13 +31,13 @@
 
 /////////////////////////////////////// INCLUDES ///////////////////////////////////////////
 
-#include "ForceProjector.h"
+#include "ibamr/namespaces.h"
 
 #include "Box.h"
+#include "ForceProjector.h"
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "VariableDatabase.h"
-#include "ibamr/namespaces.h"
 #include "tbox/Array.h"
 #include "tbox/PIO.h"
 
@@ -203,8 +203,7 @@ ForceProjector::calculateEulerianBodyForce(const double /*new_time*/, const doub
             else
             {
                 TBOX_ERROR("ForceProjector::calculateEulerianBodyForce() "
-                           << "UNKNOWN SOLVER ENCOUNTERED"
-                           << std::endl);
+                           << "UNKNOWN SOLVER ENCOUNTERED" << std::endl);
             }
 
         } // iterate over patches

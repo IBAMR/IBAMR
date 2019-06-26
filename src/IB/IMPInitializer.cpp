@@ -32,15 +32,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <algorithm>
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibamr/IMPInitializer.h"
+#include "ibamr/MaterialPointSpec.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/LData.h"
+#include "ibtk/LIndexSetData.h"
+#include "ibtk/LNode.h"
+#include "ibtk/LNodeSet.h"
+#include "ibtk/LNodeSetData.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "ibtk/Streamable.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
@@ -52,19 +56,13 @@
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "boost/multi_array.hpp"
-#include "ibamr/IMPInitializer.h"
-#include "ibamr/MaterialPointSpec.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/LData.h"
-#include "ibtk/LIndexSetData.h"
-#include "ibtk/LNode.h"
-#include "ibtk/LNodeSet.h"
-#include "ibtk/LNodeSetData.h"
-#include "ibtk/LSiloDataWriter.h"
-#include "ibtk/Streamable.h"
-#include "ibtk/ibtk_utilities.h"
+#include "tbox/Database.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+#include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
+
 #include "libmesh/auto_ptr.h"
 #include "libmesh/elem.h"
 #include "libmesh/enum_fe_family.h"
@@ -78,12 +76,19 @@
 #include "libmesh/quadrature.h"
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+
+#include "boost/multi_array.hpp"
+
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+
+#include <algorithm>
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace IBTK
 {
@@ -102,7 +107,7 @@ namespace
 {
 static const double MIN_POINTS = 1.0;
 static const double POINT_FACTOR = 2.0;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

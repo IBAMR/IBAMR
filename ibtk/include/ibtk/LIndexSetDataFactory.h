@@ -35,13 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include "ibtk/LSetDataFactory.h"
 
 #include "Box.h"
 #include "IntVector.h"
-#include "ibtk/LSetDataFactory.h"
 #include "tbox/Arena.h"
 #include "tbox/Pointer.h"
+
+#include <stddef.h>
 
 namespace SAMRAI
 {

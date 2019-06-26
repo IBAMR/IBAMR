@@ -35,24 +35,28 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <set>
-#include <stdbool.h>
-#include <stddef.h>
-#include <string>
-#include <vector>
+#include "ibamr/IBFEDirectForcingKinematics.h"
+#include "ibamr/IBStrategy.h"
+
+#include "ibtk/FEDataManager.h"
+#include "ibtk/libmesh_utilities.h"
 
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
 #include "LoadBalancer.h"
 #include "PatchHierarchy.h"
-#include "ibamr/IBFEDirectForcingKinematics.h"
-#include "ibamr/IBStrategy.h"
-#include "ibtk/FEDataManager.h"
-#include "ibtk/libmesh_utilities.h"
+#include "tbox/Pointer.h"
+
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
-#include "tbox/Pointer.h"
+
+#include <stdbool.h>
+#include <stddef.h>
+
+#include <set>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {
@@ -413,7 +417,7 @@ public:
                               double kappa,
                               libMesh::QBase* qrule1 = NULL,
                               libMesh::QBase* qrule2 = NULL);
-    
+
     /*!
      * Always reset the velocity of the nodes of part1 that overlap part2 to
      * equal the velocity of part2.
@@ -768,9 +772,9 @@ protected:
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
     std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems, d_Q_systems, d_Phi_systems;
-    std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double> *> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
-    std::vector<libMesh::PetscVector<double> *> d_F_half_vecs, d_F_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_Q_half_vecs, d_Q_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs;
 
@@ -816,7 +820,8 @@ protected:
     std::vector<boost::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2> >
         d_overlapping_elem_map;
     std::vector<double> d_overlap_force_part_kappa;
-    std::vector<boost::array<libMesh::QBase*, 2> > d_overlap_force_part_qrule; // \todo let's try to fix this when we switch to C++11!
+    std::vector<boost::array<libMesh::QBase*, 2> > d_overlap_force_part_qrule; // \todo let's try to fix this when we
+                                                                               // switch to C++11!
     std::vector<std::vector<double> > d_overlap_force_part_max_displacement;
 
     /*

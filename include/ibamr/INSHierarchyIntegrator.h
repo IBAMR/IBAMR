@@ -35,24 +35,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/PoissonSolver.h"
 
 #include "FaceVariable.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "Variable.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/PoissonSolver.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -487,9 +489,9 @@ protected:
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_U_init, d_P_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_bc_coefs;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM> *> d_bc_coefs, d_U_bc_coefs, d_U_star_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs, d_U_bc_coefs, d_U_star_bc_coefs;
     TractionBcType d_traction_bc_type;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM> *d_P_bc_coef, *d_Phi_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>*d_P_bc_coef, *d_Phi_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_P_bdry_bc_fill_op,
         d_Q_bdry_bc_fill_op, d_no_fill_op;

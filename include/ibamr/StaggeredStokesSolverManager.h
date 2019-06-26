@@ -35,12 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <string>
-
 #include "ibamr/StaggeredStokesSolver.h"
+
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <map>
+#include <string>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

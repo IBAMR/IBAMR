@@ -32,14 +32,52 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <cmath>
-#include <deque>
-#include <limits>
-#include <ostream>
-#include <stddef.h>
-#include <string>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/INSIntermediateVelocityBcCoef.h"
+#include "ibamr/INSProjectionBcCoef.h"
+#include "ibamr/INSStaggeredConvectiveOperatorManager.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredPressureBcCoef.h"
+#include "ibamr/INSVCStaggeredVelocityBcCoef.h"
+#include "ibamr/PETScKrylovStaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesBlockPreconditioner.h"
+#include "ibamr/StaggeredStokesFACPreconditioner.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/VCStaggeredStokesOperator.h"
+#include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CCPoissonSolverManager.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/CartSideDoubleDivPreservingRefine.h"
+#include "ibtk/CartSideDoubleSpecializedConstantRefine.h"
+#include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/CellNoCornersFillPattern.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/KrylovLinearSolver.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/NewtonKrylovSolver.h"
+#include "ibtk/PETScKrylovPoissonSolver.h"
+#include "ibtk/PoissonSolver.h"
+#include "ibtk/SCPoissonSolverManager.h"
+#include "ibtk/SideDataSynchronization.h"
+#include "ibtk/VCSCViscousOpPointRelaxationFACOperator.h"
+#include "ibtk/VCSCViscousOperator.h"
+#include "ibtk/ibtk_enums.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "ArrayData.h"
 #include "BasePatchHierarchy.h"
@@ -67,7 +105,6 @@
 #include "HierarchyFaceDataOpsReal.h"
 #include "HierarchyNodeDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
@@ -91,49 +128,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/INSIntermediateVelocityBcCoef.h"
-#include "ibamr/INSProjectionBcCoef.h"
-#include "ibamr/INSStaggeredConvectiveOperatorManager.h"
-#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredPressureBcCoef.h"
-#include "ibamr/INSVCStaggeredVelocityBcCoef.h"
-#include "ibamr/PETScKrylovStaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesBlockPreconditioner.h"
-#include "ibamr/StaggeredStokesFACPreconditioner.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesSolverManager.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/VCStaggeredStokesOperator.h"
-#include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CCPoissonSolverManager.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/CartSideDoubleDivPreservingRefine.h"
-#include "ibtk/CartSideDoubleSpecializedConstantRefine.h"
-#include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/CellNoCornersFillPattern.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/KrylovLinearSolver.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/NewtonKrylovSolver.h"
-#include "ibtk/PETScKrylovPoissonSolver.h"
-#include "ibtk/PoissonSolver.h"
-#include "ibtk/SCPoissonSolverManager.h"
-#include "ibtk/SideDataSynchronization.h"
-#include "ibtk/VCSCViscousOpPointRelaxationFACOperator.h"
-#include "ibtk/VCSCViscousOperator.h"
-#include "ibtk/ibtk_enums.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -142,6 +136,16 @@
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include <stddef.h>
+
+#include <algorithm>
+#include <cmath>
+#include <deque>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -384,7 +388,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
         {
             mu_current_idx = d_mu_current_idx;
         }
-        
+
         d_hier_cc_data_ops->copyData(d_mu_scratch_idx, mu_current_idx, /*interior_only*/ true);
         d_mu_bdry_bc_fill_op->fillData(current_time);
 
@@ -1068,8 +1072,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
         int rho_current_idx;
         if (d_adv_diff_hier_integrator && d_rho_adv_diff_var)
         {
-            rho_current_idx =
-                var_db->mapVariableAndContextToIndex(d_rho_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+            rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_adv_diff_var,
+                                                                   d_adv_diff_hier_integrator->getCurrentContext());
         }
         else
         {
@@ -1118,7 +1122,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
     }
     else
     {
-        regrid_projection_spec.setDConstant(-1.0/d_problem_coefs.getRho());
+        regrid_projection_spec.setDConstant(-1.0 / d_problem_coefs.getRho());
     }
 
     LocationIndexRobinBcCoefs<NDIM> Phi_bc_coef;
@@ -1194,16 +1198,16 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
     else
     {
         d_hier_math_ops->grad(d_U_current_idx,
-                          d_U_var,
-                          /*synch_cf_bdry*/ true,
-                          -1.0/d_problem_coefs.getRho(),
-                          d_P_scratch_idx,
-                          d_P_var,
-                          d_no_fill_op,
-                          d_integrator_time,
-                          +1.0,
-                          d_U_current_idx,
-                          d_U_var);
+                              d_U_var,
+                              /*synch_cf_bdry*/ true,
+                              -1.0 / d_problem_coefs.getRho(),
+                              d_P_scratch_idx,
+                              d_P_var,
+                              d_no_fill_op,
+                              d_integrator_time,
+                              +1.0,
+                              d_U_current_idx,
+                              d_U_var);
     }
 
     // Deallocate scratch data.

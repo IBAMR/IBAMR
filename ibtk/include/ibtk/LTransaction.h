@@ -35,16 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <iosfwd>
-#include <vector>
-
 #include "ibtk/LMarker.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/LSet.h"
 #include "ibtk/ibtk_utilities.h"
+
 #include "tbox/Transaction.h"
+
+#include <stddef.h>
+
+#include <iosfwd>
+#include <vector>
 
 namespace SAMRAI
 {

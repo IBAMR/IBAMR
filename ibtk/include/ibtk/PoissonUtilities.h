@@ -35,14 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <vector>
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/ibtk_enums.h"
 
 #include "BoundaryBox.h"
 #include "PoissonSpecifications.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/ibtk_enums.h"
 #include "tbox/Pointer.h"
+
+#include <map>
+#include <vector>
 
 namespace SAMRAI
 {

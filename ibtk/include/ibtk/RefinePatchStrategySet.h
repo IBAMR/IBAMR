@@ -35,12 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
-
 #include "Box.h"
 #include "BoxList.h"
 #include "IntVector.h"
 #include "RefinePatchStrategy.h"
+
+#include <vector>
 
 namespace SAMRAI
 {

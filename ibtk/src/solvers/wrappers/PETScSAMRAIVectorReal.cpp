@@ -32,30 +32,33 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <algorithm>
-#include <ostream>
-
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/NormOps.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
 #include "mpi.h"
-#include "petscerror.h"
-#include "petscis.h"
-#include "petscmath.h"
-#include "petscsys.h"
-#include "petscvec.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include "petscerror.h"
+#include "petscis.h"
+#include "petscmath.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include <math.h>
+
+#include <algorithm>
+#include <ostream>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -123,7 +126,7 @@ static Timer* t_vec_dot_norm2;
 #define PSVR_CHECK3(v1, v2, v3)
 #define PSVR_CHECKN(v, N)
 #endif
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -368,10 +371,7 @@ PETScSAMRAIVectorReal::VecNorm_SAMRAI(Vec x, NormType type, PetscScalar* val)
     else
     {
         TBOX_ERROR("PETScSAMRAIVectorReal::norm()\n"
-                   << "  vector norm type "
-                   << static_cast<int>(type)
-                   << " unsupported"
-                   << std::endl);
+                   << "  vector norm type " << static_cast<int>(type) << " unsupported" << std::endl);
     }
     IBTK_TIMER_STOP(t_vec_norm);
     PetscFunctionReturn(0);
@@ -731,10 +731,7 @@ PETScSAMRAIVectorReal::VecNorm_local_SAMRAI(Vec x, NormType type, PetscScalar* v
     else
     {
         TBOX_ERROR("PETScSAMRAIVectorReal::norm()\n"
-                   << "  vector norm type "
-                   << static_cast<int>(type)
-                   << " unsupported"
-                   << std::endl);
+                   << "  vector norm type " << static_cast<int>(type) << " unsupported" << std::endl);
     }
     IBTK_TIMER_STOP(t_vec_norm_local);
     PetscFunctionReturn(0);

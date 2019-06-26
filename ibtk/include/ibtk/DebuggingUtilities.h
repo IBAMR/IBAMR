@@ -35,9 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
 #include "tbox/Pointer.h"
+
+#include <string>
 
 namespace IBTK
 {

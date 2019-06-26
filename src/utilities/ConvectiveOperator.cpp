@@ -33,8 +33,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/ConvectiveOperator.h"
-#include "SAMRAIVectorReal.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "SAMRAIVectorReal.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

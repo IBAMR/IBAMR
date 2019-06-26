@@ -32,9 +32,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <ostream>
-#include <string>
+#include "ibamr/StaggeredStokesBlockPreconditioner.h"
+#include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CellNoCornersFillPattern.h"
+#include "ibtk/GeneralSolver.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/PoissonSolver.h"
 
 #include "CellVariable.h"
 #include "HierarchyDataOpsReal.h"
@@ -49,22 +57,17 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "ibamr/StaggeredStokesBlockPreconditioner.h"
-#include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CellNoCornersFillPattern.h"
-#include "ibtk/GeneralSolver.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/PoissonSolver.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <stddef.h>
+
+#include <ostream>
+#include <string>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -94,7 +97,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 static Timer* t_solve_system;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -301,8 +304,7 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
     {
         // Scale F_phi by 2*mu*k and update pressure (D = -mu*k)
         d_pressure_data_ops->multiply(d_F_Phi_idx, d_F_Phi_idx, d_velocity_D_cc_idx);
-        d_pressure_data_ops->linearSum(
-            P_idx, 1.0 / getDt(), d_Phi_scratch_idx, -2.0, d_F_Phi_idx);
+        d_pressure_data_ops->linearSum(P_idx, 1.0 / getDt(), d_Phi_scratch_idx, -2.0, d_F_Phi_idx);
     }
 
     // (3) Evaluate U in terms of U^* and Phi.

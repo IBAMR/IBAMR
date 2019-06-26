@@ -32,14 +32,43 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <algorithm>
-#include <cmath>
-#include <deque>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/INSIntermediateVelocityBcCoef.h"
+#include "ibamr/INSProjectionBcCoef.h"
+#include "ibamr/INSStaggeredConvectiveOperatorManager.h"
+#include "ibamr/INSStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSStaggeredPressureBcCoef.h"
+#include "ibamr/INSStaggeredVelocityBcCoef.h"
+#include "ibamr/StaggeredStokesBlockPreconditioner.h"
+#include "ibamr/StaggeredStokesFACPreconditioner.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CCPoissonSolverManager.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/CartSideDoubleDivPreservingRefine.h"
+#include "ibtk/CartSideDoubleSpecializedConstantRefine.h"
+#include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/KrylovLinearSolver.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/NewtonKrylovSolver.h"
+#include "ibtk/PoissonSolver.h"
+#include "ibtk/SCPoissonSolverManager.h"
+#include "ibtk/SideDataSynchronization.h"
+#include "ibtk/ibtk_enums.h"
 
 #include "ArrayData.h"
 #include "BasePatchHierarchy.h"
@@ -63,7 +92,6 @@
 #include "HierarchyDataOpsReal.h"
 #include "HierarchyFaceDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
@@ -85,40 +113,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/INSIntermediateVelocityBcCoef.h"
-#include "ibamr/INSProjectionBcCoef.h"
-#include "ibamr/INSStaggeredConvectiveOperatorManager.h"
-#include "ibamr/INSStaggeredHierarchyIntegrator.h"
-#include "ibamr/INSStaggeredPressureBcCoef.h"
-#include "ibamr/INSStaggeredVelocityBcCoef.h"
-#include "ibamr/StaggeredStokesBlockPreconditioner.h"
-#include "ibamr/StaggeredStokesFACPreconditioner.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesSolverManager.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CCPoissonSolverManager.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/CartSideDoubleDivPreservingRefine.h"
-#include "ibtk/CartSideDoubleSpecializedConstantRefine.h"
-#include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/KrylovLinearSolver.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/NewtonKrylovSolver.h"
-#include "ibtk/PoissonSolver.h"
-#include "ibtk/SCPoissonSolverManager.h"
-#include "ibtk/SideDataSynchronization.h"
-#include "ibtk/ibtk_enums.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -127,6 +121,16 @@
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include <stddef.h>
+
+#include <algorithm>
+#include <cmath>
+#include <deque>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <vector>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -151,194 +155,195 @@
     IBAMR_FC_FUNC_(navier_stokes_staggered_skew_sym_source3d, NAVIER_STOKES_STAGGERED_SKEW_SYM_SOURCE3D)
 #endif
 
-extern "C" {
-void NAVIER_STOKES_SC_STABLEDT_FC(const double*,
+extern "C"
+{
+    void NAVIER_STOKES_SC_STABLEDT_FC(const double*,
 #if (NDIM == 2)
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const double*,
-                                  const double*,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const double*,
+                                      const double*,
 #endif
 #if (NDIM == 3)
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const int&,
-                                  const double*,
-                                  const double*,
-                                  const double*,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const int&,
+                                      const double*,
+                                      const double*,
+                                      const double*,
 #endif
-                                  double&);
+                                      double&);
 
-void NAVIER_STOKES_SIDE_TO_FACE_FC(
+    void NAVIER_STOKES_SIDE_TO_FACE_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    double*,
-    double*,
-    const int&
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        double*,
+        double*,
+        const int&
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&
 #endif
     );
 
-void NAVIER_STOKES_STAGGERED_ADV_SOURCE_FC(
+    void NAVIER_STOKES_STAGGERED_ADV_SOURCE_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        double*,
+        double*
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const double*,
-    double*,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const double*,
+        double*,
+        double*,
+        double*
 #endif
     );
 
-void NAVIER_STOKES_STAGGERED_CONS_SOURCE_FC(
+    void NAVIER_STOKES_STAGGERED_CONS_SOURCE_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        double*,
+        double*
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const double*,
-    double*,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const double*,
+        double*,
+        double*,
+        double*
 #endif
     );
 
-void NAVIER_STOKES_STAGGERED_SKEW_SYM_SOURCE_FC(
+    void NAVIER_STOKES_STAGGERED_SKEW_SYM_SOURCE_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        double*,
+        double*
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const double*,
-    double*,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const double*,
+        double*,
+        double*,
+        double*
 #endif
     );
 }
@@ -411,7 +416,7 @@ copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHierarchy
     }
     return;
 } // copy_side_to_face
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -475,8 +480,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
     default:
         TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                  << "  unsupported viscous time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type)
-                                 << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << " \n"
                                  << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
     switch (d_convective_time_stepping_type)
@@ -489,8 +493,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
     default:
         TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                  << "  unsupported convective time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
-                                 << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " \n"
                                  << "  valid choices are: ADAMS_BASHFORTH, FORWARD_EULER, "
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
@@ -505,8 +508,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
         default:
             TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                      << "  unsupported initial convective time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type)
-                                     << " \n"
+                                     << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type) << " \n"
                                      << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
     }
@@ -1087,9 +1089,7 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
                                  << "  time stepping type: "
                                  << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
                                  << " requires num_cycles > 1.\n"
-                                 << "  at current time step, num_cycles = "
-                                 << d_current_num_cycles
-                                 << "\n");
+                                 << "  at current time step, num_cycles = " << d_current_num_cycles << "\n");
     }
 
     // Allocate the scratch and new data.
@@ -1170,12 +1170,10 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
         if (adv_diff_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
         {
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                     << "  attempting to perform "
-                                     << d_current_num_cycles
+                                     << "  attempting to perform " << d_current_num_cycles
                                      << " cycles of fixed point iteration.\n"
                                      << "  number of cycles required by coupled advection-diffusion solver = "
-                                     << adv_diff_num_cycles
-                                     << ".\n"
+                                     << adv_diff_num_cycles << ".\n"
                                      << "  current implementation requires either that both solvers use the same "
                                         "number of cycles,\n"
                                      << "  or that the Navier-Stokes solver use only a single cycle.\n");
@@ -1261,12 +1259,11 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
     const int expected_num_cycles = getNumberOfCycles();
     if (d_current_num_cycles != expected_num_cycles)
     {
-        IBAMR_DO_ONCE(
-            {
-                pout << "INSStaggeredHierarchyIntegrator::integrateHierarchy():\n"
-                     << "  WARNING: num_cycles = " << d_current_num_cycles
-                     << " but expected num_cycles = " << expected_num_cycles << ".\n";
-            });
+        IBAMR_DO_ONCE({
+            pout << "INSStaggeredHierarchyIntegrator::integrateHierarchy():\n"
+                 << "  WARNING: num_cycles = " << d_current_num_cycles
+                 << " but expected num_cycles = " << expected_num_cycles << ".\n";
+        });
     }
 
     // Update the state variables of any linked advection-diffusion solver.
@@ -1459,10 +1456,8 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
         break;
     default:
         TBOX_ERROR(d_object_name << "::regridHierarchy():\n"
-                                 << "  unrecognized regrid mode: "
-                                 << IBTK::enum_to_string<RegridMode>(d_regrid_mode)
-                                 << "."
-                                 << std::endl);
+                                 << "  unrecognized regrid mode: " << IBTK::enum_to_string<RegridMode>(d_regrid_mode)
+                                 << "." << std::endl);
     }
 
     // Determine the divergence of the velocity field after regridding.
@@ -2455,8 +2450,9 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
         if (d_velocity_solver_needs_init)
         {
             if (d_enable_logging)
-                plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing "
-                                         "velocity subdomain solver"
+                plog << d_object_name
+                     << "::preprocessIntegrateHierarchy(): initializing "
+                        "velocity subdomain solver"
                      << std::endl;
             LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
             if (p_velocity_solver)
@@ -2478,8 +2474,9 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
         if (d_pressure_solver_needs_init)
         {
             if (d_enable_logging)
-                plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing "
-                                         "pressure subdomain solver"
+                plog << d_object_name
+                     << "::preprocessIntegrateHierarchy(): initializing "
+                        "pressure subdomain solver"
                      << std::endl;
             LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
             if (p_pressure_solver)
@@ -2553,8 +2550,9 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
     if (d_stokes_solver_needs_init)
     {
         if (d_enable_logging)
-            plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing "
-                                     "incompressible Stokes solver"
+            plog << d_object_name
+                 << "::preprocessIntegrateHierarchy(): initializing "
+                    "incompressible Stokes solver"
                  << std::endl;
         if (p_stokes_linear_solver)
         {
@@ -2636,7 +2634,7 @@ INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int
                     F_data->getPointer(1),
                     F_data->getPointer(2)
 #endif
-                        );
+                );
                 break;
             case ADVECTIVE:
                 NAVIER_STOKES_STAGGERED_ADV_SOURCE_FC(
@@ -2681,7 +2679,7 @@ INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int
                     F_data->getPointer(1),
                     F_data->getPointer(2)
 #endif
-                        );
+                );
                 break;
             case SKEW_SYMMETRIC:
                 NAVIER_STOKES_STAGGERED_SKEW_SYM_SOURCE_FC(
@@ -2726,7 +2724,7 @@ INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int
                     F_data->getPointer(1),
                     F_data->getPointer(2)
 #endif
-                        );
+                );
                 break;
             default:
                 TBOX_ERROR(
@@ -2757,17 +2755,16 @@ INSStaggeredHierarchyIntegrator::getConvectiveTimeSteppingType(const int cycle_n
         else if (cycle_num > 0)
         {
             convective_time_stepping_type = MIDPOINT_RULE;
-            IBAMR_DO_ONCE(
-                {
-                    pout << "INSStaggeredHierarchyIntegrator::integrateHierarchy():\n"
-                         << "  WARNING: convective_time_stepping_type = "
-                         << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
-                         << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
-                         << "           using " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
-                         << " only for the first cycle in each time step;\n"
-                         << "           using " << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
-                         << " for subsequent cycles.\n";
-                });
+            IBAMR_DO_ONCE({
+                pout << "INSStaggeredHierarchyIntegrator::integrateHierarchy():\n"
+                     << "  WARNING: convective_time_stepping_type = "
+                     << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
+                     << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
+                     << "           using " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
+                     << " only for the first cycle in each time step;\n"
+                     << "           using " << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
+                     << " for subsequent cycles.\n";
+            });
         }
     }
     return convective_time_stepping_type;

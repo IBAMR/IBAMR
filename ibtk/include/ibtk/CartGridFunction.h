@@ -35,12 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <string>
-
 #include "PatchLevel.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include <stddef.h>
+
+#include <string>
 
 namespace SAMRAI
 {
@@ -123,8 +124,8 @@ public:
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                                 double data_time,
                                 bool initial_time = false,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >
-                                    patch_level = SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) = 0;
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) = 0;
 
     //\}
 

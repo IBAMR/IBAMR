@@ -35,20 +35,21 @@
 
 //////////////////////////////////INCLUDES///////////////////////////////////////////////
 
+#include "ibtk/CartGridFunction.h"
+
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "Variable.h"
-#include "ibtk/CartGridFunction.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK
 {
 /*!
-        * \brief CartGridBodyForce class.
-        *
-        * This class is a concrete implementation of IBTK::CartGridFunction class and is used to set the
-        * body force on patches for the fluid solver.
-        */
+ * \brief CartGridBodyForce class.
+ *
+ * This class is a concrete implementation of IBTK::CartGridFunction class and is used to set the
+ * body force on patches for the fluid solver.
+ */
 
 class CartGridBodyForce : public IBTK::CartGridFunction
 {

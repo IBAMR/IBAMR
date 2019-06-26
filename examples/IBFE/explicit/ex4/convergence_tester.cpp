@@ -29,6 +29,7 @@
 
 // GENERAL CONFIGURATION
 #include <IBAMR_config.h>
+
 #include <SAMRAI_config.h>
 
 // PETSC INCLUDES
@@ -45,15 +46,6 @@
 using namespace libMesh;
 
 // SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-#include <CellVariable.h>
-#include <ComponentSelector.h>
-#include <HierarchyCellDataOpsReal.h>
-#include <HierarchySideDataOpsReal.h>
-#include <PatchHierarchy.h>
-#include <SideVariable.h>
-#include <VariableDatabase.h>
-#include <VisItDataWriter.h>
 #include <tbox/Database.h>
 #include <tbox/HDFDatabase.h>
 #include <tbox/InputDatabase.h>
@@ -64,6 +56,16 @@ using namespace libMesh;
 #include <tbox/SAMRAIManager.h>
 #include <tbox/SAMRAI_MPI.h>
 #include <tbox/Utilities.h>
+
+#include <CartesianGridGeometry.h>
+#include <CellVariable.h>
+#include <ComponentSelector.h>
+#include <HierarchyCellDataOpsReal.h>
+#include <HierarchySideDataOpsReal.h>
+#include <PatchHierarchy.h>
+#include <SideVariable.h>
+#include <VariableDatabase.h>
+#include <VisItDataWriter.h>
 
 using namespace IBTK;
 using namespace SAMRAI;

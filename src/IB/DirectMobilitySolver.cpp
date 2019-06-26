@@ -32,73 +32,76 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <math.h>
-
-#include "CartesianGridGeometry.h"
-#include "PatchHierarchy.h"
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/DirectMobilitySolver.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h"
+
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
+
+#include "CartesianGridGeometry.h"
+#include "PatchHierarchy.h"
 #include "petsc/private/petscimpl.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 
-extern "C" {
+#include <math.h>
 
-// LAPACK function to do LU factorization.
-int dgetrf_(const int& n1, const int& n2, double* a, const int& lda, int* ipiv, int& info);
+#include <algorithm>
 
-// LAPACK function to find soultion using the LU factorization.
-int dgetrs_(const char* trans,
-            const int& n,
-            const int& nrhs,
-            const double* a,
-            const int& lda,
-            const int* ipiv,
-            double* b,
-            const int& ldb,
-            int& info);
+extern "C"
+{
+    // LAPACK function to do LU factorization.
+    int dgetrf_(const int& n1, const int& n2, double* a, const int& lda, int* ipiv, int& info);
 
-// LAPACK function to do Cholesky factorization.
-int dpotrf_(const char* uplo, const int& n, double* a, const int& lda, int& info);
+    // LAPACK function to find soultion using the LU factorization.
+    int dgetrs_(const char* trans,
+                const int& n,
+                const int& nrhs,
+                const double* a,
+                const int& lda,
+                const int* ipiv,
+                double* b,
+                const int& ldb,
+                int& info);
 
-// LAPACK function to find solution using Cholesky factorization.
-int dpotrs_(const char* uplo,
-            const int& n,
-            const int& nrhs,
-            const double* a,
-            const int& lda,
-            double* b,
-            const int& ldb,
-            int& info);
+    // LAPACK function to do Cholesky factorization.
+    int dpotrf_(const char* uplo, const int& n, double* a, const int& lda, int& info);
 
-// LAPACK function to do SVD factorization.
-void dsyevr_(const char* jobz,
-             const char* range,
-             const char* uplo,
-             const int& n,
-             double* a,
-             const int& lda,
-             const double& vl,
-             const double& vu,
-             const int& il,
-             const int& iu,
-             const double& abstol,
-             int& m,
-             double* w,
-             double* z,
-             const int& ldz,
-             int* isuppz,
-             double* work,
-             const int& lwork,
-             int* iwork,
-             const int& liwork,
-             int& info);
+    // LAPACK function to find solution using Cholesky factorization.
+    int dpotrs_(const char* uplo,
+                const int& n,
+                const int& nrhs,
+                const double* a,
+                const int& lda,
+                double* b,
+                const int& ldb,
+                int& info);
+
+    // LAPACK function to do SVD factorization.
+    void dsyevr_(const char* jobz,
+                 const char* range,
+                 const char* uplo,
+                 const int& n,
+                 double* a,
+                 const int& lda,
+                 const double& vl,
+                 const double& vu,
+                 const int& il,
+                 const int& iu,
+                 const double& abstol,
+                 int& m,
+                 double* w,
+                 double* z,
+                 const int& ldz,
+                 int* isuppz,
+                 double* work,
+                 const int& lwork,
+                 int* iwork,
+                 const int& liwork,
+                 int& info);
 }
 
 namespace IBAMR
@@ -112,7 +115,7 @@ static Timer* t_solve_system;
 static Timer* t_solve_body_system;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
-}
+} // namespace
 
 ////////////////////////////// PUBLIC ////////////////////////////////////////
 
@@ -703,12 +706,9 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
         if (err)
         {
             TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). " << err_msg << " matrix factorization "
-                                                                        << " failed for matrix handle "
-                                                                        << mat_name
-                                                                        << " with error code "
-                                                                        << err
-                                                                        << " using LAPACK CHOLESKY."
-                                                                        << std::endl);
+                                                                        << " failed for matrix handle " << mat_name
+                                                                        << " with error code " << err
+                                                                        << " using LAPACK CHOLESKY." << std::endl);
         }
     }
     else if (inv_type == LAPACK_LU)
@@ -716,13 +716,10 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
         dgetrf_(mat_size, mat_size, mat_data, mat_size, ipiv, err);
         if (err)
         {
-            TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). " << err_msg << " matrix factorization "
-                                                                        << "failed for matrix handle "
-                                                                        << mat_name
-                                                                        << " with error code "
-                                                                        << err
-                                                                        << " using LAPACK LU."
-                                                                        << std::endl);
+            TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). "
+                       << err_msg << " matrix factorization "
+                       << "failed for matrix handle " << mat_name << " with error code " << err << " using LAPACK LU."
+                       << std::endl);
         }
     }
     else if (inv_type == LAPACK_SVD)
@@ -764,13 +761,10 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
                 err);
         if (err)
         {
-            TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). " << err_msg << " matrix factorization "
-                                                                        << "failed for matrix handle "
-                                                                        << mat_name
-                                                                        << " with error code "
-                                                                        << err
-                                                                        << " using LAPACK SVD at first stage."
-                                                                        << std::endl);
+            TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). "
+                       << err_msg << " matrix factorization "
+                       << "failed for matrix handle " << mat_name << " with error code " << err
+                       << " using LAPACK SVD at first stage." << std::endl);
         }
 
         lwork = static_cast<int>(wkopt);
@@ -802,13 +796,10 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
                 err);
         if (err)
         {
-            TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). " << err_msg << " matrix factorization "
-                                                                        << "failed for matrix handle "
-                                                                        << mat_name
-                                                                        << " with error code "
-                                                                        << err
-                                                                        << " using LAPACK SVD at second stage."
-                                                                        << std::endl);
+            TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). "
+                       << err_msg << " matrix factorization "
+                       << "failed for matrix handle " << mat_name << " with error code " << err
+                       << " using LAPACK SVD at second stage." << std::endl);
         }
 
         // Make negative eigenvalues to be equal to min eigen value from
@@ -849,9 +840,7 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
     else
     {
         TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(): Unsupported dense "
-                   << "matrix inversion method called for "
-                   << err_msg
-                   << std::endl);
+                   << "matrix inversion method called for " << err_msg << std::endl);
     }
 
     return;
@@ -873,9 +862,7 @@ DirectMobilitySolver::computeSolution(Mat& mat, const MobilityMatrixInverseType&
         if (err)
         {
             TBOX_ERROR("DirectMobilitySolver::computeSolution(). Solution failed using "
-                       << "LAPACK CHOLESKY with error code "
-                       << err
-                       << std::endl);
+                       << "LAPACK CHOLESKY with error code " << err << std::endl);
         }
     }
     else if (inv_type == LAPACK_LU)
@@ -885,9 +872,7 @@ DirectMobilitySolver::computeSolution(Mat& mat, const MobilityMatrixInverseType&
         if (err)
         {
             TBOX_ERROR("DirectMobilitySolver::computeSolution(). Solution failed using "
-                       << "LAPACK LU with error code "
-                       << err
-                       << std::endl);
+                       << "LAPACK LU with error code " << err << std::endl);
         }
     }
     else if (inv_type == LAPACK_SVD)

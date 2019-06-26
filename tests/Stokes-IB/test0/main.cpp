@@ -33,6 +33,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -51,23 +52,25 @@
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
-#include <ibamr/StaggeredStokesPETScVecUtilities.h>
-#include <ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesFACPreconditioner.h>
-#include <ibamr/StaggeredStokesSolver.h>
+#include <ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
+#include <ibamr/StaggeredStokesPETScVecUtilities.h>
+#include <ibamr/StaggeredStokesSolver.h>
 #include <ibamr/app_namespaces.h>
 #include <ibamr/ibamr_utilities.h>
+
+#include <ibtk/AppInitializer.h>
 #include <ibtk/CartSideDoubleRT0Coarsen.h>
 #include <ibtk/CartSideDoubleSpecializedConstantRefine.h>
-#include <ibtk/PETScMatUtilities.h>
-#include <ibtk/PETScVecUtilities.h>
-#include <ibtk/PETScSAMRAIVectorReal.h>
-#include <ibtk/AppInitializer.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
+#include <ibtk/PETScMatUtilities.h>
+#include <ibtk/PETScSAMRAIVectorReal.h>
+#include <ibtk/PETScVecUtilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
 #include <petscksp.h>
 
 // StokesIBSolver class solves linearized StokesIB equations.

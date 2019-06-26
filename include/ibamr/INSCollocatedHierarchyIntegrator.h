@@ -35,8 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 
 #include "CellVariable.h"
 #include "FaceVariable.h"
@@ -45,10 +47,10 @@
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "SAMRAIVectorReal.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace IBAMR
 {

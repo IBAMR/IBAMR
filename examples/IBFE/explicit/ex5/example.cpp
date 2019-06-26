@@ -30,6 +30,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -51,17 +52,19 @@
 #include <libmesh/mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/IBFESurfaceMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+#include <boost/multi_array.hpp>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -120,15 +123,15 @@ struct TetherData
     const double kappa_s_surface;
     const double eta_s_surface;
 
-    TetherData(Pointer<Database> input_db) :
-        c1_s(input_db->getDouble("C1_S")),
-        kappa_s_body(input_db->getDouble("KAPPA_S_BODY")),
-        eta_s_body(input_db->getDouble("ETA_S_BODY")),
-        kappa_s_surface(input_db->getDouble("KAPPA_S_SURFACE")),
-        eta_s_surface(input_db->getDouble("ETA_S_SURFACE"))
-        {}
+    TetherData(Pointer<Database> input_db)
+        : c1_s(input_db->getDouble("C1_S")),
+          kappa_s_body(input_db->getDouble("KAPPA_S_BODY")),
+          eta_s_body(input_db->getDouble("ETA_S_BODY")),
+          kappa_s_surface(input_db->getDouble("KAPPA_S_SURFACE")),
+          eta_s_surface(input_db->getDouble("ETA_S_SURFACE"))
+    {
+    }
 };
-
 
 // Tether (penalty) stress function.
 bool use_boundary_mesh = false;
@@ -145,7 +148,7 @@ PK1_stress_function(TensorValue<double>& PP,
                     double /*time*/,
                     void* ctx)
 {
-    const TetherData * const tether_data = reinterpret_cast<TetherData *>(ctx);
+    const TetherData* const tether_data = reinterpret_cast<TetherData*>(ctx);
 
     PP = 2.0 * tether_data->c1_s * (FF - tensor_inverse_transpose(FF, NDIM));
     return;
@@ -163,7 +166,7 @@ tether_force_function(VectorValue<double>& F,
                       double /*time*/,
                       void* ctx)
 {
-    const TetherData * const tether_data = reinterpret_cast<TetherData *>(ctx);
+    const TetherData* const tether_data = reinterpret_cast<TetherData*>(ctx);
 
     const std::vector<double>& U = *var_data[0];
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -187,7 +190,7 @@ tether_force_function(VectorValue<double>& F,
                       double /*time*/,
                       void* ctx)
 {
-    const TetherData * const tether_data = reinterpret_cast<TetherData *>(ctx);
+    const TetherData* const tether_data = reinterpret_cast<TetherData*>(ctx);
 
     VectorValue<double> D = X - x;
     VectorValue<double> U;
@@ -396,7 +399,7 @@ run_example(int argc, char** argv)
 
         // Configure the IBFE solver.
         TetherData tether_data(input_db);
-        void * const tether_data_ptr = reinterpret_cast<void *>(&tether_data);
+        void* const tether_data_ptr = reinterpret_cast<void*>(&tether_data);
         EquationSystems* equation_systems;
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
@@ -407,9 +410,8 @@ run_example(int argc, char** argv)
             Pointer<IBFESurfaceMethod> ibfe_ops = ib_ops;
             ibfe_ops->initializeFEEquationSystems();
             equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
-            IBFESurfaceMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function,
-                                                                       sys_data,
-                                                                       tether_data_ptr);
+            IBFESurfaceMethod::LagSurfaceForceFcnData surface_fcn_data(
+                tether_force_function, sys_data, tether_data_ptr);
             ibfe_ops->registerLagSurfaceForceFunction(surface_fcn_data);
         }
         else
@@ -418,22 +420,16 @@ run_example(int argc, char** argv)
             Pointer<IBFEMethod> ibfe_ops = ib_ops;
             ibfe_ops->initializeFEEquationSystems();
             equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
-            IBFEMethod::PK1StressFcnData PK1_stress_data(PK1_stress_function,
-                                                         std::vector<IBTK::SystemData>(),
-                                                         tether_data_ptr);
+            IBFEMethod::PK1StressFcnData PK1_stress_data(
+                PK1_stress_function, std::vector<IBTK::SystemData>(), tether_data_ptr);
             PK1_stress_data.quad_order =
-                Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_QUAD_ORDER",
-                                                                                       "THIRD"));
+                Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_QUAD_ORDER", "THIRD"));
             ibfe_ops->registerPK1StressFunction(PK1_stress_data);
 
-            IBFEMethod::LagBodyForceFcnData body_fcn_data(tether_force_function,
-                                                          sys_data,
-                                                          tether_data_ptr);
+            IBFEMethod::LagBodyForceFcnData body_fcn_data(tether_force_function, sys_data, tether_data_ptr);
             ibfe_ops->registerLagBodyForceFunction(body_fcn_data);
 
-            IBFEMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function,
-                                                                sys_data,
-                                                                tether_data_ptr);
+            IBFEMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function, sys_data, tether_data_ptr);
             ibfe_ops->registerLagSurfaceForceFunction(surface_fcn_data);
 
             if (input_db->getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
@@ -658,7 +654,7 @@ postprocess_data(Pointer<Database> input_db,
                  const string& /*data_dump_dirname*/)
 {
     TetherData tether_data(input_db);
-    void * const tether_data_ptr = reinterpret_cast<void *>(&tether_data);
+    void* const tether_data_ptr = reinterpret_cast<void*>(&tether_data);
 
     const unsigned int dim = mesh.mesh_dimension();
     double F_integral[NDIM];
@@ -676,7 +672,6 @@ postprocess_data(Pointer<Database> input_db,
     {
         x_system = &equation_systems->get_system(IBFESurfaceMethod::COORDS_SYSTEM_NAME);
         U_system = &equation_systems->get_system(IBFESurfaceMethod::VELOCITY_SYSTEM_NAME);
-        
     }
     else
     {
@@ -693,17 +688,17 @@ postprocess_data(Pointer<Database> input_db,
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 
     NumericVector<double>& X0_vec = x_system->get_vector("INITIAL_COORDINATES");
-    
+
     std::vector<std::vector<unsigned int> > WSS_o_dof_indices(NDIM);
     System* TAU_system;
     NumericVector<double>* TAU_vec;
-	NumericVector<double>* TAU_ghost_vec;
+    NumericVector<double>* TAU_ghost_vec;
     if (use_pressure_jump_conditions && use_velocity_jump_conditions)
-    {		
-		TAU_system = &equation_systems->get_system(IBFESurfaceMethod::TAU_SYSTEM_NAME);
-		TAU_vec = TAU_system->solution.get();
-		TAU_ghost_vec = TAU_system->current_local_solution.get();	
-	}
+    {
+        TAU_system = &equation_systems->get_system(IBFESurfaceMethod::TAU_SYSTEM_NAME);
+        TAU_vec = TAU_system->solution.get();
+        TAU_ghost_vec = TAU_system->current_local_solution.get();
+    }
 
     libMesh::UniquePtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
     libMesh::UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
@@ -745,8 +740,7 @@ postprocess_data(Pointer<Database> input_db,
         get_values_for_interpolation(U_node, *U_ghost_vec, dof_indices);
         get_values_for_interpolation(X0_node, X0_vec, dof_indices);
         if (use_pressure_jump_conditions && use_velocity_jump_conditions)
-			get_values_for_interpolation(TAU_node, *TAU_ghost_vec, dof_indices);
-
+            get_values_for_interpolation(TAU_node, *TAU_ghost_vec, dof_indices);
 
         const unsigned int n_qp = qrule->n_points();
         for (unsigned int qp = 0; qp < n_qp; ++qp)
@@ -755,8 +749,7 @@ postprocess_data(Pointer<Database> input_db,
             interpolate(x, qp, x_node, phi);
             jacobian(FF, qp, x_node, dphi);
             interpolate(U, qp, U_node, phi);
-            if (use_pressure_jump_conditions && use_velocity_jump_conditions)
-				interpolate(TAU, qp, TAU_node, phi);
+            if (use_pressure_jump_conditions && use_velocity_jump_conditions) interpolate(TAU, qp, TAU_node, phi);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 U_qp_vec[d] = U(d);
@@ -769,8 +762,7 @@ postprocess_data(Pointer<Database> input_db,
             for (int d = 0; d < NDIM; ++d)
             {
                 F_integral[d] += F(d) * JxW[qp];
-                if (use_pressure_jump_conditions && use_velocity_jump_conditions)
-					T_integral[d] += TAU(d) * JxW[qp];
+                if (use_pressure_jump_conditions && use_velocity_jump_conditions) T_integral[d] += TAU(d) * JxW[qp];
             }
         }
         if (!use_boundary_mesh)
@@ -824,9 +816,9 @@ postprocess_data(Pointer<Database> input_db,
         lift_F_stream << loop_time << " " << -F_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
         if (use_pressure_jump_conditions && use_velocity_jump_conditions)
         {
-			drag_TAU_stream << loop_time << " " << T_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
-			lift_TAU_stream << loop_time << " " << T_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
-		}
+            drag_TAU_stream << loop_time << " " << T_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
+            lift_TAU_stream << loop_time << " " << T_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
+        }
     }
     return;
 } // postprocess_data

@@ -32,10 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <ostream>
-#include <set>
-#include <vector>
+#include "IBTK_config.h"
+
+#include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BoundaryBox.h"
 #include "Box.h"
@@ -47,19 +47,23 @@
 #include "CoarseFineBoundary.h"
 #include "ComponentSelector.h"
 #include "GridGeometry.h"
-#include "IBTK_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "RefineOperator.h"
-#include "boost/array.hpp"
-#include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include "boost/array.hpp"
+
+#include <stddef.h>
+
+#include <ostream>
+#include <set>
+#include <vector>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -74,46 +78,47 @@
 #endif
 
 // Function interfaces
-extern "C" {
-void CC_QUAD_TANGENTIAL_INTERPOLATION_FC(double* U_fine,
-                                         const int& U_fine_gcw,
-                                         const double* U_coarse,
-                                         const int& U_crse_gcw,
-                                         const int& ilowerf0,
-                                         const int& iupperf0,
-                                         const int& ilowerf1,
-                                         const int& iupperf1,
+extern "C"
+{
+    void CC_QUAD_TANGENTIAL_INTERPOLATION_FC(double* U_fine,
+                                             const int& U_fine_gcw,
+                                             const double* U_coarse,
+                                             const int& U_crse_gcw,
+                                             const int& ilowerf0,
+                                             const int& iupperf0,
+                                             const int& ilowerf1,
+                                             const int& iupperf1,
 #if (NDIM == 3)
-                                         const int& ilowerf2,
-                                         const int& iupperf2,
+                                             const int& ilowerf2,
+                                             const int& iupperf2,
 #endif
-                                         const int& ilowerc0,
-                                         const int& iupperc0,
-                                         const int& ilowerc1,
-                                         const int& iupperc1,
+                                             const int& ilowerc0,
+                                             const int& iupperc0,
+                                             const int& ilowerc1,
+                                             const int& iupperc1,
 #if (NDIM == 3)
-                                         const int& ilowerc2,
-                                         const int& iupperc2,
+                                             const int& ilowerc2,
+                                             const int& iupperc2,
+#endif
+                                             const int& loc_index,
+                                             const int* ratio_to_coarser,
+                                             const int* blower,
+                                             const int* bupper);
+
+    void CC_QUAD_NORMAL_INTERPOLATION_FC(double* U,
+                                         const int& U_gcw,
+                                         const int& ilower0,
+                                         const int& iupper0,
+                                         const int& ilower1,
+                                         const int& iupper1,
+#if (NDIM == 3)
+                                         const int& ilower2,
+                                         const int& iupper2,
 #endif
                                          const int& loc_index,
                                          const int* ratio_to_coarser,
                                          const int* blower,
                                          const int* bupper);
-
-void CC_QUAD_NORMAL_INTERPOLATION_FC(double* U,
-                                     const int& U_gcw,
-                                     const int& ilower0,
-                                     const int& iupper0,
-                                     const int& ilower1,
-                                     const int& iupper1,
-#if (NDIM == 3)
-                                     const int& ilower2,
-                                     const int& iupper2,
-#endif
-                                     const int& loc_index,
-                                     const int* ratio_to_coarser,
-                                     const int* blower,
-                                     const int* bupper);
 }
 
 // Note that there are two versions of this code:
@@ -212,7 +217,7 @@ is_corner_point(const Index<NDIM>& i,
     }
     return false;
 } // is_corner_point
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -520,13 +525,14 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch<NDIM>&
             {
                 const Index<NDIM>& i_fine = b();
                 const Index<NDIM> i_crse = coarsen(i_fine, ratio);
-                const bool corner_point = bdry_type != 1 ? false : is_corner_point(i_fine,
-                                                                                   bdry_normal_axis,
-                                                                                   is_lower,
-                                                                                   patch_box_fine,
-                                                                                   patch_cf_bdry_boxes,
-                                                                                   periodic_shift,
-                                                                                   domain_boxes);
+                const bool corner_point = bdry_type != 1 ? false :
+                                                           is_corner_point(i_fine,
+                                                                           bdry_normal_axis,
+                                                                           is_lower,
+                                                                           patch_box_fine,
+                                                                           patch_cf_bdry_boxes,
+                                                                           periodic_shift,
+                                                                           domain_boxes);
 
                 // Determine the interpolation stencil in the coarse index
                 // space.
@@ -648,14 +654,12 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(Patch<NDIM>&
         if (U_fine_ghosts != (fdata->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartCellDoubleQuadraticCFInterpolation::postprocessRefine():\n"
-                       << "   patch data does not have uniform ghost cell widths"
-                       << std::endl);
+                       << "   patch data does not have uniform ghost cell widths" << std::endl);
         }
         if (U_crse_ghosts != (cdata->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartCellDoubleQuadraticCFInterpolation::postprocessRefine():\n"
-                       << "   patch data does not have uniform ghost cell widths"
-                       << std::endl);
+                       << "   patch data does not have uniform ghost cell widths" << std::endl);
         }
 #endif
         const int data_depth = fdata->getDepth();
@@ -816,7 +820,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Patch<N
                     for (int d = 0; d < data_depth; ++d)
                     {
                         (*data)(i_bdry, d) =
-                            wgt0 * (*data)(i_intr0, d) + wgt1* (*data)(i_intr1, d) + wgt2* (*data)(i_bdry, d);
+                            wgt0 * (*data)(i_intr0, d) + wgt1 * (*data)(i_intr1, d) + wgt2 * (*data)(i_bdry, d);
                     }
                 }
             }
@@ -852,8 +856,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(Patch<N
         if (U_ghosts != (data->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartCellDoubleQuadraticCFInterpolation::computeNormalExtension():\n"
-                       << "   patch data does not have uniform ghost cell widths"
-                       << std::endl);
+                       << "   patch data does not have uniform ghost cell widths" << std::endl);
         }
 #endif
         const int data_depth = data->getDepth();

@@ -35,17 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <map>
-#include <string>
-#include <vector>
-
 #include "ibtk/PoissonFACPreconditioner.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
+
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <stddef.h>
+
+#include <map>
+#include <string>
+#include <vector>
 
 namespace boost
 {
@@ -274,7 +276,6 @@ private:
      * \return A reference to this object.
      */
     SCPoissonPointRelaxationFACOperator& operator=(const SCPoissonPointRelaxationFACOperator& that);
-
 };
 } // namespace IBTK
 

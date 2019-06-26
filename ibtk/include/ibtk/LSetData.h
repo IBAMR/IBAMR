@@ -35,14 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "Box.h"
-#include "CellIterator.h"
-#include "IndexData.h"
-#include "IntVector.h"
 #include "ibtk/LMarker.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/LSetDataIterator.h"
+
+#include "Box.h"
+#include "CellIterator.h"
+#include "IndexData.h"
+#include "IntVector.h"
 
 namespace IBTK
 {

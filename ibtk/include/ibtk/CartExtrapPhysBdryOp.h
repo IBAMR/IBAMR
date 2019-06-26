@@ -35,15 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <set>
-#include <string>
-#include <utility>
-#include <vector>
-
 #include "Box.h"
 #include "ComponentSelector.h"
 #include "IntVector.h"
 #include "RefinePatchStrategy.h"
+
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {

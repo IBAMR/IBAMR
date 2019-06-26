@@ -35,9 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/FACPreconditionerStrategy.h"
 
 #include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
@@ -50,13 +53,12 @@
 #include "SAMRAIVectorReal.h"
 #include "VariableContext.h"
 #include "VariableFillPattern.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibtk/CartCellRobinPhysBdryOp.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "ibtk/FACPreconditionerStrategy.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace IBAMR
 {
@@ -578,7 +580,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_synch_refine_algorithm;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_synch_refine_schedules;
 };
-} // namespace IBTK
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

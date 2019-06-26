@@ -35,13 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <iosfwd>
-
 #include "IntVector.h"
 #include "PatchData.h"
 #include "PatchLevel.h"
 #include "tbox/Pointer.h"
 #include "tbox/Transaction.h"
+
+#include <iosfwd>
 
 namespace SAMRAI
 {

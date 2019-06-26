@@ -32,20 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <cmath>
-#include <limits>
-#include <sstream>
-#include <utility>
-
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "HierarchyDataOpsManager.h"
-#include "PatchHierarchy.h"
-#include "VariableDatabase.h"
 #include "ibamr/ConstraintIBMethod.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/namespaces.h"
+
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/FACPreconditioner.h"
@@ -54,10 +44,22 @@
 #include "ibtk/PETScKrylovLinearSolver.h"
 #include "ibtk/SideDataSynchronization.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "CartesianGridGeometry.h"
+#include "CartesianPatchGeometry.h"
+#include "HierarchyDataOpsManager.h"
+#include "PatchHierarchy.h"
+#include "VariableDatabase.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <sstream>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -401,8 +403,7 @@ ConstraintIBMethod::~ConstraintIBMethod()
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_u_fluidSolve_cib_idx)) level->deallocatePatchData(d_u_fluidSolve_cib_idx);
-        if (!d_rho_is_const && level->checkAllocated(d_rho_scratch_idx))
-            level->deallocatePatchData(d_rho_scratch_idx);
+        if (!d_rho_is_const && level->checkAllocated(d_rho_scratch_idx)) level->deallocatePatchData(d_rho_scratch_idx);
     }
 
     return;
@@ -611,11 +612,11 @@ ConstraintIBMethod::registerEulerianVariables()
 #if !defined(NDEBUG)
             TBOX_ASSERT(d_rho_ins_idx >= 0);
 #endif
-                d_rho_var = new SideVariable<NDIM, double>(d_object_name + "::rho");
-                d_rho_scratch_idx =
-                    var_db->registerVariableAndContext(d_rho_var, d_scratch_context, getMinimumGhostCellWidth());
-            }
+            d_rho_var = new SideVariable<NDIM, double>(d_object_name + "::rho");
+            d_rho_scratch_idx =
+                var_db->registerVariableAndContext(d_rho_var, d_scratch_context, getMinimumGhostCellWidth());
         }
+    }
 
     return;
 } // registerEulerianVariables
@@ -646,11 +647,8 @@ ConstraintIBMethod::registerConstraintIBKinematics(const std::vector<Pointer<Con
     if (ib_kinematics.size() != static_cast<unsigned int>(d_no_structures))
     {
         TBOX_ERROR("ConstraintIBMethod::registerConstraintIBKinematics(). No of structures "
-                   << ib_kinematics.size()
-                   << " in vector passed to this method is not equal to no. of structures "
-                   << d_no_structures
-                   << " registered with this class"
-                   << std::endl);
+                   << ib_kinematics.size() << " in vector passed to this method is not equal to no. of structures "
+                   << d_no_structures << " registered with this class" << std::endl);
     }
     else
     {
@@ -842,8 +840,7 @@ ConstraintIBMethod::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
@@ -1965,8 +1962,8 @@ ConstraintIBMethod::applyProjection()
 
         // Synchronize the coefficient patch data
         typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
-          SynchronizationTransactionComponent coef_synch_transaction =
-        SynchronizationTransactionComponent(d_rho_scratch_idx, "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent coef_synch_transaction =
+            SynchronizationTransactionComponent(d_rho_scratch_idx, "CONSERVATIVE_COARSEN");
         Pointer<SideDataSynchronization> side_synch_op = new SideDataSynchronization();
         side_synch_op->initializeOperatorState(coef_synch_transaction, d_hierarchy);
         side_synch_op->synchronizeData(d_FuRMoRP_new_time);
@@ -1974,7 +1971,7 @@ ConstraintIBMethod::applyProjection()
     }
     else
     {
-        d_velcorrection_projection_spec->setDConstant(-1.0/d_rho_fluid);
+        d_velcorrection_projection_spec->setDConstant(-1.0 / d_rho_fluid);
     }
 
     d_velcorrection_projection_op->setPoissonSpecifications(*d_velcorrection_projection_spec);
@@ -2030,7 +2027,7 @@ ConstraintIBMethod::applyProjection()
         getHierarchyMathOps()->grad(d_u_fluidSolve_idx,
                                     Pointer<SideVariable<NDIM, double> >(d_u_var),
                                     U_scratch_cf_bdry_synch,
-                                    -1.0/d_rho_fluid,
+                                    -1.0 / d_rho_fluid,
                                     d_phi_idx,
                                     d_phi_var,
                                     d_no_fill_op,
@@ -2247,8 +2244,9 @@ ConstraintIBMethod::updateStructurePositionMidPointStep()
                         {
                             X_new[d] = d_center_of_mass_current[location_struct_handle][d] +
                                        new_shape[d][lag_idx - offset] +
-                                       dt * 0.5 * (d_rigid_trans_vel_current[location_struct_handle][d] +
-                                                   d_rigid_trans_vel_new[location_struct_handle][d]);
+                                       dt * 0.5 *
+                                           (d_rigid_trans_vel_current[location_struct_handle][d] +
+                                            d_rigid_trans_vel_new[location_struct_handle][d]);
                         }
                     }
                     else if (position_update_method == "CONSTRAINT_EXPT_POSITION")

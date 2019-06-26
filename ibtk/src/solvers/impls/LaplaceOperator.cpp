@@ -32,19 +32,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <string>
-#include <vector>
+#include "ibtk/LaplaceOperator.h"
+#include "ibtk/LinearOperator.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "PoissonSpecifications.h"
 #include "RobinBcCoefStrategy.h"
-#include "ibtk/LaplaceOperator.h"
-#include "ibtk/LinearOperator.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <stddef.h>
+
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

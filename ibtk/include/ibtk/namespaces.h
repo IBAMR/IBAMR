@@ -82,7 +82,7 @@ namespace tbox
 namespace xfer
 {
 }
-}
+} // namespace SAMRAI
 using namespace SAMRAI;
 using namespace SAMRAI::algs;
 using namespace SAMRAI::appu;

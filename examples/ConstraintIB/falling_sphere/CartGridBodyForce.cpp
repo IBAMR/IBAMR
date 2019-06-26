@@ -43,12 +43,13 @@
 #define included_SAMRAI_config
 #endif
 
+#include "ibamr/namespaces.h"
+
 #include "CellData.h"
 #include "CellVariable.h"
 #include "SideData.h"
 #include "SideVariable.h"
 #include "VariableDatabase.h"
-#include "ibamr/namespaces.h"
 #include "tbox/Utilities.h"
 
 namespace IBTK
@@ -109,8 +110,7 @@ CartGridBodyForce::setDataOnPatch(const int data_idx,
     else
     {
         TBOX_ERROR("CartGridBodyForce::setDataOnPatch() "
-                   << "UNKNOWN DATA TYPE ENCOUNTERED"
-                   << std::endl);
+                   << "UNKNOWN DATA TYPE ENCOUNTERED" << std::endl);
     }
 
     return;

@@ -35,19 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibamr/StaggeredStokesSolver.h"
+
+#include "ibtk/PETScLevelSolver.h"
 
 #include "CellVariable.h"
 #include "IntVector.h"
 #include "RefineSchedule.h"
 #include "SideVariable.h"
 #include "VariableContext.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibtk/PETScLevelSolver.h"
-#include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include "petscvec.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

@@ -35,13 +35,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <vector>
-
-#include "boost/array.hpp"
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
+
 #include "tbox/Pointer.h"
+
+#include "boost/array.hpp"
+
+#include <stddef.h>
+
+#include <vector>
 
 namespace SAMRAI
 {

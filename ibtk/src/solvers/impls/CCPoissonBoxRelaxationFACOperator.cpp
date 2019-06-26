@@ -32,43 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <algorithm>
-#include <functional>
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include "ArrayData.h"
-#include "Box.h"
-#include "BoxList.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellDataFactory.h"
-#include "CellIndex.h"
-#include "CellVariable.h"
-#include "CoarsenOperator.h"
-#include "HierarchyCellDataOpsReal.h"
 #include "IBTK_config.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "Patch.h"
-#include "PatchDescriptor.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "PoissonSpecifications.h"
-#include "ProcessorMapping.h"
-#include "SAMRAIVectorReal.h"
-#include "SideData.h"
-#include "SideIndex.h"
-#include "Variable.h"
-#include "VariableDatabase.h"
-#include "VariableFillPattern.h"
-#include "boost/array.hpp"
+
 #include "ibtk/CCPoissonBoxRelaxationFACOperator.h"
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartCellDoubleCubicCoarsen.h"
@@ -85,9 +50,33 @@
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "petscmat.h"
-#include "petscsys.h"
-#include "petscvec.h"
+
+#include "ArrayData.h"
+#include "Box.h"
+#include "BoxList.h"
+#include "CartesianGridGeometry.h"
+#include "CartesianPatchGeometry.h"
+#include "CellData.h"
+#include "CellDataFactory.h"
+#include "CellIndex.h"
+#include "CellVariable.h"
+#include "CoarsenOperator.h"
+#include "HierarchyCellDataOpsReal.h"
+#include "Index.h"
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "Patch.h"
+#include "PatchDescriptor.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "PoissonSpecifications.h"
+#include "ProcessorMapping.h"
+#include "SAMRAIVectorReal.h"
+#include "SideData.h"
+#include "SideIndex.h"
+#include "Variable.h"
+#include "VariableDatabase.h"
+#include "VariableFillPattern.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MemoryDatabase.h"
@@ -96,6 +85,22 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include "petscmat.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include "boost/array.hpp"
+
+#include <stddef.h>
+
+#include <algorithm>
+#include <functional>
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -136,14 +141,12 @@ struct IndexComp : std::binary_function<Index<NDIM>, Index<NDIM>, bool>
     {
         return ((lhs(0) < rhs(0))
 #if (NDIM > 1)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM > 2)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
-                    );
+        );
     } // operator()
 };
 
@@ -176,7 +179,7 @@ do_local_data_update(SmootherType smoother_type)
         return false;
     }
 } // do_local_data_update
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -287,8 +290,7 @@ CCPoissonBoxRelaxationFACOperator::setCoarseSolverType(const std::string& coarse
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setCoarseSolverType():\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
@@ -590,12 +592,8 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
     {
         TBOX_ERROR("CCPoissonBoxRelaxationFACOperator::initializeOperatorState()\n"
                    << "  solution and rhs vectors must have the same data depths\n"
-                   << "  solution data depth = "
-                   << solution_pdat_fac->getDefaultDepth()
-                   << "\n"
-                   << "  rhs      data depth = "
-                   << rhs_pdat_fac->getDefaultDepth()
-                   << std::endl);
+                   << "  solution data depth = " << solution_pdat_fac->getDefaultDepth() << "\n"
+                   << "  rhs      data depth = " << rhs_pdat_fac->getDefaultDepth() << std::endl);
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -803,8 +801,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
     if (ghost_cell_width.min() == 0)
     {
         TBOX_ERROR("CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator():\n"
-                   << "  ghost cells are required in all directions"
-                   << std::endl);
+                   << "  ghost cells are required in all directions" << std::endl);
     }
 #endif
 
@@ -820,8 +817,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
         {
             TBOX_ERROR("CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator()\n"
                        << "  to solve (C u + div D grad u) = f with non-constant C,\n"
-                       << "  C must be cell-centered double precision data"
-                       << std::endl);
+                       << "  C must be cell-centered double precision data" << std::endl);
         }
     }
     else
@@ -841,8 +837,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
         {
             TBOX_ERROR("CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator()\n"
                        << "  to solve C u + div D grad u = f with non-constant D,\n"
-                       << "  D must be side-centered double precision data"
-                       << std::endl);
+                       << "  D must be side-centered double precision data" << std::endl);
         }
     }
     else
@@ -865,8 +860,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
     else
     {
         TBOX_ERROR("CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator()\n"
-                   << "  D must be side-centered patch data with either 1 or NDIM components"
-                   << std::endl);
+                   << "  D must be side-centered patch data with either 1 or NDIM components" << std::endl);
     }
     return;
 } // buildPatchLaplaceOperator

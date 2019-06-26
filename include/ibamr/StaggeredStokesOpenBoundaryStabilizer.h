@@ -35,15 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <string>
+#include "ibtk/CartGridFunction.h"
 
 #include "CartesianGridGeometry.h"
 #include "IntVector.h"
 #include "PatchLevel.h"
-#include "boost/array.hpp"
-#include "ibtk/CartGridFunction.h"
 #include "tbox/Pointer.h"
+
+#include "boost/array.hpp"
+
+#include <stddef.h>
+
+#include <string>
 
 namespace IBAMR
 {

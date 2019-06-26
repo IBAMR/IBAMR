@@ -32,12 +32,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibamr/StaggeredStokesBoxRelaxationFACOperator.h"
+#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/IBTK_CHKERRQ.h"
 
 #include "ArrayData.h"
 #include "BasePatchLevel.h"
@@ -58,21 +58,25 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "boost/array.hpp"
-#include "ibamr/StaggeredStokesBoxRelaxationFACOperator.h"
-#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "ibtk/IBTK_CHKERRQ.h"
+#include "tbox/Array.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+#include "tbox/Utilities.h"
+
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscpc.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+
+#include "boost/array.hpp"
+
+#include <algorithm>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -442,7 +446,7 @@ copyFromVec(Vec& v,
     }
     return;
 } // copyFromVec
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -547,10 +551,10 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
 #endif
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
-                        U_error_data->getArrayData(axis)
-                            .copy(U_scratch_data->getArrayData(axis),
-                                  d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
-                                  IntVector<NDIM>(0));
+                        U_error_data->getArrayData(axis).copy(
+                            U_scratch_data->getArrayData(axis),
+                            d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
+                            IntVector<NDIM>(0));
                     }
 
                     Pointer<CellData<NDIM, double> > P_error_data = error.getComponentPatchData(1, *patch);
@@ -756,6 +760,6 @@ StaggeredStokesBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(cons
 
 //////////////////////////////////////////////////////////////////////////////
 
-} // namespace IBTK
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

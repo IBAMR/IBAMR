@@ -32,10 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibtk/FaceDataSynchronization.h"
+#include "ibtk/FaceSynchCopyFillPattern.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
@@ -51,11 +50,14 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "ibtk/FaceDataSynchronization.h"
-#include "ibtk/FaceSynchCopyFillPattern.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <stddef.h>
+
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -168,8 +170,7 @@ FaceDataSynchronization::initializeOperatorState(
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::initializeOperatorState():\n"
-                       << "  only double-precision face-centered data is supported."
-                       << std::endl);
+                       << "  only double-precision face-centered data is supported." << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new FaceSynchCopyFillPattern();
@@ -270,8 +271,7 @@ FaceDataSynchronization::resetTransactionComponents(
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::resetTransactionComponents():\n"
-                       << "  only double-precision face-centered data is supported."
-                       << std::endl);
+                       << "  only double-precision face-centered data is supported." << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new FaceSynchCopyFillPattern();

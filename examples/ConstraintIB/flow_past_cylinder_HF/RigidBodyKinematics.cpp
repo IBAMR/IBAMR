@@ -30,17 +30,19 @@
 // POSSIBILITY OF SUCH DAMAGE
 
 //////////////////////////// INCLUDES /////////////////////////////////////////
-#include <cmath>
-#include <fstream>
-#include <iostream>
+#include "ibamr/namespaces.h"
 
 #include "CartesianPatchGeometry.h"
 #include "PatchLevel.h"
 #include "RigidBodyKinematics.h"
-#include "ibamr/namespaces.h"
-#include "muParser.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/SAMRAI_MPI.h"
+
+#include "muParser.h"
+
+#include <cmath>
+#include <fstream>
+#include <iostream>
 
 namespace IBAMR
 {
@@ -132,8 +134,7 @@ RigidBodyKinematics::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
 
     d_current_time = db->getDouble("d_current_time");

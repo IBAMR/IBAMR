@@ -36,15 +36,17 @@
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
 
-#include <string>
+#include <ibtk/LData.h>
+#include <ibtk/LDataManager.h>
+
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
 
 #include <PatchHierarchy.h>
 #include <SideVariable.h>
 #include <VariableContext.h>
-#include <ibtk/LData.h>
-#include <ibtk/LDataManager.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
+
+#include <string>
 
 namespace IBTK
 {
@@ -190,6 +192,6 @@ private:
 
 }; // ForceProjector
 
-} // IBTK
+} // namespace IBTK
 
 #endif // #ifndef included_ForceProjector

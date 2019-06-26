@@ -33,17 +33,19 @@
 #ifndef included_IBHydrodynamicForceEvaluator
 #define included_IBHydrodynamicForceEvaluator
 
-#include <map>
-#include <vector>
-
-#include "Box.h"
-#include "Eigen/Core"
-#include "Eigen/Geometry"
-#include "RobinBcCoefStrategy.h"
-#include "tbox/Serializable.h"
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/ibtk_utilities.h>
+
+#include "Box.h"
+#include "RobinBcCoefStrategy.h"
+#include "tbox/Serializable.h"
+
+#include "Eigen/Core"
+#include "Eigen/Geometry"
+
+#include <map>
+#include <vector>
 
 namespace IBTK
 {

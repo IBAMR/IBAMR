@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
+#include "ibamr/StaggeredStokesSolver.h"
 
 #include "PoissonSpecifications.h"
-#include "ibamr/StaggeredStokesSolver.h"
 #include "tbox/Pointer.h"
+
+#include <vector>
 
 namespace IBAMR
 {

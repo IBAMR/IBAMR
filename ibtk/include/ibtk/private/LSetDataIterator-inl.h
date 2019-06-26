@@ -44,8 +44,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-inline LSetDataIterator<T>::LSetDataIterator()
-    : d_box(), d_index_it(), d_node_set(), d_node_it()
+inline LSetDataIterator<T>::LSetDataIterator() : d_box(), d_index_it(), d_node_set(), d_node_it()
 {
     // intentionally blank
     return;
@@ -67,7 +66,8 @@ inline LSetDataIterator<T>::~LSetDataIterator()
 } // ~LSetDataIterator
 
 template <class T>
-inline LSetDataIterator<T>& LSetDataIterator<T>::operator=(const LSetDataIterator<T>& that)
+inline LSetDataIterator<T>&
+LSetDataIterator<T>::operator=(const LSetDataIterator<T>& that)
 {
     if (this != &that)
     {
@@ -80,20 +80,23 @@ inline LSetDataIterator<T>& LSetDataIterator<T>::operator=(const LSetDataIterato
 } // operator=
 
 template <class T>
-inline bool LSetDataIterator<T>::operator==(const LSetDataIterator<T>& that)
+inline bool
+LSetDataIterator<T>::operator==(const LSetDataIterator<T>& that)
 {
     return ((!d_node_set && !that.d_node_set) || (d_box == that.d_box && d_index_it == that.d_index_it &&
                                                   d_node_set == that.d_node_set && d_node_it == that.d_node_it));
 } // operator==
 
 template <class T>
-inline bool LSetDataIterator<T>::operator!=(const LSetDataIterator<T>& that)
+inline bool
+LSetDataIterator<T>::operator!=(const LSetDataIterator<T>& that)
 {
     return !(*this == that);
 } // operator!=
 
 template <class T>
-inline LSetDataIterator<T>& LSetDataIterator<T>::operator++()
+inline LSetDataIterator<T>&
+LSetDataIterator<T>::operator++()
 {
     if (!d_node_set) return *this;
     ++d_node_it;
@@ -116,7 +119,8 @@ inline LSetDataIterator<T>& LSetDataIterator<T>::operator++()
 } // operator++
 
 template <class T>
-inline LSetDataIterator<T> LSetDataIterator<T>::operator++(int)
+inline LSetDataIterator<T>
+LSetDataIterator<T>::operator++(int)
 {
     LSetDataIterator<T> tmp(*this);
     ++(*this);

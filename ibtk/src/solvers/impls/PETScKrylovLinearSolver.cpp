@@ -32,18 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <math.h>
-#include <ostream>
-#include <stddef.h>
-#include <string.h>
-#include <string>
-#include <vector>
-
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/KrylovLinearSolver.h"
@@ -55,7 +43,19 @@
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
 #include "mpi.h"
+#include "tbox/Database.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+#include "tbox/Timer.h"
+#include "tbox/TimerManager.h"
+#include "tbox/Utilities.h"
+
 #include "petscerror.h"
 #include "petscksp.h"
 #include "petscmat.h"
@@ -63,12 +63,15 @@
 #include "petscpc.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+
+#include <math.h>
+#include <stddef.h>
+#include <string.h>
+
+#include <algorithm>
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -82,7 +85,7 @@ namespace
 static Timer* t_solve_system;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -299,44 +302,38 @@ PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, doub
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have the same number of components"
-                                 << std::endl);
+                                 << "  vectors must have the same number of components" << std::endl);
     }
 
     const Pointer<PatchHierarchy<NDIM> >& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have the same hierarchy"
-                                 << std::endl);
+                                 << "  vectors must have the same hierarchy" << std::endl);
     }
 
     const int coarsest_ln = x.getCoarsestLevelNumber();
     if (coarsest_ln < 0)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  coarsest level number must not be negative"
-                                 << std::endl);
+                                 << "  coarsest level number must not be negative" << std::endl);
     }
     if (coarsest_ln != b.getCoarsestLevelNumber())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have same coarsest level number"
-                                 << std::endl);
+                                 << "  vectors must have same coarsest level number" << std::endl);
     }
 
     const int finest_ln = x.getFinestLevelNumber();
     if (finest_ln < coarsest_ln)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  finest level number must be >= coarsest level number"
-                                 << std::endl);
+                                 << "  finest level number must be >= coarsest level number" << std::endl);
     }
     if (finest_ln != b.getFinestLevelNumber())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have same finest level number"
-                                 << std::endl);
+                                 << "  vectors must have same finest level number" << std::endl);
     }
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -344,10 +341,7 @@ PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, doub
         if (!patch_hierarchy->getPatchLevel(ln))
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                     << "  hierarchy level "
-                                     << ln
-                                     << " does not exist"
-                                     << std::endl);
+                                     << "  hierarchy level " << ln << " does not exist" << std::endl);
         }
     }
 #endif
@@ -487,12 +481,14 @@ PETScKrylovLinearSolver::reportKSPConvergedReason(const KSPConvergedReason& reas
     switch (static_cast<int>(reason))
     {
     case KSP_CONVERGED_RTOL:
-        os << d_object_name << ": converged: |Ax-b| <= rtol*|b| --- residual norm is less than "
-                               "specified relative tolerance.\n";
+        os << d_object_name
+           << ": converged: |Ax-b| <= rtol*|b| --- residual norm is less than "
+              "specified relative tolerance.\n";
         break;
     case KSP_CONVERGED_ATOL:
-        os << d_object_name << ": converged: |Ax-b| <= atol --- residual norm is less than "
-                               "specified absolute tolerance.\n";
+        os << d_object_name
+           << ": converged: |Ax-b| <= atol --- residual norm is less than "
+              "specified absolute tolerance.\n";
         break;
     case KSP_CONVERGED_ITS:
         os << d_object_name << ": converged: maximum number of iterations reached.\n";
@@ -504,12 +500,14 @@ PETScKrylovLinearSolver::reportKSPConvergedReason(const KSPConvergedReason& reas
         os << d_object_name << ": diverged: null.\n";
         break;
     case KSP_DIVERGED_ITS:
-        os << d_object_name << ": diverged: reached maximum number of iterations before any "
-                               "convergence criteria were satisfied.\n";
+        os << d_object_name
+           << ": diverged: reached maximum number of iterations before any "
+              "convergence criteria were satisfied.\n";
         break;
     case KSP_DIVERGED_DTOL:
-        os << d_object_name << ": diverged: |Ax-b| >= dtol*|b| --- residual is greater than "
-                               "specified divergence tolerance.\n";
+        os << d_object_name
+           << ": diverged: |Ax-b| >= dtol*|b| --- residual is greater than "
+              "specified divergence tolerance.\n";
         break;
     case KSP_DIVERGED_BREAKDOWN:
         os << d_object_name << ": diverged: breakdown in the Krylov method.\n";
@@ -518,14 +516,16 @@ PETScKrylovLinearSolver::reportKSPConvergedReason(const KSPConvergedReason& reas
         os << d_object_name << ": diverged: breakdown in the bi-congugate gradient method.\n";
         break;
     case KSP_DIVERGED_NONSYMMETRIC:
-        os << d_object_name << ": diverged: it appears the operator or preconditioner is not "
-                               "symmetric, but this Krylov method (KSPCG, KSPMINRES, KSPCR) "
-                               "requires symmetry\n";
+        os << d_object_name
+           << ": diverged: it appears the operator or preconditioner is not "
+              "symmetric, but this Krylov method (KSPCG, KSPMINRES, KSPCR) "
+              "requires symmetry\n";
         break;
     case KSP_DIVERGED_INDEFINITE_PC:
-        os << d_object_name << ": diverged: it appears the preconditioner is indefinite (has both "
-                               "positive and negative eigenvalues), but this Krylov method (KSPCG) "
-                               "requires it to be positive definite.\n";
+        os << d_object_name
+           << ": diverged: it appears the preconditioner is indefinite (has both "
+              "positive and negative eigenvalues), but this Krylov method (KSPCG) "
+              "requires it to be positive definite.\n";
         break;
     case KSP_CONVERGED_ITERATING:
         os << d_object_name << ": iterating: KSPSolve() is still running.\n";
@@ -691,9 +691,7 @@ PETScKrylovLinearSolver::resetKSPPC()
     if (!(pc_type == "none" || pc_type == "shell"))
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  valid values for -"
-                                 << d_options_prefix
-                                 << "pc_type are: none, shell"
+                                 << "  valid values for -" << d_options_prefix << "pc_type are: none, shell"
                                  << std::endl);
     }
 

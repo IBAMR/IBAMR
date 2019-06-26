@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
-
 #include "ibtk/ibtk_utilities.h"
+
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include <vector>
 
 namespace IBTK
 {

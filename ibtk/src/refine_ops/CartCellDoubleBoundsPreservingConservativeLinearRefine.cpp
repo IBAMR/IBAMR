@@ -32,10 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <limits>
-#include <ostream>
-#include <string>
+#include "ibtk/CartCellDoubleBoundsPreservingConservativeLinearRefine.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "BoxList.h"
@@ -48,10 +46,13 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
-#include "ibtk/CartCellDoubleBoundsPreservingConservativeLinearRefine.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <limits>
+#include <ostream>
+#include <string>
 
 namespace SAMRAI
 {

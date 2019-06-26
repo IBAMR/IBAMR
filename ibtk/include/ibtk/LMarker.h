@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
+#include "ibtk/ibtk_utilities.h"
 
 #include "IntVector.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
+
+#include <stddef.h>
 
 namespace SAMRAI
 {

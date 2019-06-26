@@ -33,16 +33,18 @@
 #define included_RigidBodyKinematics
 
 ///////////////////////////// INCLUDES ///////////////////////////////////////
-#include <iostream>
-#include <map>
-#include <vector>
-
-#include "Eigen/Core"
-#include "PatchHierarchy.h"
 #include "ibamr/ConstraintIBKinematics.h"
+
+#include "PatchHierarchy.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include "Eigen/Core"
+
+#include <iostream>
+#include <map>
+#include <vector>
 
 //////////////////////////// CLASS DEFORMATIONAL KINEMATICS //////////////////
 
@@ -185,5 +187,5 @@ private:
 
 }; // RigidBodyKinematics
 
-} // IBAMR
+} // namespace IBAMR
 #endif //#ifndef included_RigidBodyKinematics

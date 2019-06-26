@@ -32,12 +32,31 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <algorithm>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartCellDoubleCubicCoarsen.h"
+#include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/CartSideDoubleCubicCoarsen.h"
+#include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
+#include "ibtk/CartSideDoubleRT0Coarsen.h"
+#include "ibtk/CartSideDoubleSpecializedConstantRefine.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/CellNoCornersFillPattern.h"
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/FACPreconditionerStrategy.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/PETScKrylovLinearSolver.h"
+#include "ibtk/PETScLevelSolver.h"
+#include "ibtk/RefinePatchStrategySet.h"
+#include "ibtk/SideNoCornersFillPattern.h"
+#include "ibtk/SideSynchCopyFillPattern.h"
 
 #include "CartesianGridGeometry.h"
 #include "CellVariable.h"
@@ -63,35 +82,19 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesSolverManager.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartCellDoubleCubicCoarsen.h"
-#include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
-#include "ibtk/CartCellRobinPhysBdryOp.h"
-#include "ibtk/CartSideDoubleCubicCoarsen.h"
-#include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
-#include "ibtk/CartSideDoubleRT0Coarsen.h"
-#include "ibtk/CartSideDoubleSpecializedConstantRefine.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/CellNoCornersFillPattern.h"
-#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "ibtk/FACPreconditionerStrategy.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/PETScKrylovLinearSolver.h"
-#include "ibtk/PETScLevelSolver.h"
-#include "ibtk/RefinePatchStrategySet.h"
-#include "ibtk/SideNoCornersFillPattern.h"
-#include "ibtk/SideSynchCopyFillPattern.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <stddef.h>
+
+#include <algorithm>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -121,7 +124,7 @@ static Timer* t_prolong_error;
 static Timer* t_prolong_error_and_correct;
 static Timer* t_initialize_operator_state;
 static Timer* t_deallocate_operator_state;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -258,8 +261,7 @@ StaggeredStokesFACPreconditionerStrategy::~StaggeredStokesFACPreconditionerStrat
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::~StaggeredStokesFACPreconditionerStrategy()\n"
-                                 << "  subclass must call deallocateOperatorState in subclass destructor"
-                                 << std::endl);
+                                 << "  subclass must call deallocateOperatorState in subclass destructor" << std::endl);
     }
     delete d_default_U_bc_coef;
     d_default_U_bc_coef = NULL;
@@ -347,8 +349,7 @@ StaggeredStokesFACPreconditionerStrategy::setSmootherType(const std::string& smo
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setSmootherType()\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
     d_smoother_type = smoother_type;
     return;
@@ -360,8 +361,7 @@ StaggeredStokesFACPreconditionerStrategy::setCoarseSolverType(const std::string&
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setCoarseSolverType():\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
@@ -396,8 +396,7 @@ StaggeredStokesFACPreconditionerStrategy::setProlongationMethods(const std::stri
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setProlongationMethods()\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
     d_U_prolongation_method = U_prolongation_method;
     d_P_prolongation_method = P_prolongation_method;
@@ -411,8 +410,7 @@ StaggeredStokesFACPreconditionerStrategy::setRestrictionMethods(const std::strin
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setRestrictionMethods()\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
     d_U_restriction_method = U_restriction_method;
     d_P_restriction_method = P_restriction_method;
@@ -1079,6 +1077,6 @@ StaggeredStokesFACPreconditionerStrategy::xeqScheduleDataSynch(const int U_dst_i
 
 //////////////////////////////////////////////////////////////////////////////
 
-} // namespace IBTK
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

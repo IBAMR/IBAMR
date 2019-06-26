@@ -32,35 +32,41 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <algorithm>
-#include <ostream>
-#include <vector>
-
-#include "Eigen/Geometry"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "boost/array.hpp"
 #include "ibamr/IBKirchhoffRodForceGen.h"
 #include "ibamr/IBRodForceSpec.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
 #include "ibtk/ibtk_utilities.h"
-#include "petscmat.h"
-#include "petscsys.h"
-#include "petscvec.h"
+
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include "petscmat.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include "boost/array.hpp"
+
+#include "Eigen/Geometry"
 #include "unsupported/Eigen/MatrixFunctions"
+
+#include <stddef.h>
+
+#include <algorithm>
+#include <ostream>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -73,7 +79,7 @@ namespace
 // Timers.
 static Timer* t_compute_lagrangian_force_and_torque;
 static Timer* t_initialize_level_data;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

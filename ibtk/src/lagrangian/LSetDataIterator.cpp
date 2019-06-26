@@ -34,6 +34,7 @@
 
 #include "ibtk/LSetDataIterator.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
 #include "tbox/Pointer.h"
 
 namespace IBTK

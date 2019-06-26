@@ -35,16 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <functional>
-#include <ostream>
+#include "ibtk/ibtk_utilities.h"
 
 #include "IntVector.h"
-#include "boost/multi_array.hpp"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Utilities.h"
+
+#include "boost/multi_array.hpp"
+
+#include <stddef.h>
+
+#include <functional>
+#include <ostream>
 
 namespace SAMRAI
 {

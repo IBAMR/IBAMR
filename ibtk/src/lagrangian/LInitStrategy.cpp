@@ -32,15 +32,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
+
+#include "tbox/Pointer.h"
+#include "tbox/Utilities.h"
+
 #include <map>
 #include <ostream>
 #include <string>
 #include <utility>
-
-#include "ibtk/LInitStrategy.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
 namespace IBTK
 {

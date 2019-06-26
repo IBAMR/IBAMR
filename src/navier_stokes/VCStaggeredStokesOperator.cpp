@@ -32,22 +32,25 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <ostream>
-#include <stddef.h>
-#include <string>
-#include <vector>
+#include "ibamr/VCStaggeredStokesOperator.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 
 #include "CellVariable.h"
 #include "SAMRAIVectorReal.h"
 #include "SideVariable.h"
-#include "ibamr/VCStaggeredStokesOperator.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
+
+#include <stddef.h>
+
+#include <algorithm>
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -72,7 +75,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Timers.
 static Timer* t_apply;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

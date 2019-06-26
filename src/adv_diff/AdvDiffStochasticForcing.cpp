@@ -32,12 +32,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <stddef.h>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
+#include "ibamr/AdvDiffStochasticForcing.h"
+#include "ibamr/RNG.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/SideDataSynchronization.h"
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -63,19 +66,20 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
-#include "ibamr/AdvDiffStochasticForcing.h"
-#include "ibamr/RNG.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
-#include "ibtk/SideDataSynchronization.h"
-#include "muParser.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include "muParser.h"
+
+#include <math.h>
+#include <stddef.h>
+
+#include <limits>
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -97,7 +101,7 @@ genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
     }
     return;
 } // genrandn
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -266,8 +270,7 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         default:
             TBOX_ERROR(d_object_name << "::setDataOnPatchHierarchy():\n"
                                      << "  unsupported default convective time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
-                                     << " \n"
+                                     << enum_to_string<TimeSteppingType>(convective_time_stepping_type) << " \n"
                                      << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
 
@@ -466,8 +469,7 @@ AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
                     f = std::numeric_limits<double>::quiet_NaN();
                     TBOX_ERROR(d_object_name << "::setDataOnPatch():\n"
                                              << "  unsupported default convective time stepping type: "
-                                             << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
-                                             << " \n"
+                                             << enum_to_string<TimeSteppingType>(convective_time_stepping_type) << " \n"
                                              << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, "
                                                 "TRAPEZOIDAL_RULE\n");
                 }

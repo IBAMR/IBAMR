@@ -32,18 +32,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <cmath>
-#include <functional>
-#include <limits>
-#include <map>
-#include <ostream>
-#include <set>
-#include <stdbool.h>
-#include <stddef.h>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibtk/FEDataManager.h"
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/LEInteractor.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/libmesh_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -78,16 +74,16 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "boost/array.hpp"
-#include "boost/multi_array.hpp"
-#include "ibtk/FEDataManager.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/LEInteractor.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/libmesh_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Database.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+#include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/ShutdownRegistry.h"
+#include "tbox/Timer.h"
+#include "tbox/TimerManager.h"
+#include "tbox/Utilities.h"
+
 #include "libmesh/auto_ptr.h"
 #include "libmesh/dense_matrix.h"
 #include "libmesh/dense_vector.h"
@@ -117,19 +113,28 @@
 #include "libmesh/tensor_value.h"
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
+
 #include "petscksp.h"
 #include "petscoptions.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/ShutdownRegistry.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+
+#include "boost/array.hpp"
+#include "boost/multi_array.hpp"
+
+#include <stdbool.h>
+#include <stddef.h>
+
+#include <algorithm>
+#include <cmath>
+#include <functional>
+#include <limits>
+#include <map>
+#include <ostream>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace libMesh
 {
@@ -257,7 +262,7 @@ get_elem_hmax(const Elem* const elem, const boost::multi_array<double, 2>& X_nod
     }
     return sqrt(hmax_squared);
 } // get_elem_hmax
-}
+} // namespace
 
 const short int FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID = 0x100;
 const short int FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID = 0x200;
@@ -506,7 +511,8 @@ FEDataManager::spread(const int f_data_idx,
                       const bool close_F,
                       const bool close_X)
 {
-    spread(f_data_idx, F_vec, X_vec, system_name, d_default_spread_spec, f_phys_bdry_op, fill_data_time, close_X, close_F);
+    spread(
+        f_data_idx, F_vec, X_vec, system_name, d_default_spread_spec, f_phys_bdry_op, fill_data_time, close_X, close_F);
     return;
 } // spread
 
@@ -1019,9 +1025,8 @@ FEDataManager::prolongData(const int f_data_idx,
                         libMesh::Point p;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            p(d) =
-                                patch_x_lower[d] +
-                                patch_dx[d] * (static_cast<double>(i_s(d) - patch_lower[d]) + (d == axis ? 0.0 : 0.5));
+                            p(d) = patch_x_lower[d] + patch_dx[d] * (static_cast<double>(i_s(d) - patch_lower[d]) +
+                                                                     (d == axis ? 0.0 : 0.5));
                         }
                         static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
                         const libMesh::Point ref_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOL, false);
@@ -1091,7 +1096,15 @@ FEDataManager::interpWeighted(const int f_data_idx,
                               const bool close_F,
                               const bool close_X)
 {
-    interpWeighted(f_data_idx, F_vec, X_vec, system_name, d_default_interp_spec, f_refine_scheds, fill_data_time, close_F, close_X);
+    interpWeighted(f_data_idx,
+                   F_vec,
+                   X_vec,
+                   system_name,
+                   d_default_interp_spec,
+                   f_refine_scheds,
+                   fill_data_time,
+                   close_F,
+                   close_X);
     return;
 } // interpWeighted
 
@@ -1476,10 +1489,19 @@ FEDataManager::interp(const int f_data_idx,
 
     // Interpolate quantity at quadrature points and filter it to nodal points.
     UniquePtr<NumericVector<double> > F_rhs_vec = F_vec.zero_clone();
-    interpWeighted(f_data_idx, *F_rhs_vec, X_vec, system_name, interp_spec, f_refine_scheds, fill_data_time, /*close_F*/ true, close_X);
+    interpWeighted(f_data_idx,
+                   *F_rhs_vec,
+                   X_vec,
+                   system_name,
+                   interp_spec,
+                   f_refine_scheds,
+                   fill_data_time,
+                   /*close_F*/ true,
+                   close_X);
 
     // Solve for the nodal values.
-    computeL2Projection(F_vec, *F_rhs_vec, system_name, interp_spec.use_consistent_mass_matrix, true /*close_U*/, false /*close_F*/);
+    computeL2Projection(
+        F_vec, *F_rhs_vec, system_name, interp_spec.use_consistent_mass_matrix, true /*close_U*/, false /*close_F*/);
 
     IBTK_TIMER_STOP(t_interp);
     return;
@@ -1638,9 +1660,8 @@ FEDataManager::restrictData(const int f_data_idx,
                         libMesh::Point p;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            p(d) =
-                                patch_x_lower[d] +
-                                patch_dx[d] * (static_cast<double>(i_s(d) - patch_lower[d]) + (d == axis ? 0.0 : 0.5));
+                            p(d) = patch_x_lower[d] + patch_dx[d] * (static_cast<double>(i_s(d) - patch_lower[d]) +
+                                                                     (d == axis ? 0.0 : 0.5));
                         }
                         static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
                         const libMesh::Point ref_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOL, false);

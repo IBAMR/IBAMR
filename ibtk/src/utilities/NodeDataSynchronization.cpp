@@ -32,10 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibtk/NodeDataSynchronization.h"
+#include "ibtk/NodeSynchCopyFillPattern.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
@@ -51,12 +50,16 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "boost/array.hpp"
-#include "ibtk/NodeDataSynchronization.h"
-#include "ibtk/NodeSynchCopyFillPattern.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include "boost/array.hpp"
+
+#include <stddef.h>
+
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -171,8 +174,7 @@ NodeDataSynchronization::initializeOperatorState(
             if (!nc_var)
             {
                 TBOX_ERROR("NodeDataSynchronization::initializeOperatorState():\n"
-                           << "  only double-precision node-centered data is supported."
-                           << std::endl);
+                           << "  only double-precision node-centered data is supported." << std::endl);
             }
             Pointer<RefineOperator<NDIM> > refine_op = NULL;
             Pointer<VariableFillPattern<NDIM> > fill_pattern = new NodeSynchCopyFillPattern(axis);
@@ -276,8 +278,7 @@ NodeDataSynchronization::resetTransactionComponents(
             if (!nc_var)
             {
                 TBOX_ERROR("NodeDataSynchronization::resetTransactionComponents():\n"
-                           << "  only double-precision node-centered data is supported."
-                           << std::endl);
+                           << "  only double-precision node-centered data is supported." << std::endl);
             }
             Pointer<RefineOperator<NDIM> > refine_op = NULL;
             Pointer<VariableFillPattern<NDIM> > fill_pattern = new NodeSynchCopyFillPattern(axis);

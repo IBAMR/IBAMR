@@ -34,23 +34,27 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <set>
-#include <stdbool.h>
-#include <stddef.h>
-#include <string>
-#include <vector>
+#include "ibamr/IBStrategy.h"
+
+#include "ibtk/FEDataManager.h"
+#include "ibtk/libmesh_utilities.h"
 
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
 #include "LoadBalancer.h"
 #include "PatchHierarchy.h"
-#include "ibamr/IBStrategy.h"
-#include "ibtk/FEDataManager.h"
-#include "ibtk/libmesh_utilities.h"
+#include "tbox/Pointer.h"
+
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
-#include "tbox/Pointer.h"
+
+#include <stdbool.h>
+#include <stddef.h>
+
+#include <set>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {
@@ -331,10 +335,10 @@ public:
                                         double data_time,
                                         unsigned int part = 0,
                                         bool calculate_interior_side = false);
-      /*!
+    /*!
      * A wrapper to compute the interfacial pressure and fluid traction from the jumps
-     */                                 
-    void calculateInterfacialFluidForces(double data_time, bool calculate_interior_side =false);
+     */
+    void calculateInterfacialFluidForces(double data_time, bool calculate_interior_side = false);
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler

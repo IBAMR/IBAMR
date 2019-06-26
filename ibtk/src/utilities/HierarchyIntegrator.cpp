@@ -32,17 +32,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <deque>
-#include <limits>
-#include <list>
-#include <map>
-#include <ostream>
-#include <set>
-#include <stddef.h>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibtk/CartExtrapPhysBdryOp.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/RefinePatchStrategySet.h"
+#include "ibtk/ibtk_enums.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -73,13 +69,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
-#include "ibtk/CartExtrapPhysBdryOp.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/RefinePatchStrategySet.h"
-#include "ibtk/ibtk_enums.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -87,6 +76,19 @@
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
+
+#include <stddef.h>
+
+#include <algorithm>
+#include <deque>
+#include <limits>
+#include <list>
+#include <map>
+#include <ostream>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

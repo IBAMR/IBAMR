@@ -32,9 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
-#include <ostream>
-#include <string>
+#include "ibtk/DebuggingUtilities.h"
+#include "ibtk/LData.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CellData.h"
@@ -54,14 +54,16 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "boost/multi_array.hpp"
-#include "ibtk/DebuggingUtilities.h"
-#include "ibtk/LData.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include "boost/multi_array.hpp"
+
+#include <cmath>
+#include <ostream>
+#include <string>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

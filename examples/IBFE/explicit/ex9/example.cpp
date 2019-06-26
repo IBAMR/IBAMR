@@ -30,6 +30,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -42,28 +43,29 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for basic libMesh objects
+#include "libmesh/libmesh_common.h"
 #include <libmesh/boundary_info.h>
 #include <libmesh/boundary_mesh.h>
 #include <libmesh/equation_systems.h>
-#include <libmesh/explicit_system.h>
 #include <libmesh/exodusII_io.h>
+#include <libmesh/explicit_system.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_triangle_interface.h>
-#include "libmesh/libmesh_common.h"
-
 
 // Headers for application-specific algorithm/data structure objects
-#include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFESurfaceMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+#include <boost/multi_array.hpp>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -74,26 +76,26 @@ namespace ModelData
 // Tether (penalty) force functions.
 static double kappa_s = 1.0e6;
 static double eta_s = 0.0;
-System* x_solid_system, * u_solid_system;
-     
+System *x_solid_system, *u_solid_system;
+
 void
 tether_force_function(VectorValue<double>& F,
                       const VectorValue<double>& n,
                       const VectorValue<double>& /*N*/,
                       const TensorValue<double>& /*FF*/,
-                      const libMesh::Point& x_bndry,  // x_bndry gives current   coordinates on the boundary mesh
-                      const libMesh::Point& X_bndry,  // X_bndry gives reference coordinates on the boundary mesh
+                      const libMesh::Point& x_bndry, // x_bndry gives current   coordinates on the boundary mesh
+                      const libMesh::Point& X_bndry, // X_bndry gives reference coordinates on the boundary mesh
                       Elem* const elem,
                       const unsigned short /*side*/,
                       const vector<const vector<double>*>& var_data,
                       const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                       double /*time*/,
-                      void* /*ctx*/)       
+                      void* /*ctx*/)
 {
     // tether_force_function() is called on elements of the boundary mesh.  Here
     // we look up the element in the solid mesh that the current boundary
     // element was extracted from.
-    
+
     const Elem* const interior_parent = elem->interior_parent();
 
     // We define "arbitrary" velocity and displacement fields on the solid mesh.
@@ -111,9 +113,9 @@ tether_force_function(VectorValue<double>& F,
     double u_solid_n = 0.0;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-		u_bndry_n += n(d) * u_bndry[d];
-		u_solid_n += n(d) * u_solid[d];
-	}
+        u_bndry_n += n(d) * u_bndry[d];
+        u_solid_n += n(d) * u_solid[d];
+    }
     // The tether force is proportional to the mismatch between the positions
     // and velocities.
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -122,7 +124,7 @@ tether_force_function(VectorValue<double>& F,
     }
     return;
 } // tether_force_function
-}
+} // namespace ModelData
 using namespace ModelData;
 
 /*******************************************************************************
@@ -137,7 +139,8 @@ using namespace ModelData;
  *                                                                             *
  *******************************************************************************/
 
-bool run_example(int argc, char** argv)
+bool
+run_example(int argc, char** argv)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -270,9 +273,9 @@ bool run_example(int argc, char** argv)
         }
         Pointer<IBFESurfaceMethod> ib_method_ops =
             new IBFESurfaceMethod("IBFESurfaceMethod",
-                           app_initializer->getComponentDatabase("IBFESurfaceMethod"),
-                           &bndry_mesh,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+                                  app_initializer->getComponentDatabase("IBFESurfaceMethod"),
+                                  &bndry_mesh,
+                                  app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -523,10 +526,14 @@ bool run_example(int argc, char** argv)
                 }
                 if (uses_exodus)
                 {
-                    exodus_solid_io->write_timestep(
-                        exodus_solid_filename, *solid_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
-                    exodus_bndry_io->write_timestep(
-                        exodus_bndry_filename, *bndry_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                    exodus_solid_io->write_timestep(exodus_solid_filename,
+                                                    *solid_equation_systems,
+                                                    iteration_num / viz_dump_interval + 1,
+                                                    loop_time);
+                    exodus_bndry_io->write_timestep(exodus_bndry_filename,
+                                                    *bndry_equation_systems,
+                                                    iteration_num / viz_dump_interval + 1,
+                                                    loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))

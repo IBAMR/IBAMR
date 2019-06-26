@@ -35,9 +35,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <IBAMR_config.h>
-#include <SAMRAI_config.h>
 
 #include "boost/array.hpp"
+
+#include <SAMRAI_config.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
@@ -174,9 +175,7 @@ QInit::setDataOnPatch(const int data_idx,
     else
     {
         TBOX_ERROR(d_object_name << "::initializeDataOnPatch()\n"
-                                 << "  invalid initialization type "
-                                 << d_init_type
-                                 << "\n");
+                                 << "  invalid initialization type " << d_init_type << "\n");
     }
     return;
 } // setDataOnPatch
@@ -210,9 +209,7 @@ QInit::getFromInput(Pointer<Database> db)
         else
         {
             TBOX_ERROR(d_object_name << "::getFromInput()\n"
-                                     << "  invalid initialization type "
-                                     << d_init_type
-                                     << "\n");
+                                     << "  invalid initialization type " << d_init_type << "\n");
         }
     }
     return;

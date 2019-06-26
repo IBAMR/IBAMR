@@ -32,9 +32,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <ostream>
-#include <string>
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBImplicitStaggeredHierarchyIntegrator.h"
+#include "ibamr/IBImplicitStrategy.h"
+#include "ibamr/IBStrategy.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/INSStaggeredHierarchyIntegrator.h"
+#include "ibamr/StaggeredStokesOperator.h"
+#include "ibamr/StaggeredStokesPETScVecUtilities.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/KrylovLinearSolver.h"
+#include "ibtk/PETScSAMRAIVectorReal.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_enums.h"
 
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
@@ -52,23 +67,13 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/IBImplicitStaggeredHierarchyIntegrator.h"
-#include "ibamr/IBImplicitStrategy.h"
-#include "ibamr/IBStrategy.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/INSStaggeredHierarchyIntegrator.h"
-#include "ibamr/StaggeredStokesOperator.h"
-#include "ibamr/StaggeredStokesPETScVecUtilities.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/KrylovLinearSolver.h"
-#include "ibtk/PETScSAMRAIVectorReal.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/ibtk_enums.h"
+#include "tbox/Database.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+#include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
+
 #include "petscerror.h"
 #include "petscksp.h"
 #include "petscmat.h"
@@ -76,12 +81,10 @@
 #include "petscsnes.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <ostream>
+#include <string>
 
 namespace IBAMR
 {
@@ -131,7 +134,7 @@ pwl_interp_fcn(const double r, double* const w)
     return;
 } // pwl_interp_fcn
 static const int pwl_interp_stencil = 2;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -204,18 +207,11 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
         break;
     default:
         TBOX_ERROR("IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): time_stepping_type = "
-                   << enum_to_string<TimeSteppingType>(d_time_stepping_type)
-                   << "\n"
+                   << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
                    << "  only supported time_stepping_types are:\n"
-                   << "    "
-                   << enum_to_string<TimeSteppingType>(BACKWARD_EULER)
-                   << "\n"
-                   << "    "
-                   << enum_to_string<TimeSteppingType>(TRAPEZOIDAL_RULE)
-                   << "\n"
-                   << "    "
-                   << enum_to_string<TimeSteppingType>(MIDPOINT_RULE)
-                   << "\n");
+                   << "    " << enum_to_string<TimeSteppingType>(BACKWARD_EULER) << "\n"
+                   << "    " << enum_to_string<TimeSteppingType>(TRAPEZOIDAL_RULE) << "\n"
+                   << "    " << enum_to_string<TimeSteppingType>(MIDPOINT_RULE) << "\n");
     }
 
     const int coarsest_ln = 0;
@@ -247,12 +243,9 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
     if (ins_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
     {
         TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                 << "  attempting to perform "
-                                 << d_current_num_cycles
+                                 << "  attempting to perform " << d_current_num_cycles
                                  << " cycles of fixed point iteration.\n"
-                                 << "  number of cycles required by Navier-Stokes solver = "
-                                 << ins_num_cycles
-                                 << ".\n"
+                                 << "  number of cycles required by Navier-Stokes solver = " << ins_num_cycles << ".\n"
                                  << "  current implementation requires either that both solvers "
                                     "use the same number of cycles,\n"
                                  << "  or that the IB solver use only a single cycle.\n");
@@ -311,8 +304,9 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
     if (d_enable_logging)
-        plog << d_object_name << "::postprocessIntegrateHierarchy(): interpolating Eulerian "
-                                 "velocity to the Lagrangian mesh\n";
+        plog << d_object_name
+             << "::postprocessIntegrateHierarchy(): interpolating Eulerian "
+                "velocity to the Lagrangian mesh\n";
     d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
     d_u_phys_bdry_op->setHomogeneousBc(false);
     d_ib_implicit_ops->interpolateVelocity(d_u_idx,
@@ -355,8 +349,9 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
     if (d_enable_logging)
         plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
     if (d_enable_logging)
-        plog << d_object_name << "::postprocessIntegrateHierarchy(): estimated upper bound on IB "
-                                 "point displacement since last regrid = "
+        plog << d_object_name
+             << "::postprocessIntegrateHierarchy(): estimated upper bound on IB "
+                "point displacement since last regrid = "
              << d_regrid_cfl_estimate << "\n";
 
     // Deallocate the fluid solver.
@@ -440,8 +435,7 @@ IBImplicitStaggeredHierarchyIntegrator::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
     int ver = db->getInteger("IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION");
     if (ver != IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION)
@@ -739,10 +733,7 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     else
     {
         TBOX_ERROR("IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity()."
-                   << " Delta function "
-                   << d_jac_delta_fcn
-                   << " is not supported in creating Jacobian."
-                   << std::endl);
+                   << " Delta function " << d_jac_delta_fcn << " is not supported in creating Jacobian." << std::endl);
     }
     stokes_fac_op->setIBInterpOp(interp_op);
     stokes_fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);

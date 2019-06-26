@@ -35,13 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchLevel.h"
 #include "CellVariable.h"
@@ -52,16 +46,26 @@
 #include "SideVariable.h"
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
-#include "boost/multi_array.hpp"
-#include "boost/unordered_map.hpp"
-#include "ibtk/ibtk_utilities.h"
+#include "tbox/Pointer.h"
+#include "tbox/Serializable.h"
+
 #include "libmesh/dof_map.h"
 #include "libmesh/elem.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/system.h"
-#include "tbox/Pointer.h"
-#include "tbox/Serializable.h"
+
+#include "boost/multi_array.hpp"
+#include "boost/unordered_map.hpp"
+
+#include <stdbool.h>
+#include <stddef.h>
+
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace IBTK
 {

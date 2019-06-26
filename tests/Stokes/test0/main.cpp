@@ -33,6 +33,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -47,12 +48,13 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include <ibamr/StaggeredStokesFACPreconditioner.h>
 #include <ibamr/app_namespaces.h>
+
 #include <ibtk/AppInitializer.h>
+#include <ibtk/KrylovLinearSolver.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
-#include <ibtk/KrylovLinearSolver.h>
-#include <ibamr/StaggeredStokesFACPreconditioner.h>
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,

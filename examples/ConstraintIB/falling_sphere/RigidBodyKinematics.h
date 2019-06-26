@@ -34,9 +34,9 @@
 
 ///////////////////////////////////////// INCLUDES //////////////////////////////////////////
 
-#include <vector>
-
 #include "ibamr/ConstraintIBKinematics.h"
+
+#include <vector>
 
 /////////////////////////////////////// FORWARD DECLARATION ////////////////////////////////
 
@@ -162,6 +162,6 @@ private:
 
 }; // RigidBodyKinematics
 
-} // IBAMR
+} // namespace IBAMR
 
 #endif // included_RgidBodyKinematics

@@ -30,6 +30,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -52,6 +53,7 @@
 #include <ibamr/IMPInitializer.h>
 #include <ibamr/IMPMethod.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -90,7 +92,7 @@ PK1_stress_function(TensorValue<double>& PP,
     }
     return;
 } // PK1_stress_function
-}
+} // namespace ModelData
 using namespace ModelData;
 
 /*******************************************************************************

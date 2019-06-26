@@ -32,17 +32,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-
 #include "ibtk/CCLaplaceOperator.h"
-#include "ibtk/CCPoissonHypreLevelSolver.h"
-#include "ibtk/CCPoissonPETScLevelSolver.h"
 #include "ibtk/CCPoissonBoxRelaxationFACOperator.h"
+#include "ibtk/CCPoissonHypreLevelSolver.h"
 #include "ibtk/CCPoissonLevelRelaxationFACOperator.h"
+#include "ibtk/CCPoissonPETScLevelSolver.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/KrylovLinearSolver.h"
@@ -51,11 +45,19 @@
 #include "ibtk/PETScKrylovPoissonSolver.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Utilities.h"
+
+#include <stddef.h>
+
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -113,7 +115,7 @@ allocate_petsc_krylov_solver(const std::string& object_name,
     krylov_solver->setOperator(new CCLaplaceOperator(object_name + "::CCLaplaceOperator"));
     return krylov_solver;
 } // allocate_petsc_krylov_solver
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -127,9 +129,7 @@ CCPoissonSolverManager::allocateSolver(const std::string& solver_type,
     if (it == d_solver_maker_map.end())
     {
         TBOX_ERROR("CCPoissonSolverManager::allocateSolver():\n"
-                   << "  unrecognized solver type: "
-                   << solver_type
-                   << "\n");
+                   << "  unrecognized solver type: " << solver_type << "\n");
     }
     return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
 } // allocateSolver

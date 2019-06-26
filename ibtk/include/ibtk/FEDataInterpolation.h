@@ -35,10 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "boost/multi_array.hpp"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/libmesh_utilities.h"
+
 #include "libmesh/equation_systems.h"
+
+#include "boost/multi_array.hpp"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -329,8 +331,8 @@ private:
     bool d_initialized;
     bool d_eval_q_point, d_eval_JxW, d_eval_q_point_face, d_eval_JxW_face, d_eval_normal_face;
     libMesh::QBase *d_qrule, *d_qrule_face;
-    const std::vector<libMesh::Point> *d_q_point, *d_q_point_face;
-    const std::vector<double> *d_JxW, *d_JxW_face;
+    const std::vector<libMesh::Point>*d_q_point, *d_q_point_face;
+    const std::vector<double>*d_JxW, *d_JxW_face;
     const std::vector<libMesh::Point>* d_normal_face;
 
     // Data associated with systems.
@@ -350,8 +352,8 @@ private:
     std::vector<libMesh::FEType> d_fe_types;
     std::vector<SAMRAI::tbox::Pointer<libMesh::FEBase> > d_fe, d_fe_face;
     std::vector<bool> d_eval_phi, d_eval_dphi;
-    std::vector<const std::vector<std::vector<double> > *> d_phi, d_phi_face;
-    std::vector<const std::vector<std::vector<libMesh::VectorValue<double> > > *> d_dphi, d_dphi_face;
+    std::vector<const std::vector<std::vector<double> >*> d_phi, d_phi_face;
+    std::vector<const std::vector<std::vector<libMesh::VectorValue<double> > >*> d_dphi, d_dphi_face;
 
     // Data associated with the current element.
     const libMesh::Elem* d_current_elem;

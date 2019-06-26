@@ -35,17 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibtk/CartGridFunction.h"
 
 #include "IntVector.h"
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
-#include "ibtk/CartGridFunction.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
+
+#include <stddef.h>
+
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {
@@ -108,7 +110,7 @@ namespace IBAMR
 {
 class IBHierarchyIntegrator;
 class INSHierarchyIntegrator;
-}
+} // namespace IBAMR
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

@@ -35,10 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+
 #include <string>
 #include <vector>
-
-#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 
 namespace IBAMR
 {

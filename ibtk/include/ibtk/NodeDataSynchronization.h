@@ -35,17 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
-
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
-#include "boost/array.hpp"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include "boost/array.hpp"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

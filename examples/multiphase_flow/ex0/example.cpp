@@ -30,6 +30,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -49,6 +50,7 @@
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/app_namespaces.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -202,7 +204,8 @@ run_example(int argc, char* argv[])
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateCircularInterfaceCallbackFunction,
                                                                 static_cast<void*>(ptr_LSLocateCircularInterface));
         SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", level_set_ops);
-        adv_diff_integrator->registerResetFunction(phi_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
+        adv_diff_integrator->registerResetFunction(
+            phi_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
 
         // Setup the INS maintained material properties.
         Pointer<Variable<NDIM> > rho_var;

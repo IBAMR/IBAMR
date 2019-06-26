@@ -35,23 +35,27 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <set>
-#include <stdbool.h>
-#include <stddef.h>
-#include <string>
-#include <vector>
+#include "ibamr/CIBStrategy.h"
+#include "ibamr/IBFEMethod.h"
+
+#include "ibtk/FEDataManager.h"
+#include "ibtk/libmesh_utilities.h"
 
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
-#include "ibamr/CIBStrategy.h"
-#include "ibamr/IBFEMethod.h"
-#include "ibtk/FEDataManager.h"
-#include "ibtk/libmesh_utilities.h"
+#include "tbox/Pointer.h"
+
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
-#include "tbox/Pointer.h"
+
+#include <stdbool.h>
+#include <stddef.h>
+
+#include <set>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {
@@ -122,7 +126,7 @@ public:
      * Typedef specifying interface for specifying constrained body velocities.
      */
     typedef void (*ConstrainedNodalVelocityFcnPtr)(libMesh::NumericVector<double>& U_k,
-    const IBTK::RigidDOFVector& U,
+                                                   const IBTK::RigidDOFVector& U,
                                                    libMesh::NumericVector<double>& X,
                                                    const Eigen::Vector3d& X_com,
                                                    libMesh::EquationSystems* equation_systems,
@@ -462,8 +466,8 @@ private:
      * FE data vectors.
      */
     std::vector<libMesh::System*> d_U_constrained_systems;
-    std::vector<libMesh::PetscVector<double> *> d_U_constrained_current_vecs, d_U_constrained_half_vecs;
-    std::vector<libMesh::PetscVector<double> *> d_F_current_vecs, d_F_new_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_U_constrained_current_vecs, d_U_constrained_half_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_F_current_vecs, d_F_new_vecs;
 
     /*!
      * Booleans to control spreading constraint force and interpolating

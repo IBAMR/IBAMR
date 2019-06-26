@@ -8,15 +8,17 @@
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
 
-#include <Variable.h>
 #include <ibtk/ibtk_utilities.h>
+
 #include <tbox/Pointer.h>
+
+#include <Variable.h>
 
 namespace IBTK
 {
 class HierarchyMathOps;
 class CartGridFunction;
-}
+} // namespace IBTK
 
 /*!
  * Pre processing call back function to be hooked into IBAMR::INSVCStaggeredHierarchyIntegrator class.

@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
 #include "ibamr/ibamr_enums.h"
+
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
+
+#include <string>
 
 namespace SAMRAI
 {

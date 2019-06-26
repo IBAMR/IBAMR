@@ -35,20 +35,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/IBRedundantInitializer.h"
+#include "ibamr/IBRodForceSpec.h"
+
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_utilities.h"
+
+#include "IntVector.h"
+#include "tbox/Pointer.h"
+
+#include "boost/array.hpp"
+
 #include <functional>
 #include <map>
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "IntVector.h"
-#include "boost/array.hpp"
-#include "ibamr/IBRedundantInitializer.h"
-#include "ibamr/IBRodForceSpec.h"
-#include "ibtk/LInitStrategy.h"
-#include "ibtk/LSiloDataWriter.h"
-#include "ibtk/ibtk_utilities.h"
-#include "tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -670,7 +673,6 @@ private:
      * Source information.
      */
     std::vector<std::vector<bool> > d_enable_sources;
-
 };
 } // namespace IBAMR
 

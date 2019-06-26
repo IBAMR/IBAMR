@@ -35,13 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <set>
-#include <vector>
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
 
 #include "ComponentSelector.h"
 #include "IntVector.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "tbox/Array.h"
+
+#include <set>
+#include <vector>
 
 namespace SAMRAI
 {

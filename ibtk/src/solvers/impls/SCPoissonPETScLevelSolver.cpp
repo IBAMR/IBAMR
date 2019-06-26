@@ -32,9 +32,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <string>
-#include <vector>
+#include "ibtk/GeneralSolver.h"
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/PETScLevelSolver.h"
+#include "ibtk/PETScMatUtilities.h"
+#include "ibtk/PETScVecUtilities.h"
+#include "ibtk/PoissonUtilities.h"
+#include "ibtk/SCPoissonPETScLevelSolver.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -51,20 +56,18 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibtk/GeneralSolver.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/PETScLevelSolver.h"
-#include "ibtk/PETScMatUtilities.h"
-#include "ibtk/PETScVecUtilities.h"
-#include "ibtk/PoissonUtilities.h"
-#include "ibtk/SCPoissonPETScLevelSolver.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "petscmat.h"
-#include "petscsys.h"
-#include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
+
+#include "petscmat.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include <stddef.h>
+
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -76,7 +79,7 @@ namespace
 {
 // Number of ghosts cells used for each variable quantity.
 static const int SIDEG = 1;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

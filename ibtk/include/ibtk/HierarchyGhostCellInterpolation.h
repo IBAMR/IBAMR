@@ -35,11 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <ostream>
-#include <string>
-#include <vector>
-
 #include "BoxGeometryFillPattern.h"
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
@@ -49,6 +44,12 @@
 #include "VariableFillPattern.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include <stddef.h>
+
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {

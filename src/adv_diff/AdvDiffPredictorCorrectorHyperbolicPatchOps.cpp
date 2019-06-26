@@ -32,11 +32,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <map>
-#include <ostream>
-#include <set>
-#include <string>
+#include "IBAMR_config.h"
+
+#include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
+#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
+#include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartGridFunction.h"
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
@@ -46,7 +51,6 @@
 #include "FaceData.h"
 #include "FaceVariable.h"
 #include "HyperbolicLevelIntegrator.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
@@ -56,16 +60,16 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
-#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
-#include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartGridFunction.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <stddef.h>
+
+#include <map>
+#include <ostream>
+#include <set>
+#include <string>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -80,92 +84,93 @@
     IBAMR_FC_FUNC_(adv_diff_consdiffwithdivsource3d, ADV_DIFF_CONSDIFFWITHDIVSOURCE3D)
 #endif
 
-extern "C" {
-void ADV_DIFF_CONSDIFF_FC(const double*,
-                          const double&,
+extern "C"
+{
+    void ADV_DIFF_CONSDIFF_FC(const double*,
+                              const double&,
 #if (NDIM == 2)
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const double*,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const double*,
 #endif
 #if (NDIM == 3)
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const double*,
-                          const double*,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const double*,
+                              const double*,
 #endif
-                          double*);
+                              double*);
 
-void ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(const double*,
-                                       const double&,
+    void ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(const double*,
+                                           const double&,
 #if (NDIM == 2)
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const double*,
-                                       const double*,
-                                       const double*,
-                                       const double*,
-                                       const double*,
-                                       const double*,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const double*,
+                                           const double*,
+                                           const double*,
+                                           const double*,
+                                           const double*,
 #endif
 #if (NDIM == 3)
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const double*,
-                                       const double*,
-                                       const double*,
-                                       const double*,
-                                       const double*,
-                                       const double*,
-                                       const double*,
-                                       const double*,
-                                       const double*,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const double*,
+                                           const double*,
+                                           const double*,
+                                           const double*,
+                                           const double*,
+                                           const double*,
+                                           const double*,
+                                           const double*,
 #endif
-                                       double*);
+                                           double*);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -365,8 +370,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch
                     "conservativeDifferenceOnPatch():"
                     "\n"
                     << "  unsupported differencing form: "
-                    << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var])
-                    << " \n"
+                    << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var]) << " \n"
                     << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
             }
             }

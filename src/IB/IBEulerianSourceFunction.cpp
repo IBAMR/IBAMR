@@ -32,18 +32,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartGridFunction.h"
 
 #include "CellData.h"
-#include "ibamr/IBHierarchyIntegrator.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchCellDataBasicOps.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartGridFunction.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <ostream>
+#include <string>
 
 namespace SAMRAI
 {

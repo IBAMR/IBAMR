@@ -32,20 +32,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
+#include "IBTK_config.h"
+
+#include "ibtk/CartSideDoubleSpecializedConstantRefine.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
-#include "IBTK_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "SideData.h"
 #include "SideVariable.h"
-#include "ibtk/CartSideDoubleSpecializedConstantRefine.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <ostream>
+#include <string>
 
 namespace SAMRAI
 {
@@ -67,67 +69,68 @@ class Variable;
 #endif
 
 // Function interfaces
-extern "C" {
-void CART_SIDE_SPECIALIZED_CONSTANT_REFINE_FC(
+extern "C"
+{
+    void CART_SIDE_SPECIALIZED_CONSTANT_REFINE_FC(
 #if (NDIM == 2)
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
 #endif
 #if (NDIM == 3)
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
 #endif
-    const int*);
+        const int*);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -142,7 +145,7 @@ namespace
 {
 static const int REFINE_OP_PRIORITY = 0;
 static const int REFINE_OP_STENCIL_WIDTH = 1;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

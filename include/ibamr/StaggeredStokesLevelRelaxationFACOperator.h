@@ -35,16 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <string>
-#include <vector>
-
-#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
+#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
+
+#include "tbox/Pointer.h"
+
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+
+#include <stddef.h>
+
+#include <string>
+#include <vector>
 
 namespace boost
 {
@@ -77,7 +80,7 @@ namespace IBAMR
  * \brief Class StaggeredStokesLevelRelaxationFACOperator is a concrete
  * StaggeredStokesFACPreconditionerStrategy implementing a level relaxation
  * smoother for use as a multigrid preconditioner.
-*/
+ */
 class StaggeredStokesLevelRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
 {
 public:
@@ -198,7 +201,7 @@ private:
     std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
 };
-} // namespace IBTK
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

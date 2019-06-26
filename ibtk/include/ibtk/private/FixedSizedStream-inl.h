@@ -35,10 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cstring>
-
 #include "ibtk/FixedSizedStream.h"
+
 #include "tbox/Utilities.h"
+
+#include <cstring>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -94,13 +95,15 @@ FixedSizedStream::resetIndex()
 *************************************************************************
 */
 
-inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator<<(const bool& data)
+inline SAMRAI::tbox::AbstractStream&
+FixedSizedStream::operator<<(const bool& data)
 {
     pack(&data, 1);
     return *this;
 } // operator<<
 
-inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator>>(bool& data)
+inline SAMRAI::tbox::AbstractStream&
+FixedSizedStream::operator>>(bool& data)
 {
     unpack(&data, 1);
     return *this;
@@ -140,13 +143,15 @@ FixedSizedStream::unpack(bool* data, const int n)
 *************************************************************************
 */
 
-inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator<<(const char& data)
+inline SAMRAI::tbox::AbstractStream&
+FixedSizedStream::operator<<(const char& data)
 {
     pack(&data, 1);
     return *this;
 } // operator<<
 
-inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator>>(char& data)
+inline SAMRAI::tbox::AbstractStream&
+FixedSizedStream::operator>>(char& data)
 {
     unpack(&data, 1);
     return *this;
@@ -176,13 +181,15 @@ FixedSizedStream::unpack(char* data, const int n)
 *************************************************************************
 */
 
-inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator<<(const dcomplex& data)
+inline SAMRAI::tbox::AbstractStream&
+FixedSizedStream::operator<<(const dcomplex& data)
 {
     pack(&data, 1);
     return *this;
 } // operator<<
 
-inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator>>(dcomplex& data)
+inline SAMRAI::tbox::AbstractStream&
+FixedSizedStream::operator>>(dcomplex& data)
 {
     unpack(&data, 1);
     return *this;
@@ -212,13 +219,15 @@ FixedSizedStream::unpack(dcomplex* data, const int n)
 *************************************************************************
 */
 
-inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator<<(const double& data)
+inline SAMRAI::tbox::AbstractStream&
+FixedSizedStream::operator<<(const double& data)
 {
     pack(&data, 1);
     return *this;
 } // operator<<
 
-inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator>>(double& data)
+inline SAMRAI::tbox::AbstractStream&
+FixedSizedStream::operator>>(double& data)
 {
     unpack(&data, 1);
     return *this;
@@ -248,13 +257,15 @@ FixedSizedStream::unpack(double* data, const int n)
 *************************************************************************
 */
 
-inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator<<(const float& data)
+inline SAMRAI::tbox::AbstractStream&
+FixedSizedStream::operator<<(const float& data)
 {
     pack(&data, 1);
     return *this;
 } // operator<<
 
-inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator>>(float& data)
+inline SAMRAI::tbox::AbstractStream&
+FixedSizedStream::operator>>(float& data)
 {
     unpack(&data, 1);
     return *this;
@@ -284,13 +295,15 @@ FixedSizedStream::unpack(float* data, const int n)
 *************************************************************************
 */
 
-inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator<<(const int& data)
+inline SAMRAI::tbox::AbstractStream&
+FixedSizedStream::operator<<(const int& data)
 {
     pack(&data, 1);
     return *this;
 } // operator<<
 
-inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator>>(int& data)
+inline SAMRAI::tbox::AbstractStream&
+FixedSizedStream::operator>>(int& data)
 {
     unpack(&data, 1);
     return *this;
@@ -337,8 +350,7 @@ FixedSizedStream::getPointerAndAdvanceCursor(const int bytes)
         if (d_buffer_index > d_buffer_size)
         {
             TBOX_ERROR("FixedSizedStream::getPointerAndAdvanceCursor():\n"
-                       << "  buffer overrun."
-                       << std::endl);
+                       << "  buffer overrun." << std::endl);
         }
     }
     return ptr;

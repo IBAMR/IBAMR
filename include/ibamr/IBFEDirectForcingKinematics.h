@@ -35,18 +35,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <set>
-#include <stdbool.h>
-#include <stddef.h>
-#include <string>
-#include <vector>
-
-#include "Eigen/Core"
-#include "Eigen/Geometry"
 #include "ibtk/ibtk_utilities.h"
+
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
+
+#include "Eigen/Core"
+#include "Eigen/Geometry"
+
+#include <stdbool.h>
+#include <stddef.h>
+
+#include <set>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

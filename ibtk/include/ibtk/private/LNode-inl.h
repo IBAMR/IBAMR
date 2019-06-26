@@ -38,6 +38,7 @@
 #include "ibtk/LNode.h"
 #include "ibtk/StreamableManager.h"
 #include "ibtk/compiler_hints.h"
+
 #include "tbox/AbstractStream.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -88,7 +89,8 @@ inline LNode::~LNode()
     return;
 } // ~LNode
 
-inline LNode& LNode::operator=(const LNode& that)
+inline LNode&
+LNode::operator=(const LNode& that)
 {
     if (this != &that)
     {

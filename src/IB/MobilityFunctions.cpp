@@ -32,12 +32,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/MobilityFunctions.h"
+
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
-
-#include "ibamr/MobilityFunctions.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -108,7 +108,7 @@ get_sqnorm(const double* a_vec)
 {
 #if (NDIM == 3)
     return a_vec[0] * a_vec[0] + a_vec[1] * a_vec[1] + a_vec[2] * a_vec[2];
-#elif(NDIM == 2)
+#elif (NDIM == 2)
     return a_vec[0] * a_vec[0] + a_vec[1] * a_vec[1];
 #endif
 
@@ -286,7 +286,7 @@ InterpolateConstants(KERNEL_TYPES MOB_FIT_current, const double beta)
                                    -0.00100982221976800,
                                    1.90168352243139e-05 } };
 
-#elif(NDIM == 2)
+#elif (NDIM == 2)
     // coefficients for fitting f_beta(0) 2D
     const int num_cases = 7;
     const double F_beta_zero[3][5] = { { 0.1245, 0.05237, 1.873, 0.5579, -0.0159 },
@@ -367,7 +367,7 @@ InterpolateConstants(KERNEL_TYPES MOB_FIT_current, const double beta)
     for (cnt = 0; cnt < 10; cnt++) F_b[cnt] = InterpolateLinear(M_betas, F_beta_coeff[cnt], num_cases, beta);
     for (cnt = 0; cnt < 6; cnt++) G_b[cnt] = InterpolateLinear(M_betas, G_beta_coeff[cnt], num_cases, beta);
 
-#elif(NDIM == 2)
+#elif (NDIM == 2)
     for (cnt = 0; cnt < 5; cnt++) Z_b[cnt] = F_beta_zero[MOB_FIT_current][cnt];
     for (cnt = 0; cnt < 3; cnt++) Z_s[cnt] = F_stokes_zero[MOB_FIT_current][cnt];
     for (cnt = 0; cnt < 5; cnt++) F_s[cnt] = F_stokes_coeff[MOB_FIT_current][cnt];
@@ -397,7 +397,7 @@ InitializeAllConstants(const char* IBKernelName, const double MU, const double r
         MOB_FIT_FACTOR = 1. / MU / DX; // 3D steady stokes
     else
         MOB_FIT_FACTOR = Dt / (rho * DX * DX * DX);
-#elif(NDIM == 2)
+#elif (NDIM == 2)
     //*******2D case
     if ((rho < ZERO_TOL) || (beta >= 100.1)) // 2D steady stokes
         MOB_FIT_FACTOR = 1. / MU;
@@ -421,7 +421,7 @@ _F_R_INF(const double rr, const double Dx, const double L_domain)
     else
         return factor * (exp(-F_s[0] * r) * F_s[1] / HRad +
                          (F_s[2] * r + F_s[3] * r * r * r) / (1.0 + F_s[4] * r * r + F_s[5] * pow(r, 4)));
-#elif(NDIM == 2)
+#elif (NDIM == 2)
     if (L_domain < ZERO_TOL)
     {
         fprintf(stderr, "IBEMpiricalMobility:_F_R_INF()  L_domain must be non specified in 2D!. Abort.\n");
@@ -431,9 +431,8 @@ _F_R_INF(const double rr, const double Dx, const double L_domain)
     if (r < 0.1)
         return f_0;
     else
-        return (f_0 +
-                (F_s[0] * r * r + F_s[1] * r * r * r + F_s[2] * r * r * r * log(r)) /
-                    (1.0 + F_s[3] * r + F_s[4] * r * r - F_s[2] * 4 * M_PI * r * r * r));
+        return (f_0 + (F_s[0] * r * r + F_s[1] * r * r * r + F_s[2] * r * r * r * log(r)) /
+                          (1.0 + F_s[3] * r + F_s[4] * r * r - F_s[2] * 4 * M_PI * r * r * r));
 #endif
 } // _F_R_INF
 
@@ -447,7 +446,7 @@ _G_R_INF(const double rr, const double Dx)
         return 0.0;
     else
         return (factor * r * r) / (G_s[0] + G_s[1] * r * r + r * r * r);
-#elif(NDIM == 2)
+#elif (NDIM == 2)
     return (G_s[0] * r * r + G_s[1] * r * r * r) / (1.0 + G_s[2] * r + G_s[3] * r * r + G_s[1] * r * r * r) / 4 / M_PI;
 #endif
 } // _G_R_INF
@@ -476,7 +475,7 @@ _F_R_BETA(const double rr, const double Dx, const double beta, const double L_do
     else
         return _F_R_INF(rr, Dx, 0.0);
 
-#elif(NDIM == 2)
+#elif (NDIM == 2)
     const double factor = 1.0 / M_PI;
     if (beta < 100.1)
     {
@@ -513,7 +512,7 @@ _G_R_BETA(const double rr, const double Dx, const double beta)
                (1.0 + G_b[0] * r + G_b[1] * r * r + G_b[2] * r * r * r + G_b[5] * pow(r, 4) + G_b[4] * f_0 * pow(r, 5));
     else
         return _G_R_INF(rr, Dx);
-#elif(NDIM == 2)
+#elif (NDIM == 2)
     if (beta < 100.1)
     {
         const double factor = 1.0 / M_PI;
@@ -570,7 +569,7 @@ getEmpiricalMobilityComponents(const char* IBKernelName,
     }
     return;
 } // getEmpiricalMobilityComponents
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -699,6 +698,6 @@ MobilityFunctions::constructRPYMobilityMatrix(const char* IBKernelName,
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-} // IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

@@ -33,6 +33,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -52,16 +53,18 @@
 #include <libmesh/periodic_boundary.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <boost/multi_array.hpp>
 #include <ibamr/CIBFEMethod.h>
 #include <ibamr/CIBStaggeredStokesSolver.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+#include <boost/multi_array.hpp>
 
 // Various model parameters and functions.
 namespace ModelData
@@ -118,7 +121,7 @@ ConstrainedNodalVel(libMesh::NumericVector<double>& U_k,
 #if (NDIM == 2)
     W(0, 1) = -U[2];
     W(1, 0) = U[2];
-#elif(NDIM == 3)
+#elif (NDIM == 3)
     W(0, 1) = -U[5];
     W(1, 0) = U[5];
     W(0, 2) = U[4];
@@ -157,7 +160,7 @@ ConstrainedCOMVel(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_c
 
     return;
 } // ConstrainedCOMVel
-}
+} // namespace ModelData
 using namespace ModelData;
 
 // Function prototypes

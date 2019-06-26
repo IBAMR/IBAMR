@@ -35,14 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <iosfwd>
-#include <string>
-#include <utility>
-
 #include "ibtk/FACPreconditioner.h"
+
 #include "tbox/ConstPointer.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include <iosfwd>
+#include <string>
+#include <utility>
 
 namespace SAMRAI
 {

@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/ibamr_enums.h"
+
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 
 namespace IBAMR
