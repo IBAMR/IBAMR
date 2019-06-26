@@ -1,6 +1,5 @@
 // Filename: IBFESurfaceMethod.h
 // Created on 19 May 2018 by Boyce Griffith
-//
 // Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
@@ -101,6 +100,16 @@ namespace IBAMR
  * \brief Class IBFESurfaceMethod is an implementation of the abstract base
  * class IBStrategy that provides functionality required by the IB method with
  * a finite element representation of a surface mesh.
+ * Additionally an immersed interface method (IIM) has been implemented with calculations
+ * of shear stress, pressure and total fluid traction.
+ *
+ * References:
+ * Kolahdouz et al., <A HREF="https://arxiv.org/abs/1812.06840"> An Immersed Interface
+ * Method for Faceted Surfaces
+ *
+ * \note To achieve best accuracy with IIM, using a tight relative convergence threshold
+ * of 1.0e-10 is recommended for both the Krylov solver of
+ * the $L^2$ projection steps as well as the subdomain Stokes solve of the NS solver.
  */
 class IBFESurfaceMethod : public IBStrategy
 {
@@ -111,7 +120,14 @@ public:
     static const std::string NORMAL_VELOCITY_SYSTEM_NAME;
     static const std::string PRESSURE_JUMP_SYSTEM_NAME;
     static const std::string TANGENTIAL_VELOCITY_SYSTEM_NAME;
+    static const std::array<std::string, NDIM> VELOCITY_JUMP_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
+    static const std::string WSS_SYSTEM_NAME;
+    static const std::string P_SYSTEM_NAME;
+    static const std::string TAU_SYSTEM_NAME;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > mask_var;
+    int mask_current_idx, mask_new_idx, mask_scratch_idx;
 
     /*!
      * \brief Constructor.
@@ -295,12 +311,28 @@ public:
     /*!
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval.
+     * \note WSS is computed if the jump(s) in the fluid shear stress is applied.
      */
     void interpolateVelocity(
         int u_data_idx,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
         double data_time) override;
+
+    /*!
+     * Compute the fluid traction if all jump conditions are applied.
+     */
+    void computeFluidTraction(double current_time, unsigned int part = 0);
+
+    /*!
+     * Compute the pressure used in the calculation of the fluid traction (pressure jump condition needs to be applied).
+     */
+    void interpolatePressureForTraction(int p_data_idx, double data_time, unsigned int part = 0);
+
+    /*!
+     * A wrapper to compute the interfacial pressure and fluid traction from the jumps.
+     */
+    void calculateInterfacialFluidForces(double data_time);
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
@@ -472,14 +504,29 @@ public:
 
 protected:
     /*!
-     * Impose (pressure) jump conditions.
+     * Impose the jump conditions.
      */
     void imposeJumpConditions(const int f_data_idx,
-                              libMesh::PetscVector<double>& DP_ghost_vec,
+                              libMesh::PetscVector<double>& P_jump_ghost_vec,
+                              std::array<libMesh::PetscVector<double>*, NDIM>& DU_jump_ghost_vec,
                               libMesh::PetscVector<double>& X_ghost_vec,
                               const double data_time,
                               const unsigned int part);
-
+    /*!
+     * \brief Helper function for checking possible double-counting
+     *  intesection points
+     */
+    void checkDoubleCountingIntersection(int axis,
+                                         const double* dx,
+                                         libMesh::VectorValue<double> n,
+                                         const libMesh::Point x,
+                                         const libMesh::Point& xi,
+                                         const SAMRAI::pdat::SideIndex<NDIM> i_s,
+                                         const SAMRAI::pdat::SideIndex<NDIM> i_s_prime,
+                                         const std::vector<libMesh::Point> candidate_coords,
+                                         const std::vector<libMesh::Point> candidate_ref_coords,
+                                         const std::vector<libMesh::VectorValue<double> > candidate_normals,
+                                         bool found_same_intersection_point);
     /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
      * mapping function.  If no function is provided, the initial coordinates
@@ -521,6 +568,16 @@ protected:
 
     /*
      * FE data associated with this object.
+     * d_X_systems: IB coordinates system
+     * d_F_systems: IB force system
+     * d_U_systems: IB velocity system
+     * d_U_n_systems: IB normal velocity system
+     * d_U_t_sytems: IB tangential velocity system
+     * d_P_jump_systems: IB pressure jump system [[p]]
+     * d_DU_jump_systems:
+     * d_WSS_systems: one sided interior/exterior shear stress system
+     * d_P_systems: one sided interior/exterior pressure system
+     * d_TAU_systems: fluid traction system
      */
     std::vector<libMesh::MeshBase*> d_meshes;
     int d_max_level_number;
@@ -529,14 +586,22 @@ protected:
     const unsigned int d_num_parts = 1;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_DP_systems;
+    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_P_jump_systems,
+        d_WSS_systems;
+    std::vector<libMesh::System*> d_P_systems, d_TAU_systems;
+    std::vector<std::array<libMesh::System*, NDIM> > d_DU_jump_systems;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
         d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
+
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_DP_half_vecs, d_DP_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_P_jump_half_vecs, d_P_jump_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_P_half_vecs, d_P_IB_ghost_vecs;
+    std::vector<std::array<libMesh::PetscVector<double>*, NDIM> > d_DU_jump_half_vecs, d_DU_jump_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_WSS_half_vecs, d_WSS_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_TAU_half_vecs, d_TAU_IB_ghost_vecs;
 
     bool d_fe_equation_systems_initialized = false, d_fe_data_initialized = false;
 
@@ -547,7 +612,10 @@ protected:
     IBTK::FEDataManager::SpreadSpec d_default_spread_spec;
     std::vector<IBTK::FEDataManager::InterpSpec> d_interp_spec;
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
-    bool d_use_jump_conditions = false;
+    bool d_use_pressure_jump_conditions, d_use_velocity_jump_conditions;
+    bool d_use_l2_lagrange_family;
+    bool d_compute_fluid_traction;
+    bool d_traction_interior_side;
     bool d_perturb_fe_mesh_nodes = true;
     bool d_normalize_pressure_jump = false;
     std::vector<libMesh::FEFamily> d_fe_family;
@@ -556,6 +624,8 @@ protected:
     std::vector<libMesh::Order> d_default_quad_order;
     bool d_use_consistent_mass_matrix = true;
     bool d_use_direct_forcing = false;
+    double d_wss_calc_width, d_p_calc_width;
+    double d_traction_activation_time;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
