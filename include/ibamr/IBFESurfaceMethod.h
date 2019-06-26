@@ -1,6 +1,9 @@
 // ---------------------------------------------------------------------
 //
 // Copyright (c) 2018 - 2019 by the IBAMR developers
+// Filename: IBFESurfaceMethod.h
+// Created on 19 May 2018 by Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // This file is part of IBAMR.
