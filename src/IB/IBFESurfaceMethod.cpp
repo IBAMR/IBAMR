@@ -182,7 +182,7 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
 {
     commonConstructor(object_name,
                       input_db,
-                      std::vector<MeshBase*>(1, mesh),
+                      std::vector<MeshBase*>(d_num_parts, mesh),
                       max_level_number,
                       register_for_restart,
                       restart_read_dirname,
@@ -6422,6 +6422,7 @@ IBFESurfaceMethod::initializeCoordinates(const unsigned int part)
         }
     }
     X_coords.close();
+
     X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
     copy_and_synch(X_coords, *X_system.current_local_solution);
     copy_and_synch(X_coords, X_system.get_vector("INITIAL_COORDINATES"));
@@ -6526,6 +6527,9 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     // Set some default values.
     const bool use_adaptive_quadrature = true;
     const int point_density = 2.0;
+    d_wss_calc_width = 0.0;
+    d_p_calc_width = 0.0;
+    d_traction_activation_time = 0.0;
     const bool use_nodal_quadrature = false;
     const bool interp_use_consistent_mass_matrix = true;
     d_default_interp_spec = FEDataManager::InterpSpec("IB_4",
@@ -6537,6 +6541,11 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
                                                       use_nodal_quadrature);
     d_default_spread_spec = FEDataManager::SpreadSpec(
         "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, use_nodal_quadrature);
+    d_ghosts = 0;
+    d_use_velocity_jump_conditions = false;
+    d_use_pressure_jump_conditions = false;
+    d_use_l2_lagrange_family = false;
+    d_compute_fluid_traction = false;
 
     d_fe_family.resize(d_num_parts, INVALID_FE);
     d_fe_order.resize(d_num_parts, INVALID_ORDER);
