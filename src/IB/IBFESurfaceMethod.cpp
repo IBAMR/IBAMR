@@ -1427,6 +1427,7 @@ void
 IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
@@ -1451,10 +1452,13 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             P_jump_rhs_vec = P_jump_vec->zero_clone();
         }
         double P_jump_rhs_integral = 0.0;
+        
 
         std::array<NumericVector<double>*, NDIM> DU_jump_vec;
         std::array<std::unique_ptr<NumericVector<double> >, NDIM> DU_jump_rhs_vec;
         std::array<std::vector<DenseVector<double> >, NDIM> DU_jump_rhs_e;
+
+
         if (d_use_velocity_jump_conditions)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -1518,9 +1522,11 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                 {
                     TBOX_ASSERT(DU_jump_dof_map[i]->variable_type(j) == DU_jump_fe_type);
                 }
+                DU_jump_rhs_e[i].resize(NDIM);
             }
         }
         TBOX_ASSERT(P_jump_fe_type == DU_jump_fe_type);
+  
 
         std::unique_ptr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
 
@@ -1551,6 +1557,9 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         std::vector<const std::vector<VectorValue<double> >*> surface_force_grad_var_data,
             surface_pressure_grad_var_data;
 
+      
+  
+
         // Loop over the elements to compute the right-hand side vector.
         boost::multi_array<double, 2> X_node, x_node;
         double DU[NDIM][NDIM];
@@ -1565,26 +1574,33 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             Elem* const elem = *el_it;
             const auto& F_dof_indices = F_dof_map_cache.dof_indices(elem);
             const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
+			
+
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 F_rhs_e[d].resize(static_cast<int>(F_dof_indices[d].size()));
             }
+            
             if (d_use_pressure_jump_conditions)
             {
                 const auto& P_jump_dof_indices = P_jump_dof_map_cache->dof_indices(elem);
                 P_jump_rhs_e.resize(static_cast<int>(P_jump_dof_indices[0].size()));
             }
+           
             if (d_use_velocity_jump_conditions)
             {
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     const auto& DU_jump_dof_indices = DU_jump_dof_map_cache[d]->dof_indices(elem);
+                      
                     for (unsigned int k = 0; k < NDIM; ++k)
                     {
                         DU_jump_rhs_e[d][k].resize(static_cast<int>(DU_jump_dof_indices[k].size()));
                     }
                 }
             }
+ 
+           
 
             fe_X->reinit(elem);
 
@@ -1593,7 +1609,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             fe_interpolator.interpolate(elem);
 
             fe_P_jump->reinit(elem);
-
+			
             get_values_for_interpolation(x_node, *X_vec, X_dof_indices);
             get_values_for_interpolation(X_node, X0_vec, X_dof_indices);
             const unsigned int n_qpoints = qrule->n_points();
@@ -1727,6 +1743,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                     surface_area += JxW[qp];
                 }
             }
+        
 
             // Apply constraints (e.g., enforce periodic boundary conditions)
             // and add the elemental contributions to the global vector.

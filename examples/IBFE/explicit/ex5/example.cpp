@@ -178,7 +178,7 @@ tether_force_function(VectorValue<double>& F,
 
 void
 tether_force_function(VectorValue<double>& F,
-                      const VectorValue<double>& /*n*/,
+                      const VectorValue<double>& n,
                       const VectorValue<double>& /*N*/,
                       const TensorValue<double>& /*FF*/,
                       const libMesh::Point& x,
@@ -202,8 +202,8 @@ tether_force_function(VectorValue<double>& F,
 using namespace ModelData;
 
 // Function prototypes
-static ofstream drag_F_stream, lift_F_stream, drag_TAU_stream, lift_TAU_stream, U_L1_norm_stream, U_L2_norm_stream,
-    U_max_norm_stream;
+static ofstream drag_F_stream, lift_F_stream, drag_TAU_stream, lift_TAU_stream;
+
 void postprocess_data(Pointer<Database> input_db,
                       Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                       Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
@@ -282,7 +282,8 @@ run_example(int argc, char** argv)
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
-        const double R = 0.5;
+        const double R = input_db->getDouble("R");
+
         if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
         {
 #ifdef LIBMESH_HAVE_TRIANGLE
@@ -539,17 +540,11 @@ run_example(int argc, char** argv)
             lift_F_stream.open("C_F_L.curve", ios_base::out | ios_base::trunc);
             drag_TAU_stream.open("C_T_D.curve", ios_base::out | ios_base::trunc);
             lift_TAU_stream.open("C_T_L.curve", ios_base::out | ios_base::trunc);
-            U_L1_norm_stream.open("U_L1.curve", ios_base::out | ios_base::trunc);
-            U_L2_norm_stream.open("U_L2.curve", ios_base::out | ios_base::trunc);
-            U_max_norm_stream.open("U_max.curve", ios_base::out | ios_base::trunc);
 
             drag_F_stream.precision(10);
             lift_F_stream.precision(10);
             drag_TAU_stream.precision(10);
             lift_TAU_stream.precision(10);
-            U_L1_norm_stream.precision(10);
-            U_L2_norm_stream.precision(10);
-            U_max_norm_stream.precision(10);
         }
 
         // Main time step loop.
@@ -624,9 +619,6 @@ run_example(int argc, char** argv)
             lift_F_stream.close();
             drag_TAU_stream.close();
             lift_TAU_stream.close();
-            U_L1_norm_stream.close();
-            U_L2_norm_stream.close();
-            U_max_norm_stream.close();
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
