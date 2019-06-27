@@ -2,6 +2,7 @@
 Re = 200.0
 MU = 1.0/Re
 RHO = 1.0
+R = 0.5        											// radius of the cylinder
 U_MAX = 2.0
 // grid spacing parameters
 L = 60.0                                       // width of computational domain
@@ -25,8 +26,7 @@ USE_VELOCITY_JUMP_CONDITIONS = TRUE			   // whether to impose the velocity jumps
 COMPUTE_FLUID_TRACTION 	   = TRUE              // whether to compute the exterior fluid traction
 USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or lumped mass matrix
 
-USE_POINTWISE_JUMP_IMPOSITION = FALSE
-USE_L2_LAGRANGE_FAMILY = TRUE
+USE_L2_LAGRANGE_FAMILY = FALSE  				// Whether to use L2_Lagrange family for the calc of jump variables and traction
 
 WSS_CALC_WIDTH 				= 1.05			   // ratio multiplied by the diagonal side of the grid spacing to calculate wss
 P_CALC_WIDTH 			   = 1.5               // ratio multiplied by the diogonal side of the grid spacing to calculate the pressure
@@ -120,7 +120,6 @@ IBFESurfaceMethod {
    use_pressure_jump_conditions   = USE_PRESSURE_JUMP_CONDITIONS
    use_velocity_jump_conditions   = USE_VELOCITY_JUMP_CONDITIONS
    use_l2_lagrange_family = USE_L2_LAGRANGE_FAMILY
-   use_pointwise_jump_imposition = USE_POINTWISE_JUMP_IMPOSITION
    use_consistent_mass_matrix  = USE_CONSISTENT_MASS_MATRIX
    IB_point_density            = IB_POINT_DENSITY
    p_calc_width				   = P_CALC_WIDTH
