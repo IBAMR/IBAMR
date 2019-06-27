@@ -2,6 +2,7 @@
 Re = 200.0
 MU = 1.0/Re
 RHO = 1.0
+R = 0.5        											// radius of the cylinder
 U_MAX = 2.0
 // grid spacing parameters
 L = 60.0                                       // width of computational domain

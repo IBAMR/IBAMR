@@ -3,6 +3,7 @@ Re = 200.0
 MU = 1.0/Re
 RHO = 1.0
 U_MAX = 2.0
+R = 0.5        											// radius of the cylinder
 // grid spacing parameters
 L = 16.0 //60.0                                       // width of computational domain
 MAX_LEVELS = 6                                 // maximum number of levels in locally refined grid
