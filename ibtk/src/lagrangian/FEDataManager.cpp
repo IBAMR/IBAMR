@@ -997,8 +997,8 @@ FEDataManager::spread(const int f_data_idx,
 
 void
 FEDataManager::prolongData(const int f_data_idx,
-                           NumericVector<double>& F,
-                           NumericVector<double>& X,
+                           NumericVector<double>& F_vec,
+                           NumericVector<double>& X_vec,
                            const std::string& system_name,
                            const bool is_density,
                            const bool accumulate_on_grid,
@@ -1015,7 +1015,7 @@ FEDataManager::prolongData(const int f_data_idx,
     const bool cc_data = f_cc_var;
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || sc_data);
-
+    
     /*
     // call the correct helper function
     if (cc_data)
@@ -1070,16 +1070,16 @@ FEDataManager::prolongData(const int f_data_idx,
 
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
-    if (close_F) F.close();
-    PetscVector<double>* F_petsc_vec = static_cast<PetscVector<double>*>(&F);
+    if (close_F) F_vec.close();
+    PetscVector<double>* F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
     Vec F_global_vec = F_petsc_vec->vec();
     Vec F_local_vec;
     VecGhostGetLocalForm(F_global_vec, &F_local_vec);
     double* F_local_soln;
     VecGetArray(F_local_vec, &F_local_soln);
 
-    if (close_X) X.close();
-    PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X);
+    if (close_X) X_vec.close();
+    PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
     Vec X_global_vec = X_petsc_vec->vec();
     Vec X_local_vec;
     VecGhostGetLocalForm(X_global_vec, &X_local_vec);
@@ -1152,7 +1152,7 @@ FEDataManager::prolongData(const int f_data_idx,
                 libMesh::Point& X = X_node_cache[k];
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    X(d) = X(X_dof_indices[d][k]);
+                    X(d) = X_vec(X_dof_indices[d][k]);
                     X_min[d] = std::min(X_min[d], X(d));
                     X_max[d] = std::max(X_max[d], X(d));
                 }
