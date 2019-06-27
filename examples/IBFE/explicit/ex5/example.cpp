@@ -165,7 +165,7 @@ tether_force_function(VectorValue<double>& F,
 
 void
 tether_force_function(VectorValue<double>& F,
-                      const VectorValue<double>& /*n*/,
+                      const VectorValue<double>& n,
                       const VectorValue<double>& /*N*/,
                       const TensorValue<double>& /*FF*/,
                       const libMesh::Point& x,
@@ -527,17 +527,11 @@ main(int argc, char* argv[])
             lift_F_stream.open("C_F_L.curve", ios_base::out | ios_base::trunc);
             drag_TAU_stream.open("C_T_D.curve", ios_base::out | ios_base::trunc);
             lift_TAU_stream.open("C_T_L.curve", ios_base::out | ios_base::trunc);
-            U_L1_norm_stream.open("U_L1.curve", ios_base::out | ios_base::trunc);
-            U_L2_norm_stream.open("U_L2.curve", ios_base::out | ios_base::trunc);
-            U_max_norm_stream.open("U_max.curve", ios_base::out | ios_base::trunc);
 
             drag_F_stream.precision(10);
             lift_F_stream.precision(10);
             drag_TAU_stream.precision(10);
             lift_TAU_stream.precision(10);
-            U_L1_norm_stream.precision(10);
-            U_L2_norm_stream.precision(10);
-            U_max_norm_stream.precision(10);
         }
 
         // Main time step loop.
@@ -612,9 +606,6 @@ main(int argc, char* argv[])
             lift_F_stream.close();
             drag_TAU_stream.close();
             lift_TAU_stream.close();
-            U_L1_norm_stream.close();
-            U_L2_norm_stream.close();
-            U_max_norm_stream.close();
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
