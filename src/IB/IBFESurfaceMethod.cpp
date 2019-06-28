@@ -2856,11 +2856,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     DU_jump_vec = d_DU_jump_half_vecs[part];
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        copy_and_synch(*DU_jump_vec[d], *DU_jump_vec[d]);
-    }
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        copy_and_synch(*DU_jump_vec[d], *DU_jump_vec[d]);
+        copy_and_synch(*DU_jump_vec[d], *DU_jump_ghost_vec[d]);
     }
 
     std::unique_ptr<NumericVector<double> > TAU_rhs_vec = TAU_vec->zero_clone();
