@@ -836,33 +836,7 @@ private:
     void collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
                                 const std::vector<libMesh::Elem*>& active_elems,
                                 const std::string& system_name);
-
-    /*!
-     * \brief Prolong a side centered value or a density from the FE mesh to the Cartesian
-     * grid.
-     */
-    void prolongData_side(int f_data_idx,
-                          libMesh::NumericVector<double>& F,
-                          libMesh::NumericVector<double>& X,
-                          const std::string& system_name,
-                          bool is_density = true,
-                          bool accumulate_on_grid = true,
-                          bool close_F = true,
-                          bool close_X = true);
-
-    /*!
-     * \brief Prolong a value or a density from the FE mesh to the Cartesian
-     * grid with Cell Centered degrees of freedom
-     */
-    void prolongData_cell(int f_data_idx,
-                          libMesh::NumericVector<double>& F,
-                          libMesh::NumericVector<double>& X,
-                          const std::string& system_name,
-                          bool is_density = true,
-                          bool accumulate_on_grid = true,
-                          bool close_F = true,
-                          bool close_X = true);
-
+    
     /*!
      * \brief Restrict side centered data from the Cartesian grid to the FE mesh.
      */
