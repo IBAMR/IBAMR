@@ -1577,9 +1577,6 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         std::vector<const std::vector<VectorValue<double> >*> surface_force_grad_var_data,
             surface_pressure_grad_var_data;
 
-      
-  
-
         // Loop over the elements to compute the right-hand side vector.
         boost::multi_array<double, 2> X_node, x_node;
         double DU[NDIM][NDIM];
@@ -1599,7 +1596,6 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             {
                 F_rhs_e[d].resize(static_cast<int>(F_dof_indices[d].size()));
             }
-            
             if (d_use_pressure_jump_conditions)
             {
                 const auto& P_jump_dof_indices = P_jump_dof_map_cache->dof_indices(elem);
@@ -1618,8 +1614,6 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                     }
                 }
             }
- 
-           
 
             fe_X->reinit(elem);
 
