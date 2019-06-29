@@ -476,10 +476,6 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
 void
 IBFESurfaceMethod::calculateInterfacialFluidForces(double data_time)
 {
-    batch_vec_ghost_update(
-        { d_X_new_vecs, d_U_new_vecs, d_U_n_new_vecs, d_U_t_new_vecs, d_F_half_vecs }, INSERT_VALUES, SCATTER_FORWARD);
-    batch_vec_ghost_update(
-        { d_WSS_half_vecs, d_P_half_vecs, d_P_jump_half_vecs, d_TAU_half_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
@@ -525,10 +521,17 @@ IBFESurfaceMethod::calculateInterfacialFluidForces(double data_time)
 void
 IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
 {
-    batch_vec_ghost_update(
-        { d_X_new_vecs, d_U_new_vecs, d_U_n_new_vecs, d_U_t_new_vecs, d_F_half_vecs }, INSERT_VALUES, SCATTER_FORWARD);
-    batch_vec_ghost_update(
-        { d_WSS_half_vecs, d_P_half_vecs, d_P_jump_half_vecs, d_TAU_half_vecs }, INSERT_VALUES, SCATTER_FORWARD);
+    batch_vec_ghost_update({ d_X_new_vecs,
+                             d_U_new_vecs,
+                             d_U_n_new_vecs,
+                             d_U_t_new_vecs,
+                             d_F_half_vecs,
+                             d_WSS_half_vecs,
+                             d_P_half_vecs,
+                             d_P_jump_half_vecs,
+                             d_TAU_half_vecs },
+                           INSERT_VALUES,
+                           SCATTER_FORWARD);
 
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
@@ -1792,6 +1795,8 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
                                const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    batch_vec_ghost_update({ d_F_half_vecs, d_X_half_vecs, d_P_jump_half_vecs }, INSERT_VALUES, SCATTER_FORWARD);
+
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         PetscVector<double>* X_vec = d_X_half_vecs[part];
@@ -2287,6 +2292,8 @@ struct IndexOrder
 void
 IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const double data_time, unsigned int part)
 {
+    batch_vec_ghost_update({ d_P_half_vecs, d_X_new_vecs }, INSERT_VALUES, SCATTER_FORWARD);
+
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_fe_data_managers[part]->getPatchHierarchy();
 
     NumericVector<double>* P_vec = d_P_half_vecs[part];
@@ -2608,6 +2615,9 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
 void
 IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int part)
 {
+    batch_vec_ghost_update({ d_WSS_half_vecs, d_P_half_vecs, d_P_jump_half_vecs, d_TAU_half_vecs, d_X_new_vecs },
+                           INSERT_VALUES,
+                           SCATTER_FORWARD);
     NumericVector<double>* WSS_vec = NULL;
     NumericVector<double>* WSS_ghost_vec = d_WSS_IB_ghost_vecs[part];
 
@@ -2753,7 +2763,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     boost::multi_array<double, 1> P_node, P_jump_node;
     std::array<boost::multi_array<double, 2>, NDIM> DU_jump_node;
     std::vector<double> x_qp, X0_qp;
-    std::vector<double> P_qp, P_jump_qp, N_qp, WSS_qp, TAU_qp;
+    std::vector<double> P_qp, P_jump_qp, Normal_qp, WSS_qp, TAU_qp;
     std::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
     VectorValue<double> n, N, x, X;
 
@@ -2804,8 +2814,8 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
         }
 
         TAU_qp.resize(NDIM * n_qp_patch);
-        N_qp.resize(NDIM * n_qp_patch);
-        std::fill(N_qp.begin(), N_qp.end(), 0.0);
+        Normal_qp.resize(NDIM * n_qp_patch);
+        std::fill(Normal_qp.begin(), Normal_qp.end(), 0.0);
         std::fill(x_qp.begin(), x_qp.end(), 0.0);
         std::fill(WSS_qp.begin(), WSS_qp.end(), 0.0);
         std::fill(P_qp.begin(), P_qp.end(), 0.0);
@@ -2850,8 +2860,8 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
             double* x_begin = &x_qp[NDIM * qp_offset];
             std::fill(x_begin, x_begin + NDIM * n_qp, 0.0);
 
-            double* N_begin = &N_qp[NDIM * qp_offset];
-            std::fill(N_begin, N_begin + NDIM * n_qp, 0.0);
+            double* Normal_begin = &Normal_qp[NDIM * qp_offset];
+            std::fill(Normal_begin, Normal_begin + NDIM * n_qp, 0.0);
 
             double* WSS_begin = &WSS_qp[NDIM * qp_offset];
             std::fill(WSS_begin, WSS_begin + NDIM * n_qp, 0.0);
@@ -2903,8 +2913,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
                         const double& p_P = phi_P[k][qp];
                         WSS_qp[NDIM * (qp_offset + qp) + i] += (da / dA) * WSS_node[k][i] * p_P;
                     }
-                    // TODO: This is confusing --- N_qp is set to equal n --- shouldn't this be n_qp?
-                    N_qp[NDIM * (qp_offset + qp) + i] = n(i);
+                    Normal_qp[NDIM * (qp_offset + qp) + i] = n(i);
                 }
 
                 for (unsigned int k = 0; k < n_node; ++k)
@@ -2951,11 +2960,11 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
             {
                 for (unsigned int k = 0; k < nindices; ++k)
                 {
-                    // Using the exterior traciton tau_e
+                    // calculate the fluid traciton tau
 
                     TAU_qp[NDIM * local_indices[k] + axis] =
                         (WSS_qp[NDIM * local_indices[k] + axis] -
-                         P_qp[local_indices[k]] * N_qp[NDIM * local_indices[k] + axis]);
+                         P_qp[local_indices[k]] * Normal_qp[NDIM * local_indices[k] + axis]);
                 }
             }
         }
