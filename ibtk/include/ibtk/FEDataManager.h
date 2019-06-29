@@ -838,26 +838,6 @@ private:
                                 const std::string& system_name);
     
     /*!
-     * \brief Restrict side centered data from the Cartesian grid to the FE mesh.
-     */
-    void restrictData_side(int f_data_idx,
-                           libMesh::NumericVector<double>& F,
-                           libMesh::NumericVector<double>& X,
-                           const std::string& system_name,
-                           bool use_consistent_mass_matrix = true,
-                           bool close_X = true);
-
-    /*!
-     * \brief Restrict cell centered data from the Cartesian grid to the FE mesh.
-     */
-    void restrictData_cell(int f_data_idx,
-                           libMesh::NumericVector<double>& F,
-                           libMesh::NumericVector<double>& X,
-                           const std::string& system_name,
-                           bool use_consistent_mass_matrix = true,
-                           bool close_X = true);
-
-    /*!
      * Read object state from the restart file and initialize class data
      * members.  The database from which the restart data is read is determined
      * by the object_name specified in the constructor.
