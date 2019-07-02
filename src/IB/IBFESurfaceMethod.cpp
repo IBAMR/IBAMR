@@ -2454,7 +2454,6 @@ struct IndexOrder
 };
 } // namespace
 
-
 void
 IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const double data_time, unsigned int part)
 {
@@ -2529,8 +2528,7 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
 
     std::unique_ptr<FEBase> fe_P = FEBase::build(dim, P_out_fe_type);
     const std::vector<std::vector<double> >& phi_P = fe_P->get_phi();
-   
-    
+
     const std::vector<std::vector<Elem*> >& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
 
@@ -2543,7 +2541,7 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
     VectorValue<double> tau1, tau2, n;
-	X_ghost_vec->close();
+    X_ghost_vec->close();
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -2559,7 +2557,7 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
         const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
         const double* const x_lower = pgeom->getXLower();
         const double* const x_upper = pgeom->getXUpper();
-      
+
         const double* const dx = pgeom->getDx();
 
         double diag_dis = 0.0;
@@ -2574,11 +2572,10 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
                       << std::endl);
         }
         const double dh = d_p_calc_width * sqrt(diag_dis);
-        
 
         const int p_ghost_num = static_cast<int>(ceil(2.0 * dh / patch_dx_min));
 
-		std::array<double, NDIM> x_lower_gh, x_upper_gh;
+        std::array<double, NDIM> x_lower_gh, x_upper_gh;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             x_lower_gh[d] = x_lower[d] - (static_cast<double>(p_ghost_num)) * dx[d];
@@ -2752,7 +2749,6 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
 
         const unsigned int nindices = static_cast<int>(local_indices.size());
 
-
         if (!local_indices.empty())
         {
             for (unsigned int k = 0; k < nindices; ++k)
@@ -2809,7 +2805,6 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
             P_out_dof_map.constrain_element_vector(P_out_rhs_e, P_out_dof_indices);
             P_out_rhs_vec->add_vector(P_out_rhs_e, P_out_dof_indices);
 
-            
             qp_offset += n_qp;
         }
     }
@@ -2822,7 +2817,6 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
     d_fe_data_managers[part]->computeL2Projection(
         *P_out_vec, *P_out_rhs_vec, PRESSURE_OUT_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
 
-
     d_X_half_vecs[part]->close();
     d_X_current_vecs[part]->close();
     d_X_new_vecs[part]->close();
@@ -2834,8 +2828,6 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
     return;
 
 } // extrapolatePressureForTraction
-
-
 
 void
 IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int part)
