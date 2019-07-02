@@ -2665,7 +2665,6 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
             // via accumulation, i.e., X(qp) = sum_k X_k * phi_k(qp) for
             // each qp.
 
-            //~
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 for (unsigned int k = 0; k < NDIM - 1; ++k)
