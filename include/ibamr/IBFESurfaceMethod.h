@@ -612,10 +612,11 @@ protected:
     IBTK::FEDataManager::SpreadSpec d_default_spread_spec;
     std::vector<IBTK::FEDataManager::InterpSpec> d_interp_spec;
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
-    bool d_use_pressure_jump_conditions, d_use_velocity_jump_conditions;
-    bool d_use_l2_lagrange_family;
-    bool d_compute_fluid_traction;
-    bool d_traction_interior_side;
+    bool d_use_pressure_jump_conditions = false;
+    bool d_use_velocity_jump_conditions = false;
+    bool d_use_l2_lagrange_family = false;
+    bool d_compute_fluid_traction = false;
+    bool d_traction_interior_side = false;
     bool d_perturb_fe_mesh_nodes = true;
     bool d_normalize_pressure_jump = false;
     std::vector<libMesh::FEFamily> d_fe_family;
@@ -624,8 +625,9 @@ protected:
     std::vector<libMesh::Order> d_default_quad_order;
     bool d_use_consistent_mass_matrix = true;
     bool d_use_direct_forcing = false;
-    double d_wss_calc_width, d_p_calc_width;
-    double d_traction_activation_time;
+    double d_wss_calc_width = 0.0
+    double d_p_calc_width = 0.0;
+    double d_traction_activation_time = 0.0;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
