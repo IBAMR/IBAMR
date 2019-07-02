@@ -625,7 +625,7 @@ protected:
     std::vector<libMesh::Order> d_default_quad_order;
     bool d_use_consistent_mass_matrix = true;
     bool d_use_direct_forcing = false;
-    double d_wss_calc_width = 0.0
+    double d_wss_calc_width = 0.0;
     double d_p_calc_width = 0.0;
     double d_traction_activation_time = 0.0;
 
