@@ -2504,7 +2504,6 @@ struct IndexOrder
 };
 } // namespace
 
-
 void
 IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const double data_time, unsigned int part)
 {
@@ -2517,10 +2516,10 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
     NumericVector<double>* X_vec = NULL;
     NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
 
-	std::unique_ptr<NumericVector<double> > P_rhs_vec = (*P_vec).zero_clone();
+    std::unique_ptr<NumericVector<double> > P_rhs_vec = (*P_vec).zero_clone();
     (*P_rhs_vec).zero();
     DenseVector<double> P_rhs_e;
-    
+
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         X_vec = d_X_current_vecs[part];
@@ -2571,8 +2570,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
 
     std::unique_ptr<FEBase> fe_P = FEBase::build(dim, P_fe_type);
     const std::vector<std::vector<double> >& phi_P = fe_P->get_phi();
-   
-    
+
     const std::vector<std::vector<Elem*> >& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
 
@@ -2585,7 +2583,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
     VectorValue<double> tau1, tau2, n;
-	X_ghost_vec->close();
+    X_ghost_vec->close();
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -2601,7 +2599,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
         const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
         const double* const x_lower = pgeom->getXLower();
         const double* const x_upper = pgeom->getXUpper();
-      
+
         const double* const dx = pgeom->getDx();
 
         double diag_dis = 0.0;
@@ -2616,11 +2614,10 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
                       << std::endl);
         }
         const double dh = d_p_calc_width * sqrt(diag_dis);
-        
 
         const int p_ghost_num = static_cast<int>(ceil(2.0 * dh / patch_dx_min));
 
-		std::array<double, NDIM> x_lower_gh, x_upper_gh;
+        std::array<double, NDIM> x_lower_gh, x_upper_gh;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             x_lower_gh[d] = x_lower[d] - (static_cast<double>(p_ghost_num)) * dx[d];
@@ -2796,7 +2793,6 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
 
         const unsigned int nindices = static_cast<int>(local_indices.size());
 
-
         if (!local_indices.empty())
         {
             for (unsigned int k = 0; k < nindices; ++k)
@@ -2846,15 +2842,13 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
             P_dof_map.constrain_element_vector(P_rhs_e, P_dof_indices);
             P_rhs_vec->add_vector(P_rhs_e, P_dof_indices);
 
-            
             qp_offset += n_qp;
         }
     }
     P_rhs_vec->close();
-	
+
     d_fe_data_managers[part]->computeL2Projection(
         *P_vec, *P_rhs_vec, P_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
-
 
     d_X_half_vecs[part]->close();
     d_X_current_vecs[part]->close();
@@ -2866,8 +2860,6 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
     return;
 
 } // interpolatePressureForTraction
-
-
 
 void
 IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int part)
@@ -5702,9 +5694,6 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     // Set some default values.
     const bool use_adaptive_quadrature = true;
     const int point_density = 2.0;
-    d_wss_calc_width = 0.0;
-    d_p_calc_width = 0.0;
-    d_traction_activation_time = 0.0;
     const bool use_nodal_quadrature = false;
     const bool interp_use_consistent_mass_matrix = true;
     d_default_interp_spec = FEDataManager::InterpSpec("IB_4",
@@ -5716,12 +5705,6 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
                                                       use_nodal_quadrature);
     d_default_spread_spec = FEDataManager::SpreadSpec(
         "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, use_nodal_quadrature);
-    d_ghosts = 0;
-    d_use_velocity_jump_conditions = false;
-    d_use_pressure_jump_conditions = false;
-    d_use_l2_lagrange_family = false;
-    d_compute_fluid_traction = false;
-    d_traction_interior_side = false;
 
     d_fe_family.resize(d_num_parts, INVALID_FE);
     d_fe_order.resize(d_num_parts, INVALID_ORDER);
