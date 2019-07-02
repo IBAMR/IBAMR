@@ -2550,16 +2550,6 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
         TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
     }
 
-    //~ FEType fe_type = X_fe_type;
-    //~ UniquePtr<FEBase> fe = FEBase::build(dim, fe_type);
-
-    //~ boost::array<VectorValue<double>, 2> dx_dxi;
-    //~ const std::vector<double>& JxW = fe->get_JxW();
-    //~ const std::vector<std::vector<double> >& phi = fe->get_phi();
-    //~ boost::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
-    //~ dphi_dxi[0] = &fe->get_dphidxi();
-    //~ if (NDIM > 2) dphi_dxi[1] = &fe->get_dphideta();
-
     std::unique_ptr<FEBase> fe_X = FEBase::build(dim, X_fe_type);
     const std::vector<double>& JxW = fe_X->get_JxW();
     const std::vector<std::vector<double> >& phi_X = fe_X->get_phi();
@@ -2571,7 +2561,6 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
     FEDataManager::SystemDofMapCache& P_jump_dof_map_cache =
         *d_fe_data_managers[part]->getDofMapCache(PRESSURE_JUMP_SYSTEM_NAME);
     DofMap& P_jump_dof_map = P_jump_system.get_dof_map();
-    // TBOX_ASSERT(P_j_dof_map.variable_type(0) == X_fe_type);
     std::vector<unsigned int> P_jump_dof_indices;
 
     System& P_system = equation_systems->get_system(P_SYSTEM_NAME);
@@ -2708,12 +2697,11 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
             double* P_jump_begin = &P_jump_qp[qp_offset];
             std::fill(P_jump_begin, P_jump_begin + n_qp, 0.0);
 
-            //~
+            
             // Interpolate X, du, and dv at all of the quadrature points
             // via accumulation, i.e., X(qp) = sum_k X_k * phi_k(qp) for
             // each qp.
 
-            //~
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 for (unsigned int k = 0; k < NDIM - 1; ++k)
@@ -2790,9 +2778,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
         {
             for (unsigned int k = 0; k < nindices; ++k)
             {
-                P_qp[local_indices[k]] =
-                    Q_io_qp[local_indices[k]]; // 0.5 * ( P_j_qp[local_indices[k]] + Q_i_qp[local_indices[k]] +
-                                               // Q_o_qp[local_indices[k]]);
+                P_qp[local_indices[k]] = Q_io_qp[local_indices[k]]; 
             }
         }
 
