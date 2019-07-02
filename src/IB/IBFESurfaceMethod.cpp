@@ -2668,7 +2668,6 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
             double* P_jump_begin = &P_jump_qp[qp_offset];
             std::fill(P_jump_begin, P_jump_begin + n_qp, 0.0);
 
-            
             // Interpolate X, du, and dv at all of the quadrature points
             // via accumulation, i.e., X(qp) = sum_k X_k * phi_k(qp) for
             // each qp.
@@ -2749,7 +2748,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
         {
             for (unsigned int k = 0; k < nindices; ++k)
             {
-                P_qp[local_indices[k]] = Q_io_qp[local_indices[k]]; 
+                P_qp[local_indices[k]] = Q_io_qp[local_indices[k]];
             }
         }
 
