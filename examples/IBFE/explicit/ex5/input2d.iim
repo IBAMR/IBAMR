@@ -26,7 +26,7 @@ USE_VELOCITY_JUMP_CONDITIONS = TRUE			   // whether to impose the velocity jumps
 COMPUTE_FLUID_TRACTION 	   = TRUE              // whether to compute the exterior fluid traction
 USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or lumped mass matrix
 USE_L2_LAGRANGE_FAMILY = FALSE  				// Whether to use L2_Lagrange family for the calc of jump variables and traction
-WSS_CALC_WIDTH 				= 1.03			   // ratio multiplied by the diagonal side of the grid spacing to calculate wss
+WSS_CALC_WIDTH 				= 1.05			   // ratio multiplied by the diagonal side of the grid spacing to calculate wss
 P_CALC_WIDTH 			   = 1.5               // ratio multiplied by the diogonal side of the grid spacing to calculate the pressure
 IB_POINT_DENSITY           = 4.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
@@ -224,7 +224,7 @@ GriddingAlgorithm {
       level_0 =   8,  8  // all finer levels will use same values as level_0
    }
    efficiency_tolerance = 0.80e0  // min % of tag cells in new patch level
-   combine_efficiency   = 0.80e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
+   combine_efficiency   = 0.60e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
 }
 
 StandardTagAndInitialize {
