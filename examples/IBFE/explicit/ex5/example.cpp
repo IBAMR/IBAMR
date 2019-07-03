@@ -121,9 +121,6 @@ bool use_boundary_mesh 			  = false;
 bool compute_fluid_traction 	  = false;
 
 // Tether (penalty) stress function.
-bool use_boundary_mesh = false;
-bool use_velocity_jump_conditions = false;
-bool use_pressure_jump_conditions = false;
 void
 PK1_stress_function(TensorValue<double>& PP,
                     const TensorValue<double>& FF,

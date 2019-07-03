@@ -3,6 +3,7 @@
 // Copyright (c) 2018 - 2019 by the IBAMR developers
 // Filename: IBFESurfaceMethod.cpp
 // Created on 19 May 2018 by Boyce Griffith
+//
 // Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
@@ -4022,13 +4023,12 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
             d_traction_activation_time = db->getDouble("traction_activation_time");
         if (db->isBool("traction_interior_side")) d_traction_interior_side = db->getBool("traction_interior_side");
     }
-    if (d_use_velocity_jump_conditions && d_use_pressure_jump_conditions)
+    if (db->isBool("compute_fluid_traction"))
     {
+		d_compute_fluid_traction = db->getBool("compute_fluid_traction");
         if (db->isDouble("p_calc_width")) d_p_calc_width = db->getDouble("p_calc_width");
-        if (db->isDouble("wss_calc_width")) d_wss_calc_width = db->getDouble("wss_calc_width");
         if (db->isDouble("traction_activation_time"))
             d_traction_activation_time = db->getDouble("traction_activation_time");
-        if (db->isBool("compute_fluid_traction")) d_compute_fluid_traction = db->getBool("compute_fluid_traction");
         if (db->isBool("traction_interior_side")) d_traction_interior_side = db->getBool("traction_interior_side");
     }
     if (db->isBool("use_consistent_mass_matrix"))
