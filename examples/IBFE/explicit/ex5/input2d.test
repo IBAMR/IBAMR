@@ -2,7 +2,8 @@
 Re = 200.0
 MU = 1.0/Re
 RHO = 1.0
-R = 0.5        											// radius of the cylinder
+R = 0.5        								   // radius of the cylinder
+
 // grid spacing parameters
 L = 16.0                                       // width of computational domain
 MAX_LEVELS = 6                                 // maximum number of levels in locally refined grid
@@ -227,8 +228,8 @@ LoadBalancer {
 
 TimerManager{
    print_exclusive = FALSE
-   print_total = TRUE
+   print_total 	   = TRUE
    print_threshold = 0.1
 
-   timer_list = "IBAMR::*::*","IBTK::*::*","*::*::*"
+   timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
 }
