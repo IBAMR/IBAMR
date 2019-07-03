@@ -121,9 +121,6 @@ bool use_boundary_mesh 			  = false;
 bool compute_fluid_traction 	  = false;
 
 // Tether (penalty) stress function.
-bool use_boundary_mesh = false;
-bool use_velocity_jump_conditions = false;
-bool use_pressure_jump_conditions = false;
 void
 PK1_stress_function(TensorValue<double>& PP,
                     const TensorValue<double>& FF,
@@ -391,7 +388,6 @@ main(int argc, char* argv[])
         EquationSystems* equation_systems;
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
-
         if (use_boundary_mesh)
         {
             vector<SystemData> sys_data(1, SystemData(IBFESurfaceMethod::VELOCITY_SYSTEM_NAME, vars));
@@ -523,15 +519,21 @@ main(int argc, char* argv[])
         // velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_F_stream.open("C_F_D.curve", ios_base::out | ios_base::trunc);
-            lift_F_stream.open("C_F_L.curve", ios_base::out | ios_base::trunc);
-            drag_TAU_stream.open("C_T_D.curve", ios_base::out | ios_base::trunc);
-            lift_TAU_stream.open("C_T_L.curve", ios_base::out | ios_base::trunc);
+            drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
+            lift_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
+            if (compute_fluid_traction)
+            {
+				drag_TAU_stream.open("C_T_D.curve", ios_base::out | ios_base::trunc);
+				lift_TAU_stream.open("C_T_L.curve", ios_base::out | ios_base::trunc);
+			}
 
-            drag_F_stream.precision(10);
-            lift_F_stream.precision(10);
-            drag_TAU_stream.precision(10);
-            lift_TAU_stream.precision(10);
+            drag_stream.precision(10);
+            lift_stream.precision(10);
+            if (compute_fluid_traction)
+            {
+				drag_TAU_stream.precision(10);
+				lift_TAU_stream.precision(10);
+			}
         }
 
         // Main time step loop.
@@ -602,10 +604,13 @@ main(int argc, char* argv[])
         // Close the logging streams.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_F_stream.close();
-            lift_F_stream.close();
-            drag_TAU_stream.close();
-            lift_TAU_stream.close();
+            drag_stream.close();
+            lift_stream.close();
+            if (compute_fluid_traction)
+			{
+				drag_TAU_stream.close();
+				lift_TAU_stream.close();
+			}
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
