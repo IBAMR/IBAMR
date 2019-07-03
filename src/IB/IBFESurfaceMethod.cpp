@@ -143,22 +143,22 @@ libmesh_restart_file_name(const std::string& restart_dump_dirname,
 }
 } // namespace
 
-const std::string IBFESurfaceMethod::COORDS_SYSTEM_NAME = "IB coordinates system";
-const std::string IBFESurfaceMethod::COORD_MAPPING_SYSTEM_NAME = "IB coordinate mapping system";
+const std::string IBFESurfaceMethod::COORDS_SYSTEM_NAME = "coordinates system";
+const std::string IBFESurfaceMethod::COORD_MAPPING_SYSTEM_NAME = "coordinate mapping system";
 const std::string IBFESurfaceMethod::FORCE_SYSTEM_NAME = "IB force system";
-const std::string IBFESurfaceMethod::VELOCITY_SYSTEM_NAME = "IB velocity system";
-const std::string IBFESurfaceMethod::NORMAL_VELOCITY_SYSTEM_NAME = "IB normal velocity system";
-const std::string IBFESurfaceMethod::TANGENTIAL_VELOCITY_SYSTEM_NAME = "IB tangential velocity system";
-const std::string IBFESurfaceMethod::PRESSURE_JUMP_SYSTEM_NAME = "IB [[p]] system";
+const std::string IBFESurfaceMethod::VELOCITY_SYSTEM_NAME = "velocity system";
+const std::string IBFESurfaceMethod::NORMAL_VELOCITY_SYSTEM_NAME = "normal velocity system";
+const std::string IBFESurfaceMethod::TANGENTIAL_VELOCITY_SYSTEM_NAME = "tangential velocity system";
+const std::string IBFESurfaceMethod::PRESSURE_JUMP_SYSTEM_NAME = "[[p]] system";
 const std::string IBFESurfaceMethod::WSS_SYSTEM_NAME = "One sided interior/exterior shear stress system";
 const std::string IBFESurfaceMethod::P_SYSTEM_NAME = "One sided interior/exterior pressure system";
 const std::string IBFESurfaceMethod::TAU_SYSTEM_NAME = "traction system";
 const std::array<std::string, NDIM> IBFESurfaceMethod::VELOCITY_JUMP_SYSTEM_NAME = {
-    { "IB velocity [[du]] jump system",
-      "IB velocity [[dv]] jump system"
+    { "velocity [[du]] jump system",
+      "velocity [[dv]] jump system"
 #if (NDIM == 3)
       ,
-      "IB velocity [[dw]] jump system"
+      "velocity [[dw]] jump system"
 #endif
     }
 };
@@ -493,18 +493,18 @@ IBFESurfaceMethod::calculateInterfacialFluidForces(double data_time)
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 const Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-                if (!level->checkAllocated(mask_scratch_idx)) level->allocatePatchData(mask_scratch_idx);
+                if (!level->checkAllocated(p_scratch_idx)) level->allocatePatchData(p_scratch_idx);
             }
 
             HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, coarsest_ln, finest_ln);
-            hier_cc_data_ops.copyData(mask_scratch_idx, p_data_idx, /*interior only*/ false);
+            hier_cc_data_ops.copyData(p_scratch_idx, p_data_idx, /*interior only*/ false);
 
             RefineAlgorithm<NDIM> ghost_fill_alg_p;
-            ghost_fill_alg_p.registerRefine(mask_scratch_idx, mask_scratch_idx, mask_scratch_idx, NULL);
+            ghost_fill_alg_p.registerRefine(p_scratch_idx, p_scratch_idx, p_scratch_idx, NULL);
             Pointer<RefineSchedule<NDIM> > ghost_fill_schd_p =
                 ghost_fill_alg_p.createSchedule(d_hierarchy->getPatchLevel(finest_ln));
             ghost_fill_schd_p->fillData(data_time);
-            interpolatePressureForTraction(mask_scratch_idx, data_time, part);
+            interpolatePressureForTraction(p_scratch_idx, data_time, part);
 
             if (d_compute_fluid_traction && d_traction_activation_time <= data_time)
             {
@@ -549,18 +549,18 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 const Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-                if (!level->checkAllocated(mask_scratch_idx)) level->allocatePatchData(mask_scratch_idx);
+                if (!level->checkAllocated(p_scratch_idx)) level->allocatePatchData(p_scratch_idx);
             }
 
             HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, coarsest_ln, finest_ln);
-            hier_cc_data_ops.copyData(mask_scratch_idx, p_data_idx, /*interior only*/ false);
+            hier_cc_data_ops.copyData(p_scratch_idx, p_data_idx, /*interior only*/ false);
 
             RefineAlgorithm<NDIM> ghost_fill_alg_p;
-            ghost_fill_alg_p.registerRefine(mask_scratch_idx, mask_scratch_idx, mask_scratch_idx, NULL);
+            ghost_fill_alg_p.registerRefine(p_scratch_idx, p_scratch_idx, p_scratch_idx, NULL);
             Pointer<RefineSchedule<NDIM> > ghost_fill_schd_p =
                 ghost_fill_alg_p.createSchedule(d_hierarchy->getPatchLevel(finest_ln));
             ghost_fill_schd_p->fillData(d_new_time);
-            interpolatePressureForTraction(mask_scratch_idx, d_new_time, part);
+            interpolatePressureForTraction(p_scratch_idx, d_new_time, part);
 
             if (d_compute_fluid_traction && d_traction_activation_time <= d_current_time)
             {
@@ -938,13 +938,13 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                     for (unsigned int qp = 0; qp < n_qpoints; ++qp)
                     {
                         const double& p = phi_X[k][qp];
-                        const double& p2 = phi_DU_jump[k][qp];
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             x_qp[NDIM * (qp_offset + qp) + d] += x_node[k][d] * p;
                         }
                         if (d_use_velocity_jump_conditions)
                         {
+							const double& p2 = phi_DU_jump[k][qp];
                             for (unsigned int axis = 0; axis < NDIM; ++axis)
                             {
                                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -1526,7 +1526,15 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         dphi_dxi_X[0] = &fe_X->get_dphidxi();
         if (NDIM > 2) dphi_dxi_X[1] = &fe_X->get_dphideta();
 
-        FEType fe_jump_type = d_use_pressure_jump_conditions ? P_jump_fe_type : DU_jump_fe_type;
+        FEType fe_jump_type = INVALID_FE;
+        if (d_use_pressure_jump_conditions)
+        {
+			fe_jump_type = P_jump_fe_type;
+		}
+		else
+		{
+			fe_jump_type = DU_jump_fe_type;
+		}
 
         std::unique_ptr<FEBase> fe_jump = FEBase::build(dim, fe_jump_type);
         fe_jump->attach_quadrature_rule(qrule.get());
@@ -2103,11 +2111,11 @@ IBFESurfaceMethod::initializeFEData()
 void
 IBFESurfaceMethod::registerEulerianVariables()
 {
-    mask_var = new CellVariable<NDIM, double>(d_object_name + "::mask");
-    registerVariable(mask_current_idx,
-                     mask_new_idx,
-                     mask_scratch_idx,
-                     mask_var,
+    p_var = new CellVariable<NDIM, double>(d_object_name + "::p");
+    registerVariable(p_current_idx,
+					 p_new_idx,
+					 p_scratch_idx,
+                     p_var,
                      d_ghosts,
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
@@ -2294,8 +2302,6 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
 
     NumericVector<double>* P_vec = d_P_half_vecs[part];
 
-    NumericVector<double>* P_jump_ghost_vec = d_P_jump_IB_ghost_vecs[part];
-
     NumericVector<double>* X_vec = NULL;
     NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
 
@@ -2339,12 +2345,6 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
     dphi_dxi_X[0] = &fe_X->get_dphidxi();
     if (NDIM > 2) dphi_dxi_X[1] = &fe_X->get_dphideta();
 
-    System& P_jump_system = equation_systems->get_system(PRESSURE_JUMP_SYSTEM_NAME);
-    FEDataManager::SystemDofMapCache& P_jump_dof_map_cache =
-        *d_fe_data_managers[part]->getDofMapCache(PRESSURE_JUMP_SYSTEM_NAME);
-    DofMap& P_jump_dof_map = P_jump_system.get_dof_map();
-    std::vector<unsigned int> P_jump_dof_indices;
-
     System& P_system = equation_systems->get_system(P_SYSTEM_NAME);
     const DofMap& P_dof_map = P_system.get_dof_map();
     FEDataManager::SystemDofMapCache& P_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(P_SYSTEM_NAME);
@@ -2358,9 +2358,8 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
         d_fe_data_managers[part]->getActivePatchElementMap();
 
     boost::multi_array<double, 2> x_node;
-    boost::multi_array<double, 1> P_jump_node;
     std::vector<double> x_qp, x_io_qp;
-    std::vector<double> P_qp, Q_io_qp, P_jump_qp, p_qp, N_qp;
+    std::vector<double> P_qp, P_io_qp, p_qp, N_qp;
     std::array<VectorValue<double>, 2> dx_dxi;
 
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
@@ -2389,6 +2388,12 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             diag_dis += dx[d] * dx[d];
+        }
+
+        if (d_p_calc_width == 0)
+        {
+           TBOX_ERROR(d_object_name << ": The width for the interfacial pressure calc hasn't been setup!"
+                      << std::endl);
         }
         const double dh = d_p_calc_width * sqrt(diag_dis);
 
@@ -2427,14 +2432,12 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
 
         if (!n_qp_patch) continue;
         P_qp.resize(n_qp_patch);
-        Q_io_qp.resize(n_qp_patch);
-        P_jump_qp.resize(n_qp_patch);
+        P_io_qp.resize(n_qp_patch);
         x_io_qp.resize(NDIM * n_qp_patch);
         x_qp.resize(NDIM * n_qp_patch);
         N_qp.resize(NDIM * n_qp_patch);
         std::fill(P_qp.begin(), P_qp.end(), 0.0);
-        std::fill(Q_io_qp.begin(), Q_io_qp.end(), 0.0);
-        std::fill(P_jump_qp.begin(), P_jump_qp.end(), 0.0);
+        std::fill(P_io_qp.begin(), P_io_qp.end(), 0.0);
         std::fill(N_qp.begin(), N_qp.end(), 0.0);
 
         // Loop over the elements and compute the positions of the quadrature points.
@@ -2448,9 +2451,6 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
                 X_dof_map.dof_indices(elem, X_dof_indices[d], d);
             }
             get_values_for_interpolation(x_node, *X_ghost_vec, X_dof_indices);
-
-            P_jump_dof_map_cache.dof_indices(elem, P_jump_dof_indices);
-            get_values_for_interpolation(P_jump_node, *P_jump_ghost_vec, P_jump_dof_indices);
 
             const bool qrule_changed =
                 FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
@@ -2475,9 +2475,6 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
 
             double* N_begin = &N_qp[NDIM * qp_offset];
             std::fill(N_begin, N_begin + NDIM * n_qp, 0.0);
-
-            double* P_jump_begin = &P_jump_qp[qp_offset];
-            std::fill(P_jump_begin, P_jump_begin + n_qp, 0.0);
 
             // Interpolate X, du, and dv at all of the quadrature points
             // via accumulation, i.e., X(qp) = sum_k X_k * phi_k(qp) for
@@ -2508,13 +2505,6 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
                     x_io_qp[NDIM * (qp_offset + qp) + i] =
                         x_qp[NDIM * (qp_offset + qp) + i] + (d_traction_interior_side ? -1.0 : 1.0) * n(i) * dh;
                 }
-
-                for (unsigned int k = 0; k < n_node; ++k)
-                {
-                    const double& p_P = phi_P[k][qp];
-
-                    P_jump_qp[qp_offset + qp] += P_jump_node[k] * p_P;
-                }
             }
             qp_offset += n_qp;
         }
@@ -2530,7 +2520,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
         const Box<NDIM> ghost_box = Box<NDIM>::grow(patch->getBox(), IntVector<NDIM>(p_ghost_num));
 
         LEInteractor::interpolate(
-            Q_io_qp, 1, x_io_qp, NDIM, p_data, patch, ghost_box, d_default_interp_spec.kernel_fcn);
+            P_io_qp, 1, x_io_qp, NDIM, p_data, patch, ghost_box, d_default_interp_spec.kernel_fcn);
 
         std::vector<int> local_indices;
         local_indices.clear();
@@ -2559,7 +2549,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
         {
             for (unsigned int k = 0; k < nindices; ++k)
             {
-                P_qp[local_indices[k]] = Q_io_qp[local_indices[k]];
+                P_qp[local_indices[k]] = P_io_qp[local_indices[k]];
             }
         }
 
@@ -2617,7 +2607,6 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
     d_X_new_vecs[part]->close();
 
     d_P_half_vecs[part]->close();
-    d_P_jump_IB_ghost_vecs[part]->close();
     d_X_IB_ghost_vecs[part]->close();
 
     return;
@@ -2627,7 +2616,7 @@ IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const do
 void
 IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int part)
 {
-    batch_vec_ghost_update({ d_WSS_half_vecs, d_P_half_vecs, d_P_jump_half_vecs, d_TAU_half_vecs, d_X_new_vecs },
+    batch_vec_ghost_update({ d_WSS_half_vecs, d_P_half_vecs, d_TAU_half_vecs, d_X_new_vecs },
                            INSERT_VALUES,
                            SCATTER_FORWARD);
     NumericVector<double>* WSS_vec = NULL;
@@ -2635,12 +2624,6 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
 
     NumericVector<double>* P_vec = NULL;
     NumericVector<double>* P_ghost_vec = d_P_IB_ghost_vecs[part];
-
-    NumericVector<double>* P_jump_vec = NULL;
-    NumericVector<double>* P_jump_ghost_vec = d_P_jump_IB_ghost_vecs[part];
-
-    std::array<PetscVector<double>*, NDIM> DU_jump_ghost_vec;
-    std::array<PetscVector<double>*, NDIM> DU_jump_vec;
 
     NumericVector<double>* TAU_vec = d_TAU_half_vecs[part];
 
@@ -2667,16 +2650,6 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     P_vec = d_P_half_vecs[part];
     copy_and_synch(*P_vec, *P_ghost_vec);
 
-    P_jump_vec = d_P_jump_half_vecs[part];
-    copy_and_synch(*P_jump_vec, *P_jump_ghost_vec);
-
-    DU_jump_ghost_vec = d_DU_jump_IB_ghost_vecs[part];
-    DU_jump_vec = d_DU_jump_half_vecs[part];
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        copy_and_synch(*DU_jump_vec[d], *DU_jump_ghost_vec[d]);
-    }
-
     std::unique_ptr<NumericVector<double> > TAU_rhs_vec = TAU_vec->zero_clone();
     std::array<DenseVector<double>, NDIM> TAU_rhs_e;
 
@@ -2700,13 +2673,6 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     FEDataManager::SystemDofMapCache& P_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(P_SYSTEM_NAME);
     FEType P_fe_type = P_dof_map.variable_type(0);
 
-    System& P_jump_system = equation_systems->get_system(PRESSURE_JUMP_SYSTEM_NAME);
-    const DofMap& P_jump_dof_map = P_jump_system.get_dof_map();
-    FEDataManager::SystemDofMapCache& P_jump_dof_map_cache =
-        *d_fe_data_managers[part]->getDofMapCache(PRESSURE_JUMP_SYSTEM_NAME);
-    FEType P_jump_fe_type = P_jump_dof_map.variable_type(0);
-    TBOX_ASSERT(P_jump_fe_type == P_fe_type);
-
     System& WSS_system = equation_systems->get_system(WSS_SYSTEM_NAME);
     const DofMap& WSS_dof_map = WSS_system.get_dof_map();
     FEDataManager::SystemDofMapCache& WSS_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(WSS_SYSTEM_NAME);
@@ -2716,25 +2682,6 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
         TBOX_ASSERT(WSS_dof_map.variable_type(d) == WSS_fe_type);
     }
     TBOX_ASSERT(WSS_fe_type == P_fe_type);
-
-    std::array<DofMap*, NDIM> DU_jump_dof_map;
-    std::array<FEDataManager::SystemDofMapCache*, NDIM> DU_jump_dof_map_cache;
-    std::array<System*, NDIM> DU_jump_system;
-    for (unsigned int i = 0; i < NDIM; ++i)
-    {
-        DU_jump_system[i] = &equation_systems->get_system(VELOCITY_JUMP_SYSTEM_NAME[i]);
-        DU_jump_dof_map_cache[i] = d_fe_data_managers[part]->getDofMapCache(VELOCITY_JUMP_SYSTEM_NAME[i]);
-        DU_jump_dof_map[i] = &DU_jump_system[i]->get_dof_map();
-    }
-    FEType DU_jump_fe_type = DU_jump_dof_map[0]->variable_type(0);
-    for (unsigned int i = 0; i < NDIM; ++i)
-    {
-        for (unsigned int j = 0; j < NDIM; ++j)
-        {
-            TBOX_ASSERT(DU_jump_dof_map[i]->variable_type(j) == DU_jump_fe_type);
-        }
-    }
-    TBOX_ASSERT(DU_jump_fe_type == P_fe_type);
 
     System& TAU_system = equation_systems->get_system(TAU_SYSTEM_NAME);
     const DofMap& TAU_dof_map = TAU_system.get_dof_map();
@@ -2771,10 +2718,9 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
         d_fe_data_managers[part]->getActivePatchElementMap();
 
     boost::multi_array<double, 2> x_node, X_node, WSS_node, n_qp_node;
-    boost::multi_array<double, 1> P_node, P_jump_node;
-    std::array<boost::multi_array<double, 2>, NDIM> DU_jump_node;
+    boost::multi_array<double, 1> P_node;
     std::vector<double> x_qp, X0_qp;
-    std::vector<double> P_qp, P_jump_qp, Normal_qp, WSS_qp, TAU_qp;
+    std::vector<double> P_qp, Normal_qp, WSS_qp, TAU_qp;
     std::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
     VectorValue<double> n, N, x, X;
 
@@ -2814,7 +2760,6 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
 
         if (!n_qp_patch) continue;
         P_qp.resize(n_qp_patch);
-        P_jump_qp.resize(n_qp_patch);
 
         x_qp.resize(NDIM * n_qp_patch);
         X0_qp.resize(NDIM * n_qp_patch);
@@ -2826,7 +2771,6 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
         std::fill(x_qp.begin(), x_qp.end(), 0.0);
         std::fill(WSS_qp.begin(), WSS_qp.end(), 0.0);
         std::fill(P_qp.begin(), P_qp.end(), 0.0);
-        std::fill(P_jump_qp.begin(), P_jump_qp.end(), 0.0);
         std::fill(TAU_qp.begin(), TAU_qp.end(), 0.0);
 
         // Loop over the elements and compute the positions of the quadrature points.
@@ -2838,17 +2782,10 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
             const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
             const auto& WSS_dof_indices = WSS_dof_map_cache.dof_indices(elem);
             const auto& P_dof_indices = P_dof_map_cache.dof_indices(elem);
-            const auto& P_jump_dof_indices = P_jump_dof_map_cache.dof_indices(elem);
-            get_values_for_interpolation(P_jump_node, *P_jump_ghost_vec, P_jump_dof_indices[0]);
             get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
             get_values_for_interpolation(WSS_node, *WSS_ghost_vec, WSS_dof_indices);
             get_values_for_interpolation(P_node, *P_ghost_vec, P_dof_indices[0]);
             get_values_for_interpolation(X_node, *X0_vec, X_dof_indices);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                const auto& DU_jump_dof_indices = DU_jump_dof_map_cache[d]->dof_indices(elem);
-                get_values_for_interpolation(DU_jump_node[d], *DU_jump_ghost_vec[d], DU_jump_dof_indices);
-            }
 
             const bool qrule_changed =
                 FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
@@ -2875,9 +2812,6 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
 
             double* TAU_begin = &TAU_qp[NDIM * qp_offset];
             std::fill(TAU_begin, TAU_begin + NDIM * n_qp, 0.0);
-
-            double* P_jump_begin = &P_jump_qp[qp_offset];
-            std::fill(P_jump_begin, P_jump_begin + n_qp, 0.0);
 
             double* P_begin = &P_qp[qp_offset];
             std::fill(P_begin, P_begin + n_qp, 0.0);
@@ -2921,7 +2855,6 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
                 {
                     const double& p_P = phi_P[k][qp];
                     P_qp[qp_offset + qp] += (da / dA) * P_node[k] * p_P;
-                    P_jump_qp[qp_offset + qp] += P_jump_node[k] * p_P;
                 }
             }
             qp_offset += n_qp;
@@ -3015,7 +2948,6 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     d_X_new_vecs[part]->close();
     d_TAU_half_vecs[part]->close();
     d_WSS_half_vecs[part]->close();
-    d_P_jump_half_vecs[part]->close();
     d_P_half_vecs[part]->close();
 
     VecRestoreArray(X_local_vec, &X_local_soln);
@@ -3024,14 +2956,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     d_WSS_IB_ghost_vecs[part]->close();
 
     d_P_IB_ghost_vecs[part]->close();
-    d_P_jump_IB_ghost_vecs[part]->close();
     d_X_IB_ghost_vecs[part]->close();
-
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        d_DU_jump_half_vecs[part][d]->close();
-        d_DU_jump_IB_ghost_vecs[part][d]->close();
-    }
 
     return;
 } // computeFluidTraction
@@ -3958,24 +3883,28 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 
     // Force computation settings.
     if (db->isBool("use_pressure_jump_conditions"))
+    {
         d_use_pressure_jump_conditions = db->getBool("use_pressure_jump_conditions");
+        if (db->isBool("normalize_pressure_jump")) d_normalize_pressure_jump = db->getBool("normalize_pressure_jump");
+	}
 
     if (db->isBool("use_l2_lagrange_family")) d_use_l2_lagrange_family = db->getBool("use_l2_lagrange_family");
 
     if (db->isBool("use_velocity_jump_conditions"))
+    {
         d_use_velocity_jump_conditions = db->getBool("use_velocity_jump_conditions");
+        if (db->isDouble("wss_calc_width")) d_wss_calc_width = db->getDouble("wss_calc_width");
+	}
     if (d_use_pressure_jump_conditions || d_use_velocity_jump_conditions)
     {
         if (db->isBool("perturb_fe_mesh_nodes")) d_perturb_fe_mesh_nodes = db->getBool("perturb_fe_mesh_nodes");
-        if (db->isBool("normalize_pressure_jump")) d_normalize_pressure_jump = db->getBool("normalize_pressure_jump");
     }
-    if (d_use_velocity_jump_conditions && d_use_pressure_jump_conditions)
+    if (db->isBool("compute_fluid_traction"))
     {
+		d_compute_fluid_traction = db->getBool("compute_fluid_traction");
         if (db->isDouble("p_calc_width")) d_p_calc_width = db->getDouble("p_calc_width");
-        if (db->isDouble("wss_calc_width")) d_wss_calc_width = db->getDouble("wss_calc_width");
         if (db->isDouble("traction_activation_time"))
             d_traction_activation_time = db->getDouble("traction_activation_time");
-        if (db->isBool("compute_fluid_traction")) d_compute_fluid_traction = db->getBool("compute_fluid_traction");
         if (db->isBool("traction_interior_side")) d_traction_interior_side = db->getBool("traction_interior_side");
     }
     if (db->isBool("use_consistent_mass_matrix"))

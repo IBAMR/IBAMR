@@ -2,8 +2,9 @@
 Re = 200.0
 MU = 1.0/Re
 RHO = 1.0
-R = 0.5        											// radius of the cylinder
+R = 0.5        								   // radius of the cylinder
 U_MAX = 2.0
+
 // grid spacing parameters
 L = 60.0                                       // width of computational domain
 MAX_LEVELS = 6                                 // maximum number of levels in locally refined grid
@@ -19,41 +20,41 @@ PK1_DIL_QUAD_ORDER = "FIFTH"
 USE_BOUNDARY_MESH = TRUE
 
 // solver parameters
-IB_DELTA_FUNCTION          = "IB_3"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
-SPLIT_FORCES               = TRUE             // whether to split interior and boundary forces
-USE_PRESSURE_JUMP_CONDITIONS        = TRUE             // whether to impose pressure jumps at fluid-structure interfaces
-USE_VELOCITY_JUMP_CONDITIONS = TRUE			   // whether to impose the velocity jumps at fluid-structure interfaces
-COMPUTE_FLUID_TRACTION 	   = TRUE              // whether to compute the exterior fluid traction
-USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or lumped mass matrix
-USE_L2_LAGRANGE_FAMILY = FALSE  				// Whether to use L2_Lagrange family for the calc of jump variables and traction
-WSS_CALC_WIDTH 				= 1.05			   // ratio multiplied by the diagonal side of the grid spacing to calculate wss
-P_CALC_WIDTH 			   = 1.5               // ratio multiplied by the diogonal side of the grid spacing to calculate the pressure
-IB_POINT_DENSITY           = 4.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
-SOLVER_TYPE                = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
-CFL_MAX                    = 0.2               // maximum CFL number
-DT                         = 0.25*CFL_MAX*DX   // maximum timestep size
-START_TIME                 = 0.0e0             // initial simulation time
-END_TIME                   = 200            // final simulation time
-GROW_DT                    = 2.0e0             // growth factor for timesteps
-CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH" // convective time stepping type
-CONVECTIVE_OP_TYPE         = "STABILIZED_PPM"              // convective differencing discretization type
-CONVECTIVE_FORM            = "ADVECTIVE"       // how to compute the convective terms
-NORMALIZE_PRESSURE         = FALSE             // whether to explicitly force the pressure to have mean zero
-ERROR_ON_DT_CHANGE         = TRUE              // whether to emit an error message if the time step size changes
-VORTICITY_TAGGING          = TRUE              // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER                 = 4                 // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL        = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
-OUTPUT_U                   = TRUE
-OUTPUT_P                   = TRUE
-OUTPUT_F                   = TRUE
-OUTPUT_OMEGA               = TRUE
-OUTPUT_DIV_U               = TRUE
-ENABLE_LOGGING             = TRUE
+IB_DELTA_FUNCTION            = "IB_3"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
+SPLIT_FORCES                 = TRUE              // whether to split interior and boundary forces
+USE_PRESSURE_JUMP_CONDITIONS = FALSE   		     // whether to impose pressure jumps at fluid-structure interfaces
+USE_VELOCITY_JUMP_CONDITIONS = TRUE             // whether to impose the velocity jumps at fluid-structure interfaces
+COMPUTE_FLUID_TRACTION 	     = FALSE             // whether to compute the exterior fluid traction
+USE_L2_LAGRANGE_FAMILY       = FALSE  		     // Whether to use L2_Lagrange family for the calc of jump variables and traction
+WSS_CALC_WIDTH 		         = 1.05               // ratio multiplied by the diagonal side of the grid spacing to calculate wss
+P_CALC_WIDTH 		         = 0.0               // ratio multiplied by the diogonal side of the grid spacing to calculate the pressure
+USE_CONSISTENT_MASS_MATRIX   = TRUE              // whether to use a consistent or lumped mass matrix
+IB_POINT_DENSITY             = 4.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
+SOLVER_TYPE                  = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
+CFL_MAX                      = 0.2               // maximum CFL number
+DT                           = 0.25*CFL_MAX*DX   // maximum timestep size
+START_TIME                   = 0.0e0             // initial simulation time
+END_TIME                     = 200               // final simulation time
+GROW_DT                      = 2.0e0             // growth factor for timesteps
+CONVECTIVE_TS_TYPE           = "ADAMS_BASHFORTH" // convective time stepping type
+CONVECTIVE_OP_TYPE           = "STABILIZED_PPM"  // convective differencing discretization type
+CONVECTIVE_FORM              = "ADVECTIVE"       // how to compute the convective terms
+NORMALIZE_PRESSURE           = FALSE             // whether to explicitly force the pressure to have mean zero
+ERROR_ON_DT_CHANGE           = TRUE              // whether to emit an error message if the time step size changes
+VORTICITY_TAGGING            = TRUE              // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER                   = 4                 // size of tag buffer used by grid generation algorithm
+REGRID_CFL_INTERVAL          = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+OUTPUT_U                     = TRUE
+OUTPUT_P                     = TRUE
+OUTPUT_F                     = TRUE
+OUTPUT_OMEGA                 = TRUE
+OUTPUT_DIV_U                 = TRUE
+ENABLE_LOGGING               = TRUE
 
 // model parameters
 KAPPA_S_BODY = 0.0 //2.5*DX/DT^2
 ETA_S_BODY = 0.0 //1.5*DX/DT
-KAPPA_S_SURFACE = 0.0002/DT^2 //100 //0.05 *DX/DT^2
+KAPPA_S_SURFACE = 0.0002/DT^2
 ETA_S_SURFACE = 0.0/DT
 C1_S = 0.0
 
@@ -85,7 +86,7 @@ VelocityBcCoefs_0 {
 
 VelocityBcCoefs_1 {
 
-	L = L
+   L = L
    acoef_function_0 = "1.0"
    acoef_function_1 = "0.0"
    acoef_function_2 = "1.0"
@@ -113,17 +114,17 @@ IBHierarchyIntegrator {
 }
 
 IBFESurfaceMethod {
-   IB_delta_fcn                = IB_DELTA_FUNCTION
-   split_forces                = SPLIT_FORCES
-   use_pressure_jump_conditions   = USE_PRESSURE_JUMP_CONDITIONS
-   use_velocity_jump_conditions   = USE_VELOCITY_JUMP_CONDITIONS
-   use_l2_lagrange_family = USE_L2_LAGRANGE_FAMILY
-   use_consistent_mass_matrix  = USE_CONSISTENT_MASS_MATRIX
-   IB_point_density            = IB_POINT_DENSITY
-   p_calc_width				   = P_CALC_WIDTH
-   wss_calc_width			  = WSS_CALC_WIDTH
-   compute_fluid_traction     = COMPUTE_FLUID_TRACTION
-   min_ghost_cell_width = 6
+   IB_delta_fcn                 = IB_DELTA_FUNCTION
+   split_forces                 = SPLIT_FORCES
+   use_pressure_jump_conditions = USE_PRESSURE_JUMP_CONDITIONS
+   use_velocity_jump_conditions = USE_VELOCITY_JUMP_CONDITIONS
+   use_l2_lagrange_family       = USE_L2_LAGRANGE_FAMILY
+   use_consistent_mass_matrix   = USE_CONSISTENT_MASS_MATRIX
+   IB_point_density             = IB_POINT_DENSITY
+   p_calc_width				    = P_CALC_WIDTH
+   wss_calc_width			    = WSS_CALC_WIDTH
+   compute_fluid_traction       = COMPUTE_FLUID_TRACTION
+   min_ghost_cell_width 		= 6
 }
 
 INSCollocatedHierarchyIntegrator {
@@ -224,7 +225,7 @@ GriddingAlgorithm {
       level_0 =   8,  8  // all finer levels will use same values as level_0
    }
    efficiency_tolerance = 0.80e0  // min % of tag cells in new patch level
-   combine_efficiency   = 0.60e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
+   combine_efficiency   = 0.80e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
 }
 
 StandardTagAndInitialize {
@@ -238,7 +239,7 @@ LoadBalancer {
 
 TimerManager{
    print_exclusive = FALSE
-   print_total = TRUE
+   print_total     = TRUE
    print_threshold = 0.1
 
    timer_list = "IBAMR::*::*","IBTK::*::*","*::*::*"
