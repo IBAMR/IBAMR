@@ -133,10 +133,10 @@ struct TetherData
     }
 };
 
+bool use_boundary_mesh 			  = false;
+bool compute_fluid_traction 	  = false;
+
 // Tether (penalty) stress function.
-bool use_boundary_mesh = false;
-bool use_velocity_jump_conditions = false;
-bool use_pressure_jump_conditions = false;
 void
 PK1_stress_function(TensorValue<double>& PP,
                     const TensorValue<double>& FF,
@@ -202,7 +202,7 @@ tether_force_function(VectorValue<double>& F,
 using namespace ModelData;
 
 // Function prototypes
-static ofstream drag_F_stream, lift_F_stream, drag_TAU_stream, lift_TAU_stream;
+static ofstream drag_stream, lift_stream, drag_TAU_stream, lift_TAU_stream;
 
 void postprocess_data(Pointer<Database> input_db,
                       Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
@@ -283,7 +283,6 @@ run_example(int argc, char** argv)
         const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
         const double R = input_db->getDouble("R");
-
         if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
         {
 #ifdef LIBMESH_HAVE_TRIANGLE
@@ -337,8 +336,7 @@ run_example(int argc, char** argv)
         boundary_mesh.prepare_for_use();
 
         use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
-        use_pressure_jump_conditions = input_db->getBoolWithDefault("USE_PRESSURE_JUMP_CONDITIONS", false);
-        use_velocity_jump_conditions = input_db->getBoolWithDefault("USE_VELOCITY_JUMP_CONDITIONS", false);
+        compute_fluid_traction = input_db->getBoolWithDefault("COMPUTE_FLUID_TRACTION", false);
         Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
 
         // Create major algorithm and data objects that comprise the
@@ -397,14 +395,12 @@ run_example(int argc, char** argv)
                                         error_detector,
                                         box_generator,
                                         load_balancer);
-
         // Configure the IBFE solver.
         TetherData tether_data(input_db);
         void* const tether_data_ptr = reinterpret_cast<void*>(&tether_data);
         EquationSystems* equation_systems;
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
-
         if (use_boundary_mesh)
         {
             vector<SystemData> sys_data(1, SystemData(IBFESurfaceMethod::VELOCITY_SYSTEM_NAME, vars));
@@ -536,15 +532,21 @@ run_example(int argc, char** argv)
         // velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_F_stream.open("C_F_D.curve", ios_base::out | ios_base::trunc);
-            lift_F_stream.open("C_F_L.curve", ios_base::out | ios_base::trunc);
-            drag_TAU_stream.open("C_T_D.curve", ios_base::out | ios_base::trunc);
-            lift_TAU_stream.open("C_T_L.curve", ios_base::out | ios_base::trunc);
+            drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
+            lift_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
+            if (compute_fluid_traction)
+            {
+				drag_TAU_stream.open("C_T_D.curve", ios_base::out | ios_base::trunc);
+				lift_TAU_stream.open("C_T_L.curve", ios_base::out | ios_base::trunc);
+			}
 
-            drag_F_stream.precision(10);
-            lift_F_stream.precision(10);
-            drag_TAU_stream.precision(10);
-            lift_TAU_stream.precision(10);
+            drag_stream.precision(10);
+            lift_stream.precision(10);
+            if (compute_fluid_traction)
+            {
+				drag_TAU_stream.precision(10);
+				lift_TAU_stream.precision(10);
+			}
         }
 
         // Main time step loop.
@@ -615,10 +617,13 @@ run_example(int argc, char** argv)
         // Close the logging streams.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_F_stream.close();
-            lift_F_stream.close();
-            drag_TAU_stream.close();
-            lift_TAU_stream.close();
+            drag_stream.close();
+            lift_stream.close();
+            if (compute_fluid_traction)
+			{
+				drag_TAU_stream.close();
+				lift_TAU_stream.close();
+			}
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
@@ -675,13 +680,13 @@ postprocess_data(Pointer<Database> input_db,
     const DofMap& dof_map = x_system->get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 
-    NumericVector<double>& X0_vec = x_system->get_vector("INITIAL_COORDINATES");
+    NumericVector<double>& X_vec = x_system->get_vector("INITIAL_COORDINATES");
 
     std::vector<std::vector<unsigned int> > WSS_o_dof_indices(NDIM);
     System* TAU_system;
     NumericVector<double>* TAU_vec;
     NumericVector<double>* TAU_ghost_vec;
-    if (use_pressure_jump_conditions && use_velocity_jump_conditions)
+    if (compute_fluid_traction)
     {
         TAU_system = &equation_systems->get_system(IBFESurfaceMethod::TAU_SYSTEM_NAME);
         TAU_vec = TAU_system->solution.get();
@@ -711,7 +716,7 @@ postprocess_data(Pointer<Database> input_db,
     std::vector<const std::vector<libMesh::VectorValue<double> >*> grad_var_data;
 
     TensorValue<double> FF, FF_inv_trans;
-    boost::multi_array<double, 2> x_node, X0_node, U_node, TAU_node;
+    boost::multi_array<double, 2> x_node, X_node, U_node, TAU_node;
     VectorValue<double> F, N, U, n, x, X, TAU;
 
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
@@ -726,18 +731,18 @@ postprocess_data(Pointer<Database> input_db,
         }
         get_values_for_interpolation(x_node, *x_ghost_vec, dof_indices);
         get_values_for_interpolation(U_node, *U_ghost_vec, dof_indices);
-        get_values_for_interpolation(X0_node, X0_vec, dof_indices);
-        if (use_pressure_jump_conditions && use_velocity_jump_conditions)
+        get_values_for_interpolation(X_node, X_vec, dof_indices);
+        if (compute_fluid_traction)
             get_values_for_interpolation(TAU_node, *TAU_ghost_vec, dof_indices);
 
         const unsigned int n_qp = qrule->n_points();
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
-            interpolate(X, qp, X0_node, phi);
+            interpolate(X, qp, X_node, phi);
             interpolate(x, qp, x_node, phi);
             jacobian(FF, qp, x_node, dphi);
             interpolate(U, qp, U_node, phi);
-            if (use_pressure_jump_conditions && use_velocity_jump_conditions) interpolate(TAU, qp, TAU_node, phi);
+            if (compute_fluid_traction) interpolate(TAU, qp, TAU_node, phi);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 U_qp_vec[d] = U(d);
@@ -750,7 +755,7 @@ postprocess_data(Pointer<Database> input_db,
             for (int d = 0; d < NDIM; ++d)
             {
                 F_integral[d] += F(d) * JxW[qp];
-                if (use_pressure_jump_conditions && use_velocity_jump_conditions) T_integral[d] += TAU(d) * JxW[qp];
+                if (compute_fluid_traction) T_integral[d] += TAU(d) * JxW[qp];
             }
         }
         if (!use_boundary_mesh)
@@ -800,9 +805,9 @@ postprocess_data(Pointer<Database> input_db,
     static const double D = 1.0;
     if (SAMRAI_MPI::getRank() == 0)
     {
-        drag_F_stream << loop_time << " " << -F_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
-        lift_F_stream << loop_time << " " << -F_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
-        if (use_pressure_jump_conditions && use_velocity_jump_conditions)
+        drag_stream << loop_time << " " << -F_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
+        lift_stream << loop_time << " " << -F_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
+        if (compute_fluid_traction)
         {
             drag_TAU_stream << loop_time << " " << T_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
             lift_TAU_stream << loop_time << " " << T_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
