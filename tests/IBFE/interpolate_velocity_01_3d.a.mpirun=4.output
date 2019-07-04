@@ -4,4 +4,4 @@ IBFEMethod: mesh part 0 is using FIRST order LAGRANGE finite elements.
 
 IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
 max vertex distance: 0.112856
-max norm errors: 0.00093667747957293379102   0.0016180953166274880672   0.0012822607172290334532
+max norm errors: 0.00093667747957248970181   0.0016901433827078427008   0.0013516244805421573361

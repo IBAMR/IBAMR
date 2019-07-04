@@ -47,6 +47,7 @@
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
 #include <libmesh/equation_systems.h>
+#include <libmesh/linear_partitioner.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_triangle_interface.h>
@@ -179,6 +180,12 @@ main(int argc, char** argv)
         const int n_refinements = int(std::log2(R / dx));
         MeshTools::Generation::build_sphere(mesh, R, n_refinements, Utility::string_to_enum<ElemType>(elem_type), 10);
         mesh.prepare_for_use();
+        // metis does a good job partitioning, but the partitioning relies on
+        // random numbers: the seed changed in libMesh commit
+        // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
+        // 1.4.0). Hence, to achieve consistent partitioning, use a simpler partitioning scheme:
+        LinearPartitioner partitioner;
+        partitioner.partition(mesh);
 
         plog << "Number of elements: " << mesh.n_active_elem() << std::endl;
 
