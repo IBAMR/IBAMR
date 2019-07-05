@@ -96,7 +96,8 @@ EXTRA_PROGRAMS = $(am__EXEEXT_7) $(am__EXEEXT_8)
 @SAMRAI3D_ENABLED_TRUE@am__append_6 = $(GTESTS) $(EXAMPLES)
 subdir = examples/multiphase_flow/ex4
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
+	$(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
 	$(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/ax_prog_cc_mpi.m4 \
 	$(top_srcdir)/m4/ax_prog_cxx_mpi.m4 $(top_srcdir)/m4/boost.m4 \

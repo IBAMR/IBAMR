@@ -78,6 +78,8 @@ asdf
   LDFLAGS_PREPEND($SILO_LDFLAGS)
   AC_SEARCH_LIBS([DBSetDir], [silo siloh5], [],
                  [AC_MSG_ERROR([Silo enabled but could not find working libsilo or libsiloh5])])
+  # set up rpath
+  ADD_RPATH_LDFLAG($SILO_LDFLAGS)
 
   AC_DEFINE([HAVE_SILO],1,[Define if you have the silo library.])
 else

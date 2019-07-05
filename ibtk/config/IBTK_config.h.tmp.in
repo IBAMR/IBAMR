@@ -49,7 +49,7 @@
 /* Define to 1 if you have the `hdf5_hl' library (-lhdf5_hl). */
 #undef HAVE_LIBHDF5_HL
 
-/* Define if you have the libHYPRE library. */
+/* Define to 1 if you have the `HYPRE' library (-lHYPRE). */
 #undef HAVE_LIBHYPRE
 
 /* Define if you have the libmesh library. */

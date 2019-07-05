@@ -27576,6 +27576,15 @@ else
 fi
 
 
+
+  if test "$enable_rpath" = yes; then
+    libdir=$PETSC_LDFLAGS
+    rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    LDFLAGS=""$rpath_path" $LDFLAGS"
+
+  fi
+
+
 # Configure other libraries that are not themselves dependencies:
 
 #echo
@@ -29986,6 +29995,16 @@ else
   as_fn_error $? "could not find working libhdf5_hl" "$LINENO" 5
 fi
 
+  # set up rpath
+
+
+  if test "$enable_rpath" = yes; then
+    libdir=$HDF5_LDFLAGS
+    rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    LDFLAGS=""$rpath_path" $LDFLAGS"
+
+  fi
+
 fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for HDF5 version >= 1.8.7" >&5
@@ -30129,6 +30148,15 @@ _ACEOF
 else
   as_fn_error $? "could not find working libHYPRE" "$LINENO" 5
 fi
+
+
+
+  if test "$enable_rpath" = yes; then
+    libdir=$HYPRE_LDFLAGS
+    rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    LDFLAGS=""$rpath_path" $LDFLAGS"
+
+  fi
 
 fi
 
@@ -31631,6 +31659,16 @@ if test "$ac_res" != no; then :
 else
   as_fn_error $? "Silo enabled but could not find working libsilo or libsiloh5" "$LINENO" 5
 fi
+
+  # set up rpath
+
+
+  if test "$enable_rpath" = yes; then
+    libdir=$SILO_LDFLAGS
+    rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    LDFLAGS=""$rpath_path" $LDFLAGS"
+
+  fi
 
 
 

@@ -734,6 +734,8 @@ LIBGTEST
 HAVE_LIBGTEST
 GTEST_ENABLED_FALSE
 GTEST_ENABLED_TRUE
+PACKAGE_LIBS
+PACKAGE_LDFLAGS
 LIBGSL_PREFIX
 LTLIBGSL
 LIBGSL
@@ -744,12 +746,6 @@ LIBGSLCBLAS
 HAVE_LIBGSLCBLAS
 GSL_ENABLED_FALSE
 GSL_ENABLED_TRUE
-PACKAGE_LIBS
-PACKAGE_LDFLAGS
-LIBHYPRE_PREFIX
-LTLIBHYPRE
-LIBHYPRE
-HAVE_LIBHYPRE
 USING_BUNDLED_EIGEN_FALSE
 USING_BUNDLED_EIGEN_TRUE
 PACKAGE_CPPFLAGS
@@ -27746,6 +27742,15 @@ else
 fi
 
 
+
+  if test "$enable_rpath" = yes; then
+    libdir=$PETSC_LDFLAGS
+    rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    LDFLAGS=""$rpath_path" $LDFLAGS"
+
+  fi
+
+
 # Configure other libraries that are not themselves dependencies:
 
 #echo
@@ -28176,6 +28181,16 @@ else
   as_fn_error $? "could not find working libhdf5_hl" "$LINENO" 5
 fi
 
+  # set up rpath
+
+
+  if test "$enable_rpath" = yes; then
+    libdir=$HDF5_LDFLAGS
+    rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    LDFLAGS=""$rpath_path" $LDFLAGS"
+
+  fi
+
 fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for HDF5 version >= 1.8.7" >&5
@@ -28226,25 +28241,6 @@ echo "=================================="
 echo "Configuring required package HYPRE"
 echo "=================================="
 
-
-PACKAGE_save_CFLAGS=$CFLAGS
-PACKAGE_save_CPPFLAGS=$CPPFLAGS
-PACKAGE_save_CXXFLAGS=$CXXFLAGS
-PACKAGE_save_FCFLAGS=$FCFLAGS
-PACKAGE_save_LDFLAGS=$LDFLAGS
-PACKAGE_save_LIBS=$LIBS
-PACKAGE_save_FCLIBS=$FCLIBS
-PACKAGE_save_CONTRIB_LIBS=$CONTRIB_LIBS
-CFLAGS="$PACKAGE_CFLAGS $CFLAGS"
-CPPFLAGS="$PACKAGE_CPPFLAGS $CPPFLAGS"
-CXXFLAGS="$PACKAGE_CXXFLAGS $CXXFLAGS"
-FCFLAGS="$PACKAGE_FCFLAGS $FCFLAGS"
-LDFLAGS="$PACKAGE_LDFLAGS $LDFLAGS"
-LIBS="$PACKAGE_LIBS $LIBS"
-FCLIBS="$PACKAGE_FCLIBS $FCLIBS"
-CONTRIB_LIBS="$PACKAGE_CONTRIB_LIBS $CONTRIB_LIBS"
-
-
 if test `grep -c HYPRE "${PETSC_DIR}/${PETSC_ARCH}/lib/petsc/conf/petscvariables"` != 0 ; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: PETSc appears to provide hypre; using PETSc hypre library" >&5
 $as_echo "$as_me: PETSc appears to provide hypre; using PETSc hypre library" >&6;}
@@ -28284,505 +28280,23 @@ fi
 
   LDFLAGS="$HYPRE_LDFLAGS $LDFLAGS"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    use_additional=yes
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-    eval additional_includedir=\"$includedir\"
-    eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-## begin removed by BEG
-##  AC_ARG_WITH(P_A_C_K[-prefix],
-##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
-##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
-##[
-##    if test "X$withval" = "Xno"; then
-##      use_additional=no
-##    else
-##      if test "X$withval" = "X"; then
-##        AC_LIB_WITH_FINAL_PREFIX([
-##          eval additional_includedir=\"$includedir\"
-##          eval additional_libdir=\"$libdir\"
-##        ])
-##      else
-##        additional_includedir="$withval/include"
-##        additional_libdir="$withval/$acl_libdirstem"
-##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-##           && ! test -d "$withval/$acl_libdirstem"; then
-##          additional_libdir="$withval/$acl_libdirstem2"
-##        fi
-##      fi
-##    fi
-##])
-## end removed by BEG
-      LIBHYPRE=
-  LTLIBHYPRE=
-  INCHYPRE=
-  LIBHYPRE_PREFIX=
-      HAVE_LIBHYPRE=
-  rpathdirs=
-  ltrpathdirs=
-  names_already_handled=
-  names_next_round='HYPRE '
-  while test -n "$names_next_round"; do
-    names_this_round="$names_next_round"
-    names_next_round=
-    for name in $names_this_round; do
-      already_handled=
-      for n in $names_already_handled; do
-        if test "$n" = "$name"; then
-          already_handled=yes
-          break
-        fi
-      done
-      if test -z "$already_handled"; then
-        names_already_handled="$names_already_handled $name"
-                        uppername=`echo "$name" | sed -e 'y|abcdefghijklmnopqrstuvwxyz./+-|ABCDEFGHIJKLMNOPQRSTUVWXYZ____|'`
-        eval value=\"\$HAVE_LIB$uppername\"
-        if test -n "$value"; then
-          if test "$value" = yes; then
-            eval value=\"\$LIB$uppername\"
-            test -z "$value" || LIBHYPRE="${LIBHYPRE}${LIBHYPRE:+ }$value"
-            eval value=\"\$LTLIB$uppername\"
-            test -z "$value" || LTLIBHYPRE="${LTLIBHYPRE}${LTLIBHYPRE:+ }$value"
-          else
-                                    :
-          fi
-        else
-                              found_dir=
-          found_la=
-          found_so=
-          found_a=
-          eval libname=\"$acl_libname_spec\"    # typically: libname=lib$name
-          if test -n "$acl_shlibext"; then
-            shrext=".$acl_shlibext"             # typically: shrext=.so
-          else
-            shrext=
-          fi
-          if test $use_additional = yes; then
-            dir="$additional_libdir"
-                                    if test -n "$acl_shlibext"; then
-              if test -f "$dir/$libname$shrext"; then
-                found_dir="$dir"
-                found_so="$dir/$libname$shrext"
-              else
-                if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
-                  ver=`(cd "$dir" && \
-                        for f in "$libname$shrext".*; do echo "$f"; done \
-                        | sed -e "s,^$libname$shrext\\\\.,," \
-                        | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
-                        | sed 1q ) 2>/dev/null`
-                  if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
-                    found_dir="$dir"
-                    found_so="$dir/$libname$shrext.$ver"
-                  fi
-                else
-                  eval library_names=\"$acl_library_names_spec\"
-                  for f in $library_names; do
-                    if test -f "$dir/$f"; then
-                      found_dir="$dir"
-                      found_so="$dir/$f"
-                      break
-                    fi
-                  done
-                fi
-              fi
-            fi
-                        if test "X$found_dir" = "X"; then
-              if test -f "$dir/$libname.$acl_libext"; then
-                found_dir="$dir"
-                found_a="$dir/$libname.$acl_libext"
-              fi
-            fi
-            if test "X$found_dir" != "X"; then
-              if test -f "$dir/$libname.la"; then
-                found_la="$dir/$libname.la"
-              fi
-            fi
-          fi
-          if test "X$found_dir" = "X"; then
-            for x in $LDFLAGS $LTLIBHYPRE; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-              case "$x" in
-                -L*)
-                  dir=`echo "X$x" | sed -e 's/^X-L//'`
-                                    if test -n "$acl_shlibext"; then
-                    if test -f "$dir/$libname$shrext"; then
-                      found_dir="$dir"
-                      found_so="$dir/$libname$shrext"
-                    else
-                      if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
-                        ver=`(cd "$dir" && \
-                              for f in "$libname$shrext".*; do echo "$f"; done \
-                              | sed -e "s,^$libname$shrext\\\\.,," \
-                              | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
-                              | sed 1q ) 2>/dev/null`
-                        if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
-                          found_dir="$dir"
-                          found_so="$dir/$libname$shrext.$ver"
-                        fi
-                      else
-                        eval library_names=\"$acl_library_names_spec\"
-                        for f in $library_names; do
-                          if test -f "$dir/$f"; then
-                            found_dir="$dir"
-                            found_so="$dir/$f"
-                            break
-                          fi
-                        done
-                      fi
-                    fi
-                  fi
-                                    if test "X$found_dir" = "X"; then
-                    if test -f "$dir/$libname.$acl_libext"; then
-                      found_dir="$dir"
-                      found_a="$dir/$libname.$acl_libext"
-                    fi
-                  fi
-                  if test "X$found_dir" != "X"; then
-                    if test -f "$dir/$libname.la"; then
-                      found_la="$dir/$libname.la"
-                    fi
-                  fi
-                  ;;
-              esac
-              if test "X$found_dir" != "X"; then
-                break
-              fi
-            done
-          fi
-          if test "X$found_dir" != "X"; then
-                        LTLIBHYPRE="${LTLIBHYPRE}${LTLIBHYPRE:+ }-L$found_dir -l$name"
-            if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no \
-                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
-                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
-                                LIBHYPRE="${LIBHYPRE}${LIBHYPRE:+ }$found_so"
-              else
-                                                                                haveit=
-                for x in $ltrpathdirs; do
-                  if test "X$x" = "X$found_dir"; then
-                    haveit=yes
-                    break
-                  fi
-                done
-                if test -z "$haveit"; then
-                  ltrpathdirs="$ltrpathdirs $found_dir"
-                fi
-                                if test "$acl_hardcode_direct" = yes; then
-                                                      LIBHYPRE="${LIBHYPRE}${LIBHYPRE:+ }$found_so"
-                else
-                  if test -n "$acl_hardcode_libdir_flag_spec" && test "$acl_hardcode_minus_L" = no; then
-                                                            LIBHYPRE="${LIBHYPRE}${LIBHYPRE:+ }$found_so"
-                                                            haveit=
-                    for x in $rpathdirs; do
-                      if test "X$x" = "X$found_dir"; then
-                        haveit=yes
-                        break
-                      fi
-                    done
-                    if test -z "$haveit"; then
-                      rpathdirs="$rpathdirs $found_dir"
-                    fi
-                  else
-                                                                                haveit=
-                    for x in $LDFLAGS $LIBHYPRE; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-                      if test "X$x" = "X-L$found_dir"; then
-                        haveit=yes
-                        break
-                      fi
-                    done
-                    if test -z "$haveit"; then
-                      LIBHYPRE="${LIBHYPRE}${LIBHYPRE:+ }-L$found_dir"
-                    fi
-                    if test "$acl_hardcode_minus_L" != no; then
-                                                                                        LIBHYPRE="${LIBHYPRE}${LIBHYPRE:+ }$found_so"
-                    else
-                                                                                                                                                                                LIBHYPRE="${LIBHYPRE}${LIBHYPRE:+ }-l$name"
-                    fi
-                  fi
-                fi
-              fi
-            else
-              if test "X$found_a" != "X"; then
-                                LIBHYPRE="${LIBHYPRE}${LIBHYPRE:+ }$found_a"
-              else
-                                                LIBHYPRE="${LIBHYPRE}${LIBHYPRE:+ }-L$found_dir -l$name"
-              fi
-            fi
-                        additional_includedir=
-            case "$found_dir" in
-              */$acl_libdirstem | */$acl_libdirstem/)
-                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                if test "$name" = 'HYPRE'; then
-                  LIBHYPRE_PREFIX="$basedir"
-                fi
-                additional_includedir="$basedir/include"
-                ;;
-              */$acl_libdirstem2 | */$acl_libdirstem2/)
-                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
-                if test "$name" = 'HYPRE'; then
-                  LIBHYPRE_PREFIX="$basedir"
-                fi
-                additional_includedir="$basedir/include"
-                ;;
-            esac
-            if test "X$additional_includedir" != "X"; then
-                                                                                                                if test "X$additional_includedir" != "X/usr/include"; then
-                haveit=
-                if test "X$additional_includedir" = "X/usr/local/include"; then
-                  if test -n "$GCC"; then
-                    case $host_os in
-                      linux* | gnu* | k*bsd*-gnu) haveit=yes;;
-                    esac
-                  fi
-                fi
-                if test -z "$haveit"; then
-                  for x in $CPPFLAGS $INCHYPRE; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-                    if test "X$x" = "X-I$additional_includedir"; then
-                      haveit=yes
-                      break
-                    fi
-                  done
-                  if test -z "$haveit"; then
-                    if test -d "$additional_includedir"; then
-                                            INCHYPRE="${INCHYPRE}${INCHYPRE:+ }-I$additional_includedir"
-                    fi
-                  fi
-                fi
-              fi
-            fi
-                        if test -n "$found_la"; then
-                                                        save_libdir="$libdir"
-              case "$found_la" in
-                */* | *\\*) . "$found_la" ;;
-                *) . "./$found_la" ;;
-              esac
-              libdir="$save_libdir"
-                            for dep in $dependency_libs; do
-                case "$dep" in
-                  -L*)
-                    additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
-                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
-                      haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
-                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
-                        if test -n "$GCC"; then
-                          case $host_os in
-                            linux* | gnu* | k*bsd*-gnu) haveit=yes;;
-                          esac
-                        fi
-                      fi
-                      if test -z "$haveit"; then
-                        haveit=
-                        for x in $LDFLAGS $LIBHYPRE; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-                          if test "X$x" = "X-L$additional_libdir"; then
-                            haveit=yes
-                            break
-                          fi
-                        done
-                        if test -z "$haveit"; then
-                          if test -d "$additional_libdir"; then
-                                                        LIBHYPRE="${LIBHYPRE}${LIBHYPRE:+ }-L$additional_libdir"
-                          fi
-                        fi
-                        haveit=
-                        for x in $LDFLAGS $LTLIBHYPRE; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-                          if test "X$x" = "X-L$additional_libdir"; then
-                            haveit=yes
-                            break
-                          fi
-                        done
-                        if test -z "$haveit"; then
-                          if test -d "$additional_libdir"; then
-                                                        LTLIBHYPRE="${LTLIBHYPRE}${LTLIBHYPRE:+ }-L$additional_libdir"
-                          fi
-                        fi
-                      fi
-                    fi
-                    ;;
-                  -R*)
-                    dir=`echo "X$dep" | sed -e 's/^X-R//'`
-                    if test "$enable_rpath" != no; then
-                                                                  haveit=
-                      for x in $rpathdirs; do
-                        if test "X$x" = "X$dir"; then
-                          haveit=yes
-                          break
-                        fi
-                      done
-                      if test -z "$haveit"; then
-                        rpathdirs="$rpathdirs $dir"
-                      fi
-                                                                  haveit=
-                      for x in $ltrpathdirs; do
-                        if test "X$x" = "X$dir"; then
-                          haveit=yes
-                          break
-                        fi
-                      done
-                      if test -z "$haveit"; then
-                        ltrpathdirs="$ltrpathdirs $dir"
-                      fi
-                    fi
-                    ;;
-                  -l*)
-                                        names_next_round="$names_next_round "`echo "X$dep" | sed -e 's/^X-l//'`
-                    ;;
-                  *.la)
-                                                                                names_next_round="$names_next_round "`echo "X$dep" | sed -e 's,^X.*/,,' -e 's,^lib,,' -e 's,\.la$,,'`
-                    ;;
-                  *)
-                                        LIBHYPRE="${LIBHYPRE}${LIBHYPRE:+ }$dep"
-                    LTLIBHYPRE="${LTLIBHYPRE}${LTLIBHYPRE:+ }$dep"
-                    ;;
-                esac
-              done
-            fi
-          else
-                                                            LIBHYPRE="${LIBHYPRE}${LIBHYPRE:+ }-l$name"
-            LTLIBHYPRE="${LTLIBHYPRE}${LTLIBHYPRE:+ }-l$name"
-          fi
-        fi
-      fi
-    done
-  done
-  if test "X$rpathdirs" != "X"; then
-    if test -n "$acl_hardcode_libdir_separator"; then
-                        alldirs=
-      for found_dir in $rpathdirs; do
-        alldirs="${alldirs}${alldirs:+$acl_hardcode_libdir_separator}$found_dir"
-      done
-            acl_save_libdir="$libdir"
-      libdir="$alldirs"
-      eval flag=\"$acl_hardcode_libdir_flag_spec\"
-      libdir="$acl_save_libdir"
-      LIBHYPRE="${LIBHYPRE}${LIBHYPRE:+ }$flag"
-    else
-            for found_dir in $rpathdirs; do
-        acl_save_libdir="$libdir"
-        libdir="$found_dir"
-        eval flag=\"$acl_hardcode_libdir_flag_spec\"
-        libdir="$acl_save_libdir"
-        LIBHYPRE="${LIBHYPRE}${LIBHYPRE:+ }$flag"
-      done
-    fi
-  fi
-  if test "X$ltrpathdirs" != "X"; then
-            for found_dir in $ltrpathdirs; do
-      LTLIBHYPRE="${LTLIBHYPRE}${LTLIBHYPRE:+ }-R$found_dir"
-    done
-  fi
-
-
-
-
-
-
-
-        ac_save_CPPFLAGS="$CPPFLAGS"
-
-  for element in $INCHYPRE; do
-    haveit=
-    for x in $CPPFLAGS; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      if test "X$x" = "X$element"; then
-        haveit=yes
-        break
-      fi
-    done
-    if test -z "$haveit"; then
-      CPPFLAGS="${CPPFLAGS}${CPPFLAGS:+ }$element"
-    fi
-  done
-
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libHYPRE" >&5
-$as_echo_n "checking for libHYPRE... " >&6; }
-if ${ac_cv_libHYPRE+:} false; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for BoomerAMGCreate in -lHYPRE" >&5
+$as_echo_n "checking for BoomerAMGCreate in -lHYPRE... " >&6; }
+if ${ac_cv_lib_HYPRE_BoomerAMGCreate+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-
-    ac_save_LIBS="$LIBS"
-                                case " $LIBHYPRE" in
-      *" -l"*) LIBS="$LIBS $LIBHYPRE" ;;
-      *)       LIBS="$LIBHYPRE $LIBS" ;;
-    esac
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lHYPRE  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char BoomerAMGCreate ();
 #ifdef FC_DUMMY_MAIN
 #ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
@@ -28794,68 +28308,43 @@ else
 int
 main ()
 {
-
+return BoomerAMGCreate ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_libHYPRE=yes
+  ac_cv_lib_HYPRE_BoomerAMGCreate=yes
 else
-  ac_cv_libHYPRE='no'
+  ac_cv_lib_HYPRE_BoomerAMGCreate=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-    LIBS="$ac_save_LIBS"
-
+LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_libHYPRE" >&5
-$as_echo "$ac_cv_libHYPRE" >&6; }
-  if test "$ac_cv_libHYPRE" = yes; then
-    HAVE_LIBHYPRE=yes
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_HYPRE_BoomerAMGCreate" >&5
+$as_echo "$ac_cv_lib_HYPRE_BoomerAMGCreate" >&6; }
+if test "x$ac_cv_lib_HYPRE_BoomerAMGCreate" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBHYPRE 1
+_ACEOF
 
-$as_echo "#define HAVE_LIBHYPRE 1" >>confdefs.h
+  LIBS="-lHYPRE $LIBS"
 
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking how to link with libHYPRE" >&5
-$as_echo_n "checking how to link with libHYPRE... " >&6; }
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBHYPRE" >&5
-$as_echo "$LIBHYPRE" >&6; }
-  else
-    HAVE_LIBHYPRE=no
-            CPPFLAGS="$ac_save_CPPFLAGS"
-    LIBHYPRE=
-    LTLIBHYPRE=
-    LIBHYPRE_PREFIX=
-  fi
-
-
-
-
-
-
-
-  if test "$HAVE_LIBHYPRE" = no ; then
-    as_fn_error $? "could not find working libHYPRE" "$LINENO" 5
-  fi
-
-  PACKAGE_CPPFLAGS="$HYPRE_CPPFLAGS $PACKAGE_CPPFLAGS"
-
-  PACKAGE_LDFLAGS="$HYPRE_LDFLAGS $PACKAGE_LDFLAGS"
-
-  PACKAGE_LIBS=""$LIBHYPRE" $PACKAGE_LIBS"
-
+else
+  as_fn_error $? "could not find working libHYPRE" "$LINENO" 5
 fi
 
 
-CFLAGS=$PACKAGE_save_CFLAGS
-CPPFLAGS=$PACKAGE_save_CPPFLAGS
-CXXFLAGS=$PACKAGE_save_CXXFLAGS
-FCFLAGS=$PACKAGE_save_FCFLAGS
-LDFLAGS=$PACKAGE_save_LDFLAGS
-LIBS=$PACKAGE_save_LIBS
-FCLIBS=$PACKAGE_save_FCLIBS
-CONTRIB_LIBS=$PACKAGE_save_CONTRIB_LIBS
 
+  if test "$enable_rpath" = yes; then
+    libdir=$HYPRE_LDFLAGS
+    rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    LDFLAGS=""$rpath_path" $LDFLAGS"
+
+  fi
+
+fi
 
 
 
@@ -32336,6 +31825,16 @@ if test "$ac_res" != no; then :
 else
   as_fn_error $? "Silo enabled but could not find working libsilo or libsiloh5" "$LINENO" 5
 fi
+
+  # set up rpath
+
+
+  if test "$enable_rpath" = yes; then
+    libdir=$SILO_LDFLAGS
+    rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    LDFLAGS=""$rpath_path" $LDFLAGS"
+
+  fi
 
 
 
