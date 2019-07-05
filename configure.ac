@@ -107,16 +107,18 @@ PACKAGE_SETUP_ENVIRONMENT
 LIBS="$LIBS $PACKAGE_CONTRIB_LIBS"
 
 # Check that SAMRAI and LIBMESH have mutually compatible debug settings:
-if test "$SAMRAI_DEBUG_CHECK_ASSERTIONS" = true; then
-  if test "$LIBMESH_METHOD" = dbg || test "$LIBMESH_METHOD" = devel; then
-    : # do nothing
-  else
-    AC_MSG_ERROR([The detected SAMRAI library was compiled with debugging support enabled but the detected libMesh library was not. This incompatibility is not allowed since different debug macros can lead to linkage errors. Please reconfigure IBAMR with either a devel or debug libMesh method.])
-  fi
-else # SAMRAI is in release mode
-  if test "$LIBMESH_METHOD" = dbg || test "$LIBMESH_METHOD" = devel; then
-    AC_MSG_ERROR([The detected SAMRAI library was compiled without debugging support enabled but the detected libMesh library was. This incompatibility is not allowed since different debug macros can lead to linkage errors. Please reconfigure IBAMR with either an opt, pro, or oprof libMesh method.])
-  fi
+if test "$LIBMESH_ENABLED" = yes; then
+    if test "$SAMRAI_DEBUG_CHECK_ASSERTIONS" = true; then
+        if test "$LIBMESH_METHOD" = dbg || test "$LIBMESH_METHOD" = devel; then
+        : # do nothing
+        else
+            AC_MSG_ERROR([The detected SAMRAI library was compiled with debugging support enabled but the detected libMesh library was not. This incompatibility is not allowed since different debug macros can lead to linkage errors. Please reconfigure IBAMR with either a devel or debug libMesh method.])
+        fi
+        else # SAMRAI is in release mode
+        if test "$LIBMESH_METHOD" = dbg || test "$LIBMESH_METHOD" = devel; then
+            AC_MSG_ERROR([The detected SAMRAI library was compiled without debugging support enabled but the detected libMesh library was. This incompatibility is not allowed since different debug macros can lead to linkage errors. Please reconfigure IBAMR with either an opt, pro, or oprof libMesh method.])
+        fi
+    fi
 fi
 
 AC_SUBST(MPIEXEC)
