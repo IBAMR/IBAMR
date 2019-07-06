@@ -42379,16 +42379,18 @@ CONTRIB_LIBS="$PACKAGE_CONTRIB_LIBS $CONTRIB_LIBS"
 LIBS="$LIBS $PACKAGE_CONTRIB_LIBS"
 
 # Check that SAMRAI and LIBMESH have mutually compatible debug settings:
-if test "$SAMRAI_DEBUG_CHECK_ASSERTIONS" = true; then
-  if test "$LIBMESH_METHOD" = dbg || test "$LIBMESH_METHOD" = devel; then
-    : # do nothing
-  else
-    as_fn_error $? "The detected SAMRAI library was compiled with debugging support enabled but the detected libMesh library was not. This incompatibility is not allowed since different debug macros can lead to linkage errors. Please reconfigure IBAMR with either a devel or debug libMesh method." "$LINENO" 5
-  fi
-else # SAMRAI is in release mode
-  if test "$LIBMESH_METHOD" = dbg || test "$LIBMESH_METHOD" = devel; then
-    as_fn_error $? "The detected SAMRAI library was compiled without debugging support enabled but the detected libMesh library was. This incompatibility is not allowed since different debug macros can lead to linkage errors. Please reconfigure IBAMR with either an opt, pro, or oprof libMesh method." "$LINENO" 5
-  fi
+if test "$LIBMESH_ENABLED" = yes; then
+    if test "$SAMRAI_DEBUG_CHECK_ASSERTIONS" = true; then
+        if test "$LIBMESH_METHOD" = dbg || test "$LIBMESH_METHOD" = devel; then
+        : # do nothing
+        else
+            as_fn_error $? "The detected SAMRAI library was compiled with debugging support enabled but the detected libMesh library was not. This incompatibility is not allowed since different debug macros can lead to linkage errors. Please reconfigure IBAMR with either a devel or debug libMesh method." "$LINENO" 5
+        fi
+        else # SAMRAI is in release mode
+        if test "$LIBMESH_METHOD" = dbg || test "$LIBMESH_METHOD" = devel; then
+            as_fn_error $? "The detected SAMRAI library was compiled without debugging support enabled but the detected libMesh library was. This incompatibility is not allowed since different debug macros can lead to linkage errors. Please reconfigure IBAMR with either an opt, pro, or oprof libMesh method." "$LINENO" 5
+        fi
+    fi
 fi
 
 
