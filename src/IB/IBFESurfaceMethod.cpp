@@ -193,7 +193,7 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
 {
     commonConstructor(object_name,
                       input_db,
-                      std::vector<MeshBase*>(d_num_parts, mesh),
+                      std::vector<MeshBase*>(1, mesh),
                       max_level_number,
                       register_for_restart,
                       restart_read_dirname,
