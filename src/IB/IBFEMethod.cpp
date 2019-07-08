@@ -634,6 +634,28 @@ assemble_ipdg_poisson(EquationSystems& es, const std::string& system_name)
 void
 assemble_cg_poisson(EquationSystems& es, const std::string& /*system_name*/)
 {
+    //*******************************************************************************************************
+    // In this function, the penalty method is used to weakly impose
+    // Dirichlet boundary conditions.  We want to solve: 
+    //
+    // -\nabla^2 u = 0 in the domain and
+    //  u = g on the boundary of the domain.
+    //
+    // Given a test function \phi, a variational formulation of this problem is: 
+    // 
+    // \int \nabla u * \nabla \phi - \int_{boundary} n * \nabla u * \phi = 0.
+    //
+    // Consider the Robin boundary condition:
+    //
+    // n * \nabla u + PENALTY * u = PENALTY * g
+    // 
+    // for some "large" parameter PENALTY.  For PENALTY really large, the Robin
+    // condition above "looks like" the Dirichlet condition u = g on the boundary.
+    // The penalty method relies on this fact, and is derived by plugging the
+    // Robin condition into the variational formulation:
+    //
+    // \int \nabla u * \nabla \phi + \int_{boundary} PENALTY * u * \phi = \int_{boundary} PENALTY * g * \phi.
+    //*******************************************************************************************************
     const MeshBase& mesh = es.get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
