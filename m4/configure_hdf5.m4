@@ -36,6 +36,8 @@ else
                [AC_MSG_ERROR([could not find working libhdf5])])
   AC_CHECK_LIB([hdf5_hl], H5LTfind_dataset, [],
                [AC_MSG_ERROR([could not find working libhdf5_hl])])
+  # set up rpath
+  ADD_RPATH_LDFLAG($HDF5_LDFLAGS)
 fi
 
 AC_MSG_CHECKING([for HDF5 version >= 1.8.7])

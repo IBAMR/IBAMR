@@ -49,4 +49,5 @@ LDFLAGS_PREPEND($PETSC_LDFLAGS)
 LIBS_PREPEND($PETSC_EXTERNAL_LIB_BASIC)
 AC_CHECK_LIB([petsc], VecAssemblyBegin, [],
              [AC_MSG_ERROR([could not find working libpetsc])])
+ADD_RPATH_LDFLAG($PETSC_LDFLAGS)
 ])
