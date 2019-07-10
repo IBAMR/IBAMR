@@ -1607,8 +1607,6 @@ IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     {
         d_primary_fe_data_managers[part]->setPatchHierarchy(hierarchy);
         d_primary_fe_data_managers[part]->setPatchLevels(0, finest_hier_level);
-        d_primary_fe_data_managers[part]->initializeLevelData(
-            hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     }
     return;
 } // initializeLevelData
@@ -1623,7 +1621,6 @@ IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hiera
     {
         d_primary_fe_data_managers[part]->setPatchHierarchy(hierarchy);
         d_primary_fe_data_managers[part]->setPatchLevels(0, hierarchy->getFinestLevelNumber());
-        d_primary_fe_data_managers[part]->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_hier_level);
     }
     return;
 } // resetHierarchyConfiguration

@@ -286,7 +286,7 @@ protected:
  *
  * \note Multiple FEDataManager objects may be instantiated simultaneously.
  */
-class FEDataManager : public SAMRAI::tbox::Serializable, public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+class FEDataManager : public SAMRAI::tbox::Serializable
 {
 public:
     /*!
@@ -870,59 +870,6 @@ public:
                              const int finest_ln = -1);
 
     /*!
-     * Initialize data on a new level after it is inserted into an AMR patch
-     * hierarchy by the gridding algorithm.  The level number indicates that of
-     * the new level.  The @p old_level pointer corresponds to the level that
-     * resided in the hierarchy before the level with the specified number was
-     * introduced.  If the pointer is null, there was no level in the hierarchy
-     * prior to the call and the level data is set based on the user routines
-     * and the simulation time.  Otherwise, the specified level replaces the old
-     * level and the new level receives data from the old level appropriately
-     * before it is destroyed.
-     *
-     * The boolean argument @p initial_time indicates whether the level is being
-     * introduced for the first time (i.e., at initialization time) or after
-     * some regrid process during the calculation beyond the initial hierarchy
-     * construction.  This information is provided since the initialization of
-     * the data on a patch may be different in each of those circumstances.  The
-     * @p can_be_refined boolean argument indicates whether the level is the finest
-     * level allowed in the hierarchy.  This may or may not affect the data
-     * initialization process depending on the problem.
-     *
-     * When assertion checking is active, an unrecoverable exception will result
-     * if the hierarchy pointer is null, the level number does not match any
-     * level in the hierarchy, or the old level number does not match the level
-     * number (if the old level pointer is non-null).
-     */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                             int level_number,
-                             double init_data_time,
-                             bool can_be_refined,
-                             bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
-                             bool allocate_data = true) override;
-
-    /*!
-     * Reset cached communication schedules after the hierarchy has changed (for
-     * example, due to regridding) and the data has been initialized on the new
-     * levels.  The intent is that the cost of data movement on the hierarchy
-     * will be amortized across multiple communication cycles, if possible.  The
-     * level numbers indicate the range of levels in the hierarchy that have
-     * changed.  However, this routine updates communication schedules every
-     * level finer than and including that indexed by the coarsest level number
-     * given.
-     *
-     * When assertion checking is active, an unrecoverable exception will result
-     * if the hierarchy pointer is null, any pointer to a level in the hierarchy
-     * that is coarser than the finest level is null, or the given level numbers
-     * not specified properly; e.g., coarsest_ln > finest_ln.
-     */
-    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                     int coarsest_ln,
-                                     int finest_ln) override;
-
-    /*!
      * Set integer tags to "one" in cells where refinement of the given level
      * should occur due to the presence of Lagrangian data.  The double time
      * argument is the regrid time.  The integer "tag_index" argument is the
@@ -939,13 +886,17 @@ public:
      * When assertion checking is active, an unrecoverable exception will result
      * if the hierarchy pointer is null or the level number does not match any
      * existing level in the hierarchy.
+     *
+     * @note This function is analogous to
+     * StandardTagAndInitStrategy::applyGradientDetector and is only meant to
+     * be called from IBFEMethod::applyGradientDetector.
      */
     void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,
                                bool initial_time,
-                               bool uses_richardson_extrapolation_too) override;
+                               bool uses_richardson_extrapolation_too);
 
     /*!
      * Write out object state to the given database.
