@@ -2527,51 +2527,6 @@ FEDataManager::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
 } // addWorkloadEstimate
 
 void
-FEDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                   const int level_number,
-                                   const double /*init_data_time*/,
-                                   const bool /*can_be_refined*/,
-                                   const bool /*initial_time*/,
-                                   const Pointer<BasePatchLevel<NDIM> > old_level,
-                                   const bool /*allocate_data*/)
-{
-    IBTK_TIMER_START(t_initialize_level_data);
-
-    TBOX_ASSERT(hierarchy);
-    TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
-    if (old_level)
-    {
-        TBOX_ASSERT(level_number == old_level->getLevelNumber());
-    }
-    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-
-    IBTK_TIMER_STOP(t_initialize_level_data);
-    return;
-} // initializeLevelData
-
-void
-FEDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                           const int coarsest_ln,
-                                           const int finest_ln)
-{
-    IBTK_TIMER_START(t_reset_hierarchy_configuration);
-
-    TBOX_ASSERT(hierarchy);
-    TBOX_ASSERT((coarsest_ln >= 0) && (coarsest_ln <= finest_ln) && (finest_ln <= hierarchy->getFinestLevelNumber()));
-    for (int ln = 0; ln <= finest_ln; ++ln)
-    {
-        TBOX_ASSERT(hierarchy->getPatchLevel(ln));
-    }
-
-    // Reset the patch hierarchy and levels.
-    setPatchHierarchy(hierarchy);
-    setPatchLevels(0, d_hierarchy->getFinestLevelNumber());
-
-    IBTK_TIMER_STOP(t_reset_hierarchy_configuration);
-    return;
-} // resetHierarchyConfiguration
-
-void
 FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
                                      const int level_number,
                                      const double /*error_data_time*/,
