@@ -2478,7 +2478,8 @@ struct IndexOrder
 void
 IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const double data_time, unsigned int part)
 {
-    batch_vec_ghost_update({ d_P_half_vecs[part], d_X_new_vecs[part] }, INSERT_VALUES, SCATTER_FORWARD);
+
+    //~ batch_vec_ghost_update({ d_P_half_vecs[part], d_X_new_vecs[part] }, INSERT_VALUES, SCATTER_FORWARD);
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_fe_data_managers[part]->getPatchHierarchy();
 
     NumericVector<double>* P_vec = d_P_half_vecs[part];
