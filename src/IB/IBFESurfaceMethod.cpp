@@ -1147,7 +1147,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                                                                 interpCoeff[ic[0]][ic[1]][ic[2]][2]);
                                 Ujump[ic[0]][ic[1]][ic[2]][d] = dx[0] * w[0][ic[0] - ic_lower[0]] *
                                                                 w[1][ic[1] - ic_lower[1]] * w[2][ic[2] - ic_lower[2]] *
-                                                                (norm_vec * du_jump) * norm_vec(d);
+                                                                (coeff_vec * du_jump);
 #endif
                             }
                         }
@@ -2297,7 +2297,8 @@ struct IndexOrder
 void
 IBFESurfaceMethod::interpolatePressureForTraction(const int p_data_idx, const double data_time, unsigned int part)
 {
-    batch_vec_ghost_update({ d_P_half_vecs[part], d_X_new_vecs[part] }, INSERT_VALUES, SCATTER_FORWARD);
+
+    //~ batch_vec_ghost_update({ d_P_half_vecs[part], d_X_new_vecs[part] }, INSERT_VALUES, SCATTER_FORWARD);
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_fe_data_managers[part]->getPatchHierarchy();
 
     NumericVector<double>* P_vec = d_P_half_vecs[part];
