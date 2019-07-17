@@ -11,7 +11,7 @@ elem_hmax_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 elem_hmax_01_SOURCES = elem_hmax_01.cpp
 
 elem_hmax_02_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-elem_hmax_02_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+elem_hmax_02_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 elem_hmax_02_SOURCES = elem_hmax_02.cpp
 
 mpi_type_wrappers_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
