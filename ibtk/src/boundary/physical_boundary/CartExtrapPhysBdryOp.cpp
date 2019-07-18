@@ -138,7 +138,7 @@ compute_quadratic_extrap(D& patch_data,
                 const double x = std::abs(i(d) - i_intr(d));
 
                 return (1.0 / 2.0 * f2 - f1 + 1.0 / 2.0 * f0) * x * x +
-                       (-1.0 / 2.0 * f2 + 2.0 * f1 - 3.0 / 2.0 * f0) * x + f0;
+                       (1.0 / 2.0 * f2 - 2.0 * f1 + 3.0 / 2.0 * f0) * x + f0;
             }
         }
     }
