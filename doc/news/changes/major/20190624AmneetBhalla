@@ -1,4 +1,0 @@
-New: Two new classes for using Brinkman penalization
-(BrinkmanPenalizationStrategy and BrinkmanPenalizationRigidBodyDynamics) have
-been added.
-(Amneet Bhalla, 2019/06/24)

@@ -1,5 +1,0 @@
-Changed: IBHydrodynamicSurfaceForceEvaluator::fillPatchData no longer assumes
-that we are at the current time: it can now use either the current or new
-contexts.
-<br>
-(Amneet Bhalla and Nishant Nangia, 2019/06/05)
