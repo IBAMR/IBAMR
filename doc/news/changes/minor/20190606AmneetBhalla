@@ -1,4 +1,0 @@
-Fixed: IBHydrodynamicSurfaceForceEvaluator::fillPatchData will now fill ghost
-cells for pressure when the density is constant.
-<br>
-(Amneet Bhalla and Nishant Nangia, 2019/06/06)

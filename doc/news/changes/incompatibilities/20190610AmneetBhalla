@@ -1,5 +1,0 @@
-Changed: IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForce has been
-replaced by IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque,
-which computes both torques and forces.
-<br>
-(Amneet Bhalla and Nishant Nangia, 2019/09/10)

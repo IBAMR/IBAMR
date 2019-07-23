@@ -1,0 +1,165 @@
+<h2>Incompatibilities</h2>
+<ol>
+  <li>
+    Changed: FEDataManager and IBFEMethod no longer log the PID of the current
+    process.
+    <br>
+    (David Wells, 2019/04/12)
+  </li>
+  <li>
+    Changed: FEDataManger no longer unconditionally logs some statements: all
+    logging is controlled by the same boolean toggled by
+    FEDataManager::setLoggingEnabled.
+    <br>
+    (David Wells, 2019/03/27)
+  </li>
+  <li>
+    Fixed: The four Navier-Stokes integrators (INSCollocatedHierarchyIntegrator,
+    INSStaggeredHierarchyIntegrator, INSVCStaggeredConservativeHierarchyIntegrator,
+    and INSVCStaggeredNonConservativeHierarchyIntegrator) no longer reimplement the
+    regridHierarchy function: instead, they use the new
+    regridHierarchyBeginSpecialized and regridHierarchyEndSpecialized functions to
+    do the same work. This fixes a bug where regridProjection would not necessarily
+    be called when an NSE integrator was a child integrator.
+    <br>
+    (David Wells, 2019/04/16)
+  </li>
+  <li>
+    Renamed class CartSideDoubleSpecializedConstantRefine as
+    CartSideDoubleRT0Refine.
+
+    Changed corresponding refine operator name from "SPECIALIZED_CONSTANT_REFINE" to
+    "RT0_REFINE".
+    <br>
+    (Boyce Griffith, 2019/05/17)
+  </li>
+  <li>
+    Changed: IBHydrodynamicSurfaceForceEvaluator::fillPatchData no longer assumes
+    that we are at the current time: it can now use either the current or new
+    contexts.
+    <br>
+    (Amneet Bhalla and Nishant Nangia, 2019/06/05)
+  </li>
+  <li>
+    Changed: IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForce has been
+    replaced by IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque,
+    which computes both torques and forces.
+    <br>
+    (Amneet Bhalla and Nishant Nangia, 2018/09/10)
+  </li>
+</ol>
+
+<h2>Major Changes</h2>
+<ol>
+  <li>
+    New: IBAMR now includes attest, a parallel test runner, as well as a small test
+    suite. See doc/testrunner.html and the GitHub wiki page for more information.
+    <br>
+    (David Wells, 2019/04/11)
+  </li>
+  <li>
+    New: Added a static MPI utility class to make certain frequent MPI calls
+    simpler. The default MPI communicator is MPI_COMM_WORLD but can be changed by a
+    function call.
+    <br>
+    (Aaron Barrett, 2019/04/15)
+  </li>
+  <li>
+    New: Three new multiphase flows examples (7, 8, and 9) have been added. The demonstrate:
+    <ol>
+      <li>A cylinder splashing into two fluids with constant viscosity,</li>
+      <li>a buoyant cylinder heaving on an air-water interface, and</li>
+      <li>the differences (in static equilibrium) between full and flow gravitational forces.</li>
+    </ol>
+    <br>
+    (Nishant Nangia, 2019/01/31)
+  </li>
+  <li>
+    Fixed: IBFEMethod::spreadTransmissionForceDensity() previously computed length
+    scales (for determining side quadrature rules) incorrectly. The length scale for
+    the element side is now determined by the length scale of the element itself
+    instead of a calculation that did not make sense.
+    <br>
+    (David Wells, 2019/04/30)
+  </li>
+  <li>
+    New: Four new multiphase flows examples (10, 11, 12, and 13) have been
+    added. They demonstrate:
+    <ol>
+      <li>the importance of consistent mass and momentum transport,</li>
+      <li>fluid-structure interaction of a rectangular body at an air-water interface,</li>
+      <li>fluid-structure interaction of a half-buoyant wedge at an air-water interface, and</li>
+      <li>a gravity-driven 3D water column impacting an obstacle.</li>
+    </ol>
+    <br>
+    (Nishant Nangia, 2019/01/31)
+  </li>
+  <li>
+    New: Added routines for tracking mean flow quantities and computing turbulent
+    kinetic energy and Reynolds stresses for "steady" fluctuating flows.
+    <br>
+    (Boyce Griffith, 2019/05/07)
+  </li>
+  <li>
+    New: Two new classes for using Brinkman penalization
+    (BrinkmanPenalizationStrategy and BrinkmanPenalizationRigidBodyDynamics) have
+    been added.
+    (Amneet Bhalla, 2019/06/24)
+  </li>
+</ol>
+
+<h2>Minor Changes</h2>
+<ol>
+  <li>
+    New: IBTK::HierarchyIntegrator gained two new functions:
+    regridHierarchyBeginSpecialized and regridHierarchyEndSpecialized. These two
+    functions perform class-specific tasks (such as communicating non-SAMRAI data or
+    projecting a velocity onto a divergence-free solution space).
+    <br>
+    (David Wells, Nishant Nangia, Boyce Griffith, Amneet Bhalla, 2019/04/15)
+  </li>
+  <li>
+    New: IBTK::HierarchyIntegrator can now log everything except the number of
+    linear solver iterations by passing <code>enable_logging = TRUE</code> and
+    <code>enable_logging_solver_iterations = FALSE</code> in the input
+    database. Since the number of solver iterations may change by a small amount
+    (usually plus or minus one) when the same code is run multiple times, disabling
+    this allows log files to be identical (up to roundoff) across runs.
+    <br>
+    (David Wells, 2019/04/13)
+  </li>
+  <li>
+    Improved: Structures managed by ConstraintIBKinematics can now rotate even when
+    translation is locked.
+    <br>
+    (Nishant Nangia, 2018/10/22)
+  </li>
+  <li>
+    Improved: Allow for more flexible specification on interlevel data transfer
+    operators in the incompressible Navier-Stokes (INS) solver hierarchy.  It is now
+    possible to set default values and to override those defaults in one version of
+    the protected INSHierarchyIntegrator base class constructor.
+    <br>
+    (Boyce Griffith, 2019/05/19)
+  </li>
+  <li>
+    New: IBTK now includes two new macros,
+    <code>IBTK_DISABLE_EXTRA_WARNINGS</code> and
+    <code>IBTK_ENABLE_EXTRA_WARNINGS</code>, which allow for disabling warnings
+    in third-party libraries.
+    <br>
+    (David Wells, 2019/06/13)
+  </li>
+  <li>
+    Fixed: IBHydrodynamicSurfaceForceEvaluator::fillPatchData will now fill ghost
+    cells for pressure when the density is constant.
+    <br>
+    (Amneet Bhalla and Nishant Nangia, 2019/06/06)
+  </li>
+  <li>
+    Fixed: IBAMR now correctly normalizes quaternions in CIBFEMethod, CIBMethod, and
+    IBFEDirectForcingKinematics.
+    <br>
+    (Amneet Bhalla, 2018/12/10)
+  </li>
+</ol>

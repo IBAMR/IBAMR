@@ -1,4 +1,0 @@
-Improved: Structures managed by ConstraintIBKinematics can now rotate even when
-translation is locked.
-<br>
-(Nishant Nangia, 2018/10/22)

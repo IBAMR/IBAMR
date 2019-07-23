@@ -1,6 +1,0 @@
-New: IBTK now includes two new macros,
-<code>IBTK_DISABLE_EXTRA_WARNINGS</code> and
-<code>IBTK_ENABLE_EXTRA_WARNINGS</code>, which allow for disabling warnings
-in third-party libraries.
-<br>
-(David Wells, 2019/06/13)
