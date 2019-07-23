@@ -53,6 +53,7 @@ _Pragma("GCC diagnostic ignored \"-Wmisleading-indentation\"")  \
 _Pragma("GCC diagnostic ignored \"-Wint-in-bool-context\"")     \
 _Pragma("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")     \
 _Pragma("GCC diagnostic ignored \"-Wunused-local-typedefs\"")   \
+_Pragma("GCC diagnostic ignored \"-Wdeprecated-copy\"")         \
 _Pragma("GCC diagnostic ignored \"-Wunneeded-internal-declaration\"")
 
 #define IBTK_ENABLE_EXTRA_WARNINGS _Pragma("GCC diagnostic pop")
