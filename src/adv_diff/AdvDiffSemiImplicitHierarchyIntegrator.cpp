@@ -819,20 +819,29 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_
             d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, 1.0, F_scratch_idx, Q_rhs_scratch_idx);
         }
 
-        // Solve for Q(n+1).
-        Pointer<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];
-        helmholtz_solver->solveSystem(*d_sol_vecs[l], *d_rhs_vecs[l]);
-        d_hier_cc_data_ops->copyData(Q_new_idx, Q_scratch_idx);
-        if (d_enable_logging && d_enable_logging_solver_iterations)
-            plog << d_object_name << "::integrateHierarchy(): diffusion solve number of iterations = "
-                 << helmholtz_solver->getNumIterations() << "\n";
-        if (d_enable_logging)
-            plog << d_object_name << "::integrateHierarchy(): diffusion solve residual norm        = "
-                 << helmholtz_solver->getResidualNorm() << "\n";
-        if (helmholtz_solver->getNumIterations() == helmholtz_solver->getMaxIterations())
+        if (isDiffusionCoefficientVariable(Q_var) || (d_Q_diffusion_coef[Q_var] != 0.0))
         {
-            pout << d_object_name << "::integrateHierarchy():"
-                 << "  WARNING: linear solver iterations == max iterations\n";
+            // Solve for Q(n+1).
+            Pointer<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];
+            helmholtz_solver->solveSystem(*d_sol_vecs[l], *d_rhs_vecs[l]);
+            d_hier_cc_data_ops->copyData(Q_new_idx, Q_scratch_idx);
+            if (d_enable_logging && d_enable_logging_solver_iterations)
+                plog << d_object_name << "::integrateHierarchy(): diffusion solve number of iterations = "
+                     << helmholtz_solver->getNumIterations() << "\n";
+            if (d_enable_logging)
+                plog << d_object_name << "::integrateHierarchy(): diffusion solve residual norm        = "
+                     << helmholtz_solver->getResidualNorm() << "\n";
+            if (helmholtz_solver->getNumIterations() == helmholtz_solver->getMaxIterations())
+            {
+                pout << d_object_name << "::integrateHierarchy():"
+                     << "  WARNING: linear solver iterations == max iterations\n";
+            }
+        }
+        else
+        {
+            // No solve needed for Q(n+1)
+            d_hier_cc_data_ops->scale(Q_new_idx, dt, Q_rhs_scratch_idx);
+            if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): completed solution update.\n";
         }
 
         // Reset the right-hand side vector.
