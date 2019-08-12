@@ -146,7 +146,7 @@ int ParserInt::IsVal(const char_type *a_szExpr, int *a_iPos, value_type *a_fVal)
 /** \brief Check a given position in the expression for the presence of 
            a hex value. 
     \param a_szExpr Pointer to the expression string
-    \param [in/out] a_iPos Pointer to an interger value holding the current parsing 
+    \param [in/out] a_iPos Pointer to an integer value holding the current parsing 
            position in the expression.
     \param [out] a_fVal Pointer to the position where the detected value shall be stored.
 
@@ -244,11 +244,11 @@ void ParserInt::InitFun()
 /** \brief Initialize operators. */
 void ParserInt::InitOprt()
 {
-  // disable all built in operators, not all of them usefull for integer numbers
+  // disable all built in operators, not all of them useful for integer numbers
   // (they don't do rounding of values)
   EnableBuiltInOprt(false);
 
-  // Disable all built in operators, they wont work with integer numbers
+  // Disable all built in operators, they won't work with integer numbers
   // since they are designed for floating point numbers
   DefineInfixOprt( _T("-"), UnaryMinus);
   DefineInfixOprt( _T("!"), Not);

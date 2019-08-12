@@ -55,9 +55,9 @@ namespace mu
   }
     
   //---------------------------------------------------------------------------
-  /** \brief Assignement operator.
+  /** \brief Assignment operator.
 
-      Self assignement will be suppressed otherwise #Assign is called.
+      Self assignment will be suppressed otherwise #Assign is called.
 
       \param a_Reader Object to copy to this token reader.
       \throw nothrow
@@ -97,6 +97,8 @@ namespace mu
     m_pFactoryData    = a_Reader.m_pFactoryData;
     m_iBrackets       = a_Reader.m_iBrackets;
     m_cArgSep         = a_Reader.m_cArgSep;
+	m_fZero           = a_Reader.m_fZero;
+	m_lastTok         = a_Reader.m_lastTok;
   }
 
   //---------------------------------------------------------------------------
@@ -145,7 +147,7 @@ namespace mu
   */
   ParserTokenReader* ParserTokenReader::Clone(ParserBase *a_pParent) const
   {
-    std::auto_ptr<ParserTokenReader> ptr(new ParserTokenReader(*this));
+    std::unique_ptr<ParserTokenReader> ptr(new ParserTokenReader(*this));
     ptr->SetParent(a_pParent);
     return ptr.release();
   }
@@ -218,11 +220,11 @@ namespace mu
   }
 
   //---------------------------------------------------------------------------
-  /** \brief Set Flag that contronls behaviour in case of undefined variables beeing found. 
+  /** \brief Set Flag that controls behaviour in case of undefined variables being found. 
   
     If true, the parser does not throw an exception if an undefined variable is found. 
     otherwise it does. This variable is used internally only!
-    It supresses a "undefined variable" exception in GetUsedVar().  
+    It suppresses a "undefined variable" exception in GetUsedVar().  
     Those function should return a complete list of variables including 
     those the are not defined by the time of it's call.
   */
@@ -255,7 +257,6 @@ namespace mu
   {
     assert(m_pParser);
 
-    std::stack<int> FunArgs;
     const char_type *szFormula = m_strFormula.c_str();
     token_type tok;
 
@@ -347,7 +348,8 @@ namespace mu
   int ParserTokenReader::ExtractOperatorToken(string_type &a_sTok, 
                                               int a_iPos) const
   {
-    int iEnd = (int)m_strFormula.find_first_not_of(m_pParser->ValidInfixOprtChars(), a_iPos);
+    // Changed as per Issue 6: https://code.google.com/p/muparser/issues/detail?id=6
+    int iEnd = (int)m_strFormula.find_first_not_of(m_pParser->ValidOprtChars(), a_iPos);
     if (iEnd==(int)string_type::npos)
       iEnd = (int)m_strFormula.length();
 
@@ -404,7 +406,7 @@ namespace mu
               //if (len!=sTok.length())
               //  continue;
 
-              // The assignement operator need special treatment
+              // The assignment operator need special treatment
               if (i==cmASSIGN && m_iSynFlags & noASSIGN)
                 Error(ecUNEXPECTED_OPERATOR, m_iPos, pOprtDef[i]);
 
@@ -420,8 +422,7 @@ namespace mu
                 Error(ecUNEXPECTED_OPERATOR, m_iPos, pOprtDef[i]);
               }
 
-              m_iSynFlags  = noBC | noOPT | noARG_SEP | noPOSTOP | noASSIGN | noIF | noELSE;
-              m_iSynFlags |= ( (i != cmEND) && ( i != cmBC) ) ? noEND : 0;
+              m_iSynFlags  = noBC | noOPT | noARG_SEP | noPOSTOP | noASSIGN | noIF | noELSE | noEND;
               break;
 
 		    case cmBO:
@@ -537,7 +538,7 @@ namespace mu
     if (iEnd==m_iPos)
       return false;
 
-    // iteraterate over all postfix operator strings
+    // iterate over all postfix operator strings
     funmap_type::const_reverse_iterator it = m_pInfixOprtDef->rbegin();
     for ( ; it!=m_pInfixOprtDef->rend(); ++it)
     {
@@ -656,7 +657,7 @@ namespace mu
         }
 
         m_iPos += (int)sID.length();
-        m_iSynFlags  = noBC | noOPT | noARG_SEP | noPOSTOP | noEND | noBC | noASSIGN;
+        m_iSynFlags  = noBC | noOPT | noARG_SEP | noPOSTOP | noEND | noASSIGN;
         return true;
       }
     }
@@ -693,7 +694,7 @@ namespace mu
     if (iEnd==m_iPos)
       return false;
 
-    // iteraterate over all postfix operator strings
+    // iterate over all postfix operator strings
     funmap_type::const_reverse_iterator it = m_pPostOprtDef->rbegin();
     for ( ; it!=m_pPostOprtDef->rend(); ++it)
     {
@@ -754,7 +755,9 @@ namespace mu
       int iStart = m_iPos;
       if ( (*item)(m_strFormula.c_str() + m_iPos, &m_iPos, &fVal)==1 )
       {
-        strTok.assign(m_strFormula.c_str(), iStart, m_iPos);
+        // 2013-11-27 Issue 2:  https://code.google.com/p/muparser/issues/detail?id=2
+        strTok.assign(m_strFormula.c_str(), iStart, m_iPos-iStart);
+
         if (m_iSynFlags & noVAL)
           Error(ecUNEXPECTED_VAL, m_iPos - (int)strTok.length(), strTok);
 
@@ -774,7 +777,7 @@ namespace mu
   */
   bool ParserTokenReader::IsVarTok(token_type &a_Tok)
   {
-    if (!m_pVarDef->size())
+    if (m_pVarDef->empty())
       return false;
 
     string_type strTok;
@@ -805,7 +808,7 @@ namespace mu
   //---------------------------------------------------------------------------
   bool ParserTokenReader::IsStrVarTok(token_type &a_Tok)
   {
-    if (!m_pStrVarDef || !m_pStrVarDef->size())
+    if (!m_pStrVarDef || m_pStrVarDef->empty())
       return false;
 
     string_type strTok;
@@ -862,7 +865,7 @@ namespace mu
 
       // Do not use m_pParser->DefineVar( strTok, fVar );
       // in order to define the new variable, it will clear the
-      // m_UsedVar array which will kill previousely defined variables
+      // m_UsedVar array which will kill previously defined variables
       // from the list
       // This is safe because the new variable can never override an existing one
       // because they are checked first!
@@ -899,7 +902,7 @@ namespace mu
     std::size_t iEnd(0), iSkip(0);
 
     // parser over escaped '\"' end replace them with '"'
-    for(iEnd=(int)strBuf.find( _T("\"") ); iEnd!=0 && iEnd!=string_type::npos; iEnd=(int)strBuf.find( _T("\""), iEnd))
+    for(iEnd=(int)strBuf.find( _T('\"') ); iEnd!=0 && iEnd!=string_type::npos; iEnd=(int)strBuf.find( _T('\"'), iEnd))
     {
       if (strBuf[iEnd-1]!='\\') break;
       strBuf.replace(iEnd-1, 2, _T("\"") );
@@ -917,7 +920,7 @@ namespace mu
 		m_pParser->m_vStringBuf.push_back(strTok); // Store string in internal buffer
     a_Tok.SetString(strTok, m_pParser->m_vStringBuf.size());
 
-    m_iPos += (int)strTok.length() + 2 + (int)iSkip;  // +2 wg Anführungszeichen; +iSkip für entfernte escape zeichen
+    m_iPos += (int)strTok.length() + 2 + (int)iSkip;  // +2 for quotes; +iSkip for escape characters 
     m_iSynFlags = noANY ^ ( noARG_SEP | noBC | noOPT | noEND );
 
     return true;

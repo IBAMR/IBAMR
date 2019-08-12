@@ -163,6 +163,19 @@ DIM_INDEPENDENT_SOURCES += \
 ../src/utilities/libmesh_utilities.cpp
 endif
 
+if USING_BUNDLED_MUPARSER
+DIM_INDEPENDENT_SOURCES += \
+../contrib/muparser/src/muParserDLL.cpp \
+../contrib/muparser/src/muParserTokenReader.cpp \
+../contrib/muparser/src/muParserError.cpp \
+../contrib/muparser/src/muParserCallback.cpp \
+../contrib/muparser/src/muParserBytecode.cpp \
+../contrib/muparser/src/muParserBase.cpp \
+../contrib/muparser/src/muParserInt.cpp \
+../contrib/muparser/src/muParserTest.cpp \
+../contrib/muparser/src/muParser.cpp
+endif
+
 pkg_include_HEADERS += \
 ../include/ibtk/AppInitializer.h \
 ../include/ibtk/BGaussSeidelPreconditioner.h \

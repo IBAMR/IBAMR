@@ -45,10 +45,10 @@ namespace mu
 
     <small>
     (C) 2011 Ingo Berg<br>
-    muparser(at)gmx.de
+    muparser(at)beltoforion.de
     </small>
   */
-  /* final */ class Parser : public ParserBase
+  /* final */ class API_EXPORT_CXX Parser : public ParserBase
   {
   public:
 
@@ -99,9 +99,9 @@ namespace mu
     // Prefix operators
     // !!! Unary Minus is a MUST if you want to use negative signs !!!
     static value_type  UnaryMinus(value_type);
+    static value_type  UnaryPlus(value_type);
 
     // Functions with variable number of arguments
-    static value_type IfThenElse(const value_type*, int);  // if-then-else
     static value_type Sum(const value_type*, int);  // sum
     static value_type Avg(const value_type*, int);  // mean value
     static value_type Min(const value_type*, int);  // minimum

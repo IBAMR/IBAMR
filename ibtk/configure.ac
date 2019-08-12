@@ -123,44 +123,45 @@ echo
 echo "================"
 echo "Outputting files"
 echo "================"
+
 AC_CONFIG_FILES([
-  Makefile
-  examples/Makefile
-  examples/CCLaplace/Makefile
-  examples/CCPoisson/Makefile
-  examples/PETScOps/Makefile
-  examples/PETScOps/ProlongationMat/Makefile
-  examples/PhysBdryOps/Makefile
-  examples/SCLaplace/Makefile
-  examples/SCPoisson/Makefile
-  examples/VCLaplace/Makefile
-  examples/VCViscousSolver/Makefile
-  lib/Makefile
-  scripts/Makefile
-  src/Makefile
-  src/boundary/Makefile
-  src/boundary/cf_interface/Makefile
-  src/boundary/cf_interface/fortran/Makefile
-  src/boundary/physical_boundary/Makefile
-  src/boundary/physical_boundary/fortran/Makefile
-  src/coarsen_ops/Makefile
-  src/coarsen_ops/fortran/Makefile
-  src/fortran/Makefile
-  src/lagrangian/Makefile
-  src/lagrangian/fortran/Makefile
-  src/math/Makefile
-  src/math/fortran/Makefile
-  src/refine_ops/Makefile
-  src/refine_ops/fortran/Makefile
-  src/solvers/Makefile
-  src/solvers/impls/Makefile
-  src/solvers/impls/fortran/Makefile
-  src/solvers/interfaces/Makefile
-  src/solvers/wrappers/Makefile
-  src/utilities/Makefile
-  contrib/Makefile
+Makefile
+examples/Makefile
+examples/CCLaplace/Makefile
+examples/CCPoisson/Makefile
+examples/PETScOps/Makefile
+examples/PETScOps/ProlongationMat/Makefile
+examples/PhysBdryOps/Makefile
+examples/SCLaplace/Makefile
+examples/SCPoisson/Makefile
+examples/VCLaplace/Makefile
+examples/VCViscousSolver/Makefile
+lib/Makefile
+scripts/Makefile
+src/Makefile
+src/boundary/Makefile
+src/boundary/cf_interface/Makefile
+src/boundary/cf_interface/fortran/Makefile
+src/boundary/physical_boundary/Makefile
+src/boundary/physical_boundary/fortran/Makefile
+src/coarsen_ops/Makefile
+src/coarsen_ops/fortran/Makefile
+src/fortran/Makefile
+src/lagrangian/Makefile
+src/lagrangian/fortran/Makefile
+src/math/Makefile
+src/math/fortran/Makefile
+src/refine_ops/Makefile
+src/refine_ops/fortran/Makefile
+src/solvers/Makefile
+src/solvers/impls/Makefile
+src/solvers/impls/fortran/Makefile
+src/solvers/interfaces/Makefile
+src/solvers/wrappers/Makefile
+src/utilities/Makefile
+contrib/Makefile
+contrib/muparser/Makefile
+contrib/muparser/src/Makefile
 ])
-if test "$USING_BUNDLED_MUPARSER" = yes ; then
-  AC_CONFIG_SUBDIRS([contrib/muparser])
-fi
+
 AC_OUTPUT
