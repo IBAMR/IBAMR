@@ -1032,7 +1032,7 @@ get_max_edge_length(const libMesh::Elem* const elem, const MultiArray& X_node)
 {
 #ifndef NDEBUG
     TBOX_ASSERT(elem->n_nodes() == X_node.shape()[0]);
-    TBOX_ASSERT(elem->dim() == X_node.shape()[1]);
+    TBOX_ASSERT(NDIM <= X_node.shape()[1]);
 #endif
     const libMesh::ElemType elem_type = elem->type();
 
