@@ -313,8 +313,12 @@ batch_vec_ghost_update(const std::vector<std::vector<libMesh::PetscVector<double
  * function will always have enough points to integrate the basis functions
  * defined on the element exactly.
  *
- * @param[in] X_node the actual nodal coordinates of the element in the
- * current configuration.
+ * @param[in] X_node Values of @p elem's shape functions of the structure
+ * location field (i.e., X): for interpolatory finite elements (e.g.,
+ * libMesh::LAGRANGE) these the actual coordinates of the node (since shape
+ * functions will either be one or zero at nodes). @p X_node is assumed to be
+ * a two-dimensional array whose rows correspond to node number and whose
+ * columns correspond to x, y, and (in 3D) z coordinates.
  *
  * @param[in] dx_min See @p point_density.
  *
@@ -1138,8 +1142,14 @@ get_nodal_dof_indices(const libMesh::DofMap& dof_map,
 /**
  * Return the maximum edge length of a given element with mapped nodes.
  *
- * @p elem The given libMesh element.
- * @p X_node Mapped coordinates of the nodes.
+ * @param[in] elem The given libMesh element.
+ *
+ * @param[in] X_node Values of @p elem's shape functions of the structure
+ * location field (i.e., X): for interpolatory finite elements (e.g.,
+ * libMesh::LAGRANGE) these the actual coordinates of the node (since shape
+ * functions will either be one or zero at nodes). @p X_node is assumed to be
+ * a two-dimensional array whose rows correspond to node number and whose
+ * columns correspond to x, y, and (in 3D) z coordinates.
  */
 template <class MultiArray>
 inline double
