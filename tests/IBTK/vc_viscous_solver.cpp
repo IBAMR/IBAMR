@@ -431,12 +431,6 @@ main(int argc, char* argv[])
         viscous_op.apply(u_vec, r_vec);
         r_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false),
                        Pointer<SAMRAIVectorReal<NDIM, double> >(&r_vec, false));
-        const double r_max_norm = r_vec.maxNorm();
-        const double r_l2_norm = r_vec.L2Norm();
-        const double r_l1_norm = r_vec.L1Norm();
-        pout << "|r|_oo = " << r_max_norm << "\n";
-        pout << "|r|_2  = " << r_l2_norm << "\n";
-        pout << "|r|_1  = " << r_l1_norm << "\n";
 
         if (SAMRAI_MPI::getRank() == 0)
         {
@@ -444,9 +438,6 @@ main(int argc, char* argv[])
             out << "|e|_oo = " << e_max_norm << "\n";
             out << "|e|_2  = " << e_l2_norm << "\n";
             out << "|e|_1  = " << e_l1_norm << "\n";
-            out << "|r|_oo = " << r_max_norm << "\n";
-            out << "|r|_2  = " << r_l2_norm << "\n";
-            out << "|r|_1  = " << r_l1_norm << "\n";
         }
 
         // Interpolate the side-centered data to cell centers for output.
