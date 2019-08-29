@@ -25,6 +25,7 @@
 
 #include "muParserBytecode.h"
 
+#include <algorithm>
 #include <cassert>
 #include <string>
 #include <stack>
@@ -91,6 +92,7 @@ namespace mu
     m_iStackPos = a_ByteCode.m_iStackPos;
     m_vRPN = a_ByteCode.m_vRPN;
     m_iMaxStackSize = a_ByteCode.m_iMaxStackSize;
+	m_bEnableOptimizer = a_ByteCode.m_bEnableOptimizer;
   }
 
   //---------------------------------------------------------------------------
@@ -211,7 +213,7 @@ namespace mu
         switch(a_Oprt)
         {
         case  cmPOW:
-              // Optimization for ploynomials of low order
+              // Optimization for polynomials of low order
               if (m_vRPN[sz-2].Cmd == cmVAR && m_vRPN[sz-1].Cmd == cmVAL)
               {
                 if (m_vRPN[sz-1].Val.data2==2)
@@ -248,7 +250,7 @@ namespace mu
                 m_vRPN[sz-2].Cmd = cmVARMUL;
                 m_vRPN[sz-2].Val.ptr    = (value_type*)((long long)(m_vRPN[sz-2].Val.ptr) | (long long)(m_vRPN[sz-1].Val.ptr));    // variable
                 m_vRPN[sz-2].Val.data2 += ((a_Oprt==cmSUB) ? -1 : 1) * m_vRPN[sz-1].Val.data2;  // offset
-                m_vRPN[sz-2].Val.data  += ((a_Oprt==cmSUB) ? -1 : 1) * m_vRPN[sz-1].Val.data;   // multiplikatior
+                m_vRPN[sz-2].Val.data  += ((a_Oprt==cmSUB) ? -1 : 1) * m_vRPN[sz-1].Val.data;   // multiplicand
                 m_vRPN.pop_back();
                 bOptimized = true;
               } 
@@ -304,10 +306,9 @@ namespace mu
                 bOptimized = true;
               }
               break;
-
         default:
-              break;
-              
+            // no optimization for other opcodes
+            break;
         } // switch a_Oprt
       }
     }
@@ -331,7 +332,7 @@ namespace mu
   }
 
   //---------------------------------------------------------------------------
-  /** \brief Add an assignement operator
+  /** \brief Add an assignment operator
     
       Operator entries in byte code consist of:
       <ul>
@@ -347,7 +348,7 @@ namespace mu
 
     SToken tok;
     tok.Cmd = cmASSIGN;
-    tok.Val.ptr = a_pVar;
+    tok.Oprt.ptr = a_pVar;
     m_vRPN.push_back(tok);
   }
 

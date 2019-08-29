@@ -46,35 +46,31 @@ namespace mu
     ECmdCode Cmd;
     int StackPos;
 
-    struct SValData
-    {
-      value_type *ptr;
-      value_type  data;
-      value_type  data2;
-    };
-
-    struct SFunData
-    {
-      // Note: generic_fun_type is merely a placeholder. The real type could be
-      //       anything between gun_type1 and fun_type9. I can't use a void
-      //       pointer due to constraints in the ANSI standard which allows
-      //       data pointers and function pointers to differ in size.
-      generic_fun_type ptr;
-      int   argc;
-      int   idx;
-    };
-
-    struct SOprtData
-    {
-      value_type *ptr;
-      int offset;
-    };
-
     union
     {
-      SValData Val;
-      SFunData Fun;
-      SOprtData Oprt;
+      struct //SValData
+      {
+        value_type *ptr;
+        value_type  data;
+        value_type  data2;
+      } Val;
+
+      struct //SFunData
+      {
+        // Note: generic_fun_type is merely a placeholder. The real type could be 
+        //       anything between gun_type1 and fun_type9. I can't use a void
+        //       pointer due to constraints in the ANSI standard which allows
+        //       data pointers and function pointers to differ in size.
+        generic_fun_type ptr;
+        int   argc;
+        int   idx;
+      } Fun;
+
+      struct //SOprtData
+      {
+        value_type *ptr;
+        int offset;
+      } Oprt;
     };
   };
   

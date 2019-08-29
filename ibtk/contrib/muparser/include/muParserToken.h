@@ -69,7 +69,7 @@ namespace mu
       TString m_strTok;   ///< Token string
       TString m_strVal;   ///< Value for string variables
       value_type m_fVal;  ///< the value 
-      std::auto_ptr<ParserCallback> m_pCallback;
+      std::unique_ptr<ParserCallback> m_pCallback;
 
   public:
 
@@ -86,6 +86,8 @@ namespace mu
         ,m_pTok(0)
         ,m_iIdx(-1)
         ,m_strTok()
+		,m_strVal()
+		,m_fVal(0)
         ,m_pCallback()
       {}
 
@@ -103,7 +105,7 @@ namespace mu
       }
       
       //------------------------------------------------------------------------------
-      /** \brief Assignement operator. 
+      /** \brief Assignment operator. 
       
           Copy token state from another token and return this.
           Implemented by calling Assign(...).
@@ -136,7 +138,7 @@ namespace mu
       //------------------------------------------------------------------------------
       /** \brief Assign a token type. 
 
-        Token may not be of type value, variable or function. Those have seperate set functions. 
+        Token may not be of type value, variable or function. Those have separate set functions. 
 
         \pre [assert] a_iType!=cmVAR
         \pre [assert] a_iType!=cmVAL
@@ -146,7 +148,7 @@ namespace mu
       */
       ParserToken& Set(ECmdCode a_iType, const TString &a_strTok=TString())
       {
-        // The following types cant be set this way, they have special Set functions
+        // The following types can't be set this way, they have special Set functions
         assert(a_iType!=cmVAR);
         assert(a_iType!=cmVAL);
         assert(a_iType!=cmFUNC);

@@ -723,9 +723,9 @@ SAMRAI_FORTDIR
 SAMRAI_DIR
 SILO_ENABLED_FALSE
 SILO_ENABLED_TRUE
-PACKAGE_CONTRIB_LIBS
 USING_BUNDLED_MUPARSER_FALSE
 USING_BUNDLED_MUPARSER_TRUE
+PACKAGE_CONTRIB_LIBS
 LIBMUPARSER_PREFIX
 LTLIBMUPARSER
 LIBMUPARSER
@@ -31320,6 +31320,12 @@ $as_echo "$LIBMUPARSER" >&6; }
       as_fn_error $? "could not find working libmuParser" "$LINENO" 5
     fi
   fi
+  # we only need to do this for the system case, otherwise the muParser object files
+  # are compiled inside libIBTK.a
+  PACKAGE_LDFLAGS="$MUPARSER_LDFLAGS $PACKAGE_LDFLAGS"
+
+  PACKAGE_CONTRIB_LIBS="$LIBMUPARSER $PACKAGE_CONTRIB_LIBS"
+
 
 else
 
@@ -31365,7 +31371,6 @@ $as_echo "$as_me: could not find system muParser library, using bundled muParser
 if test "x$ac_cv_header_muParser_h" = xyes; then :
 
     HAVE_MUPARSER=yes
-    LIBMUPARSER="$MUPARSER_BUILDDIR/lib/libmuparser.a"
 
 $as_echo "#define HAVE_LIBMUPARSER 1" >>confdefs.h
 
@@ -31390,10 +31395,6 @@ else
 fi
 
 PACKAGE_CPPFLAGS="$MUPARSER_CPPFLAGS $PACKAGE_CPPFLAGS"
-
-PACKAGE_LDFLAGS="$MUPARSER_LDFLAGS $PACKAGE_LDFLAGS"
-
-PACKAGE_CONTRIB_LIBS="$LIBMUPARSER $PACKAGE_CONTRIB_LIBS"
 
 
 CFLAGS=$PACKAGE_save_CFLAGS
