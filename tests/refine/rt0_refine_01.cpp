@@ -140,7 +140,7 @@ main(int argc, char* argv[])
         Pointer<VisItDataWriter<NDIM> > visit_writer = app_initializer->getVisItDataWriter();
 
         // The rest is just book-keeping, this is the actual test:
-        auto do_test = [&](const std::string& db_u_fcn_name, const int coarse_level_n = 0) {
+        auto do_test = [&](const std::string& db_u_fcn_name, const int coarse_level_n) {
             muParserCartGridFunction u_fcn(
                 db_u_fcn_name, app_initializer->getComponentDatabase(db_u_fcn_name), grid_geometry);
             u_fcn.setDataOnPatchHierarchy(u_sc_idx, u_sc_var, patch_hierarchy, 0.0);
@@ -176,14 +176,14 @@ main(int argc, char* argv[])
             pout << "max norm of exact - refined: " << std::abs(exact_vec.maxNorm()) << '\n';
         };
 
-        do_test("constant_function");
-        do_test("linear_x");
-        do_test("linear_y");
+        do_test("constant_function", 0);
+        do_test("linear_x", 0);
+        do_test("linear_y", 0);
         if (NDIM == 3)
         {
-            do_test("linear_z");
+            do_test("linear_z", 0);
         }
-        do_test("both_linear");
+        do_test("both_linear", 0);
 
         for (int coarse_level_n = 0; coarse_level_n < gridding_algorithm->getMaxLevels() - 1; ++coarse_level_n)
         {
