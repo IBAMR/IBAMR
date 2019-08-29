@@ -503,7 +503,9 @@ template <class MultiArray>
 inline double
 interpolate(const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
 {
-    const int n_nodes = static_cast<int>(U_node.shape()[0]);
+    IBTK_DISABLE_EXTRA_WARNINGS
+    const auto n_nodes = static_cast<int>(U_node.shape()[0]);
+    IBTK_ENABLE_EXTRA_WARNINGS
     double U = 0.0;
     for (int k = 0; k < n_nodes; ++k)
     {
