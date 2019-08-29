@@ -87,7 +87,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = extrapolation_01$(EXEEXT)
+EXTRA_PROGRAMS = extrapolation_01$(EXEEXT) \
+	physical_boundary_2d_01$(EXEEXT) \
+	physical_boundary_3d_01$(EXEEXT)
 subdir = tests/physical_boundary
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -132,6 +134,24 @@ extrapolation_01_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(extrapolation_01_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_physical_boundary_2d_01_OBJECTS =  \
+	physical_boundary_2d_01-physical_boundary_01.$(OBJEXT)
+physical_boundary_2d_01_OBJECTS =  \
+	$(am_physical_boundary_2d_01_OBJECTS)
+physical_boundary_2d_01_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+physical_boundary_2d_01_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(physical_boundary_2d_01_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_physical_boundary_3d_01_OBJECTS =  \
+	physical_boundary_3d_01-physical_boundary_01.$(OBJEXT)
+physical_boundary_3d_01_OBJECTS =  \
+	$(am_physical_boundary_3d_01_OBJECTS)
+physical_boundary_3d_01_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+physical_boundary_3d_01_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(physical_boundary_3d_01_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -148,7 +168,9 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade =  \
-	./$(DEPDIR)/extrapolation_01-extrapolation_01.Po
+	./$(DEPDIR)/extrapolation_01-extrapolation_01.Po \
+	./$(DEPDIR)/physical_boundary_2d_01-physical_boundary_01.Po \
+	./$(DEPDIR)/physical_boundary_3d_01-physical_boundary_01.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -168,8 +190,12 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(extrapolation_01_SOURCES)
-DIST_SOURCES = $(extrapolation_01_SOURCES)
+SOURCES = $(extrapolation_01_SOURCES) \
+	$(physical_boundary_2d_01_SOURCES) \
+	$(physical_boundary_3d_01_SOURCES)
+DIST_SOURCES = $(extrapolation_01_SOURCES) \
+	$(physical_boundary_2d_01_SOURCES) \
+	$(physical_boundary_3d_01_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -472,6 +498,12 @@ SUFFIXES = .f.m4
 extrapolation_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 extrapolation_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 extrapolation_01_SOURCES = extrapolation_01.cpp
+physical_boundary_2d_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+physical_boundary_2d_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+physical_boundary_2d_01_SOURCES = physical_boundary_01.cpp
+physical_boundary_3d_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+physical_boundary_3d_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+physical_boundary_3d_01_SOURCES = physical_boundary_01.cpp
 all: all-am
 
 .SUFFIXES:
@@ -511,6 +543,14 @@ extrapolation_01$(EXEEXT): $(extrapolation_01_OBJECTS) $(extrapolation_01_DEPEND
 	@rm -f extrapolation_01$(EXEEXT)
 	$(AM_V_CXXLD)$(extrapolation_01_LINK) $(extrapolation_01_OBJECTS) $(extrapolation_01_LDADD) $(LIBS)
 
+physical_boundary_2d_01$(EXEEXT): $(physical_boundary_2d_01_OBJECTS) $(physical_boundary_2d_01_DEPENDENCIES) $(EXTRA_physical_boundary_2d_01_DEPENDENCIES) 
+	@rm -f physical_boundary_2d_01$(EXEEXT)
+	$(AM_V_CXXLD)$(physical_boundary_2d_01_LINK) $(physical_boundary_2d_01_OBJECTS) $(physical_boundary_2d_01_LDADD) $(LIBS)
+
+physical_boundary_3d_01$(EXEEXT): $(physical_boundary_3d_01_OBJECTS) $(physical_boundary_3d_01_DEPENDENCIES) $(EXTRA_physical_boundary_3d_01_DEPENDENCIES) 
+	@rm -f physical_boundary_3d_01$(EXEEXT)
+	$(AM_V_CXXLD)$(physical_boundary_3d_01_LINK) $(physical_boundary_3d_01_OBJECTS) $(physical_boundary_3d_01_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -518,6 +558,8 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/extrapolation_01-extrapolation_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/physical_boundary_2d_01-physical_boundary_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/physical_boundary_3d_01-physical_boundary_01.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -562,6 +604,34 @@ extrapolation_01-extrapolation_01.obj: extrapolation_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='extrapolation_01.cpp' object='extrapolation_01-extrapolation_01.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(extrapolation_01_CXXFLAGS) $(CXXFLAGS) -c -o extrapolation_01-extrapolation_01.obj `if test -f 'extrapolation_01.cpp'; then $(CYGPATH_W) 'extrapolation_01.cpp'; else $(CYGPATH_W) '$(srcdir)/extrapolation_01.cpp'; fi`
+
+physical_boundary_2d_01-physical_boundary_01.o: physical_boundary_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(physical_boundary_2d_01_CXXFLAGS) $(CXXFLAGS) -MT physical_boundary_2d_01-physical_boundary_01.o -MD -MP -MF $(DEPDIR)/physical_boundary_2d_01-physical_boundary_01.Tpo -c -o physical_boundary_2d_01-physical_boundary_01.o `test -f 'physical_boundary_01.cpp' || echo '$(srcdir)/'`physical_boundary_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/physical_boundary_2d_01-physical_boundary_01.Tpo $(DEPDIR)/physical_boundary_2d_01-physical_boundary_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='physical_boundary_01.cpp' object='physical_boundary_2d_01-physical_boundary_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(physical_boundary_2d_01_CXXFLAGS) $(CXXFLAGS) -c -o physical_boundary_2d_01-physical_boundary_01.o `test -f 'physical_boundary_01.cpp' || echo '$(srcdir)/'`physical_boundary_01.cpp
+
+physical_boundary_2d_01-physical_boundary_01.obj: physical_boundary_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(physical_boundary_2d_01_CXXFLAGS) $(CXXFLAGS) -MT physical_boundary_2d_01-physical_boundary_01.obj -MD -MP -MF $(DEPDIR)/physical_boundary_2d_01-physical_boundary_01.Tpo -c -o physical_boundary_2d_01-physical_boundary_01.obj `if test -f 'physical_boundary_01.cpp'; then $(CYGPATH_W) 'physical_boundary_01.cpp'; else $(CYGPATH_W) '$(srcdir)/physical_boundary_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/physical_boundary_2d_01-physical_boundary_01.Tpo $(DEPDIR)/physical_boundary_2d_01-physical_boundary_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='physical_boundary_01.cpp' object='physical_boundary_2d_01-physical_boundary_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(physical_boundary_2d_01_CXXFLAGS) $(CXXFLAGS) -c -o physical_boundary_2d_01-physical_boundary_01.obj `if test -f 'physical_boundary_01.cpp'; then $(CYGPATH_W) 'physical_boundary_01.cpp'; else $(CYGPATH_W) '$(srcdir)/physical_boundary_01.cpp'; fi`
+
+physical_boundary_3d_01-physical_boundary_01.o: physical_boundary_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(physical_boundary_3d_01_CXXFLAGS) $(CXXFLAGS) -MT physical_boundary_3d_01-physical_boundary_01.o -MD -MP -MF $(DEPDIR)/physical_boundary_3d_01-physical_boundary_01.Tpo -c -o physical_boundary_3d_01-physical_boundary_01.o `test -f 'physical_boundary_01.cpp' || echo '$(srcdir)/'`physical_boundary_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/physical_boundary_3d_01-physical_boundary_01.Tpo $(DEPDIR)/physical_boundary_3d_01-physical_boundary_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='physical_boundary_01.cpp' object='physical_boundary_3d_01-physical_boundary_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(physical_boundary_3d_01_CXXFLAGS) $(CXXFLAGS) -c -o physical_boundary_3d_01-physical_boundary_01.o `test -f 'physical_boundary_01.cpp' || echo '$(srcdir)/'`physical_boundary_01.cpp
+
+physical_boundary_3d_01-physical_boundary_01.obj: physical_boundary_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(physical_boundary_3d_01_CXXFLAGS) $(CXXFLAGS) -MT physical_boundary_3d_01-physical_boundary_01.obj -MD -MP -MF $(DEPDIR)/physical_boundary_3d_01-physical_boundary_01.Tpo -c -o physical_boundary_3d_01-physical_boundary_01.obj `if test -f 'physical_boundary_01.cpp'; then $(CYGPATH_W) 'physical_boundary_01.cpp'; else $(CYGPATH_W) '$(srcdir)/physical_boundary_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/physical_boundary_3d_01-physical_boundary_01.Tpo $(DEPDIR)/physical_boundary_3d_01-physical_boundary_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='physical_boundary_01.cpp' object='physical_boundary_3d_01-physical_boundary_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(physical_boundary_3d_01_CXXFLAGS) $(CXXFLAGS) -c -o physical_boundary_3d_01-physical_boundary_01.obj `if test -f 'physical_boundary_01.cpp'; then $(CYGPATH_W) 'physical_boundary_01.cpp'; else $(CYGPATH_W) '$(srcdir)/physical_boundary_01.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -695,6 +765,8 @@ clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/extrapolation_01-extrapolation_01.Po
+	-rm -f ./$(DEPDIR)/physical_boundary_2d_01-physical_boundary_01.Po
+	-rm -f ./$(DEPDIR)/physical_boundary_3d_01-physical_boundary_01.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -741,6 +813,8 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/extrapolation_01-extrapolation_01.Po
+	-rm -f ./$(DEPDIR)/physical_boundary_2d_01-physical_boundary_01.Po
+	-rm -f ./$(DEPDIR)/physical_boundary_3d_01-physical_boundary_01.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
