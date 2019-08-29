@@ -1,5 +1,5 @@
 include $(top_srcdir)/config/Make-rules
-TEST_DIRECTORIES = adv_diff advect IB IBTK IBFE multiphase_flow refine spread
+TEST_DIRECTORIES = adv_diff advect IB IBTK IBFE multiphase_flow physical_boundary refine spread
 
 tests: $(TEST_DIRECTORIES)
 
