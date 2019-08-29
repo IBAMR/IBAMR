@@ -86,9 +86,8 @@ public:
      *
      * \param patch_data_index  Patch data index requiring ghost cell filling.
      * \param extrap_type       Type of extrapolation to perform: \p "CONSTANT" specifies
-     *constant
-     *extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies
-     *quadratic extrapolation.
+     * constant extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies
+     * quadratic extrapolation. At codim 2 or 3 boundaries, "QUADRATIC" reduces to "LINEAR" extrapolation.
      */
     CartExtrapPhysBdryOp(int patch_data_index, const std::string& extrap_type = "CONSTANT");
 
@@ -96,11 +95,10 @@ public:
      * \brief Constructor.
      *
      * \param patch_data_indices  Collection of patch data indices which require ghost cell
-     *filling.
-     * \param extrap_type         Type of extrapolation to perform: \p "CONSTANT" specifies
-     *constant
-     *extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies
-     *quadratic extrapolation.
+     * filling.
+     * \param extrap_type         Type of extrapolation to perform: \p "CONSTANT" specifies constant
+     * extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies
+     * quadratic extrapolation. At codim 2 or 3 boundaries, "QUADRATIC" reduces to "LINEAR" extrapolation.
      */
     CartExtrapPhysBdryOp(const std::set<int>& patch_data_indices, const std::string& extrap_type = "CONSTANT");
 
@@ -108,11 +106,10 @@ public:
      * \brief Constructor.
      *
      * \param patch_data_indices  Collection of patch data indices which require ghost cell
-     *filling.
+     * filling.
      * \param extrap_type         Type of extrapolation to perform: \p "CONSTANT" specifies
-     *constant
-     *extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies
-     *quadratic extrapolation.
+     * constant extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies
+     * quadratic extrapolation. At codim 2 or 3 boundaries, "QUADRATIC" reduces to "LINEAR" extrapolation.
      */
     CartExtrapPhysBdryOp(const SAMRAI::hier::ComponentSelector& patch_data_indices,
                          const std::string& extrap_type = "CONSTANT");
@@ -141,8 +138,8 @@ public:
      * \brief Set the extrapolation type employed by this class.
      *
      * \param extrap_type  Type of extrapolation to perform: \p "CONSTANT" specifies constant
-     *extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies
-     *quadratic extrapolation.
+     * extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies
+     * quadratic extrapolation. At codim 2 or 3 boundaries, "QUADRATIC" reduces to "LINEAR" extrapolation.
      */
     void setExtrapolationType(const std::string& extrap_type);
 
@@ -161,8 +158,7 @@ public:
      * \param patch                Patch on which to fill boundary data.
      * \param fill_time            Double simulation time for boundary filling.
      * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over
-     *all
-     *registered scratch components.
+     * all registered scratch components.
      */
     void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
                                        double fill_time,
@@ -193,8 +189,7 @@ public:
      * \param coarse    Coarse patch containing source data.
      * \param fine_box  Box region on fine patch into which data is refined.
      * \param ratio     Integer vector containing ratio relating index space between coarse and
-     *fine
-     *patches.
+     * fine patches.
      */
     void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
                           const SAMRAI::hier::Patch<NDIM>& coarse,
@@ -217,8 +212,7 @@ public:
      * \param coarse    Coarse patch containing source data.
      * \param fine_box  Box region on fine patch into which data is refined.
      * \param ratio     Integer vector containing ratio relating index space between coarse and
-     *fine
-     *patches.
+     * fine patches.
      */
     void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
                            const SAMRAI::hier::Patch<NDIM>& coarse,
