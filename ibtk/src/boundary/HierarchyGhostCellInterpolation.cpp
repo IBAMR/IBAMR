@@ -236,6 +236,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     {
         const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
         const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
+        const std::string& phys_bdry_type = d_transaction_comps[comp_idx].d_phys_bdry_type;
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(src_data_idx, var);
         Pointer<CellVariable<NDIM, double> > cc_var = var;
@@ -324,14 +325,16 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         }
         if (!null_bc_coefs && cc_var)
         {
-            d_cc_robin_bc_ops[comp_idx] = new CartCellRobinPhysBdryOp(dst_data_idx, robin_bc_coefs, d_homogeneous_bc);
+            d_cc_robin_bc_ops[comp_idx] =
+                new CartCellRobinPhysBdryOp(dst_data_idx, robin_bc_coefs, d_homogeneous_bc, phys_bdry_type);
         }
         if (!null_bc_coefs && sc_var)
         {
 #if !defined(NDEBUG)
             TBOX_ASSERT(robin_bc_coefs.size() == NDIM);
 #endif
-            d_sc_robin_bc_ops[comp_idx] = new CartSideRobinPhysBdryOp(dst_data_idx, robin_bc_coefs, d_homogeneous_bc);
+            d_sc_robin_bc_ops[comp_idx] =
+                new CartSideRobinPhysBdryOp(dst_data_idx, robin_bc_coefs, d_homogeneous_bc, phys_bdry_type);
         }
     }
 
