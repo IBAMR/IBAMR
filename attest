@@ -258,7 +258,16 @@ def main():
             conf['jobs'] = entry[2:]
             sys.argv.remove(entry)
 
-    parser = argparse.ArgumentParser()
+    description=(
+        "A simple test runner. attest is configured both with an input file "
+        "(attest.conf, located in the top level test directory) and command "
+        "line arguments. Command line arguments will override settings found in"
+        " attest.conf. attest requires both numdiff and MPI execution program "
+        "(i.e., mpiexec) to work correctly. The best way to specify these "
+        "values is to provide them to configure, which will then use them to "
+        "write a default attest.conf file.")
+
+    parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-j,--jobs', metavar='N', type=int,
                         default=conf['jobs'], dest='n_processors',
                         help=("Total number of processors to use across all " +
@@ -278,7 +287,8 @@ def main():
     parser.add_argument('-N,--show-only',
                         default=ast.literal_eval(conf['show_only']),
                         action='store_true', dest='show_only',
-                        help="Disable actual execution of tests.")
+                        help="Disable actual execution of tests and instead "
+                        "print the names of tests that would have been run.")
     parser.add_argument('--test-directory', metavar='D', type=str,
                         default=conf['test_directory'],
                         dest='test_directory',
@@ -287,7 +297,9 @@ def main():
                               "are located."))
     parser.add_argument('-R,--tests-regex', type=str, default=conf['test_regex'],
                         dest='test_regex',
-                        help="Regex for filtering test names.")
+                        help="Regex for filtering test names; e.g., if a test is"
+                        " in 'tests/dir/example.input', the regex will be "
+                        "applied to 'dir/example.input'.")
     input_arguments = parser.parse_args()
     parameters = Parameters(input_arguments)
     test_pattern = re.compile(parameters.test_regex)
