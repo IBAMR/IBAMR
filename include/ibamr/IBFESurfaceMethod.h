@@ -541,8 +541,9 @@ protected:
     bool d_fe_equation_systems_initialized = false, d_fe_data_initialized = false;
 
     /*
-     * Method paramters.
+     * Method parameters.
      */
+    std::string d_fe_family_str;
     IBTK::FEDataManager::InterpSpec d_default_interp_spec;
     IBTK::FEDataManager::SpreadSpec d_default_spread_spec;
     std::vector<IBTK::FEDataManager::InterpSpec> d_interp_spec;

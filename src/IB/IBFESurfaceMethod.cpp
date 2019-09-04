@@ -1905,6 +1905,11 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     d_lag_surface_force_fcn_data.resize(d_num_parts);
     d_lag_surface_force_integral.resize(d_num_parts);
 
+    // Initialize object with data read from the input and restart databases.
+    bool from_restart = RestartManager::getManager()->isFromRestart();
+    if (from_restart) getFromRestart();
+    if (input_db) getFromInput(input_db, from_restart);
+
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -1912,6 +1917,7 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
         const MeshBase& mesh = *meshes[part];
         bool mesh_has_first_order_elems = false;
         bool mesh_has_second_order_elems = false;
+        bool mesh_has_fourth_order_elems = false;
         MeshBase::const_element_iterator el_it = mesh.elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.elements_end();
         for (; el_it != el_end; ++el_it)
@@ -1919,18 +1925,20 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
             const Elem* const elem = *el_it;
             mesh_has_first_order_elems = mesh_has_first_order_elems || elem->default_order() == FIRST;
             mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
+            mesh_has_fourth_order_elems = mesh_has_fourth_order_elems || elem->default_order() == FOURTH;
         }
         mesh_has_first_order_elems = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems);
         mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
+        mesh_has_fourth_order_elems = SAMRAI_MPI::maxReduction(mesh_has_fourth_order_elems);
         if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
             (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
         {
-            TBOX_ERROR(d_object_name
-                       << "::IBFESurfaceMethod():\n"
-                       << "  each FE mesh part must contain only FIRST order elements or only SECOND order elements"
-                       << std::endl);
+            //TBOX_ERROR(d_object_name
+            //           << "::IBFESurfaceMethod():\n"
+            //           << "  each FE mesh part must contain only FIRST order elements or only SECOND order elements"
+            //           << std::endl);
         }
-        d_fe_family[part] = LAGRANGE;
+        d_fe_family[part] = Utility::string_to_enum<FEFamily>(d_fe_family_str); //LAGRANGE;
         d_default_quad_type[part] = QGAUSS;
         if (mesh_has_first_order_elems)
         {
@@ -1942,6 +1950,11 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
             d_fe_order[part] = SECOND;
             d_default_quad_order[part] = FIFTH;
         }
+        if (mesh_has_fourth_order_elems)
+        {
+            d_fe_order[part] = FOURTH;
+            d_default_quad_order[part] = FIRST;
+        }
 
         // Report configuration.
         pout << "\n";
@@ -1950,11 +1963,6 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
              << Utility::enum_to_string<FEFamily>(d_fe_family[part]) << " finite elements.\n";
         pout << "\n";
     }
-
-    // Initialize object with data read from the input and restart databases.
-    bool from_restart = RestartManager::getManager()->isFromRestart();
-    if (from_restart) getFromRestart();
-    if (input_db) getFromInput(input_db, from_restart);
 
     // Set up the interaction spec objects.
     d_interp_spec.resize(d_num_parts, d_default_interp_spec);
@@ -1966,6 +1974,9 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
 void
 IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 {
+    // FE settings.
+    if (db->isString("fe_family_str")) d_fe_family_str = db->getString("fe_family_str");
+
     // Interpolation settings.
     if (db->isString("interp_delta_fcn"))
         d_default_interp_spec.kernel_fcn = db->getString("interp_delta_fcn");

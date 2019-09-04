@@ -47,13 +47,18 @@
 #include <libmesh/boundary_mesh.h>
 #include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
+#include <libmesh/linear_implicit_system.h>
 #include <libmesh/mesh.h>
+#include <libmesh/mesh_function.h>
 #include <libmesh/mesh_generation.h>
+#include "libmesh/mesh_modification.h"
+#include "libmesh/mesh_refinement.h"
+#include "libmesh/mesh_subdivision_support.h"
 #include <libmesh/mesh_triangle_interface.h>
+#include <libmesh/sparse_matrix.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
-#include <ibamr/IBFEMethod.h>
 #include <ibamr/IBFESurfaceMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
@@ -68,7 +73,6 @@
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
-
 inline double
 kernel(double x)
 {
@@ -112,67 +116,13 @@ kernel(double x)
 // Elasticity model data.
 namespace ModelData
 {
-// The tether penalty functions each require some data that is set in the
-// input file. This data is passed to each object through the void *ctx
-// context data pointer. Here we collect all relevant tether data in a struct:
-struct TetherData
-{
-    const double c1_s;
-    const double kappa_s_body;
-    const double eta_s_body;
-    const double kappa_s_surface;
-    const double eta_s_surface;
-
-    TetherData(Pointer<Database> input_db)
-        : c1_s(input_db->getDouble("C1_S")),
-          kappa_s_body(input_db->getDouble("KAPPA_S_BODY")),
-          eta_s_body(input_db->getDouble("ETA_S_BODY")),
-          kappa_s_surface(input_db->getDouble("KAPPA_S_SURFACE")),
-          eta_s_surface(input_db->getDouble("ETA_S_SURFACE"))
-    {
-    }
-};
-
-// Tether (penalty) stress function.
-void
-PK1_stress_function(TensorValue<double>& PP,
-                    const TensorValue<double>& FF,
-                    const libMesh::Point& /*x*/,
-                    const libMesh::Point& /*X*/,
-                    Elem* const /*elem*/,
-                    const vector<const vector<double>*>& /*var_data*/,
-                    const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
-                    double /*time*/,
-                    void* ctx)
-{
-    const TetherData* const tether_data = reinterpret_cast<TetherData*>(ctx);
-
-    PP = 2.0 * tether_data->c1_s * (FF - tensor_inverse_transpose(FF, NDIM));
-    return;
-} // PK1_stress_function
-
 // Tether (penalty) force functions.
-void
-tether_force_function(VectorValue<double>& F,
-                      const TensorValue<double>& /*FF*/,
-                      const libMesh::Point& x,
-                      const libMesh::Point& X,
-                      Elem* const /*elem*/,
-                      const vector<const vector<double>*>& var_data,
-                      const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
-                      double /*time*/,
-                      void* ctx)
-{
-    const TetherData* const tether_data = reinterpret_cast<TetherData*>(ctx);
-
-    const std::vector<double>& U = *var_data[0];
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        F(d) = tether_data->kappa_s_body * (X(d) - x(d)) - tether_data->eta_s_body * U[d];
-    }
-    return;
-} // tether_force_function
-
+// Tether (penalty) stress function.
+bool use_velocity_jump_conditions = false;
+bool use_pressure_jump_conditions = false;
+static double kappa_s = 1.0e6;
+static double eta_s = 0.0;
+MeshFunction* F_function;
 void
 tether_force_function(VectorValue<double>& F,
                       const VectorValue<double>& n,
@@ -185,25 +135,24 @@ tether_force_function(VectorValue<double>& F,
                       const vector<const vector<double>*>& var_data,
                       const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                       double /*time*/,
-                      void* ctx)
-{
-    const TetherData* const tether_data = reinterpret_cast<TetherData*>(ctx);
+                      void* /*ctx*/)
 
-    VectorValue<double> D = X - x;
-    VectorValue<double> D_n = (D * n) * n;
-    VectorValue<double> U;
-    for (unsigned int d = 0; d < NDIM; ++d) U(d) = (*var_data[0])[d];
-    VectorValue<double> U_t = U - (U * n) * n;
-    F = tether_data->kappa_s_surface * D - tether_data->eta_s_surface * U;
+{
+    DenseVector<double> vals;
+    (*F_function)(X, /*time*/ 0.0, vals);
+    for (int d = 0; d < NDIM; ++d) F(d) = vals(d);
     return;
 } // tether_force_function
 } // namespace ModelData
 using namespace ModelData;
 
 // Function prototypes
-static ofstream drag_stream, lift_stream, U_L1_norm_stream, U_L2_norm_stream, U_max_norm_stream;
-void postprocess_data(Pointer<Database> input_db,
-                      Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+double tau, kappa, eta;
+void assemble_df_dt(EquationSystems& es, const std::string& system_name);
+void update_force(EquationSystems& es, double dt);
+static ofstream c1_force_stream, c2_force_stream, c3_force_stream, c1_traction_stream, c2_traction_stream,
+    c3_traction_stream, U_L1_norm_stream, U_L2_norm_stream, U_max_norm_stream;
+void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                       Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       Mesh& mesh,
                       EquationSystems* equation_systems,
@@ -222,7 +171,6 @@ void postprocess_data(Pointer<Database> input_db,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-
 bool
 run_example(int argc, char** argv)
 {
@@ -240,24 +188,11 @@ run_example(int argc, char** argv)
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
-        // Setup user-defined kernel function.
-        LEInteractor::s_kernel_fcn = &kernel;
-        LEInteractor::s_kernel_fcn_stencil_size = 8;
-
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
         const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
-#ifdef LIBMESH_HAVE_EXODUS_API
         const bool uses_exodus = dump_viz_data && !app_initializer->getExodusIIFilename().empty();
-#else
-        const bool uses_exodus = false;
-        if (!app_initializer->getExodusIIFilename().empty())
-        {
-            plog << "WARNING: libMesh was compiled without Exodus support, so no "
-                 << "Exodus output will be written in this program.\n";
-        }
-#endif
         const string exodus_filename = app_initializer->getExodusIIFilename();
 
         const bool dump_restart_data = app_initializer->dumpRestartData();
@@ -275,69 +210,33 @@ run_example(int argc, char** argv)
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
-        // Create a simple FE mesh.
-        Mesh solid_mesh(init.comm(), NDIM);
+        // Load information from input
+        const string mesh_name = input_db->getString("MESH_FILENAME");
         const double dx = input_db->getDouble("DX");
-        const double ds = input_db->getDouble("MFAC") * dx;
-        string elem_type = input_db->getString("ELEM_TYPE");
-        const double R = 0.5;
-        if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
-        {
-#ifdef LIBMESH_HAVE_TRIANGLE
-            const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
-            for (int k = 0; k < num_circum_nodes; ++k)
-            {
-                const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_circum_nodes);
-                solid_mesh.add_point(libMesh::Point(R * cos(theta), R * sin(theta)));
-            }
-            TriangleInterface triangle(solid_mesh);
-            triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
-            triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
-            triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
-            triangle.insert_extra_points() = true;
-            triangle.smooth_after_generating() = true;
-            triangle.triangulate();
-#else
-            TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
-                       << "       but Triangle is required for TRI3 or TRI6 elements.\n");
-#endif
-        }
-        else
-        {
-            // NOTE: number of segments along boundary is 4*2^r.
-            const double num_circum_segments = 2.0 * M_PI * R / ds;
-            const int r = log2(0.25 * num_circum_segments);
-            MeshTools::Generation::build_sphere(solid_mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
-        }
+        const double N = input_db->getDouble("N");
+        const double Re = input_db->getDouble("Re");
+        const double DT = input_db->getDouble("DT");
 
-        // Ensure nodes on the surface are on the analytic boundary.
-        MeshBase::element_iterator el_end = solid_mesh.elements_end();
-        for (MeshBase::element_iterator el = solid_mesh.elements_begin(); el != el_end; ++el)
-        {
-            Elem* const elem = *el;
-            for (unsigned int side = 0; side < elem->n_sides(); ++side)
-            {
-                const bool at_mesh_bdry = !elem->neighbor_ptr(side);
-                if (!at_mesh_bdry) continue;
-                for (unsigned int k = 0; k < elem->n_nodes(); ++k)
-                {
-                    if (!elem->is_node_on_side(k, side)) continue;
-                    Node& n = elem->node_ref(k);
-                    n = R * n.unit();
-                }
-            }
-        }
-        solid_mesh.prepare_for_use();
+        // Create a simple FE mesh.
+        Mesh mesh(init.comm(), NDIM);
+        mesh.read(mesh_name);
+        mesh.boundary_info->clear(); // we don't need these
+        // refine the mesh once to remove triangles with more than one irregular vertex
+        MeshRefinement mesh_refinement(mesh);
+        mesh_refinement.uniformly_refine(1);
+        MeshTools::Modification::flatten(mesh); // remove refinement data
 
-        BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension() - 1);
-        solid_mesh.boundary_info->sync(boundary_mesh);
-        boundary_mesh.prepare_for_use();
+        // turn the mesh into a subdivision surface
+        MeshTools::Modification::all_tri(mesh); // convert all elements to triangles
 
-        bool use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
-        Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
+        // MeshTools::Subdivision::prepare_subdivision_mesh(mesh, false); // add ghosts, convert to subdivision elements
+        mesh.prepare_for_use(); // for Lagrange elements
+
+        kappa_s = input_db->getDouble("KAPPA_S");
+        eta_s = input_db->getDouble("ETA_S");
 
         // Create major algorithm and data objects that comprise the
-        // application. These objects are configured from the input database
+        // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
@@ -358,23 +257,15 @@ run_example(int argc, char** argv)
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        Pointer<IBStrategy> ib_ops;
-        if (use_boundary_mesh)
-            ib_ops = new IBFESurfaceMethod(
-                "IBFEMethod",
-                app_initializer->getComponentDatabase("IBFEMethod"),
-                &mesh,
-                app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        else
-            ib_ops =
-                new IBFEMethod("IBFEMethod",
-                               app_initializer->getComponentDatabase("IBFEMethod"),
-                               &mesh,
-                               app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+        Pointer<IBFESurfaceMethod> ib_method_ops =
+            new IBFESurfaceMethod("IBFESurfaceMethod",
+                                  app_initializer->getComponentDatabase("IBFESurfaceMethod"),
+                                  &mesh,
+                                  app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_ops,
+                                              ib_method_ops,
                                               navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
@@ -394,43 +285,30 @@ run_example(int argc, char** argv)
                                         load_balancer);
 
         // Configure the IBFE solver.
-        TetherData tether_data(input_db);
-        void* const tether_data_ptr = reinterpret_cast<void*>(&tether_data);
-        EquationSystems* equation_systems;
+        ib_method_ops->initializeFEEquationSystems();
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
-        vector<SystemData> sys_data(1, SystemData(IBFEMethod::VELOCITY_SYSTEM_NAME, vars));
-        if (use_boundary_mesh)
-        {
-            Pointer<IBFESurfaceMethod> ibfe_ops = ib_ops;
-            ibfe_ops->initializeFEEquationSystems();
-            equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
-            IBFESurfaceMethod::LagSurfaceForceFcnData surface_fcn_data(
-                tether_force_function, sys_data, tether_data_ptr);
-            ibfe_ops->registerLagSurfaceForceFunction(surface_fcn_data);
-        }
-        else
-        {
-            Pointer<IBFEMethod> ibfe_ops = ib_ops;
-            ibfe_ops->initializeFEEquationSystems();
-            equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
-            IBFEMethod::PK1StressFcnData PK1_stress_data(
-                PK1_stress_function, std::vector<IBTK::SystemData>(), tether_data_ptr);
-            PK1_stress_data.quad_order =
-                Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_QUAD_ORDER", "THIRD"));
-            ibfe_ops->registerPK1StressFunction(PK1_stress_data);
 
-            IBFEMethod::LagBodyForceFcnData body_fcn_data(tether_force_function, sys_data, tether_data_ptr);
-            ibfe_ops->registerLagBodyForceFunction(body_fcn_data);
+        std::vector<unsigned int> vars2(NDIM);
+        for (unsigned int d = 0; d < NDIM; ++d) vars2[d] = d;
+        vector<SystemData> sys_data(1, SystemData(IBFESurfaceMethod::VELOCITY_SYSTEM_NAME, vars));
+        IBFESurfaceMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function, sys_data);
+        ib_method_ops->registerLagSurfaceForceFunction(surface_fcn_data);
+        EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
-            IBFEMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function, sys_data, tether_data_ptr);
-            ibfe_ops->registerLagSurfaceForceFunction(surface_fcn_data);
+        System& F_system = equation_systems->add_system<LinearImplicitSystem>("time dependent force");
+        FEFamily family = LAGRANGE;
+        Order order = FIRST;
+        F_system.add_variable("f_x", order, family);
+        F_system.add_variable("f_y", order, family);
+#if (NDIM == 3)
+        F_system.add_variable("f_z", order, family);
+#endif
+        F_system.attach_assemble_function(assemble_df_dt);
 
-            if (input_db->getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
-            {
-                ibfe_ops->registerStressNormalizationPart();
-            }
-        }
+        kappa = input_db->getDouble("KAPPA_S");
+        eta = input_db->getDouble("ETA_S");
+        tau = input_db->getDouble("TAU_S");
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -461,9 +339,13 @@ run_example(int argc, char** argv)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
+                ostringstream bc_coefs_name_stream;
+                bc_coefs_name_stream << "u_bc_coefs_" << d;
+                const string bc_coefs_name = bc_coefs_name_stream.str();
 
-                const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
+                ostringstream bc_coefs_db_name_stream;
+                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
+                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
 
                 u_bc_coefs[d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
@@ -488,18 +370,12 @@ run_example(int argc, char** argv)
         std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
-        if (use_boundary_mesh)
-        {
-            Pointer<IBFESurfaceMethod> ibfe_ops = ib_ops;
-            ibfe_ops->initializeFEData();
-        }
-        else
-        {
-            Pointer<IBFEMethod> ibfe_ops = ib_ops;
-            ibfe_ops->initializeFEData();
-        }
+        ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
-
+        // Initialize the mesh function.
+        F_function =
+            new MeshFunction(*equation_systems, *F_system.current_local_solution, F_system.get_dof_map(), vars2);
+        F_function->init();
         // Deallocate initialization objects.
         app_initializer.setNull();
 
@@ -529,17 +405,40 @@ run_example(int argc, char** argv)
         // velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
-            lift_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
-            U_L1_norm_stream.open("U_L1.curve", ios_base::out | ios_base::trunc);
-            U_L2_norm_stream.open("U_L2.curve", ios_base::out | ios_base::trunc);
-            U_max_norm_stream.open("U_max.curve", ios_base::out | ios_base::trunc);
+            //~ c1_force_stream.open("C1_3D_force_mfac_" + std::to_string(int(mfac)) +"_N_" + std::to_string(int(N))
+            //+"_Q1_kappa_" + std::to_string(int(kappa_s)) +"_eta_" + std::to_string(int(eta_s))
+            //+"_integral_ghost_jump.curve", ios_base::out | ios_base::trunc); ~
+            // c2_force_stream.open("C2_3D_force_mfac_" + std::to_string(int(mfac)) +"_N_" + std::to_string(int(N))
+            //+"_Q1_kappa_" + std::to_string(int(kappa_s)) +"_eta_" + std::to_string(int(eta_s))
+            //+"_integral_ghost_jump.curve", ios_base::out | ios_base::trunc); ~
+            // c3_force_stream.open("C3_3D_force_mfac_" + std::to_string(int(mfac)) +"_N_" + std::to_string(int(N))
+            //+"_Q1_kappa_" + std::to_string(int(kappa_s)) +"_eta_" + std::to_string(int(eta_s))
+            //+"_integral_ghost_jump.curve", ios_base::out | ios_base::trunc);
+            c1_force_stream.open("C1_3D_force_Re200.curve", ios_base::out | ios_base::trunc);
+            c2_force_stream.open("C2_3D_force_Re200.curve", ios_base::out | ios_base::trunc);
+            c3_force_stream.open("C3_3D_force_Re200.curve", ios_base::out | ios_base::trunc);
+            c1_force_stream.precision(10);
+            c2_force_stream.precision(10);
+            c3_force_stream.precision(10);
 
-            drag_stream.precision(10);
-            lift_stream.precision(10);
-            U_L1_norm_stream.precision(10);
-            U_L2_norm_stream.precision(10);
-            U_max_norm_stream.precision(10);
+            //~ c1_traction_stream.open("C1_3D_traction_mfac_" + std::to_string(int(mfac)) +"_N_" +
+            // std::to_string(int(N)) +"_Q1_kappa_" + std::to_string(int(kappa_s)) +"_eta_" + std::to_string(int(eta_s))
+            //+"_total_ghost_jump.curve", ios_base::out | ios_base::trunc); ~
+            // c2_traction_stream.open("C2_3D_traction_mfac_" + std::to_string(int(mfac)) +"_N_" +
+            // std::to_string(int(N))
+            //+"_Q1_kappa_" + std::to_string(int(kappa_s)) +"_eta_" + std::to_string(int(eta_s))
+            //+"_total_ghost_jump.curve", ios_base::out | ios_base::trunc); ~
+            // c3_traction_stream.open("C3_3D_traction_mfac_" + std::to_string(int(mfac)) +"_N_" +
+            // std::to_string(int(N))
+            //+"_Q1_kappa_" + std::to_string(int(kappa_s)) +"_eta_" + std::to_string(int(eta_s))
+            //+"_total_ghost_jump.curve", ios_base::out | ios_base::trunc);
+            c1_traction_stream.open("C1_3D_traction_Re200.curve", ios_base::out | ios_base::trunc);
+            c2_traction_stream.open("C2_3D_traction_Re200.curve", ios_base::out | ios_base::trunc);
+            c3_traction_stream.open("C3_3D_traction_Re200.curve", ios_base::out | ios_base::trunc);
+
+            c1_traction_stream.precision(10);
+            c2_traction_stream.precision(10);
+            c3_traction_stream.precision(10);
         }
 
         // Main time step loop.
@@ -556,6 +455,8 @@ run_example(int argc, char** argv)
             pout << "Simulation time is " << loop_time << "\n";
 
             dt = time_integrator->getMaximumTimeStepSize();
+            update_force(*equation_systems, dt);
+
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
@@ -584,11 +485,6 @@ run_example(int argc, char** argv)
                         exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
                 }
             }
-            if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
-            {
-                pout << "\nWriting restart files...\n\n";
-                RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
-            }
             if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting timer data...\n\n";
@@ -596,8 +492,7 @@ run_example(int argc, char** argv)
             }
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                postprocess_data(input_db,
-                                 patch_hierarchy,
+                postprocess_data(patch_hierarchy,
                                  navier_stokes_integrator,
                                  mesh,
                                  equation_systems,
@@ -610,11 +505,16 @@ run_example(int argc, char** argv)
         // Close the logging streams.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_stream.close();
-            lift_stream.close();
-            U_L1_norm_stream.close();
-            U_L2_norm_stream.close();
-            U_max_norm_stream.close();
+            c1_force_stream.close();
+            c2_force_stream.close();
+            c3_force_stream.close();
+
+            c1_traction_stream.close();
+            c2_traction_stream.close();
+            c3_traction_stream.close();
+            //~ U_L1_norm_stream.close();
+            //~ U_L2_norm_stream.close();
+            //~ U_max_norm_stream.close();
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
@@ -628,8 +528,160 @@ run_example(int argc, char** argv)
 } // run_example
 
 void
-postprocess_data(Pointer<Database> input_db,
-                 Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+assemble_df_dt(EquationSystems& es, const std::string& /*system_name*/)
+{
+    const MeshBase& mesh = es.get_mesh();
+    const unsigned int dim = mesh.mesh_dimension();
+    LinearImplicitSystem& F_system = es.get_system<LinearImplicitSystem>("time dependent force");
+    const DofMap& dof_map = F_system.get_dof_map();
+    std::vector<dof_id_type> dof_indices;
+    FEType fe_type = dof_map.variable_type(0);
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
+    QGauss qrule(dim, FIFTH);
+    fe->attach_quadrature_rule(&qrule);
+    const std::vector<Real>& JxW = fe->get_JxW();
+    const std::vector<std::vector<Real> >& phi = fe->get_phi();
+
+    const double dt = es.parameters.get<Real>("dt");
+
+    DenseMatrix<Number> Ke;
+    MeshBase::const_element_iterator el = mesh.active_local_elements_begin();
+    const MeshBase::const_element_iterator end_el = mesh.active_local_elements_end();
+    for (; el != end_el; ++el)
+    {
+        const Elem* elem = *el;
+        fe->reinit(elem);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            dof_map.dof_indices(elem, dof_indices, d);
+            unsigned int Ke_size = static_cast<unsigned int>(dof_indices.size());
+            Ke.resize(Ke_size, Ke_size);
+            for (unsigned int qp = 0; qp < qrule.n_points(); qp++)
+            {
+                for (unsigned int i = 0; i < phi.size(); i++)
+                {
+                    for (unsigned int j = 0; j < phi.size(); j++)
+                    {
+                        Ke(i, j) += (tau / dt + 1.0) * phi[i][qp] * phi[j][qp] * JxW[qp];
+                    }
+                }
+            }
+            dof_map.constrain_element_matrix(Ke, dof_indices);
+            F_system.matrix->add_matrix(Ke, dof_indices);
+        }
+    }
+    F_system.matrix->close();
+}
+
+void
+update_force(EquationSystems& es, const double dt)
+{
+    // Extract the mesh.
+    const MeshBase& mesh = es.get_mesh();
+    const unsigned int dim = mesh.mesh_dimension();
+
+    // Extract the FE systems and DOF maps, and setup the FE object.
+    LinearImplicitSystem& F_system = es.get_system<LinearImplicitSystem>("time dependent force");
+    const DofMap& F_dof_map = F_system.get_dof_map();
+    std::vector<std::vector<unsigned int> > F_dof_indices(NDIM);
+    FEType F_fe_type = F_dof_map.variable_type(0);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(F_dof_map.variable_type(d) == F_fe_type);
+    }
+    System& U_system = es.get_system(IBFESurfaceMethod::VELOCITY_SYSTEM_NAME);
+    const DofMap& U_dof_map = U_system.get_dof_map();
+    std::vector<std::vector<unsigned int> > U_dof_indices(NDIM);
+    FEType U_fe_type = U_dof_map.variable_type(0);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(U_dof_map.variable_type(d) == U_fe_type);
+    }
+    System& X_system = es.get_system(IBFESurfaceMethod::COORDS_SYSTEM_NAME);
+    const DofMap& X_dof_map = X_system.get_dof_map();
+    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    FEType X_fe_type = X_dof_map.variable_type(0);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
+        TBOX_ASSERT(X_dof_map.variable_type(d) == U_fe_type);
+    }
+    std::vector<unsigned int> vars(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
+
+    std::unique_ptr<FEBase> fe_F(FEBase::build(dim, F_fe_type));
+    std::unique_ptr<FEBase> fe_X(FEBase::build(dim, X_fe_type));
+    QGauss qrule(dim, FIFTH);
+    fe_F->attach_quadrature_rule(&qrule);
+    fe_X->attach_quadrature_rule(&qrule);
+    const std::vector<Real>& JxW = fe_F->get_JxW();
+    const std::vector<libMesh::Point>& q_point = fe_F->get_xyz();
+    const std::vector<std::vector<Real> >& phi_F = fe_F->get_phi();
+    const std::vector<std::vector<Real> >& phi_X = fe_X->get_phi();
+
+    es.parameters.set<Real>("dt") = dt;
+    F_system.assemble_before_solve = false;
+    F_system.assemble();
+
+    NumericVector<double>* F_rhs_vec = F_system.rhs;
+    F_rhs_vec->zero();
+    std::vector<DenseVector<double> > F_rhs_e(NDIM);
+    VectorValue<double> F_qp, U_qp, X_qp, x_qp;
+    VectorValue<double> F_oo, U_oo;
+    boost::multi_array<double, 2> F_node, U_node, x_node;
+    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    {
+        Elem* const elem = *el_it;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            F_dof_map.dof_indices(elem, F_dof_indices[d], d);
+            U_dof_map.dof_indices(elem, U_dof_indices[d], d);
+            X_dof_map.dof_indices(elem, X_dof_indices[d], d);
+            F_rhs_e[d].resize(static_cast<int>(F_dof_indices[d].size()));
+        }
+        fe_F->reinit(elem);
+        fe_X->reinit(elem);
+        get_values_for_interpolation(F_node,
+                                     *F_system.current_local_solution,
+                                     F_dof_indices); // XXXX: THIS NEEDS TO BE THE REAL CURRENT SOLUTION!
+        get_values_for_interpolation(U_node, *U_system.current_local_solution, U_dof_indices);
+        get_values_for_interpolation(x_node, *X_system.current_local_solution, X_dof_indices);
+        for (unsigned int qp = 0; qp < qrule.n_points(); qp++)
+        {
+            const libMesh::Point& X_qp = q_point[qp];
+            interpolate(F_qp, qp, F_node, phi_F);
+            interpolate(U_qp, qp, U_node, phi_X);
+            interpolate(x_qp, qp, x_node, phi_X);
+            F_oo = kappa * (X_qp - x_qp) - eta * U_qp;
+            for (unsigned int i = 0; i < phi_F.size(); i++)
+            {
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    F_rhs_e[d](i) += (F_qp(d) + (tau / dt) * F_oo(d)) * phi_F[i][qp] * JxW[qp];
+                }
+            }
+        }
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            F_dof_map.constrain_element_vector(F_rhs_e[d], F_dof_indices[d]);
+            F_rhs_vec->add_vector(F_rhs_e[d], F_dof_indices[d]);
+        }
+    }
+    F_rhs_vec->close();
+    F_system.solution->close();
+
+    pout << "about to solve for F!\n";
+    F_system.solve();
+    F_system.solution->close();
+    F_system.solution->localize(*F_system.current_local_solution);
+    pout << "F_rhs norm = " << F_rhs_vec->l2_norm() << "\n";
+    pout << "F norm = " << F_system.solution->l2_norm() << "\n";
+}
+
+void
+postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                  Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
                  Mesh& mesh,
                  EquationSystems* equation_systems,
@@ -637,15 +689,13 @@ postprocess_data(Pointer<Database> input_db,
                  const double loop_time,
                  const string& /*data_dump_dirname*/)
 {
-    TetherData tether_data(input_db);
-    void* const tether_data_ptr = reinterpret_cast<void*>(&tether_data);
-
     const unsigned int dim = mesh.mesh_dimension();
-    double F_integral[NDIM];
+    double F_integral[NDIM], T_integral[NDIM];
     for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
+    for (unsigned int d = 0; d < NDIM; ++d) T_integral[d] = 0.0;
 
-    System& x_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-    System& U_system = equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+    System& x_system = equation_systems->get_system(IBFESurfaceMethod::COORDS_SYSTEM_NAME);
+    System& U_system = equation_systems->get_system(IBFESurfaceMethod::VELOCITY_SYSTEM_NAME);
     NumericVector<double>* x_vec = x_system.solution.get();
     NumericVector<double>* x_ghost_vec = x_system.current_local_solution.get();
     x_vec->localize(*x_ghost_vec);
@@ -655,6 +705,14 @@ postprocess_data(Pointer<Database> input_db,
     const DofMap& dof_map = x_system.get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 
+    NumericVector<double>& X0_vec = x_system.get_vector("INITIAL_COORDINATES");
+
+    System& TAU_system = equation_systems->get_system<System>(IBFESurfaceMethod::TAU_SYSTEM_NAME);
+
+    NumericVector<double>* TAU_vec = TAU_system.solution.get();
+    NumericVector<double>* TAU_ghost_vec = TAU_system.current_local_solution.get();
+    TAU_vec->localize(*TAU_ghost_vec);
+
     std::unique_ptr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
     std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
     fe->attach_quadrature_rule(qrule.get());
@@ -663,23 +721,15 @@ postprocess_data(Pointer<Database> input_db,
     const vector<vector<double> >& phi = fe->get_phi();
     const vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
 
-    std::unique_ptr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
-    std::unique_ptr<QBase> qrule_face = QBase::build(QGAUSS, dim - 1, SEVENTH);
-    fe_face->attach_quadrature_rule(qrule_face.get());
-    const vector<double>& JxW_face = fe_face->get_JxW();
-    const vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
-    const vector<libMesh::Point>& normal_face = fe_face->get_normals();
-    const vector<vector<double> >& phi_face = fe_face->get_phi();
-    const vector<vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
-
     std::vector<double> U_qp_vec(NDIM);
     std::vector<const std::vector<double>*> var_data(1);
     var_data[0] = &U_qp_vec;
     std::vector<const std::vector<libMesh::VectorValue<double> >*> grad_var_data;
+    void* force_fcn_ctx = NULL;
 
-    TensorValue<double> FF, FF_inv_trans;
-    boost::multi_array<double, 2> x_node, U_node;
-    VectorValue<double> F, N, U, n, x;
+    TensorValue<double> FF_qp;
+    boost::multi_array<double, 2> x_node, U_node, TAU_node, X0_node;
+    VectorValue<double> F_qp, U_qp, x_qp, TAU_qp, n, N, X;
 
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
@@ -692,59 +742,46 @@ postprocess_data(Pointer<Database> input_db,
             dof_map.dof_indices(elem, dof_indices[d], d);
         }
         get_values_for_interpolation(x_node, *x_ghost_vec, dof_indices);
+        get_values_for_interpolation(TAU_node, *TAU_ghost_vec, dof_indices);
         get_values_for_interpolation(U_node, *U_ghost_vec, dof_indices);
+        get_values_for_interpolation(X0_node, X0_vec, dof_indices);
 
         const unsigned int n_qp = qrule->n_points();
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
-            interpolate(x, qp, x_node, phi);
-            jacobian(FF, qp, x_node, dphi);
-            interpolate(U, qp, U_node, phi);
+            interpolate(X, qp, X0_node, phi);
+            interpolate(x_qp, qp, x_node, phi);
+            jacobian(FF_qp, qp, x_node, dphi);
+            interpolate(U_qp, qp, U_node, phi);
+            interpolate(TAU_qp, qp, TAU_node, phi);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                U_qp_vec[d] = U(d);
+                U_qp_vec[d] = U_qp(d);
             }
-            tether_force_function(F, FF, x, q_point[qp], elem, var_data, grad_var_data, loop_time, tether_data_ptr);
+            tether_force_function(
+                F_qp, n, N, FF_qp, x_qp, X, elem, 0, var_data, grad_var_data, loop_time, force_fcn_ctx);
             for (int d = 0; d < NDIM; ++d)
             {
-                F_integral[d] += F(d) * JxW[qp];
-            }
-        }
-        for (unsigned short int side = 0; side < elem->n_sides(); ++side)
-        {
-            if (elem->neighbor_ptr(side)) continue;
-            fe_face->reinit(elem, side);
-            const unsigned int n_qp_face = qrule_face->n_points();
-            for (unsigned int qp = 0; qp < n_qp_face; ++qp)
-            {
-                interpolate(x, qp, x_node, phi_face);
-                jacobian(FF, qp, x_node, dphi_face);
-                interpolate(U, qp, U_node, phi_face);
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    U_qp_vec[d] = U(d);
-                }
-                N = normal_face[qp];
-                tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
-                n = (FF_inv_trans * N).unit();
-
-                tether_force_function(
-                    F, n, N, FF, x, q_point_face[qp], elem, side, var_data, grad_var_data, loop_time, tether_data_ptr);
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    F_integral[d] += F(d) * JxW_face[qp];
-                }
+                F_integral[d] += F_qp(d) * JxW[qp];
+                T_integral[d] += TAU_qp(d) * JxW[qp];
             }
         }
     }
     SAMRAI_MPI::sumReduction(F_integral, NDIM);
+    SAMRAI_MPI::sumReduction(T_integral, NDIM);
     static const double rho = 1.0;
     static const double U_max = 1.0;
     static const double D = 1.0;
     if (SAMRAI_MPI::getRank() == 0)
     {
-        drag_stream << loop_time << " " << -F_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
-        lift_stream << loop_time << " " << -F_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
+        c1_force_stream << loop_time << " " << 2.0 * -F_integral[0] / (0.25 * D * D * M_PI) << endl;
+        c2_force_stream << loop_time << " " << 2.0 * -F_integral[1] / (0.25 * D * D * M_PI) << endl;
+        c3_force_stream << loop_time << " " << 2.0 * -F_integral[2] / (0.25 * D * D * M_PI) << endl;
+
+        c1_traction_stream << loop_time << " " << 2.0 * T_integral[0] / (0.25 * D * D * M_PI) << endl;
+        c2_traction_stream << loop_time << " " << 2.0 * T_integral[1] / (0.25 * D * D * M_PI) << endl;
+        c3_traction_stream << loop_time << " " << 2.0 * T_integral[2] / (0.25 * D * D * M_PI) << endl;
     }
+
     return;
 } // postprocess_data

@@ -43,6 +43,7 @@
 #include "libmesh/dof_map.h"
 #include "libmesh/dof_object.h"
 #include "libmesh/edge.h"
+#include "libmesh/enum_quadrature_type.h"
 #include "libmesh/face.h"
 #include "libmesh/fe.h"
 #include "libmesh/petsc_vector.h"
@@ -1031,8 +1032,8 @@ inline double
 get_max_edge_length(const libMesh::Elem* const elem, const MultiArray& X_node)
 {
 #ifndef NDEBUG
-    TBOX_ASSERT(elem->n_nodes() == X_node.shape()[0]);
-    TBOX_ASSERT(elem->dim() == X_node.shape()[1]);
+    //TBOX_ASSERT(NDIM <= X_node.shape()[0]);
+    //TBOX_ASSERT(NDIM <= X_node.shape()[1]);
 #endif
     const libMesh::ElemType elem_type = elem->type();
 
@@ -1068,6 +1069,33 @@ get_max_edge_length(const libMesh::Elem* const elem, const MultiArray& X_node)
             for (unsigned int d = 0; d < 3; ++d) // HEX8 implies 3D
                 diff_sq += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
             max_edge_length_2 = std::max(max_edge_length_2, diff_sq);
+        }
+        break;
+    }
+    case libMesh::TRI3SUBDIVISION:
+    {
+        std::unique_ptr<libMesh::FEBase> fe(libMesh::FEBase::build(2, libMesh::SUBDIVISION));
+        std::unique_ptr<libMesh::QBase> qrule = libMesh::QBase::build(libMesh::QTRAP, 2, libMesh::FIRST);
+        fe->attach_quadrature_rule(qrule.get());
+        fe->reinit(elem);
+        const std::vector<std::vector<double> >& phi = fe->get_phi();
+
+        for (unsigned int qp1 = 0; qp1 < qrule->n_points(); ++qp1)
+        {
+            for (unsigned int qp2 = qp1 + 1; qp2 < qrule->n_points(); ++qp2)
+            {
+                double diff_sq = 0.0;
+                for (unsigned int d = 0; d < 3; ++d)
+                {
+                    double diff = 0.0;
+                    for (unsigned int i = 0; i < phi.size(); ++i)
+                    {
+                        diff += X_node[i][d] * (phi[i][qp1] - phi[i][qp2]);
+                    }
+                    diff_sq += diff * diff;
+                }
+                max_edge_length_2 = std::max(max_edge_length_2, diff_sq);
+            }
         }
         break;
     }
