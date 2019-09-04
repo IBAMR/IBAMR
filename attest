@@ -297,7 +297,8 @@ def main():
     for input_file in get_input_files(parameters.test_directory):
         path_length = len(os.path.split(input_file)[0])
         input_file_name = input_file[path_length + 1:]
-        if re.search(test_pattern, input_file_name):
+        # include the directory when matching test input files:
+        if re.search(test_pattern, input_file[len(parameters.test_directory):]):
             output_file = os.path.splitext(input_file)[0] + ".output"
             base_name = input_file_name[:input_file_name.find('.')]
             executable = os.path.split(input_file)[0] + os.sep + base_name
