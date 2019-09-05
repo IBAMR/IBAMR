@@ -1,18 +1,18 @@
 include $(top_srcdir)/config/Make-rules
 
-EXTRA_PROGRAMS = extrapolation_01 physical_boundary_2d_01 physical_boundary_3d_01
+EXTRA_PROGRAMS = extrapolation_01 01_2d 01_3d
 
 extrapolation_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 extrapolation_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 extrapolation_01_SOURCES = extrapolation_01.cpp
 
-physical_boundary_2d_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-physical_boundary_2d_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-physical_boundary_2d_01_SOURCES = physical_boundary_01.cpp
+01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+01_2d_SOURCES = physical_boundary_01.cpp
 
-physical_boundary_3d_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-physical_boundary_3d_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-physical_boundary_3d_01_SOURCES = physical_boundary_01.cpp
+01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+01_3d_SOURCES = physical_boundary_01.cpp
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
