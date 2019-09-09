@@ -254,8 +254,7 @@ IBStandardInitializer::readVertexFiles(const std::string& extension)
 
             // Ensure that the file exists.
             const std::string vertex_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(vertex_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(vertex_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -366,8 +365,7 @@ IBStandardInitializer::readSpringFiles(const std::string& extension, const bool 
 
             // Ensure that the file exists.
             const std::string spring_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(spring_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(spring_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -595,8 +593,7 @@ IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool
 
             // Ensure that the file exists.
             const std::string xspring_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(xspring_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(xspring_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -823,8 +820,7 @@ IBStandardInitializer::readBeamFiles(const std::string& extension, const bool in
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
 
             const std::string beam_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(beam_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(beam_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -1056,8 +1052,7 @@ IBStandardInitializer::readRodFiles(const std::string& extension, const bool inp
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
 
             const std::string rod_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(rod_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(rod_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -1373,8 +1368,7 @@ IBStandardInitializer::readTargetPointFiles(const std::string& extension)
             d_target_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
 
             const std::string target_point_stiffness_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(target_point_stiffness_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(target_point_stiffness_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -1563,8 +1557,7 @@ IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
             d_anchor_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
 
             const std::string anchor_point_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(anchor_point_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(anchor_point_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -1685,8 +1678,7 @@ IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
             d_bdry_mass_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
 
             const std::string bdry_mass_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(bdry_mass_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(bdry_mass_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -1851,8 +1843,7 @@ IBStandardInitializer::readDirectorFiles(const std::string& extension)
             d_directors[ln][j].resize(d_num_vertex[ln][j], std::vector<double>(3 * 3, 0.0));
 
             const std::string directors_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(directors_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(directors_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -1970,8 +1961,7 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
 
             const std::string inst_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(inst_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(inst_filename);
             if (file_stream.is_open() && d_enable_instrumentation[ln][j])
             {
                 plog << d_object_name << ":  "
@@ -2210,8 +2200,7 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
 
             const std::string source_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(source_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(source_filename);
             if (file_stream.is_open() && d_enable_sources[ln][j])
             {
                 plog << d_object_name << ":  "

@@ -1823,11 +1823,11 @@ CIBMethod::setRegularizationWeight(const int level_number)
         }
 
         // Read weights from file and set it.
-        std::ifstream reg_filestream(d_reg_filename[struct_no].c_str(), std::ifstream::in);
+        std::ifstream reg_filestream(d_reg_filename[struct_no]);
         if (!reg_filestream.is_open())
         {
             TBOX_ERROR("CIBMethod::setRegularizationWeight()"
-                       << "could not open file" << d_reg_filename[struct_no] << std::endl);
+                       << " could not open file " << d_reg_filename[struct_no] << std::endl);
         }
 
         std::string line_f;
@@ -1916,11 +1916,11 @@ CIBMethod::setInitialLambda(const int level_number)
         const std::pair<int, int> lag_idx_range = d_struct_lag_idx_range[struct_no];
         if (d_lambda_filename[struct_no].empty()) continue;
 
-        std::ifstream lambda_filestream(d_lambda_filename[struct_no].c_str(), std::ifstream::in);
+        std::ifstream lambda_filestream(d_lambda_filename[struct_no]);
         if (!lambda_filestream.is_open())
         {
             TBOX_ERROR("CIBMethod::setInitialLambda()"
-                       << "could not open file" << d_lambda_filename[struct_no] << std::endl);
+                       << " could not open file " << d_lambda_filename[struct_no] << std::endl);
         }
 
         std::string line_f;
