@@ -56,7 +56,12 @@
 #include "libmesh/elem.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
+#include "libmesh/equation_systems.h"
+#include "libmesh/linear_solver.h"
+#include "libmesh/numeric_vector.h"
 #include "libmesh/petsc_vector.h"
+#include "libmesh/quadrature.h"
+#include "libmesh/sparse_matrix.h"
 #include "libmesh/system.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
@@ -64,7 +69,6 @@ IBTK_DISABLE_EXTRA_WARNINGS
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <map>
-#include <ostream>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -87,18 +91,6 @@ namespace tbox
 class Database;
 } // namespace tbox
 } // namespace SAMRAI
-namespace libMesh
-{
-class Elem;
-class EquationSystems;
-class QBase;
-template <typename T>
-class LinearSolver;
-template <typename T>
-class NumericVector;
-template <typename T>
-class SparseMatrix;
-} // namespace libMesh
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
