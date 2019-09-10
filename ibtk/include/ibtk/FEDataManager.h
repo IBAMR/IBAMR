@@ -97,24 +97,10 @@ class Database;
 namespace IBTK
 {
 /*!
- * \brief Class FEDataManager coordinates data required for Lagrangian-Eulerian
- * interaction between a Lagrangian finite element (FE) mesh.
- *
- * <h3>Parameters effecting workload estimate calculations</h3>
- * FEDataManager can estimate the amount of work done in IBFE calculations
- * (such as FEDataManager::spread). Since most calculations use a variable
- * number of quadrature points on each libMesh element this estimate can vary
- * quite a bit over different Eulerian cells corresponding to a single
- * mesh. The current implementation estimates the workload on each cell of the
- * background Eulerian grid by applying a background value representing the
- * work on the Eulerian cell itself and a weight times the number of
- * quadrature points on that cell. These values are set at the time of object
- * construction through the FEDataManager::WorkloadSpec object, which contains
- * reasonable defaults.
- *
- * \note Multiple FEDataManager objects may be instantiated simultaneously.
+ * Class containing all of the finite element data structures that will be
+ * used by FEDataManager and IBFEMethod.
  */
-class FEDataManager : public SAMRAI::tbox::Serializable, public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+class FEData : public SAMRAI::tbox::Serializable
 {
 public:
     /*!
@@ -122,7 +108,7 @@ public:
      *
      * @note The contents of this cache are invalidated when we regrid and the
      * caches should be reset at that point. Copies of this class should
-     * always be retrieved via FEDataManager::getDofCache() to avoid this
+     * always be retrieved via FEData::getDofCache() to avoid this
      * problem.
      */
     class SystemDofMapCache
@@ -170,6 +156,121 @@ public:
         libMesh::DofMap& d_dof_map;
         std::unordered_map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > > d_dof_cache;
     };
+
+    /*!
+     * Constructor. Registers the object with the restart database: i.e.,
+     * inheriting classes should not also register themselves.
+     */
+    FEData(std::string object_name, const bool register_for_restart);
+
+    /*!
+     * Destructor.
+     */
+    ~FEData();
+
+    /*!
+     * Set up the object with data stored in the restart database.
+     *
+     * @note this is called inside the constructor.
+     */
+    virtual void getFromRestart();
+
+    /*!
+     * Write out object state to the given database.
+     *
+     * When assertion checking is active, database pointer must be non-null.
+     */
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+
+    /*!
+     * \brief Set the equations systems object that is associated with the
+     * FEData object. Currently, each set of equation systems must be assigned
+     * to a particular level of the AMR grid.
+     */
+    void setEquationSystems(libMesh::EquationSystems* equation_systems, int level_number);
+
+    /*!
+     * \return A pointer to the equations systems object that is associated with
+     * the FEData object.
+     */
+    libMesh::EquationSystems* getEquationSystems() const;
+
+    /*!
+     * \return The DofMapCache for a specified system.
+     */
+    SystemDofMapCache* getDofMapCache(const std::string& system_name);
+
+    /*!
+     * \return The DofMapCache for a specified system.
+     */
+    SystemDofMapCache* getDofMapCache(unsigned int system_num);
+
+protected:
+    /*
+     * The object name is used as a handle to databases stored in restart files
+     * and for error reporting purposes.  The boolean is used to control restart
+     * file writing operations.
+     */
+    std::string d_object_name;
+    bool d_registered_for_restart;
+
+    /*
+     * FE equation system associated with this data manager object.
+     */
+    libMesh::EquationSystems* d_es = nullptr;
+
+    /*
+     * Cache of libMesh quadrature objects. Defaults to being an NDIM cache
+     * but is overwritten once a libMesh::EquationSystems object is attached.
+     */
+    QuadratureCache d_quadrature_cache;
+
+    /*!
+     * Number of the level on which the equation systems live.
+     */
+    int d_level_number = IBTK::invalid_level_number;
+
+    /*!
+     * Mapping between system numbers and SystemDofMapCache objects.
+     */
+    std::map<unsigned int, std::unique_ptr<SystemDofMapCache> > d_system_dof_map_cache;
+
+    /*
+     * Linear solvers and related data for performing interpolation in the IB-FE
+     * framework.
+     */
+    std::map<std::string, std::unique_ptr<libMesh::LinearSolver<double> > > d_L2_proj_solver;
+    std::map<std::string, std::unique_ptr<libMesh::SparseMatrix<double> > > d_L2_proj_matrix;
+    std::map<std::string, std::unique_ptr<libMesh::NumericVector<double> > > d_L2_proj_matrix_diag;
+};
+
+/*!
+ * \brief Class FEDataManager coordinates data required for
+ * Lagrangian-Eulerian interaction between a Lagrangian finite element (FE)
+ * mesh. In particular, the base class FEData stores the necessary FE data
+ * while this class stores additional data dependent on the Eulerian grid.
+ *
+ * <h3>Parameters effecting workload estimate calculations</h3>
+ * FEDataManager can estimate the amount of work done in IBFE calculations
+ * (such as FEDataManager::spread). Since most calculations use a variable
+ * number of quadrature points on each libMesh element this estimate can vary
+ * quite a bit over different Eulerian cells corresponding to a single
+ * mesh. The current implementation estimates the workload on each cell of the
+ * background Eulerian grid by applying a background value representing the
+ * work on the Eulerian cell itself and a weight times the number of
+ * quadrature points on that cell. These values are set at the time of object
+ * construction through the FEDataManager::WorkloadSpec object, which contains
+ * reasonable defaults.
+ *
+ * \note Multiple FEDataManager objects may be instantiated simultaneously.
+ */
+class FEDataManager : public FEData, public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+{
+public:
+    /*!
+     * Alias SystemDofMapCache for backwards compatibility.
+     */
+    using SystemDofMapCache = FEData::SystemDofMapCache;
 
     /*!
      * \brief Struct InterpSpec encapsulates data needed to specify the manner
@@ -365,29 +466,6 @@ public:
     std::pair<int, int> getPatchLevels() const;
 
     //\}
-
-    /*!
-     * \brief Set the equations systems object that is associated with the
-     * FEDataManager.  Currently, each set of equation systems must be assigned
-     * to a particular level of the AMR grid.
-     */
-    void setEquationSystems(libMesh::EquationSystems* equation_systems, int level_number);
-
-    /*!
-     * \return A pointer to the equations systems object that is associated with
-     * the FEDataManager.
-     */
-    libMesh::EquationSystems* getEquationSystems() const;
-
-    /*!
-     * \return The DofMapCache for a specified system.
-     */
-    SystemDofMapCache* getDofMapCache(const std::string& system_name);
-
-    /*!
-     * \return The DofMapCache for a specified system.
-     */
-    SystemDofMapCache* getDofMapCache(unsigned int system_num);
 
     /*!
      * \return The level number to which the equations system object managed by
@@ -886,7 +964,7 @@ private:
      *    -   The class version number and restart version number do not match.
      *
      */
-    void getFromRestart();
+    virtual void getFromRestart() override;
 
     /*!
      * Static data members used to control access to and destruction of
@@ -895,14 +973,6 @@ private:
     static std::map<std::string, FEDataManager*> s_data_manager_instances;
     static bool s_registered_callback;
     static unsigned char s_shutdown_priority;
-
-    /*
-     * The object name is used as a handle to databases stored in restart files
-     * and for error reporting purposes.  The boolean is used to control restart
-     * file writing operations.
-     */
-    std::string d_object_name;
-    bool d_registered_for_restart;
 
     /*
      * Whether or not to log data to the screen: see
@@ -983,25 +1053,12 @@ private:
     const SAMRAI::hier::IntVector<NDIM> d_ghost_width;
 
     /*
-     * FE equation system associated with this data manager object.
-     */
-    libMesh::EquationSystems* d_es = nullptr;
-    int d_level_number = IBTK::invalid_level_number;
-    std::map<unsigned int, std::unique_ptr<SystemDofMapCache> > d_system_dof_map_cache;
-
-    /*
      * Data to manage mappings between mesh elements and grid patches.
      */
     std::vector<std::vector<libMesh::Elem*> > d_active_patch_elem_map;
     std::vector<std::vector<libMesh::Node*> > d_active_patch_node_map;
     std::map<std::string, std::vector<unsigned int> > d_active_patch_ghost_dofs;
     std::vector<std::pair<Point, Point> > d_active_elem_bboxes;
-
-    /*
-     * Cache of libMesh quadrature objects. Defaults to being an NDIM cache
-     * but is overwritten once a libMesh::EquationSystems object is attached.
-     */
-    QuadratureCache d_quadrature_cache;
 
     /*
      * Ghost vectors for the various equation systems.
@@ -1014,14 +1071,6 @@ private:
      * buildIBGhostedVector.
      */
     std::map<std::string, std::unique_ptr<libMesh::PetscVector<double> > > d_system_ib_ghost_vec;
-
-    /*
-     * Linear solvers and related data for performing interpolation in the IB-FE
-     * framework.
-     */
-    std::map<std::string, std::unique_ptr<libMesh::LinearSolver<double> > > d_L2_proj_solver;
-    std::map<std::string, std::unique_ptr<libMesh::SparseMatrix<double> > > d_L2_proj_matrix;
-    std::map<std::string, std::unique_ptr<libMesh::NumericVector<double> > > d_L2_proj_matrix_diag;
 };
 } // namespace IBTK
 
