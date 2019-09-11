@@ -223,6 +223,92 @@ get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
 } // get_dirichlet_bdry_ids
 } // namespace
 
+FEData::FEData(std::string object_name, const bool register_for_restart)
+    : d_object_name(std::move(object_name)), d_registered_for_restart(register_for_restart), d_quadrature_cache(NDIM)
+{
+    TBOX_ASSERT(!d_object_name.empty());
+
+    if (d_registered_for_restart)
+    {
+        RestartManager::getManager()->registerRestartItem(d_object_name, this);
+    }
+
+    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    if (from_restart)
+    {
+        FEData::getFromRestart();
+    }
+} // FEData
+
+FEData::~FEData()
+{
+    if (d_registered_for_restart)
+    {
+        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+    }
+} // ~FEData
+
+void
+FEData::getFromRestart()
+{
+    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+
+    Pointer<Database> db;
+    if (restart_db->isDatabase(d_object_name))
+    {
+        db = restart_db->getDatabase(d_object_name);
+    }
+    else
+    {
+        TBOX_ERROR("Restart database corresponding to " << d_object_name << " not found in restart file.");
+    }
+
+    d_level_number = db->getInteger("d_level_number");
+    return;
+} // getFromRestart
+
+void
+FEData::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+{
+    db->putInteger("d_level_number", d_level_number);
+} // putToDatabase
+
+void
+FEData::setEquationSystems(EquationSystems* const equation_systems, const int level_number)
+{
+    d_es = equation_systems;
+    d_level_number = level_number;
+
+    // Now that we have the EquationSystems object we know the dimensionality
+    // of the mesh.
+    d_quadrature_cache = QuadratureCache(d_es->get_mesh().mesh_dimension());
+    return;
+} // setEquationSystems
+
+EquationSystems*
+FEData::getEquationSystems() const
+{
+    return d_es;
+} // getEquationSystems
+
+FEData::SystemDofMapCache*
+FEData::getDofMapCache(const std::string& system_name)
+{
+    TBOX_ASSERT(d_es);
+    return getDofMapCache(d_es->get_system(system_name).number());
+}
+
+FEData::SystemDofMapCache*
+FEData::getDofMapCache(unsigned int system_num)
+{
+    std::unique_ptr<FEData::SystemDofMapCache>& dof_map_cache = d_system_dof_map_cache[system_num];
+    if (dof_map_cache == nullptr)
+    {
+        dof_map_cache.reset(new FEData::SystemDofMapCache(d_es->get_system(system_num)));
+    }
+    return dof_map_cache.get();
+} // getDofMapCache
+
 const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID = 0x100;
 const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID = 0x200;
 const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID = 0x400;
@@ -328,42 +414,6 @@ FEDataManager::getPatchLevels() const
 {
     return std::make_pair(d_coarsest_ln, d_finest_ln + 1);
 } // getPatchLevels
-
-void
-FEDataManager::setEquationSystems(EquationSystems* const equation_systems, const int level_number)
-{
-    d_es = equation_systems;
-    d_level_number = level_number;
-
-    // Now that we have the EquationSystems object we know the dimensionality
-    // of the mesh.
-    d_quadrature_cache = QuadratureCache(d_es->get_mesh().mesh_dimension());
-    return;
-} // setEquationSystems
-
-EquationSystems*
-FEDataManager::getEquationSystems() const
-{
-    return d_es;
-} // getEquationSystems
-
-FEDataManager::SystemDofMapCache*
-FEDataManager::getDofMapCache(const std::string& system_name)
-{
-    TBOX_ASSERT(d_es);
-    return getDofMapCache(d_es->get_system(system_name).number());
-}
-
-FEDataManager::SystemDofMapCache*
-FEDataManager::getDofMapCache(unsigned int system_num)
-{
-    std::unique_ptr<SystemDofMapCache>& dof_map_cache = d_system_dof_map_cache[system_num];
-    if (dof_map_cache == nullptr)
-    {
-        dof_map_cache.reset(new SystemDofMapCache(d_es->get_system(system_num)));
-    }
-    return dof_map_cache.get();
-} // getDofMapCache
 
 int
 FEDataManager::getLevelNumber() const
@@ -702,10 +752,10 @@ FEDataManager::spread(const int f_data_idx,
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
     const DofMap& F_dof_map = F_system.get_dof_map();
-    SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
+    FEData::SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
-    SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+    FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     FEType F_fe_type = F_dof_map.variable_type(0);
     Order F_order = F_dof_map.variable_order(0);
     for (unsigned i = 0; i < n_vars; ++i)
@@ -1023,10 +1073,10 @@ FEDataManager::prolongData(const int f_data_idx,
     const unsigned int n_vars = F_system.n_vars();
     TBOX_ASSERT(n_vars == NDIM); // specialized to side-centered data
     const DofMap& F_dof_map = F_system.get_dof_map();
-    SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
+    FEData::SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
     System& X_system = d_es->get_system(system_name);
     const DofMap& X_dof_map = X_system.get_dof_map();
-    SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+    FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     FEType F_fe_type = F_dof_map.variable_type(0);
     for (unsigned i = 0; i < n_vars; ++i)
     {
@@ -1391,10 +1441,10 @@ FEDataManager::interpWeighted(const int f_data_idx,
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
     const DofMap& F_dof_map = F_system.get_dof_map();
-    SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
+    FEData::SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
-    SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+    FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     FEType F_fe_type = F_dof_map.variable_type(0);
     Order F_order = F_dof_map.variable_order(0);
     for (unsigned i = 0; i < n_vars; ++i)
@@ -1851,10 +1901,10 @@ FEDataManager::restrictData(const int f_data_idx,
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
     const DofMap& F_dof_map = F_system.get_dof_map();
-    SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
+    FEData::SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
-    SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+    FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     FEType F_fe_type = F_dof_map.variable_type(0);
     for (unsigned i = 0; i < n_vars; ++i)
     {
@@ -2058,7 +2108,7 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name)
         System& system = d_es->get_system(system_name);
         const int sys_num = system.number();
         DofMap& dof_map = system.get_dof_map();
-        SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
+        FEData::SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
         dof_map.compute_sparsity(mesh);
         FEType fe_type = dof_map.variable_type(0);
         std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
@@ -2189,7 +2239,7 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
         System& system = d_es->get_system(system_name);
         const int sys_num = system.number();
         DofMap& dof_map = system.get_dof_map();
-        SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
+        FEData::SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
         dof_map.compute_sparsity(mesh);
         FEType fe_type = dof_map.variable_type(0);
         std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
@@ -2513,7 +2563,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         // Extract the FE system and DOF map, and setup the FE object.
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
-        SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+        FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
         FEType fe_type = X_dof_map.variable_type(0);
         for (unsigned d = 0; d < NDIM; ++d)
         {
@@ -2630,6 +2680,7 @@ void
 FEDataManager::putToDatabase(Pointer<Database> db)
 {
     IBTK_TIMER_START(t_put_to_database);
+    FEData::putToDatabase(db);
 
     TBOX_ASSERT(db);
     db->putInteger("FE_DATA_MANAGER_VERSION", FE_DATA_MANAGER_VERSION);
@@ -2648,22 +2699,13 @@ FEDataManager::FEDataManager(std::string object_name,
                              FEDataManager::WorkloadSpec default_workload_spec,
                              IntVector<NDIM> ghost_width,
                              bool register_for_restart)
-    : d_object_name(std::move(object_name)),
-      d_registered_for_restart(register_for_restart),
+    : FEData(std::move(object_name), register_for_restart),
       d_default_workload_spec(default_workload_spec),
       d_default_interp_spec(default_interp_spec),
       d_default_spread_spec(default_spread_spec),
-      d_ghost_width(std::move(ghost_width)),
-      d_quadrature_cache(NDIM)
+      d_ghost_width(std::move(ghost_width))
 {
-    TBOX_ASSERT(!d_object_name.empty());
-
-    if (d_registered_for_restart)
-    {
-        RestartManager::getManager()->registerRestartItem(d_object_name, this);
-    }
-
-    bool from_restart = RestartManager::getManager()->isFromRestart();
+    const bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart)
     {
         getFromRestart();
@@ -2742,7 +2784,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         // Extract the FE system and DOF map, and setup the FE object.
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
-        SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+        FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
         FEType fe_type = X_dof_map.variable_type(0);
         for (unsigned d = 0; d < NDIM; ++d)
         {
@@ -2935,7 +2977,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     const unsigned int dim = mesh.mesh_dimension();
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
-    SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+    FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     FEType fe_type = X_dof_map.variable_type(0);
     for (unsigned d = 0; d < NDIM; ++d)
     {
