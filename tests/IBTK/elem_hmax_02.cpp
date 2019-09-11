@@ -101,22 +101,36 @@ main(int argc, char** argv)
             log_max_edge_length(mesh);
         }
 
+        // like the last test, but wobble the triangulation a bit so that the
+        // edges are not all straight lines
         {
-            plog << std::endl << "Test 2: pyramid5" << std::endl;
+            plog << std::endl << "Test 2: tet10" << std::endl;
+            ReplicatedMesh mesh(init.comm(), 3);
+            MeshTools::Generation::build_cube(mesh, 2, 3, 3, 0.0, 0.7, 0.1, 0.9, 1.0, 2.0, TET10);
+            for (std::size_t node_n = 0; node_n < mesh.n_nodes(); ++node_n)
+            {
+                const double y = (*mesh.node_ptr(node_n))(1);
+                (*mesh.node_ptr(node_n))(0) += 2 * y * (1 - y);
+            }
+            log_max_edge_length(mesh);
+        }
+
+        {
+            plog << std::endl << "Test 3: pyramid5" << std::endl;
             ReplicatedMesh mesh(init.comm(), 3);
             MeshTools::Generation::build_cube(mesh, 2, 3, 3, 0.0, 0.7, 0.1, 0.9, 1.0, 2.0, PYRAMID5);
             log_max_edge_length(mesh);
         }
 
         {
-            plog << std::endl << "Test 3: hex8" << std::endl;
+            plog << std::endl << "Test 4: hex8" << std::endl;
             ReplicatedMesh mesh(init.comm(), 3);
             MeshTools::Generation::build_sphere(mesh, radius, n_refinements, HEX8);
             log_max_edge_length(mesh);
         }
 
         {
-            plog << std::endl << "Test 4: hex27" << std::endl;
+            plog << std::endl << "Test 5: hex27" << std::endl;
             ReplicatedMesh mesh(init.comm(), 3);
             MeshTools::Generation::build_sphere(mesh, radius, n_refinements, HEX27);
             log_max_edge_length(mesh);

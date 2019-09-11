@@ -1142,7 +1142,10 @@ get_nodal_dof_indices(const libMesh::DofMap& dof_map,
 }
 
 /**
- * Return the maximum edge length of a given element with mapped nodes.
+ * Return the maximum edge length of a given element with mapped nodes. If the
+ * edges of the mapped element are not straight lines (i.e., a Tet10 element
+ * subject to some nonlinear deformation) then the edge length is approximated
+ * as the sum of the lengths of the line segments.
  *
  * @param[in] elem The given libMesh element.
  *
@@ -1163,7 +1166,6 @@ get_max_edge_length(const libMesh::Elem* const elem, const MultiArray& X_node)
 #endif
     const libMesh::ElemType elem_type = elem->type();
 
-    double max_edge_length_2 = 0.0;
     // TODO: implement additional element-specific versions as needed.
     switch (elem_type)
     {
@@ -1171,6 +1173,7 @@ get_max_edge_length(const libMesh::Elem* const elem, const MultiArray& X_node)
     {
         // all nodes are connected to all other nodes
         constexpr unsigned int edge_pairs[6][2] = { { 0, 1 }, { 0, 2 }, { 0, 3 }, { 1, 2 }, { 1, 3 }, { 2, 3 } };
+        double max_edge_length_2 = 0.0;
         for (const unsigned int(&pair)[2] : edge_pairs)
         {
             const unsigned int n1 = pair[0];
@@ -1180,13 +1183,14 @@ get_max_edge_length(const libMesh::Elem* const elem, const MultiArray& X_node)
                 diff_sq += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
             max_edge_length_2 = std::max(max_edge_length_2, diff_sq);
         }
-        break;
+        return std::sqrt(max_edge_length_2);
     }
     case libMesh::HEX8:
     {
         // see the connectivity diagram in cell_hex8.h to see why these are the edges
         constexpr unsigned int edge_pairs[12][2] = { { 0, 1 }, { 0, 3 }, { 0, 4 }, { 1, 2 }, { 1, 5 }, { 2, 3 },
                                                      { 2, 6 }, { 3, 7 }, { 4, 5 }, { 4, 7 }, { 5, 6 }, { 6, 7 } };
+        double max_edge_length_2 = 0.0;
         for (const unsigned int(&pair)[2] : edge_pairs)
         {
             const unsigned int n1 = pair[0];
@@ -1196,18 +1200,84 @@ get_max_edge_length(const libMesh::Elem* const elem, const MultiArray& X_node)
                 diff_sq += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
             max_edge_length_2 = std::max(max_edge_length_2, diff_sq);
         }
-        break;
+        return std::sqrt(max_edge_length_2);
+    }
+    case libMesh::TET10:
+    {
+        // see the connectivity diagram in cell_tet10.h to see why these are the edges
+        constexpr unsigned int edge_triples[6][3] = { { 0, 4, 1 }, { 0, 6, 2 }, { 0, 7, 3 },
+                                                      { 1, 5, 2 }, { 1, 8, 3 }, { 2, 9, 3 } };
+        double max_edge_length = 0.0;
+        for (const unsigned int(&triple)[3] : edge_triples)
+        {
+            const unsigned int n1 = triple[0];
+            const unsigned int n2 = triple[1];
+            const unsigned int n3 = triple[2];
+            double segment_1_length_2 = 0.0;
+            double segment_2_length_2 = 0.0;
+            for (unsigned int d = 0; d < 3; ++d) // TET10 implies 3D
+            {
+                segment_1_length_2 += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
+                segment_2_length_2 += (X_node[n2][d] - X_node[n3][d]) * (X_node[n2][d] - X_node[n3][d]);
+            }
+            max_edge_length = std::max(max_edge_length, std::sqrt(segment_1_length_2) + std::sqrt(segment_2_length_2));
+        }
+        return max_edge_length;
+    }
+    case libMesh::HEX27:
+    {
+        // see the connectivity diagram in cell_hex27.h to see why these are the edges
+        constexpr unsigned int edge_triples[12][3] = { { 0, 8, 1 },  { 0, 11, 3 }, { 0, 12, 4 }, { 1, 9, 2 },
+                                                       { 1, 13, 5 }, { 2, 10, 3 }, { 2, 14, 6 }, { 3, 15, 7 },
+                                                       { 4, 16, 5 }, { 4, 19, 7 }, { 5, 17, 6 }, { 6, 18, 7 } };
+        double max_edge_length = 0.0;
+        for (const unsigned int(&triple)[3] : edge_triples)
+        {
+            const unsigned int n1 = triple[0];
+            const unsigned int n2 = triple[1];
+            const unsigned int n3 = triple[2];
+            double segment_1_length = 0.0;
+            double segment_2_length = 0.0;
+            for (unsigned int d = 0; d < 3; ++d) // HEX27 implies 3D
+            {
+                segment_1_length += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
+                segment_2_length += (X_node[n2][d] - X_node[n3][d]) * (X_node[n2][d] - X_node[n3][d]);
+            }
+            max_edge_length = std::max(max_edge_length, std::sqrt(segment_1_length) + std::sqrt(segment_2_length));
+        }
+        return max_edge_length;
     }
     default:
+    {
         // Use the old algorithm in all other cases
+        double max_edge_length_2 = 0.0;
+        const unsigned int n_vertices = elem->n_vertices();
+        if (elem->dim() == 1)
         {
-            const unsigned int n_vertices = elem->n_vertices();
-            if (elem->dim() == 1)
+            for (unsigned int n1 = 0; n1 < n_vertices; ++n1)
+            {
+                for (unsigned int n2 = n1 + 1; n2 < n_vertices; ++n2)
+                {
+                    double diff_sq = 0.0;
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        diff_sq += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
+                    }
+                    max_edge_length_2 = std::max(max_edge_length_2, diff_sq);
+                }
+            }
+        }
+        else
+        {
+            const unsigned int n_edges = elem->n_edges();
+            for (unsigned int e = 0; e < n_edges; ++e)
             {
                 for (unsigned int n1 = 0; n1 < n_vertices; ++n1)
                 {
+                    if (!elem->is_node_on_edge(n1, e)) continue;
                     for (unsigned int n2 = n1 + 1; n2 < n_vertices; ++n2)
                     {
+                        if (!elem->is_node_on_edge(n2, e)) continue;
                         double diff_sq = 0.0;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
@@ -1217,31 +1287,15 @@ get_max_edge_length(const libMesh::Elem* const elem, const MultiArray& X_node)
                     }
                 }
             }
-            else
-            {
-                const unsigned int n_edges = elem->n_edges();
-                for (unsigned int e = 0; e < n_edges; ++e)
-                {
-                    for (unsigned int n1 = 0; n1 < n_vertices; ++n1)
-                    {
-                        if (!elem->is_node_on_edge(n1, e)) continue;
-                        for (unsigned int n2 = n1 + 1; n2 < n_vertices; ++n2)
-                        {
-                            if (!elem->is_node_on_edge(n2, e)) continue;
-                            double diff_sq = 0.0;
-                            for (unsigned int d = 0; d < NDIM; ++d)
-                            {
-                                diff_sq += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
-                            }
-                            max_edge_length_2 = std::max(max_edge_length_2, diff_sq);
-                        }
-                    }
-                }
-            }
         }
+        return std::sqrt(max_edge_length_2);
+    }
     }
 
-    return std::sqrt(max_edge_length_2);
+    TBOX_ERROR("get_max_edge_length():"
+               << "  element type " << libMesh::Utility::enum_to_string<libMesh::ElemType>(elem->type())
+               << " is not supported at this time.\n");
+    return 0.0;
 }
 
 /*!
