@@ -115,43 +115,43 @@ protected:
     /**
      * Dimension of the FE mesh.
      */
-    const unsigned int dim;
+    const unsigned int d_dim;
 
     /**
      * Object describing the finite element type.
      */
-    const libMesh::FEType fe_type;
+    const libMesh::FEType d_fe_type;
 
     /**
      * Managed libMesh::Quadrature objects. These are attached to the FE
      * objects.
      */
-    QuadratureCache quadrature_cache;
+    QuadratureCache d_quadrature_cache;
 
     /**
      * Managed libMesh::FE objects of specified dimension and family.
      */
-    std::map<key_type, std::unique_ptr<libMesh::FEBase> > fes;
+    std::map<key_type, std::unique_ptr<libMesh::FEBase> > d_fes;
 };
 
 inline FECache::FECache(const unsigned int dim, const libMesh::FEType& fe_type)
-    : dim(dim), fe_type(fe_type), quadrature_cache(dim)
+    : d_dim(dim), d_fe_type(fe_type), d_quadrature_cache(d_dim)
 {
 }
 
 inline libMesh::FEType
 FECache::getFEType() const
 {
-    return fe_type;
+    return d_fe_type;
 }
 
 inline FECache::value_type& FECache::operator[](const FECache::key_type& quad_key)
 {
-    auto it = fes.find(quad_key);
-    if (it == fes.end())
+    auto it = d_fes.find(quad_key);
+    if (it == d_fes.end())
     {
-        libMesh::QBase& quad = quadrature_cache[quad_key];
-        libMesh::FEBase& fe = *(*fes.emplace(quad_key, libMesh::FEBase::build(dim, fe_type)).first).second;
+        libMesh::QBase& quad = d_quadrature_cache[quad_key];
+        libMesh::FEBase& fe = *(*d_fes.emplace(quad_key, libMesh::FEBase::build(d_dim, d_fe_type)).first).second;
 
         fe.attach_quadrature_rule(&quad);
         return fe;
