@@ -165,11 +165,6 @@ static_assert(std::is_same<libMesh::UniquePtr<int>, std::unique_ptr<int>>::value
 dnl
 dnl 6. Check bundled libMesh components:
 dnl
-  AC_LIB_HAVE_LINKFLAGS([netcdf])
-  if test "$HAVE_LIBNETCDF" = yes ; then
-    LIBMESH_LIBS="$LIBMESH_LIBS $LIBNETCDF"
-  fi
-
   if test -e "$LIBMESH_DIR/include/Eigen" ; then
     AC_MSG_NOTICE([using Eigen library bundled with libMesh])
     with_eigen="$LIBMESH_DIR"
