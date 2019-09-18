@@ -301,11 +301,11 @@ FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
     d_dphi_face.resize(num_fe_types, nullptr);
     for (unsigned int fe_type_idx = 0; fe_type_idx < num_fe_types; ++fe_type_idx)
     {
-        Pointer<FEBase>& fe = d_fe[fe_type_idx];
+        std::unique_ptr<FEBase>& fe = d_fe[fe_type_idx];
         if (!fe)
         {
             const FEType& fe_type = d_fe_types[fe_type_idx];
-            fe = FEBase::build(d_dim, fe_type).release();
+            fe = FEBase::build(d_dim, fe_type);
             if (d_qrule) fe->attach_quadrature_rule(d_qrule);
             if (d_eval_q_point && !d_q_point) d_q_point = &fe->get_xyz();
             if (d_eval_JxW && !d_JxW) d_JxW = &fe->get_JxW();
@@ -313,11 +313,11 @@ FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
             if (d_eval_dphi[fe_type_idx]) d_dphi[fe_type_idx] = &fe->get_dphi();
         }
 
-        Pointer<FEBase>& fe_face = d_fe_face[fe_type_idx];
+        std::unique_ptr<FEBase>& fe_face = d_fe_face[fe_type_idx];
         if (!fe_face)
         {
             const FEType& fe_type = d_fe_types[fe_type_idx];
-            fe_face = FEBase::build(d_dim, fe_type).release();
+            fe_face = FEBase::build(d_dim, fe_type);
             if (d_qrule_face) fe_face->attach_quadrature_rule(d_qrule_face);
             if (d_eval_q_point_face && !d_q_point_face) d_q_point_face = &fe_face->get_xyz();
             if (d_eval_JxW_face && !d_JxW_face) d_JxW_face = &fe_face->get_JxW();
@@ -344,7 +344,7 @@ FEDataInterpolation::reinit(const Elem* elem,
         const size_t num_fe_types = d_fe_types.size();
         for (unsigned int fe_type_idx = 0; fe_type_idx < num_fe_types; ++fe_type_idx)
         {
-            Pointer<FEBase>& fe = d_fe[fe_type_idx];
+            std::unique_ptr<FEBase>& fe = d_fe[fe_type_idx];
             fe->reinit(elem, points, weights);
         }
     }
@@ -367,7 +367,7 @@ FEDataInterpolation::reinit(const Elem* const elem,
         const size_t num_fe_types = d_fe_types.size();
         for (unsigned int fe_type_idx = 0; fe_type_idx < num_fe_types; ++fe_type_idx)
         {
-            Pointer<FEBase>& fe_face = d_fe_face[fe_type_idx];
+            std::unique_ptr<FEBase>& fe_face = d_fe_face[fe_type_idx];
             fe_face->reinit(elem, side, tol, points, weights);
         }
     }
