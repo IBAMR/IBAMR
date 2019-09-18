@@ -568,7 +568,7 @@ FEDataManager::buildIBGhostedVector(const std::string& system_name) const
     const std::unique_ptr<PetscVector<double> >& exemplar_ib_vector = d_system_ib_ghost_vec.at(system_name);
     TBOX_ASSERT(exemplar_ib_vector);
     std::unique_ptr<NumericVector<double> > clone = exemplar_ib_vector->zero_clone();
-    PetscVector<double>* ptr = dynamic_cast<PetscVector<double>*>(clone.release());
+    auto ptr = dynamic_cast<PetscVector<double>*>(clone.release());
     TBOX_ASSERT(ptr);
     return std::unique_ptr<PetscVector<double> >(ptr);
 }
