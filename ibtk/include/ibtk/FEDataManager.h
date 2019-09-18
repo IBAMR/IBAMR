@@ -76,6 +76,7 @@ IBTK_ENABLE_EXTRA_WARNINGS
 
 namespace IBTK
 {
+class FEDataManager;
 class RobinPhysBdryPatchStrategy;
 } // namespace IBTK
 
@@ -242,6 +243,11 @@ protected:
     std::map<std::string, std::unique_ptr<libMesh::LinearSolver<double> > > d_L2_proj_solver;
     std::map<std::string, std::unique_ptr<libMesh::SparseMatrix<double> > > d_L2_proj_matrix;
     std::map<std::string, std::unique_ptr<libMesh::NumericVector<double> > > d_L2_proj_matrix_diag;
+
+    /**
+     * Permit FEDataManager to directly examine the internals of this class.
+     */
+    friend class FEDataManager;
 };
 
 /*!
@@ -264,7 +270,7 @@ protected:
  *
  * \note Multiple FEDataManager objects may be instantiated simultaneously.
  */
-class FEDataManager : public FEData, public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+class FEDataManager : public SAMRAI::tbox::Serializable, public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
 {
 public:
     /*!
@@ -405,6 +411,37 @@ public:
                bool register_for_restart = true);
 
     /*!
+     * Deallocate all of the FEDataManager instances.
+     *
+     * It is not necessary to call this function at program termination since it
+     * is automatically called by the ShutdownRegistry class.
+     */
+    static void freeAllManagers();
+
+    /*!
+     * \brief Set the equations systems object that is associated with the
+     * FEData object. Currently, each set of equation systems must be assigned
+     * to a particular level of the AMR grid.
+     */
+    void setEquationSystems(libMesh::EquationSystems* equation_systems, int level_number);
+
+    /*!
+     * \return A pointer to the equations systems object that is associated with
+     * the FEData object.
+     */
+    libMesh::EquationSystems* getEquationSystems() const;
+
+    /*!
+     * \return The DofMapCache for a specified system.
+     */
+    SystemDofMapCache* getDofMapCache(const std::string& system_name);
+
+    /*!
+     * \return The DofMapCache for a specified system.
+     */
+    SystemDofMapCache* getDofMapCache(unsigned int system_num);
+
+    /*!
      * \brief Enable or disable logging.
      *
      * @note This is usually set by the IBFEMethod which owns the current
@@ -416,14 +453,6 @@ public:
      * \brief Determine whether logging is enabled or disabled.
      */
     bool getLoggingEnabled() const;
-
-    /*!
-     * Deallocate all of the FEDataManager instances.
-     *
-     * It is not necessary to call this function at program termination since it
-     * is automatically called by the ShutdownRegistry class.
-     */
-    static void freeAllManagers();
 
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
@@ -869,6 +898,14 @@ public:
 
 protected:
     /*!
+     * FEData object that contains the libMesh data structures.
+     *
+     * @note multiple FEDataManager objects may use the same FEData object,
+     * usually combined with different hierarchies.
+     */
+    std::shared_ptr<FEData> d_fe_data;
+
+    /*!
      * \brief Constructor.
      */
     FEDataManager(std::string object_name,
@@ -964,7 +1001,7 @@ private:
      *    -   The class version number and restart version number do not match.
      *
      */
-    virtual void getFromRestart() override;
+    virtual void getFromRestart();
 
     /*!
      * Static data members used to control access to and destruction of
@@ -973,6 +1010,14 @@ private:
     static std::map<std::string, FEDataManager*> s_data_manager_instances;
     static bool s_registered_callback;
     static unsigned char s_shutdown_priority;
+
+    /*
+     * The object name is used as a handle to databases stored in restart files
+     * and for error reporting purposes.  The boolean is used to control restart
+     * file writing operations.
+     */
+    std::string d_object_name;
+    bool d_registered_for_restart;
 
     /*
      * Whether or not to log data to the screen: see
