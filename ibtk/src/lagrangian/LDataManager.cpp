@@ -432,12 +432,6 @@ LDataManager::spread(const int f_data_idx,
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
 
-    // Zero inactivated components.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        zeroInactivatedComponents(F_data[ln], ln);
-    }
-
     // Compute F*ds.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -590,6 +584,12 @@ LDataManager::spread(const int f_data_idx,
 
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
+
+    // Zero inactivated components.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        zeroInactivatedComponents(F_data[ln], ln);
+    }
 
     // Determine the type of data centering.
     auto var_db = VariableDatabase<NDIM>::getDatabase();
