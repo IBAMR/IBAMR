@@ -58,7 +58,7 @@ class FEDataInterpolation
 public:
     FEDataInterpolation(unsigned int dim, FEDataManager* const fe_data_manager);
 
-    ~FEDataInterpolation();
+    ~FEDataInterpolation() = default;
 
     inline void attachQuadratureRule(libMesh::QBase* qrule)
     {

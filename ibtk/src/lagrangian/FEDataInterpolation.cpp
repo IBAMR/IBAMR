@@ -49,11 +49,6 @@ FEDataInterpolation::FEDataInterpolation(const unsigned int dim, FEDataManager* 
     return;
 }
 
-FEDataInterpolation::~FEDataInterpolation()
-{
-    return;
-}
-
 void
 FEDataInterpolation::registerSystem(const System& system,
                                     const std::vector<int>& phi_vars,
