@@ -336,10 +336,8 @@ FEDataInterpolation::reinit(const Elem* elem,
     d_current_elem = elem;
     if (d_qrule || points)
     {
-        const size_t num_fe_types = d_fe_types.size();
-        for (unsigned int fe_type_idx = 0; fe_type_idx < num_fe_types; ++fe_type_idx)
+        for (const auto& fe : d_fe)
         {
-            std::unique_ptr<FEBase>& fe = d_fe[fe_type_idx];
             fe->reinit(elem, points, weights);
         }
     }
@@ -359,10 +357,8 @@ FEDataInterpolation::reinit(const Elem* const elem,
     d_current_side = side;
     if (d_qrule_face || points)
     {
-        const size_t num_fe_types = d_fe_types.size();
-        for (unsigned int fe_type_idx = 0; fe_type_idx < num_fe_types; ++fe_type_idx)
+        for (const auto& fe_face : d_fe_face)
         {
-            std::unique_ptr<FEBase>& fe_face = d_fe_face[fe_type_idx];
             fe_face->reinit(elem, side, tol, points, weights);
         }
     }
