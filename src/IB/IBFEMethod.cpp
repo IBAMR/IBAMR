@@ -519,217 +519,6 @@ IBFEMethod::getLagBodySourceFunction(unsigned int part) const
 } // getLagBodySourceFunction
 
 void
-IBFEMethod::registerOverlappingVelocityReset(const unsigned int part1, const unsigned int part2)
-{
-    TBOX_ASSERT(part1 < d_num_parts);
-    TBOX_ASSERT(part2 < d_num_parts);
-
-    // Check to see if we have already registered this part.
-    if (d_is_overlap_velocity_part[part1])
-    {
-        TBOX_ERROR("IBFEMethod::registerOverlappingVelocityReset(): already registered part " << part1 << "\n");
-    }
-
-    d_has_overlap_velocity_parts = true;
-    d_is_overlap_velocity_part[part1] = true;
-    d_overlap_velocity_master_part[part1] = part2;
-    d_is_overlap_velocity_master_part[part2] = true;
-
-    std::array<unsigned int, 2> part_idx;
-    part_idx[0] = part1;
-    part_idx[1] = part2;
-
-    // Set up basic data structures.
-    std::array<EquationSystems*, 2> es;
-    std::array<MeshBase*, 2> mesh;
-    std::array<const DofMap*, 2> U_dof_map, X_dof_map;
-    std::array<std::unique_ptr<PointLocatorBase>, 2> ploc;
-    std::array<numeric_index_type, 2> first_local_idx, last_local_idx;
-    for (int k = 0; k < 2; ++k)
-    {
-        es[k] = d_fe_data_managers[part_idx[k]]->getEquationSystems();
-        auto& U_system = es[k]->get_system<System>(VELOCITY_SYSTEM_NAME);
-        U_dof_map[k] = &U_system.get_dof_map();
-        NumericVector<double>& U_vec = *U_system.solution;
-        auto& X_system = es[k]->get_system<System>(COORDS_SYSTEM_NAME);
-        X_dof_map[k] = &X_system.get_dof_map();
-        NumericVector<double>& X_vec = *X_system.solution;
-        TBOX_ASSERT(U_vec.first_local_index() == X_vec.first_local_index());
-        TBOX_ASSERT(U_vec.last_local_index() == X_vec.last_local_index());
-        first_local_idx[k] = U_vec.first_local_index();
-        last_local_idx[k] = U_vec.last_local_index();
-        FEType fe_type = U_dof_map[k]->variable_type(0);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            TBOX_ASSERT(fe_type == U_dof_map[k]->variable_type(d));
-            TBOX_ASSERT(fe_type == X_dof_map[k]->variable_type(d));
-        }
-        mesh[k] = &es[k]->get_mesh();
-        ploc[k] = PointLocatorBase::build(TREE_ELEMENTS, *mesh[k]);
-        ploc[k]->enable_out_of_mesh_mode();
-        if (d_overlap_tolerance > 0.0) ploc[k]->set_close_to_point_tol(d_overlap_tolerance);
-    }
-
-    // Find the elements of part2 that contain nodes of part1.
-    std::array<std::vector<std::vector<unsigned int> >, 2> U_dof_indices;
-    for (int k = 0; k < 2; ++k)
-    {
-        U_dof_indices[k].resize(NDIM);
-    }
-    const unsigned int k_slave = 0;
-    const unsigned int k_master = 1;
-    std::map<dof_id_type, dof_id_type>& node_to_elem_map = d_overlap_velocity_part_node_to_elem_map[part_idx[k_slave]];
-    MeshBase::node_iterator n = mesh[k_slave]->local_nodes_begin();
-    const MeshBase::node_iterator end_n = mesh[k_slave]->local_nodes_end();
-    for (; n != end_n; ++n)
-    {
-        const Node* const node = *n;
-        const libMesh::Point& X = *node;
-        const Elem* const other_elem = (*ploc[k_master])(X);
-        if (other_elem)
-        {
-            node_to_elem_map[node->id()] = other_elem->id();
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                U_dof_map[k_master]->dof_indices(other_elem, U_dof_indices[k_master][d], d);
-                for (const auto& idx : U_dof_indices[k_master][d])
-                {
-                    if (idx < first_local_idx[k_master] || idx >= last_local_idx[k_master])
-                    {
-                        d_overlap_velocity_part_ghost_idxs[part_idx[k_master]].insert(idx);
-                    }
-                }
-            }
-        }
-    }
-    return;
-}
-
-void
-IBFEMethod::registerOverlappingForceConstraint(const unsigned int part1,
-                                               const unsigned int part2,
-                                               const double kappa,
-                                               QBase* qrule1,
-                                               QBase* qrule2)
-{
-    TBOX_ASSERT(part1 < d_num_parts);
-    TBOX_ASSERT(part2 < d_num_parts);
-
-    d_has_overlap_force_parts = true;
-    d_is_overlap_force_part[part1] = true;
-    d_is_overlap_force_part[part2] = true;
-
-    // Double-check that this pair of parts hasn't already been registered.
-    unsigned int n_pairs = d_overlap_force_part_idxs.size();
-    for (unsigned int k = 0; k < n_pairs; ++k)
-    {
-        if ((d_overlap_force_part_idxs[k][0] == part1 && d_overlap_force_part_idxs[k][1] == part2) ||
-            (d_overlap_force_part_idxs[k][0] == part2 && d_overlap_force_part_idxs[k][1] == part1))
-            return;
-    }
-
-    // Set up basic data structures.
-    n_pairs += 1;
-    d_overlap_force_part_idxs.resize(n_pairs);
-    std::array<unsigned int, 2>& part_idx = d_overlap_force_part_idxs.back();
-    part_idx[0] = part1;
-    part_idx[1] = part2;
-    d_overlapping_elem_map.resize(n_pairs);
-    std::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2>& elem_map =
-        d_overlapping_elem_map.back();
-    d_overlap_force_part_kappa.push_back(kappa);
-    d_overlap_force_part_qrule.resize(n_pairs);
-    std::array<QBase*, 2>& qrule = d_overlap_force_part_qrule.back();
-    qrule[0] = qrule1;
-    qrule[1] = qrule2;
-
-    std::array<EquationSystems*, 2> es;
-    std::array<MeshBase*, 2> mesh;
-    std::array<const DofMap*, 2> F_dof_map, X_dof_map;
-    std::array<std::unique_ptr<FEBase>, 2> fe;
-    std::array<std::unique_ptr<PointLocatorBase>, 2> ploc;
-    std::array<numeric_index_type, 2> first_local_idx, last_local_idx;
-    for (int k = 0; k < 2; ++k)
-    {
-        es[k] = d_fe_data_managers[part_idx[k]]->getEquationSystems();
-        auto& F_system = es[k]->get_system<System>(FORCE_SYSTEM_NAME);
-        auto& X_system = es[k]->get_system<System>(COORDS_SYSTEM_NAME);
-        F_dof_map[k] = &F_system.get_dof_map();
-        X_dof_map[k] = &X_system.get_dof_map();
-        NumericVector<double>& X_vec = *X_system.solution;
-        first_local_idx[k] = X_vec.first_local_index();
-        last_local_idx[k] = X_vec.last_local_index();
-        FEType fe_type = F_dof_map[k]->variable_type(0);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            TBOX_ASSERT(fe_type == F_dof_map[k]->variable_type(d));
-            TBOX_ASSERT(fe_type == X_dof_map[k]->variable_type(d));
-        }
-        mesh[k] = &es[k]->get_mesh();
-        if (!qrule[k])
-        {
-            // \todo try to fix this when we update to C++11!
-            qrule[k] = QBase::build(QGRID, mesh[k]->mesh_dimension(), FOURTH).release();
-        }
-        fe[k] = FEBase::build(mesh[k]->mesh_dimension(), fe_type);
-        fe[k]->attach_quadrature_rule(qrule[k]);
-        fe[k]->get_xyz();
-        ploc[k] = PointLocatorBase::build(TREE_ELEMENTS, *mesh[k]);
-        ploc[k]->enable_out_of_mesh_mode();
-        if (d_overlap_tolerance > 0.0) ploc[k]->set_close_to_point_tol(d_overlap_tolerance);
-    }
-
-    // Find quadrature points that overlap with the other part.
-    std::array<std::vector<std::vector<unsigned int> >, 2> X_dof_indices;
-    for (int k = 0; k < 2; ++k)
-    {
-        X_dof_indices[k].resize(NDIM);
-    }
-    for (int k = 0; k < 2; ++k)
-    {
-        const int k_next = (k + 1) % 2;
-        const std::vector<libMesh::Point>& q_point = fe[k]->get_xyz();
-        MeshBase::const_element_iterator el = mesh[k]->active_local_elements_begin();
-        const MeshBase::const_element_iterator end_el = mesh[k]->active_local_elements_end();
-        for (; el != end_el; ++el)
-        {
-            const Elem* const elem = *el;
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                X_dof_map[k]->dof_indices(elem, X_dof_indices[k][d], d);
-                for (const auto& idx : X_dof_indices[k][d])
-                {
-                    if (idx < first_local_idx[k] || idx >= last_local_idx[k])
-                    {
-                        d_overlap_force_part_ghost_idxs[part_idx[k]].insert(idx);
-                    }
-                }
-            }
-            fe[k]->reinit(elem);
-            for (unsigned int qp = 0; qp < qrule[k]->n_points(); qp++)
-            {
-                const Elem* const other_elem = (*ploc[k_next])(q_point[qp]);
-                if (other_elem)
-                {
-                    elem_map[k][elem->id()][qp] = other_elem->id();
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        X_dof_map[k_next]->dof_indices(other_elem, X_dof_indices[k_next][d], d);
-                        for (const auto& idx : X_dof_indices[k_next][d])
-                        {
-                            if (idx < first_local_idx[k_next] || idx >= last_local_idx[k_next])
-                            {
-                                d_overlap_force_part_ghost_idxs[part_idx[k_next]].insert(idx);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-void
 IBFEMethod::registerDirectForcingKinematics(Pointer<IBFEDirectForcingKinematics> data, unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
@@ -1020,12 +809,6 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                                       /*close_F*/ false);
         *U_vecs[part] = *d_U_systems[part]->solution;
     }
-
-    // Account for any velocity constraints.
-    if (d_has_overlap_velocity_parts)
-    {
-        resetOverlapNodalValues(VELOCITY_SYSTEM_NAME, U_vecs);
-    }
     return;
 } // interpolateVelocity
 
@@ -1047,13 +830,6 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
                 current_time, new_time, *d_X_current_vecs[part], *d_X_half_vecs[part], *d_X_new_vecs[part]);
         }
     }
-
-    // Account for any velocity constraints.
-    if (d_has_overlap_velocity_parts)
-    {
-        resetOverlapNodalValues(COORDS_SYSTEM_NAME, d_X_half_vecs);
-        resetOverlapNodalValues(COORDS_SYSTEM_NAME, d_X_new_vecs);
-    }
     return;
 } // eulerStep
 
@@ -1074,13 +850,6 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
             d_direct_forcing_kinematics_data[part]->midpointStep(
                 current_time, new_time, *d_X_current_vecs[part], *d_X_half_vecs[part], *d_X_new_vecs[part]);
         }
-    }
-
-    // Account for any velocity constraints.
-    if (d_has_overlap_velocity_parts)
-    {
-        resetOverlapNodalValues(COORDS_SYSTEM_NAME, d_X_half_vecs);
-        resetOverlapNodalValues(COORDS_SYSTEM_NAME, d_X_new_vecs);
     }
     return;
 } // midpointStep
@@ -1105,13 +874,6 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
             d_direct_forcing_kinematics_data[part]->trapezoidalStep(
                 current_time, new_time, *d_X_current_vecs[part], *d_X_half_vecs[part], *d_X_new_vecs[part]);
         }
-    }
-
-    // Account for any velocity constraints.
-    if (d_has_overlap_velocity_parts)
-    {
-        resetOverlapNodalValues(COORDS_SYSTEM_NAME, d_X_half_vecs);
-        resetOverlapNodalValues(COORDS_SYSTEM_NAME, d_X_new_vecs);
     }
     return;
 } // trapezoidalStep
@@ -1151,29 +913,6 @@ IBFEMethod::computeLagrangianForce(const double data_time)
             int ierr = VecAXPY(d_F_half_vecs[part]->vec(), 1.0, d_F_tmp_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
         }
-    }
-    if (d_has_overlap_force_parts)
-    {
-        std::vector<std::unique_ptr<libMesh::PetscVector<double> > > X_half_ghost_vecs(d_X_half_vecs.size());
-        for (unsigned int k = 0; k < d_X_half_vecs.size(); ++k)
-        {
-            if (d_is_overlap_force_part[k])
-            {
-                PetscVector<double>* X_half_vec = d_X_half_vecs[k];
-                std::vector<numeric_index_type> ghost_idxs(d_overlap_force_part_ghost_idxs[k].begin(),
-                                                           d_overlap_force_part_ghost_idxs[k].end());
-                X_half_ghost_vecs[k] = std::unique_ptr<libMesh::PetscVector<double> >(new libMesh::PetscVector<double>(
-                    X_half_vec->comm(), X_half_vec->size(), X_half_vec->local_size(), ghost_idxs));
-                *X_half_ghost_vecs[k] = *X_half_vec;
-                X_half_ghost_vecs[k]->close();
-            }
-        }
-        std::vector<libMesh::PetscVector<double>*> vec_pointers;
-        for (std::unique_ptr<libMesh::PetscVector<double> >& vec : X_half_ghost_vecs)
-        {
-            vec_pointers.push_back(vec.get());
-        }
-        computeOverlapConstraintForceDensity(d_F_half_vecs, vec_pointers);
     }
     return;
 } // computeLagrangianForce
@@ -2569,261 +2308,6 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
 } // assembleInteriorForceDensityRHS
 
 void
-IBFEMethod::resetOverlapNodalValues(const std::string& system_name, const std::vector<NumericVector<double>*>& F_vecs)
-{
-    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > F_ghost_vecs(d_num_parts);
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        if (d_is_overlap_velocity_master_part[part])
-        {
-            std::vector<numeric_index_type> ghost_idxs(d_overlap_velocity_part_ghost_idxs[part].begin(),
-                                                       d_overlap_velocity_part_ghost_idxs[part].end());
-            F_ghost_vecs[part] = std::unique_ptr<libMesh::PetscVector<double> >(new libMesh::PetscVector<double>(
-                F_vecs[part]->comm(), F_vecs[part]->size(), F_vecs[part]->local_size(), ghost_idxs));
-            copy_and_synch(*F_vecs[part], *F_ghost_vecs[part], /*close_v_in*/ false);
-        }
-    }
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        if (d_is_overlap_velocity_part[part])
-        {
-            const unsigned int master_part = d_overlap_velocity_master_part[part];
-            resetOverlapNodalValues(part, system_name, F_vecs[part], F_ghost_vecs[master_part].get());
-        }
-    }
-    return;
-} // resetOverlapNodalValues
-
-void
-IBFEMethod::resetOverlapNodalValues(const std::string& system_name, const std::vector<PetscVector<double>*>& F_vecs)
-{
-    resetOverlapNodalValues(system_name, std::vector<NumericVector<double>*>(F_vecs.begin(), F_vecs.end()));
-    return;
-}
-
-void
-IBFEMethod::resetOverlapNodalValues(const unsigned int part,
-                                    const std::string& system_name,
-                                    libMesh::NumericVector<double>* F_vec,
-                                    libMesh::NumericVector<double>* F_master_vec)
-{
-    TBOX_ASSERT(part < d_num_parts);
-    TBOX_ASSERT(d_is_overlap_velocity_part[part]);
-
-    std::array<unsigned int, 2> part_idx;
-    part_idx[0] = part;
-    part_idx[1] = d_overlap_velocity_master_part[part];
-
-    // Set up basic data structures.
-    std::array<EquationSystems*, 2> es;
-    std::array<MeshBase*, 2> mesh;
-    std::array<const DofMap*, 2> F_dof_map;
-    std::array<FEDataManager::SystemDofMapCache*, 2> F_dof_map_cache;
-    FEType fe_type;
-    std::array<unsigned int, 2> F_sys_num;
-    for (int k = 0; k < 2; ++k)
-    {
-        es[k] = d_fe_data_managers[part_idx[k]]->getEquationSystems();
-        auto& F_system = es[k]->get_system<System>(system_name);
-        F_dof_map[k] = &F_system.get_dof_map();
-        fe_type = F_dof_map[k]->variable_type(0);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            TBOX_ASSERT(fe_type == F_dof_map[k]->variable_type(d));
-        }
-        F_dof_map_cache[k] = d_fe_data_managers[part_idx[k]]->getDofMapCache(system_name);
-        F_sys_num[k] = F_system.number();
-        mesh[k] = &es[k]->get_mesh();
-    }
-
-    // Find the elements of part2 that contain nodes of part1.
-    VectorValue<double> F;
-    std::array<boost::multi_array<double, 2>, 2> F_node;
-    const unsigned int k_slave = 0;
-    const unsigned int k_master = 1;
-    std::map<dof_id_type, dof_id_type>& node_to_elem_map = d_overlap_velocity_part_node_to_elem_map[part_idx[k_slave]];
-    for (const auto& node_elem_pair : node_to_elem_map)
-    {
-        const Node* const node = mesh[k_slave]->node_ptr(node_elem_pair.first);
-        const libMesh::Point& X = *node;
-        const Elem* const other_elem = mesh[k_master]->elem_ptr(node_elem_pair.second);
-
-        // Read the velocity from the master mesh.
-        const auto& F_dof_indices = F_dof_map_cache[k_master]->dof_indices(other_elem);
-        const libMesh::Point xi = FEInterface::inverse_map(other_elem->dim(), fe_type, other_elem, X);
-        FEComputeData fe_data(*es[k_master], xi);
-        FEInterface::compute_data(other_elem->dim(), fe_type, other_elem, fe_data);
-        get_values_for_interpolation(F_node[k_master], *F_master_vec, F_dof_indices);
-        F.zero();
-        for (unsigned int l = 0; l < fe_data.shape.size(); ++l)
-        {
-            const double& p = fe_data.shape[l];
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                F(d) += F_node[k_master][l][d] * p;
-            }
-        }
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            const int dof_index = node->dof_number(F_sys_num[k_slave], d, 0);
-            F_vec->set(dof_index, F(d));
-        }
-    }
-    F_vec->close();
-    return;
-}
-
-void
-IBFEMethod::computeOverlapConstraintForceDensity(std::vector<PetscVector<double>*>& F_vec,
-                                                 std::vector<PetscVector<double>*>& X_vec)
-{
-    if (!d_has_overlap_force_parts) return;
-
-    for (unsigned int k = 0; k < d_num_parts; ++k)
-    {
-        if (d_is_overlap_force_part[k])
-        {
-            d_F_rhs_vecs[k]->zero();
-        }
-    }
-    d_overlap_force_part_max_displacement.resize(d_num_parts);
-    std::fill(d_overlap_force_part_max_displacement.begin(),
-              d_overlap_force_part_max_displacement.end(),
-              std::vector<double>(d_num_parts, 0.0));
-
-    // Add additional forces to constrain overlapping parts.
-    unsigned int n_pairs = d_overlap_force_part_idxs.size();
-    for (unsigned int k = 0; k < n_pairs; ++k)
-    {
-        // Setup basic data structures.
-        std::array<unsigned int, 2>& part_idx = d_overlap_force_part_idxs[k];
-        std::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2>& elem_map =
-            d_overlapping_elem_map[k];
-        const double kappa = d_overlap_force_part_kappa[k];
-        std::array<QBase*, 2>& qrule = d_overlap_force_part_qrule[k];
-
-        std::array<EquationSystems*, 2> es;
-        std::array<MeshBase*, 2> mesh;
-        std::array<System*, 2> F_system, X_system;
-        std::array<const DofMap*, 2> F_dof_map, X_dof_map;
-        std::array<FEDataManager::SystemDofMapCache*, 2> F_dof_map_cache, X_dof_map_cache;
-        FEType fe_type;
-        std::array<std::unique_ptr<FEBase>, 2> fe;
-        for (int k = 0; k < 2; ++k)
-        {
-            es[k] = d_fe_data_managers[part_idx[k]]->getEquationSystems();
-            F_system[k] = &es[k]->get_system<System>(FORCE_SYSTEM_NAME);
-            X_system[k] = &es[k]->get_system<System>(COORDS_SYSTEM_NAME);
-            F_dof_map[k] = &F_system[k]->get_dof_map();
-            X_dof_map[k] = &X_system[k]->get_dof_map();
-            FEType fe_type = F_dof_map[k]->variable_type(0);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                TBOX_ASSERT(fe_type == F_dof_map[k]->variable_type(d));
-                TBOX_ASSERT(fe_type == X_dof_map[k]->variable_type(d));
-            }
-            F_dof_map_cache[k] = d_fe_data_managers[part_idx[k]]->getDofMapCache(FORCE_SYSTEM_NAME);
-            X_dof_map_cache[k] = d_fe_data_managers[part_idx[k]]->getDofMapCache(COORDS_SYSTEM_NAME);
-            mesh[k] = &es[k]->get_mesh();
-            fe[k] = FEBase::build(mesh[k]->mesh_dimension(), fe_type);
-            fe[k]->attach_quadrature_rule(qrule[k]);
-            fe[k]->get_xyz();
-            fe[k]->get_JxW();
-            fe[k]->get_phi();
-        }
-
-        // Loop over the elements that overlap elements of the other part.
-        std::array<std::array<DenseVector<double>, NDIM>, 2> F_rhs_e;
-        std::array<boost::multi_array<double, 2>, 2> x_node;
-        VectorValue<double> F, F_qp, other_x, x;
-        std::vector<libMesh::dof_id_type> dof_id_scratch;
-        for (int k = 0; k < 2; ++k)
-        {
-            const int k_next = (k + 1) % 2;
-            const std::vector<libMesh::Point>& q_point = fe[k]->get_xyz();
-            const std::vector<double>& JxW = fe[k]->get_JxW();
-            const std::vector<std::vector<double> >& phi = fe[k]->get_phi();
-            for (const auto& elem_pair : elem_map[k])
-            {
-                const Elem* const elem = mesh[k]->elem_ptr(elem_pair.first);
-                const auto& F_dof_indices = F_dof_map_cache[k]->dof_indices(elem);
-                const auto& X_dof_indices = X_dof_map_cache[k]->dof_indices(elem);
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    F_rhs_e[k][d].resize(static_cast<int>(F_dof_indices[d].size()));
-                }
-                fe[k]->reinit(elem);
-                get_values_for_interpolation(x_node[k], *X_vec[part_idx[k]], X_dof_indices);
-                const size_t n_basis = phi.size();
-                for (auto qp_it = elem_pair.second.begin(); qp_it != elem_pair.second.end(); ++qp_it)
-                {
-                    const unsigned int qp = qp_it->first;
-                    const libMesh::Point& X = q_point[qp];
-                    interpolate(x, qp, x_node[k], phi);
-                    const Elem* const other_elem = mesh[k_next]->elem_ptr(qp_it->second);
-                    const auto& X_dof_indices_next = X_dof_map_cache[k_next]->dof_indices(other_elem);
-                    const libMesh::Point xi = FEInterface::inverse_map(other_elem->dim(), fe_type, other_elem, X);
-                    FEComputeData fe_data(*es[k_next], xi);
-                    FEInterface::compute_data(other_elem->dim(), fe_type, other_elem, fe_data);
-                    get_values_for_interpolation(x_node[k_next], *X_vec[part_idx[k_next]], X_dof_indices_next);
-                    other_x.zero();
-                    for (unsigned int l = 0; l < fe_data.shape.size(); ++l)
-                    {
-                        const double& p = fe_data.shape[l];
-                        for (unsigned int d = 0; d < NDIM; ++d)
-                        {
-                            other_x(d) += x_node[k_next][l][d] * p;
-                        }
-                    }
-                    VectorValue<double> disp = (other_x - x);
-                    VectorValue<double> F = kappa * disp;
-                    d_overlap_force_part_max_displacement[part_idx[k]][part_idx[k_next]] =
-                        std::max(d_overlap_force_part_max_displacement[part_idx[k]][part_idx[k_next]], disp.norm());
-                    for (unsigned int l = 0; l < n_basis; ++l)
-                    {
-                        F_qp = F * phi[l][qp] * JxW[qp];
-                        for (unsigned int d = 0; d < NDIM; ++d)
-                        {
-                            F_rhs_e[k][d](l) += F_qp(d);
-                        }
-                    }
-                }
-
-                // Apply constraints (e.g., enforce periodic boundary
-                // conditions) and add the elemental contributions to the global
-                // vector.
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    dof_id_scratch = F_dof_indices[d];
-                    F_dof_map[k]->constrain_element_vector(F_rhs_e[k][d], dof_id_scratch);
-                    d_F_rhs_vecs[k]->add_vector(F_rhs_e[k][d], dof_id_scratch);
-                }
-            }
-        }
-
-        // Report the maximum displacement between this pair of parts.
-        SAMRAI_MPI::maxReduction(&d_overlap_force_part_max_displacement[part_idx[0]][part_idx[1]], 1);
-        plog << "max displacement from part " << part_idx[0] << " to part " << part_idx[1] << ": "
-             << d_overlap_force_part_max_displacement[part_idx[0]][part_idx[1]] << "\n";
-        SAMRAI_MPI::maxReduction(&d_overlap_force_part_max_displacement[part_idx[1]][part_idx[0]], 1);
-        plog << "max displacement from part " << part_idx[1] << " to part " << part_idx[0] << ": "
-             << d_overlap_force_part_max_displacement[part_idx[1]][part_idx[0]] << "\n";
-    }
-
-    // Solve for the constraint force densities.
-    for (unsigned int k = 0; k < d_num_parts; ++k)
-    {
-        if (d_is_overlap_force_part[k])
-        {
-            d_fe_data_managers[k]->computeL2Projection(
-                *d_F_tmp_vecs[k], *d_F_rhs_vecs[k], FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
-            F_vec[k]->add(*d_F_tmp_vecs[k]);
-        }
-    }
-    return;
-} // computeOverlapConstraintForceDensity
-
-void
 IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                                            PetscVector<double>& X_ghost_vec,
                                            RobinPhysBdryPatchStrategy* f_phys_bdry_op,
@@ -3626,16 +3110,6 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     // and set some default values.
     d_is_stress_normalization_part.resize(d_num_parts, false);
 
-    // Indicate that there are no overlapping parts by default.
-    d_is_overlap_velocity_part.resize(d_num_parts, false);
-    d_is_overlap_velocity_master_part.resize(d_num_parts, false);
-    d_overlap_velocity_master_part.resize(d_num_parts, -1);
-    d_overlap_velocity_part_node_to_elem_map.resize(d_num_parts);
-    d_overlap_velocity_part_ghost_idxs.resize(d_num_parts);
-
-    d_is_overlap_force_part.resize(d_num_parts, false);
-    d_overlap_force_part_ghost_idxs.resize(d_num_parts);
-
     // Initialize function data to NULL.
     d_coordinate_mapping_fcn_data.resize(d_num_parts);
     d_initial_velocity_fcn_data.resize(d_num_parts);
@@ -3821,7 +3295,6 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     }
 
     // Other settings.
-    if (db->isDouble("overlap_tolerance")) d_overlap_tolerance = db->getDouble("overlap_tolerance");
     if (db->isInteger("min_ghost_cell_width"))
     {
         d_ghosts = db->getInteger("min_ghost_cell_width");

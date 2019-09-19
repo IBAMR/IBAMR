@@ -464,30 +464,6 @@ public:
     LagBodySourceFcnData getLagBodySourceFunction(unsigned int part = 0) const;
 
     /*!
-     * Use tether forces to constrain the motion of a pair of parts.
-     */
-    void constrainPartOverlap(unsigned int part1,
-                              unsigned int part2,
-                              double kappa,
-                              libMesh::QBase* qrule1 = nullptr,
-                              libMesh::QBase* qrule2 = nullptr);
-
-    /*!
-     * Always reset the velocity of the nodes of part1 that overlap part2 to
-     * equal the velocity of part2.
-     */
-    void registerOverlappingVelocityReset(unsigned int part1, unsigned int part2);
-
-    /*!
-     * Set up forces to penalize relative motion between part1 and part2.
-     */
-    void registerOverlappingForceConstraint(unsigned int part1,
-                                            unsigned int part2,
-                                            double kappa,
-                                            libMesh::QBase* qrule1 = nullptr,
-                                            libMesh::QBase* qrule2 = nullptr);
-
-    /*!
      * Register the (optional) direct forcing kinematics object with the finite
      * element mesh.
      */
@@ -747,33 +723,6 @@ protected:
                                          unsigned int part);
 
     /*!
-     * \brief Reset positions in overlap regions.
-     */
-    void resetOverlapNodalValues(const std::string& system_name,
-                                 const std::vector<libMesh::NumericVector<double>*>& F_vecs);
-
-    /*!
-     * \brief Reset positions in overlap regions.
-     */
-    void resetOverlapNodalValues(const std::string& system_name,
-                                 const std::vector<libMesh::PetscVector<double>*>& F_vecs);
-
-    /*!
-     * \brief Reset values in the specified part to equal the
-     * corresponding velocities of the overlapping part.
-     */
-    void resetOverlapNodalValues(unsigned int part,
-                                 const std::string& system_name,
-                                 libMesh::NumericVector<double>* F_vec,
-                                 libMesh::NumericVector<double>* F_master_vec);
-
-    /*!
-     * \brief Compute constraint forces between pairs of overlapping bodies.
-     */
-    void computeOverlapConstraintForceDensity(std::vector<libMesh::PetscVector<double>*>& G_vec,
-                                              std::vector<libMesh::PetscVector<double>*>& X_vec);
-
-    /*!
      * \brief Spread the transmission force density along the physical boundary
      * of the Lagrangian structure.
      */
@@ -944,28 +893,6 @@ protected:
     double d_epsilon = 0.0;
     bool d_has_stress_normalization_parts = false;
     std::vector<bool> d_is_stress_normalization_part;
-
-    /*
-     * Data related to constraining overlaps between pairs of parts.
-     */
-    double d_overlap_tolerance = 0.0;
-
-    bool d_has_overlap_velocity_parts = false;
-    std::vector<bool> d_is_overlap_velocity_part, d_is_overlap_velocity_master_part;
-    std::vector<int> d_overlap_velocity_master_part;
-    std::vector<std::map<libMesh::dof_id_type, libMesh::dof_id_type> > d_overlap_velocity_part_node_to_elem_map;
-    std::vector<std::set<libMesh::dof_id_type> > d_overlap_velocity_part_ghost_idxs;
-
-    bool d_has_overlap_force_parts = false;
-    std::vector<bool> d_is_overlap_force_part;
-    std::vector<std::set<libMesh::dof_id_type> > d_overlap_force_part_ghost_idxs;
-    std::vector<std::array<unsigned int, 2> > d_overlap_force_part_idxs;
-    std::vector<std::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2> >
-        d_overlapping_elem_map;
-    std::vector<double> d_overlap_force_part_kappa;
-    std::vector<std::array<libMesh::QBase*, 2> > d_overlap_force_part_qrule; // \todo let's try to fix this when we
-                                                                             // switch to C++11!
-    std::vector<std::vector<double> > d_overlap_force_part_max_displacement;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
