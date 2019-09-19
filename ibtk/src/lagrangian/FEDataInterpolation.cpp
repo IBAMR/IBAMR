@@ -56,12 +56,14 @@ FEDataInterpolation::registerSystem(const System& system,
 {
     TBOX_ASSERT(!d_initialized && (!phi_vars.empty() || !dphi_vars.empty()));
     const unsigned int sys_num = system.number();
-    for (auto it = d_noninterp_systems.begin(), it_end = d_noninterp_systems.end(); it != it_end; ++it)
+    for (auto noninterp_system : d_noninterp_systems)
     {
-        if ((*it)->number() == sys_num)
+        if (noninterp_system->number() == sys_num)
         {
             // This system has already been registered.  If so, just merge the collection of variables.
-            size_t system_idx = std::distance(d_noninterp_systems.begin(), it);
+            const size_t system_idx =
+                std::distance(d_noninterp_systems.begin(),
+                              std::find(d_noninterp_systems.begin(), d_noninterp_systems.end(), noninterp_system));
 
             std::vector<int>& orig_all_vars = d_noninterp_system_all_vars[system_idx];
             std::set<int> all_vars_set(orig_all_vars.begin(), orig_all_vars.end());
@@ -106,9 +108,9 @@ FEDataInterpolation::registerInterpolatedSystem(const System& system,
 {
     TBOX_ASSERT(!d_initialized && (!vars.empty() || !grad_vars.empty()));
     const unsigned int sys_num = system.number();
-    for (auto it = d_systems.begin(), it_end = d_systems.end(); it != it_end; ++it)
+    for (auto system : d_systems)
     {
-        if ((*it)->number() == sys_num)
+        if (system->number() == sys_num)
         {
             // This system has already been registered.  Check to see if the same collection of variables (etc.)
             // were used in the previous registration action; if so, do not re-register the system.
@@ -116,7 +118,8 @@ FEDataInterpolation::registerInterpolatedSystem(const System& system,
             // NOTE: The same system may be registered multiple times with different collections of variables,
             // gradient variables, system data, etc.  We want to make sure we check all of the registered systems to
             // see if any of them match the function arguments.
-            const size_t system_idx = std::distance(d_systems.begin(), it);
+            const size_t system_idx =
+                std::distance(d_systems.begin(), std::find(d_systems.begin(), d_systems.end(), system));
             bool same_data = true;
             same_data = same_data && (vars == d_system_vars[system_idx]);
             same_data = same_data && (grad_vars == d_system_grad_vars[system_idx]);
