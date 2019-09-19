@@ -48,6 +48,8 @@ if test "$SILO_ENABLED" = yes; then
     fi
     if test -d "${SILO_DIR}/lib" ; then
       SILO_LDFLAGS="-L${SILO_DIR}/lib"
+    else
+      AC_MSG_ERROR([Unable to find lib directory for silo: ${SILO_DIR}/lib does not exist.])
     fi
   fi
 
@@ -79,7 +81,7 @@ asdf
   AC_SEARCH_LIBS([DBSetDir], [silo siloh5], [],
                  [AC_MSG_ERROR([Silo enabled but could not find working libsilo or libsiloh5])])
   # set up rpath
-  ADD_RPATH_LDFLAG($SILO_LDFLAGS)
+  ADD_RPATH_LDFLAG(${SILO_DIR}/lib)
 
   AC_DEFINE([HAVE_SILO],1,[Define if you have the silo library.])
 else

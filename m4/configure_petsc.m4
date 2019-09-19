@@ -42,12 +42,14 @@ fi
 
 PETSC_LDFLAGS=""
 if test -d "${PETSC_DIR}/${PETSC_ARCH}/lib" ; then
-    PETSC_LDFLAGS="-L${PETSC_DIR}/${PETSC_ARCH}/lib"
+  PETSC_LDFLAGS="-L${PETSC_DIR}/${PETSC_ARCH}/lib"
+else
+  AC_MSG_ERROR([Unable to find lib directory for PETSc: ${PETSC_DIR}/${PETSC_ARCH}/lib does not exist.])
 fi
 
 LDFLAGS_PREPEND($PETSC_LDFLAGS)
 LIBS_PREPEND($PETSC_EXTERNAL_LIB_BASIC)
 AC_CHECK_LIB([petsc], VecAssemblyBegin, [],
              [AC_MSG_ERROR([could not find working libpetsc])])
-ADD_RPATH_LDFLAG($PETSC_LDFLAGS)
+ADD_RPATH_LDFLAG(${PETSC_DIR}/${PETSC_ARCH}/lib)
 ])
