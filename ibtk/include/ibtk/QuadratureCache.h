@@ -93,6 +93,14 @@ public:
      */
     value_type& operator[](const key_type& quad_key);
 
+    /**
+     * Clear the cache.
+     */
+    void clear()
+    {
+        quadratures.clear();
+    }
+
 protected:
     /**
      * Dimension of the FE mesh.
