@@ -1,4 +1,4 @@
-Fixed: Fixed a problem where <code>rpath</code> arguments to the linker were
-incorrectly formatted, resulting in missing libraries at run time.
+Improved: IBStandardInitializer will now log a message explaining what happened
+when optional input files (e.g., rod input files) are not available.
 <br>
-(David Wells, 2019/09/19)
+(David Wells, 2019/09/20)
