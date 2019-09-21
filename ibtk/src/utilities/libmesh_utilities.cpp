@@ -76,15 +76,29 @@ getQuadratureKey(const libMesh::QuadratureType quad_type,
         if (npts < 3)
         {
             if (elem->default_order() == libMesh::FIRST)
+	    {
                 npts = 2;
+	    }
             else
+	    {
+		if (elem_type == libMesh::TRI3SUBDIVISION)
+	       	{
+		    libmesh_assert_equal_to(elem_type, libMesh::TRI3SUBDIVISION);
+		    npts = 2;
+		}	
                 npts = 3;
+	    }
         }
         switch (quad_type)
         {
         case libMesh::QGAUSS:
             order = static_cast<libMesh::Order>(std::min(2 * npts - 1, static_cast<int>(libMesh::FORTYTHIRD)));
-            break;
+	    break;
+	case libMesh::QTRAP:
+	    if (elem_type == libMesh::TRI3SUBDIVISION)
+	    {
+		order = static_cast<libMesh::Order>(3);	
+	    }
         case libMesh::QGRID:
             order = static_cast<libMesh::Order>(npts);
             break;

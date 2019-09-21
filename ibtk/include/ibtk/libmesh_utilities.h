@@ -45,9 +45,11 @@
 #include "libmesh/edge.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/face.h"
+#include "libmesh/face_tri3_subdivision.h"
 #include "libmesh/fe.h"
 #include "libmesh/petsc_vector.h"
 #include "libmesh/point.h"
+#include "libmesh/quadrature.h"
 #include "libmesh/quadrature_gauss.h"
 #include "libmesh/string_to_enum.h"
 #include "libmesh/type_tensor.h"
@@ -1072,13 +1074,17 @@ get_max_edge_length(const libMesh::Elem* const elem, const MultiArray& X_node)
         }
         break;
     }
+#if 1
     case libMesh::TRI3SUBDIVISION:
     {
-        std::unique_ptr<libMesh::FEBase> fe(libMesh::FEBase::build(2, libMesh::SUBDIVISION));
-        std::unique_ptr<libMesh::QBase> qrule = libMesh::QBase::build(libMesh::QTRAP, 2, libMesh::FIRST);
-        fe->attach_quadrature_rule(qrule.get());
-        fe->reinit(elem);
+        std::unique_ptr<libMesh::FEBase> fe(libMesh::FEBase::build(2, libMesh::FEType(libMesh::FOURTH, libMesh::SUBDIVISION)));
+        std::unique_ptr<libMesh::QBase> qrule = libMesh::QBase::build(libMesh::QGAUSS, 2, libMesh::FIRST);
+	fe->attach_quadrature_rule(qrule.get());
+	libMesh::FEType fe_type = fe->get_fe_type();
+	libmesh_assert_equal_to(fe_type.family, libMesh::SUBDIVISION);
+	libmesh_assert_equal_to(elem->type(), libMesh::TRI3SUBDIVISION);
         const std::vector<std::vector<double> >& phi = fe->get_phi();
+	fe->reinit(elem);
 
         for (unsigned int qp1 = 0; qp1 < qrule->n_points(); ++qp1)
         {
@@ -1099,6 +1105,7 @@ get_max_edge_length(const libMesh::Elem* const elem, const MultiArray& X_node)
         }
         break;
     }
+#endif
     default:
         // Use the old algorithm in all other cases
         {

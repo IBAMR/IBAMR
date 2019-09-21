@@ -36,6 +36,10 @@
 // Headers for basic libMesh objects
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
+#include <libmesh/mesh_modification.h>
+#include <libmesh/mesh_refinement.h>
+#include <libmesh/mesh_subdivision_support.h>
+#include <libmesh/mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
@@ -98,6 +102,19 @@ main(int argc, char** argv)
             plog << "Test 1: tri6" << std::endl;
             ReplicatedMesh mesh(init.comm(), 2);
             MeshTools::Generation::build_sphere(mesh, radius, n_refinements, TRI6);
+            log_max_edge_length(mesh);
+        }
+
+	{
+            plog << "Test 1: tri3subdivision" << std::endl;
+            ReplicatedMesh mesh(init.comm(), 3);
+	    mesh.read("sphere_mesh.e");
+	    mesh.boundary_info->clear();
+	    MeshRefinement mesh_refinement(mesh);
+            mesh_refinement.uniformly_refine(1);
+            MeshTools::Modification::flatten(mesh);
+	    MeshTools::Modification::all_tri(mesh);
+            MeshTools::Subdivision::prepare_subdivision_mesh(mesh, false);
             log_max_edge_length(mesh);
         }
 
