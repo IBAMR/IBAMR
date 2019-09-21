@@ -316,8 +316,12 @@ batch_vec_ghost_update(const std::vector<std::vector<libMesh::PetscVector<double
  * function will always have enough points to integrate the basis functions
  * defined on the element exactly.
  *
- * @param[in] X_node the actual nodal coordinates of the element in the
- * current configuration.
+ * @param[in] X_node Values of @p elem's shape functions of the structure
+ * location field (i.e., X): for interpolatory finite elements (e.g.,
+ * libMesh::LAGRANGE) these the actual coordinates of the node (since shape
+ * functions will either be one or zero at nodes). @p X_node is assumed to be
+ * a two-dimensional array whose rows correspond to node number and whose
+ * columns correspond to x, y, and (in 3D) z coordinates.
  *
  * @param[in] dx_min See @p point_density.
  *
@@ -332,6 +336,21 @@ getQuadratureKey(const libMesh::QuadratureType quad_type,
                  const boost::multi_array<double, 2>& X_node,
                  const double dx_min);
 
+/**
+ * Populate @p U_node with the finite element solution coefficients on the
+ * current element. This particular overload is for scalar finite elements.
+ *
+ * @param[out] U_node Multidimensional array (usually a boost::multi_array)
+ * which will be filled with finite element solution coefficients.
+ *
+ * @param[in] U_petsc_vec The relevant finite element solution vector.
+ *
+ * @param[in] U_local_soln A localized version of the current solution (i.e.,
+ * the same information as @p U_petsc_vec, but accessed with local instead of
+ * global indices).
+ *
+ * @param[in] dof_indices DoF indices of the current element.
+ */
 template <class MultiArray, class Array>
 inline void
 get_values_for_interpolation(MultiArray& U_node,
@@ -352,6 +371,21 @@ get_values_for_interpolation(MultiArray& U_node,
     return;
 } // get_values_for_interpolation
 
+/**
+ * Populate @p U_node with the finite element solution coefficients on the
+ * current element. This particular overload is for vector-valued finite elements.
+ *
+ * @param[out] U_node Multidimensional array (usually a boost::multi_array)
+ * which will be filled with finite element solution coefficients.
+ *
+ * @param[in] U_petsc_vec The relevant finite element solution vector.
+ *
+ * @param[in] U_local_soln A localized version of the current solution (i.e.,
+ * the same information as @p U_petsc_vec, but accessed with local instead of
+ * global indices).
+ *
+ * @param[in] dof_indices DoF indices of the current element.
+ */
 template <class MultiArray, class Array>
 inline void
 get_values_for_interpolation(MultiArray& U_node,
@@ -376,6 +410,18 @@ get_values_for_interpolation(MultiArray& U_node,
     return;
 } // get_values_for_interpolation
 
+/**
+ * Populate @p U_node with the finite element solution coefficients on the
+ * current element. This particular overload is for scalar finite elements.
+ *
+ * @param[out] U_node Multidimensional array (usually a boost::multi_array)
+ * which will be filled with finite element solution coefficients.
+ *
+ * @param[in] U_vec The relevant finite element solution vector. This must be
+ * a libMesh::PetscVector.
+ *
+ * @param[in] dof_indices DoF indices of the current element.
+ */
 template <class MultiArray>
 inline void
 get_values_for_interpolation(MultiArray& U_node,
@@ -383,12 +429,25 @@ get_values_for_interpolation(MultiArray& U_node,
                              const std::vector<unsigned int>& dof_indices)
 {
     libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
+    TBOX_ASSERT(U_petsc_vec);
     const double* const U_local_soln = U_petsc_vec->get_array_read();
     get_values_for_interpolation(U_node, *U_petsc_vec, U_local_soln, dof_indices);
     U_petsc_vec->restore_array();
     return;
 } // get_values_for_interpolation
 
+/**
+ * Populate @p U_node with the finite element solution coefficients on the
+ * current element. This particular overload is for vector-valued finite elements.
+ *
+ * @param[out] U_node Multidimensional array (usually a boost::multi_array)
+ * which will be filled with finite element solution coefficients.
+ *
+ * @param[in] U_vec The relevant finite element solution vector. This must be
+ * a libMesh::PetscVector.
+ *
+ * @param[in] dof_indices DoF indices of the current element.
+ */
 template <class MultiArray>
 inline void
 get_values_for_interpolation(MultiArray& U_node,
@@ -396,12 +455,27 @@ get_values_for_interpolation(MultiArray& U_node,
                              const std::vector<std::vector<unsigned int> >& dof_indices)
 {
     libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
+    TBOX_ASSERT(U_petsc_vec);
     const double* const U_local_soln = U_petsc_vec->get_array_read();
     get_values_for_interpolation(U_node, *U_petsc_vec, U_local_soln, dof_indices);
     U_petsc_vec->restore_array();
     return;
 } // get_values_for_interpolation
 
+/**
+ * Compute the current solution at quadrature point number @qp.
+ *
+ * @param[out] U Value of the finite element solution at the given point.
+ *
+ * @param[in] qp Number of the quadrature point at which we will compute the
+ * solution value.
+ *
+ * @param[in] U_node Multidimensional array containing finite element solution
+ * coefficients on the current element.
+ *
+ * @param[in] phi Reference values of the shape functions indexed in the usual
+ * way (first by basis function number and then by quadrature point number).
+ */
 template <class MultiArray>
 inline void
 interpolate(double& U, const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
@@ -415,11 +489,26 @@ interpolate(double& U, const int qp, const MultiArray& U_node, const std::vector
     return;
 } // interpolate
 
+/**
+ * Compute the current solution at quadrature point number @qp. Returns the
+ * value instead of taking a reference to it as the first argument.
+ *
+ * @param[in] qp Number of the quadrature point at which we will compute the
+ * solution value.
+ *
+ * @param[in] U_node Multidimensional array containing finite element solution
+ * coefficients on the current element.
+ *
+ * @param[in] phi Reference values of the shape functions indexed in the usual
+ * way (first by basis function number and then by quadrature point number).
+ */
 template <class MultiArray>
 inline double
 interpolate(const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
 {
-    const int n_nodes = static_cast<int>(U_node.shape()[0]);
+    IBTK_DISABLE_EXTRA_WARNINGS
+    const auto n_nodes = static_cast<int>(U_node.shape()[0]);
+    IBTK_ENABLE_EXTRA_WARNINGS
     double U = 0.0;
     for (int k = 0; k < n_nodes; ++k)
     {
@@ -428,6 +517,22 @@ interpolate(const int qp, const MultiArray& U_node, const std::vector<std::vecto
     return U;
 } // interpolate
 
+/**
+ * Compute the current solution at quadrature point number @qp. This version
+ * of interpolate() is vector-valued.
+ *
+ * @param[out] U Array containing the output of this function. This function assumes
+ * that this array has at least <code>U_node.shape()[1]</code> entries.
+ *
+ * @param[in] qp Number of the quadrature point at which we will compute the
+ * solution value.
+ *
+ * @param[in] U_node Multidimensional array containing finite element solution
+ * coefficients on the current element.
+ *
+ * @param[in] phi Reference values of the shape functions indexed in the usual
+ * way (first by basis function number and then by quadrature point number).
+ */
 template <class MultiArray>
 inline void
 interpolate(double* const U, const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
@@ -446,6 +551,22 @@ interpolate(double* const U, const int qp, const MultiArray& U_node, const std::
     return;
 } // interpolate
 
+/**
+ * Compute the current solution at quadrature point number @qp. This version
+ * of interpolate() is vector-valued.
+ *
+ * @param[out] U Array containing the output of this function. This function assumes
+ * that this TypeVector has at least <code>U_node.shape()[1]</code> entries.
+ *
+ * @param[in] qp Number of the quadrature point at which we will compute the
+ * solution value.
+ *
+ * @param[in] U_node Multidimensional array containing finite element solution
+ * coefficients on the current element.
+ *
+ * @param[in] phi Reference values of the shape functions indexed in the usual
+ * way (first by basis function number and then by quadrature point number).
+ */
 template <class MultiArray>
 inline void
 interpolate(libMesh::TypeVector<double>& U,
@@ -1024,18 +1145,27 @@ get_nodal_dof_indices(const libMesh::DofMap& dof_map,
 }
 
 /**
- * Return the maximum edge length of a given element with mapped nodes.
+ * Return the maximum edge length of a given element with mapped nodes. If the
+ * edges of the mapped element are not straight lines (i.e., a Tet10 element
+ * subject to some nonlinear deformation) then the edge length is approximated
+ * as the sum of the lengths of the line segments.
  *
- * @p elem The given libMesh element.
- * @p X_node Mapped coordinates of the nodes.
+ * @param[in] elem The given libMesh element.
+ *
+ * @param[in] X_node Values of @p elem's shape functions of the structure
+ * location field (i.e., X): for interpolatory finite elements (e.g.,
+ * libMesh::LAGRANGE) these the actual coordinates of the node (since shape
+ * functions will either be one or zero at nodes). @p X_node is assumed to be
+ * a two-dimensional array whose rows correspond to node number and whose
+ * columns correspond to x, y, and (in 3D) z coordinates.
  */
 template <class MultiArray>
 inline double
 get_max_edge_length(const libMesh::Elem* const elem, const MultiArray& X_node)
 {
 #ifndef NDEBUG
-    //TBOX_ASSERT(NDIM <= X_node.shape()[0]);
-    //TBOX_ASSERT(NDIM <= X_node.shape()[1]);
+    TBOX_ASSERT(elem->n_nodes() == X_node.shape()[0]);
+    TBOX_ASSERT(elem->dim() == X_node.shape()[1]);
 #endif
     const libMesh::ElemType elem_type = elem->type();
 
@@ -1107,15 +1237,35 @@ get_max_edge_length(const libMesh::Elem* const elem, const MultiArray& X_node)
     }
 #endif
     default:
+    {
         // Use the old algorithm in all other cases
+        const unsigned int n_vertices = elem->n_vertices();
+        if (elem->dim() == 1)
         {
-            const unsigned int n_vertices = elem->n_vertices();
-            if (elem->dim() == 1)
+            for (unsigned int n1 = 0; n1 < n_vertices; ++n1)
+            {
+                for (unsigned int n2 = n1 + 1; n2 < n_vertices; ++n2)
+                {
+                    double diff_sq = 0.0;
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        diff_sq += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
+                    }
+                    max_edge_length_2 = std::max(max_edge_length_2, diff_sq);
+                }
+            }
+        }
+        else
+        {
+            const unsigned int n_edges = elem->n_edges();
+            for (unsigned int e = 0; e < n_edges; ++e)
             {
                 for (unsigned int n1 = 0; n1 < n_vertices; ++n1)
                 {
+                    if (!elem->is_node_on_edge(n1, e)) continue;
                     for (unsigned int n2 = n1 + 1; n2 < n_vertices; ++n2)
                     {
+                        if (!elem->is_node_on_edge(n2, e)) continue;
                         double diff_sq = 0.0;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
@@ -1125,29 +1275,9 @@ get_max_edge_length(const libMesh::Elem* const elem, const MultiArray& X_node)
                     }
                 }
             }
-            else
-            {
-                const unsigned int n_edges = elem->n_edges();
-                for (unsigned int e = 0; e < n_edges; ++e)
-                {
-                    for (unsigned int n1 = 0; n1 < n_vertices; ++n1)
-                    {
-                        if (!elem->is_node_on_edge(n1, e)) continue;
-                        for (unsigned int n2 = n1 + 1; n2 < n_vertices; ++n2)
-                        {
-                            if (!elem->is_node_on_edge(n2, e)) continue;
-                            double diff_sq = 0.0;
-                            for (unsigned int d = 0; d < NDIM; ++d)
-                            {
-                                diff_sq += (X_node[n1][d] - X_node[n2][d]) * (X_node[n1][d] - X_node[n2][d]);
-                            }
-                            max_edge_length_2 = std::max(max_edge_length_2, diff_sq);
-                        }
-                    }
-                }
-            }
         }
     }
+}
 
     return std::sqrt(max_edge_length_2);
 }

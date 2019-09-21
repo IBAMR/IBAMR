@@ -631,12 +631,10 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-enable_option_checking=no
 ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
-subdirs
 LIBSAMRAI3D_APPU_PREFIX
 LTLIBSAMRAI3D_APPU
 LIBSAMRAI3D_APPU
@@ -721,9 +719,9 @@ SAMRAI_FORTDIR
 SAMRAI_DIR
 SILO_ENABLED_FALSE
 SILO_ENABLED_TRUE
-PACKAGE_CONTRIB_LIBS
 USING_BUNDLED_MUPARSER_FALSE
 USING_BUNDLED_MUPARSER_TRUE
+PACKAGE_CONTRIB_LIBS
 LIBMUPARSER_PREFIX
 LTLIBMUPARSER
 LIBMUPARSER
@@ -771,10 +769,6 @@ LIBMESH_OPT_PREFIX
 LTLIBMESH_OPT
 LIBMESH_OPT
 HAVE_LIBMESH_OPT
-LIBNETCDF_PREFIX
-LTLIBNETCDF
-LIBNETCDF
-HAVE_LIBNETCDF
 LIBMESH_CONFIG
 LIBMESH_ENABLED_FALSE
 LIBMESH_ENABLED_TRUE
@@ -981,7 +975,7 @@ LT_SYS_LIBRARY_PATH
 BOOST_ROOT
 PETSC_DIR
 PETSC_ARCH'
-ac_subdirs_all='contrib/muparser'
+
 
 # Initialize some variables set by options.
 ac_init_help=
@@ -24236,560 +24230,6 @@ $as_echo "${LIBMESH_UNIQUE_PTR_OK}" >&6; }
   if test "$LIBMESH_UNIQUE_PTR_OK" = no; then
     as_fn_error $? "libMesh must be compiled with C++11 support and without --disable-unique-ptr." "$LINENO" 5
   fi
-
-
-
-
-
-
-
-
-
-
-
-
-
-    use_additional=yes
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-    eval additional_includedir=\"$includedir\"
-    eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-## begin removed by BEG
-##  AC_ARG_WITH(P_A_C_K[-prefix],
-##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
-##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
-##[
-##    if test "X$withval" = "Xno"; then
-##      use_additional=no
-##    else
-##      if test "X$withval" = "X"; then
-##        AC_LIB_WITH_FINAL_PREFIX([
-##          eval additional_includedir=\"$includedir\"
-##          eval additional_libdir=\"$libdir\"
-##        ])
-##      else
-##        additional_includedir="$withval/include"
-##        additional_libdir="$withval/$acl_libdirstem"
-##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-##           && ! test -d "$withval/$acl_libdirstem"; then
-##          additional_libdir="$withval/$acl_libdirstem2"
-##        fi
-##      fi
-##    fi
-##])
-## end removed by BEG
-      LIBNETCDF=
-  LTLIBNETCDF=
-  INCNETCDF=
-  LIBNETCDF_PREFIX=
-      HAVE_LIBNETCDF=
-  rpathdirs=
-  ltrpathdirs=
-  names_already_handled=
-  names_next_round='netcdf '
-  while test -n "$names_next_round"; do
-    names_this_round="$names_next_round"
-    names_next_round=
-    for name in $names_this_round; do
-      already_handled=
-      for n in $names_already_handled; do
-        if test "$n" = "$name"; then
-          already_handled=yes
-          break
-        fi
-      done
-      if test -z "$already_handled"; then
-        names_already_handled="$names_already_handled $name"
-                        uppername=`echo "$name" | sed -e 'y|abcdefghijklmnopqrstuvwxyz./+-|ABCDEFGHIJKLMNOPQRSTUVWXYZ____|'`
-        eval value=\"\$HAVE_LIB$uppername\"
-        if test -n "$value"; then
-          if test "$value" = yes; then
-            eval value=\"\$LIB$uppername\"
-            test -z "$value" || LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$value"
-            eval value=\"\$LTLIB$uppername\"
-            test -z "$value" || LTLIBNETCDF="${LTLIBNETCDF}${LTLIBNETCDF:+ }$value"
-          else
-                                    :
-          fi
-        else
-                              found_dir=
-          found_la=
-          found_so=
-          found_a=
-          eval libname=\"$acl_libname_spec\"    # typically: libname=lib$name
-          if test -n "$acl_shlibext"; then
-            shrext=".$acl_shlibext"             # typically: shrext=.so
-          else
-            shrext=
-          fi
-          if test $use_additional = yes; then
-            dir="$additional_libdir"
-                                    if test -n "$acl_shlibext"; then
-              if test -f "$dir/$libname$shrext"; then
-                found_dir="$dir"
-                found_so="$dir/$libname$shrext"
-              else
-                if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
-                  ver=`(cd "$dir" && \
-                        for f in "$libname$shrext".*; do echo "$f"; done \
-                        | sed -e "s,^$libname$shrext\\\\.,," \
-                        | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
-                        | sed 1q ) 2>/dev/null`
-                  if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
-                    found_dir="$dir"
-                    found_so="$dir/$libname$shrext.$ver"
-                  fi
-                else
-                  eval library_names=\"$acl_library_names_spec\"
-                  for f in $library_names; do
-                    if test -f "$dir/$f"; then
-                      found_dir="$dir"
-                      found_so="$dir/$f"
-                      break
-                    fi
-                  done
-                fi
-              fi
-            fi
-                        if test "X$found_dir" = "X"; then
-              if test -f "$dir/$libname.$acl_libext"; then
-                found_dir="$dir"
-                found_a="$dir/$libname.$acl_libext"
-              fi
-            fi
-            if test "X$found_dir" != "X"; then
-              if test -f "$dir/$libname.la"; then
-                found_la="$dir/$libname.la"
-              fi
-            fi
-          fi
-          if test "X$found_dir" = "X"; then
-            for x in $LDFLAGS $LTLIBNETCDF; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-              case "$x" in
-                -L*)
-                  dir=`echo "X$x" | sed -e 's/^X-L//'`
-                                    if test -n "$acl_shlibext"; then
-                    if test -f "$dir/$libname$shrext"; then
-                      found_dir="$dir"
-                      found_so="$dir/$libname$shrext"
-                    else
-                      if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
-                        ver=`(cd "$dir" && \
-                              for f in "$libname$shrext".*; do echo "$f"; done \
-                              | sed -e "s,^$libname$shrext\\\\.,," \
-                              | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
-                              | sed 1q ) 2>/dev/null`
-                        if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
-                          found_dir="$dir"
-                          found_so="$dir/$libname$shrext.$ver"
-                        fi
-                      else
-                        eval library_names=\"$acl_library_names_spec\"
-                        for f in $library_names; do
-                          if test -f "$dir/$f"; then
-                            found_dir="$dir"
-                            found_so="$dir/$f"
-                            break
-                          fi
-                        done
-                      fi
-                    fi
-                  fi
-                                    if test "X$found_dir" = "X"; then
-                    if test -f "$dir/$libname.$acl_libext"; then
-                      found_dir="$dir"
-                      found_a="$dir/$libname.$acl_libext"
-                    fi
-                  fi
-                  if test "X$found_dir" != "X"; then
-                    if test -f "$dir/$libname.la"; then
-                      found_la="$dir/$libname.la"
-                    fi
-                  fi
-                  ;;
-              esac
-              if test "X$found_dir" != "X"; then
-                break
-              fi
-            done
-          fi
-          if test "X$found_dir" != "X"; then
-                        LTLIBNETCDF="${LTLIBNETCDF}${LTLIBNETCDF:+ }-L$found_dir -l$name"
-            if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no \
-                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
-                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
-                                LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$found_so"
-              else
-                                                                                haveit=
-                for x in $ltrpathdirs; do
-                  if test "X$x" = "X$found_dir"; then
-                    haveit=yes
-                    break
-                  fi
-                done
-                if test -z "$haveit"; then
-                  ltrpathdirs="$ltrpathdirs $found_dir"
-                fi
-                                if test "$acl_hardcode_direct" = yes; then
-                                                      LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$found_so"
-                else
-                  if test -n "$acl_hardcode_libdir_flag_spec" && test "$acl_hardcode_minus_L" = no; then
-                                                            LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$found_so"
-                                                            haveit=
-                    for x in $rpathdirs; do
-                      if test "X$x" = "X$found_dir"; then
-                        haveit=yes
-                        break
-                      fi
-                    done
-                    if test -z "$haveit"; then
-                      rpathdirs="$rpathdirs $found_dir"
-                    fi
-                  else
-                                                                                haveit=
-                    for x in $LDFLAGS $LIBNETCDF; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-                      if test "X$x" = "X-L$found_dir"; then
-                        haveit=yes
-                        break
-                      fi
-                    done
-                    if test -z "$haveit"; then
-                      LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }-L$found_dir"
-                    fi
-                    if test "$acl_hardcode_minus_L" != no; then
-                                                                                        LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$found_so"
-                    else
-                                                                                                                                                                                LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }-l$name"
-                    fi
-                  fi
-                fi
-              fi
-            else
-              if test "X$found_a" != "X"; then
-                                LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$found_a"
-              else
-                                                LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }-L$found_dir -l$name"
-              fi
-            fi
-                        additional_includedir=
-            case "$found_dir" in
-              */$acl_libdirstem | */$acl_libdirstem/)
-                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                if test "$name" = 'netcdf'; then
-                  LIBNETCDF_PREFIX="$basedir"
-                fi
-                additional_includedir="$basedir/include"
-                ;;
-              */$acl_libdirstem2 | */$acl_libdirstem2/)
-                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
-                if test "$name" = 'netcdf'; then
-                  LIBNETCDF_PREFIX="$basedir"
-                fi
-                additional_includedir="$basedir/include"
-                ;;
-            esac
-            if test "X$additional_includedir" != "X"; then
-                                                                                                                if test "X$additional_includedir" != "X/usr/include"; then
-                haveit=
-                if test "X$additional_includedir" = "X/usr/local/include"; then
-                  if test -n "$GCC"; then
-                    case $host_os in
-                      linux* | gnu* | k*bsd*-gnu) haveit=yes;;
-                    esac
-                  fi
-                fi
-                if test -z "$haveit"; then
-                  for x in $CPPFLAGS $INCNETCDF; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-                    if test "X$x" = "X-I$additional_includedir"; then
-                      haveit=yes
-                      break
-                    fi
-                  done
-                  if test -z "$haveit"; then
-                    if test -d "$additional_includedir"; then
-                                            INCNETCDF="${INCNETCDF}${INCNETCDF:+ }-I$additional_includedir"
-                    fi
-                  fi
-                fi
-              fi
-            fi
-                        if test -n "$found_la"; then
-                                                        save_libdir="$libdir"
-              case "$found_la" in
-                */* | *\\*) . "$found_la" ;;
-                *) . "./$found_la" ;;
-              esac
-              libdir="$save_libdir"
-                            for dep in $dependency_libs; do
-                case "$dep" in
-                  -L*)
-                    additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
-                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
-                      haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
-                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
-                        if test -n "$GCC"; then
-                          case $host_os in
-                            linux* | gnu* | k*bsd*-gnu) haveit=yes;;
-                          esac
-                        fi
-                      fi
-                      if test -z "$haveit"; then
-                        haveit=
-                        for x in $LDFLAGS $LIBNETCDF; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-                          if test "X$x" = "X-L$additional_libdir"; then
-                            haveit=yes
-                            break
-                          fi
-                        done
-                        if test -z "$haveit"; then
-                          if test -d "$additional_libdir"; then
-                                                        LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }-L$additional_libdir"
-                          fi
-                        fi
-                        haveit=
-                        for x in $LDFLAGS $LTLIBNETCDF; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-                          if test "X$x" = "X-L$additional_libdir"; then
-                            haveit=yes
-                            break
-                          fi
-                        done
-                        if test -z "$haveit"; then
-                          if test -d "$additional_libdir"; then
-                                                        LTLIBNETCDF="${LTLIBNETCDF}${LTLIBNETCDF:+ }-L$additional_libdir"
-                          fi
-                        fi
-                      fi
-                    fi
-                    ;;
-                  -R*)
-                    dir=`echo "X$dep" | sed -e 's/^X-R//'`
-                    if test "$enable_rpath" != no; then
-                                                                  haveit=
-                      for x in $rpathdirs; do
-                        if test "X$x" = "X$dir"; then
-                          haveit=yes
-                          break
-                        fi
-                      done
-                      if test -z "$haveit"; then
-                        rpathdirs="$rpathdirs $dir"
-                      fi
-                                                                  haveit=
-                      for x in $ltrpathdirs; do
-                        if test "X$x" = "X$dir"; then
-                          haveit=yes
-                          break
-                        fi
-                      done
-                      if test -z "$haveit"; then
-                        ltrpathdirs="$ltrpathdirs $dir"
-                      fi
-                    fi
-                    ;;
-                  -l*)
-                                        names_next_round="$names_next_round "`echo "X$dep" | sed -e 's/^X-l//'`
-                    ;;
-                  *.la)
-                                                                                names_next_round="$names_next_round "`echo "X$dep" | sed -e 's,^X.*/,,' -e 's,^lib,,' -e 's,\.la$,,'`
-                    ;;
-                  *)
-                                        LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$dep"
-                    LTLIBNETCDF="${LTLIBNETCDF}${LTLIBNETCDF:+ }$dep"
-                    ;;
-                esac
-              done
-            fi
-          else
-                                                            LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }-l$name"
-            LTLIBNETCDF="${LTLIBNETCDF}${LTLIBNETCDF:+ }-l$name"
-          fi
-        fi
-      fi
-    done
-  done
-  if test "X$rpathdirs" != "X"; then
-    if test -n "$acl_hardcode_libdir_separator"; then
-                        alldirs=
-      for found_dir in $rpathdirs; do
-        alldirs="${alldirs}${alldirs:+$acl_hardcode_libdir_separator}$found_dir"
-      done
-            acl_save_libdir="$libdir"
-      libdir="$alldirs"
-      eval flag=\"$acl_hardcode_libdir_flag_spec\"
-      libdir="$acl_save_libdir"
-      LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$flag"
-    else
-            for found_dir in $rpathdirs; do
-        acl_save_libdir="$libdir"
-        libdir="$found_dir"
-        eval flag=\"$acl_hardcode_libdir_flag_spec\"
-        libdir="$acl_save_libdir"
-        LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$flag"
-      done
-    fi
-  fi
-  if test "X$ltrpathdirs" != "X"; then
-            for found_dir in $ltrpathdirs; do
-      LTLIBNETCDF="${LTLIBNETCDF}${LTLIBNETCDF:+ }-R$found_dir"
-    done
-  fi
-
-
-
-
-
-
-
-        ac_save_CPPFLAGS="$CPPFLAGS"
-
-  for element in $INCNETCDF; do
-    haveit=
-    for x in $CPPFLAGS; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      if test "X$x" = "X$element"; then
-        haveit=yes
-        break
-      fi
-    done
-    if test -z "$haveit"; then
-      CPPFLAGS="${CPPFLAGS}${CPPFLAGS:+ }$element"
-    fi
-  done
-
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libnetcdf" >&5
-$as_echo_n "checking for libnetcdf... " >&6; }
-if ${ac_cv_libnetcdf+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-    ac_save_LIBS="$LIBS"
-                                case " $LIBNETCDF" in
-      *" -l"*) LIBS="$LIBS $LIBNETCDF" ;;
-      *)       LIBS="$LIBNETCDF $LIBS" ;;
-    esac
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#ifdef FC_DUMMY_MAIN
-#ifndef FC_DUMMY_MAIN_EQ_F77
-#  ifdef __cplusplus
-     extern "C"
-#  endif
-   int FC_DUMMY_MAIN() { return 1; }
-#endif
-#endif
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_libnetcdf=yes
-else
-  ac_cv_libnetcdf='no'
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-    LIBS="$ac_save_LIBS"
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_libnetcdf" >&5
-$as_echo "$ac_cv_libnetcdf" >&6; }
-  if test "$ac_cv_libnetcdf" = yes; then
-    HAVE_LIBNETCDF=yes
-
-$as_echo "#define HAVE_LIBNETCDF 1" >>confdefs.h
-
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking how to link with libnetcdf" >&5
-$as_echo_n "checking how to link with libnetcdf... " >&6; }
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBNETCDF" >&5
-$as_echo "$LIBNETCDF" >&6; }
-  else
-    HAVE_LIBNETCDF=no
-            CPPFLAGS="$ac_save_CPPFLAGS"
-    LIBNETCDF=
-    LTLIBNETCDF=
-    LIBNETCDF_PREFIX=
-  fi
-
-
-
-
-
-
-
-  if test "$HAVE_LIBNETCDF" = yes ; then
-    LIBMESH_LIBS="$LIBMESH_LIBS $LIBNETCDF"
-  fi
-
   if test -e "$LIBMESH_DIR/include/Eigen" ; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: using Eigen library bundled with libMesh" >&5
 $as_echo "$as_me: using Eigen library bundled with libMesh" >&6;}
@@ -27679,7 +27119,9 @@ fi
 
 PETSC_LDFLAGS=""
 if test -d "${PETSC_DIR}/${PETSC_ARCH}/lib" ; then
-    PETSC_LDFLAGS="-L${PETSC_DIR}/${PETSC_ARCH}/lib"
+  PETSC_LDFLAGS="-L${PETSC_DIR}/${PETSC_ARCH}/lib"
+else
+  as_fn_error $? "Unable to find lib directory for PETSc: ${PETSC_DIR}/${PETSC_ARCH}/lib does not exist." "$LINENO" 5
 fi
 
 LDFLAGS="$PETSC_LDFLAGS $LDFLAGS"
@@ -27744,8 +27186,15 @@ fi
 
 
   if test "$enable_rpath" = yes; then
-    libdir=$PETSC_LDFLAGS
+    libdir=${PETSC_DIR}/${PETSC_ARCH}/lib
+    # acl_cv_hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:wl is $wl" >&5
+$as_echo "$as_me: XXXX:wl is $wl" >&6;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:libdir is $libdir" >&5
+$as_echo "$as_me: XXXX:libdir is $libdir" >&6;}
     rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:rpath_path is $rpath_path" >&5
+$as_echo "$as_me: XXXX:rpath_path is $rpath_path" >&6;}
     LDFLAGS=""$rpath_path" $LDFLAGS"
 
   fi
@@ -28055,6 +27504,8 @@ fi
     fi
     if test -d "${HDF5_DIR}/lib" ; then
       HDF5_LDFLAGS="-L${HDF5_DIR}/lib"
+    else
+      as_fn_error $? "Unable to find lib directory for HDF5: ${HDF5_DIR}/lib does not exist." "$LINENO" 5
     fi
   fi
 
@@ -28185,8 +27636,15 @@ fi
 
 
   if test "$enable_rpath" = yes; then
-    libdir=$HDF5_LDFLAGS
+    libdir=${HDF5_DIR}/lib
+    # acl_cv_hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:wl is $wl" >&5
+$as_echo "$as_me: XXXX:wl is $wl" >&6;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:libdir is $libdir" >&5
+$as_echo "$as_me: XXXX:libdir is $libdir" >&6;}
     rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:rpath_path is $rpath_path" >&5
+$as_echo "$as_me: XXXX:rpath_path is $rpath_path" >&6;}
     LDFLAGS=""$rpath_path" $LDFLAGS"
 
   fi
@@ -28338,8 +27796,15 @@ fi
 
 
   if test "$enable_rpath" = yes; then
-    libdir=$HYPRE_LDFLAGS
+    libdir=${HYPRE_DIR}/lib
+    # acl_cv_hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:wl is $wl" >&5
+$as_echo "$as_me: XXXX:wl is $wl" >&6;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:libdir is $libdir" >&5
+$as_echo "$as_me: XXXX:libdir is $libdir" >&6;}
     rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:rpath_path is $rpath_path" >&5
+$as_echo "$as_me: XXXX:rpath_path is $rpath_path" >&6;}
     LDFLAGS=""$rpath_path" $LDFLAGS"
 
   fi
@@ -31486,6 +30951,12 @@ $as_echo "$LIBMUPARSER" >&6; }
       as_fn_error $? "could not find working libmuParser" "$LINENO" 5
     fi
   fi
+  # we only need to do this for the system case, otherwise the muParser object files
+  # are compiled inside libIBTK.a
+  PACKAGE_LDFLAGS="$MUPARSER_LDFLAGS $PACKAGE_LDFLAGS"
+
+  PACKAGE_CONTRIB_LIBS="$LIBMUPARSER $PACKAGE_CONTRIB_LIBS"
+
 
 else
 
@@ -31531,7 +31002,6 @@ $as_echo "$as_me: could not find system muParser library, using bundled muParser
 if test "x$ac_cv_header_muParser_h" = xyes; then :
 
     HAVE_MUPARSER=yes
-    LIBMUPARSER="$MUPARSER_BUILDDIR/lib/libmuparser.a"
 
 $as_echo "#define HAVE_LIBMUPARSER 1" >>confdefs.h
 
@@ -31556,10 +31026,6 @@ else
 fi
 
 PACKAGE_CPPFLAGS="$MUPARSER_CPPFLAGS $PACKAGE_CPPFLAGS"
-
-PACKAGE_LDFLAGS="$MUPARSER_LDFLAGS $PACKAGE_LDFLAGS"
-
-PACKAGE_CONTRIB_LIBS="$LIBMUPARSER $PACKAGE_CONTRIB_LIBS"
 
 
 CFLAGS=$PACKAGE_save_CFLAGS
@@ -31640,6 +31106,8 @@ if test "$SILO_ENABLED" = yes; then
     fi
     if test -d "${SILO_DIR}/lib" ; then
       SILO_LDFLAGS="-L${SILO_DIR}/lib"
+    else
+      as_fn_error $? "Unable to find lib directory for silo: ${SILO_DIR}/lib does not exist." "$LINENO" 5
     fi
   fi
 
@@ -31830,8 +31298,15 @@ fi
 
 
   if test "$enable_rpath" = yes; then
-    libdir=$SILO_LDFLAGS
+    libdir=${SILO_DIR}/lib
+    # acl_cv_hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:wl is $wl" >&5
+$as_echo "$as_me: XXXX:wl is $wl" >&6;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:libdir is $libdir" >&5
+$as_echo "$as_me: XXXX:libdir is $libdir" >&6;}
     rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:rpath_path is $rpath_path" >&5
+$as_echo "$as_me: XXXX:rpath_path is $rpath_path" >&6;}
     LDFLAGS=""$rpath_path" $LDFLAGS"
 
   fi
@@ -42610,14 +42085,10 @@ echo
 echo "================"
 echo "Outputting files"
 echo "================"
-ac_config_files="$ac_config_files Makefile examples/Makefile examples/CCLaplace/Makefile examples/CCPoisson/Makefile examples/PETScOps/Makefile examples/PETScOps/ProlongationMat/Makefile examples/PhysBdryOps/Makefile examples/SCLaplace/Makefile examples/SCPoisson/Makefile examples/VCLaplace/Makefile examples/VCViscousSolver/Makefile lib/Makefile scripts/Makefile src/Makefile src/boundary/Makefile src/boundary/cf_interface/Makefile src/boundary/cf_interface/fortran/Makefile src/boundary/physical_boundary/Makefile src/boundary/physical_boundary/fortran/Makefile src/coarsen_ops/Makefile src/coarsen_ops/fortran/Makefile src/fortran/Makefile src/lagrangian/Makefile src/lagrangian/fortran/Makefile src/math/Makefile src/math/fortran/Makefile src/refine_ops/Makefile src/refine_ops/fortran/Makefile src/solvers/Makefile src/solvers/impls/Makefile src/solvers/impls/fortran/Makefile src/solvers/interfaces/Makefile src/solvers/wrappers/Makefile src/utilities/Makefile contrib/Makefile"
 
-if test "$USING_BUNDLED_MUPARSER" = yes ; then
+ac_config_files="$ac_config_files Makefile examples/Makefile examples/CCLaplace/Makefile examples/CCPoisson/Makefile examples/PETScOps/Makefile examples/PETScOps/ProlongationMat/Makefile examples/PhysBdryOps/Makefile examples/SCLaplace/Makefile examples/SCPoisson/Makefile examples/VCLaplace/Makefile examples/VCViscousSolver/Makefile lib/Makefile scripts/Makefile src/Makefile src/boundary/Makefile src/boundary/cf_interface/Makefile src/boundary/cf_interface/fortran/Makefile src/boundary/physical_boundary/Makefile src/boundary/physical_boundary/fortran/Makefile src/coarsen_ops/Makefile src/coarsen_ops/fortran/Makefile src/fortran/Makefile src/lagrangian/Makefile src/lagrangian/fortran/Makefile src/math/Makefile src/math/fortran/Makefile src/refine_ops/Makefile src/refine_ops/fortran/Makefile src/solvers/Makefile src/solvers/impls/Makefile src/solvers/impls/fortran/Makefile src/solvers/interfaces/Makefile src/solvers/wrappers/Makefile src/utilities/Makefile contrib/Makefile contrib/muparser/Makefile contrib/muparser/src/Makefile"
 
 
-subdirs="$subdirs contrib/muparser"
-
-fi
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -43903,6 +43374,8 @@ do
     "src/solvers/wrappers/Makefile") CONFIG_FILES="$CONFIG_FILES src/solvers/wrappers/Makefile" ;;
     "src/utilities/Makefile") CONFIG_FILES="$CONFIG_FILES src/utilities/Makefile" ;;
     "contrib/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/Makefile" ;;
+    "contrib/muparser/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/muparser/Makefile" ;;
+    "contrib/muparser/src/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/muparser/src/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -45576,151 +45049,6 @@ if test "$no_create" != yes; then
   # Use ||, not &&, to avoid exiting from the if with $? = 1, which
   # would make configure fail if this is the last instruction.
   $ac_cs_success || as_fn_exit 1
-fi
-
-#
-# CONFIG_SUBDIRS section.
-#
-if test "$no_recursion" != yes; then
-
-  # Remove --cache-file, --srcdir, and --disable-option-checking arguments
-  # so they do not pile up.
-  ac_sub_configure_args=
-  ac_prev=
-  eval "set x $ac_configure_args"
-  shift
-  for ac_arg
-  do
-    if test -n "$ac_prev"; then
-      ac_prev=
-      continue
-    fi
-    case $ac_arg in
-    -cache-file | --cache-file | --cache-fil | --cache-fi \
-    | --cache-f | --cache- | --cache | --cach | --cac | --ca | --c)
-      ac_prev=cache_file ;;
-    -cache-file=* | --cache-file=* | --cache-fil=* | --cache-fi=* \
-    | --cache-f=* | --cache-=* | --cache=* | --cach=* | --cac=* | --ca=* \
-    | --c=*)
-      ;;
-    --config-cache | -C)
-      ;;
-    -srcdir | --srcdir | --srcdi | --srcd | --src | --sr)
-      ac_prev=srcdir ;;
-    -srcdir=* | --srcdir=* | --srcdi=* | --srcd=* | --src=* | --sr=*)
-      ;;
-    -prefix | --prefix | --prefi | --pref | --pre | --pr | --p)
-      ac_prev=prefix ;;
-    -prefix=* | --prefix=* | --prefi=* | --pref=* | --pre=* | --pr=* | --p=*)
-      ;;
-    --disable-option-checking)
-      ;;
-    *)
-      case $ac_arg in
-      *\'*) ac_arg=`$as_echo "$ac_arg" | sed "s/'/'\\\\\\\\''/g"` ;;
-      esac
-      as_fn_append ac_sub_configure_args " '$ac_arg'" ;;
-    esac
-  done
-
-  # Always prepend --prefix to ensure using the same prefix
-  # in subdir configurations.
-  ac_arg="--prefix=$prefix"
-  case $ac_arg in
-  *\'*) ac_arg=`$as_echo "$ac_arg" | sed "s/'/'\\\\\\\\''/g"` ;;
-  esac
-  ac_sub_configure_args="'$ac_arg' $ac_sub_configure_args"
-
-  # Pass --silent
-  if test "$silent" = yes; then
-    ac_sub_configure_args="--silent $ac_sub_configure_args"
-  fi
-
-  # Always prepend --disable-option-checking to silence warnings, since
-  # different subdirs can have different --enable and --with options.
-  ac_sub_configure_args="--disable-option-checking $ac_sub_configure_args"
-
-  ac_popdir=`pwd`
-  for ac_dir in : $subdirs; do test "x$ac_dir" = x: && continue
-
-    # Do not complain, so a configure script can configure whichever
-    # parts of a large source tree are present.
-    test -d "$srcdir/$ac_dir" || continue
-
-    ac_msg="=== configuring in $ac_dir (`pwd`/$ac_dir)"
-    $as_echo "$as_me:${as_lineno-$LINENO}: $ac_msg" >&5
-    $as_echo "$ac_msg" >&6
-    as_dir="$ac_dir"; as_fn_mkdir_p
-    ac_builddir=.
-
-case "$ac_dir" in
-.) ac_dir_suffix= ac_top_builddir_sub=. ac_top_build_prefix= ;;
-*)
-  ac_dir_suffix=/`$as_echo "$ac_dir" | sed 's|^\.[\\/]||'`
-  # A ".." for each directory in $ac_dir_suffix.
-  ac_top_builddir_sub=`$as_echo "$ac_dir_suffix" | sed 's|/[^\\/]*|/..|g;s|/||'`
-  case $ac_top_builddir_sub in
-  "") ac_top_builddir_sub=. ac_top_build_prefix= ;;
-  *)  ac_top_build_prefix=$ac_top_builddir_sub/ ;;
-  esac ;;
-esac
-ac_abs_top_builddir=$ac_pwd
-ac_abs_builddir=$ac_pwd$ac_dir_suffix
-# for backward compatibility:
-ac_top_builddir=$ac_top_build_prefix
-
-case $srcdir in
-  .)  # We are building in place.
-    ac_srcdir=.
-    ac_top_srcdir=$ac_top_builddir_sub
-    ac_abs_top_srcdir=$ac_pwd ;;
-  [\\/]* | ?:[\\/]* )  # Absolute name.
-    ac_srcdir=$srcdir$ac_dir_suffix;
-    ac_top_srcdir=$srcdir
-    ac_abs_top_srcdir=$srcdir ;;
-  *) # Relative name.
-    ac_srcdir=$ac_top_build_prefix$srcdir$ac_dir_suffix
-    ac_top_srcdir=$ac_top_build_prefix$srcdir
-    ac_abs_top_srcdir=$ac_pwd/$srcdir ;;
-esac
-ac_abs_srcdir=$ac_abs_top_srcdir$ac_dir_suffix
-
-
-    cd "$ac_dir"
-
-    # Check for guested configure; otherwise get Cygnus style configure.
-    if test -f "$ac_srcdir/configure.gnu"; then
-      ac_sub_configure=$ac_srcdir/configure.gnu
-    elif test -f "$ac_srcdir/configure"; then
-      ac_sub_configure=$ac_srcdir/configure
-    elif test -f "$ac_srcdir/configure.in"; then
-      # This should be Cygnus configure.
-      ac_sub_configure=$ac_aux_dir/configure
-    else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: no configuration information is in $ac_dir" >&5
-$as_echo "$as_me: WARNING: no configuration information is in $ac_dir" >&2;}
-      ac_sub_configure=
-    fi
-
-    # The recursion is here.
-    if test -n "$ac_sub_configure"; then
-      # Make the cache file name correct relative to the subdirectory.
-      case $cache_file in
-      [\\/]* | ?:[\\/]* ) ac_sub_cache_file=$cache_file ;;
-      *) # Relative name.
-	ac_sub_cache_file=$ac_top_build_prefix$cache_file ;;
-      esac
-
-      { $as_echo "$as_me:${as_lineno-$LINENO}: running $SHELL $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_srcdir" >&5
-$as_echo "$as_me: running $SHELL $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_srcdir" >&6;}
-      # The eval makes quoting arguments work.
-      eval "\$SHELL \"\$ac_sub_configure\" $ac_sub_configure_args \
-	   --cache-file=\"\$ac_sub_cache_file\" --srcdir=\"\$ac_srcdir\"" ||
-	as_fn_error $? "$ac_sub_configure failed for $ac_dir" "$LINENO" 5
-    fi
-
-    cd "$ac_popdir"
-  done
 fi
 if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5

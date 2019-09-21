@@ -1,0 +1,129 @@
+warning: value at location (-4,-4) is not correct
+  expected value = 0.75   computed value = -0.1875
+warning: value at location (-3,-4) is not correct
+  expected value = 0.640625   computed value = -0.171875
+warning: value at location (-2,-4) is not correct
+  expected value = 0.5625   computed value = -0.15625
+warning: value at location (-1,-4) is not correct
+  expected value = 0.515625   computed value = -0.140625
+warning: value at location (9,-4) is not correct
+  expected value = 1.76562   computed value = 1.10938
+warning: value at location (10,-4) is not correct
+  expected value = 2.0625   computed value = 1.34375
+warning: value at location (11,-4) is not correct
+  expected value = 2.39062   computed value = 1.57812
+warning: value at location (12,-4) is not correct
+  expected value = 2.75   computed value = 1.8125
+warning: value at location (-4,-3) is not correct
+  expected value = 0.53125   computed value = -0.15625
+warning: value at location (-3,-3) is not correct
+  expected value = 0.421875   computed value = -0.140625
+warning: value at location (-2,-3) is not correct
+  expected value = 0.34375   computed value = -0.125
+warning: value at location (-1,-3) is not correct
+  expected value = 0.296875   computed value = -0.109375
+warning: value at location (9,-3) is not correct
+  expected value = 1.54688   computed value = 1.14062
+warning: value at location (10,-3) is not correct
+  expected value = 1.84375   computed value = 1.375
+warning: value at location (11,-3) is not correct
+  expected value = 2.17188   computed value = 1.60938
+warning: value at location (12,-3) is not correct
+  expected value = 2.53125   computed value = 1.84375
+warning: value at location (-4,-2) is not correct
+  expected value = 0.375   computed value = -0.125
+warning: value at location (-3,-2) is not correct
+  expected value = 0.265625   computed value = -0.109375
+warning: value at location (-2,-2) is not correct
+  expected value = 0.1875   computed value = -0.09375
+warning: value at location (-1,-2) is not correct
+  expected value = 0.140625   computed value = -0.078125
+warning: value at location (9,-2) is not correct
+  expected value = 1.39062   computed value = 1.17188
+warning: value at location (10,-2) is not correct
+  expected value = 1.6875   computed value = 1.40625
+warning: value at location (11,-2) is not correct
+  expected value = 2.01562   computed value = 1.64062
+warning: value at location (12,-2) is not correct
+  expected value = 2.375   computed value = 1.875
+warning: value at location (-4,-1) is not correct
+  expected value = 0.28125   computed value = -0.09375
+warning: value at location (-3,-1) is not correct
+  expected value = 0.171875   computed value = -0.078125
+warning: value at location (-2,-1) is not correct
+  expected value = 0.09375   computed value = -0.0625
+warning: value at location (-1,-1) is not correct
+  expected value = 0.046875   computed value = -0.046875
+warning: value at location (9,-1) is not correct
+  expected value = 1.29688   computed value = 1.20312
+warning: value at location (10,-1) is not correct
+  expected value = 1.59375   computed value = 1.4375
+warning: value at location (11,-1) is not correct
+  expected value = 1.92188   computed value = 1.67188
+warning: value at location (12,-1) is not correct
+  expected value = 2.28125   computed value = 1.90625
+warning: value at location (-4,9) is not correct
+  expected value = 2.78125   computed value = 2.40625
+warning: value at location (-3,9) is not correct
+  expected value = 2.67188   computed value = 2.42188
+warning: value at location (-2,9) is not correct
+  expected value = 2.59375   computed value = 2.4375
+warning: value at location (-1,9) is not correct
+  expected value = 2.54688   computed value = 2.45312
+warning: value at location (9,9) is not correct
+  expected value = 3.79688   computed value = 3.70312
+warning: value at location (10,9) is not correct
+  expected value = 4.09375   computed value = 3.9375
+warning: value at location (11,9) is not correct
+  expected value = 4.42188   computed value = 4.17188
+warning: value at location (12,9) is not correct
+  expected value = 4.78125   computed value = 4.40625
+warning: value at location (-4,10) is not correct
+  expected value = 3.375   computed value = 2.875
+warning: value at location (-3,10) is not correct
+  expected value = 3.26562   computed value = 2.89062
+warning: value at location (-2,10) is not correct
+  expected value = 3.1875   computed value = 2.90625
+warning: value at location (-1,10) is not correct
+  expected value = 3.14062   computed value = 2.92188
+warning: value at location (9,10) is not correct
+  expected value = 4.39062   computed value = 4.17188
+warning: value at location (10,10) is not correct
+  expected value = 4.6875   computed value = 4.40625
+warning: value at location (11,10) is not correct
+  expected value = 5.01562   computed value = 4.64062
+warning: value at location (12,10) is not correct
+  expected value = 5.375   computed value = 4.875
+warning: value at location (-4,11) is not correct
+  expected value = 4.03125   computed value = 3.34375
+warning: value at location (-3,11) is not correct
+  expected value = 3.92188   computed value = 3.35938
+warning: value at location (-2,11) is not correct
+  expected value = 3.84375   computed value = 3.375
+warning: value at location (-1,11) is not correct
+  expected value = 3.79688   computed value = 3.39062
+warning: value at location (9,11) is not correct
+  expected value = 5.04688   computed value = 4.64062
+warning: value at location (10,11) is not correct
+  expected value = 5.34375   computed value = 4.875
+warning: value at location (11,11) is not correct
+  expected value = 5.67188   computed value = 5.10938
+warning: value at location (12,11) is not correct
+  expected value = 6.03125   computed value = 5.34375
+warning: value at location (-4,12) is not correct
+  expected value = 4.75   computed value = 3.8125
+warning: value at location (-3,12) is not correct
+  expected value = 4.64062   computed value = 3.82812
+warning: value at location (-2,12) is not correct
+  expected value = 4.5625   computed value = 3.84375
+warning: value at location (-1,12) is not correct
+  expected value = 4.51562   computed value = 3.85938
+warning: value at location (9,12) is not correct
+  expected value = 5.76562   computed value = 5.10938
+warning: value at location (10,12) is not correct
+  expected value = 6.0625   computed value = 5.34375
+warning: value at location (11,12) is not correct
+  expected value = 6.39062   computed value = 5.57812
+warning: value at location (12,12) is not correct
+  expected value = 6.75   computed value = 5.8125
+possible errors encountered in extrapolated boundary data.

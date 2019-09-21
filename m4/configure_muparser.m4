@@ -36,6 +36,10 @@ AC_CHECK_HEADER([muParser.h],[
       AC_MSG_ERROR([could not find working libmuParser])
     fi
   fi
+  # we only need to do this for the system case, otherwise the muParser object files
+  # are compiled inside libIBTK.a
+  PACKAGE_LDFLAGS_PREPEND($MUPARSER_LDFLAGS)
+  PACKAGE_CONTRIB_LIBS_PREPEND($LIBMUPARSER)
   ],[
   PACKAGE_RESTORE_ENVIRONMENT
   PACKAGE_SETUP_ENVIRONMENT
@@ -49,7 +53,6 @@ AC_CHECK_HEADER([muParser.h],[
   $as_unset ac_cv_header_muParser_h
   AC_CHECK_HEADER([muParser.h],[
     HAVE_MUPARSER=yes
-    LIBMUPARSER="$MUPARSER_BUILDDIR/lib/libmuparser.a"
     AC_DEFINE(HAVE_LIBMUPARSER, 1, [Define if you have the libmuParser library.])
     ],[
     AC_MSG_ERROR([could not find bundled muParer library])
@@ -57,7 +60,5 @@ AC_CHECK_HEADER([muParser.h],[
 ])
 AM_CONDITIONAL([USING_BUNDLED_MUPARSER],[test "$USING_BUNDLED_MUPARSER" = yes])
 PACKAGE_CPPFLAGS_PREPEND($MUPARSER_CPPFLAGS)
-PACKAGE_LDFLAGS_PREPEND($MUPARSER_LDFLAGS)
-PACKAGE_CONTRIB_LIBS_PREPEND($LIBMUPARSER)
 PACKAGE_RESTORE_ENVIRONMENT
 ])

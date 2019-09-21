@@ -19,6 +19,8 @@ IBAMR_PROJECT_ROOT=$HOME/code/IBAMR
 
 intercept_make="make CC=intercept-cc CXX=intercept-c++ MPICH_CC=intercept-cc MPICH_CXX=intercept-cxx OMPI_CC=intercept-cc OMPI_CXX=intercept-cxx"
 
+CXX_COMMAND=/usr/local/Cellar/llvm/8.0.1/bin/clang++
+
 if [ $SETUP_PETSC -eq 1 ]; then
   echo "setting up petsc"
   cd $PETSC_DIR
@@ -28,6 +30,7 @@ if [ $SETUP_PETSC -eq 1 ]; then
   rm $PWD/compile_commands.json
   intercept-build --override-compiler $intercept_make PETSC_ARCH=$PETSC_ARCH all
   compdb -p . list > compile_commands-new.json
+  sed -i -e "s|\"command\": \"c++|\"command\": \"$CXX_COMMAND|" compile_commands-new.json
   cp $PWD/compile_commands-new.json $PROJECT_ROOT/petsc-compile_commands.json
   if [ $REBUILD_LIBRARIES -eq 1 ]; then
     make PETSC_ARCH=$PETSC_ARCH all
@@ -43,6 +46,7 @@ if [ $SETUP_SAMRAI -eq 1 ]; then
   rm $PWD/compile_commands.json
   intercept-build --override-compiler $intercept_make
   compdb -p . list > compile_commands-new.json
+  sed -i -e "s|\"command\": \"c++|\"command\": \"$CXX_COMMAND|" compile_commands-new.json
   cp $PWD/compile_commands-new.json $PROJECT_ROOT/samrai-compile_commands.json
   if [ $REBUILD_LIBRARIES -eq 1 ]; then
     make all
@@ -58,6 +62,7 @@ if [ $SETUP_LIBMESH -eq 1 ]; then
   rm $PWD/compile_commands.json
   intercept-build --override-compiler $intercept_make
   compdb -p . list > compile_commands-new.json
+  sed -i -e "s|\"command\": \"c++|\"command\": \"$CXX_COMMAND|" compile_commands-new.json
   cp $PWD/compile_commands-new.json $PROJECT_ROOT/libmesh-compile_commands.json
   if [ $REBUILD_LIBRARIES -eq 1 ]; then
     make all
@@ -72,7 +77,9 @@ if [ $SETUP_IBAMR -eq 1 ]; then
   make clean
   rm $PWD/compile_commands.json
   intercept-build --override-compiler $intercept_make
+  cp compile_commands.json compile_commands.json.bak
   compdb -p . list > compile_commands-new.json
+  sed -i -e "s|\"command\": \"c++|\"command\": \"$CXX_COMMAND|" compile_commands-new.json
   cp $PWD/compile_commands-new.json $PROJECT_ROOT/ibamr-compile_commands.json
   if [ $REBUILD_LIBRARIES -eq 1 ]; then
     make all

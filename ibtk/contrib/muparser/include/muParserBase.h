@@ -32,6 +32,7 @@
 #include <map>
 #include <memory>
 #include <locale>
+#include <limits.h>
 
 //--- Parser includes --------------------------------------------------------------------------
 #include "muParserDef.h"
@@ -58,7 +59,7 @@ namespace mu
   Complementary to a set of internally implemented functions the parser is able to handle 
   user defined functions and variables. 
 */
-class ParserBase 
+class API_EXPORT_CXX ParserBase
 {
 friend class ParserTokenReader;
 
@@ -85,7 +86,7 @@ private:
     typedef ParserToken<value_type, string_type> token_type;
 
     /** \brief Maximum number of threads spawned by OpenMP when using the bulk mode. */
-    static const int s_MaxNumOpenMPThreads = 4;
+    static const int s_MaxNumOpenMPThreads;
 
  public:
 
@@ -220,7 +221,12 @@ private:
 
       virtual std::string do_grouping() const 
       { 
-        return std::string(1, m_nGroup); 
+		// fix for issue 4: https://code.google.com/p/muparser/issues/detail?id=4
+		// courtesy of Jens Bartsch
+		// original code:
+		//        return std::string(1, (char)m_nGroup); 
+		// new code:
+		return std::string(1, (char)(m_cThousandsSep > 0 ? m_nGroup : CHAR_MAX));
       }
 
     private:
@@ -282,7 +288,7 @@ private:
     mutable stringbuf_type  m_vStringBuf; ///< String buffer, used for storing string function arguments
     stringbuf_type  m_vStringVarBuf;
 
-    std::auto_ptr<token_reader_type> m_pTokenReader; ///< Managed pointer to the token reader object.
+    std::unique_ptr<token_reader_type> m_pTokenReader; ///< Managed pointer to the token reader object.
 
     funmap_type  m_FunDef;         ///< Map of function names and pointers.
     funmap_type  m_PostOprtDef;    ///< Postfix operator callbacks
@@ -308,4 +314,3 @@ private:
 } // namespace mu
 
 #endif
-

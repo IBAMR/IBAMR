@@ -25,16 +25,7 @@
 #ifndef MU_PARSER_DLL_H
 #define MU_PARSER_DLL_H
 
-#if defined(WIN32) || defined(_WIN32)
-    #ifdef MUPARSERLIB_EXPORTS
-        #define API_EXPORT(TYPE) __declspec(dllexport) TYPE __cdecl
-    #else
-        #define API_EXPORT(TYPE) __declspec(dllimport) TYPE __cdecl
-    #endif
-#else
-    #define API_EXPORT(TYPE) TYPE
-#endif
-
+#include "muParserFixes.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -47,7 +38,13 @@ extern "C"
 
 // Basic types
 typedef void*  muParserHandle_t;    // parser handle
-typedef char   muChar_t;            // character type
+
+#ifndef _UNICODE
+    typedef char   muChar_t;            // character type
+#else
+    typedef wchar_t   muChar_t;            // character type
+#endif
+
 typedef int    muBool_t;            // boolean type
 typedef int    muInt_t;             // integer type 
 typedef double muFloat_t;           // floating point type

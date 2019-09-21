@@ -723,9 +723,9 @@ SAMRAI_FORTDIR
 SAMRAI_DIR
 SILO_ENABLED_FALSE
 SILO_ENABLED_TRUE
-PACKAGE_CONTRIB_LIBS
 USING_BUNDLED_MUPARSER_FALSE
 USING_BUNDLED_MUPARSER_TRUE
+PACKAGE_CONTRIB_LIBS
 LIBMUPARSER_PREFIX
 LTLIBMUPARSER
 LIBMUPARSER
@@ -773,10 +773,6 @@ LIBMESH_OPT_PREFIX
 LTLIBMESH_OPT
 LIBMESH_OPT
 HAVE_LIBMESH_OPT
-LIBNETCDF_PREFIX
-LTLIBNETCDF
-LIBNETCDF
-HAVE_LIBNETCDF
 LIBMESH_CONFIG
 LIBMESH_ENABLED_FALSE
 LIBMESH_ENABLED_TRUE
@@ -24070,560 +24066,6 @@ $as_echo "${LIBMESH_UNIQUE_PTR_OK}" >&6; }
   if test "$LIBMESH_UNIQUE_PTR_OK" = no; then
     as_fn_error $? "libMesh must be compiled with C++11 support and without --disable-unique-ptr." "$LINENO" 5
   fi
-
-
-
-
-
-
-
-
-
-
-
-
-
-    use_additional=yes
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-    eval additional_includedir=\"$includedir\"
-    eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-## begin removed by BEG
-##  AC_ARG_WITH(P_A_C_K[-prefix],
-##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
-##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
-##[
-##    if test "X$withval" = "Xno"; then
-##      use_additional=no
-##    else
-##      if test "X$withval" = "X"; then
-##        AC_LIB_WITH_FINAL_PREFIX([
-##          eval additional_includedir=\"$includedir\"
-##          eval additional_libdir=\"$libdir\"
-##        ])
-##      else
-##        additional_includedir="$withval/include"
-##        additional_libdir="$withval/$acl_libdirstem"
-##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-##           && ! test -d "$withval/$acl_libdirstem"; then
-##          additional_libdir="$withval/$acl_libdirstem2"
-##        fi
-##      fi
-##    fi
-##])
-## end removed by BEG
-      LIBNETCDF=
-  LTLIBNETCDF=
-  INCNETCDF=
-  LIBNETCDF_PREFIX=
-      HAVE_LIBNETCDF=
-  rpathdirs=
-  ltrpathdirs=
-  names_already_handled=
-  names_next_round='netcdf '
-  while test -n "$names_next_round"; do
-    names_this_round="$names_next_round"
-    names_next_round=
-    for name in $names_this_round; do
-      already_handled=
-      for n in $names_already_handled; do
-        if test "$n" = "$name"; then
-          already_handled=yes
-          break
-        fi
-      done
-      if test -z "$already_handled"; then
-        names_already_handled="$names_already_handled $name"
-                        uppername=`echo "$name" | sed -e 'y|abcdefghijklmnopqrstuvwxyz./+-|ABCDEFGHIJKLMNOPQRSTUVWXYZ____|'`
-        eval value=\"\$HAVE_LIB$uppername\"
-        if test -n "$value"; then
-          if test "$value" = yes; then
-            eval value=\"\$LIB$uppername\"
-            test -z "$value" || LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$value"
-            eval value=\"\$LTLIB$uppername\"
-            test -z "$value" || LTLIBNETCDF="${LTLIBNETCDF}${LTLIBNETCDF:+ }$value"
-          else
-                                    :
-          fi
-        else
-                              found_dir=
-          found_la=
-          found_so=
-          found_a=
-          eval libname=\"$acl_libname_spec\"    # typically: libname=lib$name
-          if test -n "$acl_shlibext"; then
-            shrext=".$acl_shlibext"             # typically: shrext=.so
-          else
-            shrext=
-          fi
-          if test $use_additional = yes; then
-            dir="$additional_libdir"
-                                    if test -n "$acl_shlibext"; then
-              if test -f "$dir/$libname$shrext"; then
-                found_dir="$dir"
-                found_so="$dir/$libname$shrext"
-              else
-                if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
-                  ver=`(cd "$dir" && \
-                        for f in "$libname$shrext".*; do echo "$f"; done \
-                        | sed -e "s,^$libname$shrext\\\\.,," \
-                        | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
-                        | sed 1q ) 2>/dev/null`
-                  if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
-                    found_dir="$dir"
-                    found_so="$dir/$libname$shrext.$ver"
-                  fi
-                else
-                  eval library_names=\"$acl_library_names_spec\"
-                  for f in $library_names; do
-                    if test -f "$dir/$f"; then
-                      found_dir="$dir"
-                      found_so="$dir/$f"
-                      break
-                    fi
-                  done
-                fi
-              fi
-            fi
-                        if test "X$found_dir" = "X"; then
-              if test -f "$dir/$libname.$acl_libext"; then
-                found_dir="$dir"
-                found_a="$dir/$libname.$acl_libext"
-              fi
-            fi
-            if test "X$found_dir" != "X"; then
-              if test -f "$dir/$libname.la"; then
-                found_la="$dir/$libname.la"
-              fi
-            fi
-          fi
-          if test "X$found_dir" = "X"; then
-            for x in $LDFLAGS $LTLIBNETCDF; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-              case "$x" in
-                -L*)
-                  dir=`echo "X$x" | sed -e 's/^X-L//'`
-                                    if test -n "$acl_shlibext"; then
-                    if test -f "$dir/$libname$shrext"; then
-                      found_dir="$dir"
-                      found_so="$dir/$libname$shrext"
-                    else
-                      if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
-                        ver=`(cd "$dir" && \
-                              for f in "$libname$shrext".*; do echo "$f"; done \
-                              | sed -e "s,^$libname$shrext\\\\.,," \
-                              | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
-                              | sed 1q ) 2>/dev/null`
-                        if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
-                          found_dir="$dir"
-                          found_so="$dir/$libname$shrext.$ver"
-                        fi
-                      else
-                        eval library_names=\"$acl_library_names_spec\"
-                        for f in $library_names; do
-                          if test -f "$dir/$f"; then
-                            found_dir="$dir"
-                            found_so="$dir/$f"
-                            break
-                          fi
-                        done
-                      fi
-                    fi
-                  fi
-                                    if test "X$found_dir" = "X"; then
-                    if test -f "$dir/$libname.$acl_libext"; then
-                      found_dir="$dir"
-                      found_a="$dir/$libname.$acl_libext"
-                    fi
-                  fi
-                  if test "X$found_dir" != "X"; then
-                    if test -f "$dir/$libname.la"; then
-                      found_la="$dir/$libname.la"
-                    fi
-                  fi
-                  ;;
-              esac
-              if test "X$found_dir" != "X"; then
-                break
-              fi
-            done
-          fi
-          if test "X$found_dir" != "X"; then
-                        LTLIBNETCDF="${LTLIBNETCDF}${LTLIBNETCDF:+ }-L$found_dir -l$name"
-            if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no \
-                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
-                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
-                                LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$found_so"
-              else
-                                                                                haveit=
-                for x in $ltrpathdirs; do
-                  if test "X$x" = "X$found_dir"; then
-                    haveit=yes
-                    break
-                  fi
-                done
-                if test -z "$haveit"; then
-                  ltrpathdirs="$ltrpathdirs $found_dir"
-                fi
-                                if test "$acl_hardcode_direct" = yes; then
-                                                      LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$found_so"
-                else
-                  if test -n "$acl_hardcode_libdir_flag_spec" && test "$acl_hardcode_minus_L" = no; then
-                                                            LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$found_so"
-                                                            haveit=
-                    for x in $rpathdirs; do
-                      if test "X$x" = "X$found_dir"; then
-                        haveit=yes
-                        break
-                      fi
-                    done
-                    if test -z "$haveit"; then
-                      rpathdirs="$rpathdirs $found_dir"
-                    fi
-                  else
-                                                                                haveit=
-                    for x in $LDFLAGS $LIBNETCDF; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-                      if test "X$x" = "X-L$found_dir"; then
-                        haveit=yes
-                        break
-                      fi
-                    done
-                    if test -z "$haveit"; then
-                      LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }-L$found_dir"
-                    fi
-                    if test "$acl_hardcode_minus_L" != no; then
-                                                                                        LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$found_so"
-                    else
-                                                                                                                                                                                LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }-l$name"
-                    fi
-                  fi
-                fi
-              fi
-            else
-              if test "X$found_a" != "X"; then
-                                LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$found_a"
-              else
-                                                LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }-L$found_dir -l$name"
-              fi
-            fi
-                        additional_includedir=
-            case "$found_dir" in
-              */$acl_libdirstem | */$acl_libdirstem/)
-                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                if test "$name" = 'netcdf'; then
-                  LIBNETCDF_PREFIX="$basedir"
-                fi
-                additional_includedir="$basedir/include"
-                ;;
-              */$acl_libdirstem2 | */$acl_libdirstem2/)
-                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
-                if test "$name" = 'netcdf'; then
-                  LIBNETCDF_PREFIX="$basedir"
-                fi
-                additional_includedir="$basedir/include"
-                ;;
-            esac
-            if test "X$additional_includedir" != "X"; then
-                                                                                                                if test "X$additional_includedir" != "X/usr/include"; then
-                haveit=
-                if test "X$additional_includedir" = "X/usr/local/include"; then
-                  if test -n "$GCC"; then
-                    case $host_os in
-                      linux* | gnu* | k*bsd*-gnu) haveit=yes;;
-                    esac
-                  fi
-                fi
-                if test -z "$haveit"; then
-                  for x in $CPPFLAGS $INCNETCDF; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-                    if test "X$x" = "X-I$additional_includedir"; then
-                      haveit=yes
-                      break
-                    fi
-                  done
-                  if test -z "$haveit"; then
-                    if test -d "$additional_includedir"; then
-                                            INCNETCDF="${INCNETCDF}${INCNETCDF:+ }-I$additional_includedir"
-                    fi
-                  fi
-                fi
-              fi
-            fi
-                        if test -n "$found_la"; then
-                                                        save_libdir="$libdir"
-              case "$found_la" in
-                */* | *\\*) . "$found_la" ;;
-                *) . "./$found_la" ;;
-              esac
-              libdir="$save_libdir"
-                            for dep in $dependency_libs; do
-                case "$dep" in
-                  -L*)
-                    additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
-                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
-                      haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
-                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
-                        if test -n "$GCC"; then
-                          case $host_os in
-                            linux* | gnu* | k*bsd*-gnu) haveit=yes;;
-                          esac
-                        fi
-                      fi
-                      if test -z "$haveit"; then
-                        haveit=
-                        for x in $LDFLAGS $LIBNETCDF; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-                          if test "X$x" = "X-L$additional_libdir"; then
-                            haveit=yes
-                            break
-                          fi
-                        done
-                        if test -z "$haveit"; then
-                          if test -d "$additional_libdir"; then
-                                                        LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }-L$additional_libdir"
-                          fi
-                        fi
-                        haveit=
-                        for x in $LDFLAGS $LTLIBNETCDF; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-                          if test "X$x" = "X-L$additional_libdir"; then
-                            haveit=yes
-                            break
-                          fi
-                        done
-                        if test -z "$haveit"; then
-                          if test -d "$additional_libdir"; then
-                                                        LTLIBNETCDF="${LTLIBNETCDF}${LTLIBNETCDF:+ }-L$additional_libdir"
-                          fi
-                        fi
-                      fi
-                    fi
-                    ;;
-                  -R*)
-                    dir=`echo "X$dep" | sed -e 's/^X-R//'`
-                    if test "$enable_rpath" != no; then
-                                                                  haveit=
-                      for x in $rpathdirs; do
-                        if test "X$x" = "X$dir"; then
-                          haveit=yes
-                          break
-                        fi
-                      done
-                      if test -z "$haveit"; then
-                        rpathdirs="$rpathdirs $dir"
-                      fi
-                                                                  haveit=
-                      for x in $ltrpathdirs; do
-                        if test "X$x" = "X$dir"; then
-                          haveit=yes
-                          break
-                        fi
-                      done
-                      if test -z "$haveit"; then
-                        ltrpathdirs="$ltrpathdirs $dir"
-                      fi
-                    fi
-                    ;;
-                  -l*)
-                                        names_next_round="$names_next_round "`echo "X$dep" | sed -e 's/^X-l//'`
-                    ;;
-                  *.la)
-                                                                                names_next_round="$names_next_round "`echo "X$dep" | sed -e 's,^X.*/,,' -e 's,^lib,,' -e 's,\.la$,,'`
-                    ;;
-                  *)
-                                        LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$dep"
-                    LTLIBNETCDF="${LTLIBNETCDF}${LTLIBNETCDF:+ }$dep"
-                    ;;
-                esac
-              done
-            fi
-          else
-                                                            LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }-l$name"
-            LTLIBNETCDF="${LTLIBNETCDF}${LTLIBNETCDF:+ }-l$name"
-          fi
-        fi
-      fi
-    done
-  done
-  if test "X$rpathdirs" != "X"; then
-    if test -n "$acl_hardcode_libdir_separator"; then
-                        alldirs=
-      for found_dir in $rpathdirs; do
-        alldirs="${alldirs}${alldirs:+$acl_hardcode_libdir_separator}$found_dir"
-      done
-            acl_save_libdir="$libdir"
-      libdir="$alldirs"
-      eval flag=\"$acl_hardcode_libdir_flag_spec\"
-      libdir="$acl_save_libdir"
-      LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$flag"
-    else
-            for found_dir in $rpathdirs; do
-        acl_save_libdir="$libdir"
-        libdir="$found_dir"
-        eval flag=\"$acl_hardcode_libdir_flag_spec\"
-        libdir="$acl_save_libdir"
-        LIBNETCDF="${LIBNETCDF}${LIBNETCDF:+ }$flag"
-      done
-    fi
-  fi
-  if test "X$ltrpathdirs" != "X"; then
-            for found_dir in $ltrpathdirs; do
-      LTLIBNETCDF="${LTLIBNETCDF}${LTLIBNETCDF:+ }-R$found_dir"
-    done
-  fi
-
-
-
-
-
-
-
-        ac_save_CPPFLAGS="$CPPFLAGS"
-
-  for element in $INCNETCDF; do
-    haveit=
-    for x in $CPPFLAGS; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      if test "X$x" = "X$element"; then
-        haveit=yes
-        break
-      fi
-    done
-    if test -z "$haveit"; then
-      CPPFLAGS="${CPPFLAGS}${CPPFLAGS:+ }$element"
-    fi
-  done
-
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libnetcdf" >&5
-$as_echo_n "checking for libnetcdf... " >&6; }
-if ${ac_cv_libnetcdf+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-    ac_save_LIBS="$LIBS"
-                                case " $LIBNETCDF" in
-      *" -l"*) LIBS="$LIBS $LIBNETCDF" ;;
-      *)       LIBS="$LIBNETCDF $LIBS" ;;
-    esac
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#ifdef FC_DUMMY_MAIN
-#ifndef FC_DUMMY_MAIN_EQ_F77
-#  ifdef __cplusplus
-     extern "C"
-#  endif
-   int FC_DUMMY_MAIN() { return 1; }
-#endif
-#endif
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_libnetcdf=yes
-else
-  ac_cv_libnetcdf='no'
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-    LIBS="$ac_save_LIBS"
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_libnetcdf" >&5
-$as_echo "$ac_cv_libnetcdf" >&6; }
-  if test "$ac_cv_libnetcdf" = yes; then
-    HAVE_LIBNETCDF=yes
-
-$as_echo "#define HAVE_LIBNETCDF 1" >>confdefs.h
-
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking how to link with libnetcdf" >&5
-$as_echo_n "checking how to link with libnetcdf... " >&6; }
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBNETCDF" >&5
-$as_echo "$LIBNETCDF" >&6; }
-  else
-    HAVE_LIBNETCDF=no
-            CPPFLAGS="$ac_save_CPPFLAGS"
-    LIBNETCDF=
-    LTLIBNETCDF=
-    LIBNETCDF_PREFIX=
-  fi
-
-
-
-
-
-
-
-  if test "$HAVE_LIBNETCDF" = yes ; then
-    LIBMESH_LIBS="$LIBMESH_LIBS $LIBNETCDF"
-  fi
-
   if test -e "$LIBMESH_DIR/include/Eigen" ; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: using Eigen library bundled with libMesh" >&5
 $as_echo "$as_me: using Eigen library bundled with libMesh" >&6;}
@@ -27513,7 +26955,9 @@ fi
 
 PETSC_LDFLAGS=""
 if test -d "${PETSC_DIR}/${PETSC_ARCH}/lib" ; then
-    PETSC_LDFLAGS="-L${PETSC_DIR}/${PETSC_ARCH}/lib"
+  PETSC_LDFLAGS="-L${PETSC_DIR}/${PETSC_ARCH}/lib"
+else
+  as_fn_error $? "Unable to find lib directory for PETSc: ${PETSC_DIR}/${PETSC_ARCH}/lib does not exist." "$LINENO" 5
 fi
 
 LDFLAGS="$PETSC_LDFLAGS $LDFLAGS"
@@ -27578,8 +27022,15 @@ fi
 
 
   if test "$enable_rpath" = yes; then
-    libdir=$PETSC_LDFLAGS
+    libdir=${PETSC_DIR}/${PETSC_ARCH}/lib
+    # acl_cv_hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:wl is $wl" >&5
+$as_echo "$as_me: XXXX:wl is $wl" >&6;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:libdir is $libdir" >&5
+$as_echo "$as_me: XXXX:libdir is $libdir" >&6;}
     rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:rpath_path is $rpath_path" >&5
+$as_echo "$as_me: XXXX:rpath_path is $rpath_path" >&6;}
     LDFLAGS=""$rpath_path" $LDFLAGS"
 
   fi
@@ -29869,6 +29320,8 @@ fi
     fi
     if test -d "${HDF5_DIR}/lib" ; then
       HDF5_LDFLAGS="-L${HDF5_DIR}/lib"
+    else
+      as_fn_error $? "Unable to find lib directory for HDF5: ${HDF5_DIR}/lib does not exist." "$LINENO" 5
     fi
   fi
 
@@ -29999,8 +29452,15 @@ fi
 
 
   if test "$enable_rpath" = yes; then
-    libdir=$HDF5_LDFLAGS
+    libdir=${HDF5_DIR}/lib
+    # acl_cv_hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:wl is $wl" >&5
+$as_echo "$as_me: XXXX:wl is $wl" >&6;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:libdir is $libdir" >&5
+$as_echo "$as_me: XXXX:libdir is $libdir" >&6;}
     rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:rpath_path is $rpath_path" >&5
+$as_echo "$as_me: XXXX:rpath_path is $rpath_path" >&6;}
     LDFLAGS=""$rpath_path" $LDFLAGS"
 
   fi
@@ -30152,8 +29612,15 @@ fi
 
 
   if test "$enable_rpath" = yes; then
-    libdir=$HYPRE_LDFLAGS
+    libdir=${HYPRE_DIR}/lib
+    # acl_cv_hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:wl is $wl" >&5
+$as_echo "$as_me: XXXX:wl is $wl" >&6;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:libdir is $libdir" >&5
+$as_echo "$as_me: XXXX:libdir is $libdir" >&6;}
     rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:rpath_path is $rpath_path" >&5
+$as_echo "$as_me: XXXX:rpath_path is $rpath_path" >&6;}
     LDFLAGS=""$rpath_path" $LDFLAGS"
 
   fi
@@ -31320,6 +30787,12 @@ $as_echo "$LIBMUPARSER" >&6; }
       as_fn_error $? "could not find working libmuParser" "$LINENO" 5
     fi
   fi
+  # we only need to do this for the system case, otherwise the muParser object files
+  # are compiled inside libIBTK.a
+  PACKAGE_LDFLAGS="$MUPARSER_LDFLAGS $PACKAGE_LDFLAGS"
+
+  PACKAGE_CONTRIB_LIBS="$LIBMUPARSER $PACKAGE_CONTRIB_LIBS"
+
 
 else
 
@@ -31365,7 +30838,6 @@ $as_echo "$as_me: could not find system muParser library, using bundled muParser
 if test "x$ac_cv_header_muParser_h" = xyes; then :
 
     HAVE_MUPARSER=yes
-    LIBMUPARSER="$MUPARSER_BUILDDIR/lib/libmuparser.a"
 
 $as_echo "#define HAVE_LIBMUPARSER 1" >>confdefs.h
 
@@ -31390,10 +30862,6 @@ else
 fi
 
 PACKAGE_CPPFLAGS="$MUPARSER_CPPFLAGS $PACKAGE_CPPFLAGS"
-
-PACKAGE_LDFLAGS="$MUPARSER_LDFLAGS $PACKAGE_LDFLAGS"
-
-PACKAGE_CONTRIB_LIBS="$LIBMUPARSER $PACKAGE_CONTRIB_LIBS"
 
 
 CFLAGS=$PACKAGE_save_CFLAGS
@@ -31474,6 +30942,8 @@ if test "$SILO_ENABLED" = yes; then
     fi
     if test -d "${SILO_DIR}/lib" ; then
       SILO_LDFLAGS="-L${SILO_DIR}/lib"
+    else
+      as_fn_error $? "Unable to find lib directory for silo: ${SILO_DIR}/lib does not exist." "$LINENO" 5
     fi
   fi
 
@@ -31664,8 +31134,15 @@ fi
 
 
   if test "$enable_rpath" = yes; then
-    libdir=$SILO_LDFLAGS
+    libdir=${SILO_DIR}/lib
+    # acl_cv_hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:wl is $wl" >&5
+$as_echo "$as_me: XXXX:wl is $wl" >&6;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:libdir is $libdir" >&5
+$as_echo "$as_me: XXXX:libdir is $libdir" >&6;}
     rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:rpath_path is $rpath_path" >&5
+$as_echo "$as_me: XXXX:rpath_path is $rpath_path" >&6;}
     LDFLAGS=""$rpath_path" $LDFLAGS"
 
   fi
@@ -42441,7 +41918,7 @@ echo
 echo "================"
 echo "Outputting files"
 echo "================"
-ac_config_files="$ac_config_files Makefile config/make.inc examples/Makefile examples/CIB/Makefile examples/CIB/ex0/Makefile examples/CIB/ex1/Makefile examples/CIB/ex2/Makefile examples/CIB/ex3/Makefile examples/CIB/ex4/Makefile examples/CIBFE/Makefile examples/CIBFE/ex0/Makefile examples/CIBFE/ex1/Makefile examples/ConstraintIB/Makefile examples/ConstraintIB/eel2d/Makefile examples/ConstraintIB/eel3d/Makefile examples/ConstraintIB/falling_sphere/Makefile examples/ConstraintIB/flow_past_cylinder/Makefile examples/ConstraintIB/flow_past_cylinder_HF/Makefile examples/ConstraintIB/impulsively_started_cylinder/Makefile examples/ConstraintIB/knifefish/Makefile examples/ConstraintIB/moving_plate/Makefile examples/ConstraintIB/oscillating_rigid_cylinder/Makefile examples/ConstraintIB/stokes_first_problem/Makefile examples/IB/Makefile examples/IB/explicit/Makefile examples/IB/explicit/ex0/Makefile examples/IB/explicit/ex1/Makefile examples/IB/explicit/ex2/Makefile examples/IB/explicit/ex3/Makefile examples/IB/explicit/ex4/Makefile examples/IB/explicit/ex5/Makefile examples/IB/explicit/ex6/Makefile examples/IBFE/Makefile examples/IBFE/explicit/Makefile examples/IBFE/explicit/ex0/Makefile examples/IBFE/explicit/ex1/Makefile examples/IBFE/explicit/ex2/Makefile examples/IBFE/explicit/ex3/Makefile examples/IBFE/explicit/ex4/Makefile examples/IBFE/explicit/ex5/Makefile examples/IBFE/explicit/ex6/Makefile examples/IBFE/explicit/ex7/Makefile examples/IBFE/explicit/ex8/Makefile examples/IBFE/explicit/ex9/Makefile examples/IBFE/explicit/ex10/Makefile examples/IBFE/explicit/ex11/Makefile examples/IMP/Makefile examples/IMP/explicit/Makefile examples/IMP/explicit/ex0/Makefile examples/adv_diff/Makefile examples/adv_diff/ex0/Makefile examples/adv_diff/ex1/Makefile examples/adv_diff/ex2/Makefile examples/advect/Makefile examples/level_set/Makefile examples/level_set/ex0/Makefile examples/level_set/ex1/Makefile examples/multiphase_flow/Makefile examples/multiphase_flow/ex0/Makefile examples/multiphase_flow/ex1/Makefile examples/multiphase_flow/ex2/Makefile examples/multiphase_flow/ex3/Makefile examples/multiphase_flow/ex4/Makefile examples/multiphase_flow/ex5/Makefile examples/multiphase_flow/ex6/Makefile examples/multiphase_flow/ex7/Makefile examples/multiphase_flow/ex8/Makefile examples/multiphase_flow/ex9/Makefile examples/multiphase_flow/ex10/Makefile examples/multiphase_flow/ex11/Makefile examples/multiphase_flow/ex12/Makefile examples/multiphase_flow/ex13/Makefile examples/navier_stokes/Makefile examples/navier_stokes/ex0/Makefile examples/navier_stokes/ex1/Makefile examples/navier_stokes/ex2/Makefile examples/navier_stokes/ex3/Makefile examples/navier_stokes/ex4/Makefile examples/navier_stokes/ex5/Makefile examples/navier_stokes/ex6/Makefile examples/vc_navier_stokes/Makefile examples/vc_navier_stokes/ex0/Makefile examples/vc_navier_stokes/ex1/Makefile examples/vc_navier_stokes/ex2/Makefile lib/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/level_set/Makefile src/level_set/fortran/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/tools/Makefile tests/Makefile tests/adv_diff/Makefile tests/advect/Makefile tests/IB/Makefile tests/IBFE/Makefile tests/IBTK/Makefile tests/multiphase_flow/Makefile tests/refine/Makefile tests/spread/Makefile"
+ac_config_files="$ac_config_files Makefile config/make.inc examples/Makefile examples/CIB/Makefile examples/CIB/ex0/Makefile examples/CIB/ex1/Makefile examples/CIB/ex2/Makefile examples/CIB/ex3/Makefile examples/CIB/ex4/Makefile examples/CIBFE/Makefile examples/CIBFE/ex0/Makefile examples/CIBFE/ex1/Makefile examples/ConstraintIB/Makefile examples/ConstraintIB/eel2d/Makefile examples/ConstraintIB/eel3d/Makefile examples/ConstraintIB/falling_sphere/Makefile examples/ConstraintIB/flow_past_cylinder/Makefile examples/ConstraintIB/flow_past_cylinder_HF/Makefile examples/ConstraintIB/impulsively_started_cylinder/Makefile examples/ConstraintIB/knifefish/Makefile examples/ConstraintIB/moving_plate/Makefile examples/ConstraintIB/oscillating_rigid_cylinder/Makefile examples/ConstraintIB/stokes_first_problem/Makefile examples/IB/Makefile examples/IB/explicit/Makefile examples/IB/explicit/ex0/Makefile examples/IB/explicit/ex1/Makefile examples/IB/explicit/ex2/Makefile examples/IB/explicit/ex3/Makefile examples/IB/explicit/ex4/Makefile examples/IB/explicit/ex5/Makefile examples/IB/explicit/ex6/Makefile examples/IBFE/Makefile examples/IBFE/explicit/Makefile examples/IBFE/explicit/ex0/Makefile examples/IBFE/explicit/ex1/Makefile examples/IBFE/explicit/ex2/Makefile examples/IBFE/explicit/ex3/Makefile examples/IBFE/explicit/ex4/Makefile examples/IBFE/explicit/ex5/Makefile examples/IBFE/explicit/ex6/Makefile examples/IBFE/explicit/ex7/Makefile examples/IBFE/explicit/ex8/Makefile examples/IBFE/explicit/ex9/Makefile examples/IBFE/explicit/ex10/Makefile examples/IBFE/explicit/ex11/Makefile examples/IMP/Makefile examples/IMP/explicit/Makefile examples/IMP/explicit/ex0/Makefile examples/adv_diff/Makefile examples/adv_diff/ex0/Makefile examples/adv_diff/ex1/Makefile examples/adv_diff/ex2/Makefile examples/advect/Makefile examples/level_set/Makefile examples/level_set/ex0/Makefile examples/level_set/ex1/Makefile examples/multiphase_flow/Makefile examples/multiphase_flow/ex0/Makefile examples/multiphase_flow/ex1/Makefile examples/multiphase_flow/ex2/Makefile examples/multiphase_flow/ex3/Makefile examples/multiphase_flow/ex4/Makefile examples/multiphase_flow/ex5/Makefile examples/multiphase_flow/ex6/Makefile examples/multiphase_flow/ex7/Makefile examples/multiphase_flow/ex8/Makefile examples/multiphase_flow/ex9/Makefile examples/multiphase_flow/ex10/Makefile examples/multiphase_flow/ex11/Makefile examples/multiphase_flow/ex12/Makefile examples/multiphase_flow/ex13/Makefile examples/navier_stokes/Makefile examples/navier_stokes/ex0/Makefile examples/navier_stokes/ex1/Makefile examples/navier_stokes/ex2/Makefile examples/navier_stokes/ex3/Makefile examples/navier_stokes/ex4/Makefile examples/navier_stokes/ex5/Makefile examples/navier_stokes/ex6/Makefile examples/vc_navier_stokes/Makefile examples/vc_navier_stokes/ex0/Makefile examples/vc_navier_stokes/ex1/Makefile examples/vc_navier_stokes/ex2/Makefile lib/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/level_set/Makefile src/level_set/fortran/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/tools/Makefile tests/Makefile tests/adv_diff/Makefile tests/advect/Makefile tests/IB/Makefile tests/IBFE/Makefile tests/IBTK/Makefile tests/multiphase_flow/Makefile tests/physical_boundary/Makefile tests/refine/Makefile tests/spread/Makefile"
 
 
 
@@ -43802,6 +43279,7 @@ do
     "tests/IBFE/Makefile") CONFIG_FILES="$CONFIG_FILES tests/IBFE/Makefile" ;;
     "tests/IBTK/Makefile") CONFIG_FILES="$CONFIG_FILES tests/IBTK/Makefile" ;;
     "tests/multiphase_flow/Makefile") CONFIG_FILES="$CONFIG_FILES tests/multiphase_flow/Makefile" ;;
+    "tests/physical_boundary/Makefile") CONFIG_FILES="$CONFIG_FILES tests/physical_boundary/Makefile" ;;
     "tests/refine/Makefile") CONFIG_FILES="$CONFIG_FILES tests/refine/Makefile" ;;
     "tests/spread/Makefile") CONFIG_FILES="$CONFIG_FILES tests/spread/Makefile" ;;
 

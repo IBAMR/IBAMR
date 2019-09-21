@@ -11,6 +11,7 @@ ibtk/contrib/autotools/share
 *compile_commands*.json
 *.sublime-project
 *.sublime-workspace
+.clangd
 
 # Created by https://www.gitignore.io/api/linux,osx,c,c++,fortran
 
