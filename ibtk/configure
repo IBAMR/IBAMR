@@ -27747,14 +27747,7 @@ fi
 
   if test "$enable_rpath" = yes; then
     libdir=${PETSC_DIR}/${PETSC_ARCH}/lib
-    # acl_cv_hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
-    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:wl is $wl" >&5
-$as_echo "$as_me: XXXX:wl is $wl" >&6;}
-    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:libdir is $libdir" >&5
-$as_echo "$as_me: XXXX:libdir is $libdir" >&6;}
     rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
-    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:rpath_path is $rpath_path" >&5
-$as_echo "$as_me: XXXX:rpath_path is $rpath_path" >&6;}
     LDFLAGS=""$rpath_path" $LDFLAGS"
 
   fi
@@ -28197,14 +28190,7 @@ fi
 
   if test "$enable_rpath" = yes; then
     libdir=${HDF5_DIR}/lib
-    # acl_cv_hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
-    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:wl is $wl" >&5
-$as_echo "$as_me: XXXX:wl is $wl" >&6;}
-    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:libdir is $libdir" >&5
-$as_echo "$as_me: XXXX:libdir is $libdir" >&6;}
     rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
-    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:rpath_path is $rpath_path" >&5
-$as_echo "$as_me: XXXX:rpath_path is $rpath_path" >&6;}
     LDFLAGS=""$rpath_path" $LDFLAGS"
 
   fi
@@ -28357,14 +28343,7 @@ fi
 
   if test "$enable_rpath" = yes; then
     libdir=${HYPRE_DIR}/lib
-    # acl_cv_hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
-    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:wl is $wl" >&5
-$as_echo "$as_me: XXXX:wl is $wl" >&6;}
-    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:libdir is $libdir" >&5
-$as_echo "$as_me: XXXX:libdir is $libdir" >&6;}
     rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
-    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:rpath_path is $rpath_path" >&5
-$as_echo "$as_me: XXXX:rpath_path is $rpath_path" >&6;}
     LDFLAGS=""$rpath_path" $LDFLAGS"
 
   fi
@@ -31858,14 +31837,7 @@ fi
 
   if test "$enable_rpath" = yes; then
     libdir=${SILO_DIR}/lib
-    # acl_cv_hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
-    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:wl is $wl" >&5
-$as_echo "$as_me: XXXX:wl is $wl" >&6;}
-    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:libdir is $libdir" >&5
-$as_echo "$as_me: XXXX:libdir is $libdir" >&6;}
     rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
-    { $as_echo "$as_me:${as_lineno-$LINENO}: XXXX:rpath_path is $rpath_path" >&5
-$as_echo "$as_me: XXXX:rpath_path is $rpath_path" >&6;}
     LDFLAGS=""$rpath_path" $LDFLAGS"
 
   fi
