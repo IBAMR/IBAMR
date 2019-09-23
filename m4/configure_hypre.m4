@@ -34,7 +34,7 @@ else
   LDFLAGS_PREPEND($HYPRE_LDFLAGS)
   AC_CHECK_LIB([HYPRE], BoomerAMGCreate, [],
                [AC_MSG_ERROR([could not find working libHYPRE])])
-  ADD_RPATH_LDFLAG($HYPRE_LDFLAGS)
+  ADD_RPATH_LDFLAG(${HYPRE_DIR}/lib)
 fi
 
 ])

@@ -27679,7 +27679,9 @@ fi
 
 PETSC_LDFLAGS=""
 if test -d "${PETSC_DIR}/${PETSC_ARCH}/lib" ; then
-    PETSC_LDFLAGS="-L${PETSC_DIR}/${PETSC_ARCH}/lib"
+  PETSC_LDFLAGS="-L${PETSC_DIR}/${PETSC_ARCH}/lib"
+else
+  as_fn_error $? "Unable to find lib directory for PETSc: ${PETSC_DIR}/${PETSC_ARCH}/lib does not exist." "$LINENO" 5
 fi
 
 LDFLAGS="$PETSC_LDFLAGS $LDFLAGS"
@@ -27744,7 +27746,7 @@ fi
 
 
   if test "$enable_rpath" = yes; then
-    libdir=$PETSC_LDFLAGS
+    libdir=${PETSC_DIR}/${PETSC_ARCH}/lib
     rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
     LDFLAGS=""$rpath_path" $LDFLAGS"
 
@@ -28055,6 +28057,8 @@ fi
     fi
     if test -d "${HDF5_DIR}/lib" ; then
       HDF5_LDFLAGS="-L${HDF5_DIR}/lib"
+    else
+      as_fn_error $? "Unable to find lib directory for HDF5: ${HDF5_DIR}/lib does not exist." "$LINENO" 5
     fi
   fi
 
@@ -28185,7 +28189,7 @@ fi
 
 
   if test "$enable_rpath" = yes; then
-    libdir=$HDF5_LDFLAGS
+    libdir=${HDF5_DIR}/lib
     rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
     LDFLAGS=""$rpath_path" $LDFLAGS"
 
@@ -28338,7 +28342,7 @@ fi
 
 
   if test "$enable_rpath" = yes; then
-    libdir=$HYPRE_LDFLAGS
+    libdir=${HYPRE_DIR}/lib
     rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
     LDFLAGS=""$rpath_path" $LDFLAGS"
 
@@ -31640,6 +31644,8 @@ if test "$SILO_ENABLED" = yes; then
     fi
     if test -d "${SILO_DIR}/lib" ; then
       SILO_LDFLAGS="-L${SILO_DIR}/lib"
+    else
+      as_fn_error $? "Unable to find lib directory for silo: ${SILO_DIR}/lib does not exist." "$LINENO" 5
     fi
   fi
 
@@ -31830,7 +31836,7 @@ fi
 
 
   if test "$enable_rpath" = yes; then
-    libdir=$SILO_LDFLAGS
+    libdir=${SILO_DIR}/lib
     rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
     LDFLAGS=""$rpath_path" $LDFLAGS"
 
