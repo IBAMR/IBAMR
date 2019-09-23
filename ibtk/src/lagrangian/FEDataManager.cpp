@@ -485,6 +485,12 @@ FEDataManager::reinitElementMappings()
     // its content is no longer relevant:
     d_fe_data->d_system_dof_map_cache.clear();
 
+    // Also clear other chached data:
+    d_fe_data->d_quadrature_cache.clear();
+    d_fe_data->d_L2_proj_solver.clear();
+    d_fe_data->d_L2_proj_matrix.clear();
+    d_fe_data->d_L2_proj_matrix_diag.clear();
+
     // Delete cached hierarchy-dependent data.
     d_active_patch_elem_map.clear();
     d_active_patch_node_map.clear();
@@ -492,11 +498,6 @@ FEDataManager::reinitElementMappings()
     d_active_elem_bboxes.clear();
     d_system_ghost_vec.clear();
     d_system_ib_ghost_vec.clear();
-
-    // also clear any stored matrices:
-    d_fe_data->d_L2_proj_solver.clear();
-    d_fe_data->d_L2_proj_matrix.clear();
-    d_fe_data->d_L2_proj_matrix_diag.clear();
 
     // Reset the mappings between grid patches and active mesh
     // elements. collectActivePatchElements will populate d_active_elem_bboxes
@@ -568,7 +569,7 @@ FEDataManager::buildIBGhostedVector(const std::string& system_name) const
     const std::unique_ptr<PetscVector<double> >& exemplar_ib_vector = d_system_ib_ghost_vec.at(system_name);
     TBOX_ASSERT(exemplar_ib_vector);
     std::unique_ptr<NumericVector<double> > clone = exemplar_ib_vector->zero_clone();
-    PetscVector<double>* ptr = dynamic_cast<PetscVector<double>*>(clone.release());
+    auto ptr = dynamic_cast<PetscVector<double>*>(clone.release());
     TBOX_ASSERT(ptr);
     return std::unique_ptr<PetscVector<double> >(ptr);
 }
