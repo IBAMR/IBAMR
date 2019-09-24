@@ -2076,6 +2076,7 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                 {
                     // Interpolation weights in Cartesian axis.
                     double w[NDIM];
+                    std::fill(std::begin(w), std::end(w), std::numeric_limits<double>::signaling_NaN());
                     if (axis == 0)
                     {
                         w[0] = 1.0 - (SCD(i(0)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(0))) /
