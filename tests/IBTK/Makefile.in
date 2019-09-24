@@ -96,7 +96,8 @@ EXTRA_PROGRAMS = elem_hmax_01$(EXEEXT) elem_hmax_02$(EXEEXT) \
 	laplace_03_3d$(EXEEXT) ldata_01$(EXEEXT) \
 	prolongation_mat_2d$(EXEEXT) prolongation_mat_3d$(EXEEXT) \
 	phys_boundary_ops_2d$(EXEEXT) phys_boundary_ops_3d$(EXEEXT) \
-	vc_viscous_solver_2d$(EXEEXT) vc_viscous_solver_3d$(EXEEXT)
+	vc_viscous_solver_2d$(EXEEXT) vc_viscous_solver_3d$(EXEEXT) \
+	jacobian_calc_01$(EXEEXT)
 subdir = tests/IBTK
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -145,6 +146,14 @@ elem_hmax_02_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 elem_hmax_02_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(elem_hmax_02_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_jacobian_calc_01_OBJECTS =  \
+	jacobian_calc_01-jacobian_calc_01.$(OBJEXT)
+jacobian_calc_01_OBJECTS = $(am_jacobian_calc_01_OBJECTS)
+jacobian_calc_01_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+jacobian_calc_01_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(jacobian_calc_01_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_laplace_01_2d_OBJECTS = laplace_01_2d-laplace_01.$(OBJEXT)
 laplace_01_2d_OBJECTS = $(am_laplace_01_2d_OBJECTS)
 laplace_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -296,6 +305,7 @@ depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po \
 	./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po \
+	./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po \
 	./$(DEPDIR)/laplace_01_2d-laplace_01.Po \
 	./$(DEPDIR)/laplace_01_3d-laplace_01.Po \
 	./$(DEPDIR)/laplace_02_2d-laplace_02.Po \
@@ -334,11 +344,11 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(elem_hmax_01_SOURCES) $(elem_hmax_02_SOURCES) \
-	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
-	$(laplace_02_2d_SOURCES) $(laplace_02_3d_SOURCES) \
-	$(laplace_03_2d_SOURCES) $(laplace_03_3d_SOURCES) \
-	$(ldata_01_SOURCES) $(mpi_type_wrappers_SOURCES) \
-	$(phys_boundary_ops_2d_SOURCES) \
+	$(jacobian_calc_01_SOURCES) $(laplace_01_2d_SOURCES) \
+	$(laplace_01_3d_SOURCES) $(laplace_02_2d_SOURCES) \
+	$(laplace_02_3d_SOURCES) $(laplace_03_2d_SOURCES) \
+	$(laplace_03_3d_SOURCES) $(ldata_01_SOURCES) \
+	$(mpi_type_wrappers_SOURCES) $(phys_boundary_ops_2d_SOURCES) \
 	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
 	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
 	$(prolongation_mat_3d_SOURCES) \
@@ -347,11 +357,11 @@ SOURCES = $(elem_hmax_01_SOURCES) $(elem_hmax_02_SOURCES) \
 	$(vc_viscous_solver_2d_SOURCES) \
 	$(vc_viscous_solver_3d_SOURCES)
 DIST_SOURCES = $(elem_hmax_01_SOURCES) $(elem_hmax_02_SOURCES) \
-	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
-	$(laplace_02_2d_SOURCES) $(laplace_02_3d_SOURCES) \
-	$(laplace_03_2d_SOURCES) $(laplace_03_3d_SOURCES) \
-	$(ldata_01_SOURCES) $(mpi_type_wrappers_SOURCES) \
-	$(phys_boundary_ops_2d_SOURCES) \
+	$(jacobian_calc_01_SOURCES) $(laplace_01_2d_SOURCES) \
+	$(laplace_01_3d_SOURCES) $(laplace_02_2d_SOURCES) \
+	$(laplace_02_3d_SOURCES) $(laplace_03_2d_SOURCES) \
+	$(laplace_03_3d_SOURCES) $(ldata_01_SOURCES) \
+	$(mpi_type_wrappers_SOURCES) $(phys_boundary_ops_2d_SOURCES) \
 	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
 	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
 	$(prolongation_mat_3d_SOURCES) \
@@ -714,6 +724,9 @@ vc_viscous_solver_2d_SOURCES = vc_viscous_solver.cpp
 vc_viscous_solver_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 vc_viscous_solver_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 vc_viscous_solver_3d_SOURCES = vc_viscous_solver.cpp
+jacobian_calc_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+jacobian_calc_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+jacobian_calc_01_SOURCES = jacobian_calc_01.cpp
 all: all-am
 
 .SUFFIXES:
@@ -756,6 +769,10 @@ elem_hmax_01$(EXEEXT): $(elem_hmax_01_OBJECTS) $(elem_hmax_01_DEPENDENCIES) $(EX
 elem_hmax_02$(EXEEXT): $(elem_hmax_02_OBJECTS) $(elem_hmax_02_DEPENDENCIES) $(EXTRA_elem_hmax_02_DEPENDENCIES) 
 	@rm -f elem_hmax_02$(EXEEXT)
 	$(AM_V_CXXLD)$(elem_hmax_02_LINK) $(elem_hmax_02_OBJECTS) $(elem_hmax_02_LDADD) $(LIBS)
+
+jacobian_calc_01$(EXEEXT): $(jacobian_calc_01_OBJECTS) $(jacobian_calc_01_DEPENDENCIES) $(EXTRA_jacobian_calc_01_DEPENDENCIES) 
+	@rm -f jacobian_calc_01$(EXEEXT)
+	$(AM_V_CXXLD)$(jacobian_calc_01_LINK) $(jacobian_calc_01_OBJECTS) $(jacobian_calc_01_LDADD) $(LIBS)
 
 laplace_01_2d$(EXEEXT): $(laplace_01_2d_OBJECTS) $(laplace_01_2d_DEPENDENCIES) $(EXTRA_laplace_01_2d_DEPENDENCIES) 
 	@rm -f laplace_01_2d$(EXEEXT)
@@ -837,6 +854,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/laplace_01_2d-laplace_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/laplace_01_3d-laplace_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/laplace_02_2d-laplace_02.Po@am__quote@ # am--include-marker
@@ -913,6 +931,20 @@ elem_hmax_02-elem_hmax_02.obj: elem_hmax_02.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='elem_hmax_02.cpp' object='elem_hmax_02-elem_hmax_02.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(elem_hmax_02_CXXFLAGS) $(CXXFLAGS) -c -o elem_hmax_02-elem_hmax_02.obj `if test -f 'elem_hmax_02.cpp'; then $(CYGPATH_W) 'elem_hmax_02.cpp'; else $(CYGPATH_W) '$(srcdir)/elem_hmax_02.cpp'; fi`
+
+jacobian_calc_01-jacobian_calc_01.o: jacobian_calc_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(jacobian_calc_01_CXXFLAGS) $(CXXFLAGS) -MT jacobian_calc_01-jacobian_calc_01.o -MD -MP -MF $(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Tpo -c -o jacobian_calc_01-jacobian_calc_01.o `test -f 'jacobian_calc_01.cpp' || echo '$(srcdir)/'`jacobian_calc_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Tpo $(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='jacobian_calc_01.cpp' object='jacobian_calc_01-jacobian_calc_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(jacobian_calc_01_CXXFLAGS) $(CXXFLAGS) -c -o jacobian_calc_01-jacobian_calc_01.o `test -f 'jacobian_calc_01.cpp' || echo '$(srcdir)/'`jacobian_calc_01.cpp
+
+jacobian_calc_01-jacobian_calc_01.obj: jacobian_calc_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(jacobian_calc_01_CXXFLAGS) $(CXXFLAGS) -MT jacobian_calc_01-jacobian_calc_01.obj -MD -MP -MF $(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Tpo -c -o jacobian_calc_01-jacobian_calc_01.obj `if test -f 'jacobian_calc_01.cpp'; then $(CYGPATH_W) 'jacobian_calc_01.cpp'; else $(CYGPATH_W) '$(srcdir)/jacobian_calc_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Tpo $(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='jacobian_calc_01.cpp' object='jacobian_calc_01-jacobian_calc_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(jacobian_calc_01_CXXFLAGS) $(CXXFLAGS) -c -o jacobian_calc_01-jacobian_calc_01.obj `if test -f 'jacobian_calc_01.cpp'; then $(CYGPATH_W) 'jacobian_calc_01.cpp'; else $(CYGPATH_W) '$(srcdir)/jacobian_calc_01.cpp'; fi`
 
 laplace_01_2d-laplace_01.o: laplace_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(laplace_01_2d_CXXFLAGS) $(CXXFLAGS) -MT laplace_01_2d-laplace_01.o -MD -MP -MF $(DEPDIR)/laplace_01_2d-laplace_01.Tpo -c -o laplace_01_2d-laplace_01.o `test -f 'laplace_01.cpp' || echo '$(srcdir)/'`laplace_01.cpp
@@ -1299,6 +1331,7 @@ clean-am: clean-generic clean-libtool mostlyclean-am
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
+	-rm -f ./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_2d-laplace_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_3d-laplace_01.Po
 	-rm -f ./$(DEPDIR)/laplace_02_2d-laplace_02.Po
@@ -1364,6 +1397,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
+	-rm -f ./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_2d-laplace_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_3d-laplace_01.Po
 	-rm -f ./$(DEPDIR)/laplace_02_2d-laplace_02.Po
