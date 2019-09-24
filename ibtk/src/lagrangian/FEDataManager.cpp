@@ -799,8 +799,8 @@ FEDataManager::spread(const int f_data_idx,
 
     // convenience alias for the quadrature key type used by FECache and FEMapCache
     using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
-    FECache F_fe_cache(dim, F_fe_type);
-    FECache X_fe_cache(dim, X_fe_type);
+    FECache F_fe_cache(dim, F_fe_type, FEUpdateFlags::update_phi);
+    FECache X_fe_cache(dim, X_fe_type, FEUpdateFlags::update_phi);
     FEMapCache fe_map_cache(dim);
 
     // Check to see if we are using nodal quadrature.
@@ -980,28 +980,16 @@ FEDataManager::spread(const int f_data_idx,
             // Loop over the elements and compute the values to be spread and
             // the positions of the quadrature points.
             int qp_offset = 0;
-            std::set<quad_key_type> used_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
                 const auto& F_dof_indices = F_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, F_dof_indices);
                 const quad_key_type& key = quad_keys[e_idx];
-                FEBase& X_fe = X_fe_cache[key];
-                FEBase& F_fe = F_fe_cache[key];
+                const FEBase& X_fe = X_fe_cache(key, elem);
+                const FEBase& F_fe = F_fe_cache(key, elem);
                 FEMap& fe_map = fe_map_cache[key];
-                QBase& qrule = d_fe_data->d_quadrature_cache[key];
-
-                // See the note in interpWeighted to explain why we override
-                // libMesh's reinit logic here
-                if (used_quadratures.find(key) == used_quadratures.end())
-                {
-                    F_fe.get_phi();
-                    F_fe.reinit(elem);
-                    X_fe.get_phi();
-                    X_fe.reinit(elem);
-                    used_quadratures.insert(key);
-                }
+                const QBase& qrule = d_fe_data->d_quadrature_cache[key];
 
                 // JxW depends on the element
                 fe_map.compute_map(dim, qrule.get_weights(), elem, /*second derivatives*/ false);
@@ -1488,8 +1476,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
 
     // convenience alias for the quadrature key type used by FECache and FEMapCache
     using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
-    FECache F_fe_cache(dim, F_fe_type);
-    FECache X_fe_cache(dim, X_fe_type);
+    FECache F_fe_cache(dim, F_fe_type, FEUpdateFlags::update_phi);
+    FECache X_fe_cache(dim, X_fe_type, FEUpdateFlags::update_phi);
     FEMapCache fe_map_cache(dim);
 
     // Communicate any unsynchronized ghost data.
@@ -1689,31 +1677,12 @@ FEDataManager::interpWeighted(const int f_data_idx,
             // Loop over the elements and compute the positions of the
             // quadrature points.
             int qp_offset = 0;
-            std::set<quad_key_type> used_X_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
                 const quad_key_type& key = quad_keys[e_idx];
-                QBase& qrule = d_fe_data->d_quadrature_cache[key];
-                FEBase& X_fe = X_fe_cache[key];
-
-                // libMesh::FE defaults to recalculating *everything* when we
-                // call reinit unless we first request things (see
-                // FEGenericBase<>::determine_calculations() for the
-                // reinitialization logic). This only works for Lagrange
-                // elements (and similar nodal value elements).
-                //
-                // Furthermore: we can skip calling reinit() completely as
-                // long as we have called it on this FE object at least once.
-                if (used_X_quadratures.find(key) == used_X_quadratures.end())
-                {
-                    // get_phi changes the state of the object if called
-                    // before reinit
-                    X_fe.get_phi();
-                    X_fe.reinit(elem);
-                    used_X_quadratures.insert(key);
-                }
-
+                const QBase& qrule = d_fe_data->d_quadrature_cache[key];
+                const FEBase& X_fe = X_fe_cache(key, elem);
                 const std::vector<std::vector<double> >& phi_X = X_fe.get_phi();
 
                 const unsigned int n_node = elem->n_nodes();
@@ -1757,7 +1726,6 @@ FEDataManager::interpWeighted(const int f_data_idx,
 
             // Loop over the elements and accumulate the right-hand-side values.
             qp_offset = 0;
-            std::set<quad_key_type> used_F_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
@@ -1772,19 +1740,9 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 F_rhs_concatenated.resize(n_vars * F_dof_indices[0].size());
                 std::fill(F_rhs_concatenated.begin(), F_rhs_concatenated.end(), 0.0);
                 const quad_key_type& key = quad_keys[e_idx];
-                FEBase& F_fe = F_fe_cache[key];
+                const FEBase& F_fe = F_fe_cache(key, elem);
+                const QBase& qrule = d_fe_data->d_quadrature_cache[key];
                 FEMap& fe_map = fe_map_cache[key];
-                QBase& qrule = d_fe_data->d_quadrature_cache[key];
-
-                // Like above: conditionally initialize the FE object if it is
-                // new
-                if (used_F_quadratures.find(key) == used_F_quadratures.end())
-                {
-                    // Same as above
-                    F_fe.get_phi();
-                    F_fe.reinit(elem);
-                    used_F_quadratures.insert(key);
-                }
 
                 // JxW depends on the element
                 fe_map.compute_map(dim, qrule.get_weights(), elem, /*second derivatives*/ false);
@@ -2597,7 +2555,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
             TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
         }
         using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
-        FECache X_fe_cache(dim, fe_type);
+        FECache X_fe_cache(dim, fe_type, FEUpdateFlags::update_phi);
 
         // Setup and extract the underlying solution data.
         NumericVector<double>* X_vec = getCoordsVector();
@@ -2629,7 +2587,6 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
 
             Pointer<CellData<NDIM, int> > tag_data = patch->getPatchData(tag_index);
 
-            std::set<quad_key_type> used_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
@@ -2643,18 +2600,10 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
                                                            elem,
                                                            X_node,
                                                            patch_dx_min);
-                FEBase& X_fe = X_fe_cache[key];
-                QBase& qrule = d_fe_data->d_quadrature_cache[key];
-
-                // See the note in interpWeighted to explain why we override
-                // libMesh's reinit logic here
-                if (used_quadratures.find(key) == used_quadratures.end())
-                {
-                    X_fe.get_phi();
-                    X_fe.reinit(elem);
-                    used_quadratures.insert(key);
-                }
+                const FEBase& X_fe = X_fe_cache(key, elem);
+                const QBase& qrule = d_fe_data->d_quadrature_cache[key];
                 const std::vector<std::vector<double> >& X_phi = X_fe.get_phi();
+                TBOX_ASSERT(qrule.n_points() == X_phi[0].size());
 
                 for (unsigned int qp = 0; qp < qrule.n_points(); ++qp)
                 {
@@ -2822,7 +2771,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
 
         // convenience alias for the quadrature key type used by FECache and FEMapCache
         using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
-        FECache X_fe_cache(dim, fe_type);
+        FECache X_fe_cache(dim, fe_type, FEUpdateFlags::update_phi);
 
         // Extract the underlying solution data.
         NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
@@ -2848,7 +2797,6 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
 
             Pointer<CellData<NDIM, double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
 
-            std::set<quad_key_type> used_quadratures;
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
@@ -2862,18 +2810,10 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
                                                            elem,
                                                            X_node,
                                                            patch_dx_min);
-                FEBase& X_fe = X_fe_cache[key];
-                QBase& qrule = d_fe_data->d_quadrature_cache[key];
-
-                // See the note in interpWeighted to explain why we override
-                // libMesh's reinit logic here
-                if (used_quadratures.find(key) == used_quadratures.end())
-                {
-                    X_fe.get_phi();
-                    X_fe.reinit(elem);
-                    used_quadratures.insert(key);
-                }
+                const FEBase& X_fe = X_fe_cache(key, elem);
+                const QBase& qrule = d_fe_data->d_quadrature_cache[key];
                 const std::vector<std::vector<double> >& X_phi = X_fe.get_phi();
+                TBOX_ASSERT(qrule.n_points() == X_phi[0].size());
 
                 for (unsigned int qp = 0; qp < qrule.n_points(); ++qp)
                 {
@@ -3017,7 +2957,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
 
     // convenience alias for the quadrature key type used by FECache and FEMapCache
     using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
-    FECache X_fe_cache(dim, fe_type);
+    FECache X_fe_cache(dim, fe_type, FEUpdateFlags::update_phi);
 
     // Setup data structures used to assign elements to patches.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
@@ -3093,7 +3033,6 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         boost::multi_array<double, 2> X_node;
         Point X_qp;
         int local_patch_num = 0;
-        std::set<quad_key_type> used_quadratures;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
             const std::set<Elem*>& frontier_elems = frontier_patch_elems[local_patch_num];
@@ -3123,18 +3062,10 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
                                                            elem,
                                                            X_node,
                                                            patch_dx_min);
-                FEBase& X_fe = X_fe_cache[key];
-                QBase& qrule = d_fe_data->d_quadrature_cache[key];
-
-                // See the note in interpWeighted to explain why we override
-                // libMesh's reinit logic here
-                if (used_quadratures.find(key) == used_quadratures.end())
-                {
-                    X_fe.get_phi();
-                    X_fe.reinit(elem);
-                    used_quadratures.insert(key);
-                }
+                const FEBase& X_fe = X_fe_cache(key, elem);
+                const QBase& qrule = d_fe_data->d_quadrature_cache[key];
                 const std::vector<std::vector<double> >& X_phi = X_fe.get_phi();
+                TBOX_ASSERT(qrule.n_points() == X_phi[0].size());
 
                 bool found_qp = false;
                 for (unsigned int qp = 0; qp < qrule.n_points() && !found_qp; ++qp)
