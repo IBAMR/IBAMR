@@ -77,7 +77,7 @@ class Parameters:
 
 def n_mpi_processes(input_file):
     """Determine the number of MPI processes to use when running a test by
-    inspecting the input file.
+    inspecting the input file. Defaults to 1.
     """
     mpirun_index = input_file.find("mpirun")
     if mpirun_index != -1:
@@ -87,6 +87,20 @@ def n_mpi_processes(input_file):
         return int(input_file[next_equals_index + 1:next_dot_index])
 
     return 1
+
+
+def restart_n(input_file):
+    """Determine the restart snapshot number to use when restarting the
+    simulation. Defaults to zero.
+    """
+    restart_index = input_file.find("restart")
+    if restart_index != -1:
+        next_equals_index = input_file.find('=', restart_index)
+        next_dot_index = input_file.find('.', restart_index)
+        assert next_equals_index < next_dot_index
+        return int(input_file[next_equals_index + 1:next_dot_index])
+
+    return 0
 
 
 @enum.unique
@@ -148,7 +162,9 @@ class Test:
     def __init__(self, executable, input_file, output_file, parameters):
         self.executable = executable
         self.input_file = input_file
-        self._n_mpi_processes = n_mpi_processes(os.path.split(self.input_file)[-1])
+        stripped_input_file = os.path.split(self.input_file)[-1]
+        self._n_mpi_processes = n_mpi_processes(stripped_input_file)
+        self._restart_n = restart_n(stripped_input_file)
         self.output_file = output_file
         self._parameters = parameters
 
@@ -175,6 +191,14 @@ class Test:
         return self._n_mpi_processes
 
 
+    def do_restart(self):
+        return self._restart_n != 0
+
+
+    def restart_n(self):
+        return self._restart_n
+
+
     def run(self):
         """Actually execute the test and compare the output results. Returns a
         TestOutput object describing what happened.
@@ -193,6 +217,16 @@ class Test:
                                         stdout=subprocess.PIPE,
                                         cwd=temporary_directory)
             run_succeeded = run_result.returncode == 0
+            if run_succeeded:
+                # The first run succeeded: if we are testing restart code we need to run again
+                if self.do_restart():
+                    run_args += ["./restart/", str(self.restart_n())]
+                    run_result = subprocess.run(run_args,
+                                                stderr=subprocess.PIPE,
+                                                stdout=subprocess.PIPE,
+                                                cwd=temporary_directory)
+                    run_succeeded = run_result.returncode == 0
+
             if run_succeeded:
                 # Nearly the same as deal.II: Configure numdiff with
                 #   - relative differences of 1e-6
