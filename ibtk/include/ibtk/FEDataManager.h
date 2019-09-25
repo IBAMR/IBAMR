@@ -918,7 +918,7 @@ protected:
     /*!
      * \brief The FEDataManager destructor cleans up any allocated data objects.
      */
-    ~FEDataManager() = default;
+    ~FEDataManager();
 
 private:
     /*!
