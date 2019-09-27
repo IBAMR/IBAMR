@@ -2683,6 +2683,13 @@ FEDataManager::FEDataManager(std::string object_name,
       d_default_spread_spec(default_spread_spec),
       d_ghost_width(std::move(ghost_width))
 {
+    TBOX_ASSERT(!d_object_name.empty());
+
+    if (d_registered_for_restart)
+    {
+        RestartManager::getManager()->registerRestartItem(d_object_name, this);
+    }
+
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart)
     {
@@ -2723,6 +2730,14 @@ FEDataManager::FEDataManager(std::string object_name,
         t_put_to_database = TimerManager::getManager()->getTimer("IBTK::FEDataManager::putToDatabase()");)
     return;
 } // FEDataManager
+
+FEDataManager::~FEDataManager()
+{
+    if (d_registered_for_restart)
+    {
+        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+    }
+} // ~FEDataManager
 
 void
 FEDataManager::setLoggingEnabled(bool enable_logging)
