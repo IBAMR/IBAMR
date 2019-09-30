@@ -398,6 +398,26 @@ public:
                bool register_for_restart = true);
 
     /*!
+     * Return a pointer to the instance of the Lagrangian data manager
+     * corresponding to the specified name.  Access to FEDataManager objects is
+     * mediated by the getManager() function.
+     *
+     * This is the same as the other methods except for the first argument:
+     * here the FEData object owned by the new FEDataManager will, in most
+     * cases, be co-owned by another FEDataManager object.
+     *
+     * \return A pointer to the data manager instance.
+     */
+    static FEDataManager*
+    getManager(std::shared_ptr<FEData> fe_data,
+               const std::string& name,
+               const InterpSpec& default_interp_spec,
+               const SpreadSpec& default_spread_spec,
+               const WorkloadSpec& default_workload_spec,
+               const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
+               bool register_for_restart = true);
+
+    /*!
      * Same as the last function, but uses a default workload specification
      * for compatibility.
      *
@@ -575,6 +595,16 @@ public:
      * @deprecated Use buildIBGhostedVector() instead.
      */
     libMesh::NumericVector<double>* buildGhostedCoordsVector(bool localize_data = true);
+
+    /*!
+     * \return The shared pointer to the object managing the Lagrangian data.
+     */
+    std::shared_ptr<FEData>& getFEData();
+
+    /*!
+     * \return The shared pointer to the object managing the Lagrangian data.
+     */
+    const std::shared_ptr<FEData>& getFEData() const;
 
     /*!
      * \brief Spread a density from the FE mesh to the Cartesian grid using the
@@ -909,6 +939,18 @@ protected:
      * \brief Constructor.
      */
     FEDataManager(std::string object_name,
+                  InterpSpec default_interp_spec,
+                  SpreadSpec default_spread_spec,
+                  WorkloadSpec default_workload_spec,
+                  SAMRAI::hier::IntVector<NDIM> ghost_width,
+                  bool register_for_restart = true);
+
+    /*!
+     * \brief Constructor, where the FEData object owned by this class may be
+     * co-owned by other objects.
+     */
+    FEDataManager(std::shared_ptr<FEData> fe_data,
+                  std::string object_name,
                   InterpSpec default_interp_spec,
                   SpreadSpec default_spread_spec,
                   WorkloadSpec default_workload_spec,
