@@ -342,7 +342,7 @@ main(int argc, char** argv)
             new IBFECentroidPostProcessor("IBFEPostProcessor", other_manager);
         ib_post_processor->registerTensorVariable("FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
 
-        pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function, static_cast<void*>(NULL));
+        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function, static_cast<void*>(NULL));
         ib_post_processor->registerTensorVariable("sigma_dev",
                                                   MONOMIAL,
                                                   CONSTANT,
@@ -350,7 +350,7 @@ main(int argc, char** argv)
                                                   vector<SystemData>(),
                                                   &PK1_dev_stress_fcn_data);
 
-        pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function, static_cast<void*>(NULL));
+        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function, static_cast<void*>(NULL));
         ib_post_processor->registerTensorVariable("sigma_dil",
                                                   MONOMIAL,
                                                   CONSTANT,
