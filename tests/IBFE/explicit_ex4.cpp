@@ -66,6 +66,17 @@
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
 
+/*
+ * Test based on IBFE/explicit/ex4 that can verify whether or not a bunch of
+ * things related to IBFEMethod work. This test program is run in various
+ * different ways to check, e.g.,
+ *
+ * 1. Basic reproducibility of the IBFE stack (IBExplicitHierarchyIntegrator,
+ *    INSStaggeredHierarchyIntegrator, and IBFEMethod)
+ * 2. IBFE restart code
+ * 3. IBFECentroidPostProcessor
+ */
+
 // Elasticity model data.
 namespace ModelData
 {
@@ -298,12 +309,37 @@ main(int argc, char** argv)
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Set up post processor to recover computed stresses.
-        ib_method_ops->initializeFEEquationSystems();
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
 
-        Pointer<IBFEPostProcessor> ib_post_processor =
-            new IBFECentroidPostProcessor("IBFEPostProcessor", fe_data_manager);
+        FEDataManager* other_manager = nullptr;
+        if (input_db->getBoolWithDefault("use_separate_fe_data_manager", false))
+        {
+            TBOX_ASSERT(false); // this is not yet implemented
+#if 0
+            FEDataManager::WorkloadSpec spec;
+            other_manager = FEDataManager::getManager(fe_data_manager->getFEData(),
+                                                      "cloned_fe_data_manager",
+                                                      fe_data_manager->getDefaultInterpSpec(),
+                                                      fe_data_manager->getDefaultSpreadSpec(),
+                                                      spec);
+            other_manager->setPatchHierarchy(patch_hierarchy);
+            other_manager->setPatchLevels(fe_data_manager->getPatchLevels().first,
+                                          fe_data_manager->getPatchLevels().second - 1);
+            // Check that we have the same Lagrangian data.
+            TBOX_ASSERT(fe_data_manager->getFEData() == other_manager->getFEData());
+            TBOX_ASSERT(fe_data_manager->getEquationSystems() == other_manager->getEquationSystems());
+#endif
+        }
+        else
+        {
+            other_manager = fe_data_manager;
+        }
 
+        const bool log_postprocessor = input_db->getBoolWithDefault("log_postprocessor", false);
+        const int postprocessor_sampling_rate = input_db->getIntegerWithDefault("postprocessor_sampling_rate", 25);
+
+        Pointer<IBFEPostProcessor> ib_post_processor =
+            new IBFECentroidPostProcessor("IBFEPostProcessor", other_manager);
         ib_post_processor->registerTensorVariable("FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
 
         pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function, static_cast<void*>(NULL));
@@ -425,10 +461,27 @@ main(int argc, char** argv)
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
 
-            // At specified intervals, write visualization and restart files,
-            // print out timer data, and store hierarchy data for post
-            // processing.
             iteration_num += 1;
+            if (log_postprocessor && iteration_num % 10 == 0)
+            {
+                ib_post_processor->postProcessData(loop_time);
+                // This hard-codes in an internal detail that is not presently documented
+                auto& system = equation_systems->get_system("FF reconstruction system");
+                plog << system.get_info() << std::endl;
+
+                NumericVector<double>& solution = *system.solution;
+                plog << "some values from \"FF reconstruction system\" + 1:" << std::endl;
+                for (std::size_t i = solution.first_local_index(); i < solution.last_local_index(); ++i)
+                {
+                    if (i % (solution.local_size() / postprocessor_sampling_rate) == 0)
+                    {
+                        // improve the relative error (since we are taking
+                        // derivatives it ends up being nearly 1e-5 for some
+                        // values) somewhat by adding 1
+                        plog << i << ", " << 1.0 + std::abs(solution(i)) << std::endl;
+                    }
+                }
+            }
 
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0))
             {
