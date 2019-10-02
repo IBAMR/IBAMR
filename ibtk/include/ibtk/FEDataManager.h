@@ -215,6 +215,15 @@ protected:
     std::string d_object_name;
     bool d_registered_for_restart;
 
+    /*!
+     * Name of the coordinates system.
+     *
+     * @note For backwards compatibility reasons this string may be reassigned
+     * to another value by assignment to
+     * FEDataManager::COORDINATES_SYSTEM_NAME.
+     */
+    std::string d_coordinates_system_name = "coordinates system";
+
     /*
      * FE equation system associated with this data manager object.
      */
@@ -356,13 +365,23 @@ public:
         double q_point_weight = 2.0;
     };
 
+protected:
+    /*!
+     * FEData object that contains the libMesh data structures.
+     *
+     * @note multiple FEDataManager objects may use the same FEData object,
+     * usually combined with different hierarchies.
+     */
+    std::shared_ptr<FEData> d_fe_data;
+
+public:
     /*!
      * \brief The name of the equation system which stores the spatial position
-     * data.
+     * data. The actual string is stored by FEData.
      *
      * \note The default value for this string is "coordinates system".
      */
-    std::string COORDINATES_SYSTEM_NAME = "coordinates system";
+    std::string& COORDINATES_SYSTEM_NAME;
 
     /*!
      * \brief The libMesh boundary IDs to use for specifying essential boundary
@@ -927,14 +946,6 @@ public:
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
-    /*!
-     * FEData object that contains the libMesh data structures.
-     *
-     * @note multiple FEDataManager objects may use the same FEData object,
-     * usually combined with different hierarchies.
-     */
-    std::shared_ptr<FEData> d_fe_data;
-
     /*!
      * \brief Constructor.
      */

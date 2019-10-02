@@ -2720,6 +2720,7 @@ FEDataManager::FEDataManager(std::shared_ptr<FEData> fe_data,
                              IntVector<NDIM> ghost_width,
                              bool register_for_restart)
     : d_fe_data(fe_data),
+      COORDINATES_SYSTEM_NAME(d_fe_data->d_coordinates_system_name),
       d_object_name(std::move(object_name)),
       d_registered_for_restart(register_for_restart),
       d_default_workload_spec(default_workload_spec),
