@@ -206,6 +206,12 @@ public:
      */
     SystemDofMapCache* getDofMapCache(unsigned int system_num);
 
+    /*!
+     * Clear all cached (i.e., computed at first request and then stored for
+     * future calls) data.
+     */
+    void clearCached();
+
 protected:
     /*
      * The object name is used as a handle to databases stored in restart files
