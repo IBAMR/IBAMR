@@ -309,6 +309,16 @@ FEData::getDofMapCache(unsigned int system_num)
     return dof_map_cache.get();
 } // getDofMapCache
 
+void
+FEData::clearCached()
+{
+    d_system_dof_map_cache.clear();
+    d_quadrature_cache.clear();
+    d_L2_proj_solver.clear();
+    d_L2_proj_matrix.clear();
+    d_L2_proj_matrix_diag.clear();
+}
+
 const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID = 0x100;
 const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID = 0x200;
 const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID = 0x400;
@@ -483,13 +493,7 @@ FEDataManager::reinitElementMappings()
 
     // We reinitialize mappings after repartitioning, so clear the cache since
     // its content is no longer relevant:
-    d_fe_data->d_system_dof_map_cache.clear();
-
-    // Also clear other chached data:
-    d_fe_data->d_quadrature_cache.clear();
-    d_fe_data->d_L2_proj_solver.clear();
-    d_fe_data->d_L2_proj_matrix.clear();
-    d_fe_data->d_L2_proj_matrix_diag.clear();
+    d_fe_data->clearCached();
 
     // Delete cached hierarchy-dependent data.
     d_active_patch_elem_map.clear();
