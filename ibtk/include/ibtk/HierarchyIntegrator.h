@@ -401,6 +401,12 @@ public:
     virtual double getCurrentTimeStepSize() const;
 
     /*!
+     * Skip enforcing that we do the prescribed number of cycles in each time
+     * step.
+     */
+    void setSkipEnforceNumCycles(bool set_skip_enforce_num_cycles = true);
+
+    /*!
      * Virtual method to prepare to advance data from current_time to new_time.
      *
      * A default implementation is provided that sets the current values of
@@ -1077,6 +1083,7 @@ protected:
      */
     int d_current_num_cycles = -1, d_current_cycle_num = -1;
     double d_current_dt = std::numeric_limits<double>::quiet_NaN();
+    bool d_skip_enforce_num_cycles = false;
 
     /*
      * The number of integration steps taken between invocations of the
