@@ -125,7 +125,7 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
         d_ib_method_ops->spreadForce(
             d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), current_time);
         d_u_phys_bdry_op->setHomogeneousBc(false);
-        if (d_f_current_idx != invalid_index) d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
+        d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
         break;
     case MIDPOINT_RULE:
         // intentionally blank
