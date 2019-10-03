@@ -69,7 +69,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/IBExplicitHierarchyIntegrator.cpp \
 ../src/IB/IBHierarchyIntegrator.cpp \
 ../src/IB/IBHydrodynamicForceEvaluator.cpp \
-../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp \
+../src/IB/IBImplicitHierarchyIntegrator.cpp \
 ../src/IB/IBInstrumentPanel.cpp \
 ../src/IB/IBInstrumentationSpec.cpp \
 ../src/IB/IBInstrumentationSpecFactory.cpp \
@@ -250,7 +250,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/IBExplicitHierarchyIntegrator.h \
 ../include/ibamr/IBHierarchyIntegrator.h \
 ../include/ibamr/IBHydrodynamicForceEvaluator.h \
-../include/ibamr/IBImplicitStaggeredHierarchyIntegrator.h \
+../include/ibamr/IBImplicitHierarchyIntegrator.h \
 ../include/ibamr/IBImplicitStrategy.h \
 ../include/ibamr/IBInstrumentPanel.h \
 ../include/ibamr/IBInstrumentationSpec.h \
