@@ -285,11 +285,16 @@ def main():
     config_file.read('attest.conf')
     conf = config_file['attest'] # shorthand
 
-    # argparse doesn't support writing -j8 (i.e., with no space), so manually
-    # pull that out:
     for entry in sys.argv:
+        # argparse doesn't support writing -j8 (i.e., with no space), so
+        # manually pull that out:
         if 2 < len(entry) and entry[0:2] == '-j':
             conf['jobs'] = entry[2:]
+            sys.argv.remove(entry)
+        # also support -j for all available processors (this assumes
+        # hyperthreading and will ignore virtual cores):
+        elif entry == '-j':
+            conf['jobs'] = str(int(os.cpu_count()/2))
             sys.argv.remove(entry)
 
     description=(
@@ -305,7 +310,10 @@ def main():
     parser.add_argument('-j,--jobs', metavar='N', type=int,
                         default=conf['jobs'], dest='n_processors',
                         help=("Total number of processors to use across all " +
-                              "concurrent MPI jobs."))
+                              "concurrent MPI jobs: defaults to 1. If \"-j\" is "
+                              "given as an argument without a number then half "
+                              "of the the total cores (including virtual cores) "
+                              "will be used."))
     parser.add_argument('--keep-work-directories',
                         default=bool(conf['keep_work_directories']),
                         dest='keep_work_directories',
