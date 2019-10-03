@@ -184,12 +184,6 @@ IBMethod::~IBMethod()
         RestartManager::getManager()->unregisterRestartItem(d_object_name);
         d_registered_for_restart = false;
     }
-    if (d_force_jac)
-    {
-        PetscErrorCode ierr;
-        ierr = MatDestroy(&d_force_jac);
-        IBTK_CHKERRQ(ierr);
-    }
     return;
 } // ~IBMethod
 
@@ -353,15 +347,12 @@ IBMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
     d_X_current_data.resize(finest_ln + 1);
     d_X_new_data.resize(finest_ln + 1);
     d_X_half_data.resize(finest_ln + 1);
-    d_X_jac_data.resize(finest_ln + 1);
     d_U_current_data.resize(finest_ln + 1);
     d_U_new_data.resize(finest_ln + 1);
     d_U_half_data.resize(finest_ln + 1);
-    d_U_jac_data.resize(finest_ln + 1);
     d_F_current_data.resize(finest_ln + 1);
     d_F_new_data.resize(finest_ln + 1);
     d_F_half_data.resize(finest_ln + 1);
-    d_F_jac_data.resize(finest_ln + 1);
     if (d_use_fixed_coupling_ops)
     {
         d_X_LE_new_data.resize(finest_ln + 1);
@@ -462,17 +453,14 @@ IBMethod::postprocessIntegrateData(double current_time, double new_time, int /*n
     d_X_current_data.clear();
     d_X_new_data.clear();
     d_X_half_data.clear();
-    d_X_jac_data.clear();
     d_X_LE_new_data.clear();
     d_X_LE_half_data.clear();
     d_U_current_data.clear();
     d_U_new_data.clear();
     d_U_half_data.clear();
-    d_U_jac_data.clear();
     d_F_current_data.clear();
     d_F_new_data.clear();
     d_F_half_data.clear();
-    d_F_jac_data.clear();
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -537,90 +525,20 @@ IBMethod::setUpdatedPosition(Vec& X_new_vec)
 } // setUpdatedPosition
 
 void
-IBMethod::setLinearizedPosition(Vec& X_vec, const double data_time)
+IBMethod::computeResidualBackwardEuler(Vec& R_vec)
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> >* X_jac_data;
-    bool* X_jac_needs_ghost_fill;
-    getLinearizedPositionData(&X_jac_data, &X_jac_needs_ghost_fill);
-    ierr = VecCopy(X_vec, (*X_jac_data)[level_num]->getVec());
+    const double dt = d_new_time - d_current_time;
+    ierr = VecWAXPY(R_vec, -dt, d_U_new_data[level_num]->getVec(), d_X_new_data[level_num]->getVec());
     IBTK_CHKERRQ(ierr);
-    *X_jac_needs_ghost_fill = true;
-
-    if (d_force_jac)
-    {
-        ierr = MatDestroy(&d_force_jac);
-        IBTK_CHKERRQ(ierr);
-        d_force_jac = nullptr;
-    }
-    d_force_jac_data_time = data_time;
-    int n_local, n_global;
-    ierr = VecGetLocalSize(X_vec, &n_local);
+    ierr = VecAXPY(R_vec, -1.0, d_X_current_data[level_num]->getVec());
     IBTK_CHKERRQ(ierr);
-    ierr = VecGetSize(X_vec, &n_global);
-    IBTK_CHKERRQ(ierr);
-
-    if (d_force_jac_mffd)
-    {
-        ierr = MatCreateMFFD(PETSC_COMM_WORLD, n_local, n_local, n_global, n_global, &d_force_jac);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatMFFDSetFunction(d_force_jac, computeForce_SAMRAI, this);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatSetOptionsPrefix(d_force_jac, "ib_jac_");
-        IBTK_CHKERRQ(ierr);
-        ierr = MatSetFromOptions(d_force_jac);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatMFFDSetBase(d_force_jac, (*X_jac_data)[level_num]->getVec(), nullptr);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatAssemblyBegin(d_force_jac, MAT_FINAL_ASSEMBLY);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatAssemblyEnd(d_force_jac, MAT_FINAL_ASSEMBLY);
-        IBTK_CHKERRQ(ierr);
-    }
-    else
-    {
-        std::vector<int> d_nnz, o_nnz;
-        d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(
-            d_nnz, o_nnz, d_hierarchy, level_num, d_l_data_manager);
-        std::vector<int> d_nnz_unblocked(NDIM * d_nnz.size()), o_nnz_unblocked(NDIM * o_nnz.size());
-        for (unsigned int k = 0; k < d_nnz.size(); ++k)
-        {
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                d_nnz_unblocked[NDIM * k + d] = NDIM * d_nnz[k];
-                o_nnz_unblocked[NDIM * k + d] = NDIM * o_nnz[k];
-            }
-        }
-        ierr = MatCreateAIJ(PETSC_COMM_WORLD,
-                            n_local,
-                            n_local,
-                            n_global,
-                            n_global,
-                            0,
-                            n_local ? &d_nnz_unblocked[0] : nullptr,
-                            0,
-                            n_local ? &o_nnz_unblocked[0] : nullptr,
-                            &d_force_jac);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatSetBlockSize(d_force_jac, NDIM);
-        IBTK_CHKERRQ(ierr);
-        d_ib_force_fcn->computeLagrangianForceJacobian(d_force_jac,
-                                                       MAT_FINAL_ASSEMBLY,
-                                                       1.0,
-                                                       (*X_jac_data)[level_num],
-                                                       0.0,
-                                                       Pointer<IBTK::LData>(nullptr),
-                                                       d_hierarchy,
-                                                       level_num,
-                                                       data_time,
-                                                       d_l_data_manager);
-    }
     return;
-} // setLinearizedPosition
+} // computeResidual
 
 void
-IBMethod::computeResidual(Vec& R_vec)
+IBMethod::computeResidualMidpointRule(Vec& R_vec)
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
@@ -633,15 +551,19 @@ IBMethod::computeResidual(Vec& R_vec)
 } // computeResidual
 
 void
-IBMethod::computeLinearizedResidual(Vec& X_vec, Vec& R_vec)
+IBMethod::computeResidualTrapezoidalRule(Vec& R_vec)
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
     const double dt = d_new_time - d_current_time;
-    ierr = VecWAXPY(R_vec, -dt, d_U_jac_data[level_num]->getVec(), X_vec);
+    ierr = VecWAXPY(R_vec, -0.5 * dt, d_U_current_data[level_num]->getVec(), d_X_new_data[level_num]->getVec());
+    IBTK_CHKERRQ(ierr);
+    ierr = VecAXPY(R_vec, -0.5 * dt, d_U_new_data[level_num]->getVec());
+    IBTK_CHKERRQ(ierr);
+    ierr = VecAXPY(R_vec, -1.0, d_X_current_data[level_num]->getVec());
     IBTK_CHKERRQ(ierr);
     return;
-} // computeLinearizedResidual
+} // computeResidual
 
 void
 IBMethod::updateFixedLEOperators()
@@ -691,23 +613,6 @@ IBMethod::interpolateVelocity(const int u_data_idx,
 
     return;
 } // interpolateVelocity
-
-void
-IBMethod::interpolateLinearizedVelocity(const int u_data_idx,
-                                        const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                        const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-                                        const double data_time)
-{
-    std::vector<Pointer<LData> >*U_jac_data, *X_LE_data;
-    bool* X_LE_needs_ghost_fill;
-    getLinearizedVelocityData(&U_jac_data);
-    getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
-    d_l_data_manager->interp(u_data_idx, *U_jac_data, *X_LE_data, u_synch_scheds, u_ghost_fill_scheds, data_time);
-    resetAnchorPointValues(*U_jac_data,
-                           /*coarsest_ln*/ 0,
-                           /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
-    return;
-} // interpolateLinearizedVelocity
 
 void
 IBMethod::forwardEulerStep(const double current_time, const double new_time)
@@ -856,118 +761,6 @@ IBMethod::computeLagrangianForce(const double data_time)
 } // computeLagrangianForce
 
 void
-IBMethod::computeLinearizedLagrangianForce(Vec& X_vec, const double /*data_time*/)
-{
-    PetscErrorCode ierr;
-    const int level_num = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> >* F_jac_data;
-    bool* F_jac_needs_ghost_fill;
-    getLinearizedForceData(&F_jac_data, &F_jac_needs_ghost_fill);
-    Vec F_vec = (*F_jac_data)[level_num]->getVec();
-    ierr = MatMult(d_force_jac, X_vec, F_vec);
-    IBTK_CHKERRQ(ierr);
-    *F_jac_needs_ghost_fill = true;
-    IBTK_CHKERRQ(ierr);
-    return;
-} // computeLinearizedLagrangianForce
-
-void
-IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type, const double data_time)
-{
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    if (!std::strcmp(mat_type, MATMFFD) || !std::strcmp(mat_type, MATSHELL))
-    {
-        if (!d_force_jac)
-        {
-            Vec X_current = d_X_current_data[finest_ln]->getVec();
-            setLinearizedPosition(X_current, data_time);
-        }
-        A = d_force_jac;
-    }
-    else
-    {
-        int ierr;
-        if (A)
-        {
-            ierr = MatDestroy(&A);
-            IBTK_CHKERRQ(ierr);
-        }
-
-        // Get the "frozen" position for Lagrangian structure.
-        std::vector<Pointer<LData> >* X_LE_data;
-        bool* X_LE_needs_ghost_fill;
-        getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
-
-        TBOX_ASSERT(d_ib_force_fcn);
-
-        // Build the Jacobian matrix.
-        const int num_local_nodes = d_l_data_manager->getNumberOfLocalNodes(finest_ln);
-        std::vector<int> d_nnz, o_nnz;
-        d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(
-            d_nnz, o_nnz, d_hierarchy, finest_ln, d_l_data_manager);
-        if (!std::strcmp(mat_type, MATBAIJ) || !std::strcmp(mat_type, MATMPIBAIJ))
-        {
-            ierr = MatCreateBAIJ(PETSC_COMM_WORLD,
-                                 NDIM,
-                                 NDIM * num_local_nodes,
-                                 NDIM * num_local_nodes,
-                                 PETSC_DETERMINE,
-                                 PETSC_DETERMINE,
-                                 0,
-                                 num_local_nodes ? &d_nnz[0] : nullptr,
-                                 0,
-                                 num_local_nodes ? &o_nnz[0] : nullptr,
-                                 &A);
-            IBTK_CHKERRQ(ierr);
-        }
-        else if (!std::strcmp(mat_type, MATAIJ) || !std::strcmp(mat_type, MATMPIAIJ))
-        {
-            std::vector<int> d_nnz_unblocked(NDIM * d_nnz.size()), o_nnz_unblocked(NDIM * o_nnz.size());
-            for (unsigned int k = 0; k < d_nnz.size(); ++k)
-            {
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    d_nnz_unblocked[NDIM * k + d] = NDIM * d_nnz[k];
-                    o_nnz_unblocked[NDIM * k + d] = NDIM * o_nnz[k];
-                }
-            }
-            ierr = MatCreateAIJ(PETSC_COMM_WORLD,
-                                NDIM * num_local_nodes,
-                                NDIM * num_local_nodes,
-                                PETSC_DETERMINE,
-                                PETSC_DETERMINE,
-                                0,
-                                num_local_nodes ? &d_nnz_unblocked[0] : nullptr,
-                                0,
-                                num_local_nodes ? &o_nnz_unblocked[0] : nullptr,
-                                &A);
-            IBTK_CHKERRQ(ierr);
-        }
-        else
-        {
-            TBOX_ERROR(d_object_name + "::getLagrangianForceJacobian()."
-                       << "Matrix of the type " << mat_type << " given. Supported types are " << MATSHELL << "/"
-                       << MATMFFD << " , " << MATBAIJ << "/" << MATMPIBAIJ << " , " << MATAIJ << "/" << MATMPIAIJ
-                       << std::endl);
-        }
-        ierr = MatSetBlockSize(A, NDIM);
-        IBTK_CHKERRQ(ierr);
-        d_ib_force_fcn->computeLagrangianForceJacobian(A,
-                                                       MAT_FINAL_ASSEMBLY,
-                                                       1.0,
-                                                       (*X_LE_data)[finest_ln],
-                                                       0.0,
-                                                       Pointer<IBTK::LData>(nullptr),
-                                                       d_hierarchy,
-                                                       finest_ln,
-                                                       data_time,
-                                                       d_l_data_manager);
-    }
-    return;
-} // getLagrangianForceJacobian
-
-void
 IBMethod::spreadForce(const int f_data_idx,
                       RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                       const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
@@ -992,32 +785,6 @@ IBMethod::spreadForce(const int f_data_idx,
     *X_LE_needs_ghost_fill = false;
     return;
 } // spreadForce
-
-void
-IBMethod::spreadLinearizedForce(const int f_data_idx,
-                                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                                const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
-                                const double data_time)
-{
-    std::vector<Pointer<LData> >*F_jac_data, *X_LE_data;
-    bool *F_jac_needs_ghost_fill, *X_LE_needs_ghost_fill;
-    getLinearizedForceData(&F_jac_data, &F_jac_needs_ghost_fill);
-    getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
-    resetAnchorPointValues(*F_jac_data,
-                           /*coarsest_ln*/ 0,
-                           /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
-    d_l_data_manager->spread(f_data_idx,
-                             *F_jac_data,
-                             *X_LE_data,
-                             f_phys_bdry_op,
-                             f_prolongation_scheds,
-                             data_time,
-                             *F_jac_needs_ghost_fill,
-                             *X_LE_needs_ghost_fill);
-    *F_jac_needs_ghost_fill = false;
-    *X_LE_needs_ghost_fill = false;
-    return;
-} // spreadLinearizedForce
 
 void
 IBMethod::constructInterpOp(Mat& J,
@@ -1456,14 +1223,6 @@ IBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     // Indicate that the force and source strategies need to be re-initialized.
     d_ib_force_fcn_needs_init = true;
     d_ib_source_fcn_needs_init = true;
-
-    // Deallocate any previously allocated Jacobian data structures.
-    if (d_force_jac)
-    {
-        PetscErrorCode ierr;
-        ierr = MatDestroy(&d_force_jac);
-        IBTK_CHKERRQ(ierr);
-    }
     return;
 } // initializePatchHierarchy
 
@@ -1726,25 +1485,6 @@ IBMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_needs_
 } // getPositionData
 
 void
-IBMethod::getLinearizedPositionData(std::vector<Pointer<LData> >** X_jac_data, bool** X_jac_needs_ghost_fill)
-{
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        if (!d_X_jac_data[ln])
-        {
-            d_X_jac_data[ln] = d_l_data_manager->createLData("X_jac", ln, NDIM);
-            d_X_jac_needs_ghost_fill = true;
-        }
-    }
-    *X_jac_data = &d_X_jac_data;
-    *X_jac_needs_ghost_fill = &d_X_jac_needs_ghost_fill;
-    return;
-} // getLinearizedPositionData
-
-void
 IBMethod::getLECouplingPositionData(std::vector<Pointer<LData> >** X_LE_data,
                                     bool** X_LE_needs_ghost_fill,
                                     double data_time)
@@ -1792,23 +1532,6 @@ IBMethod::getVelocityData(std::vector<Pointer<LData> >** U_data, double data_tim
 } // getVelocityData
 
 void
-IBMethod::getLinearizedVelocityData(std::vector<Pointer<LData> >** U_jac_data)
-{
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        if (!d_U_jac_data[ln])
-        {
-            d_U_jac_data[ln] = d_l_data_manager->createLData("U_jac", ln, NDIM);
-        }
-    }
-    *U_jac_data = &d_U_jac_data;
-    return;
-} // getLinearizedVelocityData
-
-void
 IBMethod::getForceData(std::vector<Pointer<LData> >** F_data, bool** F_needs_ghost_fill, double data_time)
 {
     const int coarsest_ln = 0;
@@ -1835,25 +1558,6 @@ IBMethod::getForceData(std::vector<Pointer<LData> >** F_data, bool** F_needs_gho
     }
     return;
 } // getForceData
-
-void
-IBMethod::getLinearizedForceData(std::vector<Pointer<LData> >** F_jac_data, bool** F_jac_needs_ghost_fill)
-{
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        if (!d_F_jac_data[ln])
-        {
-            d_F_jac_data[ln] = d_l_data_manager->createLData("F_jac", ln, NDIM);
-            d_F_jac_needs_ghost_fill = true;
-        }
-    }
-    *F_jac_data = &d_F_jac_data;
-    *F_jac_needs_ghost_fill = &d_F_jac_needs_ghost_fill;
-    return;
-} // getLinearizedForceData
 
 void
 IBMethod::reinitMidpointData(const std::vector<Pointer<LData> >& current_data,
@@ -2026,7 +1730,6 @@ IBMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
     TBOX_ASSERT(LEInteractor::isKnownKernel(d_spread_kernel_fcn));
     if (db->keyExists("error_if_points_leave_domain"))
         d_error_if_points_leave_domain = db->getBool("error_if_points_leave_domain");
-    if (db->keyExists("force_jac_mffd")) d_force_jac_mffd = db->getBool("force_jac_mffd");
     if (db->keyExists("do_log"))
         d_do_log = db->getBool("do_log");
     else if (db->keyExists("enable_logging"))
@@ -2103,37 +1806,6 @@ IBMethod::getFromRestart()
     d_normalize_source_strength = db->getBool("d_normalize_source_strength");
     return;
 } // getFromRestart
-
-PetscErrorCode
-IBMethod::computeForce_SAMRAI(void* ctx, Vec X, Vec F)
-{
-    PetscErrorCode ierr;
-    auto ib_method_ops = static_cast<IBMethod*>(ctx);
-    ierr = ib_method_ops->computeForce(X, F);
-    CHKERRQ(ierr);
-    return ierr;
-} // computeForce_SAMRAI
-
-PetscErrorCode
-IBMethod::computeForce(Vec X, Vec F)
-{
-    PetscErrorCode ierr;
-    std::vector<Pointer<LData> >*F_data, *X_data;
-    bool *F_needs_ghost_fill, *X_needs_ghost_fill;
-    getForceData(&F_data, &F_needs_ghost_fill, d_force_jac_data_time);
-    getPositionData(&X_data, &X_needs_ghost_fill, d_force_jac_data_time);
-    const int level_num = d_hierarchy->getFinestLevelNumber();
-    ierr = VecSwap(X, (*X_data)[level_num]->getVec());
-    CHKERRQ(ierr);
-    ierr = VecSwap(F, (*F_data)[level_num]->getVec());
-    CHKERRQ(ierr);
-    computeLagrangianForce(d_force_jac_data_time);
-    ierr = VecSwap(X, (*X_data)[level_num]->getVec());
-    CHKERRQ(ierr);
-    ierr = VecSwap(F, (*F_data)[level_num]->getVec());
-    CHKERRQ(ierr);
-    return ierr;
-} // computeForce
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

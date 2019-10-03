@@ -84,63 +84,19 @@ public:
     virtual void setUpdatedPosition(Vec& X_new_vec) = 0;
 
     /*!
-     * Set the value of the intermediate position vector used in evaluating the
-     * linearized problem.
+     * Compute the nonlinear residual for backward Euler time stepping.
      */
-    virtual void setLinearizedPosition(Vec& X_vec, double data_time) = 0;
+    virtual void computeResidualBackwardEuler(Vec& R_vec) = 0;
 
     /*!
-     * Compute the nonlinear residual.
+     * Compute the nonlinear residual for midpoint rule time stepping.
      */
-    virtual void computeResidual(Vec& R_vec) = 0;
+    virtual void computeResidualMidpointRule(Vec& R_vec) = 0;
 
     /*!
-     * Compute the linearized residual for the given intermediate position
-     * vector.
+     * Compute the nonlinear residual for trapezoidal rule time stepping.
      */
-    virtual void computeLinearizedResidual(Vec& X_vec, Vec& R_vec) = 0;
-
-    /*!
-     * Interpolate the Eulerian velocity to the curvilinear mesh at the
-     * specified time within the current time interval for use in evaluating the
-     * residual of the linearized problem.
-     */
-    virtual void interpolateLinearizedVelocity(
-        int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-        double data_time) = 0;
-
-    /*!
-     * Compute the Lagrangian force of the linearized problem for the specified
-     * configuration of the updated position vector.
-     */
-    virtual void computeLinearizedLagrangianForce(Vec& X_vec, double data_time) = 0;
-
-    /*!
-     * Construct the linearized Lagrangian force Jacobian.
-     */
-    virtual void constructLagrangianForceJacobian(Mat& A, MatType mat_type, double data_time) = 0;
-
-    /*!
-     * Spread the Lagrangian force of the linearized problem to the Cartesian
-     * grid at the specified time within the current time interval.
-     */
-    virtual void spreadLinearizedForce(
-        int f_data_idx,
-        IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
-        double data_time) = 0;
-
-    /*!
-     * Construct the IB interpolation operator.
-     */
-    virtual void constructInterpOp(Mat& J,
-                                   void (*spread_fnc)(const double, double*),
-                                   int stencil_width,
-                                   const std::vector<int>& num_dofs_per_proc,
-                                   int dof_index_idx,
-                                   double data_time) = 0;
+    virtual void computeResidualTrapezoidalRule(Vec& R_vec) = 0;
 
 protected:
 private:

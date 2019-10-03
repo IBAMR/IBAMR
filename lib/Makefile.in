@@ -216,7 +216,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/IBExplicitHierarchyIntegrator.cpp \
 	../src/IB/IBHierarchyIntegrator.cpp \
 	../src/IB/IBHydrodynamicForceEvaluator.cpp \
-	../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp \
+	../src/IB/IBImplicitHierarchyIntegrator.cpp \
 	../src/IB/IBInstrumentPanel.cpp \
 	../src/IB/IBInstrumentationSpec.cpp \
 	../src/IB/IBInstrumentationSpecFactory.cpp \
@@ -402,7 +402,7 @@ am__objects_2 =  \
 	../src/IB/libIBAMR2d_a-IBExplicitHierarchyIntegrator.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBHierarchyIntegrator.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBHydrodynamicForceEvaluator.$(OBJEXT) \
-	../src/IB/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-IBImplicitHierarchyIntegrator.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBInstrumentPanel.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBInstrumentationSpec.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
@@ -570,7 +570,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/IBExplicitHierarchyIntegrator.cpp \
 	../src/IB/IBHierarchyIntegrator.cpp \
 	../src/IB/IBHydrodynamicForceEvaluator.cpp \
-	../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp \
+	../src/IB/IBImplicitHierarchyIntegrator.cpp \
 	../src/IB/IBInstrumentPanel.cpp \
 	../src/IB/IBInstrumentationSpec.cpp \
 	../src/IB/IBInstrumentationSpecFactory.cpp \
@@ -756,7 +756,7 @@ am__objects_4 =  \
 	../src/IB/libIBAMR3d_a-IBExplicitHierarchyIntegrator.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBHierarchyIntegrator.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBHydrodynamicForceEvaluator.$(OBJEXT) \
-	../src/IB/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-IBImplicitHierarchyIntegrator.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBInstrumentPanel.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBInstrumentationSpec.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
@@ -949,7 +949,7 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBHierarchyIntegrator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBHydrodynamicForceEvaluator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBHydrodynamicSurfaceForceEvaluator.Po \
-	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitHierarchyIntegrator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpec.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpecFactory.Po \
@@ -1019,7 +1019,7 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBHierarchyIntegrator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBHydrodynamicForceEvaluator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBHydrodynamicSurfaceForceEvaluator.Po \
-	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitHierarchyIntegrator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpec.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpecFactory.Po \
@@ -1344,7 +1344,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/IBExplicitHierarchyIntegrator.h \
 	../include/ibamr/IBHierarchyIntegrator.h \
 	../include/ibamr/IBHydrodynamicForceEvaluator.h \
-	../include/ibamr/IBImplicitStaggeredHierarchyIntegrator.h \
+	../include/ibamr/IBImplicitHierarchyIntegrator.h \
 	../include/ibamr/IBImplicitStrategy.h \
 	../include/ibamr/IBInstrumentPanel.h \
 	../include/ibamr/IBInstrumentationSpec.h \
@@ -1772,7 +1772,7 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/IBExplicitHierarchyIntegrator.h \
 	../include/ibamr/IBHierarchyIntegrator.h \
 	../include/ibamr/IBHydrodynamicForceEvaluator.h \
-	../include/ibamr/IBImplicitStaggeredHierarchyIntegrator.h \
+	../include/ibamr/IBImplicitHierarchyIntegrator.h \
 	../include/ibamr/IBImplicitStrategy.h \
 	../include/ibamr/IBInstrumentPanel.h \
 	../include/ibamr/IBInstrumentationSpec.h \
@@ -1885,7 +1885,7 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/IBExplicitHierarchyIntegrator.cpp \
 	../src/IB/IBHierarchyIntegrator.cpp \
 	../src/IB/IBHydrodynamicForceEvaluator.cpp \
-	../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp \
+	../src/IB/IBImplicitHierarchyIntegrator.cpp \
 	../src/IB/IBInstrumentPanel.cpp \
 	../src/IB/IBInstrumentationSpec.cpp \
 	../src/IB/IBInstrumentationSpecFactory.cpp \
@@ -2180,7 +2180,7 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBHydrodynamicForceEvaluator.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
-../src/IB/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.$(OBJEXT):  \
+../src/IB/libIBAMR2d_a-IBImplicitHierarchyIntegrator.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBInstrumentPanel.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
@@ -2727,7 +2727,7 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBHydrodynamicForceEvaluator.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
-../src/IB/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.$(OBJEXT):  \
+../src/IB/libIBAMR3d_a-IBImplicitHierarchyIntegrator.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBInstrumentPanel.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
@@ -3211,7 +3211,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBHydrodynamicForceEvaluator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBHydrodynamicSurfaceForceEvaluator.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpec.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpecFactory.Po@am__quote@ # am--include-marker
@@ -3281,7 +3281,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBHydrodynamicForceEvaluator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBHydrodynamicSurfaceForceEvaluator.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpec.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpecFactory.Po@am__quote@ # am--include-marker
@@ -3839,19 +3839,19 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBHydrodynamicForceEvaluator.obj `if test -f '../src/IB/IBHydrodynamicForceEvaluator.cpp'; then $(CYGPATH_W) '../src/IB/IBHydrodynamicForceEvaluator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBHydrodynamicForceEvaluator.cpp'; fi`
 
-../src/IB/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.o: ../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Tpo -c -o ../src/IB/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.o `test -f '../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp' object='../src/IB/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+../src/IB/libIBAMR2d_a-IBImplicitHierarchyIntegrator.o: ../src/IB/IBImplicitHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBImplicitHierarchyIntegrator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitHierarchyIntegrator.Tpo -c -o ../src/IB/libIBAMR2d_a-IBImplicitHierarchyIntegrator.o `test -f '../src/IB/IBImplicitHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/IBImplicitHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitHierarchyIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBImplicitHierarchyIntegrator.cpp' object='../src/IB/libIBAMR2d_a-IBImplicitHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.o `test -f '../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBImplicitHierarchyIntegrator.o `test -f '../src/IB/IBImplicitHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/IBImplicitHierarchyIntegrator.cpp
 
-../src/IB/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.obj: ../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Tpo -c -o ../src/IB/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.obj `if test -f '../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp' object='../src/IB/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+../src/IB/libIBAMR2d_a-IBImplicitHierarchyIntegrator.obj: ../src/IB/IBImplicitHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBImplicitHierarchyIntegrator.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitHierarchyIntegrator.Tpo -c -o ../src/IB/libIBAMR2d_a-IBImplicitHierarchyIntegrator.obj `if test -f '../src/IB/IBImplicitHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/IBImplicitHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBImplicitHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitHierarchyIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBImplicitHierarchyIntegrator.cpp' object='../src/IB/libIBAMR2d_a-IBImplicitHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.obj `if test -f '../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBImplicitHierarchyIntegrator.obj `if test -f '../src/IB/IBImplicitHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/IBImplicitHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBImplicitHierarchyIntegrator.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-IBInstrumentPanel.o: ../src/IB/IBInstrumentPanel.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBInstrumentPanel.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Tpo -c -o ../src/IB/libIBAMR2d_a-IBInstrumentPanel.o `test -f '../src/IB/IBInstrumentPanel.cpp' || echo '$(srcdir)/'`../src/IB/IBInstrumentPanel.cpp
@@ -6079,19 +6079,19 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBHydrodynamicForceEvaluator.obj `if test -f '../src/IB/IBHydrodynamicForceEvaluator.cpp'; then $(CYGPATH_W) '../src/IB/IBHydrodynamicForceEvaluator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBHydrodynamicForceEvaluator.cpp'; fi`
 
-../src/IB/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.o: ../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Tpo -c -o ../src/IB/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.o `test -f '../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp' object='../src/IB/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+../src/IB/libIBAMR3d_a-IBImplicitHierarchyIntegrator.o: ../src/IB/IBImplicitHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBImplicitHierarchyIntegrator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitHierarchyIntegrator.Tpo -c -o ../src/IB/libIBAMR3d_a-IBImplicitHierarchyIntegrator.o `test -f '../src/IB/IBImplicitHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/IBImplicitHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitHierarchyIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBImplicitHierarchyIntegrator.cpp' object='../src/IB/libIBAMR3d_a-IBImplicitHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.o `test -f '../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBImplicitHierarchyIntegrator.o `test -f '../src/IB/IBImplicitHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/IBImplicitHierarchyIntegrator.cpp
 
-../src/IB/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.obj: ../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Tpo -c -o ../src/IB/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.obj `if test -f '../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp' object='../src/IB/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+../src/IB/libIBAMR3d_a-IBImplicitHierarchyIntegrator.obj: ../src/IB/IBImplicitHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBImplicitHierarchyIntegrator.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitHierarchyIntegrator.Tpo -c -o ../src/IB/libIBAMR3d_a-IBImplicitHierarchyIntegrator.obj `if test -f '../src/IB/IBImplicitHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/IBImplicitHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBImplicitHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitHierarchyIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBImplicitHierarchyIntegrator.cpp' object='../src/IB/libIBAMR3d_a-IBImplicitHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.obj `if test -f '../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBImplicitHierarchyIntegrator.obj `if test -f '../src/IB/IBImplicitHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/IBImplicitHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBImplicitHierarchyIntegrator.cpp'; fi`
 
 ../src/IB/libIBAMR3d_a-IBInstrumentPanel.o: ../src/IB/IBInstrumentPanel.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBInstrumentPanel.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Tpo -c -o ../src/IB/libIBAMR3d_a-IBInstrumentPanel.o `test -f '../src/IB/IBInstrumentPanel.cpp' || echo '$(srcdir)/'`../src/IB/IBInstrumentPanel.cpp
@@ -8236,7 +8236,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBHierarchyIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBHydrodynamicForceEvaluator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBHydrodynamicSurfaceForceEvaluator.Po
-	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitHierarchyIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpecFactory.Po
@@ -8306,7 +8306,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBHierarchyIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBHydrodynamicForceEvaluator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBHydrodynamicSurfaceForceEvaluator.Po
-	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitHierarchyIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpecFactory.Po
@@ -8602,7 +8602,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBHierarchyIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBHydrodynamicForceEvaluator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBHydrodynamicSurfaceForceEvaluator.Po
-	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitHierarchyIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpecFactory.Po
@@ -8672,7 +8672,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBHierarchyIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBHydrodynamicForceEvaluator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBHydrodynamicSurfaceForceEvaluator.Po
-	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitHierarchyIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpecFactory.Po
