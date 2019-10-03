@@ -21,6 +21,9 @@ assert sys.version_info >= (3, 5)
 
 
 def interrupt_handler(sig, frame):
+    """Small interrupt handler to catch SIGINT.
+    """
+    del sig, frame
     print("SIGINT caught. Exiting.")
     sys.exit(1)
 signal.signal(signal.SIGINT, interrupt_handler)
@@ -44,15 +47,14 @@ class Parameters:
     should be deleted after the test is run. Defaults to False.
     """
     def __init__(self, input_arguments):
-        ip = input_arguments
         # TODO: finish implementing verbose mode
-        self.keep_work_directories = ip.keep_work_directories
-        self.mpiexec = ip.mpiexec
-        self.numdiff = ip.numdiff
-        self.n_processors = ip.n_processors
-        self.show_only = ip.show_only
-        self.test_directory = os.getcwd() + ip.test_directory
-        self.test_regex = ip.test_regex
+        self.keep_work_directories = input_arguments.keep_work_directories
+        self.mpiexec = input_arguments.mpiexec
+        self.numdiff = input_arguments.numdiff
+        self.n_processors = input_arguments.n_processors
+        self.show_only = input_arguments.show_only
+        self.test_directory = os.getcwd() + input_arguments.test_directory
+        self.test_regex = input_arguments.test_regex
         self.verbose = False
 
         # These are the only two required inputs:
@@ -61,7 +63,7 @@ class Parameters:
                              " to configure, stored in attest.conf, or explicitly"
                              " provided as a command-line argument to attest"
                              " itself.")
-        elif not os.path.isfile(self.mpiexec):
+        if not os.path.isfile(self.mpiexec):
             raise ValueError("The given path to mpiexec <" + self.mpiexec + ">"
                              " is not valid.")
 
@@ -70,7 +72,7 @@ class Parameters:
                              "to configure, stored in attest.conf, or explicitly"
                              " provided as a command-line argument to attest"
                              " itself.")
-        elif not os.path.isfile(self.numdiff):
+        if not os.path.isfile(self.numdiff):
             raise ValueError("The given path to numdiff <" + self.numdiff + ">"
                              " is not valid.")
 
@@ -192,10 +194,15 @@ class Test:
 
 
     def do_restart(self):
+        """Whether or not we should, upon completion, run the test again in restart
+        mode.
+        """
         return self._restart_n != 0
 
 
     def restart_n(self):
+        """The restart snapshot number to use in case we restart the test.
+        """
         return self._restart_n
 
 
@@ -232,7 +239,7 @@ class Test:
                 #   - relative differences of 1e-6
                 #   - absolute differences of 1e-10 (i.e., ignore values near zero)
                 #   - [space][tab][newline]=,:;<>[](){}^ as separators between numbers
-                numdiff_flags = ["-r", "1e-6", "-a", "1e-10",  "-s",
+                numdiff_flags = ["-r", "1e-6", "-a", "1e-10", "-s",
                                  "' \\t\\n=,:;<>[](){}^'"]
                 diff_result = subprocess.run(
                     [self._parameters.numdiff] + numdiff_flags +
@@ -292,7 +299,7 @@ def main():
             conf['jobs'] = entry[2:]
             sys.argv.remove(entry)
 
-    description=(
+    description = (
         "A simple test runner. attest is configured both with an input file "
         "(attest.conf, located in the top level test directory) and command "
         "line arguments. Command line arguments will override settings found in"
