@@ -84,6 +84,11 @@ public:
     virtual void setUpdatedPosition(Vec& X_new_vec) = 0;
 
     /*!
+     * Get the value of the updated position vector.
+     */
+    virtual void getUpdatedPosition(Vec& X_new_vec) = 0;
+
+    /*!
      * Compute the nonlinear residual for backward Euler time stepping.
      */
     virtual void computeResidualBackwardEuler(Vec& R_vec) = 0;

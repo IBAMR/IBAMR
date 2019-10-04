@@ -204,6 +204,11 @@ public:
     void setUpdatedPosition(Vec& X_new_vec) override;
 
     /*!
+     * Get the value of the updated position vector.
+     */
+    void getUpdatedPosition(Vec& X_new_vec) override;
+
+    /*!
      * Compute the nonlinear residual for backward Euler time stepping.
      */
     void computeResidualBackwardEuler(Vec& R_vec) override;
