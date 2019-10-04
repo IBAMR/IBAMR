@@ -174,12 +174,13 @@ public:
 
     /*!
      * Register a cell-centered quantity to be advected and diffused by the
-     * hierarchy integrator.
+     * hierarchy integrator. Can optionally turn off outputting the quantity.
      *
      * Data management for the registered quantity will be handled by the
      * hierarchy integrator.
      */
-    void registerTransportedQuantity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) override;
+    void registerTransportedQuantity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                                     const bool Q_output = true) override;
 
     /*!
      * Set the convective time stepping method to use for a particular
