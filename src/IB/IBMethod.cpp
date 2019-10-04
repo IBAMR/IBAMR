@@ -525,6 +525,16 @@ IBMethod::setUpdatedPosition(Vec& X_new_vec)
 } // setUpdatedPosition
 
 void
+IBMethod::getUpdatedPosition(Vec& X_new_vec)
+{
+    PetscErrorCode ierr;
+    const int level_num = d_hierarchy->getFinestLevelNumber();
+    ierr = VecCopy(d_X_new_data[level_num]->getVec(), X_new_vec);
+    IBTK_CHKERRQ(ierr);
+    return;
+} // getUpdatedPosition
+
+void
 IBMethod::computeResidualBackwardEuler(Vec& R_vec)
 {
     PetscErrorCode ierr;
