@@ -359,7 +359,7 @@ public:
     struct WorkloadSpec
     {
         /// The multiplier applied to each quadrature point.
-        double q_point_weight = 2.0;
+        double q_point_weight = 1.0;
     };
 
     /*!
