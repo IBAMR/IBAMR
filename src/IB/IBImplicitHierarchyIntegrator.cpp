@@ -136,6 +136,7 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
             d_use_structure_predictor = input_db->getBool("use_structure_predictor");
         if (input_db->keyExists("use_fixed_LE_operators"))
             d_use_fixed_LE_operators = input_db->getBool("use_fixed_LE_operators");
+        if (input_db->keyExists("implicit_algorithm")) d_implicit_algorithm = input_db->getString("implicit_algorithm");
     }
     d_ib_implicit_ops->setUseFixedLEOperators(d_use_fixed_LE_operators);
 
@@ -244,56 +245,9 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
     d_new_time = new_time;
     d_cycle_num = cycle_num;
 
-    const bool use_SNES = false;
-    if (use_SNES)
-    {
-        // Setup Lagrangian vectors used in solving the implicit IB equations.
-        PetscErrorCode ierr;
-        Vec X, R, R_work;
-        d_ib_implicit_ops->createSolverVecs(&X, &R);
-        d_ib_implicit_ops->setupSolverVecs(X, R);
-        ierr = VecDuplicate(R, &R_work);
-        IBTK_CHKERRQ(ierr);
+    if (d_use_fixed_LE_operators) d_ib_implicit_ops->updateFixedLEOperators();
 
-        if (d_use_fixed_LE_operators)
-        {
-            // Indicate that the current approximation to position of the structure
-            // should be used for Lagrangian-Eulerian coupling.
-            d_ib_implicit_ops->updateFixedLEOperators();
-        }
-
-        // Solve the implicit IB equations.
-        d_ins_cycle_num = 0;
-
-        SNES snes;
-        ierr = SNESCreate(PETSC_COMM_WORLD, &snes);
-        IBTK_CHKERRQ(ierr);
-        ierr = SNESSetFunction(snes, R_work, IBFunction_SAMRAI, this);
-        IBTK_CHKERRQ(ierr);
-        ierr = SNESSetOptionsPrefix(snes, "ib_");
-        IBTK_CHKERRQ(ierr);
-        ierr = SNESSetFromOptions(snes);
-        IBTK_CHKERRQ(ierr);
-        ierr = SNESSolve(snes, R, X);
-        IBTK_CHKERRQ(ierr);
-        ierr = SNESDestroy(&snes);
-        IBTK_CHKERRQ(ierr);
-
-        // Ensure that the INS variables are consistent with the final structure configuration.
-        //
-        // TODO: Can we skip this?
-        d_ib_implicit_ops->setUpdatedPosition(X);
-        IBFunction(snes, X, R);
-
-        // Deallocate temporary data.
-        ierr = VecDestroy(&X);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&R);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&R_work);
-        IBTK_CHKERRQ(ierr);
-    }
-    else
+    if (d_implicit_algorithm == "AITKEN")
     {
         // Use Aitken extrapolation following Eq. 24 and 25 of TECHNIQUES FOR ACCELERATING ITERATIVE METHODS FOR THE
         // SOLUTION OF MATHEMATICAL PROBLEMS by S. R. Capehart, 1989.
@@ -373,6 +327,51 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
         ierr = VecDestroy(&Z);
         IBTK_CHKERRQ(ierr);
     }
+    else if (d_implicit_algorithm == "SNES")
+    {
+        // Setup Lagrangian vectors used in solving the implicit IB equations.
+        PetscErrorCode ierr;
+        Vec X, R, R_work;
+        d_ib_implicit_ops->createSolverVecs(&X, &R);
+        d_ib_implicit_ops->setupSolverVecs(X, R);
+        ierr = VecDuplicate(R, &R_work);
+        IBTK_CHKERRQ(ierr);
+
+        // Solve the implicit IB equations.
+        d_ins_cycle_num = 0;
+
+        SNES snes;
+        ierr = SNESCreate(PETSC_COMM_WORLD, &snes);
+        IBTK_CHKERRQ(ierr);
+        ierr = SNESSetFunction(snes, R_work, IBFunction_SAMRAI, this);
+        IBTK_CHKERRQ(ierr);
+        ierr = SNESSetOptionsPrefix(snes, "ib_");
+        IBTK_CHKERRQ(ierr);
+        ierr = SNESSetFromOptions(snes);
+        IBTK_CHKERRQ(ierr);
+        ierr = SNESSolve(snes, R, X);
+        IBTK_CHKERRQ(ierr);
+        ierr = SNESDestroy(&snes);
+        IBTK_CHKERRQ(ierr);
+
+        // Ensure that the INS variables are consistent with the final structure configuration.
+        iterateSolution(X);
+
+        // Deallocate temporary data.
+        ierr = VecDestroy(&X);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&R);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&R_work);
+        IBTK_CHKERRQ(ierr);
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                                 << "  unsupported solver algorithm: " << d_implicit_algorithm << "\n"
+                                 << "  supported time stepping types are: AITKEN, SNES\n");
+    }
+
     // Execute any registered callbacks.
     executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
 } // integrateHierarchy
