@@ -273,37 +273,48 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
             d_ib_implicit_ops->getUpdatedPosition(X2);
             ++n_solves;
 
+            // Y := X2 - X1
             ierr = VecWAXPY(Y, -1.0, X1, X2);
             IBTK_CHKERRQ(ierr);
+
+            // Z := X2 - 2*X1 + X0
             ierr = VecWAXPY(Z, -2.0, X1, X0);
             IBTK_CHKERRQ(ierr);
             ierr = VecAXPY(Z, 1.0, X2);
             IBTK_CHKERRQ(ierr);
 
+            // Q1 := dot(Z, Y)
             double Q1;
             ierr = VecDot(Z, Y, &Q1);
             IBTK_CHKERRQ(ierr);
+
+            // Q2 := dot(Z, Z)
             double Q2;
             ierr = VecDot(Z, Z, &Q2);
             IBTK_CHKERRQ(ierr);
 
+            // Q := dot(X2 - 2*X1 + X0 , X1 - X2) / ||X2 - 2*X1 + X0||_2
             const double Q = -Q1 / Q2;
 
+            // Y := X2 + Q*(X2 - X1)
             ierr = VecAYPX(Y, Q, X2);
             IBTK_CHKERRQ(ierr);
 
+            // Z := X2 - Y
             ierr = VecWAXPY(Z, -1.0, Y, X2);
             IBTK_CHKERRQ(ierr);
             double D;
             ierr = VecNorm(Z, NORM_2, &D);
             IBTK_CHKERRQ(ierr);
 
+            // Check to see if ||X2 - Y||_2 is sufficiently small to declare convergence.
             if (D < tol * D0)
             {
                 converged = true;
             }
             else
             {
+                // If we haven't converged, get an updated solution, reset X0 and X1, and repeat.
                 iterateSolution(Y);
                 d_ib_implicit_ops->getUpdatedPosition(Z);
                 ++n_solves;
