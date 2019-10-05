@@ -65,6 +65,11 @@ public:
     virtual ~IBImplicitStrategy() = default;
 
     /*!
+     * Create solution data.
+     */
+    virtual void createSolutionVec(Vec* X_vec) = 0;
+
+    /*!
      * Create solution and rhs data.
      */
     virtual void createSolverVecs(Vec* X_vec, Vec* F_vec) = 0;
@@ -72,7 +77,7 @@ public:
     /*!
      * Setup solution and rhs data.
      */
-    virtual void setupSolverVecs(Vec* X_vec, Vec* F_vec) = 0;
+    virtual void setupSolverVecs(Vec& X_vec, Vec& F_vec) = 0;
 
     /*!
      * Set the value of the updated position vector.
