@@ -331,6 +331,37 @@ bool FEDataManager::s_registered_callback = false;
 unsigned char FEDataManager::s_shutdown_priority = 200;
 
 FEDataManager*
+FEDataManager::getManager(std::shared_ptr<FEData> fe_data,
+                          const std::string& name,
+                          const FEDataManager::InterpSpec& default_interp_spec,
+                          const FEDataManager::SpreadSpec& default_spread_spec,
+                          const FEDataManager::WorkloadSpec& default_workload_spec,
+                          const IntVector<NDIM>& min_ghost_width,
+                          bool register_for_restart)
+{
+    if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
+    {
+        const IntVector<NDIM> ghost_width = IntVector<NDIM>::max(
+            min_ghost_width,
+            IntVector<NDIM>(std::max(LEInteractor::getMinimumGhostWidth(default_interp_spec.kernel_fcn),
+                                     LEInteractor::getMinimumGhostWidth(default_spread_spec.kernel_fcn))));
+        s_data_manager_instances[name] = new FEDataManager(fe_data,
+                                                           name,
+                                                           default_interp_spec,
+                                                           default_spread_spec,
+                                                           default_workload_spec,
+                                                           ghost_width,
+                                                           register_for_restart);
+    }
+    if (!s_registered_callback)
+    {
+        ShutdownRegistry::registerShutdownRoutine(freeAllManagers, s_shutdown_priority);
+        s_registered_callback = true;
+    }
+    return s_data_manager_instances[name];
+} // getManager
+
+FEDataManager*
 FEDataManager::getManager(const std::string& name,
                           const FEDataManager::InterpSpec& default_interp_spec,
                           const FEDataManager::SpreadSpec& default_spread_spec,
@@ -589,6 +620,18 @@ FEDataManager::buildGhostedCoordsVector(const bool localize_data)
 {
     return buildGhostedSolutionVector(COORDINATES_SYSTEM_NAME, localize_data);
 } // buildGhostedCoordsVector
+
+std::shared_ptr<FEData>&
+FEDataManager::getFEData()
+{
+    return d_fe_data;
+} // getFEData
+
+const std::shared_ptr<FEData>&
+FEDataManager::getFEData() const
+{
+    return d_fe_data;
+} // getFEData
 
 /**
  * @brief Compute the product of the finite element representation of the
@@ -2673,13 +2716,15 @@ FEDataManager::putToDatabase(Pointer<Database> db)
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-FEDataManager::FEDataManager(std::string object_name,
+FEDataManager::FEDataManager(std::shared_ptr<FEData> fe_data,
+                             std::string object_name,
                              FEDataManager::InterpSpec default_interp_spec,
                              FEDataManager::SpreadSpec default_spread_spec,
                              FEDataManager::WorkloadSpec default_workload_spec,
                              IntVector<NDIM> ghost_width,
                              bool register_for_restart)
-    : d_fe_data(std::make_shared<FEData>(object_name + "::fe_data", register_for_restart)),
+    : d_fe_data(fe_data),
+      COORDINATES_SYSTEM_NAME(d_fe_data->d_coordinates_system_name),
       d_object_name(std::move(object_name)),
       d_registered_for_restart(register_for_restart),
       d_default_workload_spec(default_workload_spec),
@@ -2733,6 +2778,22 @@ FEDataManager::FEDataManager(std::string object_name,
             TimerManager::getManager()->getTimer("IBTK::FEDataManager::applyGradientDetector()");
         t_put_to_database = TimerManager::getManager()->getTimer("IBTK::FEDataManager::putToDatabase()");)
     return;
+} // FEDataManager
+
+FEDataManager::FEDataManager(std::string object_name,
+                             FEDataManager::InterpSpec default_interp_spec,
+                             FEDataManager::SpreadSpec default_spread_spec,
+                             FEDataManager::WorkloadSpec default_workload_spec,
+                             IntVector<NDIM> ghost_width,
+                             bool register_for_restart)
+    : FEDataManager(std::make_shared<FEData>(object_name + "::fe_data", register_for_restart),
+                    object_name,
+                    default_interp_spec,
+                    default_spread_spec,
+                    default_workload_spec,
+                    ghost_width,
+                    register_for_restart)
+{
 } // FEDataManager
 
 FEDataManager::~FEDataManager()

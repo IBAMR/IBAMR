@@ -221,6 +221,15 @@ protected:
     std::string d_object_name;
     bool d_registered_for_restart;
 
+    /*!
+     * Name of the coordinates system.
+     *
+     * @note For backwards compatibility reasons this string may be reassigned
+     * to another value by assignment to
+     * FEDataManager::COORDINATES_SYSTEM_NAME.
+     */
+    std::string d_coordinates_system_name = "coordinates system";
+
     /*
      * FE equation system associated with this data manager object.
      */
@@ -363,13 +372,23 @@ public:
         double q_point_weight = 1.0;
     };
 
+protected:
+    /*!
+     * FEData object that contains the libMesh data structures.
+     *
+     * @note multiple FEDataManager objects may use the same FEData object,
+     * usually combined with different hierarchies.
+     */
+    std::shared_ptr<FEData> d_fe_data;
+
+public:
     /*!
      * \brief The name of the equation system which stores the spatial position
-     * data.
+     * data. The actual string is stored by FEData.
      *
      * \note The default value for this string is "coordinates system".
      */
-    std::string COORDINATES_SYSTEM_NAME = "coordinates system";
+    std::string& COORDINATES_SYSTEM_NAME;
 
     /*!
      * \brief The libMesh boundary IDs to use for specifying essential boundary
@@ -398,6 +417,26 @@ public:
      */
     static FEDataManager*
     getManager(const std::string& name,
+               const InterpSpec& default_interp_spec,
+               const SpreadSpec& default_spread_spec,
+               const WorkloadSpec& default_workload_spec,
+               const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
+               bool register_for_restart = true);
+
+    /*!
+     * Return a pointer to the instance of the Lagrangian data manager
+     * corresponding to the specified name.  Access to FEDataManager objects is
+     * mediated by the getManager() function.
+     *
+     * This is the same as the other methods except for the first argument:
+     * here the FEData object owned by the new FEDataManager will, in most
+     * cases, be co-owned by another FEDataManager object.
+     *
+     * \return A pointer to the data manager instance.
+     */
+    static FEDataManager*
+    getManager(std::shared_ptr<FEData> fe_data,
+               const std::string& name,
                const InterpSpec& default_interp_spec,
                const SpreadSpec& default_spread_spec,
                const WorkloadSpec& default_workload_spec,
@@ -582,6 +621,16 @@ public:
      * @deprecated Use buildIBGhostedVector() instead.
      */
     libMesh::NumericVector<double>* buildGhostedCoordsVector(bool localize_data = true);
+
+    /*!
+     * \return The shared pointer to the object managing the Lagrangian data.
+     */
+    std::shared_ptr<FEData>& getFEData();
+
+    /*!
+     * \return The shared pointer to the object managing the Lagrangian data.
+     */
+    const std::shared_ptr<FEData>& getFEData() const;
 
     /*!
      * \brief Spread a density from the FE mesh to the Cartesian grid using the
@@ -905,17 +954,21 @@ public:
 
 protected:
     /*!
-     * FEData object that contains the libMesh data structures.
-     *
-     * @note multiple FEDataManager objects may use the same FEData object,
-     * usually combined with different hierarchies.
-     */
-    std::shared_ptr<FEData> d_fe_data;
-
-    /*!
      * \brief Constructor.
      */
     FEDataManager(std::string object_name,
+                  InterpSpec default_interp_spec,
+                  SpreadSpec default_spread_spec,
+                  WorkloadSpec default_workload_spec,
+                  SAMRAI::hier::IntVector<NDIM> ghost_width,
+                  bool register_for_restart = true);
+
+    /*!
+     * \brief Constructor, where the FEData object owned by this class may be
+     * co-owned by other objects.
+     */
+    FEDataManager(std::shared_ptr<FEData> fe_data,
+                  std::string object_name,
                   InterpSpec default_interp_spec,
                   SpreadSpec default_spread_spec,
                   WorkloadSpec default_workload_spec,
