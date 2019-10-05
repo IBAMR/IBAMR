@@ -244,52 +244,135 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
     d_new_time = new_time;
     d_cycle_num = cycle_num;
 
-    // Setup Lagrangian vectors used in solving the implicit IB equations.
-    PetscErrorCode ierr;
-    Vec X, R, R_work;
-    d_ib_implicit_ops->createSolverVecs(&X, &R);
-    d_ib_implicit_ops->setupSolverVecs(&X, &R);
-    ierr = VecDuplicate(R, &R_work);
-    IBTK_CHKERRQ(ierr);
-
-    if (d_use_fixed_LE_operators)
+    const bool use_SNES = false;
+    if (use_SNES)
     {
-        // Indicate that the current approximation to position of the structure
-        // should be used for Lagrangian-Eulerian coupling.
-        d_ib_implicit_ops->updateFixedLEOperators();
+        // Setup Lagrangian vectors used in solving the implicit IB equations.
+        PetscErrorCode ierr;
+        Vec X, R, R_work;
+        d_ib_implicit_ops->createSolverVecs(&X, &R);
+        d_ib_implicit_ops->setupSolverVecs(X, R);
+        ierr = VecDuplicate(R, &R_work);
+        IBTK_CHKERRQ(ierr);
+
+        if (d_use_fixed_LE_operators)
+        {
+            // Indicate that the current approximation to position of the structure
+            // should be used for Lagrangian-Eulerian coupling.
+            d_ib_implicit_ops->updateFixedLEOperators();
+        }
+
+        // Solve the implicit IB equations.
+        d_ins_cycle_num = 0;
+
+        SNES snes;
+        ierr = SNESCreate(PETSC_COMM_WORLD, &snes);
+        IBTK_CHKERRQ(ierr);
+        ierr = SNESSetFunction(snes, R_work, IBFunction_SAMRAI, this);
+        IBTK_CHKERRQ(ierr);
+        ierr = SNESSetOptionsPrefix(snes, "ib_");
+        IBTK_CHKERRQ(ierr);
+        ierr = SNESSetFromOptions(snes);
+        IBTK_CHKERRQ(ierr);
+        ierr = SNESSolve(snes, R, X);
+        IBTK_CHKERRQ(ierr);
+        ierr = SNESDestroy(&snes);
+        IBTK_CHKERRQ(ierr);
+
+        // Ensure that the INS variables are consistent with the final structure configuration.
+        //
+        // TODO: Can we skip this?
+        d_ib_implicit_ops->setUpdatedPosition(X);
+        IBFunction(snes, X, R);
+
+        // Deallocate temporary data.
+        ierr = VecDestroy(&X);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&R);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&R_work);
+        IBTK_CHKERRQ(ierr);
     }
+    else
+    {
+        // Use Aitken extrapolation following Eq. 24 and 25 of TECHNIQUES FOR ACCELERATING ITERATIVE METHODS FOR THE
+        // SOLUTION OF MATHEMATICAL PROBLEMS by S. R. Capehart, 1989.
+        PetscErrorCode ierr;
+        Vec X0, X1, X2, Y, Z;
+        d_ib_implicit_ops->createSolutionVec(&X0);
+        d_ib_implicit_ops->createSolutionVec(&X1);
+        d_ib_implicit_ops->createSolutionVec(&X2);
+        d_ib_implicit_ops->createSolutionVec(&Y);
+        d_ib_implicit_ops->createSolutionVec(&Z);
 
-    // Solve the implicit IB equations.
-    d_ins_cycle_num = 0;
+        d_ib_implicit_ops->getUpdatedPosition(X0);
 
-    SNES snes;
-    ierr = SNESCreate(PETSC_COMM_WORLD, &snes);
-    IBTK_CHKERRQ(ierr);
-    ierr = SNESSetFunction(snes, R_work, IBFunction_SAMRAI, this);
-    IBTK_CHKERRQ(ierr);
-    ierr = SNESSetOptionsPrefix(snes, "ib_");
-    IBTK_CHKERRQ(ierr);
-    ierr = SNESSetFromOptions(snes);
-    IBTK_CHKERRQ(ierr);
-    ierr = SNESSolve(snes, R, X);
-    IBTK_CHKERRQ(ierr);
-    ierr = SNESDestroy(&snes);
-    IBTK_CHKERRQ(ierr);
+        double D0;
+        ierr = VecNorm(X0, NORM_2, &D0);
+        IBTK_CHKERRQ(ierr);
 
-    // Ensure that the INS variables are consistent with the final structure configuration.
-    //
-    // TODO: Can we skip this?
-    d_ib_implicit_ops->setUpdatedPosition(X);
-    IBFunction(snes, X, R);
+        double tol = 1.0e-5;
+        int max_its = 100;
+        bool converged = false;
+        for (int k = 0; k < max_its && !converged; ++k)
+        {
+            iterateSolution(X0);
+            d_ib_implicit_ops->getUpdatedPosition(X1);
+            iterateSolution(X1);
+            d_ib_implicit_ops->getUpdatedPosition(X2);
 
-    // Deallocate temporary data.
-    ierr = VecDestroy(&X);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&R);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&R_work);
-    IBTK_CHKERRQ(ierr);
+            ierr = VecWAXPY(Y, -1.0, X1, X2);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecWAXPY(Z, -2.0, X1, X0);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAXPY(Z, 1.0, X2);
+            IBTK_CHKERRQ(ierr);
 
+            double Q1;
+            ierr = VecDot(Z, Y, &Q1);
+            IBTK_CHKERRQ(ierr);
+            double Q2;
+            ierr = VecDot(Z, Z, &Q2);
+            IBTK_CHKERRQ(ierr);
+
+            const double Q = -Q1 / Q2;
+
+            ierr = VecAYPX(Y, Q, X2);
+            IBTK_CHKERRQ(ierr);
+
+            ierr = VecWAXPY(Z, -1.0, Y, X2);
+            IBTK_CHKERRQ(ierr);
+            double D;
+            ierr = VecNorm(Z, NORM_2, &D);
+            IBTK_CHKERRQ(ierr);
+
+            if (D < tol * D0)
+            {
+                converged = true;
+            }
+            else
+            {
+                iterateSolution(Y);
+                d_ib_implicit_ops->getUpdatedPosition(Z);
+
+                ierr = VecCopy(Y, X0);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecCopy(Z, X1);
+                IBTK_CHKERRQ(ierr);
+            }
+        }
+
+        ierr = VecDestroy(&X0);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&X1);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&X2);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&Y);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&Z);
+        IBTK_CHKERRQ(ierr);
+    }
     // Execute any registered callbacks.
     executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
 } // integrateHierarchy
@@ -440,6 +523,154 @@ IBImplicitHierarchyIntegrator::getFromRestart()
     }
     return;
 } // getFromRestart
+
+void
+IBImplicitHierarchyIntegrator::iterateSolution(Vec X_new)
+{
+    const double current_time = d_current_time;
+    const double new_time = d_new_time;
+    const double half_time = current_time + 0.5 * (new_time - current_time);
+    const int cycle_num = d_cycle_num;
+
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
+                                                                   d_ins_hier_integrator->getCurrentContext());
+    const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
+                                                               d_ins_hier_integrator->getNewContext());
+
+    // Set the current position data.
+    d_ib_implicit_ops->setUpdatedPosition(X_new);
+
+    // Compute the Lagrangian forces and spread them to the Eulerian grid.
+    switch (d_time_stepping_type)
+    {
+    case FORWARD_EULER:
+        // intentionally blank
+        break;
+    case BACKWARD_EULER:
+        if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
+        d_ib_method_ops->computeLagrangianForce(d_new_time);
+        if (d_enable_logging)
+            plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
+        d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+        d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(true);
+        d_ib_method_ops->spreadForce(
+            d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), new_time);
+        d_u_phys_bdry_op->setHomogeneousBc(false);
+        break;
+    case MIDPOINT_RULE:
+        if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
+        d_ib_method_ops->computeLagrangianForce(half_time);
+        if (d_enable_logging)
+            plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
+        d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+        d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(true);
+        d_ib_method_ops->spreadForce(
+            d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), half_time);
+        d_u_phys_bdry_op->setHomogeneousBc(false);
+        break;
+    case TRAPEZOIDAL_RULE:
+        if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
+        d_ib_method_ops->computeLagrangianForce(new_time);
+        if (d_enable_logging)
+            plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
+        d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+        d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(true);
+        d_ib_method_ops->spreadForce(
+            d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), new_time);
+        d_u_phys_bdry_op->setHomogeneousBc(false);
+        d_hier_velocity_data_ops->linearSum(d_f_idx, 0.5, d_f_current_idx, 0.5, d_f_idx);
+        break;
+    default:
+        TBOX_ERROR(
+            d_object_name << "::integrateHierarchy():\n"
+                          << "  unsupported time stepping type: "
+                          << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                          << "  supported time stepping types are: BACKWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+    }
+
+    // Solve the incompressible Navier-Stokes equations.
+    if (d_enable_logging)
+        plog << d_object_name << "::integrateHierarchy(): solving the incompressible Navier-Stokes equations\n";
+    d_ib_method_ops->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
+    d_ins_hier_integrator->integrateHierarchy(current_time, new_time, d_ins_cycle_num);
+    d_ins_cycle_num++;
+    d_ib_method_ops->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
+
+    // Interpolate the Eulerian velocity to the curvilinear mesh.
+    switch (d_time_stepping_type)
+    {
+    case BACKWARD_EULER:
+        d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
+        if (d_enable_logging)
+            plog << d_object_name
+                 << "::integrateHierarchy(): interpolating Eulerian velocity to "
+                    "the Lagrangian mesh\n";
+        d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(false);
+        d_ib_method_ops->interpolateVelocity(d_u_idx,
+                                             getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
+                                             getGhostfillRefineSchedules(d_object_name + "::u"),
+                                             new_time);
+        break;
+    case MIDPOINT_RULE:
+        d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
+        if (d_enable_logging)
+            plog << d_object_name
+                 << "::integrateHierarchy(): interpolating Eulerian velocity to "
+                    "the Lagrangian mesh\n";
+        d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(false);
+        d_ib_method_ops->interpolateVelocity(d_u_idx,
+                                             getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
+                                             getGhostfillRefineSchedules(d_object_name + "::u"),
+                                             half_time);
+        break;
+    case TRAPEZOIDAL_RULE:
+        d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
+        if (d_enable_logging)
+            plog << d_object_name
+                 << "::integrateHierarchy(): interpolating Eulerian velocity to "
+                    "the Lagrangian mesh\n";
+        d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(false);
+        d_ib_method_ops->interpolateVelocity(d_u_idx,
+                                             getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
+                                             getGhostfillRefineSchedules(d_object_name + "::u"),
+                                             new_time);
+        break;
+    default:
+        TBOX_ERROR(
+            d_object_name << "::integrateHierarchy():\n"
+                          << "  unsupported time stepping type: "
+                          << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                          << "  supported time stepping types are: BACKWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+    }
+
+    // Compute the residual.
+    switch (d_time_stepping_type)
+    {
+    case BACKWARD_EULER:
+        d_ib_implicit_ops->backwardEulerStep(current_time, new_time);
+        break;
+    case MIDPOINT_RULE:
+        d_ib_implicit_ops->midpointStep(current_time, new_time);
+        break;
+    case TRAPEZOIDAL_RULE:
+        d_ib_implicit_ops->trapezoidalStep(current_time, new_time);
+        break;
+    default:
+        TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                                 << "  unsupported time stepping type: "
+                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                 << "  supported time stepping types are: BACKWARD_EULER, "
+                                    "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+    }
+    return;
+}
 
 PetscErrorCode
 IBImplicitHierarchyIntegrator::IBFunction_SAMRAI(SNES snes, Vec X, Vec R, void* ctx)
