@@ -157,6 +157,9 @@ protected:
 
     SAMRAI::tbox::Pointer<IBImplicitStrategy> d_ib_implicit_ops;
 
+    // The implicit solver approach. Current options are AITKEN or SNES.
+    std::string d_implicit_algorithm = "AITKEN";
+
     // Whether to use "frozen" LE operators.
     bool d_use_fixed_LE_operators = false;
 
