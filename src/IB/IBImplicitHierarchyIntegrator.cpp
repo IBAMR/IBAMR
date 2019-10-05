@@ -258,15 +258,19 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
         ierr = VecNorm(X0, NORM_2, &D0);
         IBTK_CHKERRQ(ierr);
 
+        int k = 0, n_solves = 0;
         double tol = 1.0e-5;
         int max_its = 100;
         bool converged = false;
-        for (int k = 0; k < max_its && !converged; ++k)
+        for (k = 0; k < max_its && !converged; ++k)
         {
             iterateSolution(X0);
             d_ib_implicit_ops->getUpdatedPosition(X1);
+            ++n_solves;
+
             iterateSolution(X1);
             d_ib_implicit_ops->getUpdatedPosition(X2);
+            ++n_solves;
 
             ierr = VecWAXPY(Y, -1.0, X1, X2);
             IBTK_CHKERRQ(ierr);
@@ -301,6 +305,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
             {
                 iterateSolution(Y);
                 d_ib_implicit_ops->getUpdatedPosition(Z);
+                ++n_solves;
 
                 ierr = VecCopy(Y, X0);
                 IBTK_CHKERRQ(ierr);
@@ -308,6 +313,14 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
                 IBTK_CHKERRQ(ierr);
             }
         }
+
+        if (!converged)
+        {
+            pout << "WARNING: AITKEN extrapolation DIVERGED\n";
+        }
+        plog << d_object_name << "::integrateHierarchy():\n"
+             << "  AITKEN extrapolation " << (converged ? "CONVERGED" : "DIVERGED") << "\n"
+             << "  requiring in " << k << " iterations and " << n_solves << " total Navier-Stokes solves\n";
 
         ierr = VecDestroy(&X0);
         IBTK_CHKERRQ(ierr);
