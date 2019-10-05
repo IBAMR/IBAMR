@@ -187,6 +187,12 @@ public:
     void postprocessIntegrateData(double current_time, double new_time, int num_cycles) override;
 
     /*!
+     * Create solution data on the specified level of the patch
+     * hierarchy.
+     */
+    void createSolutionVec(Vec* X_vec) override;
+
+    /*!
      * Create solution and rhs data on the specified level of the patch
      * hierarchy.
      */
@@ -196,7 +202,7 @@ public:
      * Setup solution and rhs data on the specified level of the patch
      * hierarchy.
      */
-    void setupSolverVecs(Vec* X_vec, Vec* F_vec) override;
+    void setupSolverVecs(Vec& X_vec, Vec& F_vec) override;
 
     /*!
      * Set the value of the updated position vector.

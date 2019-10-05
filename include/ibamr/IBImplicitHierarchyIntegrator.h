@@ -192,6 +192,11 @@ private:
     double d_current_time, d_new_time;
 
     /*!
+     * Iterate the solution (e.g. for fixed-point iteration).
+     */
+    void iterateSolution(Vec X_new);
+
+    /*!
      * Static function for implicit formulation.
      */
     static PetscErrorCode IBFunction_SAMRAI(SNES snes, Vec X, Vec R, void* ctx);

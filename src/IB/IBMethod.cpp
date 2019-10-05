@@ -470,6 +470,19 @@ IBMethod::postprocessIntegrateData(double current_time, double new_time, int /*n
 } // postprocessIntegrateData
 
 void
+IBMethod::createSolutionVec(Vec* X_vec)
+{
+    PetscErrorCode ierr;
+    const int level_num = d_hierarchy->getFinestLevelNumber();
+    if (X_vec != nullptr)
+    {
+        ierr = VecDuplicate(d_X_current_data[level_num]->getVec(), X_vec);
+        IBTK_CHKERRQ(ierr);
+    }
+    return;
+} // createSolutionVec
+
+void
 IBMethod::createSolverVecs(Vec* X_vec, Vec* F_vec)
 {
     PetscErrorCode ierr;
@@ -488,18 +501,18 @@ IBMethod::createSolverVecs(Vec* X_vec, Vec* F_vec)
 } // createSolverVecs
 
 void
-IBMethod::setupSolverVecs(Vec* X_vec, Vec* F_vec)
+IBMethod::setupSolverVecs(Vec& X_vec, Vec& F_vec)
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
     if (X_vec != nullptr)
     {
-        ierr = VecCopy(d_X_current_data[level_num]->getVec(), *X_vec);
+        ierr = VecCopy(d_X_current_data[level_num]->getVec(), X_vec);
         IBTK_CHKERRQ(ierr);
     }
     if (F_vec != nullptr)
     {
-        ierr = VecSet(*F_vec, 0.0);
+        ierr = VecSet(F_vec, 0.0);
         IBTK_CHKERRQ(ierr);
     }
     return;
