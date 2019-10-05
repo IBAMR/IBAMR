@@ -74,14 +74,7 @@
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
-#include "petscerror.h"
-#include "petscksp.h"
-#include "petscmat.h"
-#include "petscpc.h"
 #include "petscsnes.h"
-#include "petscsys.h"
-#include "petscsystypes.h"
-#include "petscvec.h"
 
 #include <algorithm>
 #include <ostream>
