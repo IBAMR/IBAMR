@@ -259,8 +259,9 @@ protected:
 /*!
  * \brief Class FEDataManager coordinates data required for
  * Lagrangian-Eulerian interaction between a Lagrangian finite element (FE)
- * mesh. In particular, the base class FEData stores the necessary FE data
- * while this class stores additional data dependent on the Eulerian grid.
+ * mesh. In particular, the FEData member object stores the necessary finite
+ * element data while this class stores additional data dependent on the
+ * Eulerian grid.
  *
  * <h3>Parameters effecting workload estimate calculations</h3>
  * FEDataManager can estimate the amount of work done in IBFE calculations
@@ -280,7 +281,7 @@ class FEDataManager : public SAMRAI::tbox::Serializable, public SAMRAI::mesh::St
 {
 public:
     /*!
-     * Alias SystemDofMapCache for backwards compatibility.
+     * Alias FEData::SystemDofMapCache for backwards compatibility.
      */
     using SystemDofMapCache = FEData::SystemDofMapCache;
 
@@ -388,10 +389,10 @@ public:
      * mediated by the getManager() function.
      *
      * Note that when a manager is accessed for the first time, the
-     * freeAllManagers static method is registered with the ShutdownRegistry
-     * class.  Consequently, all allocated managers are freed at program
-     * completion.  Thus, users of this class do not explicitly allocate or
-     * deallocate the FEDataManager instances.
+     * FEDataManager::freeAllManagers() static method is registered with the
+     * SAMRAI::tbox::ShutdownRegistry class. Consequently, all allocated
+     * managers are freed at program completion. Thus, users of this class do
+     * not explicitly allocate or deallocate the FEDataManager instances.
      *
      * \return A pointer to the data manager instance.
      */
@@ -558,8 +559,8 @@ public:
      * @note The vector returned by pointer is owned by this class (i.e., no
      * copying is done).
      *
-     * @deprecated Use buildIBGhostedVector instead which clones a vector with
-     * the same ghost region.
+     * @deprecated Use buildIBGhostedVector() instead which clones a vector
+     * with the same ghost region.
      */
     libMesh::NumericVector<double>* buildGhostedSolutionVector(const std::string& system_name,
                                                                bool localize_data = true);
@@ -820,7 +821,7 @@ public:
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.  The level number indicates that of
-     * the new level.  The old_level pointer corresponds to the level that
+     * the new level.  The @p old_level pointer corresponds to the level that
      * resided in the hierarchy before the level with the specified number was
      * introduced.  If the pointer is null, there was no level in the hierarchy
      * prior to the call and the level data is set based on the user routines
@@ -828,12 +829,12 @@ public:
      * level and the new level receives data from the old level appropriately
      * before it is destroyed.
      *
-     * The boolean argument initial_time indicates whether the level is being
+     * The boolean argument @p initial_time indicates whether the level is being
      * introduced for the first time (i.e., at initialization time) or after
      * some regrid process during the calculation beyond the initial hierarchy
      * construction.  This information is provided since the initialization of
      * the data on a patch may be different in each of those circumstances.  The
-     * can_be_refined boolean argument indicates whether the level is the finest
+     * @p can_be_refined boolean argument indicates whether the level is the finest
      * level allowed in the hierarchy.  This may or may not affect the data
      * initialization process depending on the problem.
      *
