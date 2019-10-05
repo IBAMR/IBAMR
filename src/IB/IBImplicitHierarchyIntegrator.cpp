@@ -262,12 +262,13 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
         double tol = 1.0e-5;
         int max_its = 100;
         bool converged = false;
+
+        iterateSolution(X0);
+        d_ib_implicit_ops->getUpdatedPosition(X1);
+        ++n_solves;
+
         for (k = 0; k < max_its && !converged; ++k)
         {
-            iterateSolution(X0);
-            d_ib_implicit_ops->getUpdatedPosition(X1);
-            ++n_solves;
-
             iterateSolution(X1);
             d_ib_implicit_ops->getUpdatedPosition(X2);
             ++n_solves;
