@@ -558,7 +558,7 @@ IBMethod::computeResidualBackwardEuler(Vec& R_vec)
     ierr = VecAXPY(R_vec, -1.0, d_X_current_data[level_num]->getVec());
     IBTK_CHKERRQ(ierr);
     return;
-} // computeResidual
+} // computeResidualBackwardEuler
 
 void
 IBMethod::computeResidualMidpointRule(Vec& R_vec)
@@ -571,7 +571,7 @@ IBMethod::computeResidualMidpointRule(Vec& R_vec)
     ierr = VecAXPY(R_vec, -1.0, d_X_current_data[level_num]->getVec());
     IBTK_CHKERRQ(ierr);
     return;
-} // computeResidual
+} // computeResidualMidpointRule
 
 void
 IBMethod::computeResidualTrapezoidalRule(Vec& R_vec)
@@ -586,7 +586,7 @@ IBMethod::computeResidualTrapezoidalRule(Vec& R_vec)
     ierr = VecAXPY(R_vec, -1.0, d_X_current_data[level_num]->getVec());
     IBTK_CHKERRQ(ierr);
     return;
-} // computeResidual
+} // computeResidualTrapezoidalRule
 
 void
 IBMethod::updateFixedLEOperators()
