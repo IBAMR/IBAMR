@@ -241,7 +241,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
 
     if (d_use_fixed_LE_operators) d_ib_implicit_ops->updateFixedLEOperators();
 
-    if (d_implicit_algorithm == "AITKEN" || d_implicit_algorithm == "ANDERSON")
+    if (d_implicit_algorithm == "AITKEN" || d_implicit_algorithm == "ANDERSON" || d_implicit_algorithm == "IRONS-TUCK")
     {
         // Use the crossed secant method (Aitken extrapolation) or the alternate secant method (Anderson extrapolation
         // with M = 1).
@@ -285,6 +285,9 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
         ierr = VecWAXPY(DX_nm1, -1.0, X_nm1, GX_nm1);
         IBTK_CHKERRQ(ierr);
 
+        // Initialize omega_{n-1}:
+        double omega_nm1 = std::min(d_omega_n, d_omega_max);
+
         for (k = 0; k < max_its && !converged; ++k)
         {
             // G(X_{n}):
@@ -308,10 +311,10 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
             {
                 // X_{n+1} := G(X_{n}) - Q DX_{n}
                 //
-                // with Q = dot(G(X_{n}) - G(X_{n-1}, DX_{n} - DX_{n-1})/||DX_{n} - DX_{n-1}||^2
-                //        = dot(DGX_{n}, DDX_{n})/||DDX_{n}||^2
+                // with Q = dot(DX_{n-1}, DX_{n} - DX_{n-1})/||DX_{n} - DX_{n-1}||^2
+                //        = dot(DX_{n}, DDX_{n})/||DDX_{n}||^2
                 double Q1;
-                ierr = VecDot(DGX_n, DDX_n, &Q1);
+                ierr = VecDot(DX_n, DDX_n, &Q1);
                 IBTK_CHKERRQ(ierr);
                 double Q2;
                 ierr = VecDot(DDX_n, DDX_n, &Q2);
@@ -338,6 +341,24 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
                 const double Q = Q1 / Q2;
                 ierr = VecWAXPY(X_np1, -Q, DGX_n, GX_n);
                 IBTK_CHKERRQ(ierr);
+            }
+            else if (d_implicit_algorithm == "IRONS-TUCK")
+            {
+                // X_{n+1} := omega_{n} G(X_n) + (1.0-omega_{n}) X_n
+                //
+                // with omega_{n} = -omega_{n-1} dot(DX_{n-1}, DX_{n} - DX_{n-1})/||DX_{n} - DX_{n-1}||^2
+                //                = -omega_{n-1} dot(DX_{n-1}, DDX_{n})/||DDX_{n}||^2
+                double Q1;
+                ierr = VecDot(DX_nm1, DDX_n, &Q1);
+                IBTK_CHKERRQ(ierr);
+                double Q2;
+                ierr = VecDot(DDX_n, DDX_n, &Q2);
+                IBTK_CHKERRQ(ierr);
+
+                d_omega_n = -omega_nm1 * Q1 / Q2;
+                ierr = VecAXPBYPCZ(X_np1, d_omega_n, 1.0 - d_omega_n, 0.0, GX_n, X_n);
+                IBTK_CHKERRQ(ierr);
+                omega_nm1 = d_omega_n;
             }
 
             // Check to see if ||G(X_{n}) - X_{n}||_2 is sufficiently small to declare convergence.
@@ -431,7 +452,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
     {
         TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                                  << "  unsupported solver algorithm: " << d_implicit_algorithm << "\n"
-                                 << "  supported time stepping types are: AITKEN, ANDERSON, SNES\n");
+                                 << "  supported time stepping types are: AITKEN, ANDERSON, IRONS-TUCK, SNES\n");
     }
 
     // Execute any registered callbacks.

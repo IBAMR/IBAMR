@@ -157,8 +157,12 @@ protected:
 
     SAMRAI::tbox::Pointer<IBImplicitStrategy> d_ib_implicit_ops;
 
-    // The implicit solver approach. Current options are AITKEN, ANDERSON, or SNES.
+    // The implicit solver approach. Current options are AITKEN, ANDERSON, IRONS-TUCK, or SNES.
     std::string d_implicit_algorithm = "AITKEN";
+
+    // Relaxation parameter for IRONS-TUCK.
+    double d_omega_n = 0.5;
+    double d_omega_max = 0.5;
 
     // Whether to use "frozen" LE operators.
     bool d_use_fixed_LE_operators = false;
