@@ -251,7 +251,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
         //
         // See Pg. 21 of https://hal-cea.archives-ouvertes.fr/cea-01403292/document.
         PetscErrorCode ierr;
-        Vec X_nm1, X_n, X_np1, GX_nm1, GX_n, DX_nm1, DX_n, DX_np1, DDX_n, DGX_n;
+        Vec X_nm1, X_n, X_np1, GX_nm1, GX_n, DX_nm1, DX_n, DDX_n, DGX_n;
         d_ib_implicit_ops->createSolutionVec(&X_nm1);
         d_ib_implicit_ops->createSolutionVec(&X_n);
         d_ib_implicit_ops->createSolutionVec(&X_np1);
@@ -259,7 +259,6 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
         d_ib_implicit_ops->createSolutionVec(&GX_n);
         d_ib_implicit_ops->createSolutionVec(&DX_nm1);
         d_ib_implicit_ops->createSolutionVec(&DX_n);
-        d_ib_implicit_ops->createSolutionVec(&DX_np1);
         d_ib_implicit_ops->createSolutionVec(&DDX_n);
         d_ib_implicit_ops->createSolutionVec(&DGX_n);
 
@@ -341,11 +340,9 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
                 IBTK_CHKERRQ(ierr);
             }
 
-            // Check to see if ||G(X_{n}) - X_{n+1}||_2 is sufficiently small to declare convergence.
-            ierr = VecWAXPY(DX_np1, -1.0, X_np1, GX_n);
-            IBTK_CHKERRQ(ierr);
+            // Check to see if ||G(X_{n}) - X_{n}||_2 is sufficiently small to declare convergence.
             double D;
-            ierr = VecNorm(DX_np1, NORM_2, &D);
+            ierr = VecNorm(DX_n, NORM_2, &D);
             IBTK_CHKERRQ(ierr);
             if (D < tol * D0)
             {
@@ -386,8 +383,6 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
         ierr = VecDestroy(&DX_nm1);
         IBTK_CHKERRQ(ierr);
         ierr = VecDestroy(&DX_n);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&DX_np1);
         IBTK_CHKERRQ(ierr);
         ierr = VecDestroy(&DDX_n);
         IBTK_CHKERRQ(ierr);
