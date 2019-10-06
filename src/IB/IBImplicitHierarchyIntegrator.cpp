@@ -241,9 +241,10 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
 
     if (d_use_fixed_LE_operators) d_ib_implicit_ops->updateFixedLEOperators();
 
-    if (d_implicit_algorithm == "AITKEN")
+    if (d_implicit_algorithm == "AITKEN" || d_implicit_algorithm == "ANDERSON")
     {
-        // Use the crossed secant method (Aitken extrapolation).
+        // Use the crossed secant method (Aitken extrapolation) or the alternate secant method (Anderson extrapolation
+        // with M = 1).
         //
         // Ref: Isabelle Ramière, Thomas Helfer. Iterative residual-based vector methods to accelerate fixed point
         // iterations. Computers and Mathematics with Applications, Elsevier, 2015, 70, pp. 2210 - 2226.
@@ -304,21 +305,41 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
             ierr = VecWAXPY(DDX_n, -1.0, DX_nm1, DX_n);
             IBTK_CHKERRQ(ierr);
 
-            // X_{n+1} := G(X_{n}) - Q DX_{n}
-            //
-            // with Q = dot(G(X_{n}) - G(X_{n-1}, DX_{n} - DX_{n-1})/||DX_{n} - DX_{n-1}||^2
-            //        = dot(DGX_{n}, DDX_{n})/||DDX_{n}||^2
+            if (d_implicit_algorithm == "AITKEN")
+            {
+                // X_{n+1} := G(X_{n}) - Q DX_{n}
+                //
+                // with Q = dot(G(X_{n}) - G(X_{n-1}, DX_{n} - DX_{n-1})/||DX_{n} - DX_{n-1}||^2
+                //        = dot(DGX_{n}, DDX_{n})/||DDX_{n}||^2
+                double Q1;
+                ierr = VecDot(DGX_n, DDX_n, &Q1);
+                IBTK_CHKERRQ(ierr);
+                double Q2;
+                ierr = VecDot(DDX_n, DDX_n, &Q2);
+                IBTK_CHKERRQ(ierr);
 
-            double Q1;
-            ierr = VecDot(DGX_n, DDX_n, &Q1);
-            IBTK_CHKERRQ(ierr);
-            double Q2;
-            ierr = VecDot(DDX_n, DDX_n, &Q2);
-            IBTK_CHKERRQ(ierr);
+                const double Q = Q1 / Q2;
+                ierr = VecWAXPY(X_np1, -Q, DX_n, GX_n);
+                IBTK_CHKERRQ(ierr);
+            }
+            else if (d_implicit_algorithm == "ANDERSON")
+            {
+                // X_{n+1} := G(X_{n}) - Q (G(X_{n}) - G(X_{n-1}))
+                //          = G(X_{n}) - Q DGX_{n}
+                //
+                // with Q = dot(DX_{n} - DX_{n-1}, DX_{n})/||DX_{n} - DX_{n-1}||^2
+                //        = dot(DDX_{n}, DX_{n})/||DDX_{n}||^2
+                double Q1;
+                ierr = VecDot(DDX_n, DX_n, &Q1);
+                IBTK_CHKERRQ(ierr);
+                double Q2;
+                ierr = VecDot(DDX_n, DDX_n, &Q2);
+                IBTK_CHKERRQ(ierr);
 
-            const double Q = Q1 / Q2;
-            ierr = VecWAXPY(X_np1, -Q, DX_n, GX_n);
-            IBTK_CHKERRQ(ierr);
+                const double Q = Q1 / Q2;
+                ierr = VecWAXPY(X_np1, -Q, DGX_n, GX_n);
+                IBTK_CHKERRQ(ierr);
+            }
 
             // Check to see if ||G(X_{n}) - X_{n+1}||_2 is sufficiently small to declare convergence.
             ierr = VecWAXPY(DX_np1, -1.0, X_np1, GX_n);
@@ -346,143 +367,10 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
 
         if (!converged)
         {
-            pout << "WARNING: AITKEN extrapolation DIVERGED\n";
+            pout << "WARNING: " << d_implicit_algorithm << " extrapolation DIVERGED\n";
         }
         plog << d_object_name << "::integrateHierarchy():\n"
-             << "  AITKEN extrapolation " << (converged ? "CONVERGED" : "DIVERGED") << "\n"
-             << "  requiring in " << k << " iterations and " << n_solves << " total Navier-Stokes solves\n";
-
-        ierr = VecDestroy(&X_nm1);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&X_n);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&X_np1);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&GX_nm1);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&GX_n);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&DX_nm1);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&DX_n);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&DX_np1);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&DDX_n);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&DGX_n);
-        IBTK_CHKERRQ(ierr);
-    }
-    else if (d_implicit_algorithm == "ANDERSON")
-    {
-        // Use the alternate secant method (Anderson extrapolation with M = 1).
-        //
-        // Ref: Isabelle Ramière, Thomas Helfer. Iterative residual-based vector methods to accelerate fixed point
-        // iterations. Computers and Mathematics with Applications, Elsevier, 2015, 70, pp. 2210 - 2226.
-        //
-        // See Pg. 21 of https://hal-cea.archives-ouvertes.fr/cea-01403292/document.
-        PetscErrorCode ierr;
-        Vec X_nm1, X_n, X_np1, GX_nm1, GX_n, DX_nm1, DX_n, DX_np1, DDX_n, DGX_n;
-        d_ib_implicit_ops->createSolutionVec(&X_nm1);
-        d_ib_implicit_ops->createSolutionVec(&X_n);
-        d_ib_implicit_ops->createSolutionVec(&X_np1);
-        d_ib_implicit_ops->createSolutionVec(&GX_nm1);
-        d_ib_implicit_ops->createSolutionVec(&GX_n);
-        d_ib_implicit_ops->createSolutionVec(&DX_nm1);
-        d_ib_implicit_ops->createSolutionVec(&DX_n);
-        d_ib_implicit_ops->createSolutionVec(&DX_np1);
-        d_ib_implicit_ops->createSolutionVec(&DDX_n);
-        d_ib_implicit_ops->createSolutionVec(&DGX_n);
-
-        // Initialize X_{n-1}:
-        d_ib_implicit_ops->getUpdatedPosition(X_nm1);
-
-        double D0;
-        ierr = VecNorm(X_nm1, NORM_2, &D0);
-        IBTK_CHKERRQ(ierr);
-
-        int k = 0, n_solves = 0;
-        double tol = 1.0e-5;
-        int max_its = 100;
-        bool converged = false;
-
-        // Initialize X_{n} = G(X_{n-1}):
-        iterateSolution(X_nm1);
-        d_ib_implicit_ops->getUpdatedPosition(GX_nm1);
-        ++n_solves;
-        ierr = VecCopy(GX_nm1, X_n);
-        IBTK_CHKERRQ(ierr);
-
-        // Initialize DX_{n-1} := G(X_{n-1}) - X_{n-1}:
-        ierr = VecWAXPY(DX_nm1, -1.0, X_nm1, GX_nm1);
-        IBTK_CHKERRQ(ierr);
-
-        for (k = 0; k < max_its && !converged; ++k)
-        {
-            // G(X_{n}):
-            iterateSolution(X_n);
-            d_ib_implicit_ops->getUpdatedPosition(GX_n);
-            ++n_solves;
-
-            // DX_{n} := G(X_{n}) - X_{n}:
-            ierr = VecWAXPY(DX_n, -1.0, X_n, GX_n);
-            IBTK_CHKERRQ(ierr);
-
-            // DGX_{n} := G(X_{n}) - G(X_{n-1}):
-            ierr = VecWAXPY(DGX_n, -1.0, GX_nm1, GX_n);
-            IBTK_CHKERRQ(ierr);
-
-            // DDX_{n} := DX_{n} - DX_{n-1}:
-            ierr = VecWAXPY(DDX_n, -1.0, DX_nm1, DX_n);
-            IBTK_CHKERRQ(ierr);
-
-            // X_{n+1} := G(X_{n}) - Q (G(X_{n}) - G(X_{n-1}))
-            //          = G(X_{n}) - Q DGX_{n}
-            //
-            // with Q = dot(DX_{n} - DX_{n-1}, DX_{n})/||DX_{n} - DX_{n-1}||^2
-            //        = dot(DDX_{n}, DX_{n})/||DDX_{n}||^2
-
-            double Q1;
-            ierr = VecDot(DDX_n, DX_n, &Q1);
-            IBTK_CHKERRQ(ierr);
-            double Q2;
-            ierr = VecDot(DDX_n, DDX_n, &Q2);
-            IBTK_CHKERRQ(ierr);
-
-            const double Q = Q1 / Q2;
-            ierr = VecWAXPY(X_np1, -Q, DGX_n, GX_n);
-            IBTK_CHKERRQ(ierr);
-
-            // Check to see if ||G(X_{n}) - X_{n+1}||_2 is sufficiently small to declare convergence.
-            ierr = VecWAXPY(DX_np1, -1.0, X_np1, GX_n);
-            IBTK_CHKERRQ(ierr);
-            double D;
-            ierr = VecNorm(DX_np1, NORM_2, &D);
-            IBTK_CHKERRQ(ierr);
-            if (D < tol * D0)
-            {
-                converged = true;
-            }
-            else
-            {
-                // If we haven't converged, get an updated solution, reset values and repeat.
-                ierr = VecCopy(X_n, X_nm1);
-                IBTK_CHKERRQ(ierr);
-                ierr = VecCopy(X_np1, X_n);
-                IBTK_CHKERRQ(ierr);
-                ierr = VecCopy(GX_n, GX_nm1);
-                IBTK_CHKERRQ(ierr);
-                ierr = VecCopy(DX_n, DX_nm1);
-                IBTK_CHKERRQ(ierr);
-            }
-        }
-
-        if (!converged)
-        {
-            pout << "WARNING: ANDERSON extrapolation DIVERGED\n";
-        }
-        plog << d_object_name << "::integrateHierarchy():\n"
-             << "  ANDERSON extrapolation " << (converged ? "CONVERGED" : "DIVERGED") << "\n"
+             << "  " << d_implicit_algorithm << " extrapolation " << (converged ? "CONVERGED" : "DIVERGED") << "\n"
              << "  requiring in " << k << " iterations and " << n_solves << " total Navier-Stokes solves\n";
 
         ierr = VecDestroy(&X_nm1);
