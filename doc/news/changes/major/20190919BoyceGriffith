@@ -1,4 +1,0 @@
-Fixed: LDataManager properly zeros structural forces associated with
-inactivated structures.
-<br>
-(Boyce Griffith, 2019/09/19)

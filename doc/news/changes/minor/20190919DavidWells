@@ -1,4 +1,0 @@
-Fixed: Fixed a problem where <code>rpath</code> arguments to the linker were
-incorrectly formatted, resulting in missing libraries at run time.
-<br>
-(David Wells, 2019/09/19)
