@@ -149,7 +149,12 @@ LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init_posns,
         if (rank == mpi_rank)
         {
             std::string line_string;
-            std::ifstream file_stream(mark_input_file_name.c_str(), std::ios::in);
+            std::ifstream file_stream(mark_input_file_name);
+            if (!file_stream.is_open())
+            {
+                TBOX_ERROR("LMarkerUtilities::readMarkerPositions()"
+                           << "could not open file " << mark_input_file_name << std::endl);
+            }
 
             // The first entry in the file is the number of markers.
             if (!std::getline(file_stream, line_string))
