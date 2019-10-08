@@ -768,6 +768,12 @@ protected:
     bool d_do_log = false;
 
     /*
+     * Boolean controlling whether or not the scratch hierarchy should be
+     * used.
+     */
+    bool d_use_scratch_hierarchy = false;
+
+    /*
      * Pointers to the patch hierarchy and gridding algorithm objects associated
      * with this object.
      */
@@ -792,8 +798,22 @@ protected:
     /// Number of parts owned by the present object.
     const unsigned int d_num_parts = 1;
 
-    /// Currently, each FEDataManager object is associated with exactly one part.
-    std::vector<IBTK::FEDataManager*> d_fe_data_managers;
+    /// FEDataManager objects associated with the primary hierarchy (i.e.,
+    /// d_hierarchy). These are used by some other objects (such as
+    /// IBFEPostProcessor); IBFEMethod keeps them up to date (i.e.,
+    /// reinitializing data after regrids).
+    std::vector<IBTK::FEDataManager*> d_primary_fe_data_managers;
+
+    /// FEDataManager objects that use the scratch hierarchy instead of
+    /// d_hierarchy. These are only used internally by IBFEMethod and are not
+    /// intended to be accessed by any other object.
+    std::vector<IBTK::FEDataManager*> d_scratch_fe_data_managers;
+
+    /// The FEDataManager objects that are actually used in computations. This
+    /// vector will be equal to either d_primary_fe_data_managers or
+    /// d_scratch_fe_data_managers, dependent on which is actually used in IB
+    /// calculations.
+    std::vector<IBTK::FEDataManager*> d_active_fe_data_managers;
 
     /// Minimum ghost cell width.
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
