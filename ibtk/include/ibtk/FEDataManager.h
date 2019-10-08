@@ -1020,6 +1020,9 @@ private:
      *
      * \note For inactive elements, the lower and upper bound values will be
      * identically zero.
+     *
+     * @deprecated Use the non member function
+     * IBTK::get_global_active_element_bounding_boxes instead.
      */
     std::vector<std::pair<Point, Point> >* computeActiveElementBoundingBoxes();
 
