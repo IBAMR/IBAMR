@@ -302,7 +302,11 @@ generate_interp_mesh(const unsigned int& strct_num,
 } // generate_interp_mesh
 
 void
-imposed_kinematics(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* ctx)
+imposed_kinematics(double /*data_time*/,
+                   int /*cycle_num*/,
+                   Eigen::Vector3d& U_com,
+                   Eigen::Vector3d& W_com,
+                   void* /*ctx*/)
 {
     U_com.setZero();
     W_com.setZero();
@@ -310,7 +314,7 @@ imposed_kinematics(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_
 } // imposed_kinematics
 
 void
-external_force_torque(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T, void* ctx)
+external_force_torque(double /*data_time*/, int /*cycle_num*/, Eigen::Vector3d& F, Eigen::Vector3d& T, void* /*ctx*/)
 {
     F.setZero();
     F[1] = circle.rho_solid * M_PI * std::pow(circle.R, 2) * circle.g_y;

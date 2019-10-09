@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <limits>
 #include <string>
+#include <utility>
 
 #include "tbox/Serializable.h"
 
@@ -117,6 +118,15 @@ public:
     {
         return d_chi;
     } // getBrinkmanPenaltyFactor
+
+    /*
+     * \brief Get the current time interval \f$ [t^{n+1}, t^n] \f$ in which Brinkman
+     * velocity is computed.
+     */
+    std::pair<double, double> getCurrentTimeInterval() const
+    {
+        return std::make_pair(d_new_time, d_current_time);
+    } // getCurrentTimeInterval
 
     /////////////////////////////// PROTECTED ////////////////////////////////////
 

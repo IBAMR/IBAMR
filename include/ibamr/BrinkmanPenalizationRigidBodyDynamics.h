@@ -102,7 +102,8 @@ public:
     /*!
      * \brief Typedef specifying interface for specifying rigid body velocities.
      */
-    using KinematicsFcnPtr = void (*)(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* ctx);
+    using KinematicsFcnPtr =
+        void (*)(double data_time, int cycle_num, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* ctx);
 
     /*
      * \brief Kinematics function data.
@@ -136,7 +137,8 @@ public:
     /*!
      * \brief Typedef specifying interface for specifying additional rigid body force and torque.
      */
-    using ExternalForceTorqueFcnPtr = void (*)(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T, void* ctx);
+    using ExternalForceTorqueFcnPtr =
+        void (*)(double data_time, int cycle_num, Eigen::Vector3d& F, Eigen::Vector3d& T, void* ctx);
 
     /*
      * \brief External force/torque function data.

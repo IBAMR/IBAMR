@@ -255,7 +255,8 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
 
     if (d_ext_force_torque_fcn_data.forcetorquefcn)
     {
-        d_ext_force_torque_fcn_data.forcetorquefcn(time, d_ext_force, d_ext_torque, d_ext_force_torque_fcn_data.ctx);
+        d_ext_force_torque_fcn_data.forcetorquefcn(
+            time, cycle_num, d_ext_force, d_ext_torque, d_ext_force_torque_fcn_data.ctx);
     }
     else
     {
@@ -267,7 +268,7 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     Eigen::Vector3d U_imposed = Eigen::Vector3d::Zero(), W_imposed = Eigen::Vector3d::Zero();
     if (d_kinematics_fcn_data.comvelfcn)
     {
-        d_kinematics_fcn_data.comvelfcn(time, U_imposed, W_imposed, d_kinematics_fcn_data.ctx);
+        d_kinematics_fcn_data.comvelfcn(time, cycle_num, U_imposed, W_imposed, d_kinematics_fcn_data.ctx);
     }
 
     // Integrate Newton's second law of motion to find updated COM velocity and position.
