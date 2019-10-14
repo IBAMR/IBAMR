@@ -19,10 +19,10 @@ workload estimate on processor 0 = 1700
 workload estimate on processor 1 = 0
 workload estimate on processor 2 = 0
 workload estimate on processor 3 = 0
-local active DoFs on processor 0 = 576
-local active DoFs on processor 1 = 552
-local active DoFs on processor 2 = 516
-local active DoFs on processor 3 = 495
+local active DoFs on processor 0 = 843
+local active DoFs on processor 1 = 531
+local active DoFs on processor 2 = 396
+local active DoFs on processor 3 = 369
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
 quadrature points on processor 0 = 5175
@@ -39,10 +39,10 @@ workload estimate on processor 0 = 436
 workload estimate on processor 1 = 416
 workload estimate on processor 2 = 432
 workload estimate on processor 3 = 256
-local active DoFs on processor 0 = 576
-local active DoFs on processor 1 = 552
-local active DoFs on processor 2 = 516
-local active DoFs on processor 3 = 495
+local active DoFs on processor 0 = 843
+local active DoFs on processor 1 = 531
+local active DoFs on processor 2 = 396
+local active DoFs on processor 3 = 369
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
@@ -291,7 +291,7 @@ FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for syst
     Finite Element Types="MONOMIAL" 
     Approximation Orders="CONSTANT" 
     n_dofs()=488
-    n_local_dofs()=120
+    n_local_dofs()=128
     n_constrained_dofs()=0
     n_local_constrained_dofs()=0
     n_vectors()=0
@@ -305,36 +305,32 @@ FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for syst
       Number of DoF Constraints = 0
 
 some values from "FF reconstruction system" + 1:
-0, 2.000024620095
-4, 2.000005538876
-8, 2.000009715500
-12, 2.000010317015
-16, 2.000022337506
-20, 2.000000809808
-24, 2.000015025949
-28, 2.000005196165
-32, 2.000030485844
-36, 2.000029360463
-40, 2.000000466620
-44, 2.000025789129
-48, 2.000032852355
-52, 2.000016904583
-56, 2.000007939036
-60, 2.000020425519
-64, 2.000037788253
-68, 2.000027215150
-72, 2.000020008388
-76, 2.000016575414
-80, 2.000008490009
-84, 2.000001977330
-88, 2.000005079138
-92, 2.000010825237
-96, 2.000011444122
-100, 2.000014013226
-104, 2.000016408296
-108, 2.000014012704
-112, 2.000032350907
-116, 2.000038992090
+0, 1.999991404508
+5, 1.000069222020
+10, 1.000030445502
+15, 2.000001186846
+20, 2.000005538776
+25, 1.000033747490
+30, 1.000024774881
+35, 1.999979462324
+40, 1.999990396432
+45, 1.000041867564
+50, 1.000041613779
+55, 2.000004737213
+60, 1.999995729687
+65, 1.000048382219
+70, 1.000061074910
+75, 2.000003406696
+80, 2.000000088583
+85, 1.000049874505
+90, 1.000030219071
+95, 1.999973459048
+100, 1.999995541764
+105, 1.000028566281
+110, 1.000037123953
+115, 1.999970362792
+120, 1.999997126892
+125, 1.000058709788
 0.007812500000 0.124444143969
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -581,7 +577,7 @@ Simulation time is 0.015625
     Finite Element Types="MONOMIAL" 
     Approximation Orders="CONSTANT" 
     n_dofs()=488
-    n_local_dofs()=120
+    n_local_dofs()=128
     n_constrained_dofs()=0
     n_local_constrained_dofs()=0
     n_vectors()=0
@@ -595,36 +591,32 @@ Simulation time is 0.015625
       Number of DoF Constraints = 0
 
 some values from "FF reconstruction system" + 1:
-0, 2.000092613164
-4, 2.000020893230
-8, 2.000036603546
-12, 2.000038862618
-16, 2.000084017152
-20, 2.000003091679
-24, 2.000056552627
-28, 2.000019648051
-32, 2.000114814833
-36, 2.000110569255
-40, 2.000001842022
-44, 2.000097003637
-48, 2.000123571529
-52, 2.000063565880
-56, 2.000029923986
-60, 2.000076888367
-64, 2.000142170402
-68, 2.000102454499
-72, 2.000075258297
-76, 2.000062394290
-80, 2.000031982049
-84, 2.000007508244
-88, 2.000019164193
-92, 2.000040749081
-96, 2.000043115860
-100, 2.000052739510
-104, 2.000061817158
-108, 2.000052640203
-112, 2.000121686466
-116, 2.000146740245
+0, 1.999967788923
+5, 1.000260335462
+10, 1.000113914464
+15, 2.000004383136
+20, 2.000020892647
+25, 1.000126251323
+30, 1.000092635076
+35, 1.999922740882
+40, 1.999963851480
+45, 1.000156644608
+50, 1.000155830863
+55, 2.000017731027
+60, 1.999983757232
+65, 1.000181228618
+70, 1.000228733586
+75, 2.000012997332
+80, 1.999999905406
+85, 1.000186914770
+90, 1.000113077872
+95, 1.999900060047
+100, 1.999983235685
+105, 1.000106802168
+110, 1.000139003769
+115, 1.999888467433
+120, 1.999989100697
+125, 1.000220259605
 0.015625000000 0.124444139850
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -871,7 +863,7 @@ Simulation time is 0.0234375
     Finite Element Types="MONOMIAL" 
     Approximation Orders="CONSTANT" 
     n_dofs()=488
-    n_local_dofs()=120
+    n_local_dofs()=128
     n_constrained_dofs()=0
     n_local_constrained_dofs()=0
     n_vectors()=0
@@ -885,37 +877,33 @@ Simulation time is 0.0234375
       Number of DoF Constraints = 0
 
 some values from "FF reconstruction system" + 1:
-0, 2.000196972083
-4, 2.000044476524
-8, 2.000077948269
-12, 2.000082721848
-16, 2.000178669294
-20, 2.000006538679
-24, 2.000120312743
-28, 2.000041963164
-32, 2.000244600668
-36, 2.000235530870
-40, 2.000003985952
-44, 2.000206300971
-48, 2.000262802328
-52, 2.000135071945
-56, 2.000063720294
-60, 2.000163676286
-64, 2.000302385417
-68, 2.000218154285
-72, 2.000160000681
-76, 2.000132791425
-80, 2.000068070027
-84, 2.000016004527
-88, 2.000040796450
-92, 2.000086653125
-96, 2.000091832299
-100, 2.000112185200
-104, 2.000131739884
-108, 2.000111675663
-112, 2.000258792574
-116, 2.000312229038
-0.023437500000 0.124444133436
+0, 1.999931634295
+5, 1.000554055756
+10, 1.000241279681
+15, 2.000009249986
+20, 2.000044475126
+25, 1.000267237528
+30, 1.000196114743
+35, 1.999835691585
+40, 1.999922851696
+45, 1.000331566234
+50, 1.000330191825
+55, 2.000037676302
+60, 1.999964890802
+65, 1.000384231857
+70, 1.000484665276
+75, 2.000028182339
+80, 1.999998747030
+85, 1.000396433601
+90, 1.000239525159
+95, 1.999787138403
+100, 1.999964151668
+105, 1.000225967835
+110, 1.000294571060
+115, 1.999762643030
+120, 1.999976452388
+125, 1.000467732679
+0.023437500000 0.124444133435
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 30
@@ -1161,7 +1149,7 @@ Simulation time is 0.03125
     Finite Element Types="MONOMIAL" 
     Approximation Orders="CONSTANT" 
     n_dofs()=488
-    n_local_dofs()=120
+    n_local_dofs()=128
     n_constrained_dofs()=0
     n_local_constrained_dofs()=0
     n_vectors()=0
@@ -1175,37 +1163,33 @@ Simulation time is 0.03125
       Number of DoF Constraints = 0
 
 some values from "FF reconstruction system" + 1:
-0, 2.000332526472
-4, 2.000075055092
-8, 2.000131753093
-12, 2.000139709998
-16, 2.000301592864
-20, 2.000010819412
-24, 2.000203138872
-28, 2.000071096974
-32, 2.000413784909
-36, 2.000398386109
-40, 2.000006699455
-44, 2.000348265530
-48, 2.000443629646
-52, 2.000227718480
-56, 2.000107654595
-60, 2.000276618688
-64, 2.000510424323
-68, 2.000368827367
-72, 2.000269951440
-76, 2.000224337315
-80, 2.000114956254
-84, 2.000026936901
-88, 2.000068834493
-92, 2.000146168954
-96, 2.000155261734
-100, 2.000189378234
-104, 2.000222965632
-108, 2.000187889518
-112, 2.000436855242
-116, 2.000527304055
-0.031250000000 0.124444125035
+0, 1.999884727582
+5, 1.000936574955
+10, 1.000406062677
+15, 2.000015594698
+20, 2.000075052313
+25, 1.000449252921
+30, 1.000329969530
+35, 1.999722647104
+40, 1.999869083857
+45, 1.000557364637
+50, 1.000555684592
+55, 2.000063723884
+60, 1.999939612622
+65, 1.000647236466
+70, 1.000815566313
+75, 2.000048601550
+80, 1.999995988868
+85, 1.000667913597
+90, 1.000403145454
+95, 1.999639987021
+100, 1.999938911858
+105, 1.000379777642
+110, 1.000495895746
+115, 1.999598994989
+120, 1.999959458550
+125, 1.000789111526
+0.031250000000 0.124444125034
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 40
@@ -1388,10 +1372,10 @@ workload estimate on processor 0 = 436
 workload estimate on processor 1 = 416
 workload estimate on processor 2 = 432
 workload estimate on processor 3 = 256
-local active DoFs on processor 0 = 576
-local active DoFs on processor 1 = 552
-local active DoFs on processor 2 = 516
-local active DoFs on processor 3 = 495
+local active DoFs on processor 0 = 843
+local active DoFs on processor 1 = 531
+local active DoFs on processor 2 = 396
+local active DoFs on processor 3 = 369
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
 quadrature points on processor 0 = 0
@@ -1408,10 +1392,10 @@ workload estimate on processor 0 = 500
 workload estimate on processor 1 = 448
 workload estimate on processor 2 = 432
 workload estimate on processor 3 = 320
-local active DoFs on processor 0 = 576
-local active DoFs on processor 1 = 552
-local active DoFs on processor 2 = 516
-local active DoFs on processor 3 = 495
+local active DoFs on processor 0 = 843
+local active DoFs on processor 1 = 531
+local active DoFs on processor 2 = 396
+local active DoFs on processor 3 = 369
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
@@ -1491,7 +1475,7 @@ FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for syst
     Finite Element Types="MONOMIAL" 
     Approximation Orders="CONSTANT" 
     n_dofs()=488
-    n_local_dofs()=120
+    n_local_dofs()=128
     n_constrained_dofs()=0
     n_local_constrained_dofs()=0
     n_vectors()=0
@@ -1505,37 +1489,33 @@ FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for syst
       Number of DoF Constraints = 0
 
 some values from "FF reconstruction system" + 1:
-0, 2.000495383760
-4, 2.000111638184
-8, 2.000196521150
-12, 2.000208140894
-16, 2.000449242787
-20, 2.000015594883
-24, 2.000302623630
-28, 2.000106232444
-32, 2.000617904302
-36, 2.000594808573
-40, 2.000009735071
-44, 2.000518819547
-48, 2.000660831170
-52, 2.000338638902
-56, 2.000160441934
-60, 2.000412605297
-64, 2.000760189373
-68, 2.000550417231
-72, 2.000401854526
-76, 2.000334456063
-80, 2.000171265998
-84, 2.000039811457
-88, 2.000102356207
-92, 2.000217444363
-96, 2.000231659528
-100, 2.000282057899
-104, 2.000333162421
-108, 2.000278761236
-112, 2.000650725582
-116, 2.000785792890
-0.039062500000 0.124444114894
+0, 1.999828391134
+5, 1.001397820341
+10, 1.000603603844
+15, 2.000023320113
+20, 2.000111633790
+25, 1.000666799454
+30, 1.000490491686
+35, 1.999586882764
+40, 1.999803746024
+45, 1.000827249387
+50, 1.000825669699
+55, 2.000095334862
+60, 1.999908286960
+65, 1.000963012484
+70, 1.001211628141
+75, 2.000073944657
+80, 1.999991187745
+85, 1.000993735373
+90, 1.000599348156
+95, 1.999462485240
+100, 1.999907859861
+105, 1.000563653035
+110, 1.000737201032
+115, 1.999402098784
+120, 1.999938286079
+125, 1.001175736805
+0.039062500000 0.124444114892
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 50
@@ -1781,7 +1761,7 @@ Simulation time is 0.046875
     Finite Element Types="MONOMIAL" 
     Approximation Orders="CONSTANT" 
     n_dofs()=488
-    n_local_dofs()=120
+    n_local_dofs()=128
     n_constrained_dofs()=0
     n_local_constrained_dofs()=0
     n_vectors()=0
@@ -1795,37 +1775,33 @@ Simulation time is 0.046875
       Number of DoF Constraints = 0
 
 some values from "FF reconstruction system" + 1:
-0, 2.000682422711
-4, 2.000153080429
-8, 2.000270906986
-12, 2.000286354865
-16, 2.000618699685
-20, 2.000020170351
-24, 2.000416678135
-28, 2.000146325880
-32, 2.000853553851
-36, 2.000821487335
-40, 2.000012357727
-44, 2.000714693584
-48, 2.000910290748
-52, 2.000465312705
-56, 2.000220778446
-60, 2.000569111663
-64, 2.001046901765
-68, 2.000759773176
-72, 2.000553090018
-76, 2.000460968562
-80, 2.000235717047
-84, 2.000053759129
-88, 2.000140262929
-92, 2.000298712442
-96, 2.000319421749
-100, 2.000388303998
-104, 2.000460473579
-108, 2.000382224689
-112, 2.000896341538
-116, 2.001082896265
-0.046875000000 0.124444103090
+0, 1.999763182438
+5, 1.001930428878
+10, 1.000830752926
+15, 2.000032762982
+20, 2.000153074384
+25, 1.000916215206
+30, 1.000675352715
+35, 1.999431109050
+40, 1.999727618323
+45, 1.001137103430
+50, 1.001135334071
+55, 2.000132681659
+60, 1.999871699279
+65, 1.001327486442
+70, 1.001666809897
+75, 2.000103374858
+80, 1.999985007588
+85, 1.001369037711
+90, 1.000825149177
+95, 1.999257548513
+100, 1.999870823734
+105, 1.000774599194
+110, 1.001014438027
+115, 1.999175550766
+120, 1.999913120093
+125, 1.001621918820
+0.046875000000 0.124444103087
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 60
@@ -2071,7 +2047,7 @@ Simulation time is 0.0546875
     Finite Element Types="MONOMIAL" 
     Approximation Orders="CONSTANT" 
     n_dofs()=488
-    n_local_dofs()=120
+    n_local_dofs()=128
     n_constrained_dofs()=0
     n_local_constrained_dofs()=0
     n_vectors()=0
@@ -2085,37 +2061,33 @@ Simulation time is 0.0546875
       Number of DoF Constraints = 0
 
 some values from "FF reconstruction system" + 1:
-0, 2.000891291227
-4, 2.000198694643
-8, 2.000354011841
-12, 2.000373262834
-16, 2.000807803339
-20, 2.000024224707
-24, 2.000543807276
-28, 2.000190823079
-32, 2.001118137819
-36, 2.001075892250
-40, 2.000014274495
-44, 2.000933415274
-48, 2.001188807281
-52, 2.000605889640
-56, 2.000287847406
-60, 2.000744280291
-64, 2.001366753831
-68, 2.000994528748
-72, 2.000721667103
-76, 2.000602318200
-80, 2.000307442933
-84, 2.000068339750
-88, 2.000181909564
-92, 2.000388745192
-96, 2.000417504455
-100, 2.000506721485
-104, 2.000603604198
-108, 2.000496687108
-112, 2.001170543615
-116, 2.001414805902
-0.054687500000 0.124444089776
+0, 1.999689885662
+5, 1.002528573372
+10, 1.001084948610
+15, 2.000043931560
+20, 2.000198686961
+25, 1.001194303656
+30, 1.000882640543
+35, 1.999257332103
+40, 1.999641373677
+45, 1.001483129008
+50, 1.001480776134
+55, 2.000175570606
+60, 1.999830172363
+65, 1.001736930122
+70, 1.002175510022
+75, 2.000136558322
+80, 1.999977384313
+85, 1.001789656678
+90, 1.001078097016
+95, 1.999027381069
+100, 1.999827872258
+105, 1.001010042863
+110, 1.001324308251
+115, 1.998922128479
+120, 1.999884065337
+125, 1.002122934832
+0.054687500000 0.124444089772
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 70
@@ -2226,10 +2198,10 @@ workload estimate on processor 0 = 500
 workload estimate on processor 1 = 448
 workload estimate on processor 2 = 432
 workload estimate on processor 3 = 320
-local active DoFs on processor 0 = 576
-local active DoFs on processor 1 = 552
-local active DoFs on processor 2 = 516
-local active DoFs on processor 3 = 495
+local active DoFs on processor 0 = 843
+local active DoFs on processor 1 = 531
+local active DoFs on processor 2 = 396
+local active DoFs on processor 3 = 369
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
 quadrature points on processor 0 = 531
@@ -2246,10 +2218,10 @@ workload estimate on processor 0 = 500
 workload estimate on processor 1 = 448
 workload estimate on processor 2 = 432
 workload estimate on processor 3 = 320
-local active DoFs on processor 0 = 576
-local active DoFs on processor 1 = 552
-local active DoFs on processor 2 = 516
-local active DoFs on processor 3 = 495
+local active DoFs on processor 0 = 843
+local active DoFs on processor 1 = 531
+local active DoFs on processor 2 = 396
+local active DoFs on processor 3 = 369
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
@@ -2401,7 +2373,7 @@ FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for syst
     Finite Element Types="MONOMIAL" 
     Approximation Orders="CONSTANT" 
     n_dofs()=488
-    n_local_dofs()=120
+    n_local_dofs()=128
     n_constrained_dofs()=0
     n_local_constrained_dofs()=0
     n_vectors()=0
@@ -2415,37 +2387,33 @@ FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for syst
       Number of DoF Constraints = 0
 
 some values from "FF reconstruction system" + 1:
-0, 2.001120158749
-4, 2.000248036680
-8, 2.000445196210
-12, 2.000468101003
-16, 2.001014892733
-20, 2.000027611790
-24, 2.000682883956
-28, 2.000239416529
-32, 2.001409615353
-36, 2.001356027287
-40, 2.000015392005
-44, 2.001173052815
-48, 2.001493818493
-52, 2.000758942716
-56, 2.000361100188
-60, 2.000936685261
-64, 2.001716634055
-68, 2.001252848475
-72, 2.000906025129
-76, 2.000757338903
-80, 2.000385813904
-84, 2.000083316147
-88, 2.000226889378
-92, 2.000486628959
-96, 2.000525189783
-100, 2.000636247732
-104, 2.000761614138
-108, 2.000620888991
-112, 2.001470802131
-116, 2.001778423495
-0.062500000000 0.124444075122
+0, 1.999609328010
+5, 1.003187567872
+10, 1.001364116592
+15, 2.000056699394
+20, 2.000248027375
+25, 1.001498327606
+30, 1.001110821788
+35, 1.999067098155
+40, 1.999545582201
+45, 1.001862002877
+50, 1.001858808298
+55, 2.000223672135
+60, 1.999783804906
+65, 1.002188134649
+70, 1.002732766518
+75, 2.000173404514
+80, 1.999967956498
+85, 1.002252119489
+90, 1.001356210915
+95, 1.998773699284
+100, 1.999779166272
+105, 1.001267813301
+110, 1.001664115697
+115, 1.998644051756
+120, 1.999851180049
+125, 1.002674904708
+0.062500000000 0.124444075118
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 80
@@ -2691,7 +2659,7 @@ Simulation time is 0.0703125
     Finite Element Types="MONOMIAL" 
     Approximation Orders="CONSTANT" 
     n_dofs()=488
-    n_local_dofs()=120
+    n_local_dofs()=128
     n_constrained_dofs()=0
     n_local_constrained_dofs()=0
     n_vectors()=0
@@ -2705,37 +2673,33 @@ Simulation time is 0.0703125
       Number of DoF Constraints = 0
 
 some values from "FF reconstruction system" + 1:
-0, 2.001367533611
-4, 2.000300731398
-8, 2.000543934824
-12, 2.000570236803
-16, 2.001238610664
-20, 2.000030194424
-24, 2.000832976448
-28, 2.000291849078
-32, 2.001726321973
-36, 2.001660257585
-40, 2.000015614456
-44, 2.001432025818
-48, 2.001823201511
-52, 2.000923277888
-56, 2.000440082274
-60, 2.001145158043
-64, 2.002093933906
-68, 2.001533245482
-72, 2.001104888028
-76, 2.000925079147
-80, 2.000470297570
-84, 2.000098467705
-88, 2.000274859341
-92, 2.000591588341
-96, 2.000641903032
-100, 2.000776007215
-104, 2.000933765028
-108, 2.000753800407
-112, 2.001795020348
-116, 2.002171164289
-0.070312500000 0.124444059280
+0, 1.999522211942
+5, 1.003903592353
+10, 1.001666612458
+15, 2.000070970225
+20, 2.000300720486
+25, 1.001826036505
+30, 1.001358733717
+35, 1.998861677168
+40, 1.999440693196
+45, 1.002271044242
+50, 1.002266822737
+55, 2.000276720746
+60, 1.999732659870
+65, 1.002678608335
+70, 1.003334505430
+75, 2.000213858285
+80, 1.999956431478
+85, 1.002753693625
+90, 1.001657957550
+95, 1.998497887420
+100, 1.999724825142
+105, 1.001546153392
+110, 1.002031675734
+115, 1.998343170111
+120, 1.999814496338
+125, 1.003274758075
+0.070312500000 0.124444059276
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 90
@@ -2942,10 +2906,10 @@ workload estimate on processor 0 = 500
 workload estimate on processor 1 = 448
 workload estimate on processor 2 = 432
 workload estimate on processor 3 = 320
-local active DoFs on processor 0 = 576
-local active DoFs on processor 1 = 552
-local active DoFs on processor 2 = 516
-local active DoFs on processor 3 = 495
+local active DoFs on processor 0 = 843
+local active DoFs on processor 1 = 531
+local active DoFs on processor 2 = 396
+local active DoFs on processor 3 = 369
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
 quadrature points on processor 0 = 532
@@ -2962,10 +2926,10 @@ workload estimate on processor 0 = 500
 workload estimate on processor 1 = 448
 workload estimate on processor 2 = 432
 workload estimate on processor 3 = 320
-local active DoFs on processor 0 = 576
-local active DoFs on processor 1 = 552
-local active DoFs on processor 2 = 516
-local active DoFs on processor 3 = 495
+local active DoFs on processor 0 = 843
+local active DoFs on processor 1 = 531
+local active DoFs on processor 2 = 396
+local active DoFs on processor 3 = 369
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
@@ -3021,7 +2985,7 @@ FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for syst
     Finite Element Types="MONOMIAL" 
     Approximation Orders="CONSTANT" 
     n_dofs()=488
-    n_local_dofs()=120
+    n_local_dofs()=128
     n_constrained_dofs()=0
     n_local_constrained_dofs()=0
     n_vectors()=0
@@ -3035,34 +2999,30 @@ FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for syst
       Number of DoF Constraints = 0
 
 some values from "FF reconstruction system" + 1:
-0, 2.001632177043
-4, 2.000356454892
-8, 2.000649779055
-12, 2.000679135179
-16, 2.001477827297
-20, 2.000031842157
-24, 2.000993296273
-28, 2.000347897131
-32, 2.002066860918
-36, 2.001987204491
-40, 2.000014845869
-44, 2.001709016180
-48, 2.002175161492
-52, 2.001097879512
-56, 2.000524404094
-60, 2.001368714958
-64, 2.002496422431
-68, 2.001834483692
-72, 2.001317192719
-76, 2.001104743109
-80, 2.000560427303
-84, 2.000113587175
-88, 2.000325523735
-92, 2.000702951422
-96, 2.000767170279
-100, 2.000925261832
-104, 2.001119456951
-108, 2.000894569533
-112, 2.002141424850
-116, 2.002590826862
-0.078125000000 0.124444042380
+0, 1.999429140473
+5, 1.004673466550
+10, 1.001991106461
+15, 2.000086675922
+20, 2.000356442391
+25, 1.002175541470
+30, 1.001625483893
+35, 1.998642133940
+40, 1.999327062227
+45, 1.002708049352
+50, 1.002702648128
+55, 2.000334497182
+60, 1.999676762984
+65, 1.003206375779
+70, 1.003977305073
+75, 2.000257906953
+80, 1.999942563436
+85, 1.003292194177
+90, 1.001982132436
+95, 1.998201100136
+100, 1.999664942373
+105, 1.001843607383
+110, 1.002425181733
+115, 1.998021065328
+120, 1.999774019429
+125, 1.003920006649
+0.078125000000 0.124444042375
