@@ -19,10 +19,10 @@ workload estimate on processor 0 = 32896
 workload estimate on processor 1 = 128
 workload estimate on processor 2 = 128
 workload estimate on processor 3 = 128
-local active DoFs on processor 0 = 820
-local active DoFs on processor 1 = 612
-local active DoFs on processor 2 = 612
-local active DoFs on processor 3 = 495
+local active DoFs on processor 0 = 963
+local active DoFs on processor 1 = 586
+local active DoFs on processor 2 = 560
+local active DoFs on processor 3 = 430
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
 quadrature points on processor 0 = 448
@@ -39,10 +39,10 @@ workload estimate on processor 0 = 7296
 workload estimate on processor 1 = 7296
 workload estimate on processor 2 = 7296
 workload estimate on processor 3 = 7296
-local active DoFs on processor 0 = 820
-local active DoFs on processor 1 = 612
-local active DoFs on processor 2 = 612
-local active DoFs on processor 3 = 495
+local active DoFs on processor 0 = 963
+local active DoFs on processor 1 = 586
+local active DoFs on processor 2 = 560
+local active DoFs on processor 3 = 430
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
