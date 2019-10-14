@@ -64,6 +64,7 @@
 #include "petscsnes.h"
 #include "petscsys.h"
 #include "petscvec.h"
+#include "petscversion.h"
 
 #include <mpi.h>
 
@@ -473,13 +474,13 @@ PETScNewtonKrylovSolver::reportSNESConvergedReason(const SNESConvergedReason& re
     case SNES_CONVERGED_ITS:
         os << d_object_name << ": converged: maximum number of iterations reached.\n";
         break;
+#if PETSC_VERSION_LT(3, 12, 0)
     case SNES_CONVERGED_TR_DELTA:
         os << d_object_name << ": converged: trust-region delta.\n";
         break;
+#endif
     case SNES_DIVERGED_FUNCTION_DOMAIN:
-        os << d_object_name
-           << ": diverged: new x location passed to the function is not in "
-              "the function domain.\n";
+        os << d_object_name << ": diverged: new x location passed to the function is not in the function domain.\n";
         break;
     case SNES_DIVERGED_FUNCTION_COUNT:
         os << d_object_name << ": diverged: exceeded maximum number of function evaluations.\n";
@@ -502,6 +503,11 @@ PETScNewtonKrylovSolver::reportSNESConvergedReason(const SNESConvergedReason& re
     case SNES_DIVERGED_LOCAL_MIN:
         os << d_object_name << ": diverged: attained non-zero local minimum.\n";
         break;
+#if PETSC_VERSION_GE(3, 12, 0)
+    case SNES_DIVERGED_TR_DELTA:
+        os << d_object_name << ": diverged: trust-region delta.\n";
+        break;
+#endif
     case SNES_CONVERGED_ITERATING:
         os << d_object_name << ": iterating.\n";
         break;
