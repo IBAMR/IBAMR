@@ -167,7 +167,8 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/wave_tank/StokesFifthOrderWaveBcCoef.cpp \
 ../src/wave_tank/StokesFirstOrderWaveBcCoef.cpp \
 ../src/wave_tank/StokesSecondOrderWaveBcCoef.cpp \
-../src/wave_tank/WaveDampingStrategy.cpp
+../src/wave_tank/WaveDampingStrategy.cpp \
+../src/wave_tank/WaveGenerationStrategy.cpp
 
 if LIBMESH_ENABLED
   DIM_INDEPENDENT_SOURCES += \
@@ -302,7 +303,8 @@ pkg_include_HEADERS += \
 ../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
 ../include/ibamr/Wall.h \
 ../include/ibamr/WallForceEvaluator.h \
-../include/ibamr/WaveDampingStrategy.h
+../include/ibamr/WaveDampingStrategy.h \
+../include/ibamr/WaveGenerationStrategy.h
 
 if LIBMESH_ENABLED
   pkg_include_HEADERS += \
