@@ -124,57 +124,27 @@ public:
     virtual double getVelocity(double x, double z_plus_d, double time, int comp_idx) const = 0;
 
     /*
-     * \brief Set and get Stokes wave parameters.
+     * \brief Get Stokes wave parameters.
      */
-    void setWaterDepth(double depth)
-    {
-        d_depth = depth;
-        return;
-    } // setWaterDept
-
     double getWaterDepth() const
     {
         return d_depth;
     } // getWaterDept
-
-    void setWaveAngularFrequency(double omega)
-    {
-        d_omega = omega;
-        return;
-    } // setWaveAngularFrequency
 
     double getWaveAngularFrequency() const
     {
         return d_omega;
     } // getWaveAngularFrequency
 
-    void setWaveNumber(double wave_number)
-    {
-        d_wave_number = wave_number;
-        return;
-    } // setWaveNumber
-
     double getWaveNumber() const
     {
         return d_wave_number;
     } // getWaveNumber
 
-    void setWaveAmplitude(double wave_amplitude)
-    {
-        d_amplitude = wave_amplitude;
-        return;
-    } // setWaveAmplitude
-
     double getWaveAmplitude() const
     {
         return d_amplitude;
     } // getWaveAmplitude
-
-    void setGravity(double g)
-    {
-        d_gravity = g;
-        return;
-    } // setGravity
 
     double getGravity() const
     {

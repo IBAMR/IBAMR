@@ -188,12 +188,13 @@ callStokesWaveRelaxationCallbackFunction(double /*current_time*/,
 StokesWaveGenerator::StokesWaveGenerator(const std::string& object_name, Pointer<Database> input_db)
 {
     d_object_name = object_name;
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_object_name.empty());
+    TBOX_ASSERT(input_db);
+#endif
 
     // Get wave parameters.
-    if (input_db)
-    {
-        getFromInput(input_db);
-    }
+    getFromInput(input_db);
 
     return;
 } // StokesWaveGenerator
@@ -206,6 +207,7 @@ StokesWaveGenerator::~StokesWaveGenerator()
 FifthOrderStokesWaveGenerator::FifthOrderStokesWaveGenerator(const std::string& object_name, Pointer<Database> input_db)
     : StokesWaveGenerator(object_name, input_db)
 {
+    initStokesCoefficients();
     return;
 } // FifthOrderStokesWaveGenerator
 
