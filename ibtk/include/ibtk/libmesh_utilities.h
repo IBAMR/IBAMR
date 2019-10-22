@@ -589,6 +589,10 @@ interpolate(libMesh::TypeVector<double>& U,
  * Compute the jacobian with respect to the initial configuration in the deformed configuration
  * @p X_node at quadrature point number @qp.
  *
+ * \f[ 
+ * J(qp) = \sum_{i = 1}^n \xi_i \otimes \nabla_X \phi_i(qp) 
+ * \f]
+ *
  * @param[out] dX_ds Tensor containing the output of this function of size 3x3.
  *
  * @param[in] qp Number of the quadrature point at which we will compute the
