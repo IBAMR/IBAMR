@@ -457,6 +457,36 @@ enum_to_string<LibmeshPartitionerType>(LibmeshPartitionerType val)
     return "UNKNOWN_LIBMESH_PARTITIONER_TYPE";
 } // enum_to_string
 
+/*!
+ * \brief Enumerated type for different evolution of SPD tensors.
+ */
+enum TensorEvolutionType
+{
+    STANDARD,
+    SQUARE_ROOT,
+    LOGARITHM,
+    UNKNOWN_TENSOR_EVOLUTION_TYPE = -1
+};
+
+template <>
+inline TensorEvolutionType
+string_to_enum<TensorEvolutionType>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "STANDARD") == 0) return STANDARD;
+    if (strcasecmp(val.c_str(), "SQUARE_ROOT") == 0) return STANDARD;
+    if (strcasecmp(val.c_str(), "LOGARITHM") == 0) return LOGARITHM;
+    return UNKNOWN_TENSOR_EVOLUTION_TYPE;
+}
+
+template <>
+inline std::string
+enum_to_string<TensorEvolutionType>(TensorEvolutionType val)
+{
+    if (val == STANDARD) return "STANDARD";
+    if (val == SQUARE_ROOT) return "SQUARE_ROOT";
+    if (val == LOGARITHM) return "LOGARITHM";
+    return "UNKNOWN_TENSOR_EVOLUTION_TYPE";
+}
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

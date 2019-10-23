@@ -125,6 +125,12 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp \
 ../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 ../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
+../src/complex_fluids/CFUpperConvectiveOperator.cpp \
+../src/complex_fluids/CFRelaxationOperator.cpp \
+../src/complex_fluids/CFGiesekusRelaxation.cpp \
+../src/complex_fluids/CFOldroydBRelaxation.cpp \
+../src/complex_fluids/CFRoliePolyRelaxation.cpp \
+../src/complex_fluids/CFINSForcing.cpp \
 ../src/level_set/FastSweepingLSMethod.cpp \
 ../src/level_set/LSInitStrategy.cpp \
 ../src/level_set/RelaxationLSBcCoefs.cpp \
@@ -349,6 +355,10 @@ $(top_builddir)/src/advect/fortran/advect_detect2d.f \
 $(top_builddir)/src/advect/fortran/advect_diff2d.f \
 $(top_builddir)/src/advect/fortran/advect_stable2d.f \
 $(top_builddir)/src/advect/fortran/advect_predictors2d.f \
+$(top_builddir)/src/complex_fluids/fortran/div_tensor2d.f \
+$(top_builddir)/src/complex_fluids/fortran/log_upper_convective_op2d.f \
+$(top_builddir)/src/complex_fluids/fortran/sqrt_upper_convective_op2d.f \
+$(top_builddir)/src/complex_fluids/fortran/upper_convective_op2d.f \
 $(top_builddir)/src/level_set/fortran/levelsetops2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f \
@@ -368,6 +378,10 @@ $(top_builddir)/src/advect/fortran/advect_detect3d.f \
 $(top_builddir)/src/advect/fortran/advect_diff3d.f \
 $(top_builddir)/src/advect/fortran/advect_stable3d.f \
 $(top_builddir)/src/advect/fortran/advect_predictors3d.f \
+$(top_builddir)/src/complex_fluids/fortran/div_tensor3d.f \
+$(top_builddir)/src/complex_fluids/fortran/log_upper_convective_op3d.f \
+$(top_builddir)/src/complex_fluids/fortran/sqrt_upper_convective_op3d.f \
+$(top_builddir)/src/complex_fluids/fortran/upper_convective_op3d.f \
 $(top_builddir)/src/level_set/fortran/levelsetops3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f \
