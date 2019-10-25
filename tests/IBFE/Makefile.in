@@ -90,7 +90,7 @@ host_triplet = @host@
 EXTRA_PROGRAMS = interpolate_velocity_01_2d$(EXEEXT) \
 	interpolate_velocity_01_3d$(EXEEXT) \
 	interpolate_velocity_02$(EXEEXT) explicit_ex4_2d$(EXEEXT) \
-	explicit_ex4_3d$(EXEEXT)
+	explicit_ex4_3d$(EXEEXT) explicit_ex8_2d$(EXEEXT)
 subdir = tests/IBFE
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -141,6 +141,13 @@ explicit_ex4_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(explicit_ex4_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_explicit_ex8_2d_OBJECTS = explicit_ex8_2d-explicit_ex8.$(OBJEXT)
+explicit_ex8_2d_OBJECTS = $(am_explicit_ex8_2d_OBJECTS)
+explicit_ex8_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+explicit_ex8_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(explicit_ex8_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_interpolate_velocity_01_2d_OBJECTS =  \
 	interpolate_velocity_01_2d-interpolate_velocity_01.$(OBJEXT)
 interpolate_velocity_01_2d_OBJECTS =  \
@@ -187,6 +194,7 @@ depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/explicit_ex4_2d-explicit_ex4.Po \
 	./$(DEPDIR)/explicit_ex4_3d-explicit_ex4.Po \
+	./$(DEPDIR)/explicit_ex8_2d-explicit_ex8.Po \
 	./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po \
 	./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po \
 	./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po
@@ -210,10 +218,12 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(explicit_ex4_2d_SOURCES) $(explicit_ex4_3d_SOURCES) \
+	$(explicit_ex8_2d_SOURCES) \
 	$(interpolate_velocity_01_2d_SOURCES) \
 	$(interpolate_velocity_01_3d_SOURCES) \
 	$(interpolate_velocity_02_SOURCES)
 DIST_SOURCES = $(explicit_ex4_2d_SOURCES) $(explicit_ex4_3d_SOURCES) \
+	$(explicit_ex8_2d_SOURCES) \
 	$(interpolate_velocity_01_2d_SOURCES) \
 	$(interpolate_velocity_01_3d_SOURCES) \
 	$(interpolate_velocity_02_SOURCES)
@@ -527,6 +537,9 @@ explicit_ex4_2d_SOURCES = explicit_ex4.cpp
 explicit_ex4_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 explicit_ex4_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 explicit_ex4_3d_SOURCES = explicit_ex4.cpp
+explicit_ex8_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+explicit_ex8_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+explicit_ex8_2d_SOURCES = explicit_ex8.cpp
 all: all-am
 
 .SUFFIXES:
@@ -570,6 +583,10 @@ explicit_ex4_3d$(EXEEXT): $(explicit_ex4_3d_OBJECTS) $(explicit_ex4_3d_DEPENDENC
 	@rm -f explicit_ex4_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(explicit_ex4_3d_LINK) $(explicit_ex4_3d_OBJECTS) $(explicit_ex4_3d_LDADD) $(LIBS)
 
+explicit_ex8_2d$(EXEEXT): $(explicit_ex8_2d_OBJECTS) $(explicit_ex8_2d_DEPENDENCIES) $(EXTRA_explicit_ex8_2d_DEPENDENCIES) 
+	@rm -f explicit_ex8_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(explicit_ex8_2d_LINK) $(explicit_ex8_2d_OBJECTS) $(explicit_ex8_2d_LDADD) $(LIBS)
+
 interpolate_velocity_01_2d$(EXEEXT): $(interpolate_velocity_01_2d_OBJECTS) $(interpolate_velocity_01_2d_DEPENDENCIES) $(EXTRA_interpolate_velocity_01_2d_DEPENDENCIES) 
 	@rm -f interpolate_velocity_01_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(interpolate_velocity_01_2d_LINK) $(interpolate_velocity_01_2d_OBJECTS) $(interpolate_velocity_01_2d_LDADD) $(LIBS)
@@ -590,6 +607,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex4_2d-explicit_ex4.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex4_3d-explicit_ex4.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex8_2d-explicit_ex8.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po@am__quote@ # am--include-marker
@@ -651,6 +669,20 @@ explicit_ex4_3d-explicit_ex4.obj: explicit_ex4.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='explicit_ex4.cpp' object='explicit_ex4_3d-explicit_ex4.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex4_3d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex4_3d-explicit_ex4.obj `if test -f 'explicit_ex4.cpp'; then $(CYGPATH_W) 'explicit_ex4.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex4.cpp'; fi`
+
+explicit_ex8_2d-explicit_ex8.o: explicit_ex8.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex8_2d_CXXFLAGS) $(CXXFLAGS) -MT explicit_ex8_2d-explicit_ex8.o -MD -MP -MF $(DEPDIR)/explicit_ex8_2d-explicit_ex8.Tpo -c -o explicit_ex8_2d-explicit_ex8.o `test -f 'explicit_ex8.cpp' || echo '$(srcdir)/'`explicit_ex8.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/explicit_ex8_2d-explicit_ex8.Tpo $(DEPDIR)/explicit_ex8_2d-explicit_ex8.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='explicit_ex8.cpp' object='explicit_ex8_2d-explicit_ex8.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex8_2d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex8_2d-explicit_ex8.o `test -f 'explicit_ex8.cpp' || echo '$(srcdir)/'`explicit_ex8.cpp
+
+explicit_ex8_2d-explicit_ex8.obj: explicit_ex8.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex8_2d_CXXFLAGS) $(CXXFLAGS) -MT explicit_ex8_2d-explicit_ex8.obj -MD -MP -MF $(DEPDIR)/explicit_ex8_2d-explicit_ex8.Tpo -c -o explicit_ex8_2d-explicit_ex8.obj `if test -f 'explicit_ex8.cpp'; then $(CYGPATH_W) 'explicit_ex8.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex8.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/explicit_ex8_2d-explicit_ex8.Tpo $(DEPDIR)/explicit_ex8_2d-explicit_ex8.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='explicit_ex8.cpp' object='explicit_ex8_2d-explicit_ex8.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex8_2d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex8_2d-explicit_ex8.obj `if test -f 'explicit_ex8.cpp'; then $(CYGPATH_W) 'explicit_ex8.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex8.cpp'; fi`
 
 interpolate_velocity_01_2d-interpolate_velocity_01.o: interpolate_velocity_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_01_2d_CXXFLAGS) $(CXXFLAGS) -MT interpolate_velocity_01_2d-interpolate_velocity_01.o -MD -MP -MF $(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Tpo -c -o interpolate_velocity_01_2d-interpolate_velocity_01.o `test -f 'interpolate_velocity_01.cpp' || echo '$(srcdir)/'`interpolate_velocity_01.cpp
@@ -827,6 +859,7 @@ clean-am: clean-generic clean-libtool mostlyclean-am
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/explicit_ex4_2d-explicit_ex4.Po
 	-rm -f ./$(DEPDIR)/explicit_ex4_3d-explicit_ex4.Po
+	-rm -f ./$(DEPDIR)/explicit_ex8_2d-explicit_ex8.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po
@@ -877,6 +910,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/explicit_ex4_2d-explicit_ex4.Po
 	-rm -f ./$(DEPDIR)/explicit_ex4_3d-explicit_ex4.Po
+	-rm -f ./$(DEPDIR)/explicit_ex8_2d-explicit_ex8.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po
