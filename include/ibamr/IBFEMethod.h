@@ -684,6 +684,11 @@ public:
      * Set integer tags to "one" in cells where refinement of the given level
      * should occur according to user-supplied feature detection criteria.
      *
+     * The name here is misleading, but SAMRAI expects us to use one of two
+     * tagging methods to refine the grid, and IBAMR consistently uses
+     * gradient detection: hence this function has the same name but tags
+     * cells in a different way.
+     *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector
      */
     void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
