@@ -376,7 +376,7 @@ FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx,
 
     // Fill ghost cells
     RefineAlgorithm<NDIM> ghost_fill_alg;
-    ghost_fill_alg.registerRefine(D_iter_idx, D_iter_idx, D_iter_idx, NULL);
+    ghost_fill_alg.registerRefine(D_iter_idx, D_iter_idx, D_iter_idx, nullptr);
     Pointer<RefineSchedule<NDIM> > ghost_fill_sched = ghost_fill_alg.createSchedule(level);
 
     int n_global_updates = 1;
@@ -1007,8 +1007,8 @@ FESurfaceDistanceEvaluator::computeSignedDistanceVolExtractedBdryMesh(int n_idx,
                     // then it MUST live on the boundary of the mesh
                     for (unsigned int s = 0; s < elem->n_sides(); ++s)
                     {
-                        if (elem->neighbor(s) != NULL) continue;
-                        UniquePtr<Elem> side_elem = elem->build_side(s, /*proxy*/ false);
+                        if (elem->neighbor_ptr(s) != nullptr) continue;
+                        UniquePtr<Elem> side_elem = elem->build_side_ptr(s, /*proxy*/ false);
                         IBTK::VectorNd v, w, proj;
                         double dist = std::numeric_limits<double>::max();
 
@@ -1082,7 +1082,7 @@ FESurfaceDistanceEvaluator::computeSignedDistanceVolExtractedBdryMesh(int n_idx,
                     // then it MUST live on the boundary of the mesh
                     for (unsigned int s = 0; s < elem->n_sides(); ++s)
                     {
-                        if (elem->neighbor(s) != NULL) continue;
+                        if (elem->neighbor_ptr(s) != nullptr) continue;
                         {
                             fe_bdry->reinit(elem, s);
                             const unsigned int n_qp = qrule_bdry->n_points();

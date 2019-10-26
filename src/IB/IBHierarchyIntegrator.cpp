@@ -227,6 +227,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
 
     // Initialize all variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
     const IntVector<NDIM> ib_ghosts = d_ib_method_ops->getMinimumGhostCellWidth();
     const IntVector<NDIM> ghosts = 1;
 
@@ -456,9 +457,6 @@ IBHierarchyIntegrator::regridHierarchyBeginSpecialized()
     if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement\n";
     d_ib_method_ops->beginDataRedistribution(d_hierarchy, d_gridding_alg);
     if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): regridding the patch hierarchy\n";
-
-    // TODO: Should this be moved into the base class?
-    d_ins_hier_integrator->regridHierarchy();
     return;
 } // regridHierarchyBeginSpecialized
 

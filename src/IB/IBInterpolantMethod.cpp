@@ -429,10 +429,10 @@ IBInterpolantMethod::postprocessIntegrateData(double /*current_time*/, double /*
 } // postprocessIntegrateData
 
 void
-IBInterpolantMethod::interpolateVelocity(const int u_data_idx,
-                                         const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                         const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-                                         const double data_time)
+IBInterpolantMethod::interpolateVelocity(const int /*u_data_idx*/,
+                                         const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
+                                         const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                                         const double /*data_time*/)
 {
     TBOX_ERROR("IBInterpolantMethod::interpolateVelocity(). This method is not implemented." << std::endl);
     return;

@@ -124,11 +124,6 @@ public:
                                   SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
-     * Project the velocity field following a regridding operation.
-     */
-    void regridProjection() override;
-
-    /*!
      * Prepare to advance the data from current_time to new_time.
      */
     void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
@@ -203,6 +198,11 @@ protected:
      * Prepare variables for plotting.
      */
     void setupPlotDataSpecialized() override;
+
+    /*!
+     * Project the velocity field following a regridding operation.
+     */
+    void regridProjection() override;
 
 private:
     /*!
