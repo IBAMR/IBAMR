@@ -37,7 +37,6 @@
 #include <IBAMR_config.h>
 #include <SAMRAI_config.h>
 
-// SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
@@ -52,12 +51,6 @@ GravityForcing::GravityForcing(const std::string& object_name,
     // intentionally blank
     return;
 } // GravityForcing
-
-GravityForcing::~GravityForcing()
-{
-    // intentionally blank
-    return;
-} // ~GravityForcing
 
 bool
 GravityForcing::isTimeDependent() const

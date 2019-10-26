@@ -1,14 +1,11 @@
 // Filename: SetFluidGasSolidViscosity.cpp
 // Created on Dec 14, 2017 by Nishant Nangia
 
-// APPLICATION INCLUDES
 #include "SetFluidGasSolidViscosity.h"
 
 #include <CartesianGridGeometry.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/HierarchyMathOps.h>
-
-// C++ INCLUDES
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
@@ -59,13 +56,6 @@ SetFluidGasSolidViscosity::SetFluidGasSolidViscosity(const std::string& object_n
     // intentionally left blank
     return;
 } // SetFluidGasSolidViscosity
-
-SetFluidGasSolidViscosity::~SetFluidGasSolidViscosity()
-{
-    // intentionally left blank
-    return;
-
-} //~SetFluidGasSolidViscosity
 
 void
 SetFluidGasSolidViscosity::setViscosityPatchData(int mu_idx,

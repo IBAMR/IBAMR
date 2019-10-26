@@ -37,7 +37,6 @@
 #include <IBAMR_config.h>
 #include <SAMRAI_config.h>
 
-// SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
@@ -60,12 +59,6 @@ FlowGravityForcing::FlowGravityForcing(const std::string& object_name,
     d_num_gas_interface_cells = input_db->getDouble("num_interface_cells");
     return;
 } // FlowGravityForcing
-
-FlowGravityForcing::~FlowGravityForcing()
-{
-    // intentionally blank
-    return;
-} // ~FlowGravityForcing
 
 bool
 FlowGravityForcing::isTimeDependent() const

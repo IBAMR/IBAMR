@@ -58,7 +58,7 @@ public:
     /*!
      * \brief Empty destructor.
      */
-    ~GravityForcing();
+    ~GravityForcing() = default;
 
     /*!
      * \name Methods to set patch data.
@@ -96,11 +96,11 @@ public:
     //\}
 
 private:
-    GravityForcing();
+    GravityForcing() = delete;
 
-    GravityForcing(const GravityForcing& from);
+    GravityForcing(const GravityForcing& from) = delete;
 
-    GravityForcing& operator=(const GravityForcing& that);
+    GravityForcing& operator=(const GravityForcing& that) = delete;
 
     std::string d_object_name;
     Pointer<INSVCStaggeredHierarchyIntegrator> d_ins_hierarchy_integrator;

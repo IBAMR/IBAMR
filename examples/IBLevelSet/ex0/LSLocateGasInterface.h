@@ -7,6 +7,7 @@
 #define included_LSLocateGasInterface
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
+
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibtk/ibtk_utilities.h>
 #include <tbox/Pointer.h>
@@ -18,20 +19,21 @@ class HierarchyMathOps;
 
 /*
  * Pre processing call back function to be hooked into IBAMR:LInitStrategy
+ *
+ * \TODO: Let's move this out of the global namespace and use "snake case" for static function names.
  */
-
 void callLSLocateGasInterfaceCallbackFunction(int D_idx,
                                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                               double time,
                                               bool initial_time,
                                               void* ctx);
 
+/*!
+ * \brief class LSLocateGasInterface is a utility class which is used to identify
+ * the circular interface for level set computations
+ */
 class LSLocateGasInterface
 {
-    /*!
-     * \brief class LSLocateGasInterface is a utility class which is used to identify
-     * the circular interface for level set computations
-     */
 public:
     /*!
      * The only constructor of this class.
@@ -44,7 +46,7 @@ public:
     /*!
      * Destructor for this class.
      */
-    ~LSLocateGasInterface();
+    ~LSLocateGasInterface() = default;
 
     /*!
      * Reinitialize the level set information
@@ -60,17 +62,17 @@ private:
     /*!
      * Default constructor is not implemented and should not be used.
      */
-    LSLocateGasInterface();
+    LSLocateGasInterface() = delete;
 
     /*!
      * Default assignment operator is not implemented and should not be used.
      */
-    LSLocateGasInterface& operator=(const LSLocateGasInterface& that);
+    LSLocateGasInterface& operator=(const LSLocateGasInterface& that) = delete;
 
     /*!
      * Default copy constructor is not implemented and should not be used.
      */
-    LSLocateGasInterface(const LSLocateGasInterface& from);
+    LSLocateGasInterface(const LSLocateGasInterface& from) = delete;
 
     /*!
      * Name of this object.

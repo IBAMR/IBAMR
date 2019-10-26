@@ -23,8 +23,9 @@ class HierarchyMathOps;
  *
  * \param rho_idx a patch data index for the current density variable maintained by the integrator.
  * \param ctx is the pointer to SetFluidGasSolidDensity class object.
+ *
+ * \TODO: Let's move this out of the global namespace and use "snake case" for static function names.
  */
-
 void callSetFluidGasSolidDensityCallbackFunction(int rho_idx,
                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
                                                  SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
@@ -34,12 +35,12 @@ void callSetFluidGasSolidDensityCallbackFunction(int rho_idx,
                                                  const double new_time,
                                                  void* ctx);
 
+/*!
+ * \brief Class SetFluidGasSolidDensity is a utility class which sets the fluid and
+ * solid Eulerian density based on the current level set information
+ */
 class SetFluidGasSolidDensity
 {
-    /*!
-     * \brief Class SetFluidGasSolidDensity is a utility class which sets the fluid and
-     * solid Eulerian density based on the current level set information
-     */
 public:
     /*!
      * The only constructor of this class.
@@ -58,7 +59,7 @@ public:
     /*!
      * Destructor for this class.
      */
-    ~SetFluidGasSolidDensity();
+    ~SetFluidGasSolidDensity() = default;
 
     /*!
      * Set the density based on the current level set information
@@ -71,23 +72,21 @@ public:
                              const double current_time,
                              const double new_time);
 
-    //////////////// PRIVATE /////////////////////////////
-
 private:
     /*!
      * Default constructor is not implemented and should not be used.
      */
-    SetFluidGasSolidDensity();
+    SetFluidGasSolidDensity() = delete;
 
     /*!
      * Default assignment operator is not implemented and should not be used.
      */
-    SetFluidGasSolidDensity& operator=(const SetFluidGasSolidDensity& that);
+    SetFluidGasSolidDensity& operator=(const SetFluidGasSolidDensity& that) = delete;
 
     /*!
      * Default copy constructor is not implemented and should not be used.
      */
-    SetFluidGasSolidDensity(const SetFluidGasSolidDensity& from);
+    SetFluidGasSolidDensity(const SetFluidGasSolidDensity& from) = delete;
 
     /*!
      * Name of this object.

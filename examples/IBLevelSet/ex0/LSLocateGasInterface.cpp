@@ -24,6 +24,7 @@ callLSLocateGasInterfaceCallbackFunction(int D_idx,
 } // callLSLocateGasInterfaceCallbackFunction
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
+
 LSLocateGasInterface::LSLocateGasInterface(const std::string& object_name,
                                            Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
                                            Pointer<CellVariable<NDIM, double> > ls_var,
@@ -33,12 +34,6 @@ LSLocateGasInterface::LSLocateGasInterface(const std::string& object_name,
     // intentionally left blank
     return;
 } // LSLocateGasInterface
-
-LSLocateGasInterface::~LSLocateGasInterface()
-{
-    // intentionally left blank
-    return;
-}
 
 void
 LSLocateGasInterface::setLevelSetPatchData(int D_idx,

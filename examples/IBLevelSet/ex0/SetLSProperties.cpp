@@ -39,13 +39,6 @@ SetLSProperties::SetLSProperties(const std::string& object_name, Pointer<LSInitS
     return;
 } // SetLSProperties
 
-SetLSProperties::~SetLSProperties()
-{
-    // intentionally left blank
-    return;
-
-} //~SetLSProperties
-
 void
 SetLSProperties::setLSGasPatchData(int ls_gas_idx,
                                    SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,

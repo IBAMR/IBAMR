@@ -1,14 +1,11 @@
 // Filename: SetFluidGasSolidDensity.cpp
 // Created on Nov 15, 2017 by Nishant Nangia
 
-// APPLICATION INCLUDES
 #include "SetFluidGasSolidDensity.h"
 
 #include <CartesianGridGeometry.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/HierarchyMathOps.h>
-
-// C++ INCLUDES
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
@@ -62,13 +59,6 @@ SetFluidGasSolidDensity::SetFluidGasSolidDensity(const std::string& object_name,
     // intentionally left blank
     return;
 } // SetFluidGasSolidDensity
-
-SetFluidGasSolidDensity::~SetFluidGasSolidDensity()
-{
-    // intentionally left blank
-    return;
-
-} //~SetFluidGasSolidDensity
 
 void
 SetFluidGasSolidDensity::setDensityPatchData(int rho_idx,
