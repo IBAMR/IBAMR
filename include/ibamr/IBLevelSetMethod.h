@@ -128,9 +128,9 @@ public:
     void deactivateIBFEMethod();
 
     /*!
-     * \brief Destructor.
+     * \brief Default dstructor.
      */
-    ~IBLevelSetMethod();
+    ~IBLevelSetMethod() = default;
 
     /*!
      * Register the IBHierarchyIntegrator object that is using this strategy
@@ -361,7 +361,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBLevelSetMethod(const IBLevelSetMethod& from);
+    IBLevelSetMethod(const IBLevelSetMethod& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -372,7 +372,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBLevelSetMethod& operator=(const IBLevelSetMethod& that);
+    IBLevelSetMethod& operator=(const IBLevelSetMethod& that) = delete;
 
     /*!
      * \brief The set of IBStrategy objects.

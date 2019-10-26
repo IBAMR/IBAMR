@@ -111,7 +111,7 @@ public:
     /*!
      * \brief Destructor of the class.
      */
-    virtual ~StokesWaveGenerator();
+    virtual ~StokesWaveGenerator() = default;
 
     /*!
      * Get surface elevation at a specified horizontal position and time.

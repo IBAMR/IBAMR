@@ -199,11 +199,6 @@ StokesWaveGenerator::StokesWaveGenerator(const std::string& object_name, Pointer
     return;
 } // StokesWaveGenerator
 
-StokesWaveGenerator::~StokesWaveGenerator()
-{
-    return;
-} // ~StokesWaveGenerator
-
 FifthOrderStokesWaveGenerator::FifthOrderStokesWaveGenerator(const std::string& object_name, Pointer<Database> input_db)
     : StokesWaveGenerator(object_name, input_db)
 {

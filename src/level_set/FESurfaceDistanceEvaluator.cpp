@@ -136,12 +136,6 @@ FESurfaceDistanceEvaluator::FESurfaceDistanceEvaluator(std::string object_name,
     return;
 } // FESurfaceDistanceEvaluator
 
-FESurfaceDistanceEvaluator::~FESurfaceDistanceEvaluator()
-{
-    // intentionally left blank
-    return;
-}
-
 void
 FESurfaceDistanceEvaluator::mapIntersections()
 {

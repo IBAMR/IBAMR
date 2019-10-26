@@ -77,12 +77,6 @@ IBInterpolantHierarchyIntegrator::IBInterpolantHierarchyIntegrator(std::string o
     return;
 } // IBInterpolantHierarchyIntegrator
 
-IBInterpolantHierarchyIntegrator::~IBInterpolantHierarchyIntegrator()
-{
-    // intentionally blank
-    return;
-} // ~IBInterpolantHierarchyIntegrator
-
 void
 IBInterpolantHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                                const double new_time,

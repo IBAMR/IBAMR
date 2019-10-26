@@ -72,9 +72,9 @@ public:
                                bool use_extracted_bdry_mesh = true);
 
     /*!
-     * Destructor for this class.
+     * Default dstructor.
      */
-    ~FESurfaceDistanceEvaluator();
+    ~FESurfaceDistanceEvaluator() = default;
 
     /*!
      * Map the triangles intersecting a particular grid cell.
@@ -152,17 +152,17 @@ private:
     /*!
      * Default constructor is not implemented and should not be used.
      */
-    FESurfaceDistanceEvaluator();
+    FESurfaceDistanceEvaluator() = delete;
 
     /*!
      * Default assignment operator is not implemented and should not be used.
      */
-    FESurfaceDistanceEvaluator& operator=(const FESurfaceDistanceEvaluator& that);
+    FESurfaceDistanceEvaluator& operator=(const FESurfaceDistanceEvaluator& that) = delete;
 
     /*!
      * Default copy constructor is not implemented and should not be used.
      */
-    FESurfaceDistanceEvaluator(const FESurfaceDistanceEvaluator& from);
+    FESurfaceDistanceEvaluator(const FESurfaceDistanceEvaluator& from) = delete;
 
     /*!
      * Collect all of the neighboring elements which are located within a local

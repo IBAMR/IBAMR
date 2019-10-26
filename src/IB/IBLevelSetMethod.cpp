@@ -70,12 +70,6 @@ IBLevelSetMethod::deactivateIBFEMethod()
     return;
 } // deactivateIBFEMethod
 
-IBLevelSetMethod::~IBLevelSetMethod()
-{
-    // intentionally blank
-    return;
-} // ~IBLevelSetMethod
-
 void
 IBLevelSetMethod::registerIBHierarchyIntegrator(IBHierarchyIntegrator* ib_solver)
 {

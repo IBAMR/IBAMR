@@ -242,7 +242,7 @@ private:
      * \note Columns 1-3 represent sum of -p.n dA. Columns 4-6 represent sum of n.(grad U + grad U^T) dA.
      *
      */
-    std::ofstream* d_hydro_force_stream = nullptr;
+    std::unique_ptr<std::ofstream> d_hydro_force_stream = nullptr;
 
     /*!
      * \brief File streams associated for the output of hydrodynamic torque.
@@ -250,7 +250,7 @@ private:
      * \note Columns 1-3 represent sum of r X -p.n dA. Columns 4-6 represent sum of r x n.(grad U + grad U^T) dA.
      *
      */
-    std::ofstream* d_hydro_torque_stream = nullptr;
+    std::unique_ptr<std::ofstream> d_hydro_torque_stream = nullptr;
 };
 } // namespace IBAMR
 

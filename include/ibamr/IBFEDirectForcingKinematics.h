@@ -214,7 +214,6 @@ public:
 
     /*!
      * \brief Write out object state to the given database.
-     *
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 

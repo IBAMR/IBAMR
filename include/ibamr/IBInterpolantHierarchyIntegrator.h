@@ -86,10 +86,9 @@ public:
                                      bool register_for_restart = true);
 
     /*!
-     * The destructor for class IBInterpolantHierarchyIntegrator does
-     * not do anything interesting.
+     * Default destructor.
      */
-    ~IBInterpolantHierarchyIntegrator();
+    ~IBInterpolantHierarchyIntegrator() = default;
 
     /*!
      * Prepare to advance the data from current_time to new_time.

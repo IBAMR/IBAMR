@@ -487,7 +487,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBInterpolantMethod();
+    IBInterpolantMethod() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -496,7 +496,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBInterpolantMethod(const IBInterpolantMethod& from);
+    IBInterpolantMethod(const IBInterpolantMethod& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -507,7 +507,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBInterpolantMethod& operator=(const IBInterpolantMethod& that);
+    IBInterpolantMethod& operator=(const IBInterpolantMethod& that) = delete;
 
     /*!
      * Read input values from a given database.
