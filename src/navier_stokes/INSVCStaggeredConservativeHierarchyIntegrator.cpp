@@ -458,7 +458,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
                                 current_time,
                                 d_mu_vc_interp_type);
 
-
     // Add the momentum portion of the RHS in the case of conservative discretization form
     // RHS^n = RHS^n + 1/dt*(rho*U)^n
     d_hier_sc_data_ops->multiply(d_temp_sc_idx, d_rho_sc_scratch_idx, d_U_scratch_idx, /*interior_only*/ true);
