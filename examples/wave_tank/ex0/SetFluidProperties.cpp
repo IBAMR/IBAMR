@@ -79,13 +79,6 @@ SetFluidProperties::SetFluidProperties(const std::string& object_name,
     return;
 } // SetFluidProperties
 
-SetFluidProperties::~SetFluidProperties()
-{
-    // intentionally left blank
-    return;
-
-} //~SetFluidProperties
-
 void
 SetFluidProperties::setDensityPatchData(int rho_idx,
                                         Pointer<Variable<NDIM> > rho_var,

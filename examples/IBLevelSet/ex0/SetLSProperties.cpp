@@ -1,14 +1,11 @@
 // Filename: SetLSProperties.cpp
 // Created on Dec 17, 2017 by Nishant Nangia
 
-// APPLICATION INCLUDES
 #include "SetLSProperties.h"
 
 #include <CartesianGridGeometry.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/HierarchyMathOps.h>
-
-// C++ INCLUDES
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

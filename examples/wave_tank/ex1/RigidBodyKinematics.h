@@ -47,12 +47,10 @@ namespace mu
 class Parser;
 } // namespace mu
 
-namespace IBAMR
-{
 /*!
  * \brief Class RigidBodyKinematics provides definition for base ConstraintIBKinematics class.
  */
-class RigidBodyKinematics : public ConstraintIBKinematics
+class RigidBodyKinematics : public IBAMR::ConstraintIBKinematics
 {
 public:
     /*!
@@ -101,17 +99,17 @@ private:
     /*!
      * \brief Deleted default ctor.
      */
-    RigidBodyKinematics();
+    RigidBodyKinematics() = delete;
 
     /*!
      * \brief Deleted default copy ctor.
      */
-    RigidBodyKinematics(const RigidBodyKinematics& from);
+    RigidBodyKinematics(const RigidBodyKinematics& from) = delete;
 
     /*!
      * \brief Deleted default assignment.
      */
-    RigidBodyKinematics& operator=(const RigidBodyKinematics& that);
+    RigidBodyKinematics& operator=(const RigidBodyKinematics& that) = delete;
 
     /*!
      * \brief Get necessary data from restart manager for restarted runs.

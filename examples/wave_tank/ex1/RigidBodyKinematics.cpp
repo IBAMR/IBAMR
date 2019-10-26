@@ -49,14 +49,6 @@
 // C++ INCLUDES
 #include <string>
 
-namespace IBAMR
-{
-namespace
-{
-static const double PII = 3.14159265358979323846264338327950288419716939937510;
-
-} // namespace anonymous
-
 RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
                                          Pointer<Database> input_db,
                                          LDataManager* l_data_manager,
@@ -104,9 +96,9 @@ RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
     for (std::vector<mu::Parser*>::const_iterator cit = d_all_parsers.begin(); cit != d_all_parsers.end(); ++cit)
     {
         // Various names for pi.
-        (*cit)->DefineConst("pi", PII);
-        (*cit)->DefineConst("Pi", PII);
-        (*cit)->DefineConst("PI", PII);
+        (*cit)->DefineConst("pi", M_PI);
+        (*cit)->DefineConst("Pi", M_PI);
+        (*cit)->DefineConst("PI", M_PI);
 
         // Variables
         (*cit)->DefineVar("T", d_parser_time);
@@ -282,5 +274,3 @@ RigidBodyKinematics::getShape(const int /*level*/) const
 {
     return d_shape;
 } // getShape
-
-} // namespace IBAMR

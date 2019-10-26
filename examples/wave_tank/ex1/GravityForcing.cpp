@@ -53,12 +53,6 @@ GravityForcing::GravityForcing(const std::string& object_name,
     return;
 } // GravityForcing
 
-GravityForcing::~GravityForcing()
-{
-    // intentionally blank
-    return;
-} // ~GravityForcing
-
 bool
 GravityForcing::isTimeDependent() const
 {

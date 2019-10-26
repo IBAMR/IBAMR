@@ -18,8 +18,9 @@ class HierarchyMathOps;
 
 /*
  * Pre processing call back function to be hooked into IBAMR:LInitStrategy
+ *
+ * \TODO: Let's move this out of the global namespace and use "snake case" for static function names.
  */
-
 void callLSLocateColumnInterfaceCallbackFunction(int D_idx,
                                                  SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                  double time,
@@ -32,12 +33,12 @@ struct ColumnInterface
     double DEPTH;
 };
 
+/*!
+ * \brief class LSLocateColumnInterface is a utility class which is used to identify
+ * the circular interface for level set computations
+ */
 class LSLocateColumnInterface
 {
-    /*!
-     * \brief class LSLocateColumnInterface is a utility class which is used to identify
-     * the circular interface for level set computations
-     */
 public:
     /*!
      * The only constructor of this class.
@@ -50,7 +51,7 @@ public:
     /*!
      * Destructor for this class.
      */
-    ~LSLocateColumnInterface();
+    ~LSLocateColumnInterface() = default;
 
     /*!
      * Reinitialize the level set information
@@ -60,23 +61,21 @@ public:
                               const double time,
                               const bool initial_time);
 
-    //////////////// PRIVATE /////////////////////////////
-
 private:
     /*!
      * Default constructor is not implemented and should not be used.
      */
-    LSLocateColumnInterface();
+    LSLocateColumnInterface() = delete;
 
     /*!
      * Default assignment operator is not implemented and should not be used.
      */
-    LSLocateColumnInterface& operator=(const LSLocateColumnInterface& that);
+    LSLocateColumnInterface& operator=(const LSLocateColumnInterface& that) = delete;
 
     /*!
      * Default copy constructor is not implemented and should not be used.
      */
-    LSLocateColumnInterface(const LSLocateColumnInterface& from);
+    LSLocateColumnInterface(const LSLocateColumnInterface& from) = delete;
 
     /*!
      * Name of this object.

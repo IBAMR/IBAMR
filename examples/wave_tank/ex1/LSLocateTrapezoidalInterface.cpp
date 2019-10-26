@@ -25,6 +25,7 @@ callLSLocateTrapezoidalInterfaceCallbackFunction(int D_idx,
 } // callLSLocateTrapezoidalInterfaceCallbackFunction
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
+
 LSLocateTrapezoidalInterface::LSLocateTrapezoidalInterface(const std::string& object_name,
                                                            Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
                                                            Pointer<CellVariable<NDIM, double> > ls_var,
@@ -34,12 +35,6 @@ LSLocateTrapezoidalInterface::LSLocateTrapezoidalInterface(const std::string& ob
     // intentionally left blank
     return;
 } // LSLocateTrapezoidalInterface
-
-LSLocateTrapezoidalInterface::~LSLocateTrapezoidalInterface()
-{
-    // intentionally left blank
-    return;
-}
 
 void
 LSLocateTrapezoidalInterface::setLevelSetPatchData(int D_idx,

@@ -22,8 +22,9 @@ class HierarchyMathOps;
  *
  * \param ls_idx a patch data index for the current level set variable maintained by the integrator.
  * \param ctx is the pointer to SetLSProperties class object.
+ *
+ * \TODO: Let's move this out of the global namespace and use "snake case" for static function names.
  */
-
 void callSetSolidLSCallbackFunction(int ls_solid_idx,
                                     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                     const int integrator_step,
@@ -32,6 +33,11 @@ void callSetSolidLSCallbackFunction(int ls_solid_idx,
                                     const bool regrid_time,
                                     void* ctx);
 
+/*!
+ * \TODO: Document this function.
+ *
+ * \TODO: Let's move this out of the global namespace and use "snake case" for static function names.
+ */
 void callSetGasLSCallbackFunction(int ls_gas_idx,
                                   SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                   const int integrator_step,
@@ -39,11 +45,11 @@ void callSetGasLSCallbackFunction(int ls_gas_idx,
                                   const bool initial_time,
                                   const bool regrid_time,
                                   void* ctx);
+/*!
+ * \brief Class SetLSProperties is a utility class which sets level set values on the patch hierarchy
+ */
 class SetLSProperties
 {
-    /*!
-     * \brief Class SetLSProperties is a utility class which sets level set values on the patch hierarchy
-     */
 public:
     /*!
      * The only constructor of this class.
@@ -55,7 +61,7 @@ public:
     /*!
      * Destructor for this class.
      */
-    ~SetLSProperties();
+    ~SetLSProperties() = default;
 
     /*!
      * Set the density based on the current solid level set information
@@ -77,23 +83,21 @@ public:
                            const bool initial_time,
                            const bool regrid_time);
 
-    //////////////// PRIVATE /////////////////////////////
-
 private:
     /*!
      * Default constructor is not implemented and should not be used.
      */
-    SetLSProperties();
+    SetLSProperties() = delete;
 
     /*!
      * Default assignment operator is not implemented and should not be used.
      */
-    SetLSProperties& operator=(const SetLSProperties& that);
+    SetLSProperties& operator=(const SetLSProperties& that) = delete;
 
     /*!
      * Default copy constructor is not implemented and should not be used.
      */
-    SetLSProperties(const SetLSProperties& from);
+    SetLSProperties(const SetLSProperties& from) = delete;
 
     /*!
      * Name of this object.

@@ -60,13 +60,6 @@ SetFluidGasSolidViscosity::SetFluidGasSolidViscosity(const std::string& object_n
     return;
 } // SetFluidGasSolidViscosity
 
-SetFluidGasSolidViscosity::~SetFluidGasSolidViscosity()
-{
-    // intentionally left blank
-    return;
-
-} //~SetFluidGasSolidViscosity
-
 void
 SetFluidGasSolidViscosity::setViscosityPatchData(int mu_idx,
                                                  Pointer<Variable<NDIM> > mu_var,

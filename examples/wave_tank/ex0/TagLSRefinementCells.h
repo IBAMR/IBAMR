@@ -23,8 +23,9 @@
  *
  * \param rho_idx a patch data index for the current density variable maintained by the integrator.
  * \param ctx is the pointer to TagLSRefinementCells class object.
+ *
+ * \TODO: Let's move this out of the global namespace and use "snake case" for static function names.
  */
-
 void callTagLSRefinementCellsCallbackFunction(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                               const int level_number,
                                               const double error_data_time,

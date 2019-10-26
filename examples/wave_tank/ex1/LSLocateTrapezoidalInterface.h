@@ -18,8 +18,9 @@ class HierarchyMathOps;
 
 /*
  * Pre processing call back function to be hooked into IBAMR:LInitStrategy
+ *
+ * \TODO: Let's move this out of the global namespace and use "snake case" for static function names.
  */
-
 void callLSLocateTrapezoidalInterfaceCallbackFunction(int D_idx,
                                                       SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                       double time,
@@ -33,12 +34,12 @@ struct TrapezoidalInterface
     IBTK::Vector BL, BR, TL, TR;
 };
 
+/*!
+ * \brief class LSLocateTrapezoidalInterface is a utility class which is used to identify
+ * the trapezoidal interface for level set computations
+ */
 class LSLocateTrapezoidalInterface
 {
-    /*!
-     * \brief class LSLocateTrapezoidalInterface is a utility class which is used to identify
-     * the trapezoidal interface for level set computations
-     */
 public:
     /*!
      * The only constructor of this class.
@@ -51,7 +52,7 @@ public:
     /*!
      * Destructor for this class.
      */
-    ~LSLocateTrapezoidalInterface();
+    ~LSLocateTrapezoidalInterface() = default;
 
     /*!
      * Reinitialize the level set information
@@ -61,23 +62,21 @@ public:
                               const double time,
                               const bool initial_time);
 
-    //////////////// PRIVATE /////////////////////////////
-
 private:
     /*!
      * Default constructor is not implemented and should not be used.
      */
-    LSLocateTrapezoidalInterface();
+    LSLocateTrapezoidalInterface() = delete;
 
     /*!
      * Default assignment operator is not implemented and should not be used.
      */
-    LSLocateTrapezoidalInterface& operator=(const LSLocateTrapezoidalInterface& that);
+    LSLocateTrapezoidalInterface& operator=(const LSLocateTrapezoidalInterface& that) = delete;
 
     /*!
      * Default copy constructor is not implemented and should not be used.
      */
-    LSLocateTrapezoidalInterface(const LSLocateTrapezoidalInterface& from);
+    LSLocateTrapezoidalInterface(const LSLocateTrapezoidalInterface& from) = delete;
 
     /*!
      * Point to line distance

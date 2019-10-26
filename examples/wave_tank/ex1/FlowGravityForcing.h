@@ -62,7 +62,7 @@ public:
     /*!
      * \brief Empty destructor.
      */
-    ~FlowGravityForcing();
+    ~FlowGravityForcing() = default;
 
     /*!
      * \name Methods to set patch data.
@@ -100,11 +100,11 @@ public:
     //\}
 
 private:
-    FlowGravityForcing();
+    FlowGravityForcing() = delete;
 
-    FlowGravityForcing(const FlowGravityForcing& from);
+    FlowGravityForcing(const FlowGravityForcing& from) = delete;
 
-    FlowGravityForcing& operator=(const FlowGravityForcing& that);
+    FlowGravityForcing& operator=(const FlowGravityForcing& that) = delete;
 
     std::string d_object_name;
     Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hierarchy_integrator;

@@ -60,13 +60,6 @@ SetFluidGasSolidDensity::SetFluidGasSolidDensity(const std::string& object_name,
     return;
 } // SetFluidGasSolidDensity
 
-SetFluidGasSolidDensity::~SetFluidGasSolidDensity()
-{
-    // intentionally left blank
-    return;
-
-} //~SetFluidGasSolidDensity
-
 void
 SetFluidGasSolidDensity::setDensityPatchData(int rho_idx,
                                              Pointer<Variable<NDIM> > rho_var,

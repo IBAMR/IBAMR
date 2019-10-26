@@ -61,12 +61,6 @@ FlowGravityForcing::FlowGravityForcing(const std::string& object_name,
     return;
 } // FlowGravityForcing
 
-FlowGravityForcing::~FlowGravityForcing()
-{
-    // intentionally blank
-    return;
-} // ~FlowGravityForcing
-
 bool
 FlowGravityForcing::isTimeDependent() const
 {

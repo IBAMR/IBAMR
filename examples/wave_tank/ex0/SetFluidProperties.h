@@ -39,8 +39,9 @@ void callSetFluidDensityCallbackFunction(int rho_idx,
  *
  * \param rho_idx a patch data index for the current density variable maintained by the integrator.
  * \param ctx is the pointer to SetFluidProperties class object.
+ *
+ * \TODO: Let's move this out of the global namespace and use "snake case" for static function names.
  */
-
 void callSetFluidViscosityCallbackFunction(int mu_idx,
                                            SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
                                            SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
@@ -50,12 +51,12 @@ void callSetFluidViscosityCallbackFunction(int mu_idx,
                                            const double new_time,
                                            void* ctx);
 
+/*!
+ * \brief Class SetFluidProperties is a utility class which sets the fluid and
+ * solid Eulerian density based on the current level set information
+ */
 class SetFluidProperties
 {
-    /*!
-     * \brief Class SetFluidProperties is a utility class which sets the fluid and
-     * solid Eulerian density based on the current level set information
-     */
 public:
     /*!
      * The only constructor of this class.
@@ -73,7 +74,7 @@ public:
     /*!
      * Destructor for this class.
      */
-    ~SetFluidProperties();
+    ~SetFluidProperties() = default;
 
     /*!
      * Set the density based on the current level set information
@@ -103,17 +104,17 @@ private:
     /*!
      * Default constructor is not implemented and should not be used.
      */
-    SetFluidProperties();
+    SetFluidProperties() = delete;
 
     /*!
      * Default assignment operator is not implemented and should not be used.
      */
-    SetFluidProperties& operator=(const SetFluidProperties& that);
+    SetFluidProperties& operator=(const SetFluidProperties& that) = delete;
 
     /*!
      * Default copy constructor is not implemented and should not be used.
      */
-    SetFluidProperties(const SetFluidProperties& from);
+    SetFluidProperties(const SetFluidProperties& from) = delete;
 
     /*!
      * Name of this object.

@@ -34,12 +34,6 @@ LSLocateColumnInterface::LSLocateColumnInterface(const std::string& object_name,
     return;
 } // LSLocateColumnInterface
 
-LSLocateColumnInterface::~LSLocateColumnInterface()
-{
-    // intentionally left blank
-    return;
-}
-
 void
 LSLocateColumnInterface::setLevelSetPatchData(int D_idx,
                                               Pointer<HierarchyMathOps> hier_math_ops,
@@ -87,12 +81,7 @@ LSLocateColumnInterface::setLevelSetPatchData(int D_idx,
                 {
                     coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
                 }
-
-#if (NDIM == 2)
-                (*D_data)(ci) = coord[1] - depth;
-#elif (NDIM == 3)
-                (*D_data)(ci) = coord[2] - depth;
-#endif
+                (*D_data)(ci) = coord[NDIM - 1] - depth;
             }
         }
     }

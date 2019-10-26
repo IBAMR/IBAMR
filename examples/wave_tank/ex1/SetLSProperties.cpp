@@ -59,13 +59,6 @@ SetLSProperties::SetLSProperties(const std::string& object_name,
     return;
 } // SetLSProperties
 
-SetLSProperties::~SetLSProperties()
-{
-    // intentionally left blank
-    return;
-
-} //~SetLSProperties
-
 void
 SetLSProperties::setLSSolidPatchData(int ls_solid_idx,
                                      SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
